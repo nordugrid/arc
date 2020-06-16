@@ -1,0 +1,99 @@
+#!@PYTHON@
+
+from __future__ import print_function
+
+import argparse
+import sys
+import os
+
+# ARC-prefix path in PYTHONPATH
+arc_prefix_pythonpath = '@PYTHON_SITE_ARCH@'.replace('${prefix}', '@prefix@')
+if os.path.isdir(arc_prefix_pythonpath):
+    if arc_prefix_pythonpath not in sys.path:
+        sys.path.insert(1, arc_prefix_pythonpath)
+
+from arc.utils.config import *
+
+
+def process_config(args):
+    if args.load:
+        # load runtime configuration is priority if requested
+        load_run_config(args.runconfig)
+    else:
+        # parse both arc.conf and defaults
+        parse_arc_conf(args.config, args.defaults)
+
+
+def get_parser():
+    parser = argparse.ArgumentParser(description='Nordugrid ARC configuration parser')
+    parser.add_argument('--debug', action='store',
+                        help='verbosity level (default is %(default)s)', default='WARNING',
+                        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
+
+    runcfg = parser.add_argument_group('Runtime configuration',
+                                       'Work with runtime configuration that includes default values')
+    runcfg.add_argument('--load', action='store_true', help='load ARC runtime configuration')
+    runcfg.add_argument('--save', action='store_true', help='save ARC runtime configuration')
+    runcfg.add_argument('-r', '--runconfig', action='store',
+                        help='runtime config file location (default is %(default)s)', default=runconf_defpath())
+
+    initcfg = parser.add_argument_group('Configuration files', 'Initial ARC configuration files')
+    initcfg.add_argument('-c', '--config', action='store',
+                         help='config file location (default is %(default)s)', default=arcconf_defpath())
+    initcfg.add_argument('-d', '--defaults', action='store',
+                         help='defaults file location (default is %(default)s)', default=defaults_defpath())
+
+    getvalues = parser.add_argument_group('Getting values', 'Get blocks and configuration option values')
+    getvalues.add_argument('-b', '--block', action='append',
+                           help='block name (can be specified several times)')
+    getvalues.add_argument('-o', '--option', action='store', help='option name')
+    getvalues.add_argument('-s', '--subblocks', action='store_true',
+                           help='match subblocks against supplied block name(s)')
+    getvalues.add_argument('-e', '--export', action='store', choices=['bash', 'json'],
+                           help='export configuration to the defined format')
+    getvalues.add_argument('-f', '--export-filter', action='append',
+                           help='limit bash export to specified options only')
+    return parser
+
+
+if __name__ == '__main__':
+    # command line arguments parsing
+    args_parser = get_parser()
+    cmd_args = args_parser.parse_args()
+    logger.setLevel(getattr(logging, cmd_args.debug, 30))
+
+    # operations logic
+    if cmd_args.save:
+        process_config(cmd_args)
+        # save parsed running config if requested
+        save_run_config(cmd_args.runconfig)
+    elif cmd_args.export:
+        process_config(cmd_args)
+        # export data
+        if cmd_args.export == 'json':
+            print(export_json(cmd_args.block, cmd_args.subblocks))
+        elif cmd_args.export == 'bash':
+            print(export_bash(cmd_args.block, cmd_args.subblocks, cmd_args.export_filter))
+    else:
+        # get values
+        if cmd_args.block:
+            process_config(cmd_args)
+            # get value
+            if cmd_args.option:
+                values = get_value(cmd_args.option, cmd_args.block)
+                if isinstance(values, list):
+                    for v in values:
+                        print(v)
+                else:
+                    if values is None:
+                        sys.exit(1)
+                    print(values)
+            # work with blocks structure
+            else:
+                if cmd_args.subblocks:
+                    for sb in get_subblocks(cmd_args.block):
+                        print(sb)
+                elif not check_blocks(cmd_args.block):
+                    sys.exit(1)
+        else:
+            args_parser.print_help()

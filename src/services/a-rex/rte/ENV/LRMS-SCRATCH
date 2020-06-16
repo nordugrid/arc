@@ -1,0 +1,19 @@
+# description: enables the usage of local to WN scratch directory defined by LRMS
+# param:SCRATCH_VAR:string:WORKDIR:Variable name that holds the path to job-specific WN scratch directory
+# param:TMPDIR_LOCATION:string::Define the TMPDIR path on WN. Variable names can be used as a part of the path, e.g. '$WORKDIR/tmp'
+
+SCRATCH_VAR="${SCRATCH_VAR:-WORKDIR}"
+TMPDIR_LOCATION="${TMPDIR_LOCATION:-}"
+
+if [ "x$1" = "x0" ]; then
+    RUNTIME_LOCAL_SCRATCH_DIR="\${${SCRATCH_VAR}}"
+elif [ "x$1" = "x1" ]; then
+    if [  -n "${TMPDIR_LOCATION}" ]; then
+        if [ ! -d "${TMPDIR_LOCATION}" ]; then
+            mkdir "${TMPDIR_LOCATION}"
+            chmod 1777 "${TMPDIR_LOCATION}"
+        fi
+        export TMPDIR="${TMPDIR_LOCATION}"
+    fi
+fi
+

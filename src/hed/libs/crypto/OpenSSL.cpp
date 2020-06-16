@@ -4,6 +4,7 @@
 #include <config.h>
 #endif
 
+#include <openssl/crypto.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
@@ -19,8 +20,10 @@ namespace Arc {
 
   static Glib::Mutex lock;
   static bool initialized = false;
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
   static Glib::Mutex* ssl_locks = NULL;
   static int ssl_locks_num = 0;
+#endif
   static std::map<std::string,int> app_data_indices;
 
   static Logger& logger(void) {
@@ -93,11 +96,7 @@ namespace Arc {
   }
 
   static unsigned long ssl_id_cb(void) {
-#ifdef WIN32
-    return (unsigned long)(GetCurrentThreadId());
-#else
     return (unsigned long)(Glib::Thread::self());
-#endif
   }
 
   //static void* ssl_idptr_cb(void) {
@@ -124,7 +123,10 @@ namespace Arc {
                            OPENSSL_INIT_LOAD_CRYPTO_STRINGS |
                            OPENSSL_INIT_ADD_ALL_CIPHERS |
                            OPENSSL_INIT_ADD_ALL_DIGESTS |
-                           OPENSSL_INIT_NO_LOAD_CONFIG, NULL)) {
+                           ((OpenSSL_version_num() < 0x10101000L) ?
+                             OPENSSL_INIT_NO_LOAD_CONFIG :
+                             OPENSSL_INIT_LOAD_CONFIG),
+                           NULL)) {
         logger().msg(ERROR, "Failed to initialize OpenSSL library");
         HandleOpenSSLError();
         return false;
@@ -135,7 +137,7 @@ namespace Arc {
       // data. I think it's better to let OpenSSL do a job.
       // Here we could also generate ephemeral DH key to avoid
       // time consuming genaration during connection handshake.
-      // But is not clear if it is needed for curently used
+      // But is not clear if it is needed for currently used
       // connections types at all. Needs further investigation.
       // Using RSA key violates TLS (according to OpenSSL
       // documentation) hence we do not use it.

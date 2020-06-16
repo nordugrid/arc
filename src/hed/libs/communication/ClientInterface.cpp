@@ -77,8 +77,8 @@ namespace Arc {
                                      const char *id) {
     XMLNode comp = chain["Component"];
     for (; (bool)comp; ++comp)
-      if ((comp.Attribute("name") == name) &&
-          (comp.Attribute("id") == id))
+      if ((!name || (comp.Attribute("name") == name)) &&
+          (!id || (comp.Attribute("id") == id)))
         return comp;
     return XMLNode();
   }
@@ -153,10 +153,12 @@ namespace Arc {
 
     if (SECURITY_IS_SSL(sec.sec)) {
       comp = ConfigMakeComponent(xmlcfg["Chain"], "tls.client", "tls", "tcp");
-      if (!cfg.key.empty()) comp.NewChild("KeyPath") = cfg.key;
-      if (!cfg.cert.empty()) comp.NewChild("CertificatePath") = cfg.cert;
-      if (!cfg.proxy.empty()) comp.NewChild("ProxyPath") = cfg.proxy;
-      if (!cfg.credential.empty()) comp.NewChild("Credential") = cfg.credential;
+      if (sec.cred == UseX509Cred) {
+        if (!cfg.key.empty()) comp.NewChild("KeyPath") = cfg.key;
+        if (!cfg.cert.empty()) comp.NewChild("CertificatePath") = cfg.cert;
+        if (!cfg.proxy.empty()) comp.NewChild("ProxyPath") = cfg.proxy;
+        if (!cfg.credential.empty()) comp.NewChild("Credential") = cfg.credential;
+      };
       if (!cfg.cafile.empty()) comp.NewChild("CACertificatePath") = cfg.cafile;
       if (!cfg.cadir.empty()) {
         XMLNode cadir = comp.NewChild("CACertificatesDir");
@@ -175,10 +177,12 @@ namespace Arc {
     }
     else if (SECURITY_IS_GSI(sec.sec)) {
       comp = ConfigMakeComponent(xmlcfg["Chain"], "tls.client", "gsi", "tcp");
-      if (!cfg.key.empty()) comp.NewChild("KeyPath") = cfg.key;
-      if (!cfg.cert.empty()) comp.NewChild("CertificatePath") = cfg.cert;
-      if (!cfg.proxy.empty()) comp.NewChild("ProxyPath") = cfg.proxy;
-      if (!cfg.credential.empty()) comp.NewChild("Credential") = cfg.credential;
+      if (sec.cred == UseX509Cred) {
+        if (!cfg.key.empty()) comp.NewChild("KeyPath") = cfg.key;
+        if (!cfg.cert.empty()) comp.NewChild("CertificatePath") = cfg.cert;
+        if (!cfg.proxy.empty()) comp.NewChild("ProxyPath") = cfg.proxy;
+        if (!cfg.credential.empty()) comp.NewChild("Credential") = cfg.credential;
+      }
       if (!cfg.cafile.empty()) comp.NewChild("CACertificatePath") = cfg.cafile;
       if (!cfg.cadir.empty()) {
         XMLNode cadir = comp.NewChild("CACertificatesDir");
@@ -246,7 +250,7 @@ namespace Arc {
     if (repmsg.Payload() != NULL) {
       try {
         *response = dynamic_cast<PayloadStreamInterface*>(repmsg.Payload());
-        repmsg.Payload(NULL);
+        if(*response) repmsg.Payload(NULL);
       } catch (std::exception&) {
       }
       delete repmsg.Payload();
@@ -281,7 +285,7 @@ namespace Arc {
     if (repmsg.Payload() != NULL) {
       try {
         *response = dynamic_cast<PayloadStreamInterface*>(repmsg.Payload());
-        repmsg.Payload(NULL);
+        if(*response) repmsg.Payload(NULL);
       } catch (std::exception&) {
       }
       delete repmsg.Payload();
@@ -344,7 +348,7 @@ namespace Arc {
     return port;
   }
 
-  static TCPSec http_url_to_sec(const URL& url) {
+  static TCPSec http_url_to_sec(const URL& url, bool have_otoken) {
     TCPSec sec;
     if(url.Protocol() == "https" || url.Protocol() == "davs") {
       if(url.Option("protocol") == "ssl3") {
@@ -374,6 +378,18 @@ namespace Arc {
     } else if(url.Option("encryption") == "off") {
       sec.enc = NoEnc;
     }
+    if(have_otoken) {
+      sec.cred = UseNoCred;
+    } else {
+      sec.cred = UseX509Cred;
+    }
+    // URL option overrides decision taken by presence of token
+    std::string credOption = url.Option("tlscred");
+    if(credOption == "none") {
+      sec.cred = UseNoCred;
+    } else if(credOption == "x509") {
+      sec.cred = UseX509Cred;
+    }
     return sec;
   }
 
@@ -383,13 +399,13 @@ namespace Arc {
     : ClientTCP(cfg,
                 get_http_proxy_host(url,proxy_host,proxy_port),
                 get_http_proxy_port(url,proxy_host,proxy_port),
-                http_url_to_sec(url),
+                http_url_to_sec(url,!cfg.otoken.empty()),
                 timeout,
                 url.Option("tcpnodelay") == "yes"),
       http_entry(NULL),
       default_url(url),
       relative_uri(url.Option("relativeuri") == "yes"),
-      sec(http_url_to_sec(url)),
+      sec(http_url_to_sec(url,!cfg.otoken.empty())),
       closed(false) {
     XMLNode comp = ConfigMakeComponent(xmlcfg["Chain"], "http.client", "http",
                      (SECURITY_IS_SSL(sec.sec)) ? "tls" :
@@ -397,6 +413,13 @@ namespace Arc {
     comp.NewAttribute("entry") = "http";
     comp.NewChild("Method") = "POST"; // Override using attributes if needed
     comp.NewChild("Endpoint") = url.str(true); // Override using attributes if needed
+    if (!cfg.otoken.empty()) comp.NewChild("Authorization") = "Bearer " + cfg.otoken; // TODO: protect and encode
+    // Pass information about protocol and hostname to TLS level
+    XMLNode compTLS = ConfigFindComponent(xmlcfg["Chain"], "tls.client", NULL);
+    if(compTLS) {
+      compTLS.NewChild("Hostname") = url.Host();
+      compTLS.NewChild("Protocol") = "http/1.1"; // educated guess
+    }
   }
 
   ClientHTTP::~ClientHTTP() {}
@@ -420,7 +443,7 @@ namespace Arc {
   }
 
   MCC_Status ClientHTTP::process(const std::string& method,
-                         std::multimap<std::string, std::string>& attributes,
+                         std::multimap<std::string, std::string> const& attributes,
                          PayloadRawInterface *request,
                          HTTPClientInfo *info,
                          PayloadRawInterface **response) {
@@ -438,7 +461,7 @@ namespace Arc {
 
   MCC_Status ClientHTTP::process(const std::string& method,
                          const std::string& path,
-                         std::multimap<std::string, std::string>& attributes,
+                         std::multimap<std::string, std::string> const& attributes,
                          PayloadRawInterface *request,
                          HTTPClientInfo *info,
                          PayloadRawInterface **response) {
@@ -457,7 +480,7 @@ namespace Arc {
 
   MCC_Status ClientHTTP::process(const std::string& method,
                          const std::string& path,
-                         std::multimap<std::string, std::string>& attributes,
+                         std::multimap<std::string, std::string> const& attributes,
                          uint64_t range_start, uint64_t range_end,
                          PayloadRawInterface *request,
                          HTTPClientInfo *info,
@@ -468,7 +491,7 @@ namespace Arc {
     if (mresp != NULL) {
       try {
         *response = dynamic_cast<PayloadRawInterface*>(mresp);
-        mresp = NULL;
+        if(*response) mresp = NULL;
       } catch (std::exception&) {
       }
       delete mresp;
@@ -476,9 +499,19 @@ namespace Arc {
     return r;
   }
 
+
+  static void HTTPAttributesToMessage(std::multimap<std::string, std::string> const& attributes, Message& msg) {
+    std::multimap<std::string, std::string>::const_iterator it;
+    for (it = attributes.begin(); it != attributes.end(); it++) {
+      std::string key("HTTP:");
+      key.append((*it).first);
+      msg.Attributes()->add(key, (*it).second);
+    }
+  }
+
   MCC_Status ClientHTTP::process(const std::string& method,
                          const std::string& path,
-                         std::multimap<std::string, std::string>& attributes,
+                         std::multimap<std::string, std::string> const& attributes,
                          uint64_t range_start, uint64_t range_end,
                          MessagePayload *request,
                          HTTPClientInfo *info,
@@ -525,12 +558,8 @@ namespace Arc {
       reqmsg.Attributes()->set("HTTP:Range", "bytes=" +
                                tostring(range_start) + "-");
     }
-    std::map<std::string, std::string>::iterator it;
-    for (it = attributes.begin(); it != attributes.end(); it++) {
-      std::string key("HTTP:");
-      key.append((*it).first);
-      reqmsg.Attributes()->add(key, (*it).second);
-    }
+    HTTPAttributesToMessage(attributes, reqmsg);
+
     r = http_entry->process(reqmsg, repmsg);
     if(!r) {
       if (repmsg.Payload() != NULL) delete repmsg.Payload();
@@ -571,7 +600,7 @@ namespace Arc {
     if (mresp != NULL) {
       try {
         *response = dynamic_cast<PayloadRawInterface*>(mresp);
-        mresp = NULL;
+        if(*response) mresp = NULL;
       } catch (std::exception&) {
       }
       delete mresp;
@@ -589,7 +618,7 @@ namespace Arc {
     if (mresp != NULL) {
       try {
         *response = dynamic_cast<PayloadRawInterface*>(mresp);
-        mresp = NULL;
+        if(*response) mresp = NULL;
       } catch (std::exception&) {
       }
       delete mresp;
@@ -607,7 +636,7 @@ namespace Arc {
     if (mresp != NULL) {
       try {
         *response = dynamic_cast<PayloadStreamInterface*>(mresp);
-        mresp = NULL;
+        if(*response) mresp = NULL;
       } catch (std::exception&) {
       }
       delete mresp;
@@ -625,7 +654,7 @@ namespace Arc {
     if (mresp != NULL) {
       try {
         *response = dynamic_cast<PayloadStreamInterface*>(mresp);
-        mresp = NULL;
+        if(*response) mresp = NULL;
       } catch (std::exception&) {
       }
       delete mresp;
@@ -648,7 +677,7 @@ namespace Arc {
   }
 
   ClientHTTPAttributes::ClientHTTPAttributes(const std::string& method,
-                       std::multimap<std::string, std::string>& attributes):
+                       std::multimap<std::string, std::string> const& attributes):
          method_(method),path_(default_path_),attributes_(attributes),
          range_start_(0),range_end_(UINT64_MAX) {
   }
@@ -661,7 +690,7 @@ namespace Arc {
 
   ClientHTTPAttributes::ClientHTTPAttributes(const std::string& method,
                        const std::string& path,
-                       std::multimap<std::string, std::string>& attributes):
+                       std::multimap<std::string, std::string> const& attributes):
          method_(method),path_(path),attributes_(attributes),
          range_start_(0),range_end_(UINT64_MAX) {
   }
@@ -675,7 +704,7 @@ namespace Arc {
 
   ClientHTTPAttributes::ClientHTTPAttributes(const std::string& method,
                        const std::string& path,
-                       std::multimap<std::string, std::string>& attributes,
+                       std::multimap<std::string, std::string> const& attributes,
                        uint64_t range_start, uint64_t range_end):
          method_(method),path_(path),attributes_(attributes),
          range_start_(range_start),range_end_(range_end) {
@@ -705,6 +734,12 @@ namespace Arc {
 
   MCC_Status ClientSOAP::process(PayloadSOAP *request,
                                  PayloadSOAP **response) {
+    return process(std::multimap<std::string, std::string>(), request, response);
+  }
+
+  MCC_Status ClientSOAP::process(std::multimap<std::string, std::string> const& http_attr,
+                                 PayloadSOAP *request,
+                                 PayloadSOAP **response) {
     *response = NULL;
     MCC_Status r;
     if(!(r=Load())) return r;
@@ -718,11 +753,12 @@ namespace Arc {
     reqmsg.Payload(request);
     repmsg.Attributes(&attributes_rep);
     repmsg.Context(&context);
+    HTTPAttributesToMessage(http_attr, reqmsg);
     r = soap_entry->process(reqmsg, repmsg);
     if (repmsg.Payload() != NULL) {
       try {
         *response = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
-        repmsg.Payload(NULL);
+        if(*response) repmsg.Payload(NULL);
       } catch (std::exception&) {
       }
       delete repmsg.Payload();
@@ -731,6 +767,13 @@ namespace Arc {
   }
 
   MCC_Status ClientSOAP::process(const std::string& action,
+                                 PayloadSOAP *request,
+                                 PayloadSOAP **response) {
+    return process(std::multimap<std::string, std::string>(), action, request, response);
+  }
+
+  MCC_Status ClientSOAP::process(std::multimap<std::string, std::string> const& http_attr,
+                                 const std::string& action,
                                  PayloadSOAP *request,
                                  PayloadSOAP **response) {
     *response = NULL;
@@ -747,11 +790,12 @@ namespace Arc {
     repmsg.Attributes(&attributes_rep);
     repmsg.Context(&context);
     attributes_req.set("SOAP:ACTION", action);
+    HTTPAttributesToMessage(http_attr, reqmsg);
     r = soap_entry->process(reqmsg, repmsg);
     if (repmsg.Payload() != NULL) {
       try {
         *response = dynamic_cast<PayloadSOAP*>(repmsg.Payload());
-        repmsg.Payload(NULL);
+        if(*response) repmsg.Payload(NULL);
       } catch (std::exception&) {
       }
       delete repmsg.Payload();

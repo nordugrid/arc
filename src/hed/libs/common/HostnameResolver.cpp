@@ -88,33 +88,6 @@ namespace Arc {
     return hostname_resolver_;
   }
 
-  static bool sread_buf(Run& r,void* buf,unsigned int& bufsize,unsigned int& maxsize) {
-    char dummy[1024];
-    unsigned int size;
-    if(sizeof(size) > maxsize) return false;
-    if(!sread(r,&size,sizeof(size))) return false;
-    maxsize -= sizeof(size);
-    if(size > maxsize) return false;
-    if(size <= bufsize) {
-      if(!sread(r,buf,size)) return false;
-      bufsize = size;
-      maxsize -= size;
-    } else {
-      if(!sread(r,buf,bufsize)) return false;
-      maxsize -= bufsize;
-      // skip rest
-      size -= bufsize;
-      while(size > sizeof(dummy)) {
-        if(!sread(r,dummy,sizeof(dummy))) return false;
-        size -= sizeof(dummy);
-        maxsize -= sizeof(dummy);
-      };
-      if(!sread(r,dummy,size)) return false;
-      maxsize -= size;
-    };
-    return true;
-  }
-
   static bool swrite_string(Run& r,const std::string& str) {
     int l = str.length();
     if(!swrite(r,&l,sizeof(l))) return false;
@@ -134,6 +107,7 @@ namespace Arc {
   }
 
   HostnameResolver::SockAddr& HostnameResolver::SockAddr::operator=(SockAddr const& other) {
+    if(this == &other) return *this;
     family = other.family;
     length = other.length;
     ::free(addr);

@@ -5,33 +5,34 @@
 #  This script creates a temporary job script and runs it.
 
 echo "----- starting submit_fork_job -----" 1>&2
-joboption_lrms=fork
+joboption_lrms="fork"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+GRAMI_FILE=$1
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# include common submit functions
+. "${pkgdatadir}/submit_common.sh" || exit $?
 
-. ${pkgdatadir}/submit_common.sh || exit $?
+# run common init 
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
 
-##############################################################
-# Parse grami file, read arc config
-##############################################################
-init $1
-
-read_arc_conf
-
+# always local
 RUNTIME_NODE_SEES_FRONTEND=yes
 
 ##############################################################
 # Zero stage of runtime environments
 ##############################################################
 RTE_stage0
-
 
 ##############################################################
 # create job script
@@ -50,9 +51,7 @@ echo "" >> $LRMS_JOB_SCRIPT
 ##############################################################
 # non-parallel jobs
 ##############################################################
-
 set_count
-
 
 ##############################################################
 # Execution times (obtained in seconds)
@@ -85,6 +84,12 @@ echo "" >> $LRMS_JOB_SCRIPT
 echo "# Overide umask of execution node (sometime values are really strange)" >> $LRMS_JOB_SCRIPT
 echo "umask 077" >> $LRMS_JOB_SCRIPT
 
+
+##############################################################
+# Init accounting
+##############################################################
+accounting_init
+
 ##############################################################
 # Add environment variables
 ##############################################################
@@ -97,7 +102,6 @@ if [ -z "${joboption_arg_0}" ] ; then
   echo 'Executable is not specified' 1>&2
   exit 1
 fi
-
 
 setup_runtime_env
 
@@ -116,9 +120,7 @@ echo "" >> $LRMS_JOB_SCRIPT
 echo "RESULT=0" >> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
 
-
 echo "" >> $LRMS_JOB_SCRIPT
-
 echo "if [ \"\$RESULT\" = '0' ] ; then" >> $LRMS_JOB_SCRIPT
 
 ##############################################################
@@ -128,13 +130,22 @@ RTE_stage1
 echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
 
 #####################################################
+# Accounting (WN OS Detection)
+#####################################################
+detect_wn_systemsoftware
+
+#####################################################
 #  Go to working dir and start job
 #####################################################
 # Set the nice value (20 to -20) based on priority (1 to 100)
 # Note negative values are normally only settable by superusers 
 priority=$joboption_priority
 if [ ! -z $priority ]; then
-    nicevalue=$[ 20 - ($priority * 2 / 5) ]
+    if [ `id -u` = '0' ]; then
+        nicevalue=$[ 20 - ($priority * 2 / 5) ]
+    else
+        nicevalue=$[ 20 - ($priority / 5) ]
+    fi
     joboption_args="nice -n $nicevalue $joboption_args"
 fi
 
@@ -146,7 +157,7 @@ echo "" >> $LRMS_JOB_SCRIPT
 ##############################################################
 #  Runtime (post)configuration at computing node
 ##############################################################
-configure_runtime
+RTE_stage2
 
 ##############################################################
 #  Move files back to session directory (job is done on node only)
@@ -154,6 +165,10 @@ configure_runtime
 ##############################################################
 move_files_to_frontend
 
+##############################################################
+# Finish accounting and exit job
+##############################################################
+accounting_end
 
 #######################################
 # watcher process
@@ -202,7 +217,7 @@ case "$result" in
     OK)
         echo "job submitted successfully!" 1>&2
         echo "local job id: $job_id" 1>&2
-        echo "joboption_jobid=$job_id" >> $arg_file
+        echo "joboption_jobid=$job_id" >> $GRAMI_FILE
         rc=0
         ;;
     *)

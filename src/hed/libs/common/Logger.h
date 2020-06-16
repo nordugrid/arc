@@ -256,6 +256,15 @@ namespace Arc {
     friend std::ostream& operator<<(std::ostream& os, const LogDestination& dest);
 
   protected:
+    /// A mutex for synchronization.
+    /** This mutex is to be locked before a LogMessage is written and it is
+       not unlocked until the entire message has been written and the
+       stream flushed. This is done in order to prevent LogMessages to
+       appear mixed in the stream and prevent race on modification of 
+       internal members. It is mutable to provide protection while reading members.
+     */
+    mutable Glib::Mutex mutex;
+
     /// Format to use in this LogDestination.
     LogFormat format;
 
@@ -318,14 +327,6 @@ namespace Arc {
      */
     std::ostream& destination;
 
-    /// A mutex for synchronization.
-    /** This mutex is locked before a LogMessage is written and it is
-       not unlocked until the entire message has been written and the
-       stream flushed. This is done in order to prevent LogMessages to
-       appear mixed in the stream.
-     */
-    Glib::Mutex mutex;
-
   };
 
   /// A class for logging to files.
@@ -353,6 +354,9 @@ namespace Arc {
      */
     LogFile(const std::string& path);
 
+    /// Ordinary destructor
+    ~LogFile();
+
     /// Set maximal allowed size of file.
     /** Set maximal allowed size of file. This value is not
        obeyed exactly. Specified size may be exceeded by amount
@@ -376,6 +380,12 @@ namespace Arc {
        @param newreopen If file to be reopened for every log record.
      */
     void setReopen(bool newreopen);
+
+    /// Reopen file if currently open.
+    void Reopen();
+
+    /// Reopen all LogFile objects.
+    static void ReopenAll();
 
     /// Returns true if this instance is valid.
     operator bool(void);
@@ -401,7 +411,6 @@ namespace Arc {
     int maxsize;
     int backups;
     bool reopen;
-    Glib::Mutex mutex;
   };
 
   class LoggerContextRef;

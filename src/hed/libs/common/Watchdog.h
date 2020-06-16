@@ -1,6 +1,8 @@
 #ifndef __ARC_WATCHDOG_H__
 #define __ARC_WATCHDOG_H__
 
+#include <arc/Thread.h>
+
 namespace Arc {
 
   // Internal implementation of watchdog.

@@ -10,19 +10,29 @@
 # at the end of this script. 
 
 echo "----- starting submit_condor_job -----" 1>&2
-joboption_lrms=condor
+joboption_lrms="condor"
+lrms_options="condor_requirements condor_rank condor_bin_path condor_config"
+queue_options="condor_requirements"
+
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+GRAMI_FILE=$1
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# include common submit functions
+. "${pkgdatadir}/submit_common.sh" || exit $?
 
-. ${pkgdatadir}/configure-condor-env.sh || exit $?
-. ${pkgdatadir}/submit_common.sh || exit $?
+# run common init 
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
 
 perflogfilesub="${perflogdir}/submission.perflog"
 
@@ -30,27 +40,15 @@ if [ ! -z "$perflogdir" ]; then
    start_ts=`date +%s.%N`
 fi
 
-##############################################################
-# Parse grami file, read arc config
-##############################################################
-
-init $1
-
-read_arc_conf
-
-failures_file="$joboption_controldir/job.$joboption_gridid.failed"
+# define path to wrote failures
+define_failures_file
 
 if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
    RUNTIME_LOCAL_SCRATCH_DIR="\${_CONDOR_SCRATCH_DIR}"
 fi
 
-if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-  if [ -z "${RUNTIME_LOCAL_SCRATCH_DIR}" ] ; then
-    echo "Need to know at which directory to run job: RUNTIME_LOCAL_SCRATCH_DIR must be set if RUNTIME_NODE_SEES_FRONTEND is empty" 1>&2
-    echo "Submission: Configuration error.">>"$failures_file"
-    exit 1
-  fi
-fi
+# check remote or local scratch is configured
+check_any_scratch
 
 ##############################################################
 # Zero stage of runtime environments
@@ -114,19 +112,32 @@ else
     echo "Description = $jobname" >> $LRMS_JOB_DESCRIPT
 fi
 
-# environment
-echo "GetEnv = True" >> $LRMS_JOB_DESCRIPT
-
 # universe
-echo "Universe = vanilla" >> $LRMS_JOB_DESCRIPT
+if [ ! -z $DOCKER_UNIVERSE ] ; then
+    echo "Universe = $DOCKER_UNIVERSE" >> $LRMS_JOB_DESCRIPT
+    echo "should_transfer_files   = YES" >> $LRMS_JOB_DESCRIPT
+    echo "when_to_transfer_output = ON_EXIT" >> $LRMS_JOB_DESCRIPT
+else
+    echo "Universe = vanilla" >> $LRMS_JOB_DESCRIPT
+fi
+
+if [ ! -z $DOCKER_IMAGE ] ; then
+   echo "docker_image = $DOCKER_IMAGE" >> $LRMS_JOB_DESCRIPT
+fi
 
 # notification
 echo "Notification = Never" >> $LRMS_JOB_DESCRIPT
 
-# requirements
+# no job restart
+REQUIREMENTS="(NumJobStarts == 0)"
+PERIODIC_REMOVE="(JobStatus == 1 && NumJobStarts > 0)"
+
+# custom requirements
 if [ ! -z "$CONFIG_condor_requirements" ] ; then
-  echo "Requirements = $CONFIG_condor_requirements" >> $LRMS_JOB_DESCRIPT
+  # custom requirement from arc.conf
+  REQUIREMENTS="${REQUIREMENTS} && ( $CONFIG_condor_requirements )"
 fi
+echo "Requirements = ${REQUIREMENTS}" >> $LRMS_JOB_DESCRIPT
 
 #####################################################
 # priority
@@ -145,7 +156,9 @@ if [ ! -z "$CONFIG_condor_rank" ] ; then
 fi
 
 # proxy
-echo "x509userproxy = $joboption_controldir/job.$joboption_gridid.proxy" >> $LRMS_JOB_DESCRIPT
+if [ -f "${joboption_directory}/user.proxy" ]; then
+  echo "x509userproxy = ${joboption_directory}/user.proxy" >> $LRMS_JOB_DESCRIPT
+fi
 
 ##############################################################
 # (non-)parallel jobs
@@ -165,7 +178,6 @@ fi
 # Execution times (minutes)
 ##############################################################
 
-REMOVE="FALSE"
 
 if [ ! -z "$joboption_cputime" ] ; then
   if [ $joboption_cputime -lt 0 ] ; then
@@ -175,7 +187,7 @@ if [ ! -z "$joboption_cputime" ] ; then
   fi
   maxcputime=$(( $joboption_cputime / $joboption_count ))
   echo "+JobCpuLimit = $joboption_cputime" >> $LRMS_JOB_DESCRIPT
-  REMOVE="${REMOVE} || RemoteUserCpu + RemoteSysCpu > JobCpuLimit"
+  PERIODIC_REMOVE="${PERIODIC_REMOVE} || RemoteUserCpu + RemoteSysCpu > JobCpuLimit"
   
 fi  
   
@@ -193,7 +205,7 @@ if [ ! -z "$joboption_walltime" ] ; then
     echo 'WARNING: wall time set to 0' 1>&2
   fi
   echo "+JobTimeLimit = $joboption_walltime" >> $LRMS_JOB_DESCRIPT
-  REMOVE="${REMOVE} || RemoteWallClockTime > JobTimeLimit"
+  PERIODIC_REMOVE="${PERIODIC_REMOVE} || RemoteWallClockTime > JobTimeLimit"
 fi
 
 ##############################################################
@@ -212,7 +224,8 @@ if [ ! -z "$joboption_memory" ] ; then
   fi
   echo "request_memory=$memory_req" >> $LRMS_JOB_DESCRIPT
   echo "+JobMemoryLimit = $memory_bytes" >> $LRMS_JOB_DESCRIPT
-  REMOVE="${REMOVE} || ResidentSetSize > JobMemoryLimit"
+  # it is important to protect evaluation from undefined ResidentSetSize
+  PERIODIC_REMOVE="${PERIODIC_REMOVE} || ((ResidentSetSize isnt undefined ? ResidentSetSize : 0) > JobMemoryLimit)"
 fi
 
 ##############################################################
@@ -227,26 +240,15 @@ if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
       echo "Submission: Configuration error.">>"$failures_file"
       exit 1
     fi
+    # transfer all session directory if not shared between ARC CE and worknodes
     scratch_dir=`dirname "$joboption_directory"`
     echo "should_transfer_files = YES" >> $LRMS_JOB_DESCRIPT
     echo "When_to_transfer_output = ON_EXIT_OR_EVICT" >> $LRMS_JOB_DESCRIPT
-
-    count=0
-    input_files="Transfer_input_files = "
-    eval "input_file=\$joboption_inputfile_$count"
-    while [ -n "${input_file}" ]; do
-      if [ "$count" -gt "0" ]; then
-          input_files="${input_files},"
-      fi
-      input_files="${input_files} ${joboption_directory}${input_file}"
-      count=$((count+1))
-      eval "input_file=\$joboption_inputfile_$count"
-    done
-    echo "${input_files}" >> $LRMS_JOB_DESCRIPT
+    echo "Transfer_input_files = $joboption_directory" >> $LRMS_JOB_DESCRIPT
   )
 fi
 
-echo "Periodic_remove = ${REMOVE}" >> $LRMS_JOB_DESCRIPT
+echo "Periodic_remove = ${PERIODIC_REMOVE}" >> $LRMS_JOB_DESCRIPT
 echo "Queue" >> $LRMS_JOB_DESCRIPT
 
 echo "#!/bin/bash -l" > $LRMS_JOB_SCRIPT
@@ -260,6 +262,11 @@ echo " " >> $LRMS_JOB_SCRIPT
 chmod 0755 $LRMS_JOB_SCRIPT
 
 sourcewithargs_jobscript
+
+##############################################################
+# Init accounting
+##############################################################
+accounting_init
 
 ##############################################################
 # Add environment variables
@@ -322,17 +329,6 @@ echo "" >> $LRMS_JOB_SCRIPT
 echo "RESULT=0" >> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
 
-if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-    echo "# move input files to local working directory" >> $LRMS_JOB_SCRIPT
-    count=0
-    eval "input_file=\$joboption_inputfile_$count"
-    while [ -n "${input_file}" ]; do
-      echo "mv .${input_file} ${joboption_gridid}/." >> $LRMS_JOB_SCRIPT
-      count=$((count+1))
-      eval "input_file=\$joboption_inputfile_$count"
-    done
-fi
-
 ##############################################################
 #  Skip execution if something already failed
 ##############################################################
@@ -349,6 +345,11 @@ RTE_stage1
 echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
 cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
 EOSCR
+
+##############################################################
+# Accounting (WN OS Detection)
+##############################################################
+detect_wn_systemsoftware
 
 ##############################################################
 #  Check intermediate result again
@@ -369,60 +370,23 @@ echo "fi" >> $LRMS_JOB_SCRIPT
 ##############################################################
 #  Runtime (post)configuration at computing node
 ##############################################################
-configure_runtime
+RTE_stage2
 
 #####################################################
-#  Upload output files
-####################################################
-# There is no sense to keep trash till GM runs uploader
-echo 'if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then' >> $LRMS_JOB_SCRIPT
-# Delete all files except listed in job.#.output
-echo '  find ./ -type l -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
-echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
-
-if [ -f "$joboption_controldir/job.$joboption_gridid.output" ] ; then
-  cat "$joboption_controldir/job.$joboption_gridid.output" | \
-  # remove leading backslashes, if any
-  sed 's/^\/*//' | \
-  # backslashes and spaces are escaped with a backslash in job.*.output. The
-  # shell built-in read undoes this escaping.
-  while read name rest; do
-
-    # make it safe for shell by replacing single quotes with '\''
-    name=`printf "%s" "$name"|sed "s/'/'\\\\\\''/g"`;
-
-    # protect from deleting output files including those in the dynamic list
-    if [ "${name#@}" != "$name" ]; then     # Does $name start with a @ ?
-      dynlist=${name#@}
-      echo "  dynlist='$dynlist'" >> $LRMS_JOB_SCRIPT
-      cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
-  chmod -R u-w "./$dynlist" 2>/dev/null
-  cat "./$dynlist" | while read name rest; do
-    chmod -R u-w "./$name" 2>/dev/null
-  done
-EOSCR
-    else
-      echo "  chmod -R u-w \"\$RUNTIME_JOB_DIR\"/'$name' 2>/dev/null" >> $LRMS_JOB_SCRIPT
-      if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-         echo "  mv \"\$RUNTIME_JOB_DIR\"/'$name' ../." >> $LRMS_JOB_SCRIPT
-      fi
-    fi
-  done
-fi
-
-echo '  find ./ -type f -perm /200 -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
-echo '  find ./ -type f -exec chmod u+w "{}" ";"' >> $LRMS_JOB_SCRIPT
-echo 'fi' >> $LRMS_JOB_SCRIPT
-
-echo "" >> $LRMS_JOB_SCRIPT
+#  Clean up output files in the local scratch dir
+#####################################################
+clean_local_scratch_dir_output "moveup"
 
 ##############################################################
 #  Move files back to session directory (job is done on node only)
 #  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
-# !!!!!!!!!!!!!!!!!!! would be better to know the names of files !!!!!!!!!!!
 ##############################################################
 move_files_to_frontend
 
+##############################################################
+# Finish accounting and exit job
+##############################################################
+accounting_end
 
 if [ ! -z "$perflogdir" ]; then
    stop_ts=`date +%s.%N`
@@ -475,8 +439,8 @@ if [ $CONDOR_RESULT -eq '0' ] ; then
    else
       job_id=`echo $job_out | grep cluster | awk '{print $8}' | sed 's/[\.]//g'`
       hostname=`hostname -f`
-      echo "joboption_jobid=${job_id}.${hostname}" >> $arg_file
-      echo "condor_log=${joboption_directory}/log" >> $arg_file
+      echo "joboption_jobid=${job_id}.${hostname}" >> $GRAMI_FILE
+      echo "condor_log=${joboption_directory}/log" >> $GRAMI_FILE
       echo "job submitted successfully!" 1>&2
       echo "local job id: $job_id" 1>&2
       # Remove temporary files
@@ -492,7 +456,7 @@ else
 fi
 echo "Output is:" 1>&2
 cat $LRMS_JOB_OUT 1>&2
-echo "Error output is:"
+echo "Error output is:" 1>&2
 cat $LRMS_JOB_ERR 1>&2
 rm -f "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
 echo "----- exiting submit_condor_job -----" 1>&2

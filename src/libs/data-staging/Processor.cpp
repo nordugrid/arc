@@ -18,14 +18,13 @@ namespace DataStaging {
 
   /** Set up logging. Should be called at the start of each thread method. */
   void setUpLogger(DTR_ptr request) {
+    // Move DTR destinations from DTR logger to Root logger to catch all messages.
     // disconnect this thread's root logger
     Arc::Logger::getRootLogger().setThreadContext();
+    request->get_logger()->setThreadContext();
     Arc::Logger::getRootLogger().removeDestinations();
     Arc::Logger::getRootLogger().addDestinations(request->get_logger()->getDestinations());
-    // now disconnect the DTR logger - the root logger is enabled and we
-    // don't want duplicate messages. IMPORTANT: the DTR logger must be
-    // re-enabled at the end of the thread
-    request->disconnect_logger();
+    request->get_logger()->removeDestinations();
   }
 
   Processor::Processor() {
@@ -50,8 +49,8 @@ namespace DataStaging {
 
     // Create cache using configuration
     Arc::FileCache cache(request->get_cache_parameters().cache_dirs,
-                         request->get_cache_parameters().remote_cache_dirs,
                          request->get_cache_parameters().drain_cache_dirs,
+                         request->get_cache_parameters().readonly_cache_dirs,
                          request->get_parent_job_id(),
                          request->get_local_user().get_uid(),
                          request->get_local_user().get_gid());
@@ -63,7 +62,6 @@ namespace DataStaging {
                             DTRErrorStatus::ERROR_DESTINATION,
                             "Failed to create cache");
       request->set_status(DTRStatus::CACHE_CHECKED);
-      request->connect_logger();
       DTR::push(request, SCHEDULER);
       return;
     }
@@ -80,13 +78,12 @@ namespace DataStaging {
 
     bool is_in_cache = false;
     bool is_locked = false;
-    bool use_remote = true;
     // check for forced re-download option
     bool renew = (cacheoption == "renew");
     if (renew) request->get_logger()->msg(Arc::VERBOSE, "Forcing re-download of file %s", canonic_url);
 
     for (;;) {
-      if (!cache.Start(canonic_url, is_in_cache, is_locked, use_remote, renew)) {
+      if (!cache.Start(canonic_url, is_in_cache, is_locked, renew)) {
         if (is_locked) {
           request->get_logger()->msg(Arc::WARNING, "Cached file is locked - should retry");
           request->set_cache_state(CACHE_LOCKED);
@@ -103,7 +100,6 @@ namespace DataStaging {
           request->get_logger()->msg(Arc::INFO, "Will wait around %is", cache_wait_time);
           request->set_process_time(cache_wait_period);
 
-          request->connect_logger();
           DTR::push(request, SCHEDULER);
           return;
         }
@@ -165,7 +161,6 @@ namespace DataStaging {
         }
         if (outdated) {
           request->get_logger()->msg(Arc::INFO, "Cached file is outdated, will re-download");
-          use_remote = false;
           renew = true;
           continue;
         }
@@ -180,7 +175,6 @@ namespace DataStaging {
       break;
     }
     request->set_status(DTRStatus::CACHE_CHECKED);
-    request->connect_logger();
     DTR::push(request, SCHEDULER);
   }
 
@@ -204,7 +198,6 @@ namespace DataStaging {
                                   DTRErrorStatus::ERROR_SOURCE,
                                   "Could not resolve any source replicas for " + request->get_source()->str() + ": " + std::string(res));
         request->set_status(DTRStatus::RESOLVED);
-        request->connect_logger();
         DTR::push(request, SCHEDULER);
         return;
       }
@@ -227,7 +220,6 @@ namespace DataStaging {
                                   DTRErrorStatus::ERROR_SOURCE,
                                   "Could not resolve any source replicas for " + request->get_source()->str());
         request->set_status(DTRStatus::RESOLVED);
-        request->connect_logger();
         DTR::push(request, SCHEDULER);
         return;
       }
@@ -238,7 +230,6 @@ namespace DataStaging {
     // destination will be done in the pre-clean stage after deleting.
     if (!request->is_replication() && request->get_destination()->GetURL().Option("overwrite") == "yes") {
       request->set_status(DTRStatus::RESOLVED);
-      request->connect_logger();
       DTR::push(request, SCHEDULER);
       return;
     }
@@ -253,7 +244,6 @@ namespace DataStaging {
                                   DTRErrorStatus::ERROR_DESTINATION,
                                   "Could not resolve any destination replicas for " + request->get_destination()->str() + ": " + std::string(res));
         request->set_status(DTRStatus::RESOLVED);
-        request->connect_logger();
         DTR::push(request, SCHEDULER);
         return;
       }
@@ -268,7 +258,6 @@ namespace DataStaging {
                                   DTRErrorStatus::NO_ERROR_LOCATION,
                                   "No locations for destination different from source found for " + request->get_destination()->str());
         request->set_status(DTRStatus::RESOLVED);
-        request->connect_logger();
         DTR::push(request, SCHEDULER);
         return;
       }
@@ -286,7 +275,6 @@ namespace DataStaging {
     }
     // finished with resolving - send back to scheduler
     request->set_status(DTRStatus::RESOLVED);
-    request->connect_logger();
     DTR::push(request, SCHEDULER);
   }
 
@@ -344,7 +332,6 @@ namespace DataStaging {
       }
 
       request->set_status(DTRStatus::RESOLVED);
-      request->connect_logger();
       DTR::push(request, SCHEDULER);
     }
   }
@@ -388,7 +375,6 @@ namespace DataStaging {
     }
     // finished querying - send back to scheduler
     request->set_status(DTRStatus::REPLICA_QUERIED);
-    request->connect_logger();
     DTR::push(request, SCHEDULER);
   }
 
@@ -438,7 +424,6 @@ namespace DataStaging {
         request->get_destination()->SetMeta(*request->get_source());
       }
       request->set_status(DTRStatus::REPLICA_QUERIED);
-      request->connect_logger();
       DTR::push(request, SCHEDULER);
     }
   }
@@ -510,7 +495,6 @@ namespace DataStaging {
                                 "Failed to pre-clean destination " + request->get_destination()->str() + ": " + std::string(res));
     }
     request->set_status(DTRStatus::PRE_CLEANED);
-    request->connect_logger();
     DTR::push(request, SCHEDULER);
   }
 
@@ -558,7 +542,6 @@ namespace DataStaging {
     }
     if (request->error()) {
       request->set_status(DTRStatus::STAGED_PREPARED);
-      request->connect_logger();
       DTR::push(request, SCHEDULER);
       return;
     }
@@ -597,7 +580,6 @@ namespace DataStaging {
     // set to staged prepared if we don't have to wait for source or destination
     if (request->get_status() != DTRStatus::STAGING_PREPARING_WAIT)
       request->set_status(DTRStatus::STAGED_PREPARED);
-    request->connect_logger();
     DTR::push(request, SCHEDULER);
   }
 
@@ -640,7 +622,6 @@ namespace DataStaging {
       }
     }
     request->set_status(DTRStatus::REQUEST_RELEASED);
-    request->connect_logger();
     DTR::push(request, SCHEDULER);
   }
 
@@ -682,7 +663,6 @@ namespace DataStaging {
     }
     // finished with registration - send back to scheduler
     request->set_status(DTRStatus::REPLICA_REGISTERED);
-    request->connect_logger();
     DTR::push(request, SCHEDULER);
   }
 
@@ -695,8 +675,8 @@ namespace DataStaging {
     setUpLogger(request);
 
     Arc::FileCache cache(request->get_cache_parameters().cache_dirs,
-                         request->get_cache_parameters().remote_cache_dirs,
                          request->get_cache_parameters().drain_cache_dirs,
+                         request->get_cache_parameters().readonly_cache_dirs,
                          request->get_parent_job_id(),
                          request->get_local_user().get_uid(),
                          request->get_local_user().get_gid());
@@ -707,7 +687,6 @@ namespace DataStaging {
                             DTRErrorStatus::ERROR_DESTINATION,
                             "Failed to create cache for " + request->get_source()->str());
       request->set_status(DTRStatus::CACHE_PROCESSED);
-      request->connect_logger();
       DTR::push(request, SCHEDULER);
       return;
     }
@@ -728,7 +707,6 @@ namespace DataStaging {
         }
       }
       request->set_status(DTRStatus::CACHE_PROCESSED);
-      request->connect_logger();
       DTR::push(request, SCHEDULER);
       return;
     }
@@ -771,7 +749,6 @@ namespace DataStaging {
     }
     if (was_downloaded) cache.Stop(canonic_url);
     request->set_status(DTRStatus::CACHE_PROCESSED);
-    request->connect_logger();
     DTR::push(request, SCHEDULER);
   }
 

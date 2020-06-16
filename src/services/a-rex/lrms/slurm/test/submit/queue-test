@@ -12,9 +12,9 @@ EOF
 function test_queue_name()
 {
 read -r -d '' arc_test_configuration <<'EOF'
-[common]
-slurm_bin_path="@PWD@/bin"
-[queue/nordugrid]
+[lrms]
+slurm_bin_path=@PWD@/bin
+[queue:nordugrid]
 EOF
 
 read -r -d '' job_description_input <<'EOF'
@@ -22,17 +22,5 @@ read -r -d '' job_description_input <<'EOF'
  (queue = "nordugrid")
 EOF
 
-read -r -d '' job_script_patch <<'EOF'
---- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
-+++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -4,6 +4,7 @@
- #SBATCH -e /my/session/directory.comment
- #SBATCH -o /my/session/directory.comment
- 
-+#SBATCH -p nordugrid
- #SBATCH --nice=50
- #SBATCH -J 'gridjob'
- #SBATCH --get-user-env=10L
-EOF
-echo "${job_script_patch}" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
+cat "${SRCDIR}/queue-test-queue_name.patch" | patch -sf -p1 -d ${SRCDIR} -o ${testdir}/expected_lrms_job_script.tmpl
 }

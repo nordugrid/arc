@@ -190,8 +190,8 @@ bool JobDescriptionHandler::write_grami(GMJob &job,const char *opt_add) const {
 }
 
 bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc, GMJob& job, const char* opt_add) const {
+  if(job.GetLocalDescription(config) == NULL) return false;
   JobLocalDescription& job_local_desc = *(job.GetLocalDescription(config));
-  if(&job_local_desc == NULL) return false;
   const std::string session_dir = job.SessionDir();
   const std::string control_dir = config.ControlDir();
   const std::string fgrami = control_dir + "/job." + job.get_id() + ".grami";
@@ -384,7 +384,7 @@ bool JobDescriptionHandler::set_execs(const GMJob &job) const {
   if (desc.Application.Executable.Path[0] != '/' && desc.Application.Executable.Path[0] != '$') {
     std::string executable = desc.Application.Executable.Path;
     if(!Arc::CanonicalDir(executable)) {
-      logger.msg(Arc::ERROR, "Bad name for executable: ", executable);
+      logger.msg(Arc::ERROR, "Bad name for executable: %s", executable);
       return false;
     }
     fix_file_permissions_in_session(session_dir+"/"+executable,job,config,true);

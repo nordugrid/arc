@@ -14,6 +14,7 @@ namespace ArcSHCLegacy {
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUser");
 
 AuthResult AuthUser::match_plugin(const char* line) {
+  // plugin = timeout path [argument ...] - Run external executable or
   if(!line) return AAA_NO_MATCH;
   for(;*line;line++) if(!isspace(*line)) break;
   if(*line == 0) return AAA_NO_MATCH;
@@ -25,7 +26,7 @@ AuthResult AuthUser::match_plugin(const char* line) {
   for(;*line;line++) if(!isspace(*line)) break;
   if(*line == 0) return AAA_NO_MATCH;
   std::list<std::string> args;
-  Arc::tokenize(line,args," ","\"","\"");
+  Arc::tokenize(line,args," ");
   if(args.size() <= 0) return AAA_NO_MATCH;
   for(std::list<std::string>::iterator arg = args.begin();
           arg != args.end();++arg) {

@@ -15,9 +15,9 @@ use strict;
 use POSIX;
 our @ISA = ('Exporter');
 our @EXPORT_OK = ('cluster_info',
-	      'queue_info',
-	      'jobs_info',
-	      'users_info');
+            'queue_info',
+            'jobs_info',
+            'users_info');
 use LogUtils ( 'start_logging', 'error', 'warning', 'debug' ); 
 use condor_env;
 
@@ -103,7 +103,7 @@ sub collect_job_data() {
     return if $alljobdata_initialized;
     $alljobdata_initialized = 1;
     $ENV{_condor_CONDOR_Q_ONLY_MY_JOBS}='false';
-    my ($out, $err, $ret) = condor_run('condor_q -constraint "NiceUser == False" -format "ClusterId = %V\n" ClusterId -format "ProcId = %V\n" ProcId -format "JobStatus = %V\n" JobStatus -format "CurrentHosts = %V\n" CurrentHosts -format "LastRemoteHost = %V\n" LastRemoteHost -format "RemoteHost = %V\n" RemoteHost -format "ImageSize = %V\n" ImageSize -format "RemoteWallClockTime = %V\n" RemoteWallClockTime -format "RemoteUserCpu = %V\n" RemoteUserCpu -format "RemoteSysCpu = %V\n" RemoteSysCpu -format "JobTimeLimit = %V\n" JobTimeLimit -format "JobCpuLimit = %V\n\n" JobCpuLimit');
+    my ($out, $err, $ret) = condor_run('condor_q -constraint "NiceUser == False" -format "ClusterId = %V\n" ClusterId -format "ProcId = %V\n" ProcId -format "JobStatus = %V\n" JobStatus -format "CurrentHosts = %V\n" CurrentHosts -format "LastRemoteHost = %V\n" LastRemoteHost -format "RemoteHost = %V\n" RemoteHost -format "ImageSize = %V\n" ImageSize -format "RemoteWallClockTime = %V\n" RemoteWallClockTime -format "RemoteUserCpu = %V\n" RemoteUserCpu -format "RemoteSysCpu = %V\n" RemoteSysCpu -format "JobTimeLimit = %V\n" JobTimeLimit -format "JobCpuLimit = %V\n" JobCpuLimit -format "HoldReasonCode = %V\n\n" HoldReasonCode');
     return if $out =~ m/All queues are empty/;
     error("Failed collecting job information.") if $ret;
     for (split /\n\n+/, $out) {
@@ -217,7 +217,8 @@ sub condor_grep_nodes {
 #   2 (Suspended)  --> S (an already running job in a suspended state)
 #   3 (Removed)    --> E (finishing in the LRMS)
 #   4 (Completed)  --> E (finishing in the LRMS)
-#   5 (Held)       --> O (other)
+#   5 (Held)       --> H --> S ( some jobs are stuck in the queue)
+#                  --> H --> O if HoldReasonCode == 16  jobs are datastaging
 #   6 (Transfer)   --> O (other, almost finished. Transferring output.)
 #   7 (Suspended)  --> S (newer condor version support suspended)
 #
@@ -225,7 +226,7 @@ sub condor_grep_nodes {
 #
 sub condor_get_job_status($) {
     my $id = shift;
-    my %num2letter = qw(1 Q 2 R 3 E 4 E 5 O 6 O 7 S);
+    my %num2letter = qw(1 Q 2 R 3 E 4 E 5 H 6 O 7 S);
     return 'E' unless $alljobdata{$id};
     my $s = $alljobdata{$id}{jobstatus};
     return 'E' if !defined $s;
@@ -233,6 +234,11 @@ sub condor_get_job_status($) {
     if ($s eq 'R') {
         $s = 'S' if condor_job_suspended($id);
     }
+    # Takes care of HOLD jobs
+    if ($s eq 'H') {
+        $s = condor_job_hold_isstaging($id) ? 'O' : 'S';
+    }
+
     debug "===condor_get_job_status $id: $s";
     return $s;
 }
@@ -260,8 +266,9 @@ sub condor_queue_get_queued() {
     }
     for (values %alljobdata) {
         my %job = %$_;
-        # only include jobs which are idle or held
-        next unless $job{jobstatus} == 1 || $job{jobstatus} == 5;
+        # only include jobs which are idle. 
+        # TODO: Held jobs (ID=5) removed upon WLCG request, maybe they need to be counted elsewhere
+        next unless $job{jobstatus} == 1;
         my $clusterid = "$job{clusterid}.$job{procid}";
         if (grep { $_ eq $clusterid } @jobids_thisqueue) {
             $gridqueued += 1;
@@ -279,22 +286,32 @@ sub condor_queue_get_queued() {
 }
 
 #
-# Counts all queued cpus (idle and held) in the cluster.
+# Counts all queued cpus (idle) in the cluster.
 # TODO: this counts jobs, not cpus.
+# TODO: Held jobs (ID=5) removed upon WLCG request, maybe they need to be counted elsewhere
 sub condor_cluster_get_queued_cpus() {
     my $sum = 0;
-    do {$sum++ if $$_{jobstatus} == 1 || $$_{jobstatus} == 5} for values %alljobdata;
+    do {$sum++ if $$_{jobstatus} == 1} for values %alljobdata;
     debug "===condor_cluster_get_queued_cpus: $sum";
     return $sum;
 }
 
 #
-# Counts all queued jobs (idle and held) in the cluster.
+# Counts all queued jobs (idle) in the cluster.
 #
 sub condor_cluster_get_queued_jobs() {
     my $sum = 0;
-    do {$sum++ if $$_{jobstatus} == 1 || $$_{jobstatus} == 5} for values %alljobdata;
+    do {$sum++ if $$_{jobstatus} == 1} for values %alljobdata;
     debug "===condor_cluster_get_queued_jobs: $sum";
+    return $sum;
+}
+
+# Counts all held jobs (ID=5) in the cluster.
+#
+sub condor_cluster_get_held_jobs() {
+    my $sum = 0;
+    do {$sum++ if $$_{jobstatus} == 5} for values %alljobdata;
+    debug "===condor_cluster_get_held_jobs: $sum";
     return $sum;
 }
 
@@ -408,6 +425,28 @@ sub condor_job_suspended($) {
 }
 
 #
+# This function parses the condor log to see if a job in HOLD state
+# has been kept in HOLD because HoldReasonCode == 16.
+# In this case the job is staging so it should not be discarded.
+#
+# Argument: the condor job id
+# Returns: E if the job is in a terminal state, O if not.
+#
+
+sub condor_job_hold_isstaging($) {
+    my $id = shift;
+    return 0 unless $alljobdata{$id};
+    return 1 if ($alljobdata{$id}{lc 'HoldReasonCode'} == '16');
+    
+    # E state means the job will not exit the HOLD state.
+    # O state means the job can be out of the HOLD state.
+    # If HoldReasonCode == 16 --> staging --> O
+    my $substate = 'E';
+    $substate = 'O' if $alljobdata{$id}{lc 'HoldReasonCode'} == '16';
+    return $substate;
+}
+
+#
 # CPU distribution string (e.g., '1cpu:5 2cpu:1').
 #
 sub cpudistribution {
@@ -444,7 +483,7 @@ sub cluster_info ($) {
 
     my %lrms_cluster;
 
-    configure_condor_env(%$config) or die "Condor executables or config file not found\n";
+    configure_condor_env(%$config) or error("Condor executables (in condor_bin_path) or config file (condor_config) not found, check configuration. Exiting...");
 
     collect_node_data();
     collect_job_data();
@@ -490,11 +529,11 @@ sub queue_info ($$) {
     warning("Option 'condor_requirements' is not defined for queue $qname") unless $qdef;
     debug("===Requirements for queue $qname: $qdef");
     
-    configure_condor_env(%$config) or die "Condor executables or config file not found\n";
+    configure_condor_env(%$config) or error("Condor executables (in condor_bin_path) or config file (condor_config) not found, check configuration. Exiting...");
 
     collect_node_data();
     collect_job_data();
-    collect_jobids($qname, $$config{control}{'.'}{controldir});
+    collect_jobids($qname, $$config{controldir});
 
     # Number of available (free) cpus can not be larger that
     # free cpus in the whole cluster
@@ -610,8 +649,8 @@ sub users_info($$@) {
     foreach my $u ( @{$accts} ) {
         # all users are treated as equals
         # there is no maximum walltime/cputime limit in Condor
-	$lrms_users{$u}{freecpus} = $lrms_queue{freecpus};
-	$lrms_users{$u}{queuelength} = "$lrms_queue{queued}";
+    $lrms_users{$u}{freecpus} = $lrms_queue{freecpus};
+    $lrms_users{$u}{queuelength} = "$lrms_queue{queued}";
     }
     return %lrms_users;
 }

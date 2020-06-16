@@ -16,6 +16,7 @@ class FileRecordSQLite: public FileRecord {
  private:
   Glib::Mutex lock_; // TODO: use DB locking
   sqlite3* db_;
+  int sqlite3_exec_nobusy(const char *sql, int (*callback)(void*,int,char**,char**), void *arg, char **errmsg);
   bool dberr(const char* s, int err);
   bool open(bool create);
   void close(void);

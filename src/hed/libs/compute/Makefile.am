@@ -31,7 +31,7 @@ libarccompute_la_HEADERS = Broker.h BrokerPlugin.h ExecutionTarget.h \
 	JobState.h Job.h JobControllerPlugin.h JobSupervisor.h \
 	JobDescription.h JobDescriptionParserPlugin.h Software.h \
 	GLUE2.h EndpointQueryingStatus.h TestACCControl.h \
-	EntityRetriever.h EntityRetrieverPlugin.h Endpoint.h \
+	EntityRetriever.h EntityRetrieverPlugin.h Endpoint.h WSCommonPlugin.h \
 	ComputingServiceRetriever.h JobInformationStorage.h \
 	JobInformationStorageXML.h $(HEADER_WITH_DBJSTORE) $(HEADER_WITH_SQLITEJSTORE)
 libarccompute_la_SOURCES = Broker.cpp BrokerPlugin.cpp ExecutionTarget.cpp \

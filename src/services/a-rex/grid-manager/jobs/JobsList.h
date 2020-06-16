@@ -5,6 +5,8 @@
 #include <list>
 #include <glib.h>
 
+#include <arc/Thread.h>
+
 #include "../conf/StagingConfig.h"
 
 #include "GMJob.h"
@@ -41,8 +43,6 @@ public:
 /// jobs through the state machine. New jobs found through Scan methods are
 /// held in memory until reaching FINISHED state.
 class JobsList {
- public:
-//  typedef std::map<JobId,GMJob>::iterator iterator;
  private:
   bool valid;
 
@@ -50,6 +50,8 @@ class JobsList {
   // TODO: It would be nice to remove it and use status files distribution among
   // subfolders in controldir.
   std::map<JobId,GMJobRef> jobs;         
+
+  mutable Glib::RecMutex jobs_lock;
 
   GMJobQueue jobs_processing;   // List of jobs currently scheduled for processing
 
@@ -99,9 +101,6 @@ class JobsList {
   bool state_canceling(GMJobRef i,bool &state_changed);
   // Same for PREPARING/FINISHING
   bool state_loading(GMJobRef i,bool &state_changed,bool up);
-  // Returns true if job is waiting on some condition or limit before
-  // progressing to the next state
-  bool JobPending(GMJobRef i);
   // Get the state in which the job failed from .local file
   job_state_t JobFailStateGet(GMJobRef i);
   // Write the state in which the job failed to .local file
@@ -109,7 +108,7 @@ class JobsList {
   // In case of job restart, recreates lists of input and output files taking
   // into account what was already transferred
   bool RecreateTransferLists(GMJobRef i);
-  // Read into ids all jobs in the given dir except those already handled
+  // Read into ids all jobs in the given dir except those already being handled
   bool ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) const;
   // Check and read into id information about job in the given dir 
   // (id has job id filled on entry) unless job is already handled
@@ -128,6 +127,9 @@ class JobsList {
   bool GetLocalDescription(GMJobRef i) const;
   // Modify job state, log that change and optionally log modification reson
   void SetJobState(GMJobRef i, job_state_t new_state, const char* reason = NULL);
+  // Modify job state to set is as waiting on some condition or limit before
+  // progressing to the next state
+  void SetJobPending(GMJobRef i, const char* reason);
   // Update content of job proxy file with one stored in delegations store
   void UpdateJobCredentials(GMJobRef i);
 
@@ -227,15 +229,35 @@ class JobsList {
     ExternalHelper(const std::string &cmd);
     ~ExternalHelper();
     /// Start process if it is not running yet
-    bool run(JobsList& list);
+    bool run(JobsList const& list);
     /// Stop process if it is running
     void stop();
   };
 
-  friend class ExternalHelper;
+  /// Class for handling multiple external threads
+  class ExternalHelpers: protected Arc::Thread {
+   public:
+    /// Construct instance from commands attached to jobs.
+    ExternalHelpers(std::list<std::string> const& commands, JobsList const& jobs);
+    /// Kill thread handling helpers and destroy this instance.
+    ~ExternalHelpers();
+    /// Start handling by spawning dedicated thread.
+    void start();
+   private:
+    virtual void thread(void);
+    std::list<ExternalHelper> helpers;
+    JobsList const& jobs_list;
+    Arc::SimpleCounter stop_cond;
+    bool stop_request;
+  };
 
-  /// List of associated external processes
-  std::list<ExternalHelper> helpers;
+  /// Associated external processes
+  ExternalHelpers helpers;
+
+  // Return iterator to object matching given id or null if not found
+  GMJobRef FindJob(const JobId &id);
+
+  bool HasJob(const JobId &id) const;
 
  public:
   static const int ProcessingQueuePriority = 3;
@@ -247,15 +269,7 @@ class JobsList {
   ~JobsList(void);
   operator bool(void) { return valid; };
   bool operator!(void) { return !valid; };
-  // std::list methods for using JobsList like a regular list
-  //iterator begin(void) { return jobs.begin(); };
-  //iterator end(void) { return jobs.end(); };
-  //size_t size(void) const { return jobs.size(); };
-  //iterator erase(iterator& i) { return jobs.erase(i); };
 
-  // Return iterator to object matching given id or jobs.end() if not found
-  GMJobRef FindJob(const JobId &id);
-  bool HasJob(const JobId &id) const;
   // Information about jobs for external utilities
   // No of jobs in all active states from ACCEPTED and FINISHING
   int AcceptedJobs() const;
@@ -296,19 +310,6 @@ class JobsList {
   // Pick jobs which have been marked for restarting, cancelling or cleaning
   bool ScanNewMarks(void);
 
-  // Collect all jobs in all states
-  // TODO: Only used in gm-jobs - remove.
-  bool GetAllJobs(std::list<GMJobRef>& alljobs) const;
-
-  bool GetAllJobIds(std::list<JobId>& alljobs) const;
-
-  // Add job with specified id. 
-  // Returns valid reference if job was found and added.
-  // TODO: Only used in gm-jobs - remove.
-  GMJobRef GetJob(const JobId& id) const;
-
-  int CountAllJobs() const;
-
   // Rearrange status files on service restart
   bool RestartJobs(void);
 
@@ -319,8 +320,36 @@ class JobsList {
   // While waiting may also perform slow scanning of old jobs
   void WaitAttention();
 
-  /// Start/restart all helper processes
-  bool RunHelpers();
+
+
+
+  // Class to be used in job scanning methods to filter out jobs by their id.
+  class JobFilter {
+  public:
+    JobFilter() {};
+    virtual ~JobFilter() {};
+    // This method is called when jobs scanning needs to decide
+    // if job to be picked up. Must return true for suitable job ids.
+    virtual bool accept(const JobId &id) const = 0;
+  };
+
+  // Look for all jobs residing in specified control directories.
+  // Fils ids with information about those jobs.
+  // Uses filter to skip jobs which do not fit filter requirments.
+  static bool ScanAllJobs(const std::string& cdir,std::list<JobFDesc>& ids, JobFilter const& filter);
+  
+
+  // Collect all jobs in all states and return references to their descriptions in alljobs.
+  static bool GetAllJobs(const GMConfig& config, std::list<GMJobRef>& alljobs);
+
+  // Collect all job ids in all states and return them in alljobs.
+  static bool GetAllJobIds(const GMConfig& config, std::list<JobId>& alljobs);
+
+  // Collect information about job with specified id. 
+  // Returns valid reference if job was found.
+  static GMJobRef GetJob(const GMConfig& config, const JobId& id);
+
+  static int CountAllJobs(const GMConfig& config);
 
 };
 

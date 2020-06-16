@@ -38,11 +38,7 @@ static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
   // The profiles.ini could exist under firefox, seamonkey and thunderbird
   std::vector<std::string> profiles_homes;
 
-#ifndef WIN32
   std::string home_path = user.Home();
-#else
-  std::string home_path = Glib::get_home_dir();
-#endif
 
   std::string profiles_home;
 
@@ -55,28 +51,6 @@ static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
 
   profiles_home = home_path + G_DIR_SEPARATOR_S "Library" G_DIR_SEPARATOR_S "Thunderbird";
   profiles_homes.push_back(profiles_home);
-
-#elif defined(WIN32)
-  //Windows Vista and Win7
-  profiles_home = home_path + G_DIR_SEPARATOR_S "AppData" G_DIR_SEPARATOR_S "Roaming" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "Firefox";
-  profiles_homes.push_back(profiles_home);
-
-  profiles_home = home_path + G_DIR_SEPARATOR_S "AppData" G_DIR_SEPARATOR_S "Roaming" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "SeaMonkey";
-  profiles_homes.push_back(profiles_home);
-
-  profiles_home = home_path + G_DIR_SEPARATOR_S "AppData" G_DIR_SEPARATOR_S "Roaming" G_DIR_SEPARATOR_S "Thunderbird";
-  profiles_homes.push_back(profiles_home);
-
-  //WinXP and Win2000
-  profiles_home = home_path + G_DIR_SEPARATOR_S "Application Data" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "Firefox";
-  profiles_homes.push_back(profiles_home);    
-
-  profiles_home = home_path + G_DIR_SEPARATOR_S "Application Data" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "SeaMonkey";
-  profiles_homes.push_back(profiles_home);
-
-  profiles_home = home_path + G_DIR_SEPARATOR_S "Application Data" G_DIR_SEPARATOR_S "Thunderbird";
-  profiles_homes.push_back(profiles_home);
-
 #else //Linux
   profiles_home = home_path + G_DIR_SEPARATOR_S ".mozilla" G_DIR_SEPARATOR_S "firefox";
   profiles_homes.push_back(profiles_home);
@@ -284,7 +258,7 @@ static int runmain(int argc, char *argv[]) {
                                     "    12 hours and validityPeriod (which is lifetime of the delegated proxy on myproxy server))\n"
                                     "  proxyPolicy=policy content\n"
                                     "  proxyPolicyFile=policy file\n"
-                                    "  keybits=number - length of the key to generate. Default is 1024 bits.\n"
+                                    "  keybits=number - length of the key to generate. Default is 2048 bits.\n"
                                     "    Special value 'inherit' is to use key length of signing certificate.\n"
                                     "  signingAlgorithm=name - signing algorithm to use for signing public key of proxy.\n"
                                     "    Possible values are sha1, sha2 (alias for sha256), sha224, sha256, sha384, sha512\n"
@@ -295,7 +269,7 @@ static int runmain(int argc, char *argv[]) {
                                     "  subject - subject name of proxy certificate.\n"
                                     "  identity - identity subject name of proxy certificate.\n"
                                     "  issuer - issuer subject name of proxy certificate.\n"
-                                    "  ca - subject name of CA ehich issued initial certificate\n"
+                                    "  ca - subject name of CA which issued initial certificate.\n"
                                     "  path - file system path to file containing proxy.\n"
                                     "  type - type of proxy certificate.\n"
                                     "  validityStart - timestamp when proxy validity starts.\n"
@@ -335,7 +309,7 @@ static int runmain(int argc, char *argv[]) {
                     istring("path"), proxy_path);
 
   std::string cert_path;
-  options.AddOption('C', "cert", istring("path to the certificate file, it can be either PEM, DER, or PKCS12 formated"),
+  options.AddOption('C', "cert", istring("path to the certificate file, it can be either PEM, DER, or PKCS12 formatted"),
                     istring("path"), cert_path);
 
   std::string key_path;
@@ -362,9 +336,11 @@ static int runmain(int argc, char *argv[]) {
                                          "              all --- put all of this DN's attributes into AC; \n"
                                          "              list ---list all of the DN's attribute, will not create AC extension; \n"
                                          "              /Role=yourRole --- specify the role, if this DN \n"
-                                         "                               has such a role, the role will be put into AC \n"
+                                         "                               has such a role, the role will be put into AC; \n"
                                          "              /voname/groupname/Role=yourRole --- specify the VO, group and role; if this DN \n"
-                                         "                               has such a role, the role will be put into AC \n"
+                                         "                               has such a role, the role will be put into AC. \n"
+                                         "              If this option is not specified values from configuration files are used.\n"
+                                         "              To avoid anything to be used specify -S with empty value.\n"
                                          ),
                     istring("string"), vomslist);
 
@@ -505,6 +481,17 @@ static int runmain(int argc, char *argv[]) {
     usercfg.KeyPath("");;
   }
 
+  if(vomslist.empty()) {
+    vomslist = usercfg.DefaultVOMSes();
+  }
+  for(std::list<std::string>::iterator voms = vomslist.begin(); voms != vomslist.end();) {
+    if(voms->empty()) {
+      voms = vomslist.erase(voms);
+    } else {
+      ++voms;
+    }
+  }
+
   // Check for needed credentials objects
   // Can proxy be used for? Could not find it in documentation.
   // Key and certificate not needed if only printing proxy information
@@ -625,8 +612,11 @@ static int runmain(int argc, char *argv[]) {
                  "Please make sure this file exists.", proxy_path);
       return EXIT_FAILURE;
     }
-
     Arc::Credential holder(proxy_path, "", "", "");
+    if(!holder.GetCert()) {
+      logger.msg(Arc::ERROR, "Cannot process proxy file at %s.", proxy_path);
+      return EXIT_FAILURE;
+    }
     std::cout << Arc::IString("Subject: %s", holder.GetDN()) << std::endl;
     std::cout << Arc::IString("Issuer: %s", holder.GetIssuerName()) << std::endl;
     std::cout << Arc::IString("Identity: %s", holder.GetIdentityName()) << std::endl;
@@ -685,30 +675,38 @@ static int runmain(int argc, char *argv[]) {
         std::cout << "VO        : "<<voms_attributes[n].voname << std::endl;
         std::cout << "subject   : "<<voms_attributes[n].holder << std::endl;
         std::cout << "issuer    : "<<voms_attributes[n].issuer << std::endl;
-        bool found_uri = false;
         for(int i = 0; i < voms_attributes[n].attributes.size(); i++) {
           std::string attr = voms_attributes[n].attributes[i];
           std::string::size_type pos;
           if((pos = attr.find("hostname=")) != std::string::npos) {
-            if(found_uri) continue;
-            std::string str = attr.substr(pos+9);
-            std::string::size_type pos1 = str.find("/");
-            if(pos1 != std::string::npos) str = str.substr(0, pos1);
-            std::cout << "uri       : " << str <<std::endl;
-            found_uri = true;
+            std::list<std::string> attr_elements;
+            Arc::tokenize(attr, attr_elements, "/");
+            // remove /voname= prefix
+            if ( ! attr_elements.empty() ) attr_elements.pop_front();
+            if ( attr_elements.empty() ) {
+              logger.msg(Arc::WARNING, "Malformed VOMS AC attribute %s", attr);
+              continue;
+            }
+            // policyAuthority (URI) and AC tags
+            if ( attr_elements.size() == 1 ) {
+              std::string uri = attr_elements.front().substr(9);
+              std::cout << "uri       : " << uri <<std::endl;
+            } else {
+              std::string fqan = "";
+              attr_elements.pop_front();
+              // tags rendering is not defined in GFD.182
+              // tags are assigned to members, groups and roles
+              // FQAN-based ARC rendering is used
+              while (! attr_elements.empty () ) {
+                fqan.append("/").append(attr_elements.front());
+                attr_elements.pop_front();
+              }
+              std::cout << "tag       : " << fqan <<std::endl;
+            }
           }
           else {
-            if(attr.find("Role=") == std::string::npos)
-              std::cout << "attribute : " << attr <<"/Role=NULL/Capability=NULL" <<std::endl;
-            else if(attr.find("Capability=") == std::string::npos)
-              std::cout << "attribute : " << attr <<"/Capability=NULL" <<std::endl;
-            else
-              std::cout << "attribute : " << attr <<std::endl;
-          }
-
-          if((pos = attr.find("Role=")) != std::string::npos) {
-            std::string str = attr.substr(pos+5);
-            std::cout << "attribute : role = " << str << " (" << voms_attributes[n].voname << ")"<<std::endl;
+            // Short FQANs are GFD.182 compliant, no need to add Role=NULL
+            std::cout << "attribute : " << attr <<std::endl;
           }
 
           //std::cout << "attribute : "<<voms_attributes[n].attributes[i]<<std::endl;
@@ -736,11 +734,27 @@ static int runmain(int argc, char *argv[]) {
     return EXIT_SUCCESS;
   }
   if(infoitemlist.size() > 0) {
-    std::vector<Arc::VOMSACInfo> voms_attributes;
+    if (proxy_path.empty()) {
+      logger.msg(Arc::ERROR, "Cannot find the path of the proxy file, "
+                 "please setup environment X509_USER_PROXY, "
+                 "or proxypath in a configuration file");
+      return EXIT_FAILURE;
+    }
+    else if (!(Glib::file_test(proxy_path, Glib::FILE_TEST_EXISTS))) {
+      logger.msg(Arc::ERROR, "Cannot find file at %s for getting the proxy. "
+                 "Please make sure this file exists.", proxy_path);
+      return EXIT_FAILURE;
+    }
     Arc::Credential holder(proxy_path, "", "", "");
+    if(!holder.GetCert()) {
+      logger.msg(Arc::ERROR, "Cannot process proxy file at %s.", proxy_path);
+      return EXIT_FAILURE;
+    }
     Arc::VOMSTrustList voms_trust_dn;
     voms_trust_dn.AddRegex(".*");
+    std::vector<Arc::VOMSACInfo> voms_attributes;
     parseVOMSAC(holder, ca_dir, "", voms_dir, voms_trust_dn, voms_attributes, true, true);
+    bool unknownInfo = false;
     for(std::list<std::string>::iterator ii = infoitemlist.begin();
                            ii != infoitemlist.end(); ++ii) {
       if(*ii == "subject") {
@@ -813,8 +827,11 @@ static int runmain(int argc, char *argv[]) {
         std::cout << signTypeToString(holder.GetSigningAlgorithm()) << std::endl;
       } else {
         logger.msg(Arc::ERROR, "Information item '%s' is not known",*ii);
+        unknownInfo = true;
       }
     }
+    if (unknownInfo)
+      return EXIT_FAILURE;
     return EXIT_SUCCESS;
   }
 
@@ -968,7 +985,7 @@ static int runmain(int argc, char *argv[]) {
     } else {
       // otherwise start - optionally - and end are set, period is derived
       if(validityEnd < validityStart) {
-        std::cerr << Arc::IString("The end time that you set: %s is before start time:%s.", (std::string)validityEnd,(std::string)validityStart) << std::endl;
+        std::cerr << Arc::IString("The end time that you set: %s is before start time: %s.", (std::string)validityEnd,(std::string)validityStart) << std::endl;
         // error
         return EXIT_FAILURE;
       }
@@ -1252,14 +1269,12 @@ static int runmain(int argc, char *argv[]) {
       std::cerr << Arc::IString("Proxy generation failed: No valid certificate found.") << std::endl;
       return EXIT_FAILURE;
     }
-#ifndef WIN32
     EVP_PKEY* pkey = signer.GetPrivKey();
     if(!pkey) {
       std::cerr << Arc::IString("Proxy generation failed: No valid private key found.") << std::endl;
       return EXIT_FAILURE;
     }
     if(pkey) EVP_PKEY_free(pkey);
-#endif
     std::cout << Arc::IString("Your identity: %s", signer.GetIdentityName()) << std::endl;
     if (now > signer.GetEndTime()) {
       std::cerr << Arc::IString("Proxy generation failed: Certificate has expired.") << std::endl;

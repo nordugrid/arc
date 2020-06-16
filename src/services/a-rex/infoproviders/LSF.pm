@@ -39,7 +39,9 @@ our $total_cpus="0";
 
 sub lsf_env($$){
 my ($path)=shift;
+error("lsf_bin_path not defined, cannot continue. Exiting...") unless defined $path;
 $lsf_profile_path=shift;
+error("lsf_profile_path not defined, cannot continue. Exiting...") unless defined $lsf_profile_path;
 
 $lsf_profile=`source $lsf_profile_path`;
 $lshosts_command="$path/lshosts -w";
@@ -74,8 +76,7 @@ sub read_lsfnodes ($){
     my ($cpu_count) = 0;
 
     unless (open LSFHOSTSOUTPUT,   "$lshosts_command |") {
-	debug("Error in executing lshosts command: $lshosts_command");
-	die "Error in executing lshosts: $lshosts_command\n";
+    error("Error in executing lshosts command: $lshosts_command");
     }
 
     while (my $line= <LSFHOSTSOUTPUT>) {
@@ -100,8 +101,7 @@ sub read_lsfnodes ($){
     close LSFHOSTSOUTPUT;
 
     unless (open LSFBHOSTSOUTPUT, "$bhosts_command |") {
-    	debug("Error in executing bhosts command: $bhosts_command");
-    	die "Error in executing bhosts: $bhosts_command\n";
+        error("Error in executing bhosts command: $bhosts_command");
     }
 
     while (my $line= <LSFBHOSTSOUTPUT>) {
@@ -145,8 +145,7 @@ sub queue_info_user ($$$) {
        $user = "-u " . $user;
     }
     unless (open BQOUTPUT,  "$bqueues_command $user $qname|") {
-       debug("Error in executing bqueues command: $bqueues_command $user $qname");
-       die "Error in executing bqueues: $bqueues_command \n";
+       error("Error in executing bqueues command: $bqueues_command $user $qname");
     }
 
     while (my $line= <BQOUTPUT>) {
@@ -178,8 +177,7 @@ sub queue_info_user ($$$) {
     $lrms_queue{maxwalltime} = "";
 
     unless (open BQOUTPUT,  "$bqueuesl_command $user $qname|") {
-       debug("Error in executing bqueues command: $bqueuesl_command $user $qname");
-       die "Error in executing bqueues: $bqueuesl_command \n";
+       error("Error in executing bqueues command: $bqueuesl_command $user $qname");
     }
     my $lastline ="";
     while (my $line= <BQOUTPUT>) {
@@ -225,8 +223,7 @@ sub get_jobinfo($){
    my %job;
 
    unless (open BJOUTPUT,  "$bjobs_command $id|") {
-       debug("Error in executing bjobs command: $bjobs_command $id");
-       die "Error in executing bjobs: $bjobs_command \n";
+       error("Error in executing bjobs command: $bjobs_command $id");
     }
 
     while (my $line= <BJOUTPUT>) {

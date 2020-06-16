@@ -14,11 +14,7 @@
 
 #define X509_CERT_DIR  "X509_CERT_DIR"
 
-#ifndef WIN32
 #define FILE_SEPARATOR "/"
-#else
-#define FILE_SEPARATOR "\\"
-#endif
 #define SIGNING_POLICY_FILE_EXTENSION   ".signing_policy"
 
 
@@ -167,7 +163,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx) {
     if(sk_X509_num(X509_STORE_CTX_get0_chain(store_ctx)) == 1) { logger.msg(Arc::VERBOSE,"Self-signed certificate"); }
 
     if (X509_STORE_CTX_get_error(store_ctx) == X509_V_ERR_CERT_NOT_YET_VALID) {
-      logger.msg(Arc::INFO,"The certificate with subject %s  is not valid",subject_name);
+      logger.msg(Arc::INFO,"The certificate with subject %s is not valid",subject_name);
     }
     else if(X509_STORE_CTX_get_error(store_ctx) == X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY) {
       logger.msg(Arc::INFO,"Can not find issuer certificate for the certificate with subject %s and hash: %lu",subject_name,issuer_hash);
@@ -428,8 +424,6 @@ bool check_cert_type(X509* cert, certType& type) {
 
   ASN1_STRING* data;
   X509_EXTENSION* certinfo_ext;
-  PROXY_POLICY* policy = NULL;
-  ASN1_OBJECT* policylang = NULL;
   int policynid;
   PROXY_CERT_INFO_EXTENSION* certinfo_openssl = NULL;
 
@@ -462,7 +456,7 @@ bool check_cert_type(X509* cert, certType& type) {
         PROXY_POLICY* policy_openssl = NULL;
         ASN1_OBJECT* policylang_openssl = NULL;        
         if((certinfo_openssl = (PROXY_CERT_INFO_EXTENSION *)X509V3_EXT_d2i(certinfo_ext)) == NULL) {
-          logger.msg(Arc::ERROR,"Can't convert DER encoded PROXYCERTINFO extension to internal form");
+          logger.msg(Arc::ERROR,"Can't convert DER encoded PROXYCERTINFO extension to internal format");
           goto err;
         }
         if((policy_openssl = certinfo_openssl->proxyPolicy) == NULL) {

@@ -111,7 +111,11 @@ namespace Arc {
     return DataStatus::Success;
   }
 
-  DataStatus DataPoint::Transfer3rdParty(const URL& source, const URL& destination, Callback3rdParty callback) {
+  DataStatus DataPoint::Transfer(const URL& otherendpoint, bool source, TransferCallback callback) {
+    return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
+  }
+
+  DataStatus DataPoint::Transfer3rdParty(const URL& source, const URL& destination, TransferCallback callback) {
     return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
   }
 
@@ -207,6 +211,10 @@ namespace Arc {
     return false;
   }
 
+  bool DataPoint::SupportsTransfer() const {
+    return false;
+  }
+
   void DataPoint::SetMeta(const DataPoint& p) {
     if (!CheckSize())
       SetSize(p.GetSize());
@@ -259,7 +267,7 @@ namespace Arc {
   }
 
   DataStatus DataPoint::Transfer3rdParty(const URL& source, const URL& destination,
-                                         const UserConfig& usercfg, Callback3rdParty callback) {
+                                         const UserConfig& usercfg, TransferCallback callback) {
     // to load GFAL instead of ARC's DMCs we create a fake URL with gfal protocol
     URL gfal_url(destination);
     gfal_url.ChangeProtocol("gfal");
@@ -283,7 +291,9 @@ namespace Arc {
   DataPoint* DataPointLoader::load(const URL& url, const UserConfig& usercfg) {
     DataPointPluginArgument arg(url, usercfg);
     factory_->load(FinderLoader::GetLibrariesList(), "HED:DMC");
-    return factory_->GetInstance<DataPoint>("HED:DMC", &arg, false);
+    DataPoint* point = factory_->GetInstance<DataPoint>("HED:DMC", &arg, false);
+    if(!point) logger.msg(Arc::VERBOSE, "Failed to load plugin for URL %s", url.str());
+    return point;
   }
 
   DataPointLoader& DataHandle::getLoader() {

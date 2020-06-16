@@ -44,15 +44,20 @@ ARCSECURITY_CFLAGS='-I$(top_srcdir)/include'
 AC_SUBST(ARCSECURITY_LIBS)
 AC_SUBST(ARCSECURITY_CFLAGS)
 
+ARCOTOKENS_LIBS='$(top_builddir)/src/hed/libs/security/libarcotokens.la'
+ARCOTOKENS_CFLAGS='-I$(top_srcdir)/include'
+AC_SUBST(ARCOTOKENS_LIBS)
+AC_SUBST(ARCOTOKENS_CFLAGS)
+
 ARCINFOSYS_LIBS='$(top_builddir)/src/hed/libs/infosys/libarcinfosys.la'
 ARCINFOSYS_CFLAGS='-I$(top_srcdir)/include'
 AC_SUBST(ARCINFOSYS_LIBS)
 AC_SUBST(ARCINFOSYS_CFLAGS)
 
-ARCWS_LIBS='$(top_builddir)/src/hed/libs/ws/libarcws.la'
-ARCWS_CFLAGS='-I$(top_srcdir)/include'
-AC_SUBST(ARCWS_LIBS)
-AC_SUBST(ARCWS_CFLAGS)
+ARCWSADDRESSING_LIBS='$(top_builddir)/src/hed/libs/ws-addressing/libarcwsaddressing.la'
+ARCWSADDRESSING_CFLAGS='-I$(top_srcdir)/include'
+AC_SUBST(ARCWSADDRESSING_LIBS)
+AC_SUBST(ARCWSADDRESSING_CFLAGS)
 
 ARCWSSECURITY_LIBS='$(top_builddir)/src/hed/libs/ws-security/libarcwssecurity.la'
 ARCWSSECURITY_CFLAGS='-I$(top_srcdir)/include'

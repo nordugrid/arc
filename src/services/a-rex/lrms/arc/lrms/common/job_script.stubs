@@ -1,4 +1,4 @@
-#!/bin/bash
+# -*- sh -*-
 
 
 >> umask_and_sourcewithargs
@@ -254,7 +254,7 @@ exit $RESULT
 >
 if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
   find ./ -type l -exec rm -f "{}" ";"
-  find ./ -type f -exec chmod u+w "{}" ";"
+  chmod -R u+w "./"
 @OUTPUT_LISTS %ITEM
   dynlist='%(ITEM)s'
   chmod -R u-w "./$dynlist" 2>/dev/null
@@ -266,7 +266,7 @@ if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
   chmod -R u-w "$RUNTIME_JOB_DIR"/'%(ITEM)s' 2>/dev/null
 @
   find ./ -type f -perm /200 -exec rm -f "{}" ";"
-  find ./ -type f -exec chmod u+w "{}" ";"
+  chmod -R u+w "./"
 fi
 
 >

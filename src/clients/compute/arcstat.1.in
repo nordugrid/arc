@@ -32,6 +32,8 @@ skip jobs which are on a computing element with a given URL
 only select jobs whose status is statusstr
 .IP "\fB-l\fR, \fB--long\fR"
 long format (more information)
+.IP "\fB-J\fR, \fB--json\fR"
+output information about jobs in JSON format
 .IP "\fB-S\fR, \fB--sort\fR"
 sort jobs according to jobid, submissiontime or jobname
 .IP "\fB-R\fR, \fB--rsort\fR"

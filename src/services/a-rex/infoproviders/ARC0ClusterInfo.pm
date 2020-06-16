@@ -17,6 +17,22 @@ sub mds_date {
     return strftime("%Y%m%d%H%M%SZ", gmtime($seconds));
 }
 
+# sub to pick a value in order: first value preferred to others
+# can have as many parameters as one wants.
+sub prioritizedvalues {
+   my @values = @_;
+   my $numelements = scalar @values;
+
+   while (@values) {
+      my $current = shift @values;
+      return $current if (((defined $current) and ($current ne '')) or ( $numelements == 1));
+  }
+
+   # just in case all the above fails, return empty string
+   $log->debug("No suitable value found in call to prioritizedvalues. Returning undefined");
+   return undef;
+}
+
 ############################################################################
 # Combine info from all sources to prepare the final representation
 ############################################################################
@@ -169,11 +185,11 @@ sub collect($) {
         }
     }
 
-    my @authorizedvos = (); 
-    if ($config->{service}{AuthorizedVO}) {
-        @authorizedvos = @{$config->{service}{AuthorizedVO}};
-        # add VO: suffix to each authorized VO
-        @authorizedvos = map { "VO:".$_ } @authorizedvos;
+    my @advertisedvos = (); 
+    if ($config->{service}{AdvertisedVO}) {
+        @advertisedvos = @{$config->{service}{AdvertisedVO}};
+        # add VO: suffix to each advertised VO
+        @advertisedvos = map { "VO:".$_ } @advertisedvos;
     }
 
 	# Assume no connectivity unles explicitly configured otherwise on each
@@ -211,13 +227,13 @@ sub collect($) {
         # added to help client to match GLUE2 services on the same machine
         $c->{comment} = $c->{comment} ? $c->{comment}."; GLUE2ServiceID=urn:ogf:ComputingService:$hostname:arex" : "GLUE2ServiceID=urn:ogf:ComputingService:$hostname:arex"; # GLUE2ComputingService ID
         $c->{owner} = $config->{service}{ClusterOwner} if $config->{service}{ClusterOwner};
-        $c->{acl} = [ @authorizedvos ] if @authorizedvos;
+        $c->{acl} = [ @advertisedvos ] if @advertisedvos;
         $c->{location} = $config->{location}{PostCode} if $config->{location}{PostCode};
         $c->{issuerca} = $host_info->{issuerca} if $host_info->{issuerca};
         $c->{'issuerca-hash'} = $host_info->{issuerca_hash} if $host_info->{issuerca_hash};
         $c->{credentialexpirationtime} = mds_date($credenddate) if $credenddate;
         $c->{trustedca} = $host_info->{trustedcas} if $host_info->{trustedcas};
-        $c->{contactstring} = "gsiftp://$hostname:".$config->{gridftpd}{port}.$config->{gridftpd}{mountpoint};
+        $c->{contactstring} = "gsiftp://$hostname:".$config->{gridftpd}{port}.$config->{gridftpd}{mountpoint} if ($config->{gridftpd}{enabled});
         $c->{'interactive-contactstring'} = $config->{service}{InteractiveContactstring}
             if $config->{service}{InteractiveContactstring};
         $c->{support} = [ @supportmails ] if @supportmails;
@@ -323,19 +339,26 @@ sub collect($) {
             $q->{nodememory} = $sconfig->{MaxVirtualMemory} if $sconfig->{MaxVirtualMemory};
             $q->{architecture} = $sconfig->{Platform}
                 if $sconfig->{Platform};
-            push @{$q->{opsys}}, $sconfig->{OSName}.'-'.$sconfig->{OSVersion}
-                if $sconfig->{OSName} and $sconfig->{OSVersion};
-            push @{$q->{opsys}}, @{$sconfig->{OpSys}} if $sconfig->{OpSys};
+            # override instead of merging
+            if ($sconfig->{OSName} and $sconfig->{OSVersion}) {
+                push @{$q->{opsys}}, $sconfig->{OSName}.'-'.$sconfig->{OSVersion}
+            } else {
+                push @{$q->{opsys}}, @{$sconfig->{OpSys}} if $sconfig->{OpSys};
+            }
             $q->{benchmark} = [ map {join ' @ ', split /\s+/,$_,2 } @{$sconfig->{Benchmark}} ]
                 if $sconfig->{Benchmark};
             $q->{maxrunning} = $qinfo->{maxrunning} if defined $qinfo->{maxrunning};
             $q->{maxqueuable}= $qinfo->{maxqueuable}if defined $qinfo->{maxqueuable};
             $q->{maxuserrun} = $qinfo->{maxuserrun} if defined $qinfo->{maxuserrun};
-            $q->{maxcputime} = int $qinfo->{maxcputime}/60 if defined $qinfo->{maxcputime};
-            $q->{mincputime} = int $qinfo->{mincputime}/60 if defined $qinfo->{mincputime};
+            $q->{maxcputime} = prioritizedvalues($sconfig->{maxcputime},$qinfo->{maxcputime});
+            $q->{maxcputime} = defined $q->{maxcputime} ? int $q->{maxcputime}/60 : undef;
+            $q->{mincputime} = prioritizedvalues($sconfig->{mincputime},$qinfo->{mincputime});
+            $q->{mincputime} = defined $q->{mincputime} ? int $q->{mincputime}/60 : undef;
             $q->{defaultcputime} = int $qinfo->{defaultcput}/60 if defined $qinfo->{defaultcput};
-            $q->{maxwalltime} =  int $qinfo->{maxwalltime}/60 if defined $qinfo->{maxwalltime};
-            $q->{minwalltime} =  int $qinfo->{minwalltime}/60 if defined $qinfo->{minwalltime};
+            $q->{maxwalltime} = prioritizedvalues($sconfig->{maxwalltime},$qinfo->{maxwalltime});
+            $q->{maxwalltime} = defined $q->{maxwalltime} ? int $q->{maxwalltime}/60 : undef;
+            $q->{minwalltime} = prioritizedvalues($sconfig->{minwalltime},$qinfo->{minwalltime});
+            $q->{minwalltime} = defined $q->{minwalltime} ? int $q->{minwalltime}/60 : undef;
             $q->{defaultwalltime} = int $qinfo->{defaultwallt}/60 if defined $qinfo->{defaultwallt};
             $q->{running} = $qinfo->{running} if defined $qinfo->{running};
             $q->{gridrunning} = $gridrunning{$share} || 0;   

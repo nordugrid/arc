@@ -1,0 +1,193 @@
+#!/bin/sh
+# ARC cache index - index server
+#
+# chkconfig: 2345 75 25
+# description:  The ARC cache index server collects cache information from \
+#               cache servers and can be queried for the locations of cached \
+#               files.
+
+### BEGIN INIT INFO
+# Provides:             arc-acix-index
+# Required-Start:       $network $local_fs
+# Required-Stop:        $network $local_fs
+# Should-Start:         $time
+# Should-Stop:          $time
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 1 6
+# Short-Description:    ARC cache index - index server
+# Description:          The ARC cache index server collects cache information
+#                       from cache servers and can be queried for the locations
+#                       of cached files.
+### END INIT INFO
+
+# source function library
+if [ -f /etc/init.d/functions ]; then
+    . /etc/init.d/functions
+    log_success_msg() {
+        echo -n "$@"
+        success "$@"
+        echo
+    }
+    log_warning_msg() {
+        echo -n "$@"
+        warning "$@"
+        echo
+    }
+    log_failure_msg() {
+        echo -n "$@"
+        failure "$@"
+        echo
+    }
+elif [ -f /lib/lsb/init-functions ]; then
+    . /lib/lsb/init-functions
+else
+    echo "Error: Cannot source neither init.d nor lsb functions"
+    exit 1
+fi
+
+PIDFILE=/var/run/arc-acix-index.pid
+prog=@TWISTD@
+
+# sysconfig files
+if [ -r /etc/sysconfig/nordugrid ]; then
+    . /etc/sysconfig/nordugrid
+elif [ -r /etc/default/nordugrid ]; then
+    . /etc/default/nordugrid
+fi
+if [ -r /etc/sysconfig/arc-acix-index ]; then
+    . /etc/sysconfig/arc-acix-index
+elif [ -r /etc/default/arc-acix-index ]; then
+    . /etc/default/arc-acix-index
+fi
+
+# ARC_LOCATION
+ARC_LOCATION=${ARC_LOCATION:-@prefix@}
+if [ ! -d "$ARC_LOCATION" ]; then
+    log_failure_msg "ARC_LOCATION ($ARC_LOCATION) not found"
+    exit 1
+fi
+
+if [ `id -u` = 0 ] ; then
+    # Debian does not have /var/lock/subsys
+    if [ -d /var/lock/subsys ]; then
+        LOCKFILE=/var/lock/subsys/arc-acix-index
+    else
+        LOCKFILE=/var/lock/arc-acix-index
+    fi
+else
+    LOCKFILE=$HOME/arc-acix-index.lock
+fi
+
+do_start() {
+
+    echo -n "Starting ARC cache index..."
+
+    # Check if we are already running
+    if [ -f "$PIDFILE" ]; then
+        read pid < "$PIDFILE"
+        if [ "x$pid" != "x" ]; then
+            ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null
+            if [ $? -eq 0 ] ; then
+                log_success_msg "already running (pid $pid)"
+                return 0
+            fi
+        fi
+        rm -f "$PIDFILE" "$LOCKFILE"
+    fi
+
+    ${ARC_LOCATION}/@pkgdatasubdir@/arc-acix-index-start
+    RETVAL=$?
+
+    if [ $RETVAL -eq 0 ]; then
+        touch $LOCKFILE
+        log_success_msg
+    else
+        log_failure_msg
+    fi
+    return $RETVAL    
+}
+
+do_stop() {
+
+    echo -n "Stopping ARC cache index..."
+
+    if [ -f "$PIDFILE" ]; then
+        read pid < "$PIDFILE"
+        if [ ! -z "$pid" ] ; then
+            kill "$pid"
+            RETVAL=$?
+            if [ $RETVAL -eq 0 ]; then
+                log_success_msg
+            else
+                log_failure_msg
+            fi
+      
+            timeout=2; # for stopping nicely
+            
+            while ( ps -p "$pid" -o comm 2>/dev/null | grep "^$prog$" 1>/dev/null 2>/dev/null ) && [ $timeout -ge 1 ] ; do
+                sleep 1
+                timeout=$(($timeout - 1))
+            done
+
+            [ $timeout -lt 1 ] && kill -9 "$pid" 1>/dev/null 2>&1
+            rm -f "$PIDFILE" "$LOCKFILE"
+        else
+            RETVAL=1
+            log_failure_msg "$prog shutdown - pidfile is empty"
+        fi
+    else
+        RETVAL=0
+        log_success_msg "$prog shutdown - already stopped"
+    fi
+    return $RETVAL
+}
+
+do_status() {
+
+    if [ -f "$PIDFILE" ]; then
+        read pid < "$PIDFILE"
+        if [ "$pid" != "" ]; then
+            if ps -p "$pid" > /dev/null; then
+                echo "$1 (pid $pid) is running..."
+                return 0
+            fi
+            echo "$1 stopped but pid file exists"
+            return 1
+        fi
+    fi
+    if [ -f $LOCKFILE ]; then
+        echo "$1 stopped but lockfile exists"
+        return 2
+    fi
+    echo "$1 is stopped"
+    return 3
+}
+
+do_restart() {
+    do_stop
+    do_start
+}
+
+case "$1" in
+    start)
+        do_start
+    ;;
+    stop)
+        do_stop
+    ;;
+    restart|reload|force-reload)
+        do_restart
+    ;;
+    condrestart|try-restart)
+        [ -f $LOCKFILE ] && do_restart || :
+    ;;
+    status)
+        do_status $prog
+    ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status|reload|condrestart|try-restart}"
+        exit 1
+    ;;
+esac
+
+exit 0

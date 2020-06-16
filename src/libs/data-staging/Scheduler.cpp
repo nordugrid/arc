@@ -114,7 +114,7 @@ namespace DataStaging {
 
   void Scheduler::log_to_root_logger(Arc::LogLevel level, const std::string& message) {
     Arc::Logger::getRootLogger().addDestinations(root_destinations);
-    logger.msg(level, message);
+    logger.msg(level, "%s", message);
     Arc::Logger::getRootLogger().removeDestinations();
   }
 
@@ -171,18 +171,18 @@ namespace DataStaging {
       // Use next replica
       // Clear the error flag to resume normal workflow
       request->reset_error_status();
-      request->get_logger()->msg(Arc::INFO, "Using next %s replica", source_error ? "source" : "destination");
+      request->get_logger()->msg(Arc::INFO, "Using next %s replica", source_error ? istring("source") : istring("destination"));
       // Perhaps not necessary to query replica again if the error was in the destination
       // but the error could have been caused by a source problem during transfer
       request->set_status(DTRStatus::QUERY_REPLICA);
     }
     else {
       // No replicas - move to appropriate state for the post-processor to do cleanup
-      request->get_logger()->msg(Arc::ERROR, "No more %s replicas", source_error ? "source" : "destination");
+      request->get_logger()->msg(Arc::ERROR, "No more %s replicas", source_error ? istring("source") : istring("destination"));
       if (request->get_destination()->IsIndex()) {
         request->get_logger()->msg(Arc::VERBOSE, "Will clean up pre-registered destination");
         request->set_status(DTRStatus::REGISTER_REPLICA);
-      } else if (!request->get_cache_parameters().cache_dirs.empty() &&
+      } else if (!(request->get_cache_parameters().cache_dirs.empty() && request->get_cache_parameters().readonly_cache_dirs.empty()) &&
                  (request->get_cache_state() == CACHE_ALREADY_PRESENT || request->get_cache_state() == CACHEABLE)) {
         request->get_logger()->msg(Arc::VERBOSE, "Will release cache locks");
         request->set_status(DTRStatus::PROCESS_CACHE);
@@ -204,7 +204,6 @@ namespace DataStaging {
       mapped_url.ChangeProtocol("file");
     }
     if (mapped_url.Protocol() == "link") {
-#ifndef WIN32
       // If the map is a link then do the link here and set to TRANSFERRED. Local file
       // copies should still have to wait in the queue. For links we should also
       // turn off caching, remembering that we still need to release any cache
@@ -231,9 +230,6 @@ namespace DataStaging {
           return true;
         }
       }
-#else
-      request->get_logger()->msg(Arc::ERROR, "Linking mapped file - can't link on Windows");
-#endif
     }
     else {
       // Ready to copy mapped file
@@ -254,7 +250,8 @@ namespace DataStaging {
         request->get_transfer_share(), request->get_priority());
 
     // Normal workflow is CHECK_CACHE
-    if (request->get_cache_state() == NON_CACHEABLE || request->get_cache_parameters().cache_dirs.empty()) {
+    if (request->get_cache_state() == NON_CACHEABLE ||
+        (request->get_cache_parameters().cache_dirs.empty() && request->get_cache_parameters().readonly_cache_dirs.empty())) {
       request->get_logger()->msg(Arc::VERBOSE, "File is not cacheable, was requested not to be cached or no cache available, skipping cache check");
       request->set_status(DTRStatus::CACHE_CHECKED);
     } else {
@@ -286,9 +283,8 @@ namespace DataStaging {
       request->get_logger()->msg(Arc::ERROR, "Timed out while waiting for cache lock");
       request->set_status(DTRStatus::CACHE_PROCESSED);
     } else if (DtrList.is_being_cached(request)) {
-      // TODO A low priority DTR holding the cache lock can block a high priority DTR
-      // downloading the same file. Here we should cancel the low priority one to let
-      // the high priority one go through
+      // If the source is already being cached the priority of that DTR
+      // will be raised by is_being_cached() if this DTR's priority is higher
       Arc::Period cache_wait_period(10);
       request->get_logger()->msg(Arc::VERBOSE, "File is currently being cached, will wait %is", cache_wait_period.GetPeriod());
       request->set_process_time(cache_wait_period);
@@ -330,7 +326,8 @@ namespace DataStaging {
     if(request->error()){
       // It's impossible to download anything, since no replica location is resolved
       // if cacheable, move to PROCESS_CACHE, the post-processor will do the cleanup
-      if (request->get_cache_state() == CACHEABLE && !request->get_cache_parameters().cache_dirs.empty()) {
+      if (request->get_cache_state() == CACHEABLE &&
+          !(request->get_cache_parameters().cache_dirs.empty() && request->get_cache_parameters().cache_dirs.empty())) {
         request->get_logger()->msg(Arc::ERROR, "Problem with index service, will release cache lock");
         request->set_status(DTRStatus::PROCESS_CACHE);
       // else go to end state
@@ -517,7 +514,7 @@ namespace DataStaging {
     } else if (request->get_destination()->IsIndex()) {
       // Normal workflow is REGISTER_REPLICA
       request->get_logger()->msg(Arc::VERBOSE, "Will %s in destination index service",
-                                 ((request->error() || request->cancel_requested()) ? "unregister":"register"));
+                                 ((request->error() || request->cancel_requested()) ? istring("unregister") : istring("register")));
       request->set_status(DTRStatus::REGISTER_REPLICA);
     } else {
       request->get_logger()->msg(Arc::VERBOSE, "Destination is not index service, skipping replica registration");
@@ -535,7 +532,8 @@ namespace DataStaging {
        request->get_error_status().GetLastErrorState() == DTRStatus::REGISTERING_REPLICA) {
       request->get_logger()->msg(Arc::ERROR, "Error registering replica, moving to end of data staging");
       request->set_status(DTRStatus::CACHE_PROCESSED);
-    } else if (!request->get_cache_parameters().cache_dirs.empty() &&
+    } else if (!(request->get_cache_parameters().cache_dirs.empty() &&
+                 request->get_cache_parameters().readonly_cache_dirs.empty()) &&
                (request->get_cache_state() == CACHE_ALREADY_PRESENT ||
                 request->get_cache_state() == CACHE_DOWNLOADED ||
                 request->get_cache_state() == CACHEABLE ||
@@ -1010,6 +1008,9 @@ namespace DataStaging {
       delivery_hosts[(*i)->get_delivery_endpoint().Host()]++;
     }
 
+    // Check for any requested changes in priority
+    DtrList.check_priority_changes(std::string(dumplocation + ".prio"));
+
     // Get all the DTRs in a staged state
     staged_queue.clear();
     std::list<DTR_ptr> staged_queue_list;
@@ -1156,12 +1157,6 @@ namespace DataStaging {
           // Stuck in processing thread for more than one hour - assume a hang
           // and try to recover and retry. It is potentially dangerous if a
           // stuck thread wakes up.
-          // Need to re-connect logger as it was disconnected in Processor thread
-          tmp->connect_logger();
-          // Tell DTR not to delete LogDestinations - this creates a memory leak
-          // but avoids crashes when stuck threads wake up. A proper fix could
-          // be using autopointers in Logger
-          tmp->set_delete_log_destinations(false);
           tmp->get_logger()->msg(Arc::WARNING, "Processing thread timed out. Restarting DTR");
           tmp->set_error_status(DTRErrorStatus::INTERNAL_PROCESS_ERROR,
                                 DTRErrorStatus::NO_ERROR_LOCATION,

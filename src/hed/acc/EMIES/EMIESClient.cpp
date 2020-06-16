@@ -10,6 +10,8 @@
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/compute/Job.h>
 #include <arc/StringConv.h>
+#include <arc/otokens/otokens.h>
+#include <arc/credential/Credential.h>
 #include "JobStateEMIES.h"
 
 #include "EMIESClient.h"
@@ -77,6 +79,7 @@ namespace Arc {
       soapfault(false) {
 
     logger.msg(DEBUG, "Creating an EMI ES client");
+
     client = new ClientSOAP(cfg, url, timeout);
     if (!client)
       logger.msg(VERBOSE, "Unable to create SOAP client used by EMIESClient.");
@@ -98,7 +101,7 @@ namespace Arc {
   }
 
   std::string EMIESClient::dodelegation(const std::string& renew_id) {
-    DelegationProviderSOAP* deleg;
+    DelegationProviderSOAP* deleg(NULL);
     if (!cfg.credential.empty()) {
       deleg = new DelegationProviderSOAP(cfg.credential);
     }
@@ -131,6 +134,9 @@ namespace Arc {
     MessageAttributes attrout;
     MessageAttributes attrin;
     attrout.set("SOAP:ENDPOINT",rurl.str());
+    if(!otoken.empty())
+      attrout.set("HTTP:authorization", "bearer "+otoken);
+
     if (!deleg->DelegateCredentialsInit(*entry,&attrout,&attrin,&(client->GetContext()),
           (renew_id.empty()?DelegationProviderSOAP::EMIDS:DelegationProviderSOAP::EMIDSRENEW))) {
       lfailure = "Failed to initiate delegation credentials";
@@ -176,7 +182,12 @@ namespace Arc {
     std::string action = req.Child(0).Name();
 
     PayloadSOAP* resp = NULL;
-    if (!client->process(&req, &resp)) {
+  
+    std::multimap<std::string,std::string> http_attr;
+    if(!otoken.empty())
+      http_attr.insert(std::pair<std::string,std::string>("authorization","bearer "+otoken));
+
+    if (!client->process(http_attr, &req, &resp)) {
       logger.msg(VERBOSE, "%s request failed", req.Child(0).FullName());
       lfailure = "Failed processing request";
       delete client; client = NULL;
@@ -1416,7 +1427,8 @@ namespace Arc {
     }
     // Making EMI ES specific job id
     // URL-izing job id
-    j.JobID = j.JobManagementURL.str() + "/" + (std::string)jobInfo["ActivityID"]; // TODO: Optimize?
+    std::string id = (std::string)jobInfo["ActivityID"];
+    j.JobID = j.JobManagementURL.str() + "/" + id;
   }
 
   std::string EMIESJobInfo::getSubmittedVia() const {

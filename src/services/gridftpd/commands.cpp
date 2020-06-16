@@ -146,7 +146,7 @@ int GridFTP_Commands::new_connection_callback(void* arg,int sock) {
   } else if(count == sizeof(in6_addr)) {
     it->local_is_ipv6 = true;
   } else {
-    logger.msg(Arc::ERROR, "Failed to recognize own address type (IPv4 ir IPv6) - %u",count);
+    logger.msg(Arc::ERROR, "Failed to recognize own address type (IPv4 or IPv6) - %u",count);
     return -1;
   };
   if(it->local_is_ipv6) {
@@ -331,7 +331,8 @@ static int parse_args(char* string,char* args[],int margs) {
     if(cp==NULL) break;
     for(;(*cp) == ' ';cp++) { if(n<margs) (*cp)=0; };
     if(((*cp) == '\r') || ((*cp) == '\n') || ((*cp) == 0)) { (*cp)=0; break; };
-    if(n<margs) args[n]=cp; n++;
+    if(n<margs) args[n]=cp;
+    n++;
   };
   return n;
 }

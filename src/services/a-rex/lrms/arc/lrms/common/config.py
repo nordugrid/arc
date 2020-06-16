@@ -2,10 +2,13 @@
 Provides the ``Config`` object, with each arc.conf option as an attribute.
 """
 
+from __future__ import absolute_import
+
 import sys, os, socket
 
 import arc
-from log import debug
+from .log import debug
+from .files import getmtime
 
 class _object(object): pass # Pickle can't serialize inline classes
 
@@ -37,16 +40,24 @@ def configure(configfile, *func):
     :type func: :py:obj:`list` [ :py:obj:`function` ... ]
     """
 
+    os.environ["ARC_CONFIG"] = configfile
+
     import pickle
-    pickle_conf = '/tmp/python_lrms_arc.conf'
+    import hashlib
+    pickle_conf = '/tmp/python_lrms_%s_arc.conf' % hashlib.sha1(configfile.encode()).hexdigest()
     global Config
 
     try:
-        assert(getmtime(pickle_conf) > getmtime(configfile))
+        if not (getmtime(pickle_conf) > getmtime(configfile)):
+            raise Exception
         debug('Loading pickled config from ' + pickle_conf, 'common.config')
-        Config = pickle.loads(pickle_conf)
+        with open(pickle_conf, 'rb') as f:
+            Config = pickle.load(f)
     except:
-        import ConfigParser
+        try:
+            import configparser as ConfigParser
+        except ImportError:
+            import ConfigParser
         cfg = ConfigParser.ConfigParser()
         cfg.read(configfile)
 
@@ -57,8 +68,8 @@ def configure(configfile, *func):
         for fun in func:
             getattr(fun, 'is_conf_setter', False) and fun(cfg)
         try:
-            with open(pickle_conf, 'w') as f:
-                f.write(pickle.dumps(Config))
+            with open(pickle_conf, 'wb') as f:
+                pickle.dump(Config, f)
         except IOError:
             pass
 
@@ -118,11 +129,11 @@ def set_gridmanager(cfg):
        if cfg.has_option('arex', 'logfile') \
        else '/var/log/arc/arex.log'
    Config.gnu_time = \
-       str(cfg.get('arex', 'gnu_time')).strip('"') \
-       if cfg.has_option('arex', 'gnu_time') else '/usr/bin/time'
+       str(cfg.get('lrms', 'gnu_time')).strip('"') \
+       if cfg.has_option('lrms', 'gnu_time') else '/usr/bin/time'
    Config.nodename = \
-       str(cfg.get('arex', 'nodename')).strip('"') \
-       if cfg.has_option('arex', 'nodename') else '/bin/hostname -f'
+       str(cfg.get('lrms', 'nodename')).strip('"') \
+       if cfg.has_option('lrms', 'nodename') else '/bin/hostname -f'
    # SSH
    from pwd import getpwuid
    Config.remote_host = \
@@ -159,16 +170,14 @@ def set_cluster(cfg):
     """
 
     global Config
-    Config.gm_port = int(cfg.get('cluster', 'gm_port').strip('"')) \
-        if cfg.has_option('cluster', 'gm_port') else 2811
-    Config.gm_mount_point = cfg.get('cluster', 'gm_mount_point').strip('"') \
-        if cfg.has_option('cluster', 'gm_mount_point') else '/jobs'
-    Config.defaultmemory = int(cfg.get('cluster', 'defaultmemory').strip('"')) \
-        if cfg.has_option('cluster', 'defaultmemory') else 0
-    Config.nodememory = int(cfg.get('cluster', 'nodememory').strip('"')) \
-        if cfg.has_option('cluster', 'nodememory') else 0
-    Config.hostname = str(cfg.get('cluster', 'hostname')).strip('"') \
-        if cfg.has_option('cluster', 'hostname') else socket.gethostname()
+    Config.gm_port = 2811
+    Config.gm_mount_point = '/jobs'
+    Config.defaultmemory = int(cfg.get('lrms', 'defaultmemory').strip('"')) \
+        if cfg.has_option('lrms', 'defaultmemory') else 0
+    Config.nodememory = int(cfg.get('infosys/cluster', 'nodememory').strip('"')) \
+        if cfg.has_option('infosys/cluster', 'nodememory') else 0
+    Config.hostname = str(cfg.get('common', 'hostname')).strip('"') \
+        if cfg.has_option('common', 'hostname') else socket.gethostname()
        
 
 def set_queue(cfg):
@@ -183,12 +192,12 @@ def set_queue(cfg):
     Config.queue = {}
 
     for section in cfg.sections():
-        if section[:6] != 'queue/' or not section[6:]:
+        if section[:6] != 'queue:' or not section[6:]:
             continue
-        name = section[6:]
+        name = section[6:].strip()
         if name not in Config.queue:
             Config.queue[name] = _object()
-            if cfg.has_option(section, 'nodememory'):
-                Config.queue[name].nodememory = \
-                    int(cfg.get(section, 'nodememory').strip('"'))
+            if cfg.has_option(section, 'defaultmemory'):
+                Config.queue[name].defaultmemory = \
+                    int(cfg.get(section, 'defaultmemory').strip('"'))
 

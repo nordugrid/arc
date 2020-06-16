@@ -6,19 +6,28 @@
 progname=`basename $0`
 echo "----- starting $progname -----" 1>&2
 
-joboption_lrms=ll
+joboption_lrms="ll"
+lrms_options="ll_bin_path ll_consumable_resources ll_parallel_single_jobs"
 
 # ARC1 passes the config file first.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+GRAMI_FILE=$1
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# load common cancel functions
+. "${pkgdatadir}/cancel_common.sh" || exit $?
 
-. ${pkgdatadir}/cancel_common.sh || exit $?
+# run common init
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+common_init
 
+# llcancel
 LL_DEL='llcancel'
 if [ ! -z "$LL_BIN_PATH" ] ; then
   LL_DEL="${LL_BIN_PATH}/${LL_DEL}"

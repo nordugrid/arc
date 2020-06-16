@@ -3,11 +3,9 @@ Folder for ARC Client Components (ACC)
 ACCs are the plugins used by the client to interface to different 
 grid flavours and to perform resource brokering. One folder exists 
 for each supported grid flavour and one folder for specialized brokers.
-Each grid flavour should implement specialized classes of the 
-following base classes (located in src/hed/libs/client)
+Each flavour should implement specialized classes of the 
+following base classes (located in src/hed/libs/compute)
 
-o JobControllerPlugin
-o Submitter
 
 The plugins are loaded by appropriate "umbrella" classes such 
 as the JobSupervisor and TargetGenerator which resolves issues
@@ -15,7 +13,3 @@ about which plugins (i.e flavour) to load depending on the
 command in question. Specialized brokers are being loaded by the 
 submission executable directly.
 
-See also:
-
-src/clients/compute (command line interface)
-src/doc/client (client documentation)

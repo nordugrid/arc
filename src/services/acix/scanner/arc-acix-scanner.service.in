@@ -1,0 +1,11 @@
+[Unit]
+Description=ARC cache index - scanner server
+After=network.target local_fs.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/arc-acix-scanner.pid
+ExecStart=/usr/share/arc/arc-acix-scanner-start
+
+[Install]
+WantedBy=multi-user.target

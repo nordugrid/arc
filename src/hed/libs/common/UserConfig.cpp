@@ -43,7 +43,6 @@ namespace Arc {
     file_test_success
   } file_test_status;
 
-#ifndef WIN32
   static file_test_status user_file_test(const std::string& path, const User& user) {
     struct stat st;
     if(::stat(path.c_str(),&st) != 0) return file_test_missing;
@@ -60,21 +59,6 @@ namespace Arc {
     if(st.st_mode & (S_IRWXG | S_IRWXO)) return file_test_wrong_permissions;
     return file_test_success;
   }
-#else
-  static file_test_status user_file_test(const std::string& path, const User& /*user*/) {
-    // TODO: implement
-    if(!Glib::file_test(path, Glib::FILE_TEST_EXISTS)) return file_test_missing;
-    if(!Glib::file_test(path, Glib::FILE_TEST_IS_REGULAR)) return file_test_not_file;
-    return file_test_success;
-  }
-
-  static file_test_status private_file_test(const std::string& path, const User& /*user*/) {
-    // TODO: implement
-    if(!Glib::file_test(path, Glib::FILE_TEST_EXISTS)) return file_test_missing;
-    if(!Glib::file_test(path, Glib::FILE_TEST_IS_REGULAR)) return file_test_not_file;
-    return file_test_success;
-  }
-#endif
 
   static void certificate_file_error_report(file_test_status fts, bool require, const std::string& path, Logger& logger) {
     if(fts == file_test_success) {
@@ -126,21 +110,33 @@ namespace Arc {
 
   Logger UserConfig::logger(Logger::getRootLogger(), "UserConfig");
 
-  const std::string UserConfig::DEFAULT_BROKER = "Random";
+  std::string UserConfig::DEFAULT_BROKER() {
+    return "Random";
+  }
 
-  const std::string UserConfig::ARCUSERDIRECTORY = Glib::build_filename(User().Home(), ".arc");
+  std::string UserConfig::ARCUSERDIRECTORY() {
+    return Glib::build_filename(User().Home(), ".arc");
+  }
 
-#ifndef WIN32
-  const std::string UserConfig::SYSCONFIG = G_DIR_SEPARATOR_S "etc" G_DIR_SEPARATOR_S "arc" G_DIR_SEPARATOR_S "client.conf";
-#else
-  const std::string UserConfig::SYSCONFIG = ArcLocation::Get() + G_DIR_SEPARATOR_S "etc" G_DIR_SEPARATOR_S "arc" G_DIR_SEPARATOR_S "client.conf";
-#endif
-  const std::string UserConfig::SYSCONFIGARCLOC = ArcLocation::Get() + G_DIR_SEPARATOR_S "etc" G_DIR_SEPARATOR_S "arc" G_DIR_SEPARATOR_S "client.conf";
-  const std::string UserConfig::EXAMPLECONFIG = ArcLocation::Get() + G_DIR_SEPARATOR_S PKGDATASUBDIR G_DIR_SEPARATOR_S "examples" G_DIR_SEPARATOR_S "client.conf";
+  std::string UserConfig::SYSCONFIG() {
+    return G_DIR_SEPARATOR_S "etc" G_DIR_SEPARATOR_S "arc" G_DIR_SEPARATOR_S "client.conf";
+  }
 
-  const std::string UserConfig::DEFAULTCONFIG = Glib::build_filename(ARCUSERDIRECTORY, "client.conf");
+  std::string UserConfig::SYSCONFIGARCLOC() {
+    return ArcLocation::Get() + G_DIR_SEPARATOR_S "etc" G_DIR_SEPARATOR_S "arc" G_DIR_SEPARATOR_S "client.conf";
+  }
 
-  const std::string UserConfig::JOBLISTFILE = Glib::build_filename(UserConfig::ARCUSERDIRECTORY, "jobs.dat");
+  std::string UserConfig::EXAMPLECONFIG() {
+    return ArcLocation::Get() + G_DIR_SEPARATOR_S PKGDATASUBDIR G_DIR_SEPARATOR_S "examples" G_DIR_SEPARATOR_S "client.conf";
+  }
+
+  std::string UserConfig::DEFAULTCONFIG() {
+    return Glib::build_filename(ARCUSERDIRECTORY(), "client.conf");
+  }
+
+  std::string UserConfig::JOBLISTFILE() {
+    return Glib::build_filename(UserConfig::ARCUSERDIRECTORY(), "jobs.dat");
+  }
 
   UserConfig::UserConfig(initializeCredentialsType initializeCredentials)
     : timeout(0), keySize(0), ok(false), initializeCredentials(initializeCredentials) {
@@ -159,32 +155,25 @@ namespace Arc {
     : timeout(0), keySize(0), ok(false), initializeCredentials(initializeCredentials)  {
     setDefaults();
     if (loadSysConfig) {
-#ifndef WIN32
-      if (Glib::file_test(SYSCONFIG, Glib::FILE_TEST_IS_REGULAR)) {
-        if (!LoadConfigurationFile(SYSCONFIG, true))
-          logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIG);
+      if (Glib::file_test(SYSCONFIG(), Glib::FILE_TEST_IS_REGULAR)) {
+        if (!LoadConfigurationFile(SYSCONFIG(), true))
+          logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIG());
+      }
+      else if (Glib::file_test(SYSCONFIGARCLOC(), Glib::FILE_TEST_IS_REGULAR)) {
+        if (!LoadConfigurationFile(SYSCONFIGARCLOC(), true))
+          logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIGARCLOC());
       }
       else
-#endif
-      if (Glib::file_test(SYSCONFIGARCLOC, Glib::FILE_TEST_IS_REGULAR)) {
-        if (!LoadConfigurationFile(SYSCONFIGARCLOC, true))
-          logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIGARCLOC);
-      }
-      else
-#ifndef WIN32
         if (!ArcLocation::Get().empty() && ArcLocation::Get() != G_DIR_SEPARATOR_S)
-          logger.msg(VERBOSE, "System configuration file (%s or %s) does not exist.", SYSCONFIG, SYSCONFIGARCLOC);
+          logger.msg(VERBOSE, "System configuration file (%s or %s) does not exist.", SYSCONFIG(), SYSCONFIGARCLOC());
         else
-          logger.msg(VERBOSE, "System configuration file (%s) does not exist.", SYSCONFIG);
-#else
-        logger.msg(VERBOSE, "System configuration file (%s) does not exist.", SYSCONFIGARCLOC);
-#endif
+          logger.msg(VERBOSE, "System configuration file (%s) does not exist.", SYSCONFIG());
     }
 
     if (conffile.empty()) {
       if (CreateDefaultConfigurationFile()) {
-        if (!LoadConfigurationFile(DEFAULTCONFIG, false)) {
-          logger.msg(WARNING, "User configuration file (%s) contains errors.", DEFAULTCONFIG);
+        if (!LoadConfigurationFile(DEFAULTCONFIG(), false)) {
+          logger.msg(WARNING, "User configuration file (%s) contains errors.", DEFAULTCONFIG());
           return;
         }
       }
@@ -217,32 +206,25 @@ namespace Arc {
       return;
 
     if (loadSysConfig) {
-#ifndef WIN32
-      if (Glib::file_test(SYSCONFIG, Glib::FILE_TEST_IS_REGULAR)) {
-        if (!LoadConfigurationFile(SYSCONFIG, true))
-          logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIG);
+      if (Glib::file_test(SYSCONFIG(), Glib::FILE_TEST_IS_REGULAR)) {
+        if (!LoadConfigurationFile(SYSCONFIG(), true))
+          logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIG());
+      }
+      else if (Glib::file_test(SYSCONFIGARCLOC(), Glib::FILE_TEST_IS_REGULAR)) {
+        if (!LoadConfigurationFile(SYSCONFIGARCLOC(), true))
+          logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIGARCLOC());
       }
       else
-#endif
-      if (Glib::file_test(SYSCONFIGARCLOC, Glib::FILE_TEST_IS_REGULAR)) {
-        if (!LoadConfigurationFile(SYSCONFIGARCLOC, true))
-          logger.msg(INFO, "System configuration file (%s) contains errors.", SYSCONFIGARCLOC);
-      }
-      else
-#ifndef WIN32
         if (!ArcLocation::Get().empty() && ArcLocation::Get() != G_DIR_SEPARATOR_S)
-          logger.msg(VERBOSE, "System configuration file (%s or %s) does not exist.", SYSCONFIG, SYSCONFIGARCLOC);
+          logger.msg(VERBOSE, "System configuration file (%s or %s) does not exist.", SYSCONFIG(), SYSCONFIGARCLOC());
         else
-          logger.msg(VERBOSE, "System configuration file (%s) does not exist.", SYSCONFIG);
-#else
-        logger.msg(VERBOSE, "System configuration file (%s) does not exist.", SYSCONFIGARCLOC);
-#endif
+          logger.msg(VERBOSE, "System configuration file (%s) does not exist.", SYSCONFIG());
     }
 
     if (conffile.empty()) {
       if (CreateDefaultConfigurationFile()) {
-        if (!LoadConfigurationFile(DEFAULTCONFIG, !jfile.empty())) {
-          logger.msg(WARNING, "User configuration file (%s) contains errors.", DEFAULTCONFIG);
+        if (!LoadConfigurationFile(DEFAULTCONFIG(), !jfile.empty())) {
+          logger.msg(WARNING, "User configuration file (%s) contains errors.", DEFAULTCONFIG());
           return;
         }
       }
@@ -260,7 +242,7 @@ namespace Arc {
 
     // If no job list file have been initialized use the default. If the
     // job list file cannot be initialized this object is non-valid.
-    if (joblistfile.empty() && !JobListFile(JOBLISTFILE))
+    if (joblistfile.empty() && !JobListFile(JOBLISTFILE()))
       return;
 
     if (!InitializeCredentials(initializeCredentials)) {
@@ -286,6 +268,10 @@ namespace Arc {
       }
     }
     ccfg.AddCADir(caCertificatesDirectory);
+
+    if(!otoken.empty()) {
+      ccfg.AddOToken(otoken);
+    }
 
     if(!overlayfile.empty())
       ccfg.GetOverlay(overlayfile);
@@ -355,13 +341,13 @@ namespace Arc {
              (initializeCredentials == initializeCredentialsType::SkipCATryCredentials) ||
              (initializeCredentials == initializeCredentialsType::SkipCANotTryCredentials));
     const User user;
-#ifndef WIN32
     std::string home_path = user.Home();
-#else
-    std::string home_path = Glib::get_home_dir();
-#endif
     bool has_proxy = false;
+
     // Look for credentials.
+
+    otoken = GetEnv("ARC_OTOKEN");
+
     std::string proxy_path = GetEnv("X509_USER_PROXY");
     if (!proxy_path.empty()) {
       proxyPath = proxy_path;
@@ -519,7 +505,7 @@ namespace Arc {
         if (test && !dir_test(caCertificatesDirectory)) {
           //std::cerr<<"-- ca_dir test failed"<<std::endl;
           if(require) {
-            logger.msg(WARNING, "Can not access CA certificates directory: %s. The certificates will not be verified.", caCertificatesDirectory);
+            logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified.", caCertificatesDirectory);
             res = false;
           }
           caCertificatesDirectory.clear();
@@ -587,6 +573,10 @@ namespace Arc {
       logger.msg(INFO, "Using CA certificate directory: %s", caCertificatesDirectory);
     }
 
+    if (!otoken.empty()) {
+      logger.msg(INFO, "Using OToken");
+    }
+
     return res;
   }
 
@@ -614,13 +604,8 @@ namespace Arc {
       }
     }
     else if (
-#ifndef WIN32
              !Glib::file_test(vomsesPath = user.Home() + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
              !Glib::file_test(vomsesPath = user.Home() + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
-#else
-             !Glib::file_test(vomsesPath = std::string(Glib::get_home_dir()) + G_DIR_SEPARATOR_S + ".arc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
-             !Glib::file_test(vomsesPath = std::string(Glib::get_home_dir()) + G_DIR_SEPARATOR_S + ".voms" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
-#endif
              !Glib::file_test(vomsesPath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
              !Glib::file_test(vomsesPath = ArcLocation::Get() + G_DIR_SEPARATOR_S + "etc" + G_DIR_SEPARATOR_S + "grid-security" + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS) &&
              !Glib::file_test(vomsesPath = std::string(Glib::get_current_dir()) + G_DIR_SEPARATOR_S + "vomses", Glib::FILE_TEST_EXISTS)) {
@@ -704,6 +689,10 @@ namespace Arc {
             while (common["brokerarguments"]) common["brokerarguments"].Destroy();
           }
           HANDLESTRATT("vomsespath", VOMSESPath)
+          while (common["defaultvoms"]) {
+            defaultVomses.push_back((std::string)common["defaultvoms"]);
+            common["defaultvoms"].Destroy();
+          }
           HANDLESTRATT("username", UserName)
           HANDLESTRATT("password", Password)
           HANDLESTRATT("proxypath", ProxyPath)
@@ -932,38 +921,39 @@ namespace Arc {
 
   bool UserConfig::CreateDefaultConfigurationFile() const {
     // If the default configuration file does not exist, copy an example file.
-    if (!Glib::file_test(DEFAULTCONFIG, Glib::FILE_TEST_EXISTS)) {
+    if (!Glib::file_test(DEFAULTCONFIG(), Glib::FILE_TEST_EXISTS)) {
 
       // Check if the parent directory exist.
-      if (!Glib::file_test(ARCUSERDIRECTORY, Glib::FILE_TEST_EXISTS)) {
+      if (!Glib::file_test(ARCUSERDIRECTORY(), Glib::FILE_TEST_EXISTS)) {
         // Create directory.
-        if (!makeDir(ARCUSERDIRECTORY)) {
-          logger.msg(WARNING, "Unable to create %s directory.", ARCUSERDIRECTORY);
+        if (!makeDir(ARCUSERDIRECTORY())) {
+          logger.msg(WARNING, "Unable to create %s directory.", ARCUSERDIRECTORY());
           return false;
         }
       }
 
-      if (dir_test(ARCUSERDIRECTORY)) {
-        if (Glib::file_test(EXAMPLECONFIG, Glib::FILE_TEST_IS_REGULAR)) {
+      if (dir_test(ARCUSERDIRECTORY())) {
+        if (Glib::file_test(EXAMPLECONFIG(), Glib::FILE_TEST_IS_REGULAR)) {
           // Destination: Get basename, remove example prefix and add .arc directory.
-          if (copyFile(EXAMPLECONFIG, DEFAULTCONFIG))
-            logger.msg(VERBOSE, "Configuration example file created (%s)", DEFAULTCONFIG);
-          else
-            logger.msg(INFO, "Unable to copy example configuration from existing configuration (%s)", EXAMPLECONFIG);
+          if (copyFile(EXAMPLECONFIG(), DEFAULTCONFIG()))
+            logger.msg(VERBOSE, "Configuration example file created (%s)", DEFAULTCONFIG());
+          else {
+            logger.msg(INFO, "Unable to copy example configuration from existing configuration (%s)", EXAMPLECONFIG());
             return false;
+          }
         }
         else {
-          logger.msg(INFO, "Cannot copy example configuration (%s), it is not a regular file", EXAMPLECONFIG);
+          logger.msg(INFO, "Cannot copy example configuration (%s), it is not a regular file", EXAMPLECONFIG());
           return false;
         }
       }
       else {
-        logger.msg(INFO, "Example configuration (%s) not created.", DEFAULTCONFIG);
+        logger.msg(INFO, "Example configuration (%s) not created.", DEFAULTCONFIG());
         return false;
       }
     }
-    else if (!Glib::file_test(DEFAULTCONFIG, Glib::FILE_TEST_IS_REGULAR)) {
-      logger.msg(INFO, "The default configuration file (%s) is not a regular file.", DEFAULTCONFIG);
+    else if (!Glib::file_test(DEFAULTCONFIG(), Glib::FILE_TEST_IS_REGULAR)) {
+      logger.msg(INFO, "The default configuration file (%s) is not a regular file.", DEFAULTCONFIG());
       return false;
     }
 
@@ -972,7 +962,7 @@ namespace Arc {
 
   void UserConfig::setDefaults() {
     timeout = DEFAULT_TIMEOUT;
-    broker.first = DEFAULT_BROKER;
+    broker.first = DEFAULT_BROKER();
     broker.second = "";
   }
 
@@ -1078,15 +1068,13 @@ TODO: Make FileUtils function to this
         std::string flavour = flavour_url.substr(0, pos);
         std::string url = flavour_url.substr(pos + 1);
         if (service.type == ConfigEndpoint::REGISTRY) {
-          std::string registryinterface = "org.nordugrid.emir";
+          std::string registryinterface = "org.nordugrid.archery";
           if (flavour == "ARC0") registryinterface = "org.nordugrid.ldapegiis";
           service.InterfaceName = registryinterface;
         } else if (service.type == ConfigEndpoint::COMPUTINGINFO) {
           std::string infointerface = "org.nordugrid.ldapglue2";
           if (flavour == "ARC0") infointerface = "org.nordugrid.ldapng";
-          if (flavour == "ARC1") infointerface = "org.nordugrid.wsrfglue2";
           if (flavour == "EMIES") infointerface = "org.ogf.glue.emies.resourceinfo";
-          if (flavour == "CREAM") infointerface = "org.nordugrid.ldapglue1";
           service.InterfaceName = infointerface;
         }
         service.URLString = url;
@@ -1101,10 +1089,7 @@ static std::string cert_file_fix(const std::string& old_file,std::string& new_fi
   struct stat st;
   if(old_file.empty()) return old_file;
   if(::stat(old_file.c_str(),&st) != 0) return old_file;
-// No getuid on win32
-#ifndef WIN32
   if(::getuid() == st.st_uid) return old_file;
-#endif
   std::string tmpname = Glib::build_filename(Glib::get_tmp_dir(), "arccred.XXXXXX");
   if (!TmpFileCreate(tmpname, "")) return old_file;
   if (!FileCopy(old_file, tmpname)) {

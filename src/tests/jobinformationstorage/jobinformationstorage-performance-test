@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 '''
 Usage: python jobinformationstorage-performance-test <path to test_JobInformationStorage executable>
@@ -11,6 +11,8 @@ Test cases:
 * Each measurement should be repeated atleast 5 times, and average and standard
   deviation should be calculated in order to obtain a more reliable result.
 '''
+
+from __future__ import print_function
 
 # Configuration variables
 #
@@ -71,10 +73,10 @@ class JobInformationStorageExecuter(dict):
     
     def run(self):
         args = []
-        for k,v in self.iteritems():
+        for k,v in self.items():
             args.append("--" + str(k))
             args.append(str(v))
-        print "Running: {}".format(" ".join([executable] + args))
+        print("Running: {}".format(" ".join([executable] + args)))
         sys.stdout.flush()
         p = Popen([executable] + args, stdout = PIPE, stderr = PIPE)
         stdout, stderr = p.communicate()
@@ -88,9 +90,9 @@ def perform_measurements(jise, nmeasurements):
         if res["success"]:
             m.add(float(res["stdout"]))
         else:
-            print "test_JobInformationStorage failed"
-            print res["stdout"]
-            print res["stderr"]
+            print("test_JobInformationStorage failed")
+            print(res["stdout"])
+            print(res["stderr"])
     
     return m
 
@@ -120,18 +122,18 @@ def shuffle_file(infilename, outfilename):
 def write_results_to_file(f, r):
     lines = odict()
     lines["header"] = "N"
-    for backendtype, result in r.iteritems():
+    for backendtype, result in r.items():
         lines["header"] += ' "{} mean"'.format(backendtype)
         lines["header"] += ' "{} sigma"'.format(backendtype)
-        for njobs, m in result.iteritems():
+        for njobs, m in result.items():
               if njobs not in lines:
                     lines[njobs] = str(njobs)
-                    for k in r.keys():
+                    for k in r:
                         lines["{}-{}".format(k, njobs)] = ""
               lines[njobs] += " {} {}".format(m.getMean(), m.getStandardDeviation())
               lines["{}-{}".format(backendtype, njobs)] += "# {}-{} {}".format(backendtype, njobs, " ".join(str(x) for x in m.getData()))
 
-    for tempkey, l in lines.iteritems():
+    for tempkey, l in lines.items():
         f.write(l + "\n")
     f.flush()
 
@@ -142,15 +144,15 @@ f = open('jobinformationstorage-performance-test-output-{}.dat'.format(datetime.
 if len(sys.argv) > 1:
     executable = sys.argv[1]
 else:
-    print "Usage: python jobinformationstorage-performance-test <path to test_JobInformationStorage executable>"
-    print "ERROR: No executable specified. Please specify path to 'test_JobInformationStorage' executable."
+    print("Usage: python jobinformationstorage-performance-test <path to test_JobInformationStorage executable>")
+    print("ERROR: No executable specified. Please specify path to 'test_JobInformationStorage' executable.")
     sys.exit(1)
 
 jise = JobInformationStorageExecuter(executable)
 jise["filename"] = storage_filename
 
 test_title = '''1. Write to empty storage aaFo number of jobs to write'''
-print "Performing test: {}".format(test_title)
+print("Performing test: {}".format(test_title))
 sys.stdout.flush()
 f.write("# {}\n".format(test_title))
 jise["action"] = "write"
@@ -161,12 +163,12 @@ for t in types:
     for ijobs in [5, 50, 500, 5000, 50000, 300000, 500000]:
         jise["NJobs"] = ijobs
         test_results[t][ijobs] = perform_measurements(jise, nmeasurements)
-print test_results
+print(test_results)
 write_results_to_file(f, test_results)
 f.write("\n")
     
 test_title = '''2. Size of storage aaFo number of jobs'''
-print "Performing test: {}".format(test_title)
+print("Performing test: {}".format(test_title))
 sys.stdout.flush()
 f.write("# {}\n".format(test_title))
 jise["action"] = "write"
@@ -183,14 +185,14 @@ for t in types:
             if res["success"]:
                 test_results[t][ijobs].add(float(getfilesize(jise["filename"])))
             else:
-                print "test_JobInformationStorage failed"
-                print res["stderr"]
-print test_results
+                print("test_JobInformationStorage failed")
+                print(res["stderr"])
+print(test_results)
 write_results_to_file(f, test_results)
 f.write("\n")
 
 test_title = '''3. Read from storage aaFo number of jobs to read'''
-print "Performing test: {}".format(test_title)
+print("Performing test: {}".format(test_title))
 sys.stdout.flush()
 f.write("# {}\n".format(test_title))
 test_results = {}
@@ -204,12 +206,12 @@ for t in types:
         
         jise["action"] = "readall"
         test_results[t][ijobs] = perform_measurements(jise, nmeasurements)
-print test_results
+print(test_results)
 write_results_to_file(f, test_results)
 f.write("\n")
 
 test_title = '''4. Append to storage with size 5k aaFo number of jobs to append'''
-print "Performing test: {}".format(test_title)
+print("Performing test: {}".format(test_title))
 sys.stdout.flush()
 f.write("# {}\n".format(test_title))
 test_results = {}
@@ -223,12 +225,12 @@ for t in types:
         jise["NJobs"] = ijobs
         jise["action"] = "append"
         test_results[t][ijobs] = perform_measurements(jise, nmeasurements)
-print test_results
+print(test_results)
 write_results_to_file(f, test_results)
 f.write("\n")
 
 test_title = '''5. Append to storage with size 300k aaFo number of jobs to append'''
-print "Performing test: {}".format(test_title)
+print("Performing test: {}".format(test_title))
 sys.stdout.flush()
 f.write("# {}\n".format(test_title))
 test_results = {}
@@ -242,12 +244,12 @@ for t in types:
         jise["NJobs"] = ijobs
         jise["action"] = "append"
         test_results[t][ijobs] = perform_measurements(jise, nmeasurements)
-print test_results
+print(test_results)
 write_results_to_file(f, test_results)
 f.write("\n")
 
 test_title = '''6. Read jobs by ID from storage with size 500 aaFo number of jobs to read'''
-print "Performing test: {}".format(test_title)
+print("Performing test: {}".format(test_title))
 sys.stdout.flush()
 f.write("# {}\n".format(test_title))
 test_results = {}
@@ -266,12 +268,12 @@ for t in types:
         jise["action"] = "read"
         test_results[t][ijobs] = perform_measurements(jise, nmeasurements)
         del jise["jobids-from-file"]
-print test_results
+print(test_results)
 write_results_to_file(f, test_results)
 f.write("\n")
 
 test_title = '''7. Read jobs by ID from storage with size 500k aaFo number of jobs to read'''
-print "Performing test: {}".format(test_title)
+print("Performing test: {}".format(test_title))
 sys.stdout.flush()
 f.write("# {}\n".format(test_title))
 test_results = {}
@@ -290,12 +292,12 @@ for t in types:
         jise["action"] = "read"
         test_results[t][ijobs] = perform_measurements(jise, nmeasurements)
         del jise["jobids-from-file"]
-print test_results
+print(test_results)
 write_results_to_file(f, test_results)
 f.write("\n")
 
 test_title = '''8. Remove jobs by ID from storage with size 500 aaFo number of jobs to remove'''
-print "Performing test: {}".format(test_title)
+print("Performing test: {}".format(test_title))
 sys.stdout.flush()
 f.write("# {}\n".format(test_title))
 test_results = {}
@@ -314,12 +316,12 @@ for t in types:
         jise["action"] = "remove"
         test_results[t][ijobs] = perform_measurements(jise, nmeasurements)
         del jise["jobids-from-file"]
-print test_results
+print(test_results)
 write_results_to_file(f, test_results)
 f.write("\n")
 
 test_title = '''9. Remove jobs by ID from storage with size 300k aaFo number of jobs to remove'''
-print "Performing test: {}".format(test_title)
+print("Performing test: {}".format(test_title))
 sys.stdout.flush()
 f.write("# {}\n".format(test_title))
 test_results = {}
@@ -338,7 +340,7 @@ for t in types:
         jise["action"] = "remove"
         test_results[t][ijobs] = perform_measurements(jise, nmeasurements)
         del jise["jobids-from-file"]
-print test_results
+print(test_results)
 write_results_to_file(f, test_results)
 
 f.close()

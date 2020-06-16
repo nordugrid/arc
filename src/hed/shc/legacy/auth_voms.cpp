@@ -25,8 +25,11 @@ static bool match_value(const std::string& value, const std::vector<std::string>
 }
 
 AuthResult AuthUser::match_voms(const char* line) {
+  // voms = vo group role capabilities
+
   // No need to process anything if no VOMS extensions are present
   if(voms_data_.empty()) return AAA_NO_MATCH;
+
   // parse line
   std::string vo("");
   std::string group("");
@@ -34,27 +37,31 @@ AuthResult AuthUser::match_voms(const char* line) {
   std::string capabilities("");
   std::string auto_c("");
   std::string::size_type n = 0;
-  n=Arc::get_token(vo,line,n," ","\"","\"");
+  n=Arc::get_token(vo,line,n," ");
   if((n == std::string::npos) && (vo.empty())) {
     logger.msg(Arc::ERROR, "Missing VO in configuration");
     return AAA_FAILURE;
   };
-  n=Arc::get_token(group,line,n," ","\"","\"");
+  n=Arc::get_token(group,line,n," ");
   if((n == std::string::npos) && (group.empty())) {
     logger.msg(Arc::ERROR, "Missing group in configuration");
     return AAA_FAILURE;
   };
-  n=Arc::get_token(role,line,n," ","\"","\"");
+  n=Arc::get_token(role,line,n," ");
   if((n == std::string::npos) && (role.empty())) {
     logger.msg(Arc::ERROR, "Missing role in configuration");
     return AAA_FAILURE;
   };
-  n=Arc::get_token(capabilities,line,n," ","\"","\"");
+  n=Arc::get_token(capabilities,line,n," ");
   if((n == std::string::npos) && (capabilities.empty())) {
     logger.msg(Arc::ERROR, "Missing capabilities in configuration");
     return AAA_FAILURE;
   };
-  n=Arc::get_token(auto_c,line,n," ","\"","\"");
+  n=Arc::get_token(auto_c,line,n," ");
+  if(!auto_c.empty()) {
+    logger.msg(Arc::ERROR, "Too many arguments in configuration");
+    return AAA_FAILURE;
+  };
   logger.msg(Arc::VERBOSE, "Rule: vo: %s", vo);
   logger.msg(Arc::VERBOSE, "Rule: group: %s", group);
   logger.msg(Arc::VERBOSE, "Rule: role: %s", role);

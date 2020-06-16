@@ -15,7 +15,7 @@ output="PartitionName=queue1 TotalCPUs=0/1/0/1 TotalNodes=1 MaxTime=infinite"
 
 # Output from SLURM version 2.3.2
 args="sinfo -a -h -o cpuinfo=%C"
-output"cpuinfo=0/1/0/1"
+output="cpuinfo=0/1/0/1"
 args="sinfo -a -h -o %C"
 output="0/1/0/1"
 
@@ -170,7 +170,8 @@ ENDSIMULATOROUTPUT
   
   my $cfg = {  slurm_bin_path => "<TESTDIR>/bin",
                queues => { queue1 => { users => ['user1'] } },
-               jobs => ['1', '2']
+               jobs => ['1', '2'],
+               loglevel => '5'
             };
             
   my $lrms_info = $suite->collect(\@progs, $simulator_output, $cfg);

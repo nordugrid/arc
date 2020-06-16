@@ -1,0 +1,151 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Notes for NorduGrid ARC 15.03 update 17     October 12, 2017
+-----------------------------------------------
+
+This is a bugfix release, addressing bugs discovered since release 15.03u16.
+Most work this time has happened in the ARC client. Se details below.
+
+NorduGrid ARC 15.03 has received an update to:
+  * core, clients, CE, Infosys and gridftp - from version 5.4.0 to 5.4.1
+  * documents - from 2.0.17 to 2.0.18
+Gangliarc, Nagios plugins and metapackages are unchanged.
+
+
+ 
+Detailed notes
+--------------
+
+The following issues were fixed:
+
+== ARC Server and core components
+
+  * No changes.
+  
+
+=== Accounting
+
+  * No changes.
+ 
+
+=== Information system
+
+  * Gridftp and EMI-ES job states were inconsistent. Example: If a job was in Pending:ACCEPTED
+    in A-REX (because of limits on number of accepted jobs) the state was reported as ACCEPTED 
+    in gridftp but as OTHER in EMI-ES. EMI-ES state is now instead reported as ACCEPTED.(Bug 
+    3683).
+
+  
+== ARC Clients
+
+  * When the 'force' flag was used with arcget, existing files were not overwritten when
+    retrieveing jobs. Now existing job files, if any, are overwritten. (Bug 3673).
+  * When using API several jobs were submitted with different credentials, those credentials
+    were not properly propagated to server causing the job owner to be wrongly identified. (Bug
+    3685).
+  * Missing job priority in the ADL jobdescription. Now high priority jobs from ATLAS can be
+    pushed to the front of the batch system queue and data staging priority can be controlled.
+    (Bug 3687).
+  * Wrongly set status of killed jobs prevented cleaning of jobs. (Bug 3689).
+  
+  
+== Nagios plugins
+
+  * No changes
+
+
+
+Fixed bugs
+----------
+
+Since ARC 15.03 update 16, the following bugs were fixed:
+  * 3673 arcget -f doesn't work
+  * 3683 Inconsistent mapping of job states between gridftp and EMIES
+  * 3685 Cannot submit jobs with two different proxies in same process to EMI-ES
+  * 3687 ADL does not support priority
+  * 3689 EMI-ES job submission interface - cleaning is not performed after user has killed the
+    job.
+
+
+
+Known issues
+------------
+
+  * There is a memory leak when using Java API for multiple job submission with files to BES
+    interface.
+  * The CPU time is not measured correctly for jobs that kill the parent process, such as some
+    agent-based/pilot (e.g., ALICE)
+  * JURA will not publish records to the APEL on a standard Debian/Ubuntu system, because the
+    python-dirq package is not available for them. The workaround is to build this package from
+    source
+  * When using ARC client tools to submit jobs to CREAM, only JSDL can be used to describe jobs,
+    and the broker type must be set to Null in the client.conf file
+  * ARC GUI (arcjobtool) is not available yet, pending implementation of client library changes
+  * Standalone client tar-balls for Linux are not yet available
+  * A-REX can under some circumstances lose connection with CEinfo.pl and go into an infinite
+    loop. The only current workaround is to restart the a-rex service.
+  * twistd, the underlying engine for ACIX, sometimes logs into rotated ACIX log files. While
+    all log messages are correctly logged in the main log file, some rotated log files may 
+    receive new log messages.
+  * submit-*-job do not have permission to write performance metrics to log.
+  * authorizedvo=<voname> will no longer create a list of VOs under each Share. As a 
+    consequence, EMIES WS clients can no longer find a queue by VO name the same way as in 
+    previous versions of ARC due to changes in the GLUE2 schema rendering.
+
+
+Availability
+------------
+
+= Source
+
+ARC release 15.03u17 consists of the following source packages:
+  * NorduGrid ARC, version 5.4.1 (main components)
+  * NorduGrid ARC Documents version 2.0.18
+  * metapackages for client tools, computing element and information index, version 1.0.7
+  * Nagios probes for ARC CE, version 1.9.1
+  * gangliarc - ARC Computing Element monitoring in ganglia, version 1.0.2
+  * jura_to_es - Jura logs to ElasticSearch, version 1.0.0
+
+
+Source code for main components is available from here:
+  http://svn.nordugrid.org/repos/nordugrid/arc1/tags/5.4.1
+
+Documentation source (mostly LaTeX) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/2.0.18
+
+Source for metapackages is available from:
+  http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.7
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.9.1
+
+Source for gangliarc is available from:
+  http://svn.nordugrid.org/repos/nordugrid/contrib/gangliarc/tags/1.0.2
+
+Source for jura_to_es is available from:
+  http://svn.nordugrid.org/repos/nordugrid/contrib/jura_to_es/tags/1.0.0
+
+= Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+  * Debian: 7.0 to 9.0 (i386 and amd64)
+  * Fedora: from 12 to 26 (i386 and x86_64)
+  * CentOS: EL6 (i386 and x86_64) and EL7 (x86_64)
+  * Ubuntu: 12.04, 12.10, 13.04, 13.10, 14.04, 14.10, 15.04,
+    15.10, 16.04, 16.10, and 17.04 (i386 and amd64)
+    
+Scientific Linux and RedHat are implicitly supported through corresponding
+CentOS repositories.
+
+Microsoft Windows and Mac OS X versions are available from same repositories for
+clients and some services.
+
+= Previous releases
+
+Details of previous releases can be found at:
+  http://www.nordugrid.org/arc/releases/

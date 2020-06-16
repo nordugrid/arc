@@ -14,9 +14,6 @@
 #include <arc/Utils.h>
 
 #include <unistd.h>
-#ifdef WIN32
-#include <process.h>
-#endif
 
 #include "Logger.h"
 
@@ -26,6 +23,8 @@ namespace Arc {
 
   static const Arc::LogLevel DefaultLogLevel = Arc::DEBUG;
   static Arc::LogFormat DefaultLogFormat = Arc::LongFormat;
+  static std::list<LogFile*> allfiles;
+  static Glib::Mutex allfilesmutex;
 
   static std::string list_to_domain(const std::list<std::string>& subdomains) {
     std::string domain;
@@ -57,7 +56,7 @@ namespace Arc {
     LogLevel ll;
     if (string_to_level(str, ll)) return ll;
     else { // should not happen...
-      Logger::getRootLogger().msg(WARNING, "Invalid log level. Using default "+level_to_string(DefaultLogLevel)+".");
+      Logger::getRootLogger().msg(WARNING, "Invalid log level. Using default %s.", level_to_string(DefaultLogLevel));
       return DefaultLogLevel;
     }
   }
@@ -122,7 +121,7 @@ namespace Arc {
     else if (old_level == 0)
       return FATAL;
     else { // cannot happen...
-      Logger::getRootLogger().msg(WARNING, "Invalid old log level. Using default "+level_to_string(DefaultLogLevel)+".");
+      Logger::getRootLogger().msg(WARNING, "Invalid old log level. Using default %s.", level_to_string(DefaultLogLevel));
       return DefaultLogLevel;
     }
   }
@@ -156,17 +155,9 @@ namespace Arc {
     std::ostringstream sout;
 #ifdef HAVE_GETPID
     sout << getpid() << "/"
-#ifdef WIN32
-         << (unsigned long int)GetCurrentThreadId();
-#else
          << ThreadId::getInstance().get();
-#endif
-#else
-#ifdef WIN32
-    sout << (unsigned long int)GetCurrentThreadId();
 #else
     sout << ThreadId::getInstance().get();
-#endif
 #endif
     return sout.str();
   }
@@ -249,11 +240,14 @@ namespace Arc {
   }
 
   void LogDestination::setPrefix(const std::string& pre) {
+    Glib::Mutex::Lock lock(mutex);
     prefix = pre;
   }
 
   std::string LogDestination::getPrefix() const {
-    return prefix;
+    Glib::Mutex::Lock lock(mutex);
+    std::string tmp(prefix);
+    return tmp;
   }
 
   LogStream::LogStream(std::ostream& destination)
@@ -282,6 +276,20 @@ namespace Arc {
       //logger.msg(Arc::ERROR,"Failed to open log file: %s",path);
       return;
     }
+    Glib::Mutex::Lock lock(allfilesmutex);
+    allfiles.push_back(this);
+  }
+
+  LogFile::~LogFile() {
+    Glib::Mutex::Lock lock(allfilesmutex);
+    allfiles.remove(this);
+  }
+
+  void LogFile::ReopenAll() {
+    Glib::Mutex::Lock lock(allfilesmutex);
+    for(std::list<LogFile*>::const_iterator f = allfiles.begin(); f != allfiles.end(); ++f) {
+      (*f)->Reopen();
+    }
   }
 
   void LogFile::setMaxSize(int newsize) {
@@ -301,6 +309,14 @@ namespace Arc {
       if(!destination.is_open()) {
         destination.open(path.c_str(), std::fstream::out | std::fstream::app);
       }
+    }
+  }
+
+  void LogFile::Reopen() {
+    Glib::Mutex::Lock lock(mutex);
+    if(!reopen && destination.is_open()) {
+      destination.close();
+      destination.open(path.c_str(), std::fstream::out | std::fstream::app);
     }
   }
 
@@ -441,11 +457,13 @@ namespace Arc {
 
   void Logger::addDestination(LogDestination& destination) {
     Glib::Mutex::Lock lock(mutex);
+    Glib::Mutex::Lock dlock(getContext().mutex);
     getContext().destinations.push_back(&destination);
   }
 
   void Logger::addDestinations(const std::list<LogDestination*>& destinations) {
     Glib::Mutex::Lock lock(mutex);
+    Glib::Mutex::Lock dlock(getContext().mutex);
     for(std::list<LogDestination*>::const_iterator dest = destinations.begin();
                             dest != destinations.end();++dest) {
       getContext().destinations.push_back(*dest);
@@ -454,6 +472,7 @@ namespace Arc {
 
   void Logger::setDestinations(const std::list<LogDestination*>& destinations) {
     Glib::Mutex::Lock lock(mutex);
+    Glib::Mutex::Lock dlock(getContext().mutex);
     getContext().destinations.clear();
     for(std::list<LogDestination*>::const_iterator dest = destinations.begin();
                             dest != destinations.end();++dest) {
@@ -468,11 +487,13 @@ namespace Arc {
 
   void Logger::removeDestinations(void) {
     Glib::Mutex::Lock lock(mutex);
+    Glib::Mutex::Lock dlock(getContext().mutex);
     getContext().destinations.clear();
   }
 
   void Logger::deleteDestinations(LogDestination* exclude) {
     Glib::Mutex::Lock lock(mutex);
+    Glib::Mutex::Lock dlock(getContext().mutex);
     std::list<LogDestination*>& destinations = getContext().destinations;
     for(std::list<LogDestination*>::iterator dest = destinations.begin();
                             dest != destinations.end();) {
@@ -555,11 +576,15 @@ namespace Arc {
   void Logger::log(const LogMessage& message) {
     Glib::Mutex::Lock lock(mutex);
     LoggerContext& ctx = getContext();
-    std::list<LogDestination*>::iterator dest;
-    std::list<LogDestination*>::iterator begin = ctx.destinations.begin();
-    std::list<LogDestination*>::iterator end = ctx.destinations.end();
-    for (dest = begin; dest != end; ++dest)
-      (*dest)->log(message);
+    {
+      Glib::Mutex::Lock dlock(ctx.mutex);
+      std::list<LogDestination*>::iterator dest;
+      std::list<LogDestination*>::iterator begin = ctx.destinations.begin();
+      std::list<LogDestination*>::iterator end = ctx.destinations.end();
+      for (dest = begin; dest != end; ++dest)
+        if(*dest)
+          (*dest)->log(message);
+    };
     if (parent)
       parent->log(message);
   }

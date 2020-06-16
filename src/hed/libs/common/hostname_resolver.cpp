@@ -14,9 +14,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#ifndef WIN32
 #include <poll.h>
-#endif
 #include <dirent.h>
 #include <fcntl.h>
 #include <netdb.h>
@@ -35,7 +33,6 @@ static bool sread_start = true;
 
 static bool sread(int s,void* buf,size_t size) {
   while(size) {
-#ifndef WIN32
     struct pollfd p[1];
     p[0].fd = s;
     p[0].events = POLLIN;
@@ -44,9 +41,6 @@ static bool sread(int s,void* buf,size_t size) {
     if(err == 0) return false;
     if((err == -1) && (errno != EINTR)) return false;
     if(err == 1) {
-#else
-    {
-#endif
       ssize_t l = ::read(s,buf,size);
       if(l <= 0) return false;
       size-=l;
@@ -59,7 +53,6 @@ static bool sread(int s,void* buf,size_t size) {
 
 static bool swrite(int s,const void* buf,size_t size) {
   while(size) {
-#ifndef WIN32
     struct pollfd p[1];
     p[0].fd = s;
     p[0].events = POLLOUT;
@@ -68,9 +61,6 @@ static bool swrite(int s,const void* buf,size_t size) {
     if(err == 0) return false;
     if((err == -1) && (errno != EINTR)) return false;
     if(err == 1) {
-#else
-    {
-#endif
       ssize_t l = ::write(s,buf,size);
       if(l < 0) return false;
       size-=l;
@@ -93,43 +83,6 @@ static bool sread_string(int s,std::string& str,unsigned int& maxsize) {
   return true;
 }
 
-static bool sread_buf(int s,void* buf,unsigned int& bufsize,unsigned int& maxsize) {
-  char dummy[1024];
-  unsigned int size;
-  if(sizeof(size) > maxsize) return false;
-  if(!sread(s,&size,sizeof(size))) return false;
-  maxsize -= sizeof(size);
-  if(size > maxsize) return false;
-  if(size <= bufsize) {
-    if(!sread(s,buf,size)) return false;
-    bufsize = size;
-    maxsize -= size;
-  } else {
-    if(!sread(s,buf,bufsize)) return false;
-    maxsize -= bufsize;
-    // skip rest
-    size -= bufsize;
-    while(size > sizeof(dummy)) {
-      if(!sread(s,dummy,sizeof(dummy))) return false;
-      size -= sizeof(dummy);
-      maxsize -= sizeof(dummy);
-    };
-    if(!sread(s,dummy,size)) return false;
-    maxsize -= size;
-  };
-  return true;
-}
-
-static bool swrite_result(int s,int cmd,int res,int err) {
-  header_t header;
-  header.cmd = cmd;
-  header.size = sizeof(res) + sizeof(err);
-  if(!swrite(s,&header,sizeof(header))) return -1;
-  if(!swrite(s,&res,sizeof(res))) return -1;
-  if(!swrite(s,&err,sizeof(err))) return -1;
-  return true;
-}
-
 static bool swrite_result(int s,int cmd,int res,int err,const void* add,int addsize) {
   header_t header;
   header.cmd = cmd;
@@ -138,31 +91,6 @@ static bool swrite_result(int s,int cmd,int res,int err,const void* add,int adds
   if(!swrite(s,&res,sizeof(res))) return -1;
   if(!swrite(s,&err,sizeof(err))) return -1;
   if(!swrite(s,add,addsize)) return -1;
-  return true;
-}
-
-static bool swrite_result(int s,int cmd,int res,int err,const void* add1,int addsize1,const void* add2,int addsize2) {
-  header_t header;
-  header.cmd = cmd;
-  header.size = sizeof(res) + sizeof(err) + addsize1 + addsize2;
-  if(!swrite(s,&header,sizeof(header))) return -1;
-  if(!swrite(s,&res,sizeof(res))) return -1;
-  if(!swrite(s,&err,sizeof(err))) return -1;
-  if(!swrite(s,add1,addsize1)) return -1;
-  if(!swrite(s,add2,addsize2)) return -1;
-  return true;
-}
-
-static bool swrite_result(int s,int cmd,int res,int err,const std::string& str) {
-  unsigned int l = str.length();
-  header_t header;
-  header.cmd = cmd;
-  header.size = sizeof(res) + sizeof(err) + sizeof(l) + str.length();
-  if(!swrite(s,&header,sizeof(header))) return -1;
-  if(!swrite(s,&res,sizeof(res))) return -1;
-  if(!swrite(s,&err,sizeof(err))) return -1;
-  if(!swrite(s,&l,sizeof(l))) return -1;
-  if(!swrite(s,str.c_str(),l)) return -1;
   return true;
 }
 

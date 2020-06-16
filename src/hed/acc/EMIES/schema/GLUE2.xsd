@@ -1425,7 +1425,6 @@
                     <enumeration value="org.nordugrid.storage.librarian"/>
                     <enumeration value="org.nordugrid.storage.shepherd"/>
                     <enumeration value="org.nordugrid.tests.echo"/>
-                    <enumeration value="org.nordugrid.tests.echo_java"/>
                     <enumeration value="org.nordugrid.tests.echo_python"/>
                     <enumeration value="org.nordugrid.tests.isistest"/>
                     <enumeration value="org.terragrid.gridftp"/>

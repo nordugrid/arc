@@ -107,7 +107,8 @@ void SOAPEnvelope::set(void) {
   envelope = it;
   if((!envelope) || (!MatchXMLName(envelope,"soap-env:Envelope"))) {
     // No SOAP Envelope found
-    if(is_owner_) xmlFreeDoc(node_->doc); node_=NULL;
+    if(is_owner_) xmlFreeDoc(node_->doc);
+    node_=NULL;
     return;
   };
   if(MatchXMLName(envelope.Child(0),"soap-env:Header")) {
@@ -121,7 +122,8 @@ void SOAPEnvelope::set(void) {
   };
   if(!MatchXMLName(body,"soap-env:Body")) {
     // No SOAP Body found
-    if(is_owner_) xmlFreeDoc(node_->doc); node_=NULL;
+    if(is_owner_) xmlFreeDoc(node_->doc);
+    node_=NULL;
     return;
   };
   // Transfer ownership.
@@ -462,6 +464,7 @@ XMLNode SOAPFault::Detail(bool create) {
 }
 
 SOAPEnvelope& SOAPEnvelope::operator=(const SOAPEnvelope& soap) {
+  if(this == &soap) return *this;
   if(fault) delete fault;
   fault=NULL;
   envelope=XMLNode();

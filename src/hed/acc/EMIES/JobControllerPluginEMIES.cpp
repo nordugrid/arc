@@ -72,6 +72,12 @@ namespace Arc {
           if (j) {
             if (EMIESJob::getIDFromJob(**itJ) == j->getActivityID()) {
               j->toJob(**itJ);
+              if ((*itJ)->LogDir.empty()) {
+                // In general EMIES does not provide access to LogDir.
+                // But assuming it is ARC EMIES and what we have REST interface 
+                // enabled there there is a chance. Here we only put an indicator.
+                (*itJ)->LogDir = ".";
+              }
               delete *itR;
               break;
             }
@@ -149,7 +155,6 @@ namespace Arc {
     MCCConfig cfg;
     usercfg->ApplyToConfig(cfg);
 
-    bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       // 1. Fetch/find delegation ids for each job
       if((*it)->DelegationID.empty()) {
@@ -213,10 +218,6 @@ namespace Arc {
   }
 
   bool JobControllerPluginEMIES::GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const {
-    if (resource == Job::JOBDESCRIPTION) {
-      return false;
-    }
-
     // Obtain information about staging urls
     EMIESJob ejob;
     ejob = job;
@@ -292,7 +293,17 @@ namespace Arc {
       url.ChangePath(url.Path() + '/' + job.StdErr);
       break;
     case Job::JOBLOG:
-      url.ChangePath(url.Path() + "/" + job.LogDir + "/errors");
+    case Job::JOBDESCRIPTION:
+      if (job.LogDir == ".") {
+        // Trying to use REST interface
+        std::string path = url.Path();
+        path.insert(path.rfind('/'), "/*logs");
+        url.ChangePath(path + ((resource == Job::JOBLOG) ? "/errors" : "/description"));
+      } else if (!job.LogDir.empty()) {
+        url.ChangePath(url.Path() + '/' + job.LogDir + ((resource == Job::JOBLOG) ? "/errors" : "/description"));
+      } else {
+        return false;
+      };
       break;
     case Job::STAGEINDIR:
       if(stagein) url = stagein;

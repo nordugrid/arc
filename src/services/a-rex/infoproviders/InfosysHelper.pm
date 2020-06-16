@@ -9,6 +9,8 @@ package InfosysHelper;
 #      - waitForProvider: waits for A-REX infoprovider to give a life sign on the fifo it created
 #      - ldifIsReady: calls waitForProvider and checks that ldif is fresh enough
 
+## TODO: do NOT hardcode defaults here anymore. Take them from configuration.
+
 use POSIX;
 use Fcntl;
 use English;
@@ -65,8 +67,8 @@ sub switchEffectiveUser {
                $EUID = $uid;
         };
     # Switch back to original UID/GID
-	} else {
-		eval { $EGID = $GID;
+    } else {
+        eval { $EGID = $GID;
                $EUID = $UID;
         };
     };
@@ -138,23 +140,23 @@ sub waitForProvider {
     sub findInfosys {
         return @$cache if defined $cache;
         my ($config) = @_;
-        my ($bdii_run_dir) = $config->{bdii_run_dir} || "/var/run/arc/bdii";
+        my ($bdii_run_dir) = $config->{bdii_run_dir};
         # remove trailing slashes
         $bdii_run_dir =~ s|/\z||;
         $log->debug("BDII run dir set to: $bdii_run_dir");
         
         # TODO: remove this legacy BDII4 location from here and from grid-infosys
-        my ($bdii_var_dir) = $config->{bdii_var_dir} || "/var/lib/arc/bdii";
+        my ($bdii_var_dir) = $config->{bdii_var_dir};
         # remove trailing slashes
         $bdii_var_dir =~ s|/\z||;
         $log->debug("BDII var dir set to: $bdii_var_dir");
         
-        my ($bdii_update_pid_file) = $config->{bdii_update_pid_file} || "$bdii_run_dir/bdii-update.pid";
+        my ($bdii_update_pid_file) = $config->{bdii_update_pid_file};
         $log->debug("BDII pid guessed location: $bdii_update_pid_file. Will search for it later");
         
         my ($infosys_uid, $infosys_gid);
         
-        my $infosys_ldap_run_dir = $config->{infosys_ldap_run_dir} || "/var/run/arc/infosys";
+        my $infosys_ldap_run_dir = $config->{infosys_ldap_run_dir};
         # remove trailing slashes
         $infosys_ldap_run_dir =~ s|/\z||;
         $log->debug("LDAP subsystem run dir set to $infosys_ldap_run_dir");
@@ -181,7 +183,9 @@ sub waitForProvider {
             return @$cache = ();
         }
         unless (-d $infosys_ldap_run_dir) {
-            $log->warning("LDAP information system runtime directory does not exist. Check that:\n \t *) The arc.conf parameter infosys_ldap_run_dir is correctly set im manually added. \n \t *) nordugrid-arc-bdii is running");
+            $log->warning("LDAP information system runtime directory does not exist. Check that:");
+            $log->warning("1) The arc.conf parameter infosys_ldap_run_dir is correctly set if manually added.");
+            $log->warning("2) nordugrid-arc-bdii is running");
             return @$cache = ();
         }
         return @$cache = ($infosys_ldap_run_dir, $infosys_uid, $infosys_gid);
@@ -198,7 +202,8 @@ sub waitForProvider {
 sub notifyInfosys {
     my ($config) = @_;
 
-    my ($infosys_ldap_run_dir) = findInfosys($config);
+    # my ($infosys_ldap_run_dir) = findInfosys($config);
+    my $infosys_ldap_run_dir = $config->{infosys_ldap_run_dir};
     return undef unless $infosys_ldap_run_dir;
 
     my $fifopath = "$infosys_ldap_run_dir/ldif-provider.fifo";
@@ -321,9 +326,15 @@ sub createLdifScript {
 #
 # To be called by ldap-infosys
 #  * returns true if/when there is a fresh ldif
-#
+#  max_cycle is a number calculated as such by the init scripts: 
+#     max_cycle=$(( $bdii_provider_timeout + $infoproviders_timelimit + $wakeupperiod ))
+#     where:
+#     - $bdii_provider_timeout:    max time for BDII infoproviders to run
+#     - $infoproviders_timelimit:  max time for PERL infoproviders to run
+#     - $wakeupperiod:             interval used by A-REX to restart CEinfo.pl
+#  max_cycle is the time bdii-update will trust the content of any provider to be fresh enough
 sub ldifIsReady {
-    my ($infosys_ldap_run_dir, $max_age) = @_;
+    my ($infosys_ldap_run_dir, $max_cycle) = @_;
 
     LogUtils::timestamps(1);
 
@@ -336,7 +347,7 @@ sub ldifIsReady {
     }
     my @stat = stat $scriptpath;
     $log->error("Cant't stat $scriptpath: $!") unless @stat;
-    if (time() - $stat[9] > $max_age) {
+    if (time() - $stat[9] > $max_cycle) {
         $log->info("The ldif generator script is too old ($scriptpath)");
         $log->info("This file should have been refreshed by A-REX's infoprovider. Check that A-REX is running.");
         return undef;

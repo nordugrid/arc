@@ -42,9 +42,17 @@ class CacheConfig {
    int _cache_max;
    int _cache_min;
    /**
+    * Whether automatic cleaning is enabled
+    */
+   bool _cleaning_enabled;
+   /**
     * Cache directories that are needed to be drained
     **/
    std::vector<std::string> _draining_cache_dirs;
+   /**
+    * Cache directories that are read-only
+    **/
+   std::vector<std::string> _readonly_cache_dirs;
    /**
     * Logfile for cache cleaning messages
     */
@@ -86,14 +94,15 @@ class CacheConfig {
   /**
    * Empty CacheConfig
    */
-  CacheConfig(): _cache_max(0), _cache_min(0), _cache_shared(false), _clean_timeout(0) {};
+  CacheConfig(): _cache_max(0), _cache_min(0), _cleaning_enabled(false), _cache_shared(false), _clean_timeout(0) {};
   std::vector<std::string> getCacheDirs() const { return _cache_dirs; };
   std::vector<std::string> getDrainingCacheDirs() const { return _draining_cache_dirs; };
+  std::vector<std::string> getReadOnlyCacheDirs() const { return _readonly_cache_dirs; };
   /// Substitute all cache paths, with information given in user if necessary
   void substitute(const GMConfig& config, const Arc::User& user);
   int getCacheMax() const { return _cache_max; };
   int getCacheMin() const { return _cache_min; };
-  bool cleanCache() const { return (_cache_max > 0 && _cache_max < 100); };
+  bool cleanCache() const { return _cleaning_enabled; };
   std::string getLogFile() const { return _log_file; };
   std::string getLogLevel() const { return _log_level; };
   std::string getLifeTime() const { return _lifetime; };

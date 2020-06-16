@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+
+if [ "$1" = "configure" ] ; then
+   # check hostcert is already generated (update vs install)
+   if [ ! -f /etc/grid-security/testCA-hostcert.pem ] ; then
+       arcctl test-ca init
+       arcctl test-ca hostcert
+   fi
+fi
+
+#DEBHELPER#

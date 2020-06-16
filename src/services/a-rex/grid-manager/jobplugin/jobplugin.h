@@ -5,6 +5,8 @@
 #include <list>
 #include <vector>
 #include <iostream>
+#include <arc/Utils.h>
+#include "../jobs/GMJob.h"
 #include "../../../gridftpd/fileroot.h"
 #include "../../../gridftpd/userspec.h"
 #include "../conf/GMConfig.h"
@@ -12,15 +14,7 @@
 
 using namespace ARex;
 
-class DirectFilePlugin;
-
-/*
- * Store per-GM information
- */
-struct gm_dirs_ {
-  std::string control_dir;
-  std::string session_dir;
-};
+class DirectUserFilePlugin;
 
 #define DEFAULT_JOB_RSL_MAX_SIZE (5*1024*1024)
 
@@ -40,22 +34,22 @@ class JobPlugin: public FilePlugin {
   bool make_job_id(void);
   bool delete_job_id(void);
   int check_acl(const char* acl_file,bool spec,const std::string& id);
-  bool is_allowed(const char* name,int perm,bool locked = false,bool* spec_dir = NULL,std::string* id = NULL,char const ** logname = NULL,std::string* log = NULL);
-  DirectFilePlugin * selectFilePlugin(std::string id);
+  bool is_allowed(const char* name,int perm,bool* spec_dir = NULL,std::string* id = NULL,char const ** logname = NULL,std::string* log = NULL);
+  DirectUserFilePlugin * makeFilePlugin(std::string id);
+  GMJob* makeJob(const JobId &job_id,const std::string &dir = "",job_state_t state = JOB_STATE_UNDEFINED);
+
   /** Find the control dir used by this job id */
   std::string getControlDir(std::string id);
   /** Find the session dir used by this job id */
-  std::string getSessionDir(std::string id);
+  std::string getSessionDir(std::string const& id, uid_t* uid = NULL, gid_t* gid = NULL);
   /** Pick new control and session dirs according to algorithm */
   bool chooseControlAndSessionDir(std::string job_id, std::string& controldir, std::string& sessiondir);
   void* phandle;
   ContinuationPlugins* cont_plugins;
-  RunPlugin* cred_plugin;
   Arc::User user;
   GMConfig config;
   DelegationStore::DbType deleg_db_type;
-  AuthUser& user_a;
-  UnixMap job_map;
+  userspec_t const& user_s;
   std::list<std::string> avail_queues;
   std::string subject;
   unsigned short int port; // port client used for data channel
@@ -63,22 +57,19 @@ class JobPlugin: public FilePlugin {
   std::string proxy_fname; /* name of proxy file passed by client */
   bool proxy_is_deleg;
   std::string job_id;
+  std::string store_job_id;
   unsigned int job_rsl_max_size;
-//!!  char job_rsl[1024*1024+5];
   bool initialized;
   bool rsl_opened;
-  DirectFilePlugin* direct_fs;
   bool readonly;
   const char* matched_vo;
   const voms_t* matched_voms;
-  std::vector<gm_dirs_> gm_dirs_info;
-  std::vector<gm_dirs_> gm_dirs_non_draining;
+  std::string control_dir;
   std::vector<std::string> session_dirs;
   std::vector<std::string> session_dirs_non_draining;
-  std::vector<DirectFilePlugin *> file_plugins;
-  DirectFilePlugin * chosenFilePlugin;
+  Arc::AutoPointer<DirectUserFilePlugin> chosenFilePlugin;
  public:
-  JobPlugin(std::istream &cfile,userspec_t &user,FileNode &node);
+  JobPlugin(std::istream &cfile,userspec_t const &user,FileNode &node);
   ~JobPlugin(void);
   virtual std::string get_error_description() const;
   virtual int open(const char* name,open_modes mode,unsigned long long int size = 0);

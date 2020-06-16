@@ -10,8 +10,8 @@ $suite->test("basic", sub {
   my @progs = qw(sinfo scontrol squeue);
   my $simulator_output = <<'ENDSIMULATOROUTPUT';
 # Output from SLURM version 2.3.2
-args="sinfo -a -h -o PartitionName=%P TotalCPUs=%C TotalNodes=%D MaxTime=%l DefTime=%L"
-output="PartitionName=queue1 TotalCPUs=0/1/0/1 TotalNodes=1 MaxTime=infinite DefTime=infinite"
+args="sinfo -a -h -o PartitionName=%P TotalCPUs=%C TotalNodes=%D MaxTime=%l DefTime=%L NodeNames=%N"
+output="PartitionName=queue1 TotalCPUs=0/1/0/1 TotalNodes=1 MaxTime=infinite DefTime=infinite NodeNames=test-machine"
 
 # Output from SLURM version 2.3.2
 args="sinfo -a -h -o cpuinfo=%C"
@@ -175,7 +175,8 @@ ENDSIMULATOROUTPUT
 			    users => ['user1'] 
 		   } 
 	   }, 
-	   jobs => ['1', '2'] 
+	   jobs => ['1', '2'],
+           loglevel => '5'
 	   };
 
   my $lrms_info = $suite->collect(\@progs, $simulator_output, $cfg);
@@ -213,6 +214,7 @@ ENDSIMULATOROUTPUT
   is($lrms_info->{queues}{queue1}{totalcpus}, 1, 'queue1->totalcpus');
   is($lrms_info->{queues}{queue1}{preemption}, undef, 'queue1->preemption');
   is($lrms_info->{queues}{queue1}{'acl_users'}, undef, 'queue1->acl_users');
+  is(ref $lrms_info->{queues}{queue1}{nodes}, 'ARRAY', 'queue1->nodes is ARRAY');
   
   is(ref $lrms_info->{queues}{queue1}{users}, 'HASH', 'has users');
   is(ref $lrms_info->{queues}{queue1}{users}{user1}, 'HASH', 'has user1');

@@ -215,14 +215,14 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
      sslctx_=SSL_CTX_new(TLS_client_method());
 #endif
    } else if(cfg.IfTLSv11Handshake()) {
-#if defined HAVE_TLSSV1_1_METHOD
+#if defined HAVE_TLSV1_1_METHOD
      sslctx_=SSL_CTX_new(TLSv1_1_client_method());
 #elif defined HAVE_TLS_METHOD
      ctx_options = SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1_2 | SSL_OP_NO_TLSv1;
      sslctx_=SSL_CTX_new(TLS_client_method());
 #endif
    } else if(cfg.IfTLSv12Handshake()) {
-#ifdef HAVE_TLSSV1_2_METHOD
+#ifdef HAVE_TLSV1_2_METHOD
      sslctx_=SSL_CTX_new(TLSv1_2_client_method());
 #elif defined HAVE_TLS_METHOD
      ctx_options = SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1;
@@ -294,6 +294,11 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    //  if(!s) break;
    //  logger.msg(VERBOSE, "Allowed cipher: %s",s);
    //};
+   if(!cfg.Hostname().empty()) {
+      if(!SSL_set_tlsext_host_name(ssl_, cfg.Hostname().c_str())) {
+         logger.msg(WARNING, "Faile to assign hostname extension");
+      };
+   };
    SSL_set_bio(ssl_,bio,bio); bio=NULL;
    //SSL_set_connect_state(ssl_);
    if((err=SSL_connect(ssl_)) != 1) {
@@ -318,9 +323,9 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    return;
 error:
    if (failure_) SetFailure(err); // Only set if not already set.
-   if(bio) BIO_free(bio); bio_=NULL;
-   if(ssl_) SSL_free(ssl_); ssl_=NULL;
-   if(sslctx_) SSL_CTX_free(sslctx_); sslctx_=NULL;
+   if(bio) { BIO_free(bio); bio_=NULL; }
+   if(ssl_) { SSL_free(ssl_); ssl_=NULL; }
+   if(sslctx_) { SSL_CTX_free(sslctx_); sslctx_=NULL; }
    return;
 }
 
@@ -357,7 +362,9 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
      SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT | SSL_VERIFY_CLIENT_ONCE, &verify_callback);
    }
    else {
-     SSL_CTX_set_verify(sslctx_, SSL_VERIFY_NONE, NULL);
+     //SSL_CTX_set_verify(sslctx_, SSL_VERIFY_NONE, NULL);
+     // Ask for client certificate but do not fail if not provided
+     SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_CLIENT_ONCE, &verify_callback);
    }
    if(!config_.Set(sslctx_)) {
       SetFailure(config_.Failure());
@@ -403,9 +410,9 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    return;
 error:
    if (failure_) SetFailure(err); // Only set if not already set.
-   if(bio) BIO_free(bio); bio_=NULL;
-   if(ssl_) SSL_free(ssl_); ssl_=NULL;
-   if(sslctx_) SSL_CTX_free(sslctx_); sslctx_=NULL;
+   if(bio) { BIO_free(bio); bio_=NULL; }
+   if(ssl_) { SSL_free(ssl_); ssl_=NULL; }
+   if(sslctx_) { SSL_CTX_free(sslctx_); sslctx_=NULL; }
    return;
 }
 

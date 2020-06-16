@@ -232,6 +232,13 @@ namespace ArcDMCRucio {
     return DataStatus::Success;
   }
 
+  DataStatus DataPointRucio::CompareLocationMetadata() const {
+    if (CurrentLocationHandle() && CurrentLocationHandle()->GetURL().HTTPOption("xrdcl.unzip", "") == "") {
+      return DataPointIndex::CompareLocationMetadata();
+    }
+    return DataStatus::Success;
+  }
+
   DataStatus DataPointRucio::PreRegister(bool replication, bool force) {
     if (url.Path().find("/objectstores/") == 0) return DataStatus::Success;
     return DataStatus(DataStatus::PreRegisterError, ENOTSUP, "Writing to Rucio is not supported");
@@ -384,7 +391,7 @@ namespace ArcDMCRucio {
       return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
     }
     cJSON *name = cJSON_GetObjectItem(root, "name");
-    if (!name) {
+    if (!name || name->type != cJSON_String || !name->valuestring) {
       logger.msg(ERROR, "Filename not returned in Rucio response: %s", content);
       cJSON_Delete(root);
       return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
@@ -405,15 +412,19 @@ namespace ArcDMCRucio {
     while (rse) {
       cJSON *replicas = rse->child;
       while(replicas) {
-        URL loc(std::string(replicas->valuestring));
-        // Add URL options to replicas
-        for (std::map<std::string, std::string>::const_iterator opt = url.CommonLocOptions().begin();
-             opt != url.CommonLocOptions().end(); opt++)
-          loc.AddOption(opt->first, opt->second, false);
-        for (std::map<std::string, std::string>::const_iterator opt = url.Options().begin();
-             opt != url.Options().end(); opt++)
-          loc.AddOption(opt->first, opt->second, false);
-        AddLocation(loc, loc.ConnectionURL());
+        if(replicas->type == cJSON_String || replicas->valuestring) {
+          URL loc(std::string(replicas->valuestring));
+          if(loc) {
+            // Add URL options to replicas
+            for (std::map<std::string, std::string>::const_iterator opt = url.CommonLocOptions().begin();
+                 opt != url.CommonLocOptions().end(); opt++)
+              loc.AddOption(opt->first, opt->second, false);
+            for (std::map<std::string, std::string>::const_iterator opt = url.Options().begin();
+                 opt != url.Options().end(); opt++)
+              loc.AddOption(opt->first, opt->second, false);
+            AddLocation(loc, loc.ConnectionURL());
+          }
+        }
         replicas = replicas->next;
       }
       rse = rse->next;
@@ -426,7 +437,7 @@ namespace ArcDMCRucio {
       logger.msg(DEBUG, "%s: size %llu", filename, GetSize());
     }
     cJSON *csum = cJSON_GetObjectItem(root, "adler32");
-    if (!csum || csum->type == cJSON_NULL) {
+    if (!csum || csum->type != cJSON_String || !csum->valuestring) {
       logger.msg(WARNING, "No checksum information returned in Rucio response for %s", filename);
     } else {
       SetCheckSum(std::string("adler32:") + std::string(csum->valuestring));

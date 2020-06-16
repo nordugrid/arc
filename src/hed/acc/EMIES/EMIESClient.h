@@ -114,8 +114,7 @@ namespace Arc {
   class EMIESJobInfo : public EMIESResponse {
     public:
       EMIESJobInfo(XMLNode item) : EMIESResponse() { item.New(jobInfo); }
-      EMIESJobInfo(const EMIESJobInfo& ji) :
-        EMIESResponse() {}
+      EMIESJobInfo(const EMIESJobInfo& ji) : EMIESResponse() {}
       void toJob(Job&) const;
       std::string getActivityID() const { return (std::string)jobInfo["ActivityID"]; }
       std::string getSubmittedVia() const;
@@ -316,6 +315,9 @@ namespace Arc {
 
     bool dosimple(const std::string& action, const std::string& id);
 
+    EMIESClient(EMIESClient const&);
+    EMIESClient& operator=(EMIESClient const&);
+
     ClientSOAP *client;
 
     //! Namespaces.
@@ -326,6 +328,8 @@ namespace Arc {
     URL rurl;
 
     const MCCConfig cfg;
+
+    std::string otoken;
 
     int timeout;
 

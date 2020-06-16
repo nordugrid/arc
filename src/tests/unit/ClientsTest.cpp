@@ -43,12 +43,7 @@ ClientsTest::testConstructor()
   int ret;
 
   // Process
-  #ifdef WIN32
-   // TODO: this command is not good for windows
-    ret=ShellExecute(command);
-  #else //ifndef
-    ret=system(command.c_str());
-  #endif
+  ret=system(command.c_str());
 
   // Check
   CPPUNIT_ASSERT(!ret);

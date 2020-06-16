@@ -291,6 +291,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   };
   // Call next MCC
   MCCInterface* next = Next(nextpayload.Method());
+  if(!next) next = Next(); // try default target
   if(!next) {
     logger.msg(WARNING, "No next element in the chain");
     // Here selection is on method name. So failure result is "not supported"
@@ -412,6 +413,7 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
 MCC_HTTP_Client::MCC_HTTP_Client(Config *cfg,PluginArgument* parg):MCC_HTTP(cfg,parg) {
   endpoint_=(std::string)((*cfg)["Endpoint"]);
   method_=(std::string)((*cfg)["Method"]);
+  authorization_=(std::string)((*cfg)["Authorization"]);
 }
 
 MCC_HTTP_Client::~MCC_HTTP_Client(void) {
@@ -480,6 +482,7 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
       dynamic_cast<PayloadHTTPOut*>(nextspayload.Ptr())
   );
   bool expect100 = false;
+  bool authorization_present = false;
   for(AttributeIterator i = inmsg.Attributes()->getAll();i.hasMore();++i) {
     const char* key = i.key().c_str();
     if(strncmp("HTTP:",key,5) == 0) {
@@ -490,8 +493,12 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
       if(strcasecmp(key,"EXPECT") == 0) {
         if(Arc::lower(*i) == "100-continue") expect100 = true;
       }
+      if(strcasecmp(key,"AUTHORIZATION") == 0) authorization_present = true;
       nextpayload->Attribute(std::string(key),*i);
     };
+  };
+  if(!authorization_present) {
+    if(!authorization_.empty()) nextpayload->Attribute("Authorization", authorization_);
   };
   nextpayload->Attribute("User-Agent","ARC");
   bool request_is_head = (upper(http_method) == "HEAD");

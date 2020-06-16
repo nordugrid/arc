@@ -1,4 +1,5 @@
-/var/log/arc/datadelivery-service.log {
+/var/log/arc/datadelivery-service.log
+{
   missingok
   compress
   delaycompress

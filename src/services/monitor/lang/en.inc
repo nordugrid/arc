@@ -574,7 +574,6 @@ $message = array (
 					  				  "131" => " Monitor timeouts for ARCHERY depends on OS DNS resolver settings (In DNS cache we trust!)",
                                       "132" => "Failed to query the following ARCHERY endpoint: ",
                                       "133" => "Reached the recursive loop limit while querying ARCHERY endpoint: ",
-                                      "134" => "Unsupported ARCHERY endpoint type %s for endpoint URL %s",
                                       // icon titles
                                       "301" => "Refresh",
                                       "302" => "Print",
@@ -630,6 +629,7 @@ $message = array (
 					"BE"  => "Belgium",
 					"BG"  => "Bulgaria",
                                         "CA"  => "Canada",
+                                        "CL"  => "Chile",
                                         "CN"  => "China",
 					"CZ"  => "Czechia",
                                         "DK"  => "Denmark",

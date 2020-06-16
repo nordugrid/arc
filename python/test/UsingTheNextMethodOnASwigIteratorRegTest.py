@@ -12,4 +12,4 @@ jobs.push_back(arc.Job())
 
 itJobs = jobs.__iter__()
 
-itJobs.next()
+next(itJobs)

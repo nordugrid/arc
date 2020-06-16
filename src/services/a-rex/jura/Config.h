@@ -6,6 +6,7 @@
 #include <vector>
 #include <arc/URL.h>
 #include <arc/Logger.h>
+#include <arc/Utils.h>
 
 namespace ArcJura
 {
@@ -22,7 +23,6 @@ namespace ArcJura
     bool getArchiving() const { return archiving; }
     std::string const & getArchiveDir() const { return archivedir; }
     unsigned int getArchivettl() const { return archivettl; }
-    unsigned int getUrbatchsize() const { return urbatchsize; }
     std::string const & getVOMSlessVO() const { return vomsless_vo; }
     std::string const & getVOMSlessIssuer() const { return vomsless_issuer; }
     std::string const & getVOGroup() const { return vo_group; }
@@ -74,7 +74,6 @@ namespace ArcJura
     static Arc::LogLevel const default_loglevel;
     static char const * const default_archivedir;
     static unsigned int const default_archivettl;
-    static unsigned int const default_urbatchsize;
     static unsigned int const default_urdelivery_keepfailed;
     static unsigned int const default_urdelivery_frequency;
 
@@ -84,7 +83,6 @@ namespace ArcJura
     bool archiving;
     std::string archivedir;
     unsigned int archivettl;
-    unsigned int urbatchsize;
     std::string vomsless_vo;
     std::string vomsless_issuer;
     std::string vo_group;

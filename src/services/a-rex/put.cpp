@@ -37,10 +37,30 @@ static bool write_file(Arc::FileAccess& h,char* buf,size_t size) {
 }
 
 Arc::MCC_Status ARexService::PutInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
+  return make_http_fault(outmsg,501,"Not Implemented");
+}
+
+Arc::MCC_Status ARexService::DeleteInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   return make_http_fault(outmsg,501,"Not Implemented");
 }
 
 Arc::MCC_Status ARexService::PutCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
+  return make_http_fault(outmsg,501,"Not Implemented");
+}
+
+Arc::MCC_Status ARexService::DeleteCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   return make_http_fault(outmsg,501,"Not Implemented");
 }
 
@@ -119,6 +139,9 @@ static Arc::MCC_Status PutJobFile(Arc::Message& outmsg, Arc::FileAccess& file, s
 }
 
 Arc::MCC_Status ARexService::PutJob(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   // Nothing can be put into root endpoint
   if(id.empty()) return make_http_fault(outmsg, 500, "No job specified");
   // Check for proper payload
@@ -166,6 +189,52 @@ Arc::MCC_Status ARexService::PutJob(Arc::Message& inmsg,Arc::Message& outmsg,ARe
   }
   return r;
 } 
+
+Arc::MCC_Status ARexService::DeleteJob(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
+  // Nothing can be removed in root endpoint
+  if(id.empty()) return make_http_fault(outmsg, 500, "No job specified");
+  // Ignoring payload
+  // Acquire job
+  ARexJob job(id,config,logger_);
+  if(!job) {
+    // There is no such job
+    logger_.msg(Arc::ERROR, "%s: there is no such job: %s", job.ID(), job.Failure());
+    return make_http_fault(outmsg, 500, "Job does not exist");
+  };
+
+  std::string full_path = job.GetFilePath(subpath.c_str());
+  if(full_path.empty()) {
+    logger_.msg(Arc::ERROR, "%s: delete file %s: failed to obtain file path: %s", job.ID(), subpath, job.Failure());
+    return make_http_fault(outmsg, 500, "Error deleting file");
+  };
+  bool is_file = true;
+  Arc::FileAccess* fs = job.OpenFile(subpath.c_str(), false, true);
+  if(fs == NULL) {
+    is_file = false;
+    fs = job.OpenDir(subpath.c_str());
+  }
+  if(fs == NULL) {
+    // TODO: report something
+    logger_.msg(Arc::ERROR, "%s: delete file %s: failed to open file/dir: %s", job.ID(), subpath, job.Failure());
+    return make_http_fault(outmsg, 500, "Error deleting file");
+  };
+  bool unlink_result = is_file ? fs->fa_unlink(full_path.c_str()) : fs->fa_rmdir(full_path.c_str());;
+  int unlink_err = fs->geterrno();
+  is_file ? fs->fa_close() : fs->fa_closedir(); Arc::FileAccess::Release(fs);
+
+  if(!unlink_result) {
+    if((unlink_err == ENOTDIR) || (unlink_err == ENOENT)) {
+      return make_http_fault(outmsg, 404, "File not found");
+    } else {
+      return make_http_fault(outmsg, 500, "Error deleting file");
+    };
+  };
+
+  return ARexService::make_empty_response(outmsg);
+}
 
 } // namespace ARex
 

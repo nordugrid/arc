@@ -6,13 +6,13 @@ arc-blahp-logger \- ARC authplugin to store BLAH accouting logs about FINISHED j
 
 .SH DESCRIPTION
 
-.B ARC BLAH logger 
+.B ARC BLAH logger
 is an authplugin to store FINISHED jobs information in log files used by BLAH parser.
 Generated logs can be used by APEL/DGAS client tools to send accounting information.
 
 .SH SYNOPSIS
 
-arc-blahp-logger -I <jobID> -U <user> -P <proxy file> -L <job status file> [-c <ceid prefix>] [-p <log prefix> ] [-d <log level>]
+arc-blahp-logger -I <jobID> -U <user> -P <proxy file> -L <job status file> [-c <ceid prefix>] [-p <log prefix> ] [-d <log level>] [-i]
 
 
 .SH OPTIONS
@@ -31,6 +31,8 @@ prefix to generate CE ID in accordance to GLUE1.3 publishing
 logs location and filename prefix. Default is \fB/var/log/arc/accounting/blahp.log\fR
 .IP "\fB-d\fR \fIloglevel\fR"
 logging level from 0(ERROR) to 5(DEBUG)
+.IP "\fB-i\fR"
+Ignore failed jobs. Default is to publish them.
 
 .SH ENABLING PLUGIN IN A-REX CONFIGURATION
 
@@ -42,13 +44,13 @@ You need to add BLAH logger plugin as a handler for FINISHED state, e.g.:
 
 There are no particular plugin configuration except passing correct options.
 
-By default BLAH log is written to 
-.B /var/log/arc/accounting/blahp.log-YYYYMMDD. 
+By default BLAH log is written to
+.B /var/log/arc/accounting/blahp.log-YYYYMMDD.
 The log prefix (without \fB-YYYYMMDD\fR) can be redefined with optional \fB-p\fR option.
 
-CE ID is generated automatically and has a format 
+CE ID is generated automatically and has a format
 .B host.fqdn:2811/nordugrid-torque-queue
-in accordance to GLUE1.3 publishing. 
+in accordance to GLUE1.3 publishing.
 Queue is added in runtime anyway, but prefix can be redefined with \fB-c\fR option.
 This option should be added in case of LRMS.
 
@@ -57,4 +59,3 @@ To debug logger execution you can add \fB-d 5\fR option and see all ARC logger o
 .SH AUTHOR
 
 Andrii Salnikov <manf at grid dot org dot ua>
-

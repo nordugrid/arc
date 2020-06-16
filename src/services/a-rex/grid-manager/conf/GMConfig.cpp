@@ -19,7 +19,6 @@
 #include <arc/ArcLocation.h>
 #include <arc/FileUtils.h>
 #include <arc/Utils.h>
-#include <arc/XMLNode.h>
 
 #include "CoreConfig.h"
 #include "../run/RunParallel.h"
@@ -44,39 +43,40 @@ namespace ARex {
 Arc::Logger GMConfig::logger(Arc::Logger::getRootLogger(), "GMConfig");
 static std::string empty_string("");
 static std::list<std::string> empty_string_list;
+static std::list<std::pair<bool,std::string> > empty_group_list;
+
+std::string GMConfig::GuessConfigFile() {
+  struct stat st;
+  std::string file = Arc::GetEnv("ARC_CONFIG");
+  if(!file.empty()) {
+    return file; // enforced location
+  }
+  file = Arc::ArcLocation::Get() + "/etc/arc.conf";
+  if (Arc::FileStat(file, &st, true)) {
+    return file;
+  }
+  file = "/etc/arc.conf";
+  if (Arc::FileStat(file, &st, true)) {
+    return file;
+  }
+  return "";
+}
 
 GMConfig::GMConfig(const std::string& conf): conffile(conf) {
   SetDefaults();
   // If no config file was given, guess it. The order to try is
   // $ARC_CONFIG, $ARC_LOCATION/etc/arc.conf, /etc/arc.conf
-  struct stat st;
   if (conffile.empty()) {
-    std::string file = Arc::GetEnv("ARC_CONFIG");
-    if (Arc::FileStat(file, &st, true)) {
-      conffile = file;
-      return;
-    }
-    file = Arc::ArcLocation::Get() + "/etc/arc.conf";
-    if (Arc::FileStat(file, &st, true)) {
-      conffile = file;
-      return;
-    }
-    file = "/etc/arc.conf";
-    if (Arc::FileStat(file, &st, true)) {
-      conffile = file;
-      return;
-    }
+    conffile = GuessConfigFile();
   }
-}
-
-GMConfig::GMConfig(const Arc::XMLNode& node): xml_cfg(node) {
-  SetDefaults();
 }
 
 void GMConfig::SetDefaults() {
   conffile_is_temp = false;
   job_log = NULL;
   jobs_metrics = NULL;
+  heartbeat_metrics = NULL;
+  space_metrics = NULL;
   job_perf_log = NULL;
   cont_plugins = NULL;
   delegations = NULL;
@@ -101,6 +101,7 @@ void GMConfig::SetDefaults() {
 
   enable_arc_interface = false;
   enable_emies_interface = false;
+  enable_publicinfo = false;
 
   cert_dir = Arc::GetEnv("X509_CERT_DIR");
   voms_dir = Arc::GetEnv("X509_VOMS_DIR");
@@ -122,7 +123,8 @@ void GMConfig::Print() const {
   logger.msg(Arc::INFO, "\tdefault ttl      : %u", keep_finished);
 
   std::vector<std::string> conf_caches = cache_params.getCacheDirs();
-  if(conf_caches.empty()) {
+  std::vector<std::string> readonly_caches = cache_params.getReadOnlyCacheDirs();
+  if(conf_caches.empty() && readonly_caches.empty()) {
     logger.msg(Arc::INFO,"No valid caches found in configuration, caching is disabled");
     return;
   }
@@ -131,6 +133,9 @@ void GMConfig::Print() const {
     logger.msg(Arc::INFO, "\tCache            : %s", (*i).substr(0, (*i).find(" ")));
     if ((*i).find(" ") != std::string::npos)
       logger.msg(Arc::INFO, "\tCache link dir   : %s", (*i).substr((*i).find_last_of(" ")+1, (*i).length()-(*i).find_last_of(" ")+1));
+  }
+  for (std::vector<std::string>::iterator i = readonly_caches.begin(); i != readonly_caches.end(); i++) {
+    logger.msg(Arc::INFO, "\tCache (read-only): %s", *i);
   }
   if (cache_params.cleanCache()) logger.msg(Arc::INFO, "\tCache cleaning enabled");
   else logger.msg(Arc::INFO, "\tCache cleaning disabled");
@@ -289,13 +294,19 @@ const std::list<std::string> & GMConfig::AuthorizedVOs(const char * queue) const
   return (pos == authorized_vos.end()) ? empty_string_list : pos->second;
 }
 
-const std::list<std::string> & GMConfig::AllowedGroups(const char * queue) const {
-  std::map<std::string, std::list<std::string> >::const_iterator pos = allowed_groups.find(queue);
-  return (pos == allowed_groups.end()) ? empty_string_list : pos->second;
+const std::list<std::pair<bool,std::string> > & GMConfig::MatchingGroups(const char * queue) const {
+  std::map<std::string, std::list<std::pair<bool,std::string> > >::const_iterator pos = matching_groups.find(queue);
+  return (pos == matching_groups.end()) ? empty_group_list : pos->second;
 }
 
-bool GMConfig::Substitute(std::string& param, const Arc::User& user) const {
+const std::list<std::pair<bool,std::string> > & GMConfig::MatchingGroupsPublicInformation() const {
+  return matching_groups_publicinfo;
+}
+
+bool GMConfig::Substitute(std::string& param, bool& userSubs, bool& otherSubs, const Arc::User& user) const {
   std::string::size_type curpos = 0;
+  userSubs = false;
+  otherSubs = false;
   for (;;) {
     if (curpos >= param.length()) break;
     std::string::size_type pos = param.find('%', curpos);
@@ -304,16 +315,16 @@ bool GMConfig::Substitute(std::string& param, const Arc::User& user) const {
     if (param[pos] == '%') { curpos=pos+1; continue; };
     std::string to_put;
     switch (param[pos]) {
-      case 'R': to_put = SessionRoot(""); break; // First session dir will be used if there are multiple
-      case 'C': to_put = ControlDir(); break;
-      case 'U': to_put = user.Name(); break;
-      case 'H': to_put = user.Home(); break;
-      case 'Q': to_put = DefaultQueue(); break;
-      case 'L': to_put = DefaultLRMS(); break;
-      case 'u': to_put = Arc::tostring(user.get_uid()); break;
-      case 'g': to_put = Arc::tostring(user.get_gid()); break;
-      case 'W': to_put = Arc::ArcLocation::Get(); break;
-      case 'F': to_put = conffile; break;
+      case 'R': to_put = SessionRoot(""); otherSubs = true; break; // First session dir will be used if there are multiple
+      case 'C': to_put = ControlDir();  otherSubs = true; break;
+      case 'U': to_put = user.Name(); userSubs = true; break;
+      case 'H': to_put = user.Home(); userSubs = true; break;
+      case 'Q': to_put = DefaultQueue();  otherSubs = true; break;
+      case 'L': to_put = DefaultLRMS();  otherSubs = true; break;
+      case 'u': to_put = Arc::tostring(user.get_uid()); userSubs = true; break;
+      case 'g': to_put = Arc::tostring(user.get_gid()); userSubs = true; break;
+      case 'W': to_put = Arc::ArcLocation::Get();  otherSubs = true; break;
+      case 'F': to_put = conffile;  otherSubs = true; break;
       case 'G':
         logger.msg(Arc::ERROR, "Globus location variable substitution is not supported anymore. Please specify path directly.");
         break;

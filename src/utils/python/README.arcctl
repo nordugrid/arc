@@ -1,0 +1,63 @@
+INSTALLING AND TESTING
+======================
+
+The arcctl tool is installed along with A-REX package or built from source tree along with entire code using general ARC build sequence.
+
+The arcctl uses python configuration parser and rely havily on config to get the values of control directory, runtime directry, logs paths, etc.
+
+Thus new config structure is implied, you can obviously test it on ARC6. 
+
+LEARINING HOW TO USE ARCCTL
+===========================
+
+The arcctl provides self-descriptive help messages that illustrates the way command can be invoked to control different components. 
+
+Start with 'arcctl --help' and than follows every component supported in the current release, like 'arcctl rte --help'
+
+usage: arcctl rte [-h] ACTION ...
+
+optional arguments:
+  -h, --help  show this help message and exit
+
+RunTime Environments Actions:
+  ACTION      DESCRIPTION
+    enable    Enable RTE to be used by A-REX
+    disable   Disable RTE to be used by A-REX
+    list      List RunTime Environments
+    default   Transparently use RTE for every A-REX job
+    undefault Remove RTE from transparent A-REX usage
+    cat       Print the content of RTE file
+    params-get
+              List configurable RTE parameters
+    params-set
+              Set configurable RTE parameters
+
+To increase the log-level verbosity or change path to arc.conf pass the global arguments before component name.
+
+BASH-COMPLETION
+===============
+
+The arcctl can work smoothly without completion, however tool is designed with bash-completion in mind to be admin-friendly.
+
+The arcctl relies on python-argcomplete to implement bash-completion.
+
+To get the completion power make sure you have installed and enabled python-argcomplete as described in https://pypi.org/project/argcomplete/
+
+The easiest way is to enable python completion globally:
+  yum install python-argcomplete
+  activate-global-python-argcomplete
+
+P.S. We can investigate packages availability and maybe add 'Requires' to packaging.
+
+DEVELOP COMPONENT FOR ARCCTL
+============================
+
+arcctl designed to be modular and each component implemented as dedicated python module in 'arc.control'.
+
+Inside the module there should be control class inherited from ComponentControl that:
+  - have arcconfig as the only parameter in constructor
+  - implements static 'register_parser' method that extends argparse with proper subparser
+  - implements 'control' method that get argparse.parse argument and performs requested action
+
+Just look into already implemented classes for Jobs, RunTimeEnvironments control, etc.
+

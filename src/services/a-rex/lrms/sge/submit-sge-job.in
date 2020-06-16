@@ -10,19 +10,28 @@
 
 echo "----- starting submit_sge_job -----" 1>&2
 
-joboption_lrms=sge
+joboption_lrms="sge"
+lrms_options="sge_root sge_cell sge_qmaster_port sge_execd_port sge_bin_path sge_jobopts"
+queue_options="sge_jobopts"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+GRAMI_FILE=$1
 
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# include common submit functions
+. "${pkgdatadir}/submit_common.sh" || exit $?
 
-. ${pkgdatadir}/configure-sge-env.sh || exit $?
-. ${pkgdatadir}/submit_common.sh || exit $?
+# run common init
+#  * parse grami
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
 
 #Log performance
 perflogfilesub="${perflogdir}/submission.perflog"
@@ -31,16 +40,6 @@ if [ ! -z "$perflogdir" ]; then
    #start time stamp
    start_ts=`date +%s.%N`
 fi
-
-
-##############################################################
-# Parse grami file, read arc config
-##############################################################
-
-init $1
-cat $1 1>&2
-
-read_arc_conf
 
 ##############################################################
 # Zero stage of runtime environments
@@ -230,11 +229,14 @@ fi
 
 sourcewithargs_jobscript
 
+##############################################################
+# Init accounting
+##############################################################
+accounting_init
 
 ##############################################################
 # Add environment variables
 ##############################################################
-
 add_user_env
 
 ##############################################################
@@ -304,6 +306,12 @@ if [ -z "$RUNTIME_NODE_SEES_FRONTEND" ] ; then
 fi
 
 ##############################################################
+# Accounting (WN OS Detection)
+##############################################################
+detect_wn_systemsoftware
+
+
+##############################################################
 #  Execution
 ##############################################################
 cd_and_run
@@ -312,13 +320,18 @@ echo "fi" >> $LRMS_JOB_SCRIPT
 ##############################################################
 #  Runtime (post)configuration at computing node
 ##############################################################
-configure_runtime
+RTE_stage2
 
 ##############################################################
 #  Move files back to session directory (job is done on node only)
 #  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
 ##############################################################
 move_files_to_frontend
+
+##############################################################
+# Finish accounting and exit job
+##############################################################
+accounting_end
 
 if [ ! -z "$perflogdir" ]; then
    stop_ts=`date +%s.%N`
@@ -359,7 +372,7 @@ fi
     echo "job *NOT* submitted successfully!"
     exitcode=1
   else
-    echo "joboption_jobid=$job_id" >> $arg_file
+    echo "joboption_jobid=$job_id" >> $GRAMI_FILE
     echo "local job id: $job_id"
     echo "job submitted successfully!"
     exitcode=0

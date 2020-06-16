@@ -22,10 +22,6 @@
 #include <arc/credential/Credential.h>
 #include <arc/credential/VOMSUtil.h>
 
-// Needed to redefine mkdir on mingw
-#ifdef WIN32
-#include <arc/win32.h>
-#endif
 
 namespace ArcJura
 {
@@ -48,8 +44,12 @@ namespace ArcJura
     Arc::VOMSTrustList voms_trust_dn;
     voms_trust_dn.AddRegex(".*");
     std::vector<Arc::VOMSACInfo> voms_attributes;
+
+    // parse VOMS AC suppressing any parsing ERRORs unless DEBUG level is requested
+    Arc::LogLevel current_loglevel = Arc::Logger::getRootLogger().getThreshold();
+    if ( current_loglevel != Arc::DEBUG ) Arc::Logger::getRootLogger().setThreshold(Arc::FATAL);
     parseVOMSAC(holder, ca_dir, "", voms_dir, voms_trust_dn, voms_attributes, true, true);
-    //parseVOMSAC(cert_str, ca_dir, "", voms_dir, voms_trust_dn, voms_attributes, true, true);
+    Arc::Logger::getRootLogger().setThreshold(current_loglevel);
 
     return voms_attributes;
   }
@@ -186,6 +186,47 @@ namespace ArcJura
 
 
 
+    return count;
+  }
+
+  int JobLogFile::write(const std::string& filename_)
+  {
+    int count=0;  //number of saved values
+
+    // save inherited filename for archiving!
+    if ( !filename.empty() && !(*this)["jobreport_option_archiving"].empty() )
+      {
+        std::string base_fn;
+        size_type seppos=filename.rfind('/');
+        if (seppos==std::string::npos)
+          base_fn=filename;
+        else
+          base_fn=filename.substr(seppos+1,std::string::npos);
+        (*this)["archiving_basefilename"] = base_fn;
+      }
+    //filename=_filename;
+
+    std::ofstream logfile(filename_.c_str());
+
+    std::map<std::string,std::string>::iterator it;
+    for(it=begin(); it!=end(); it++)
+      {
+        if ( it->first != "inputfile" && it->first != "outputfile" && it->second != "" )
+          {
+            logfile << it->first << "=" << it->second << std::endl;
+            count++;
+          }
+      }
+    for (int i=0; i<(int)inputfiles.size(); i++) {
+      logfile << "inputfile=" << inputfiles[i] << std::endl;
+      count++;
+    }
+    for (int i=0; i<(int)outputfiles.size(); i++) {
+      logfile << "outputfile=" << outputfiles[i] << std::endl;
+      count++;
+    }
+
+    logfile.close();
     return count;
   }
 
@@ -1079,7 +1120,7 @@ namespace ArcJura
         if (std::find(accepted_types.begin(), accepted_types.end(), type) == accepted_types.end())
           {
             Arc::Logger::rootLogger.msg(Arc::WARNING,
-                                        "Set non standard bechmark type: %s",
+                                        "Set non standard benchmark type: %s",
                                         type);
 
           }
@@ -1332,12 +1373,15 @@ namespace ArcJura
     if ((*this)["jobreport_option_archiving"].empty()) return std::string();
 
     //if set, archive file name corresponds to original job log file
-    std::string base_fn;
-    size_type seppos=filename.rfind('/');
-    if (seppos==std::string::npos)
-      base_fn=filename;
-    else
-      base_fn=filename.substr(seppos+1,std::string::npos);
+    std::string base_fn = (*this)["archiving_basefilename"];
+    if (base_fn.empty())
+      {
+        size_type seppos=filename.rfind('/');
+        if (seppos==std::string::npos)
+          base_fn=filename;
+        else
+          base_fn=filename.substr(seppos+1,std::string::npos);
+      }
 
     if (car) {
       return (*this)["jobreport_option_archiving"]+"/usagerecordCAR."+base_fn;

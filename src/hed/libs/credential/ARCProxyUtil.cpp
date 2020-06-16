@@ -38,10 +38,6 @@
 
 #include <openssl/ui.h>
 
-#ifdef HAVE_CANLXX
-#include <canl-c++/canlxx.h>
-#endif
-
 /*
 #ifdef HAVE_NSS
 #include <arc/credential/NSSUtil.h>
@@ -127,7 +123,7 @@ static void get_nss_certname(std::string& certname, Arc::Logger& logger);
 
   static Logger ARCProxyUtilLogger(Logger::getRootLogger(), "ARCProxyUtil");
 
-  ARCProxyUtil::ARCProxyUtil() : keybits(1024), sha(SHA1) {
+  ARCProxyUtil::ARCProxyUtil() : keybits(2048), sha(SHA1) {
 
   }
 
@@ -165,7 +161,7 @@ static void get_nss_certname(std::string& certname, Arc::Logger& logger);
   bool ARCProxyUtil::Create_Proxy(bool use_nssdb, const std::string& proxy_policy,
           Arc::Time& proxy_start, Arc::Period& proxy_period,
           const std::string& vomsacseq) {
-    bool res;
+    bool res = false;
     if(!use_nssdb) {
 	  Arc::Credential* signer = create_cred_object(ARCProxyUtilLogger, cert_path, key_path);
 	  if(!signer) return false;
@@ -342,7 +338,6 @@ static Arc::Credential* create_cred_object(Arc::Logger& logger, const std::strin
     delete cred; cred = NULL;
     return false;
   }
-#ifndef WIN32
   EVP_PKEY* pkey = cred->GetPrivKey();
   if(!pkey) {
     logger.msg(Arc::ERROR, "Proxy generation failed: No valid private key found.");
@@ -350,7 +345,6 @@ static Arc::Credential* create_cred_object(Arc::Logger& logger, const std::strin
     return false;
   }
   if(pkey) EVP_PKEY_free(pkey);
-#endif
   //std::cout << Arc::IString("Your identity: %s", signer.GetIdentityName()) << std::endl;
   if (now > cred->GetEndTime()) {
   	logger.msg(Arc::ERROR, "Proxy generation failed: Certificate has expired.");
@@ -366,7 +360,7 @@ static Arc::Credential* create_cred_object(Arc::Logger& logger, const std::strin
 }
 
 static void create_tmp_proxy(const std::string& tmp_proxy_path, Arc::Credential& signer) {
-  int keybits = 1024;
+  int keybits = 2048;
   Arc::Time now;
   Arc::Period period = 3600 * 12 + 300;
   std::string req_str;
@@ -723,7 +717,7 @@ static bool contact_voms_servers(const std::list<std::string>& vomslist, const s
         if (!status) {
           //logger.msg(Arc::ERROR, (std::string)status);
           if (response) delete response;
-          std::cout << Arc::IString("The VOMS server with the information:\n\t%s\"\ncan not be reached, please make sure it is available", tokens_to_string(voms_line)) << std::endl;
+          std::cout << Arc::IString("The VOMS server with the information:\n\t%s\ncan not be reached, please make sure it is available", tokens_to_string(voms_line)) << std::endl;
           continue; //There could be another voms replicated server with the same name exists
         }
         if (!response) {
@@ -791,7 +785,7 @@ static bool contact_voms_servers(const std::list<std::string>& vomslist, const s
     }//end of the scanning of multiple vomses lines with the same name
     if(succeeded == false) {
       if(voms_lines.size() > 1)
-        std::cout << Arc::IString("There are %d servers with the same name: %s in your vomses file, but all of them can not be reached, or can not return valid message. But proxy without VOMS AC extension will still be generated.", voms_lines.size(), voms_server) << std::endl;
+        std::cout << Arc::IString("There are %d servers with the same name: %s in your vomses file, but none of them can be reached, or can return valid message. But proxy without VOMS AC extension will still be generated.", voms_lines.size(), voms_server) << std::endl;
     }
   }
 
@@ -1114,11 +1108,7 @@ static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
   // The profiles.ini could exist under firefox, seamonkey and thunderbird
   std::vector<std::string> profiles_homes;
 
-#ifndef WIN32
   std::string home_path = user.Home();
-#else
-  std::string home_path = Glib::get_home_dir();
-#endif
 
   std::string profiles_home;
 
@@ -1131,28 +1121,6 @@ static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
 
   profiles_home = home_path + G_DIR_SEPARATOR_S "Library" G_DIR_SEPARATOR_S "Thunderbird";
   profiles_homes.push_back(profiles_home);
-
-#elif defined(WIN32)
-  //Windows Vista and Win7
-  profiles_home = home_path + G_DIR_SEPARATOR_S "AppData" G_DIR_SEPARATOR_S "Roaming" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "Firefox";
-  profiles_homes.push_back(profiles_home);
-
-  profiles_home = home_path + G_DIR_SEPARATOR_S "AppData" G_DIR_SEPARATOR_S "Roaming" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "SeaMonkey";
-  profiles_homes.push_back(profiles_home);
-
-  profiles_home = home_path + G_DIR_SEPARATOR_S "AppData" G_DIR_SEPARATOR_S "Roaming" G_DIR_SEPARATOR_S "Thunderbird";
-  profiles_homes.push_back(profiles_home);
-
-  //WinXP and Win2000
-  profiles_home = home_path + G_DIR_SEPARATOR_S "Application Data" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "Firefox";
-  profiles_homes.push_back(profiles_home);
-
-  profiles_home = home_path + G_DIR_SEPARATOR_S "Application Data" G_DIR_SEPARATOR_S "Mozilla" G_DIR_SEPARATOR_S "SeaMonkey";
-  profiles_homes.push_back(profiles_home);
-
-  profiles_home = home_path + G_DIR_SEPARATOR_S "Application Data" G_DIR_SEPARATOR_S "Thunderbird";
-  profiles_homes.push_back(profiles_home);
-
 #else //Linux
   profiles_home = home_path + G_DIR_SEPARATOR_S ".mozilla" G_DIR_SEPARATOR_S "firefox";
   profiles_homes.push_back(profiles_home);
@@ -1314,7 +1282,7 @@ static std::string get_nssdb_path(Arc::Logger& logger) {
   for(int i=0; i < nssdb_paths.size(); i++) {
     std::cout<<Arc::IString("Number %d is: %s", i+1, nssdb_paths[i])<<std::endl;
   }
-  std::cout << Arc::IString("Please choose the NSS database you would use (1-%d): ", nssdb_paths.size());
+  std::cout << Arc::IString("Please choose the NSS database you would like to use (1-%d): ", nssdb_paths.size());
   if(nssdb_paths.size() == 1) { nssdb = nssdb_paths[0]; }
   char c;
   while(true && (nssdb_paths.size()>1)) {

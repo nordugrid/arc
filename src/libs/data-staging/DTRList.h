@@ -24,8 +24,12 @@ namespace DataStaging {
       /// Lock to protect list during modification
       Arc::SimpleCondition Lock;
 
-      /// Internal set of sources that are currently being cached
-      std::set<std::string> CachingSources;
+      /// Internal set of sources that are currently being cached.
+      /**
+       * The source is mapped to the highest priority among all the DTRs with
+       * that source.
+       */
+      std::map<std::string, int> CachingSources;
 
       /// Lock to protect caching sources set during modification
       Arc::SimpleCondition CachingLock;
@@ -98,7 +102,13 @@ namespace DataStaging {
        * @param FilteredList This list is filled with filtered DTRs
        */
       bool filter_dtrs_by_job(const std::string& jobid, std::list<DTR_ptr>& FilteredList);
-      
+
+      /// Check for requested changes in priority in filename
+      /**
+       * @param filename File which is checked for priority changes
+       */
+      void check_priority_changes(const std::string& filename);
+
       /// Update the caching set, add a DTR (only if it is CACHEABLE).
       void caching_started(DTR_ptr request);
 

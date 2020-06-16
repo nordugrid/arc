@@ -262,7 +262,6 @@ int main(int argc, char* argv[]) {
     };
     logger.msg(INFO,"Resource description validation passed");
 
-    int depth = 1;
     logger.msg(INFO,"Requesting ComputingService elements of resource description at %s",url.str());
     XMLNodeContainer items;
     bool query_passed = false;
@@ -329,7 +328,7 @@ int main(int argc, char* argv[]) {
       };
     };
     if(cnum1 != cnum2) {
-      logger.msg(ERROR,"Number of ComputingService elements obtained from full document and XPath qury do not match: %d != %d",cnum1,cnum2);
+      logger.msg(ERROR,"Number of ComputingService elements obtained from full document and XPath query do not match: %d != %d",cnum1,cnum2);
       return 1;
     };
     logger.msg(INFO,"Resource description query validation passed");

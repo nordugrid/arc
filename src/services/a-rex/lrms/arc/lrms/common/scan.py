@@ -7,11 +7,14 @@ UID: user ID of user running PythonLRMS
 GID: group ID of user running PythonLRMS
 """
 
+from __future__ import print_function
+from __future__ import absolute_import
+
 import os, arc, time
-from config import Config
-from files import read, write, getmtime
-from proc import execute_local, execute_remote
-from log import error, warn
+from . import config
+from .files import read, write, getmtime
+from .proc import execute_local, execute_remote
+from .log import error, warn
 
 UID      = os.getuid()
 GID      = os.getgid()
@@ -91,7 +94,7 @@ def set_exit_code_from_diag(job):
 
     # In case of non-NFS setup it may take some time till
     # diagnostics file is delivered. Wait for it max 2 minutes.
-    time_to_wait = 10 if Config.shared_filesystem else 120
+    time_to_wait = 10 if config.Config.shared_filesystem else 120
     time_slept = 0
     time_step = 0.5
 
@@ -128,9 +131,8 @@ def add_failure(job):
     file failed.
     """
     with open(job.count_file, 'a+') as cf:
-        print >> cf, \
-            int(cf.read() if cf.read() and (cf.seek(0) or True)
-                else 0) + (cf.seek(0) or cf.truncate() or 1)
+        print(int(cf.read() if cf.read() and (cf.seek(0) or True) else 0) +
+            (cf.seek(0) or cf.truncate() or 1), file=cf)
     fail_count = int('0' + open(job.count_file, 'r').read())
     if fail_count >= 6:
         os.remove(job.count_file)
@@ -183,13 +185,13 @@ def update_diag(job):
     if hasattr(job, 'WallTime'):
         diag_dict['WallTime'] = ['%ds' % (job.WallTime.GetPeriod())]
 
-    if not diag_dict.has_key('exitcode') and hasattr(job, 'exitcode'):
+    if 'exitcode' not in diag_dict and hasattr(job, 'exitcode'):
         diag_dict['exitcode'] = [job.exitcode]
 
     buf = ''
-    for k, vs in diag_dict.iteritems():
+    for k, vs in diag_dict.items():
         buf += '\n'.join('%s=%s' % (k, v) for v in vs) + '\n'
-    if write(job.diag_file, buf, 0644):
+    if write(job.diag_file, buf, 0o644):
         # Set job user as owner
         os.chown(job.diag_file, job.uid, job.gid)
 
@@ -223,8 +225,8 @@ def gm_kick(jobs):
     """
 
     # Execute locally.
-    job_local_files = [j.local_file for j in jobs]
-    execute_local('%s/gm-kick %s' % (arc.common.ArcLocation_GetToolsDir(), ' '.join(job_local_files)))
+    for j in jobs:
+        execute_local('%s/gm-kick -j %s %s' % (arc.common.ArcLocation_GetToolsDir(), j.globalid, j.local_file))
 
 
 def write_comments(job):
@@ -246,7 +248,7 @@ def write_comments(job):
         '------------------------- '
         'End of output '
         '-------------------------'
-        write(job.errors_file, buf, 0644, True)
+        write(job.errors_file, buf, 0o644, True)
 
 
 def get_MDS(dm, lc_time = 'en_US'):

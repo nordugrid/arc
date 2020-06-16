@@ -63,8 +63,6 @@ namespace DataStaging {
             archived_dtrs[dtr->get_id()] = std::pair<std::string, std::string>("TRANSFERRED", "");
           }
           archived_dtrs_lock.unlock();
-          // clean up DTR memory - delete DTR LogDestinations
-          dtr->clean_log_destinations();
           active_dtrs.erase(i++);
         }
         else ++i;
@@ -235,7 +233,6 @@ namespace DataStaging {
         }
         // Erase this DTR from active list
         logger.msg(Arc::VERBOSE, "Replacing DTR %s in state %s with new request", dtrid, i->first->get_status().str());
-        i->first->clean_log_destinations();
         active_dtrs.erase(i);
       }
       active_dtrs_lock.unlock();
@@ -250,7 +247,7 @@ namespace DataStaging {
         bool proxy_result = Arc::FileCreate(proxy_file, credential, 0, 0, S_IRUSR | S_IWUSR);
         if (!proxy_result && errno == ENOENT) {
           Arc::DirCreate(tmp_proxy_dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH, true);
-          proxy_result = Arc::FileCreate(proxy_file, credential);
+          proxy_result = Arc::FileCreate(proxy_file, credential, 0, 0, S_IRUSR | S_IWUSR);
         }
         if (!proxy_result) {
           logger.msg(Arc::ERROR, "Failed to create temp proxy at %s: %s", proxy_file, Arc::StrError(errno));
@@ -271,25 +268,23 @@ namespace DataStaging {
         usercfg.CredentialString(credential);
       }
 
-      // Logger for this DTR. Uses a string stream so log can easily be sent
+      // Logger destinations for this DTR. Uses a string stream so log can easily be sent
       // back to the client. LogStream keeps a reference to the stream so we
       // cannot delete it until deleting LogStream. These pointers are
       // deleted when the DTR is archived.
+      std::list<DTRLogDestination> logs;
       sstream_ptr stream(new std::stringstream());
       Arc::LogDestination * output = new Arc::LogStream(*stream);
       output->setFormat(Arc::MediumFormat);
-      DTRLogger log(new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging"));
-      log->removeDestinations();
-      log->addDestination(*output);
+      logs.push_back(output);
 
       std::string groupid(Arc::UUID());
 
-      DTR_ptr dtr(new DTR(src, dest, usercfg, groupid, uid, log));
+      DTR_ptr dtr(new DTR(src, dest, usercfg, groupid, uid, logs, "DataStaging"));
       if (!(*dtr)) {
         logger.msg(Arc::ERROR, "Invalid DTR");
         resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
         resultelement.NewChild("ErrorDescription") = "Could not create DTR";
-        log->deleteDestinations();
         if (unlink(proxy_file.c_str()) != 0 && errno != ENOENT) {
           logger.msg(Arc::WARNING, "Failed to remove temporary proxy %s: %s", proxy_file, Arc::StrError(errno));
         }
@@ -430,8 +425,7 @@ namespace DataStaging {
         active_dtrs_lock.unlock();
         return Arc::MCC_Status(Arc::STATUS_OK);
       }
-      // Terminal state -  clean up DTR LogDestinations
-      dtr->clean_log_destinations();
+      // Terminal state
       //delete dtr_it->second;
       active_dtrs.erase(dtr_it);
       active_dtrs_lock.unlock();
@@ -559,7 +553,7 @@ namespace DataStaging {
 
 
   DataDeliveryService::DataDeliveryService(Arc::Config *cfg, Arc::PluginArgument* parg)
-    : RegisteredService(cfg,parg),
+    : Service(cfg,parg),
       max_processes(100),
       current_processes(0) {
 
@@ -576,7 +570,7 @@ namespace DataStaging {
       return;
     }
     if (!(*cfg)["AllowedDir"]) {
-      logger.msg(Arc::ERROR, "Invalid configuration - no allowed dirs specified");
+      logger.msg(Arc::ERROR, "Invalid configuration - no transfer dirs specified");
       return;
     }
     for (int n = 0;;++n) {
@@ -711,14 +705,6 @@ namespace DataStaging {
       return Arc::MCC_Status();
     }
     return Arc::MCC_Status(Arc::STATUS_OK);
-  }
-
-  bool DataDeliveryService::RegistrationCollector(Arc::XMLNode &doc) {
-    Arc::NS isis_ns; isis_ns["isis"] = "http://www.nordugrid.org/schemas/isis/2008/08";
-    Arc::XMLNode regentry(isis_ns, "RegEntry");
-    regentry.NewChild("SrcAdv").NewChild("Type") = "org.nordugrid.execution.datadeliveryservice";
-    regentry.New(doc);
-    return true;
   }
 
   Arc::MCC_Status DataDeliveryService::make_soap_fault(Arc::Message& outmsg, const std::string& reason) {

@@ -23,8 +23,6 @@
 #include "arex.h"
 
 
-#define HTTP_ERR_NOT_SUPPORTED (501)
-
 #define MAX_CHUNK_SIZE (10*1024*1024)
 
 namespace ARex {
@@ -163,6 +161,9 @@ static Arc::MCC_Status GetFilesList(Arc::Message& outmsg,ARexGMConfig& config,
 // --------------------------------------------------------------------------------------------------------------
 
 Arc::MCC_Status ARexService::GetJob(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   if(id.empty()) {
     // Not a specific job - generate page with list of jobs
     return GetJobsList(outmsg,config,logger_);
@@ -215,6 +216,9 @@ Arc::MCC_Status ARexService::GetJob(Arc::Message& inmsg,Arc::Message& outmsg,ARe
 }
 
 Arc::MCC_Status ARexService::GetLogs(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   if(id.empty()) {
     // Not a specific job - not expected
     return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
@@ -266,6 +270,10 @@ Arc::MCC_Status ARexService::GetLogs(Arc::Message& inmsg,Arc::Message& outmsg,AR
 
 Arc::MCC_Status ARexService::GetInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
   if(!subpath.empty()) return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+  return GetInfo(inmsg, outmsg);
+}
+
+Arc::MCC_Status ARexService::GetInfo(Arc::Message& inmsg,Arc::Message& outmsg) {
   int h = infodoc_.OpenDocument();
   if(h == -1) return Arc::MCC_Status();
   Arc::MessagePayload* payload = newFileRead(h);
@@ -276,10 +284,16 @@ Arc::MCC_Status ARexService::GetInfo(Arc::Message& inmsg,Arc::Message& outmsg,AR
 }
 
 Arc::MCC_Status ARexService::GetNew(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
 }
 
 Arc::MCC_Status ARexService::GetCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   off_t range_start = 0;
   off_t range_end = (off_t)(-1);
   ExtractRange(inmsg, range_start, range_end);
@@ -323,6 +337,10 @@ Arc::MCC_Status ARexService::HeadLogs(Arc::Message& inmsg,Arc::Message& outmsg,A
 
 Arc::MCC_Status ARexService::HeadInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
   if(!subpath.empty()) return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
+  return HeadInfo(inmsg, outmsg);
+}
+
+Arc::MCC_Status ARexService::HeadInfo(Arc::Message& inmsg,Arc::Message& outmsg) {
   int h = infodoc_.OpenDocument();
   if(h == -1) return Arc::MCC_Status();
   outmsg.Payload(newFileInfo(h));
@@ -331,16 +349,25 @@ Arc::MCC_Status ARexService::HeadInfo(Arc::Message& inmsg,Arc::Message& outmsg,A
 }
 
 Arc::MCC_Status ARexService::HeadNew(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   return Arc::MCC_Status(Arc::UNKNOWN_SERVICE_ERROR);
 }
 
 Arc::MCC_Status ARexService::HeadCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   off_t range_start = 0;
   off_t range_end = (off_t)(-1);
   return cache_get(outmsg, subpath, range_start, range_end, config, true);
 }
 
 Arc::MCC_Status ARexService::HeadJob(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   if(id.empty()) {
     // Not a specific job - page with list of jobs
     outmsg.Payload(newFileInfo());
@@ -501,8 +528,8 @@ Arc::MCC_Status ARexService::cache_get(Arc::Message& outmsg, const std::string& 
   }
 
   Arc::FileCache cache(config.GmConfig().CacheParams().getCacheDirs(),
-                       std::vector<std::string>(),
                        config.GmConfig().CacheParams().getDrainingCacheDirs(),
+                       config.GmConfig().CacheParams().getReadOnlyCacheDirs(),
                        "0", // Jobid is not used
                        config.User().get_uid(),
                        config.User().get_gid());

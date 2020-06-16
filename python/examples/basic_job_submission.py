@@ -12,8 +12,8 @@ logger = arc.Logger(arc.Logger_getRootLogger(), "jobsubmit")
 # This form of the constructor is necessary to initialise the local job list.
 usercfg = arc.UserConfig("", "")
 
-# Simple job description which outputs hostname to stdout
-jobdescstring = "&(executable=/bin/hostname)(stdout=stdout)"
+# Two simple job descriptions which output hostname to stdout
+jobdescstring = "+(&(executable=/bin/hostname)(stdout=stdout))(&(executable=/bin/hostname)(stdout=stdout))"
 
 # Parse job description
 jobdescs = arc.JobDescriptionList()
@@ -25,9 +25,7 @@ if not arc.JobDescription_Parse(jobdescstring, jobdescs):
 # to parse job description from file.
 
 # Use top-level NorduGrid information index to find resources
-index = arc.Endpoint("ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid",
-                     arc.Endpoint.REGISTRY,
-                     "org.nordugrid.ldapegiis")
+index = arc.Endpoint("nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.archery")
 services = arc.EndpointList(1, index)
 
 # Do the submission
@@ -38,9 +36,9 @@ if submitter.BrokeredSubmit(services, jobdescs, jobs) != arc.SubmissionStatus.NO
     sys.exit(1)
 
 # Write information on submitted job to local job list (~/.arc/jobs.xml)
-jobList = arc.JobInformationStorageXML(usercfg.JobListFile())
+jobList = arc.JobInformationStorageSQLite(usercfg.JobListFile())
 if not jobList.Write(jobs):
-    logger.msg(arc.WARNING, "Failed to write to local job list %s", usercfg.JobListFile())
+    logger.msg(arc.WARNING, "Failed to write to local job list %s" % usercfg.JobListFile())
 
 # Job submitted ok
-sys.stdout.write("Job submitted with job id %s\n" % str(jobs.front().JobID))
+sys.stdout.write("Job(s) submitted with job id(s):\n\t%s\n" % '\n\t'.join([str(j.JobID) for j in jobs]))

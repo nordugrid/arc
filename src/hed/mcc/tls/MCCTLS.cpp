@@ -3,12 +3,8 @@
 #endif
 
 #include <sys/types.h>
-#ifndef WIN32
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#else
-#define NOGDI
-#endif
 
 #include <iostream>
 #include <fstream>
@@ -229,7 +225,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
          processing_failed_ = true; 
          logger.msg(ERROR,"VOMS attribute validation failed");
        };
-       logger.msg(ERROR,"VOMS attribute is ignored due to processing/validation error");
+       logger.msg(WARNING,"VOMS attribute is ignored due to processing/validation error");
        v = voms_attributes_.erase(v);
      } else {
        ++v;
@@ -436,24 +432,25 @@ MCC_Status MCC_TLS_Service::process(Message& inmsg,Message& outmsg) {
 
    PayloadTLSStream* tstream = dynamic_cast<PayloadTLSStream*>(stream);
    // Filling security attributes
-   if(tstream && (config_.IfClientAuthn())) {
+   if(tstream) {
       TLSSecAttr* sattr = new TLSSecAttr(*tstream, config_, logger);
-      //Getting the subject name of peer(client) certificate
-      logger.msg(VERBOSE, "Peer name: %s", sattr->Subject());
-      nextinmsg.Attributes()->set("TLS:PEERDN",sattr->Subject());
-      logger.msg(VERBOSE, "Identity name: %s", sattr->Identity());
-      nextinmsg.Attributes()->set("TLS:IDENTITYDN",sattr->Identity());
-      logger.msg(VERBOSE, "CA name: %s", sattr->CA());
-      nextinmsg.Attributes()->set("TLS:CADN",sattr->CA());
-      if(!((sattr->target_).empty())) {
-        nextinmsg.Attributes()->set("TLS:LOCALDN",sattr->target_);
+      if(sattr && *sattr) {
+         //Getting the subject name of peer(client) certificate
+         logger.msg(VERBOSE, "Peer name: %s", sattr->Subject());
+         nextinmsg.Attributes()->set("TLS:PEERDN",sattr->Subject());
+         logger.msg(VERBOSE, "Identity name: %s", sattr->Identity());
+         nextinmsg.Attributes()->set("TLS:IDENTITYDN",sattr->Identity());
+         logger.msg(VERBOSE, "CA name: %s", sattr->CA());
+         nextinmsg.Attributes()->set("TLS:CADN",sattr->CA());
+         if(!((sattr->target_).empty())) {
+            nextinmsg.Attributes()->set("TLS:LOCALDN",sattr->target_);
+         }
+         nextinmsg.Auth()->set("TLS",sattr);
+      } else {
+         logger.msg(ERROR, "Failed to process security attributes in TLS MCC for incoming message");
+         delete sattr;
+         return MCC_Status();
       }
-      if(!*sattr) {
-        logger.msg(ERROR, "Failed to process security attributes in TLS MCC for incoming message");
-        delete sattr;
-        return MCC_Status();
-      }
-      nextinmsg.Auth()->set("TLS",sattr);
    }
 
    // Checking authentication and authorization;
@@ -556,7 +553,10 @@ MCC_Status MCC_TLS_Client::process(Message& inmsg,Message& outmsg) {
         //    return MCC_Status();
         };
    };
-   outmsg.Payload(new PayloadTLSMCC(*stream_));
+   PayloadTLSMCC* tlsstream = new PayloadTLSMCC(*stream_);
+   outmsg.Payload(tlsstream);
+   if(tlsstream && !*tlsstream)
+      logger.msg(ERROR, "Failed to establish connection: %s", tlsstream->Failure().operator std::string());
    //outmsg.Attributes(inmsg.Attributes());
    //outmsg.Context(inmsg.Context());
    if(!ProcessSecHandlers(outmsg,"incoming")) {
@@ -574,6 +574,8 @@ void MCC_TLS_Client::Next(MCCInterface* next,const std::string& label) {
       if(stream_) delete stream_;
       stream_=NULL;
       stream_=new PayloadTLSMCC(next,config_,logger);
+      if(stream_ && !*stream_)
+         logger.msg(ERROR, "Failed to establish connection: %s", stream_->Failure().operator std::string());
    };
    MCC::Next(next,label);
 }

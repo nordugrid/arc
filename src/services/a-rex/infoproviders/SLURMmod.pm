@@ -43,9 +43,9 @@ sub get_lrms_info($) {
     $options = shift;
 
     $path = ($options->{slurm_bin_path} or "/usr/bin");
-	
-#	slurm_init_check();
-	
+
+    slurm_init_check($path);
+
     slurm_get_data();
     
     cluster_info();
@@ -72,16 +72,19 @@ sub get_lrms_info($) {
 # Private subs
 ##########################################
 
-#sub slurm_init_check() {
-#
-#$log->info("Verifying slurm commands...");
-#
-#my @slurm_commands = ('scontrol','squeue','sinfo');
-#
-#foreach my $slurmcmd (@slurm_commands) {
-#	unless (-e "$path/$slurmcmd") {$log->error("$slurmcmd command not found. Exiting...")};
-#	}	
-#}
+# checks existence of slurm commands
+sub slurm_init_check($) {
+
+   my $path = shift;
+
+   $log->info("Verifying slurm commands...");
+
+   my @slurm_commands = ('scontrol','squeue','sinfo');
+
+   foreach my $slurmcmd (@slurm_commands) {
+        $log->error("$path/$slurmcmd command not found. Check slurm_bin_path in configuration. Exiting...") unless (-f "$path/$slurmcmd") ;
+   }
+}
 
 sub nodes_info() {
     my $lrms_nodes = {};
@@ -265,6 +268,7 @@ sub queue_info ($) {
     ($lrms_queue->{queued}, $lrms_queue->{running}) = slurm_get_jobs($queue);
     $lrms_queue->{totalcpus} = $scont_part{$queue}{TotalCPUs};
     $lrms_queue->{freeslots} = $scont_part{$queue}{IdleCPUs};
+    $lrms_queue->{nodes} = $scont_part{$queue}{NodeNames};
     
 }
 
@@ -409,7 +413,7 @@ sub slurm_parse_number($){
 sub slurm_read_partitions(){
     # get SLURM partitions, store dictionary in scont_part
     my %scont_part;
-    open (SCPIPE,"$path/sinfo -a -h -o \"PartitionName=%P TotalCPUs=%C TotalNodes=%D MaxTime=%l DefTime=%L\"|");
+    open (SCPIPE,"$path/sinfo -a -h -o \"PartitionName=%P TotalCPUs=%C TotalNodes=%D MaxTime=%l DefTime=%L NodeNames=%N\"|");
     while(<SCPIPE>){
 	my %part;
 	my $string = $_;
@@ -437,6 +441,8 @@ sub slurm_read_partitions(){
 	$part{TotalCPUs} = slurm_parse_number($part{TotalCPUs});
 
 	$part{TotalNodes} = slurm_parse_number($part{TotalNodes});
+
+        $part{NodeNames} = [ split(",", slurm_expand_nodes( get_variable("NodeNames",$string ) ) ) ];
 
 	$scont_part{$PartitionName} = \%part;
     }

@@ -150,7 +150,7 @@ ArcRequestTuple::~ArcRequestTuple() {
   }
 }
 
-ArcEvaluationCtx::ArcEvaluationCtx(Request* request) : EvaluationCtx(req), req(NULL), reqitem(NULL), evaltuple(NULL) {
+ArcEvaluationCtx::ArcEvaluationCtx(Request* request) : EvaluationCtx(request), req(NULL), reqitem(NULL), evaltuple(NULL) {
   req = request;
 }
 

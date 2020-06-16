@@ -1,0 +1,267 @@
+Advanced Resource Connector (ARC)
+=================================
+
+Release Notes for NorduGrid ARC 12.05 update 2               April 18, 2013
+----------------------------------------------
+
+This is a bug fix release, addressing several critical bugs. The update
+includes improved JURA reporting to APEL and significantly improved Nagios
+probes. Authorship and license information is cleaned-up and synchronised
+across different components.
+
+EMI-ES implementation is disabled in this release, and those wishing to
+use EMI-ES are advised to upgrade to ARC 13.02.
+
+GLUE2 implementation is experimental in this release. Those willing to
+use it in production MUST upgrade to ARC 13.02.
+
+
+NorduGrid ARC 12.05 has received an update to:
+  * core, clients, CE, Infosys and gridftp - from version 2.0.1 to 2.0.2
+  * documents - from 1.2.0 to 1.2.1
+  * Nagios plugins - from 1.3.11 to 1.6.0
+CAnL C++ and metapackages are unchanged; old client tools (ng*) and GUI are
+re-built with new libraries
+
+
+ARC components in 12.05 update 2:
+
+  * ARC Core 2.0.2 (includes nordugrid-arc-doc v1.2.1)
+  * ARC Clients 2.0.2 (includes nordugrid-arc-compat v1.0.1)
+  * ARC CE 2.0.2 (includes nordugrid-arc-nagios-plugins v1.6.0)
+  * ARC Infosys 2.0.2
+  * ARC gridftp server 2.0.2
+  * canl++ 0.2.0
+
+
+ARC components: detailed notes
+-------------------------------
+
+
+== ARC Core
+
+The DataDelivery Service can now run without a host certificate - see
+http://wiki.nordugrid.org/index.php/Data_Staging/Multi-host for more details.
+
+Numerous small enhancements and fixes in the Core libraries, see the list of
+fixed bugs below. 
+
+
+== ARC Clients
+
+Few bug fixes, see the list of fixed bugs below.
+
+
+== ARC Compute Element
+
+The configuration option enable_emies_interface is no longer available in this release.
+The EMI-ES implementation in this release is incomplete and for this update it was 
+decided to disable it completely. If this option is present in arc.conf it must be 
+removed or A-REX will fail to start. In order to use EMI-ES, please upgrade to ARC 13.02.
+
+Numerous bugs are fixed in A-REX and batch back-ends, including several critical ones,
+see the list of fixed bugs below.
+
+JURA reporting to APEL has significantly improved.
+
+
+== ARC Information System
+
+Numerous bug fixes (see the list below) and improvements in error messages.
+
+
+== ARC gridftp server
+
+Code clean-up and improvements; correct implementation of voms_trust_chain.
+
+
+== Common authentication library CaNL++
+
+This component has not changed since release 12.05u1.
+
+
+== Nagios plugins
+
+Nagios plugins have been significantly improved. Please consult release notes for ARC 13.02
+for details about changes between v1.3.11 and v1.5. Changes between v1.5 and v1.6 are:
+
+  * Several bugs and GGUS tickets are resolved, see the list below.
+  * Files used for input-staging tests are now automantically uploaded if
+    they are missing when the job is submitted.
+  * An option was added to import Python modules on probe startup.  This
+    allows the registration of custom job tests and substitution methods.
+  * Various additions and updates to the manual:  How to run Nagios probes
+    from the command-line, the new substitution mechanism, the splitting of
+    the entry points, the previously undocumented check_arcstatus.
+  * Intercept some exceptions caused by configuration errors, so that they
+    are not flagged as bugs.
+
+
+Fixed bugs
+----------
+
+Since ARC 12.05u1, the following bugs were  fixed:
+  * 1983 Nagios, Munin plugins for HED services
+  * 2366 seg fault when listing a large SRM directory with DEBUG log level
+  * 2506 nordugridmap fails with libwww-perl 6.02
+  * 2574 transfers fail badly when storage endpoints have temporary glitches
+  * 2581 GGUS-Ticket-ID: #73547  ARC ARIS Glue publishing not passing Nagios BDII test - Missing Service record
+  * 2597 Missing dependencies for arc-ur-logger
+  * 2606 job cannot be canceled if missing in pbs
+  * 2674 SGE can have scratch-dir under other variables than $TMPDIR
+  * 2706 glue1x and GLUE2 configuration is incomplete in arc_ce_sysadm_guide
+  * 2714 MainMemorySize in ARC1 and later is always 999999 for SGE
+  * 2716 SGE: job in error state mapped to INLRMS:O
+  * 2767 Misleading "CEInfo: WARNING: Failed to create ldif generator script for infosys" in infoprovider log even if LDAP is not running/not configured
+  * 2780 SGEmod.pm, uninitialized value: maxuserrun
+  * 2798 Interface prefixes to -c option (ARC0: etc) are no longer supported
+  * 2813 Too much copy-and-paste in submit_common.sh
+  * 2836 LSF backend as well as cluster.pl and qju.pl do no cope well with "-" values
+  * 2896 Build fails if doxygen is not installed
+  * 2929 GLUE2PolicyRule and nordugrid-cluster-acl differ when defining authorizedvo
+  * 2939 multi-core jobs cannot use local scratch
+  * 2940 arc gridftp clients cannot use IPv6
+  * 2941 failed jobs with user-uploaded input files cannot be resumed
+  * 2942 Meta package(s) should depend on fetchcrll
+  * 2943 Discrepancy between jsdl-arc.xsd and actual parsing
+  * 2945 infoproviders support for ADL is incomplete
+  * 2949 Introduce new arctest for primenumbers generation
+  * 2952 Requesting PythonBroker causes segfault
+  * 2953 infosys_compat is not described in the [infosys] section of arc_ce_sysadmin manual
+  * 2969 Undocumented configuration parameters: Information providers
+  * 2970 Undocumented configuration parameters: A-REX
+  * 2974 Cannot submit to gridftp with RTE in job description
+  * 2976 voms_trust_chains parameter does not work
+  * 2977 arcmigrate does not seem to be working as described in manual
+  * 2978 ./configure --disable-swig doesn't disable swig
+  * 2979 fork_job_limit has no effect on number of running jobs
+  * 2980 A-REX seg faults during DTR delegation to data delivery service
+  * 2981 slow job submission due to delegation handling
+  * 2983 Mistakes in glue-generator.pl
+  * 2984 Assertion `map->l_init_called' failed!
+  * 2985 Proxy supplied by A-REX (non-gridftp case) fails LCAS/LCMAPS plugins
+  * 2986 Jobs stuck with FINISHING status using Condor as LRMS
+  * 2988 Back-end /bin/sh scripts should not contain bashism
+  * 2989 shared_filesystem = "no" is not working while using Condor.
+  * 2991 arcom.datapoint_from_url() causes python script to hang on exit
+  * 2993 [regression] arcproxy failed to get credentials from MyProxy when user has no certificates
+  * 2994 Data staging fails when submit a job to a EMI-ES endpoint
+  * 2997 Can't download from LFC (old data staging)
+  * 3003 JURA does not report VO membership
+  * 3009 Publish GLUE2 MaxSlotsPerJob in SGE
+  * 3011 Publish GLUE2 MaxSlotsPerJob in Condor
+  * 3012 Publish GLUE2 MaxSlotsPerJob in DGBridge
+  * 3014 set_count: command not found
+  * 3017 Failed to download http input file after cache permission check
+  * 3020 ARCCE Job Submission probe crashes on SL6
+  * 3023 Unnamed arguments in Python code cannot be properly localized
+  * 3025 Cannot read from xrootd
+  * 3026 nordugrid-arc-compute-element : Depends: nordugrid-arc-arex but it is not going to be installed
+  * 3028 gm-jobs documentation and localization are missing
+  * Job submission to LRMS failed with - syntax error in submit-pbs-job
+  * 3032 Compiling arc 2.0.1 fails on Fedora 19
+  * 3036 Failed to find valid session directory
+  * 3037 Undeclared namespace prefixes in A-REX XML
+  * 3038 gridftp segfaults when submitting jobs with external authenticated files.
+  * 3039 arc-config-check tests on production configurations before release
+  * 3046 make uninstall does not remove .apd files
+  * 3050 configure.ac uses obsolete macros
+  * 3051 Can't use an undefined value as an ARRAY reference at /opt/arc/share/arc/ARC1ClusterInfo.pm line 570.
+  * 3054 Broker does not take min CPU time into account
+  * 3063 Exiting subroutine via next at /usr/share/arc/ARC0ClusterInfo.pm line 398.
+  * 3064 job is resumed in wrong state after plugin at PREPARING failed
+  * 3066 ARC has no CopyRight (or I couldn't find it)
+  * 3073 arcsub crashes when submitting a job using adl (witn 3.0.0rc3)
+  * 3077 Problems with gridftpd on ubuntu
+  * 3088 SLURM partitions running information not correct
+  * 3091 Jobs in PREPARING give warning about no local ID in infoprovider.log
+  * 3096 Jobs submitted via EMI-ES missing delegated certificate
+  * 3097 Failed to submit job to CREAM CE due to CA validation issue
+  * 3103 arcproxy -r does not work if the certificate and key files are not present
+  * 3104 Failed (terminal:client-stageout-possible,processing-failure)
+  * 3107 LoadLeveler information system problem with jobs running longer than 1 day
+  * 3108 Detect compound executable and print proper error message
+  * 3110 GLUE2 schema check reports "Bug in Nagios probe
+  * 3113 Check syntax of information system scripts as part of make check
+  * 3115 update to SLC6.4 breaks infoproviders if opsys="adotf" is set
+  * 3116 Missing nagios doc subpackage on .deb platforms
+  * 3117 Output files not staged correctly by check_arcce
+  * 3120 Job cancelled in PREPARING still get submitted to LRMS
+  * 3121 Change argument parsing of check_arcce and check_arcinfosys to be compatible with NCG
+  * 3122 nordugrid-arc-compat fails to compile on rawhide (fedora 19)
+  * 3128 ARC CE probe should automatically select good SEs
+  * 3129 arccp -T requires -L
+  * 3130 Missing proxy in control dir causes a-rex to get stuck and increase memory consumption until killed
+  * 3132 Client configuration example for [registry/...] block is incomplete
+  * 3134 check_arcce_submit should set memory limit
+  * 3138 GGUS-Ticket-ID: #91763  Some records contains empty LocalJobId element.
+  * 3141 Jobs submitted from 2.0.1 arcsub to 3.0 BES interface fail
+  * 3148 Inconsistent treatment of verbosity in configuration by arcls
+
+GGUS tickets solved:
+
+  * 91900 nordugrid-arc-nagios-plugins should depend on package glue-schema 
+  * 91904 Bug in check_arcinfosys when using -t argument
+  * 92869 ARC probes should not use positional arguments 
+  * 92870 Provide arcnagios.ini configuration 
+
+
+Known issues
+------------
+
+  * ARC GUI (arcjobtool) is not available yet, pending implementation of client
+    library changes. 
+  * Standalone client tar-balls for Linux are not yet available.
+  * As a result of bug fix 2851, A-REX can take up to one minute to stop.
+  * Bug 2905 is solved using workaround. Source of the problem is not yet identified.
+
+
+Availability
+------------
+
+== Source
+
+ARC release 12.05 update 2 consists of the following source packages:
+  * NorduGrid ARC, version 2.0.2 (main components)
+  * NorduGrid ARC "compat", version 1.0.1 (old client)
+  * NorduGrid ARC Documents version 1.2.1 
+  * metapackages for client tools, computing element and information index,
+    version 1.0.2
+  * Nagios probes for ARC CE, version 1.6.0
+
+Source code for main components is available from here:
+  http://svn.nordugrid.org/repos/nordugrid/arc1/tags/2.0.2
+
+Source for the compatibility package (old client) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/arc0/tags/compat_1.0.1
+
+Documentation source (mostly LaTeX) is available from:
+  http://svn.nordugrid.org/repos/nordugrid/doc/tags/1.2.1
+
+Source for metapackages is available from:
+  http://svn.nordugrid.org/repos/packaging/{fedora,debian}/nordugrid-arc-meta/tags/1.0.2
+
+Source for Nagios probes is available from:
+  http://svn.nordugrid.org/repos/nordugrid/nagios/tags/release-1.6.0
+
+Source for the common authentication library caNl++ is available from:
+  http://svn.nordugrid.org/repos/workarea/caNl++/tags/0.2.0
+
+
+== Repositories
+
+See detailed description at:
+  http://download.nordugrid.org/repos.html
+
+These repositories provide binary packages for:
+
+  * Debian: 4.0, 5.0 and 6.0 (i386 and amd64)
+  * Fedora: from 3 to 17 (i386 and x86_64)
+  * RedHat: EL4, EL5 and EL6 (i386 and x86_64)
+  * Ubuntu: 8.04, 8.10, 9.04, 9.10, 10.04, 10.10, 11.04, 11.10, 12.04 and 12.10 (i386 and amd64)
+
+Scientific Linux and CentOS are implicitly supported through corresponding
+RedHat repositories.
+
+Microsoft Windows and Mac OS X binaries are available from same repositories for
+clients and some services.

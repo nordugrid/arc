@@ -185,11 +185,32 @@ namespace ARex {
   //      expired]
   //   Timestamp (dateTime)
   //   Description 0-1
-  Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,const std::string& gm_state,Arc::XMLNode glue_xml,bool failed,bool pending,const std::string& failedstate,const std::string& failedcause) {
+  Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,const std::string& gm_state,bool failed,bool pending,const std::string& failedstate,const std::string& failedcause) {
     std::string primary_state;
     std::list<std::string> state_attributes;
     std::string glue_state("");
     convertActivityStatusES(gm_state,primary_state,state_attributes,failed,pending,failedstate,failedcause);
+    Arc::XMLNode state = pnode.NewChild("estypes:ActivityStatus");
+    state.NewChild("estypes:Status") = primary_state;
+    for(std::list<std::string>::iterator st = state_attributes.begin();
+                  st!=state_attributes.end();++st) {
+      state.NewChild("estypes:Attribute") = *st;
+    };
+    return state;
+  }
+
+  Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,Arc::XMLNode glue_xml) {
+    std::string primary_state;
+    std::list<std::string> state_attributes;
+    std::string glue_state("");
+    for(Arc::XMLNode snode = glue_xml["State"]; (bool)snode ; ++snode) {
+      std::string state_str = snode;
+      if(state_str.compare(0, 6, "emies:") == 0) {
+        primary_state = state_str.substr(6);
+      } else if(state_str.compare(0, 10, "emiesattr:") == 0) {
+        state_attributes.push_back(state_str.substr(10));
+      }
+    }
     Arc::XMLNode state = pnode.NewChild("estypes:ActivityStatus");
     state.NewChild("estypes:Status") = primary_state;
     for(std::list<std::string>::iterator st = state_attributes.begin();
@@ -279,15 +300,15 @@ namespace ARex {
 
 
 
-  JobIDGeneratorLOCAL::JobIDGeneratorLOCAL(const std::string& endpoint):endpoint_(endpoint) {
+  JobIDGeneratorINTERNAL::JobIDGeneratorINTERNAL(const std::string& endpoint):endpoint_(endpoint) {
   }
   
-  void JobIDGeneratorLOCAL::SetLocalID(const std::string& id) {
+  void JobIDGeneratorINTERNAL::SetLocalID(const std::string& id) {
     id_ = id;
   }
 
-  Arc::XMLNode JobIDGeneratorLOCAL::GetGlobalID(Arc::XMLNode& pnode) {
-    //To-do make something more sensible for LOCAL plugin case
+  Arc::XMLNode JobIDGeneratorINTERNAL::GetGlobalID(Arc::XMLNode& pnode) {
+    //To-do make something more sensible for INTERNAL plugin case
     Arc::XMLNode node;
     if(!pnode) {
       Arc::NS ns;
@@ -301,16 +322,16 @@ namespace ARex {
     return node;
   }
   
-  std::string JobIDGeneratorLOCAL::GetGlobalID(void) {
+  std::string JobIDGeneratorINTERNAL::GetGlobalID(void) {
     return id_;
   }
   
-  std::string JobIDGeneratorLOCAL::GetManager(void) {
+  std::string JobIDGeneratorINTERNAL::GetManager(void) {
     return endpoint_;
   }
   
-  std::string JobIDGeneratorLOCAL::GetInterface(void) {
-    return "org.nordugrid.local";
+  std::string JobIDGeneratorINTERNAL::GetInterface(void) {
+    return "org.nordugrid.internal";
   }
 
 }

@@ -18,16 +18,26 @@ debug "options = $@"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+if [ -z "$1" ] ; then echo "Controldir argument missing" 1>&2 ; exit 1 ; fi
 
+joboption_lrms="boinc"
+lrms_options="boinc_app_id boinc_db_host boinc_db_port boinc_db_user boinc_db_pass boinc_db_name"
+
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
+# include common scan functions
+. "${pkgdatadir}/scan_common.sh" || exit $?
 
-. "${pkgdatadir}/configure-boinc-env.sh" || exit $?
+# run common init 
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
 
-if [ -z "$1" ] ; then echo "Argument missing" 1>&2 ; exit 1 ; fi
+GMKICK=${pkglibexecdir}/gm-kick
 
 # Prints the uid of the owner of the file given as argument
 # Perl is used because it's more portable than using the stat command
@@ -142,6 +152,7 @@ for control_dir in "$@" ; do
         debug "got exitcode=$exitcode"
         save_commentfile "$uid" "${joboption_directory}.comment" "${control_dir}/job.${job}.errors"
         echo "$exitcode $comment" > "${control_dir}/job.${job}.lrms_done"
+        "${GMKICK}" -j "${job}" "${control_dir}/job.${job}.local"
     done
 
 done

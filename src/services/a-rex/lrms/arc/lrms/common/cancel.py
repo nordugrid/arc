@@ -2,10 +2,12 @@
 Module for job cancelling.
 """
 
-from config import Config
-from log import debug, error
-from ssh import ssh_connect
-from proc import *
+from __future__ import absolute_import
+
+from . import config
+from .log import debug, error
+from .ssh import ssh_connect
+from .proc import *
 
 def cancel(cmd, jobid):
      """
@@ -17,13 +19,13 @@ def cancel(cmd, jobid):
      :rtype: :py:obj:`int`
      """
 
-     if Config.remote_host:
-          ssh_connect(Config.remote_host, Config.remote_user, Config.private_key)
+     if config.Config.remote_host:
+          ssh_connect(config.Config.remote_host, config.Config.remote_user, config.Config.private_key)
 
      from os.path import basename
      executable = basename(cmd[0])
      debug('executing %s with job id %s' % (executable, jobid), 'common.cancel')
-     execute = execute_local if not Config.remote_host else execute_remote
+     execute = execute_local if not config.Config.remote_host else execute_remote
      handle = execute(' '.join(cmd))
      rc = handle.returncode
 

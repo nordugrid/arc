@@ -1,2 +1,3 @@
 debian/tmp/usr/lib/arc/libdatadeliveryservice.so
 debian/tmp/usr/lib/arc/libdatadeliveryservice.apd
+debian/tmp/usr/share/arc/arc-datadelivery-service-start

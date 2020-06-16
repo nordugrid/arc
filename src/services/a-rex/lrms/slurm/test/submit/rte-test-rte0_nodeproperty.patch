@@ -1,0 +1,50 @@
+--- a/basic-script.sh	2019-07-22 17:45:50.555992159 +0200
++++ b/basic-script.sh	2019-07-22 17:45:50.557992114 +0200
+@@ -8,7 +8,7 @@
+ #SBATCH -J 'gridjob'
+ #SBATCH --get-user-env=10L
+ #SBATCH -n 1
+-#SBATCH 
++#SBATCH  TEST TESTING
+ 
+ # Overide umask of execution node (sometime values are really strange)
+ umask 077
+@@ -135,8 +138,22 @@
+ RESULT=0
+ 
+ if [ "$RESULT" = '0' ] ; then
++# RunTimeEnvironment function for NODEPROPERTY:
++RTE_function_0 () {
++export joboption_nodeproperty_0="TEST"
++export joboption_nodeproperty_1="TESTING"
++}
+ # Running RTE scripts (stage 1)
+ runtimeenvironments=
++runtimeenvironments="${runtimeenvironments}NODEPROPERTY;"
++# Calling NODEPROPERTY function: 
++RTE_function_0 1 
++if [ $? -ne 0 ]; then
++    echo "Runtime NODEPROPERTY stage 1 execution failed." 1>&2
++    echo "Runtime NODEPROPERTY stage 1 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    exit 1
++fi
++
+ echo "runtimeenvironments=$runtimeenvironments" >> "$RUNTIME_JOB_DIAG"
+ if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
+   if [ -r "$SLURM_NODEFILE" ] ; then
+@@ -205,6 +222,15 @@
+ fi
+ # Running RTE scripts (stage 2)
+ runtimeenvironments=
++runtimeenvironments="${runtimeenvironments}NODEPROPERTY;"
++# Calling NODEPROPERTY function: 
++RTE_function_0 2 
++if [ $? -ne 0 ]; then
++    echo "Runtime NODEPROPERTY stage 2 execution failed." 1>&2
++    echo "Runtime NODEPROPERTY stage 2 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    exit 1
++fi
++
+ # Measuring used scratch space
+ echo "usedscratch=$( du -sb "$RUNTIME_JOB_DIR" | sed "s/\s.*$//" )" >> "$RUNTIME_JOB_DIAG"
+ # Cleaning up extra files in the local scratch

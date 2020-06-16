@@ -11,17 +11,18 @@ nobase_python_PYTHON = __init__.py \
                        core/hashes.py \
                        core/indexclient.py \
                        core/ssl.py \
-                       cacheserver/__init__.py \
-                       cacheserver/cache.py \
-                       cacheserver/cacheresource.py \
-                       cacheserver/cachesetup.py \
-                       cacheserver/pscan.py \
+                       scanner/__init__.py \
+                       scanner/cache.py \
+                       scanner/cacheresource.py \
+                       scanner/cachesetup.py \
+                       scanner/pscan.py \
                        indexserver/__init__.py \
                        indexserver/index.py \
                        indexserver/indexresource.py \
                        indexserver/indexsetup.py
 
-SUBDIRS = core cacheserver indexserver
-DIST_SUBDIRS = core cacheserver indexserver
+SUBDIRS = core scanner indexserver
 
 endif
+
+DIST_SUBDIRS = core scanner indexserver

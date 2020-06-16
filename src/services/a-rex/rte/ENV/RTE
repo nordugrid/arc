@@ -1,25 +1,34 @@
+# description: copy RunTimeEnvironment scripts to the job session directory
+
 if [ "$1" = "0" ] ; then
-    runtimeenv_sys_location="/usr/share/arc/rte"
     runtimeenv_idx=0
     runtimeenv_var="joboption_runtime_${runtimeenv_idx}"
     eval "runtimeenv_name=\"\${${runtimeenv_var}}\""
     while [ -n "${runtimeenv_name}" ]; do
-        # find RTE location
-        if [ -f "${CONFIG_runtimedir}/${runtimeenv_name}" ]; then
-            arcce_runtimeenv_path="${CONFIG_runtimedir}/${runtimeenv_name}"
+        # define safe-defaults
+        arcce_runtimeenv_path=/dev/null
+        arcce_runtimeenv_params_path=/dev/null
+        # find RTE location (enabled vs default)
+        if [ -e "${joboption_controldir}/rte/enabled/${runtimeenv_name}" ]; then
+            arcce_runtimeenv_path="${joboption_controldir}/rte/enabled/${runtimeenv_name}"
         else
-            arcce_runtimeenv_path="${runtimeenv_sys_location}/${runtimeenv_name}"
+            arcce_runtimeenv_path="${joboption_controldir}/rte/default/${runtimeenv_name}"
+        fi
+        # check RTE have parameters file
+        if [ -e "${joboption_controldir}/rte/params/${runtimeenv_name}" ]; then
+            arcce_runtimeenv_params_path="${joboption_controldir}/rte/params/${runtimeenv_name}"
         fi
         # copy RTE script to session directory
         sessiondir_runtimeenv_path="${joboption_directory}/rte/${runtimeenv_name}"
         mkdir -p "${sessiondir_runtimeenv_path%/*}"
-        cp -v "$arcce_runtimeenv_path" "$sessiondir_runtimeenv_path"
+        cat "$arcce_runtimeenv_params_path" > "$sessiondir_runtimeenv_path"
+        cat "$arcce_runtimeenv_path" >> "$sessiondir_runtimeenv_path"
         # next RTE
         runtimeenv_idx=$((runtimeenv_idx+1))
         runtimeenv_var="joboption_runtime_${runtimeenv_idx}"
         eval "runtimeenv_name=\"\${${runtimeenv_var}}\""
     done
-    unset runtimeenv_idx runtimeenv_var sessiondir_runtimeenv_path arcce_runtimeenv_path runtimeenv_sys_location
+    unset runtimeenv_idx runtimeenv_var sessiondir_runtimeenv_path arcce_runtimeenv_path arcce_runtimeenv_params_path
 fi
 true
 

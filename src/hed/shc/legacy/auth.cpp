@@ -20,11 +20,20 @@ void voms_fqan_t::str(std::string& str) const {
   if(!capability.empty()) str += "/Capability="+capability;
 }
 
-AuthResult AuthUser::match_all(const char* /* line */) {
-  default_voms_=voms_t();
-  default_vo_=NULL;
-  default_group_=NULL;
-  return AAA_POSITIVE_MATCH;
+AuthResult AuthUser::match_all(const char* line) {
+  std::string token = Arc::trim(line);
+  if(token == "yes") {
+    default_voms_=voms_t();
+    default_otokens_=otokens_t();
+    default_vo_=NULL;
+    default_group_=NULL;
+    return AAA_POSITIVE_MATCH;
+  }
+  if(token == "no") {
+    return AAA_NO_MATCH;
+  }
+  logger.msg(Arc::ERROR,"Unexpected argument for 'all' rule - %s",token);
+  return AAA_FAILURE;
 }
 
 AuthResult AuthUser::match_group(const char* line) {
@@ -32,11 +41,12 @@ AuthResult AuthUser::match_group(const char* line) {
   for(;;) {
     if(n == std::string::npos) break;
     std::string s("");
-    n = Arc::get_token(s,line,n," ","\"","\"");
+    n = Arc::get_token(s,line,n," ");
     if(s.empty()) continue;
     for(std::list<group_t>::iterator i = groups_.begin();i!=groups_.end();++i) {
       if(s == i->name) {
         default_voms_=voms_t();
+        default_otokens_=otokens_t();
         default_vo_=i->vo;
         default_group_=i->name.c_str();
         return AAA_POSITIVE_MATCH;
@@ -51,11 +61,12 @@ AuthResult AuthUser::match_vo(const char* line) {
   for(;;) {
     if(n == std::string::npos) break;
     std::string s("");
-    n = Arc::get_token(s,line,n," ","\"","\"");
+    n = Arc::get_token(s,line,n," ");
     if(s.empty()) continue;
     for(std::list<std::string>::iterator i = vos_.begin();i!=vos_.end();++i) {
       if(s == *i) {
         default_voms_=voms_t();
+        default_otokens_=otokens_t();
         default_vo_=i->c_str();
         default_group_=NULL;
         return AAA_POSITIVE_MATCH;
@@ -71,6 +82,7 @@ AuthUser::source_t AuthUser::sources[] = {
   { "subject", &AuthUser::match_subject },
   { "file", &AuthUser::match_file },
   { "voms", &AuthUser::match_voms },
+  { "authtokens", &AuthUser::match_otokens },
   { "userlist", &AuthUser::match_vo },
   { "plugin", &AuthUser::match_plugin },
   { NULL, NULL }
@@ -79,6 +91,7 @@ AuthUser::source_t AuthUser::sources[] = {
 AuthUser::AuthUser(const AuthUser& a):message_(a.message_) {
   subject_ = a.subject_;
   voms_data_ = a.voms_data_;
+  otokens_data_ = a.otokens_data_;
   from = a.from;
 
   filename=a.filename;
@@ -86,6 +99,7 @@ AuthUser::AuthUser(const AuthUser& a):message_(a.message_) {
   proxy_file_was_created=false;
 //  process_voms();
   default_voms_=voms_t();
+  default_otokens_=otokens_t();
   default_vo_=NULL;
   default_group_=NULL;
 
@@ -94,24 +108,51 @@ AuthUser::AuthUser(const AuthUser& a):message_(a.message_) {
 }
 
 AuthUser::AuthUser(Arc::Message& message):
-    default_voms_(), default_vo_(NULL), default_group_(NULL),
+    default_voms_(), default_otokens_(), default_vo_(NULL), default_group_(NULL),
     proxy_file_was_created(false), has_delegation(false), message_(message) {
-  subject_ = message.Attributes()->get("TLS:IDENTITYDN");
-  // Fetch VOMS attributes
+  // Fetch X.509 and VOMS attributes
   std::list<std::string> voms_attrs;
   Arc::SecAttr* sattr = NULL;
   sattr = message_.Auth()->get("TLS");
   if(sattr) {
+    subject_ = sattr->get("IDENTITY");
     std::list<std::string> vomses = sattr->getAll("VOMS");
     voms_attrs.splice(voms_attrs.end(),vomses);
   };
   sattr = message_.AuthContext()->get("TLS");
   if(sattr) {
+    if(subject_.empty())
+      subject_ = sattr->get("IDENTITY");
     std::list<std::string> vomses = sattr->getAll("VOMS");
     voms_attrs.splice(voms_attrs.end(),vomses);
   };
   voms_data_ = arc_to_voms(voms_attrs);
 
+  // Fetch OTokens attributes
+  sattr = message_.Auth()->get("OTOKENS");
+  if(sattr) {
+    otokens_t otokens;
+    otokens.subject  = sattr->get("sub");
+    otokens.issuer   = sattr->get("iss");
+    otokens.audience = sattr->get("aud");
+    Arc::tokenize(sattr->get("scope"), otokens.scopes);
+    otokens.groups   = sattr->getAll("wlcg.groups");
+    otokens_data_.push_back(otokens);
+    if(subject_.empty())
+      subject_ = sattr->get("iss+sub");
+  };
+  sattr = message_.AuthContext()->get("OTOKENS");
+  if(sattr) {
+    otokens_t otokens;
+    otokens.subject  = sattr->get("sub");
+    otokens.issuer   = sattr->get("iss");
+    otokens.audience = sattr->get("aud");
+    Arc::tokenize(sattr->get("scope"), otokens.scopes);
+    otokens.groups   = sattr->getAll("wlcg.groups");
+    otokens_data_.push_back(otokens);
+    if(subject_.empty())
+      subject_ = sattr->get("iss+sub");
+  };
 }
 
 // The attributes passed to this method are of "extended fqan" kind with every field 
@@ -197,7 +238,8 @@ AuthResult AuthUser::evaluate(const char* line) {
   bool no_match = false;
   const char* command = "subject";
   size_t command_len = 7;
-  if(subject_.empty()) return AAA_NO_MATCH; // ??
+  // There can be rules not based on subject
+  // if(subject_.empty()) return AAA_NO_MATCH; // ??
   if(!line) return AAA_NO_MATCH;
   for(;*line;line++) if(!isspace(*line)) break;
   if(*line == 0) return AAA_NO_MATCH;
@@ -224,6 +266,10 @@ AuthResult AuthUser::evaluate(const char* line) {
         switch(res) {
           case AAA_POSITIVE_MATCH: res = AAA_NEGATIVE_MATCH; break;
           case AAA_NEGATIVE_MATCH: res = AAA_POSITIVE_MATCH; break;
+          case AAA_NO_MATCH:
+          case AAA_FAILURE:
+          default:
+            break;
         };
       };
       return res;
@@ -250,7 +296,7 @@ void AuthUser::subst(std::string& str) {
       if(i<(l-1)) {
         switch(str[i+1]) {
           case 'D': {
-            const char* s = DN();
+            const char* s = subject();
             int s_l = strlen(s);
             str.replace(i,2,s);
             i+=(s_l-2-1);
@@ -296,7 +342,7 @@ bool AuthUser::store_credentials(void) {
 }
 
 void AuthUser::add_group(const std::string& grp) {
-  groups_.push_back(group_t(grp,default_vo_,default_voms_));
+  groups_.push_back(group_t(grp,default_vo_,default_voms_,default_otokens_));
   logger.msg(Arc::VERBOSE,"Assigned to authorization group %s",grp);
 };
 

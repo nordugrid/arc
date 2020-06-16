@@ -1,0 +1,12 @@
+[Unit]
+Description=ARC gridftpd
+Documentation=man:gridftpd(8)
+After=local_fs.target remote_fs.target
+
+[Service]
+ExecStart=@prefix@/@pkgdatasubdir@/arc-gridftpd-start -F
+SuccessExitStatus=255
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target

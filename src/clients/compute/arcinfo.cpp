@@ -139,7 +139,11 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
       for (std::map<int, Arc::ComputingEndpointType>::const_iterator itCE = it->ComputingEndpoint.begin();
            itCE != it->ComputingEndpoint.end(); ++itCE) {
         if (itCE->second->Capability.count(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO))) {
-          infostream << "  " << Arc::IString("Information endpoint") << ": " << itCE->second->URLString << std::endl;
+          infostream << "  " << Arc::IString("Information endpoint") << ": " << itCE->second->URLString;
+          if ( !itCE->second->InterfaceName.empty() ) {
+            infostream << " (" << itCE->second->InterfaceName << ")";
+          }
+          infostream << std::endl;
         }
         if (itCE->second->Capability.empty() ||
             itCE->second->Capability.count(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::JOBSUBMIT)) ||

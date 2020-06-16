@@ -18,15 +18,15 @@ namespace Arc {
   // Implemented according to RFC4648, MSB first approach and assuming ASCII codes.
   // There are no checks for bad characters.
 
-  static char base64_character_encode(char in) {
+  static char base64_character_encode(char in, bool urlSafe) {
     if(((unsigned char)in) < (unsigned char)26) return ('A' + in);
     in -= 26;
     if(((unsigned char)in) < (unsigned char)26) return ('a' + in);
     in -= 26;
     if(((unsigned char)in) < (unsigned char)10) return ('0' + in);
     in -= 10;
-    if(in == (char)0) return '+';
-    if(in == (char)1) return '/';
+    if(in == (char)0) return urlSafe ? '-' : '+';
+    if(in == (char)1) return urlSafe ? '_' : '/';
     return '?';
   }
 
@@ -46,19 +46,19 @@ namespace Arc {
 
   static int base64_quantum_encode(const char in[3], int size, char out[4], bool urlSafe) {
     if(size == 3) {
-      out[0] = base64_character_encode((in[0]>>2) & 0x3f);
-      out[1] = base64_character_encode(((in[0]<<4) & 0x30) | ((in[1]>>4) & 0x0f));
-      out[2] = base64_character_encode(((in[1]<<2) & 0x3c) | ((in[2]>>6) & 0x03));
-      out[3] = base64_character_encode(in[2] & 0x3f);
+      out[0] = base64_character_encode((in[0]>>2) & 0x3f, urlSafe);
+      out[1] = base64_character_encode(((in[0]<<4) & 0x30) | ((in[1]>>4) & 0x0f), urlSafe);
+      out[2] = base64_character_encode(((in[1]<<2) & 0x3c) | ((in[2]>>6) & 0x03), urlSafe);
+      out[3] = base64_character_encode(in[2] & 0x3f, urlSafe);
     } else if(size == 2) {
-      out[0] = base64_character_encode((in[0]>>2) & 0x3f);
-      out[1] = base64_character_encode(((in[0]<<4) & 0x30) | ((in[1]>>4) & 0x0f));
-      out[2] = base64_character_encode((in[1]<<2) & 0x3c);
+      out[0] = base64_character_encode((in[0]>>2) & 0x3f, urlSafe);
+      out[1] = base64_character_encode(((in[0]<<4) & 0x30) | ((in[1]>>4) & 0x0f), urlSafe);
+      out[2] = base64_character_encode((in[1]<<2) & 0x3c, urlSafe);
       out[3] = '=';
       if(urlSafe) return 3;
     } else if(size == 1) {
-      out[0] = base64_character_encode((in[0]>>2) & 0x3f);
-      out[1] = base64_character_encode((in[0]<<4) & 0x30);
+      out[0] = base64_character_encode((in[0]>>2) & 0x3f, urlSafe);
+      out[1] = base64_character_encode((in[0]<<4) & 0x30, urlSafe);
       out[2] = '=';
       out[3] = '=';
       if(urlSafe) return 2;
@@ -104,7 +104,7 @@ namespace Arc {
     std::string bufplain;
     char quantum[3];
     char encoded[4];
-    std::string::size_type p = 0;
+    int p = 0;
     int ecnt = 0;
     for(;p < size;++p) {
       if(base64_character_decode(bufcoded[p], urlSafe) == (char)0xff) continue; // ignore eol and garbage
@@ -129,12 +129,12 @@ namespace Arc {
   }
 
   std::string Base64::decode(const char* bufcoded) {
-    if(bufcoded == nullptr) return "";
+    if(bufcoded == NULL) return "";
     return decodeInternal(bufcoded, std::strlen(bufcoded), false);
   }
 
   std::string Base64::decode(const char* bufcoded, int size) {
-    if((bufcoded == nullptr) || (size <= 0)) return "";
+    if((bufcoded == NULL) || (size <= 0)) return "";
     return decodeInternal(bufcoded, size, false);
   }
 
@@ -143,12 +143,12 @@ namespace Arc {
   }
 
   std::string Base64::decodeURLSafe(const char* bufcoded) {
-    if(bufcoded == nullptr) return "";
+    if(bufcoded == NULL) return "";
     return decodeInternal(bufcoded, std::strlen(bufcoded), true);
   }
 
   std::string Base64::decodeURLSafe(const char* bufcoded, int size) {
-    if((bufcoded == nullptr) || (size <= 0)) return "";
+    if((bufcoded == NULL) || (size <= 0)) return "";
     return decodeInternal(bufcoded, size, true);
   }
 
@@ -156,7 +156,7 @@ namespace Arc {
     std::string bufcoded;
     char quantum[3];
     char encoded[4];
-    std::string::size_type p = 0;
+    int p = 0;
     int qcnt = 0;
     for(;p < size;++p) {
       quantum[qcnt] = bufplain[p];

@@ -1,0 +1,2079 @@
+#!@PYTHON@
+
+from __future__ import print_function
+
+# general puprose
+import os
+import sys
+import time
+import logging
+import argparse
+import hashlib
+import re
+import json
+# Connectivity testing
+import socket
+# DATA fetching
+import ldap
+try:
+    import http.client as httplib
+except ImportError:
+    import httplib
+import ssl
+import xml.etree.ElementTree as ElementTree
+# DNS processing
+import dns.rdatatype
+import dns.resolver
+import dns.update
+import dns.query
+import dns.tsig
+import dns.tsigkeyring
+from dns.exception import DNSException
+# Multithreading
+from threading import Thread, Lock
+try:
+    from queue import Queue
+except ImportError:
+    from Queue import Queue
+
+# Software
+import subprocess  # gpg
+import base64
+import tempfile
+try:
+    from urllib.parse import quote, unquote
+except ImportError:
+    from urllib import quote, unquote
+
+
+# GLOBAL VARIABLES
+_fetch_timeout = 10
+
+# Initialize logger
+logger = logging.getLogger('ARC.ARCHERY-Manage')
+logger.setLevel(logging.WARNING)
+log_handler_stderr = logging.StreamHandler()
+log_handler_stderr.setFormatter(
+    logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
+logger.addHandler(log_handler_stderr)
+
+
+#
+# GENERAL HELPERS
+#
+class HTTPSInsecureConnection(httplib.HTTPSConnection):
+    """Class to make a HTTPS connection without CA Cert verification (compatible with 2.6+ Python)"""
+
+    def __init__(self, host, port=443, timeout=30):
+        httplib.HTTPSConnection.__init__(self, host, port)
+        self.timeout = timeout
+
+    def connect(self):
+        """Redefine the sock without CA check enforcement"""
+        sock = socket.create_connection((self.host, self.port), self.timeout)
+        if self._tunnel_host:
+            self.sock = sock
+            self._tunnel()
+        # Don't force Server Certificate Check
+        self.sock = ssl.wrap_socket(sock, cert_reqs=ssl.CERT_NONE)
+
+
+class TimeoutQueue(Queue):
+    """FIFO Queue with defined timeout to wait for Queue Join"""
+    def join_with_timeout(self, timeout):
+        self.all_tasks_done.acquire()
+        try:
+            endtime = time.time() + timeout
+            while self.unfinished_tasks:
+                remaining = endtime - time.time()
+                if remaining <= 0:
+                    raise OSError('Timeout waiting for the Queue Join')
+                self.all_tasks_done.wait(remaining)
+        finally:
+            self.all_tasks_done.release()
+
+
+def LDAPStrError(ldape):
+    """Get string error from LDAP exception"""
+    if str(ldape) == dict:
+        err = str(ldape)
+    elif len(ldape.args) and type(ldape.args[0]) == dict:
+        err = ldape.args[0]
+    else:
+        return str(ldape)
+    errstr = ''
+    if 'desc' in err:
+        errstr += err['desc']
+        if 'info' in err:
+            errstr += ' ({0})'.format(err['info'])
+    else:
+        errstr += str(ldape)
+    return errstr
+
+
+#
+# OUTPUT FORMATTING FUNCTIONS
+#
+def output_arc_celist(archery_object, cmd_args):
+    """Output the list of ARC CE hostnames (JSON capable)"""
+    arcce_ids = [s['id'] for s in archery_services(archery_object, 'org.nordugrid.arex')]
+    if cmd_args.json:
+        print(json.dumps(arcce_ids))
+    else:
+        for ce in arcce_ids:
+            print(ce)
+
+
+def json_config_object(archery_object):
+    """Translate internal extended JSON to expanded JSON config that can be used as a source"""
+    # helper function to use with output_json_config()
+    jconf = {}
+
+    if 'id' in archery_object:
+        jconf['id'] = archery_object['id']
+    elif 'dns-name' in archery_object:
+        jconf['dns-name'] = archery_object['dns-name']
+
+    if 'type' in archery_object:
+        jconf['type'] = archery_object['type']
+
+    if 'object' in archery_object:
+        kind = archery_object['object']
+    elif 'reftype' in archery_object:
+        kind = archery_object['reftype']
+    else:
+        kind = 'group'
+
+    if 'raw-dns' in archery_object:
+        jconf['raw-dns'] = archery_object['raw-dns']
+
+    external_object = None
+    if 'pointer_rr_data' in archery_object:
+        external_object = archery_object['pointer_rr_data'].split(' ')[0].replace('u=', '')
+
+    if kind == 'service':
+        jconf['endpoints'] = []
+        if 'endpoints' in archery_object:
+            if archery_object['endpoints']:
+                external_object = None  # do not mix endpoints and external
+            for e in archery_object['endpoints']:
+                if 's' in e and e['s'] == '0':
+                    jconf['endpoints'].append({
+                        'url': e['u'],
+                        'type': e['t'],
+                        'status': False
+                    })
+                else:
+                    jconf['endpoints'].append({e['u']: e['t']})
+
+    if kind == 'software':
+        if 'endpoints' in archery_object:
+            external_object = None
+            for e in archery_object['endpoints']:
+                if 't' in e and e['t'] == 'gpg.pubkey':
+                    jconf['pubkey_url'] = e['u']
+
+    if kind == 'rte':
+        jconf['name'] = archery_object['id']
+        del jconf['id']
+        if 'description' in archery_object:
+            jconf['description'] = unquote(archery_object['description'])
+        if 'endpoints' in archery_object:
+            external_object = None
+            for e in archery_object['endpoints']:
+                if 't' in e and e['t'] == 'gpg.signed':
+                    jconf['url'] = e['u']
+
+    if kind == 'gpg.pubkey.base64':
+        if 'endpoints' in archery_object:
+            for e in archery_object['endpoints']:
+                if 'rr_data' in e:
+                    jconf['pubkey'] = e['rr_data']
+
+    if kind == 'gpg.signed.base64':
+        if 'endpoints' in archery_object:
+            for e in archery_object['endpoints']:
+                if 'rr_data' in e:
+                    jconf['data'] = e['rr_data']
+
+    if 'contains' in archery_object:
+        if archery_object['contains']:
+            external_object = None  # do not mix natively nested objects and external
+        for child in archery_object['contains']:
+            ckind, cobj = json_config_object(child)
+            if ckind == 'service':
+                if 'services' not in jconf:
+                    jconf['services'] = []
+                jconf['services'].append(cobj)
+            elif ckind == 'software':
+                jconf['software'] = cobj
+            elif ckind == 'rte':
+                if 'rtes' not in jconf:
+                    jconf['rtes'] = []
+                jconf['rtes'].append(cobj)
+            elif ckind == 'gpg.pubkey.base64':
+                if 'pubkey' in cobj:
+                    jconf['pubkey'] = cobj['pubkey']
+            elif ckind == 'gpg.signed.base64':
+                if 'data' in cobj:
+                    jconf['data'] = cobj['data']
+            elif ckind == 'group':
+                if 'groups' not in jconf:
+                    jconf['groups'] = []
+                jconf['groups'].append(cobj)
+
+    if external_object is not None:
+        jconf['external-archery-object'] = external_object
+        # do not put leftovers to external object config
+        for accidental_key in ['id', 'type', 'endpoints', 'contains']:
+            if accidental_key in jconf:
+                del jconf[accidental_key]
+
+    return kind, jconf
+
+
+def output_json_config(archery_object, cmd_args):
+    """Output the entire ARCHERY internal object in JSON to stdout (for debugging purposes)"""
+    _, jconf = json_config_object(archery_object)
+    print(json.dumps(jconf, indent=2))
+
+
+def output_internal_object(archery_object, cmd_args):
+    """Output the entire ARCHERY internal object in JSON to stdout (for debugging purposes)"""
+    print(json.dumps(archery_object, indent=2))
+
+
+def output_endpoints(archery_object, cmd_args):
+    """Output the list of endpoints with types (JSON capable)"""
+    elist = archery_endpoints(archery_object)
+
+    if cmd_args.json:
+        print(json.dumps(elist))
+    else:
+        for e in elist:
+            if 's' in e and e['s'] != '1':
+                if not cmd_args.output_all:
+                    continue
+            print('{u:<60} : {t}'.format(**e))
+
+
+def output_services(archery_object, cmd_args):
+    """Output the list of services with types (JSON capable)"""
+    slist = archery_services(archery_object)
+
+    if cmd_args.json:
+        print(json.dumps(slist))
+    else:
+        for s in slist:
+            if 's' in s and s['s'] != '1':
+                if not cmd_args.output_all:
+                    continue
+            print('{id:<60} : {type}'.format(**s))
+
+
+def txt_255(txt, getlist=False):
+    """TXT record have 255 bytes limit and should be split to subsequent strings if longer"""
+    txtlen = len(txt)
+    if txtlen <= 255:
+        if getlist:
+            return [txt]
+        return '"' + txt + '"'
+    # split by 255
+    clen = 0
+    parts = []
+    while clen < txtlen:
+        parts.append(txt[clen:clen + 254])
+        clen += 254
+    if getlist:
+        return parts
+    return '"' + '" "'.join(parts) + '"'
+
+
+def output_zonefile(archery_object, cmd_args):
+    """Output the content of BIND zone file"""
+    if cmd_args.json:
+        logger.error('JSON format is not supported by DNS zone file formatter')
+    if cmd_args.output_all:
+        logger.debug('ARCHERY zone file formatter includes all endpoints by default and ignore --output-all option')
+
+    ttl = cmd_args.ttl
+
+    rrset = list(archery_txt_rrset(archery_object))
+    rrset.sort()
+
+    for rr in rrset:
+        rr_mod = rr.split(' ', 1)
+        txtdata = txt_255(rr_mod[1])
+        print('{0:<64}{1:>6} TXT {2}'.format(rr_mod[0], ttl, txtdata))
+
+    if 'raw-dns' in archery_object:
+        if archery_object['rr_owner']:
+            print('$ORIGIN {0}'.format(archery_object['rr_owner']))
+        for rdns in archery_object['raw-dns']:
+            if not rdns['rdata']:
+                continue
+            if 'ttl' not in rdns:
+                rdns['ttl'] = ttl
+            if isinstance(rdns['rdata'], list):
+                for rd in rdns['rdata']:
+                    srdns = rdns.copy()
+                    if srdns['type'] in ['TXT', 'SRV']:
+                        srdns['rdata'] = txt_255(rd)
+                    else:
+                        srdns['rdata'] = rd
+                    print('{name:<64}{ttl:>6} {type} {rdata}'.format(**srdns))
+            else:
+                if rdns['type'] in ['TXT', 'SRV']:
+                    rdns['rdata'] = txt_255(rdns['rdata'])
+                print('{name:<64}{ttl:>6} {type} {rdata}'.format(**rdns))
+
+_output_formatters = {
+    'arc-CEs': output_arc_celist,
+    'services': output_services,
+    'endpoints': output_endpoints,
+    'zonefile': output_zonefile,
+    'json': output_json_config,
+    '_debug': output_internal_object
+}
+
+
+#
+# ENDPOINT FILTERING CLASSES
+#
+class EndpointFilter(object):
+    """Base interface class for implementing endpoint filters"""
+    def __init__(self):
+        self.filter_on_fetch = False
+
+    def filter(self, endpoint_dict):
+        raise NotImplementedError('Filter function should be implemented (return True means filtering)')
+
+    def set_on_fetch(self):
+        self.filter_on_fetch = True
+
+    def on_fetch(self):
+        return self.filter_on_fetch
+
+    def help(self):
+        raise NotImplementedError('Help function should be implemented')
+
+
+class EndpointFilterType(EndpointFilter):
+    """Filter endpoints by type"""
+    _resourseinfo_endpoint_types = [
+        'org.nordugrid.ldapglue2',
+        'org.nordugrid.ldapng',
+        'org.ogf.glue.emies.resourceinfo'
+        'org.nordugrid.arcrest'
+    ]
+
+    @staticmethod
+    def type():
+        return 'type'
+
+    def __init__(self, args='arc-resourceinfo'):
+        super(EndpointFilterType, self).__init__()
+
+        self._allowed_endpoint_types = args.split(',')
+        # handle resourceinfo alias for all nordugrid information endpoint types
+        if 'arc-resourceinfo' in self._allowed_endpoint_types:
+            self._allowed_endpoint_types += self._resourseinfo_endpoint_types
+            self._allowed_endpoint_types.remove('arc-resourceinfo')
+
+        logger.debug('Applying endpoints filtering with the following allowed types: %s',
+                     ','.join(self._allowed_endpoint_types))
+
+    def filter(self, endpoint_dict):
+        if endpoint_dict['t'] not in self._allowed_endpoint_types:
+            logger.info('Endpoint %s (type %s) filtered (type filter)', endpoint_dict['u'], endpoint_dict['t'])
+            return True
+        logger.debug('Endpoint %s (type %s) is allowed by defined type filter',
+                     endpoint_dict['u'], endpoint_dict['t'])
+        return False
+
+    def help(self):
+        print('Endpoint type filter: \'-f type:<endpoint type>[,<endpoint type>[...]]\'')
+
+
+class EndpointFilterPortscan(EndpointFilter):
+    """Filter endpoints by port connectivity check"""
+    __uri_re = re.compile(r'^(?P<uri>(?:[^:]+)://(?P<host>[^:/]+):(?P<port>[0-9]+))/*.*')
+
+    def __init__(self, args=None):
+        super(EndpointFilterPortscan, self).__init__()
+
+        self.__args = args
+        self.timeout = _fetch_timeout
+
+    @staticmethod
+    def type():
+        return 'portscan'
+
+    def filter(self, endpoint_dict):
+        uri_data = self.__uri_re.match(endpoint_dict['u'])
+        if uri_data:
+            uri_parms = uri_data.groupdict()
+            s = socket.socket()
+            address = uri_parms['host']
+            port = int(uri_parms['port'])
+            try:
+                logger.debug('Testing connectivity to %s:%s network endpoint', address, port)
+                s.settimeout(self.timeout)
+                s.connect((address, port))
+            except Exception as err:
+                logger.info('Endpoint %s (type %s) filtered (port connectivity filter) %s',
+                            endpoint_dict['u'], endpoint_dict['t'], str(err))
+                return True
+            finally:
+                s.close()
+            logger.debug('Endpoint %s (type %s) is allowed by port connectivity filter',
+                         endpoint_dict['u'], endpoint_dict['t'])
+            return False
+        else:
+            logger.error('Endpoint %s (type %s) filtered (port connectivity filter). Failed to parse URI.',
+                         endpoint_dict['u'], endpoint_dict['t'])
+            return True
+
+    def help(self):
+        print('Endpoint port connectivity filter: \'-f portscan\'')
+
+
+class EndpointFilterAllowedVO(EndpointFilter):
+    """Filter endpoints by allowed VO information in LDAP"""
+    __uri_re = re.compile(r'^(?P<uri>(?P<protocol>[^:/]+)://(?P<host>[^:/]+)(?P<port>:[0-9]+))/*.*')
+    __ldap_uri_re = re.compile(r'^(?P<uri>ldap://(?P<host>[^:/]+)(?::[0-9]+))/(?P<basedn>.*)')
+
+    def __init__(self, args=''):
+        super(EndpointFilterAllowedVO, self).__init__()
+        self.filter_on_fetch = True
+
+        self._allowed_vos = args.split(',')
+        self.timeout = _fetch_timeout
+
+    @staticmethod
+    def type():
+        return 'vo'
+
+    def filter(self, endpoint_dict):
+        if 'vos' not in endpoint_dict:
+            logger.debug('No VO policy defined for endpoint %s (type %s). Filter will not block it.',
+                         endpoint_dict['u'], endpoint_dict['t'])
+            return False
+        for vo in self._allowed_vos:
+            if vo not in endpoint_dict['vos']:
+                logger.info('Endpoint %s (type %s) filtered (allowed VO filter)', endpoint_dict['u'],
+                            endpoint_dict['t'])
+                return True
+        logger.debug('Endpoint %s (type %s) is allowed by defined VO filter',
+                     endpoint_dict['u'], endpoint_dict['t'])
+        return False
+
+    def help(self):
+        print('Endpoint allowed VO filter: \'-f vo:<voname>[,<voname>[...]]\'')
+
+
+_filters = {
+    'type': EndpointFilterType,
+    'vo': EndpointFilterAllowedVO,
+    'portscan': EndpointFilterPortscan
+}
+
+
+def filter_endpoints(archery_object, filters):
+    """Recursively loop over archery onject and apply filters"""
+    if archery_object['object'] == 'service':
+        if 'endpoints' in archery_object and archery_object['endpoints']:
+            filtered_endpoints = []
+            for e in archery_object['endpoints']:
+                filtered = False
+                for fo in filters:
+                    if not fo.on_fetch():
+                        if fo.filter(e):
+                            filtered = True
+                            break
+                if not filtered:
+                    filtered_endpoints.append(e)
+            archery_object['endpoints'] = filtered_endpoints
+            if not filtered_endpoints:
+                return False
+    else:
+        if 'contains' in archery_object:
+            filtered_contains = []
+            for c in archery_object['contains']:
+                if filter_endpoints(c, filters):
+                    filtered_contains.append(c)
+            archery_object['contains'] = filtered_contains
+    return True
+
+
+#
+# ARCHERY DATA PROCESSING
+#
+def archery_endpoints(archery_object, etype=None):
+    """Return list of endpoint data from ARCHERY object tree"""
+    endpoints = []
+    # add endpoint records
+    if 'endpoints' in archery_object:
+        for edata in archery_object['endpoints']:
+            # filter by endtpoint type if requested
+            if etype is not None:
+                if edata['t'] != etype:
+                    continue
+            endpoints.append(edata)
+    # process child records
+    if 'contains' in archery_object:
+        for cdata in archery_object['contains']:
+            endpoints += archery_endpoints(cdata, etype)
+    return endpoints
+
+
+def archery_services(archery_object, stype=None):
+    """Return list of services data from ARCHERY object tree"""
+    services = []
+    # detect type of object
+    if 'object' in archery_object:
+        object_kind = archery_object['object']
+    elif 'contains' in archery_object and archery_object['contains']:
+        object_kind = 'group'
+    else:
+        object_kind = 'service'
+    # process data
+    if object_kind == 'group':
+        if 'contains' in archery_object:
+            for cdata in archery_object['contains']:
+                services += archery_services(cdata, stype)
+    elif object_kind == 'service':
+        # filter by service type
+        if stype is not None:
+            if 'type' not in archery_object:
+                logger.debug('There is no service type defined for service object at %s. Skipping.',
+                             archery_object['rr_owner'])
+                return services
+            if archery_object['type'] != stype:
+                logger.debug('Skipping service object at %s (type %s does not match requested %s).',
+                             archery_object['rr_owner'], archery_object['type'], stype)
+                return services
+        # check for service id
+        if 'id' not in archery_object:
+            logger.debug('There is no ID defined for service object at %s. Skipping.',
+                         archery_object['rr_owner'])
+            return services
+        # append service
+        services.append({
+            'id': archery_object['id'],
+            'type': archery_object['type'] if 'type' in archery_object else None,
+        })
+    return services
+
+
+def archery_txt_rrset(archery_object, parent_rr_owner=''):
+    """Return set of TXT RRs for ARCHERY object tree"""
+    rrset = set()
+    if 'rr_owner' not in archery_object:
+        logger.error('Malformed archery object to generate RRSet data. Execution aborted.')
+        sys.exit(1)
+    rr_owner = archery_object['rr_owner']
+    if parent_rr_owner:
+        rr_owner += '.' + parent_rr_owner
+    # construct object record (if not already exists)
+    if 'rr_data' not in archery_object and 'object' in archery_object:
+        rr = 'o=' + archery_object['object']
+        if 'type' in archery_object:
+            rr += ' t=' + archery_object['type'].replace(' ', '-')
+        if 'id' in archery_object:
+            rr += ' id=' + archery_object['id'].replace(' ', '-')
+        if 'description' in archery_object:
+            rr += ' d=' + archery_object['description'].replace(' ', '-')
+        # group object without type and id is the default behaviour (no RRSet needed)
+        if rr != 'o=group':
+            archery_object['rr_data'] = rr
+    # add endpoint records
+    has_endpoints = False
+    if 'endpoints' in archery_object and archery_object['endpoints']:
+        for edata in archery_object['endpoints']:
+            # construct TXT rendering for endpoint record (if not already exists)
+            if 'rr_data' not in edata:
+                estatus = ''
+                if 's' in edata and edata['s'] != 1:
+                    estatus = ' s={0}'.format(edata['s'])
+                edata['rr_data'] = 'u={0} t={1}{2}'.format(edata['u'], edata['t'].replace(' ', '-'), estatus)
+            # add service endpoints RRSet
+            rrset.add('{0} {1}'.format(rr_owner, edata['rr_data']))
+            has_endpoints = True
+
+    # add object id-record RRSet (if defined and not dummy service)
+    if 'rr_data' in archery_object:
+        if has_endpoints or archery_object['rr_data'] != 'o=service':
+            rrset.add('{0} {1}'.format(rr_owner, archery_object['rr_data']))
+    # add child records
+    if 'contains' in archery_object:
+        for cdata in archery_object['contains']:
+            # construct TXT rendering for pointer record (if not already exists)
+            if 'pointer_rr_data' not in cdata:
+                # status
+                estatus = ''
+                if 'status' in cdata and cdata['status'] != 1:
+                    estatus = ' s={0}'.format(cdata['status'])
+                # child type
+                if 'reftype' in cdata:
+                    ctype = cdata['reftype']
+                elif 'object' in cdata:
+                    ctype = 'archery.' + cdata['object']
+                else:
+                    if 'contains' in cdata and len(cdata['contains']) > 0:
+                        ctype = 'archery.group'
+                    else:
+                        ctype = 'archery.service'
+                cdata['pointer_rr_data'] = 'u=dns://{0}.{1} t={2}{3}'.format(
+                    cdata['rr_owner'], rr_owner, ctype, estatus
+                )
+            # add pointed record RRSet
+            prr_owner = rr_owner
+            if not parent_rr_owner:
+                # predefined entry point
+                prr_owner = '_archery'
+                if rr_owner:
+                    prr_owner += '.' + rr_owner
+            rrset.add('{0} {1}'.format(prr_owner, cdata['pointer_rr_data']))
+            # add child object data RRSet
+            rrset |= archery_txt_rrset(cdata, rr_owner)
+    return rrset
+
+
+#
+# INFORMATION SOURCES PROCESSING FUNCTIONS
+#
+def get_file_celist(fpath):
+    """Load hostnames from static list stored in file"""
+    ce_list = []
+    try:
+        with open(fpath, 'r') as fd:
+            ce_list = [line.strip() for line in fd]
+            return ce_list
+    except EnvironmentError:
+        logger.error('Failed to open file %s to read AEC CE list', fpath)
+    return ce_list
+
+
+def get_egiis_celist(egiis_uri, ldap_timeout=_fetch_timeout):
+    """Fetch CE hostnames from EGIIS (for migration)"""
+    ce_list = []
+    ldap_uri_re = re.compile(r'^(?P<uri>ldap://[^:/]+(?::[0-9]+))/(?P<basedn>.*)')
+    parse_egiis_uri = ldap_uri_re.match(egiis_uri)
+    if parse_egiis_uri:
+        egiis_params = parse_egiis_uri.groupdict()
+        ldap_uri = egiis_params['uri']
+        ldap_basedn = egiis_params['basedn']
+    else:
+        logger.error('Failed to parse provided EGIIS URL %s. '
+                     'Expected format ldap://<egiishost>:<port>/mds-vo-name=<Country>,o=grid. ', egiis_uri)
+        return ce_list
+
+    try:
+        ldap_conn = ldap.initialize(ldap_uri)
+        ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, ldap_timeout)
+        ldap_conn.set_option(ldap.OPT_TIMEOUT, ldap_timeout)
+        ldap_conn.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3)
+
+        logger.debug('Querying EGIIS: %s', egiis_uri)
+        egiis_entries = ldap_conn.search_s(ldap_basedn, ldap.SCOPE_BASE)
+
+        if egiis_entries is None:
+            logger.error('EGIIS %s query returns empty result set.', egiis_uri)
+            return ce_list
+
+        for egiis_dn, egiis_entry in egiis_entries:
+            if egiis_dn.startswith('nordugrid-cluster-name='):
+                ce_list.append(egiis_entry['Mds-Service-hn'][0].decode())
+            else:
+                ce_list += get_egiis_celist('ldap://{Mds-Service-hn[0]}:2135/'
+                                            '{Mds-Service-Ldap-suffix[0]}'.format(**egiis_entry), ldap_timeout)
+
+    except ldap.LDAPError as err:
+        logger.warning('Failed to query EGIIS %s. Error: %s', egiis_uri, LDAPStrError(err))
+    return list(set(ce_list))
+
+
+#
+# INFO ENDPOINTS PROCESSING FUNCTION
+#
+def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, ldap_timeout=_fetch_timeout, filters=None):
+    """Get ARC CE endpoints by querying LDAP GLUE2 (fallback to LDAP NG query)"""
+    # define filters
+    fetch_vos = False
+    if filters is None:
+        filters = []
+    else:
+        for f in filters:
+            if f.type() == 'vo':
+                fetch_vos = True
+                break
+
+    endpoints = []
+
+    ldap_uri = 'ldap://{0}:{1}'.format(hostname, port)
+    ldap_basedn = 'o=glue'
+    ldap_filter = '(objectClass=GLUE2ComputingEndpoint)'
+    ldap_attrs = ['GLUE2EndpointID', 'GLUE2EndpointURL', 'GLUE2EndpointHealthState', 'GLUE2EndpointInterfaceName']
+
+    try:
+        ldap_conn = ldap.initialize(ldap_uri)
+        ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, ldap_timeout)
+        ldap_conn.set_option(ldap.OPT_TIMEOUT, ldap_timeout)
+        ldap_conn.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3)
+
+        ldap_endpoints_list = ldap_conn.search_s(ldap_basedn, ldap.SCOPE_SUBTREE, ldap_filter, ldap_attrs)
+        if ldap_endpoints_list is None:
+            logger.error('LDAP GLUE2 query for %s returns empty result set.', hostname)
+            return endpoints
+
+        for ldap_dn, ldap_ee in ldap_endpoints_list:
+            if 'GLUE2EndpointURL' not in ldap_ee:
+                logger.warning(
+                    'Failed to find endpoint URL in LDAP response for DN %s. '
+                    'It seams GLUE2 rendering is broken for %s.', ldap_dn.decode(), ldap_uri)
+                continue
+            # get endpoint data
+            e_id = ldap_ee['GLUE2EndpointID'][0].decode()
+            e_url = ldap_ee['GLUE2EndpointURL'][0].decode()
+            e_type = ldap_ee['GLUE2EndpointInterfaceName'][0].decode()
+            e_entry = {'id': e_id, 'u': e_url, 't': e_type}
+            if ldap_ee['GLUE2EndpointHealthState'][0].decode().upper() != 'OK':
+                e_entry['s'] = '0'
+                # fetch access policy if VO filtering is requested
+            if fetch_vos:
+                ldap_vo_filter = '(&(objectClass=GLUE2AccessPolicy)' \
+                                 '(GLUE2AccessPolicyEndpointForeignKey={0}))'.format(e_id)
+                logger.debug('Querying AccessPolicy for endpoint %s (type %s)', e_url, e_type)
+                vo_q_res = ldap_conn.search_s(ldap_basedn, ldap.SCOPE_SUBTREE, ldap_vo_filter, ['GLUE2PolicyRule'])
+                if vo_q_res:
+                    for(_, policy_list) in vo_q_res:
+                        if 'GLUE2PolicyRule' in policy_list:
+                            e_vos = [v.decode().split(':', 1)[1] for v in policy_list['GLUE2PolicyRule']]
+                            if e_vos:
+                                e_entry['vos'] = e_vos
+            # apply filters if any
+            for fo in filters:
+                if fo.on_fetch():
+                    if fo.filter(e_entry):
+                        break
+            else:
+                # add endpoint if not filtered
+                logger.debug('Found endpoint %s (type %s) for ARC CE %s', e_url, e_type, hostname)
+                endpoints.append(e_entry)
+    except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR, ldap.TIMEOUT) as err:
+        logger.error('Failed to connect to LDAP server for %s CE. Error: %s', hostname, LDAPStrError(err))
+        return endpoints
+    except ldap.LDAPError as err:
+        logger.error('Failed to query LDAP GLUE2 for %s. Error: %s', hostname, LDAPStrError(err))
+
+    # fallback to LDAP NG for classic legacy ARC CEs without GLUE2 support
+    if not endpoints:
+        logger.warning('There are no endpoints fetched for %s using LDAP GLUE2. Falling back to LDAP NG.', hostname)
+        endpoints = get_arc_ce_endpoints_ldapng(hostname, port, ldap_timeout, filters)
+    return endpoints
+
+
+def get_arc_ce_endpoints_ldapng(hostname, port=2135, ldap_timeout=_fetch_timeout, filters=None):
+    """Get ARC CE endpoints by querying Legacy LDAP NorduGrid Schema"""
+    if filters is None:
+        filters = []
+    endpoints = []
+
+    ldap_uri = 'ldap://{0}:{1}'.format(hostname, port)
+    ldap_basedn = 'Mds-Vo-name=local,o=grid'
+
+    ldap_filter = '(objectClass=nordugrid-cluster)'
+    ldap_attrs = ['nordugrid-cluster-contactstring', 'nordugrid-cluster-name', 'nordugrid-cluster-acl']
+
+    try:
+        ldap_conn = ldap.initialize(ldap_uri)
+        ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, ldap_timeout)
+        ldap_conn.set_option(ldap.OPT_TIMEOUT, ldap_timeout)
+        ldap_conn.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3)
+
+        ldap_endpoints_list = ldap_conn.search_s(ldap_basedn, ldap.SCOPE_SUBTREE, ldap_filter, ldap_attrs)
+        if ldap_endpoints_list is None:
+            logger.error('LDAP NG query for %s returns empty result set.', hostname)
+            return endpoints
+
+        for ldap_dn, ldap_ee in ldap_endpoints_list:
+            if 'nordugrid-cluster-contactstring' not in ldap_ee:
+                logger.warning(
+                    'Failed to find endpoint URL (contactstring) in LDAP response for DN %s. '
+                    'It seams NG rendering is broken for %s.', ldap_dn.decode(), ldap_uri)
+                continue
+            # get endpoint data
+            e_id = ldap_ee['nordugrid-cluster-name'][0].decode()
+            e_url = ldap_ee['nordugrid-cluster-contactstring'][0].decode()
+            e_type = 'org.nordugrid.gridftpjob'
+            e_entry = {'id': e_id, 'u': e_url, 't': e_type}
+            # get authorized VOs if available
+            if 'nordugrid-cluster-acl' in ldap_ee:
+                e_vos = [v.decode().split(':', 1)[1] for v in ldap_ee['nordugrid-cluster-acl']]
+                if e_vos:
+                    e_entry['vos'] = e_vos
+            # apply filters if any
+            for fo in filters:
+                if fo.on_fetch():
+                    if fo.filter(e_entry):
+                        break
+            else:
+                # add endpoint if not filtered
+                logger.debug('Found endpoint %s (type %s) for ARC CE %s', e_url, e_type, hostname)
+                endpoints.append(e_entry)
+                # also add ldapng endpoint to comply gridftpjob
+                ldapng_uri = '{0}/{1}'.format(ldap_uri, ldap_basedn)
+                ldapng_entry = {'id': ldapng_uri, 'u': ldapng_uri, 't': 'org.nordugrid.ldapng'}
+                endpoints.append(ldapng_entry)
+
+    except ldap.LDAPError as err:
+        logger.error('Failed to query LDAP NG for %s. Error: %s', hostname, LDAPStrError(err))
+    return endpoints
+
+
+def _ldap_uri_dict(uri):
+    """Parse LDAP URI and return the dict of URI components"""
+    __ldap_uri_re = re.compile(r'^(?P<uri>ldap://(?P<host>[^:/]+)(?::[0-9]+))/(?P<basedn>.*)')
+    ldap_uri_match = __ldap_uri_re.match(uri)
+    if ldap_uri_match:
+        ldap_uri_dict = ldap_uri_match.groupdict()
+    else:
+        logger.error('Cannot parse URI %s as LDAP URI. Skipping information fetching.', uri)
+        return None
+    return ldap_uri_dict
+
+
+def get_sitebdii_endpoints_ldapglue1(uri, ldap_timeout=_fetch_timeout, filters=None):
+    """Get services and their endpoints by querying Site-BDII LDAP GLUE1"""
+    ldap_uri_dict = _ldap_uri_dict(uri)
+    if ldap_uri_dict is None:
+        return []
+
+    if filters is None:
+        filters = []
+
+    services = {}
+
+    ldap_uri = ldap_uri_dict['uri']
+    ldap_basedn = ldap_uri_dict['basedn']
+
+    try:
+        ldap_conn = ldap.initialize(ldap_uri)
+        ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, ldap_timeout)
+        ldap_conn.set_option(ldap.OPT_TIMEOUT, ldap_timeout)
+        ldap_conn.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3)
+
+        # Query info (3 completely different kind of objects in Glue1: Serive, CE and SE)
+        ldap_service_filter = '(|(objectClass=GlueService)(objectClass=GlueCE)' \
+                              '(objectClass=GlueSE)(objectClass=GlueSEControlProtocol)' \
+                              '(objectClass=GlueSEAccessProtocol))'
+        # Service object attributes
+        ldap_service_attrs = ['GlueServiceEndpoint', 'GlueServiceStatus', 'GlueServiceType', 'GlueServiceName']
+        # CE attribute
+        ldap_service_attrs += ['GlueCEInfoContactString', 'GlueCEImplementationName', 'GlueInformationServiceURL',
+                               'GlueForeignKey']
+        # SE attributes
+        ldap_service_attrs += ['GlueSEImplementationName', 'GlueSEUniqueID', 'GlueChunkKey',
+                               'GlueSEControlProtocolEndpoint', 'GlueSEControlProtocolType',
+                               'GlueSEAccessProtocolEndpoint', 'GlueSEAccessProtocolType']
+
+        glue1_data = ldap_conn.search_s(ldap_basedn, ldap.SCOPE_SUBTREE,
+                                        ldap_service_filter, ldap_service_attrs)
+
+        if glue1_data is None:
+            logger.error('Site-BDII LDAP GLUE1.3 query for %s/%s returns empty result set.', ldap_uri, ldap_basedn)
+            return []
+
+        if filters:
+            logger.warning('No on-fetch filters support for legacy GLUE1.3')
+
+        for ldap_dn, ldap_data in glue1_data:
+            if 'GlueServiceEndpoint' in ldap_data:
+                # General service object parsing (both service and endpoint)
+                s_id = ldap_data['GlueServiceName'][0].decode()
+                se_type = ldap_data['GlueServiceType'][0].decode()
+                if s_id not in services:
+                    services[s_id] = {'object': 'service', 'type': se_type, 'id': s_id, 'endpoints': []}
+                    services[s_id]['rr_owner'] = dns_rr_owner_name(services[s_id], ldap_dn)
+                e_id = ldap_dn.decode()
+                e_url = ldap_data['GlueServiceEndpoint'][0].decode()
+                e_entry = {'id': e_id, 'u': e_url, 't': se_type}
+                if ldap_data['GlueServiceStatus'][0].decode().upper() != 'OK':
+                    e_entry['s'] = '0'
+                services[s_id]['endpoints'].append(e_entry)
+            elif 'GlueCEInfoContactString' in ldap_data:
+                # CE object parsing (both service and endpoint)
+                s_id = ldap_data['GlueForeignKey'][0].decode()
+                s_id = s_id[20:]  # remove GlueClusterUniqueID=
+                s_type = ldap_data['GlueCEImplementationName'][0].decode()
+                se_type = s_type
+                ie_type = s_type
+                if s_type == 'CREAM':
+                    se_type = 'org.glite.ce.CREAM'
+                    ie_type = 'bdii_site'
+                elif s_type == 'ARC-CE':
+                    se_type = 'org.nordugrid.gridftpjob'
+                    ie_type = 'org.nordugrid.ldapng'
+                se_url = ldap_data['GlueCEInfoContactString'][0].decode()
+                ie_url = ldap_data['GlueInformationServiceURL'][0].decode()
+                if s_id not in services:
+                    services[s_id] = {'object': 'service', 'type': s_type, 'id': s_id, 'endpoints': []}
+                    services[s_id]['rr_owner'] = dns_rr_owner_name(services[s_id], ldap_dn)
+                se_entry = {'id': se_url, 'u': se_url, 't': se_type}
+                services[s_id]['endpoints'].append(se_entry)
+                ie_entry = {'id': ie_url, 'u': ie_url, 't': ie_type}
+                services[s_id]['endpoints'].append(ie_entry)
+            elif 'GlueSE' in ldap_data:
+                # SE object (service)
+                s_id = ldap_data['GlueSEUniqueID'][0].decode()
+                s_type = ldap_data['GlueSEImplementationName'][0].decode()
+                services[s_id] = {'object': 'service', 'type': s_type, 'id': s_id, 'endpoints': []}
+            elif 'GlueChunkKey' in ldap_data:
+                # SE endpoint objects
+                s_id = ldap_data['GlueChunkKey'][0].decode()
+                s_id = s_id[15:]  # remove GlueSEUniqueID=
+                if 'GlueSEControlProtocolEndpoint' in ldap_data:
+                    e_url = ldap_data['GlueSEControlProtocolEndpoint'][0].decode()
+                    e_type = ldap_data['GlueSEControlProtocolType'][0].decode()
+                else:
+                    e_url = ldap_data['GlueSEAccessProtocolEndpoint'][0].decode()
+                    e_type = ldap_data['GlueSEAccessProtocolType'][0].decode()
+                if s_id not in services:
+                    continue
+                e_entry = {'id': e_url, 'u': e_url, 't': e_type}
+                services[s_id]['endpoints'].append(e_entry)
+            else:
+                logger.warning(
+                    'Failed to find any known service data in the LDAP response for DN %s. '
+                    'It seams GLUE1.3 rendering is broken for %s/%s.', ldap_dn.decode(), ldap_uri, ldap_basedn)
+                continue
+
+    except ldap.LDAPError as err:
+        logger.error('Failed to query LDAP GLUE1.3 for %s/%s. Error: %s', ldap_uri, ldap_basedn, LDAPStrError(err))
+
+    return services.values()
+
+
+def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=_fetch_timeout, filters=None):
+    """Get services and their endpoints by querying Site-BDII LDAP GLUE2"""
+    ldap_uri_dict = _ldap_uri_dict(uri)
+    if ldap_uri_dict is None:
+        return []
+
+    # define filters
+    fetch_vos = False
+    if filters is None:
+        filters = []
+    else:
+        for f in filters:
+            if f.type() == 'vo':
+                fetch_vos = True
+                break
+
+    services = {}
+
+    ldap_uri = ldap_uri_dict['uri']
+    glue1_fallback = False
+
+    # construct GLUE2 base DN
+    ldap_basedn = ldap_uri_dict['basedn']
+    if ldap_basedn.endswith('o=grid'):
+        glue1_fallback = True
+        # legacy glue1.3 basedn given: remove suffix, replace mds-vo-name
+        ldap_basedn = ldap_basedn[:-6] + 'o=glue'
+        ldap_basedn = 'GLUE2DomainID' + ldap_basedn[11:]
+
+    try:
+        ldap_conn = ldap.initialize(ldap_uri)
+        ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, ldap_timeout)
+        ldap_conn.set_option(ldap.OPT_TIMEOUT, ldap_timeout)
+        ldap_conn.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3)
+
+        # Query services info
+        ldap_service_filter = '(objectClass=GLUE2Service)'
+        ldap_service_attrs = ['GLUE2ServiceID', 'GLUE2ServiceType']
+
+        service_info = ldap_conn.search_s(ldap_basedn, ldap.SCOPE_SUBTREE,
+                                          ldap_service_filter, ldap_service_attrs)
+
+        if service_info is None:
+            logger.error('Site-BDII LDAP GLUE2 query for %s/%s returns empty result set.', ldap_uri, ldap_basedn)
+            return []
+
+        for ldap_dn, ldap_s in service_info:
+            if 'GLUE2ServiceID' not in ldap_s:
+                logger.warning(
+                    'Failed to find service ID in the LDAP response for DN %s. '
+                    'It seams GLUE2 rendering is broken for %s/%s.', ldap_dn.decode(), ldap_uri, ldap_basedn)
+                continue
+            # get service data
+            s_id = ldap_s['GLUE2ServiceID'][0].decode()
+            s_type = ldap_s['GLUE2ServiceType'][0].decode()
+            services[s_id] = {'object': 'service', 'type': s_type, 'id': s_id, 'endpoints': []}
+            logger.debug('Found service %s (type %s)', s_id, s_type)
+
+        # Query endpoints info
+        ldap_endpoints_filter = '(objectClass=GLUE2Endpoint)'
+        ldap_endpoints_arrts = ['GLUE2EndpointID', 'GLUE2EndpointURL', 'GLUE2EndpointInterfaceName',
+                                'GLUE2EndpointHealthState', 'GLUE2EndpointServiceForeignKey']
+
+        endpoints_info = ldap_conn.search_s(ldap_basedn, ldap.SCOPE_SUBTREE,
+                                            ldap_endpoints_filter, ldap_endpoints_arrts)
+
+        for ldap_dn, ldap_ee in endpoints_info:
+            if 'GLUE2EndpointURL' not in ldap_ee:
+                logger.warning(
+                    'Failed to find endpoint URL in LDAP response for DN %s. '
+                    'It seams GLUE2 rendering is broken for %s.', ldap_dn.decode(), ldap_uri, ldap_basedn)
+                continue
+            e_id = ldap_ee['GLUE2EndpointID'][0].decode()
+            e_url = ldap_ee['GLUE2EndpointURL'][0].decode()
+            e_type = ldap_ee['GLUE2EndpointInterfaceName'][0].decode()
+            e_entry = {'id': e_id, 'u': e_url, 't': e_type}
+            if ldap_ee['GLUE2EndpointHealthState'][0].decode().upper() != 'OK':
+                e_entry['s'] = '0'
+            e_service = ldap_ee['GLUE2EndpointServiceForeignKey'][0].decode()
+            # fetch access policy if VO filtering is requested
+            if fetch_vos:
+                ldap_vo_filter = '(&(objectClass=GLUE2AccessPolicy)' \
+                                 '(GLUE2AccessPolicyEndpointForeignKey={0}))'.format(e_id)
+                logger.debug('Querying AccessPolicy for endpoint %s (type %s)', e_url, e_type)
+                vo_q_res = ldap_conn.search_s(ldap_basedn, ldap.SCOPE_SUBTREE, ldap_vo_filter, ['GLUE2PolicyRule'])
+                if vo_q_res:
+                    for(_, policy_list) in vo_q_res:
+                        if 'GLUE2PolicyRule' in policy_list:
+                            e_vos = [v.decode().split(':', 1)[1]
+                                     for v in policy_list['GLUE2PolicyRule']
+                                     if v.decode().lower().startswith('vo:')]
+                            if e_vos:
+                                e_entry['vos'] = e_vos
+            # apply filters if any
+            for fo in filters:
+                if fo.on_fetch():
+                    if fo.filter(e_entry):
+                        break
+            else:
+                # add endpoint if not filtered
+                logger.debug('Found endpoint %s (type %s) for %s service', e_url, e_type, e_service)
+                if e_service not in services:
+                    logger.error('Found endpoint %s (type %s) for service ID %s, '
+                                 'but service itself is missing in the rendering.', e_url, e_type, e_service)
+                    continue
+                services[e_service]['endpoints'].append(e_entry)
+    except (ldap.SERVER_DOWN, ldap.CONNECT_ERROR, ldap.TIMEOUT) as err:
+        logger.error('Failed to connect to LDAP server %s. Error: %s', ldap_uri, LDAPStrError(err))
+        return services.values()
+    except ldap.LDAPError as err:
+        logger.error('Failed to query LDAP GLUE2 for %s/%s. Error: %s', ldap_uri, ldap_basedn, LDAPStrError(err))
+
+    # fallback to LDAP GLUE1 for legacy Site-BDII without GLUE2 support
+    if not services and glue1_fallback:
+        logger.warning('There are no service endpoints fetched for LDAP GLUE2 URI %s. '
+                       'Falling back to LDAP GLUE1 site-bdii query.', ldap_uri)
+        return get_sitebdii_endpoints_ldapglue1(uri, ldap_timeout, filters)
+
+    return services.values()
+
+_fetch_data_map = {
+    'arc-ldapglue2': get_arc_ce_endpoints_ldapglue2,
+    'arc-ldapng': get_arc_ce_endpoints_ldapng,
+    'sitebdii': get_sitebdii_endpoints_ldapglue2,
+    'sitebdii-glue1': get_sitebdii_endpoints_ldapglue1
+}
+
+
+def _worker_info_fetch(fetch_queue, lock):
+    """Worker process to fetch enqueued data and add it to ARCHERY object"""
+    # { method, uri, obj, obj_attr, filters }
+    while True:
+        pdata = fetch_queue.get()
+        logger.debug('Processing %s data fetching', pdata['uri'])
+        fetch_f = _fetch_data_map[pdata['method']]
+        fetch_data = fetch_f(pdata['uri'], filters=pdata['filters'])
+        with lock:
+            # add fetched data to the list
+            if fetch_data:
+                # generate rr_owner for nested objects
+                if pdata['obj_attr'] == 'contains':
+                    for fobj in fetch_data:
+                        if 'endpoints' in fobj and not fobj['endpoints']:
+                            logger.warning('Service %s (type %s) contains no valid endpoints. Skipping.',
+                                           fobj['id'], fobj['type'])
+                            continue
+                        fobj['rr_owner'] = dns_rr_owner_name(fobj, pdata['obj']['rr_owner'])
+                        pdata['obj']['contains'].append(fobj)
+                else:
+                    pdata['obj'][pdata['obj_attr']] += fetch_data
+            # handle status (mark as inactive if no endpoints are fetched)
+            if not pdata['obj'][pdata['obj_attr']]:
+                pdata['obj']['status'] = 0
+            elif 'status' in pdata['obj']:
+                del pdata['obj']['status']
+        fetch_queue.task_done()
+
+
+def enqueue_object_data_fetch(fetch_queue, archery_object, applied_filters=None):
+    """Process topology tree and enqueue object data to be fetched"""
+    if 'endpoints' in archery_object:
+        if 'endpoints_fetch' in archery_object:
+            for fetch_method in archery_object['endpoints_fetch'].keys():
+                fetch_uri = archery_object['endpoints_fetch'][fetch_method]
+                logger.debug('Enqueueing endpoints data fetch from %s using %s method.', fetch_uri, fetch_method)
+                fetch_queue.put({
+                    'method': fetch_method,
+                    'uri': fetch_uri,
+                    'obj': archery_object,
+                    'obj_attr': 'endpoints',
+                    'filters': applied_filters
+                })
+
+    if 'contains' in archery_object:
+        if 'contains_fetch' in archery_object:
+            # per-source filters from config
+            source_filters = []
+            if 'filters' in archery_object['contains_fetch']:
+                source_filters.extend(get_configured_fillters(archery_object['contains_fetch']['filters'], True))
+            if applied_filters is not None:
+                source_filters.extend(applied_filters)
+            for fetch_method in archery_object['contains_fetch'].keys():
+                if fetch_method == 'filters':
+                    continue
+                fetch_uri = archery_object['contains_fetch'][fetch_method]
+                logger.debug('Enqueueing group data fetch from %s using %s method.', fetch_uri, fetch_method)
+                fetch_queue.put({
+                    'method': fetch_method,
+                    'uri': fetch_uri,
+                    'obj': archery_object,
+                    'obj_attr': 'contains',
+                    'filters': source_filters
+                })
+        # recursively process tree
+        for child_object in archery_object['contains']:
+            enqueue_object_data_fetch(fetch_queue, child_object, applied_filters)
+
+
+def get_configured_fillters(filters_list=None, force_on_fetch=False):
+    """Return list of filtering objects from """
+    applied_filters = []
+    if filters_list is not None:
+        for f in filters_list:
+            if f == 'help':
+                print('Supported filters are:')
+                for _, fclass in _filters.items():
+                    fci = fclass()
+                    fci.help()
+                sys.exit(0)
+            fdef = f.split(':', 1)
+            ftype = fdef[0]
+            fargs = fdef[1] if len(fdef) > 1 else ''
+            if ftype not in list(_filters.keys()):
+                logger.error('Ignoring bad filter definition: %s', f)
+                continue
+            fclass = _filters[ftype]
+            fobj = fclass(fargs)
+            if force_on_fetch:
+                fobj.set_on_fetch()
+            applied_filters.append(fobj)
+    return applied_filters
+
+
+def fetch_infosys_data(archery_object, applied_filters=None, threads=10):
+    """Fetch infosys data to be added into the ARCHERY"""
+    # create queue and object lock
+    fetch_queue = TimeoutQueue()
+    object_lock = Lock()
+    # recursively add fetch tasks to the fetch queue
+    enqueue_object_data_fetch(fetch_queue, archery_object, applied_filters)
+    # start worker threads
+    for i in range(threads):
+        logger.debug('Staring worker thread %s to fetch infosys data.', i)
+        worker = Thread(target=_worker_info_fetch, args=(fetch_queue, object_lock,))
+        worker.setDaemon(True)
+        worker.start()
+    # wait for parallel fetch to complete
+    logger.info('Waiting for endpoint data fetching completion...')
+    # make it killable
+    while not fetch_queue.empty():
+        time.sleep(0.3)
+    # join with timeout (in case of some stuck ldap connections)
+    try:
+        fetch_queue.join_with_timeout(_fetch_timeout*3)
+    except OSError as e:
+        logger.error(str(e))
+        sys.exit(1)
+
+
+#
+# ARCHERY TOPOLOGY PROCESSING
+#
+# FLAT ARC-CE LIST
+def get_arcce_topology(ce_list, rr_owner=''):
+    """Create ARCHERY data object that represent ARC CE flat CE list topology"""
+    archery_object = {
+        'object': 'group',
+        'rr_owner': rr_owner,
+        'contains': [],
+    }
+
+    for ce in ce_list:
+        service_object = {
+            'object': 'service',
+            'type': 'org.nordugrid.arex',
+            'id': ce,
+            'endpoints': []
+        }
+        service_object['rr_owner'] = dns_rr_owner_name(service_object, rr_owner)
+        service_object['endpoints_fetch'] = {
+            'arc-ldapglue2':  ce
+        }
+        archery_object['contains'].append(service_object)
+
+    return archery_object
+
+
+# JSON CONFIG
+def get_json_topology(json_file, rr_owner='', timeout=_fetch_timeout):
+    """Create ARCHERY data object that represent arbitrary topology defined in JSON config file"""
+    try:
+        with open(json_file, 'r') as jconf_f:
+            jconf = json.load(jconf_f)
+    except IOError as err:
+        logger.error('Failed to open JSON config file %s. Error: %s', json_file, str(err))
+        sys.exit(1)
+    except ValueError as err:
+        logger.error('Failed to parse JSON config file %s. Error: %s', json_file, str(err))
+        sys.exit(1)
+
+    # process groups recursively and return archery-manage internal object
+    archery_object = group_object_from_json(jconf, rr_owner)
+
+    # support raw DNS records only on the top-level
+    if 'raw-dns' in jconf:
+        archery_object['raw-dns'] = jconf['raw-dns']
+    return archery_object
+
+
+# JSON: helpers for groups/services
+def service_object_from_json(sconf):
+    """Define service object content based on JSON config"""
+    sobj = {
+        'object': 'service',
+        'endpoints': []
+    }
+
+    if 'external-archery-object' in sconf:
+        sobj['pointer_rr_data'] = 'u={0} t=archery.service'.format(sconf['external-archery-object'])
+        return sobj
+
+    if 'id' in sconf:
+        sobj['id'] = sconf['id']
+    else:
+        logger.error('Service description in config is missing mandatory "id" attribute. Service will be skipped. '
+                     'Provided JSON service description: %s', json.dumps(sconf))
+        return None
+    if 'type' in sconf:
+        sobj['type'] = sconf['type']
+    else:
+        logger.error('Service description in config is missing mandatory "type" attribute. Service will be skipped. '
+                     'Provided JSON service description: %s', json.dumps(sconf))
+        return None
+    if 'endpoints' in sconf:
+        for edict in sconf['endpoints']:
+            erecord = {}
+            for ekey in edict.keys():
+                if ekey == 'url':
+                    erecord['u'] = edict[ekey]
+                elif ekey == 'type':
+                    erecord['t'] = edict[ekey]
+                elif ekey == 'status':
+                    if not edict[ekey]:
+                        erecord['s'] = '0'
+                else:
+                    erecord['u'] = ekey
+                    erecord['t'] = edict[ekey]
+            sobj['endpoints'].append(erecord)
+
+    return sobj
+
+
+def group_object_from_json(jconf, rr_owner):
+    """Define service object content based on JSON config"""
+    archery_object = {
+        'object': 'group',
+        'rr_owner': rr_owner,
+        'contains': [],
+    }
+
+    if 'external-archery-object' in jconf:
+        archery_object['pointer_rr_data'] = 'u={0} t=archery.group'.format(jconf['external-archery-object'])
+        return archery_object
+
+    if 'arc-services' in jconf:
+        archery_arcces_object = get_arcce_topology(jconf['arc-services'], rr_owner)
+        archery_object['contains'].extend(archery_arcces_object['contains'])
+
+    if 'services' in jconf:
+        for sconf in jconf['services']:
+            sobj = service_object_from_json(sconf)
+            if sobj is not None:
+                sobj['rr_owner'] = dns_rr_owner_name(sobj, rr_owner)
+                archery_object['contains'].append(sobj)
+
+    if 'id' in jconf:
+        archery_object['id'] = jconf['id']
+
+    if 'dns-name' in jconf:
+        archery_object['dns-name'] = jconf['dns-name']
+
+    if 'type' in jconf:
+        archery_object['type'] = jconf['type']
+
+    if 'external-source' in jconf:
+        archery_object['contains_fetch'] = jconf['external-source']
+
+    if 'software' in jconf:
+        swobj = software_object_from_json(jconf['software'])
+        if swobj is not None:
+            archery_object['contains'].append(swobj)
+
+    if 'groups' in jconf:
+        g_idx = 0
+        for gconf in jconf['groups']:
+            g_idx += 1
+            if 'dns-name' in gconf:
+                g_rr_owner = gconf['dns-name']
+            elif 'id' in gconf:
+                g_rr_owner = gconf['id'].replace(' ', '-')
+            else:
+                gconf['dns-name'] = dns_rr_owner_name(gconf, 'group{0}.{1}'.format(g_idx, rr_owner))
+                g_rr_owner = gconf['dns-name']
+            archery_object['contains'].append(group_object_from_json(gconf, g_rr_owner))
+
+    return archery_object
+
+
+# JSON: helpers for software objects
+def __get_rte_description(rte_path):
+    """Extract embedded RTE description from RTE file"""
+    with open(rte_path) as rte_f:
+        max_lines = 10
+        description = None
+        for line in rte_f:
+            descr_re = re.match(r'^#+\s*description:\s*(.*)\s*$', line, flags=re.IGNORECASE)
+            if descr_re:
+                description = descr_re.group(1)
+            max_lines -= 1
+            if not max_lines:
+                break
+        return description
+
+
+def __get_dir_rtes(rtedir):
+    """Get all RTEs defined by classic directory structure"""
+    rtes = {}
+    for path, _, files in os.walk(rtedir):
+        rtebase = path.lstrip(rtedir + '/')
+        for f in files:
+            rtename = rtebase + '/' + f if rtebase else f
+            rtepath = path + '/' + f
+            if os.path.islink(rtepath):
+                rtepath = os.readlink(rtepath)
+            rtes[rtename] = rtepath
+    return rtes
+
+
+def software_object_from_json(jconf):
+    """Get necessary data and define software object based on JSON config"""
+    sconf = {
+        'object': 'software',
+        'rr_owner': '_software',
+        'endpoints': [],
+        'contains': []
+    }
+    # set gpg options
+    gpg_home = []
+    warn_gpg_home = True
+    if 'gpg_home' in jconf:
+        gpg_home = ['--homedir', jconf['gpg_home']]
+        warn_gpg_home = False
+    keyid = []
+    if 'gpg_keyid' in jconf:
+        keyid.append(jconf['gpg_keyid'])
+    # set directory to hold signed RTE files
+    signed_dir = 'signed'
+    if 'signed_rtes_dir' in jconf:
+        signed_dir = jconf['signed_rtes_dir']
+
+    # public key data for archery.software object
+    if 'pubkey_url' in jconf:
+        sconf['endpoints'].append({
+            'u': jconf['pubkey_url'],
+            't': 'gpg.pubkey'
+        })
+    else:
+        if 'pubkey' not in jconf:
+            # if there is no defined public key, export from GPG automatically
+            if warn_gpg_home:
+                logger.warning('There is no GPG home defined in the configuration. Using default GPG path.')
+                warn_gpg_home = False
+            keyout = tempfile.mkstemp(suffix='.key', prefix='pubkey-')[1]
+            os.unlink(keyout)
+            gpgcmd = ['gpg'] + gpg_home + ['--output', keyout, '--export'] + keyid
+            logger.info('Exporting public key from GPG database using: %s', ' '.join(gpgcmd))
+            gpgproc = subprocess.Popen(gpgcmd)
+            gpgproc.wait()
+            if gpgproc.returncode != 0 or not os.path.exists(keyout):
+                logger.error('Failed to export public key from GPG database')
+                sys.exit(1)
+            with open(keyout, 'rb') as key_f:
+                jconf['pubkey'] = base64.b64encode(key_f.read()).decode()
+            os.unlink(keyout)
+
+        # add child object with key in the DNS
+        sconf['contains'].append({
+            'reftype': 'gpg.pubkey.base64',
+            'rr_owner': '_pubkey',
+            'endpoints': [{
+                'rr_data': jconf['pubkey']
+            }]
+        })
+
+    # generate RTEs from directory (if defined)
+    if 'rtes_dir' in jconf:
+        if not os.path.exists(jconf['rtes_dir']):
+            logger.error('Path to RTEs directory (%s) does not exists.', jconf['rtes_dir'])
+        else:
+            dirrtes = __get_dir_rtes(jconf['rtes_dir'])
+            if dirrtes and 'rtes' not in jconf:
+                jconf['rtes'] = []
+            for rte in dirrtes:
+                logger.debug('Adding RTE %s to software registry', rte)
+                jconf['rtes'].append({
+                    'name': rte,
+                    'path': dirrtes[rte]
+                })
+    # process RTE objects
+    if 'rtes' not in jconf:
+        logger.warning('No RTEs defined in the software object. Nothing to do.')
+        return sconf
+    for rte in jconf['rtes']:
+        # rte object info
+        if 'name' not in rte:
+            logger.error('Malformed RTE definition. Name is missing in %s', json.dumps(rte))
+            continue
+        rtename = rte['name']
+        rteobj = {
+            'object': 'rte',
+            'id': rtename,
+            'endpoints': []
+        }
+        rteobj['rr_owner'] = dns_rr_owner_name(rteobj, sconf['rr_owner'])
+        if 'description' in rte:
+            rteobj['description'] = quote(rte['description'])
+        # rte content endpoint
+        if 'url' in rte:
+            rteobj['endpoints'].append({
+                'u': rte['url'],
+                't': 'gpg.signed'
+            })
+        elif 'data' in rte:
+            try:
+                base64.b64decode(rte['data'])
+            except TypeError:
+                logger.error('Cannon parse RTE %s data as base64 encoded. Skipping.')
+                continue
+            if 'contains' not in rteobj:
+                rteobj['contains'] = []
+            rteobj['contains'].append({
+                'reftype': 'gpg.signed.base64',
+                'rr_owner': '_data',
+                'endpoints': [{
+                    'rr_data': rte['data']
+                }]
+            })
+        elif 'path' in rte:
+            rtepath = rte['path']
+            if not os.path.exists(rtepath):
+                logger.error('Malformed RTE %s definition. RTE path %s does not exists.', rtename, rte['path'])
+                continue
+            if 'description' not in rteobj:
+                logger.debug('Trying to fetch description from RTE file at %s', rtepath)
+                filedescr = __get_rte_description(rtepath)
+                if filedescr:
+                    rteobj['description'] = quote(filedescr)
+            if not os.path.exists(signed_dir):
+                try:
+                    os.mkdir(signed_dir, 0o755)
+                except IOError as e:
+                    logger.error('Failed to create directory for signed RTEs in %s. Error: %s', signed_dir, str(e))
+            # signed RTE path
+            srtename = rtename.replace('/', '-') + '.signed'
+            srtepath = os.path.join(signed_dir, srtename)
+            sign_needed = True
+            if os.path.exists(srtepath):
+                rte_mtime = os.path.getmtime(rtepath)
+                srte_mtime = os.path.getmtime(srtepath)
+                if rte_mtime > srte_mtime:
+                    logger.info('Signed RTE file for %s is already exist (%s). '
+                                'But the RTE file updated more recently. Going to recreate signed RTE.',
+                                rtename, srtename)
+                    os.unlink(srtepath)
+                else:
+                    logger.info('Signed RTE file for %s is already exist (%s). Skipping signing.',
+                                rtename, srtename)
+                    sign_needed = False
+            # sign rtes
+            if sign_needed:
+                if warn_gpg_home:
+                    logger.warning('There is no GPG home defined in the configuration. Using default GPG path.')
+                    warn_gpg_home = False
+                gpgcmd = ['gpg'] + gpg_home + ['--output', srtepath, '--sign', rtepath]
+                logger.info('Signing RunTimeEnvironment %s with GPG using %s', rtename, ' '.join(gpgcmd))
+                gpgproc = subprocess.Popen(gpgcmd)
+                gpgproc.wait()
+                if gpgproc.returncode != 0 or not os.path.exists(srtepath):
+                    logger.error('Failed to sign RunTimeEnvironment %s', rtename)
+                    sys.exit(1)
+
+            # if URL is defined, just add endpoint
+            if 'signed_rtes_url' in jconf:
+                rteurl = jconf['signed_rtes_url'].rstrip('/') + '/'
+                rteobj['endpoints'].append({
+                    'u': rteurl + srtename,
+                    't': 'gpg.signed'
+                })
+            else:
+                # or embedd RTE into the DNS
+                with open(srtepath, 'rb') as srte_f:
+                    if 'contains' not in rteobj:
+                        rteobj['contains'] = []
+                    rteobj['contains'].append({
+                        'reftype': 'gpg.signed.base64',
+                        'rr_owner': '_data',
+                        'endpoints': [{
+                            'rr_data': base64.b64encode(srte_f.read()).decode()
+                        }]
+                    })
+        # add rte object to software object
+        sconf['contains'].append(rteobj)
+    # remind about RTEs upload if were configured
+    if 'signed_rtes_url' in jconf:
+        logger.info('NOTE! According to configuration signed RTEs should be uploaded to %s '
+                    'from "%s" directory to be accessible.', jconf['signed_rtes_url'], signed_dir)
+    return sconf
+
+
+# CONFIG FROM GOCDB
+def get_gocdb_topology(rr_owner='', timeout=_fetch_timeout):
+    """Create ARCHERY data object that represent GOCDB-defined EGI topology"""
+    gocdb_host = 'goc.egi.eu'
+    gocdb_path = '/gocdbpi/public/?method=get_site_list'
+
+    # fetch EGI topology data
+    topology = {}
+    conn = HTTPSInsecureConnection(gocdb_host, timeout=timeout)
+    try:
+        # fetch the data
+        conn.request('GET', gocdb_path)
+        response = conn.getresponse()
+        if response.status != 200:
+            logger.error('Failed to get sites list from GOCDB PI at http://%s%s. HTTP reason: %s',
+                         gocdb_host, gocdb_path, response.reason)
+            sys.exit(1)
+        # parse the XML
+        gocdb_xml = ElementTree.fromstring(response.read())
+        for site in gocdb_xml:
+            ngi = site.attrib['ROC']
+            if str(site.attrib['GIIS_URL']).strip() == '':
+                logger.warning('Site %s in %s NGI contains no Site-BDII information. Skipping.',
+                               site.attrib['NAME'], ngi)
+                continue
+            if ngi not in topology:
+                topology[ngi] = {}
+            topology[ngi][site.attrib['NAME']] = site.attrib['GIIS_URL']
+    except Exception as e:
+        logger.error('Failed to query GOCDB PI at http://%s%s. Error: %s', gocdb_host, gocdb_path, e)
+
+    # create archery object skeleton
+    archery_object = {
+        'object': 'group',
+        'type': 'org.egi.infrastructure',
+        'id': 'EGI',
+        'rr_owner': rr_owner,
+        'contains': [],
+    }
+    for ngi in topology.keys():
+        ngi_object = {
+            'object': 'group',
+            'type': 'org.egi.ngi',
+            'id': ngi,
+            'rr_owner': ngi.replace(' ', '-'),
+            'contains': [],
+        }
+        for site in topology[ngi].keys():
+            site_object = {
+                'object': 'group',
+                'type': 'org.egi.site',
+                'id': site,
+                'rr_owner': site.replace(' ', '-'),
+                'contains': [],
+                'contains_fetch': {
+                    'sitebdii': topology[ngi][site]
+                }
+            }
+            ngi_object['contains'].append(site_object)
+        archery_object['contains'].append(ngi_object)
+
+    return archery_object
+
+
+#
+# ARCHERY DNS PROCESSING
+#
+def dns_rr_owner_name(archery_object, parent_owner):
+    """Generate RR owner name based on the object content and parent owner name"""
+    # TODO: consider to add another naming schemes
+    # concatenate different object attribute values
+    strid = parent_owner
+    if 'object' in archery_object:
+        strid += archery_object['object']
+    else:
+        strid += 'group'
+    if 'type' in archery_object:
+        strid += archery_object['type']
+    if 'id' in archery_object:
+        strid += archery_object['id']
+    # produce SHA1 hash (SHA1 selected for best speed) and shorten it
+    return hashlib.sha1(strid.encode()).hexdigest()[:10]
+
+
+def parse_archery_txt(txtstr):
+    """Get data dict from ARCHERY DNS TXT string representation"""
+    rrdata = {}
+    for kv in txtstr.split(' '):
+        # in case of broken records
+        if len(kv) < 3:
+            logger.warning('Malformed archery TXT entry "%s" ("%s" too short for k=v)', txtstr, kv)
+            continue
+        # only one letter keys and 'id' is supported now
+        if kv[1] == '=':
+            rrdata[kv[0]] = kv[2:]
+        elif kv.startswith('id='):
+            rrdata['id'] = kv[3:]
+        else:
+            logger.warning('Malformed archery TXT entry "%s" (%s does not match k=value)', txtstr, kv)
+    return rrdata
+
+
+def fetch_archery_dns_data(dns_name, nameserver=None, threads=1):
+    """Get ARCHERY data object from DNS endpoint"""
+    archery_object = {
+        'contains': [],
+        'endpoints': [],
+        'rr_owner': ''
+    }
+    req_queue = Queue()
+    req_queue.put({
+        'name': dns_name,
+        'obj': archery_object,
+        'parent_name': '',
+    })
+
+    # start worker threads
+    for i in range(threads):
+        logger.debug('Staring worker thread %s to fetch DNS data.', i)
+        worker = Thread(target=_worker_resolver, args=(req_queue, nameserver,))
+        worker.setDaemon(True)
+        worker.start()
+
+    # wait for parallel fetch to complete
+    logger.info('Waiting for DNS queries completion...')
+    req_queue.join()
+
+    return archery_object
+
+
+def _worker_resolver(req_queue, nameserver=None):
+    """Worker thread to fetch DNS data"""
+    # thread DNS resolver
+    resolver = dns.resolver.Resolver()
+    if nameserver is not None:
+        resolver.nameservers = [nameserver]
+    # request
+    while True:
+        req = req_queue.get()
+        __fetch_archery_dns_data(req_queue, req['obj'], req['name'], resolver, req['parent_name'])
+        req_queue.task_done()
+
+
+def __fetch_archery_dns_data(req_queue, archery_object, dns_name, resolver, parent_name=''):
+    """Process ARCHERY data from DNS RRSet"""
+    # construct archery exact domain name to query (ensure the dot is at the end)
+    if dns_name[0:6] == 'dns://':
+        dns_name = dns_name[6:].rstrip('.') + '.'
+    else:
+        dns_name = dns_name.rstrip('.') + '.'
+    pdns_name = dns_name
+    qdns_name = dns_name
+    if not parent_name:
+        # default entry point
+        qdns_name = '_archery.' + dns_name
+
+    # query TXT RRSet
+    logger.debug('Querying ARCHERY data from: %s', dns_name)
+    try:
+        archery_rrs = resolver.query(qdns_name, 'TXT')
+        # get owner name (without full DNS suffix including dot)
+        rrset_name = pdns_name
+        if parent_name and rrset_name.endswith(parent_name):
+            rrset_name = rrset_name[:-(len(parent_name)+1)]
+        archery_object['rr_owner'] = rrset_name
+        for rr in archery_rrs:
+            # fetch all records
+            txt = ''
+            for rri in rr.strings:
+                txt += rri.decode()
+            # special cases for '_pubkey' and '_data' that contains raw data
+            if rrset_name in ['_pubkey', '_data']:
+                archery_object['endpoints'].append({'rr_data': txt})
+                continue
+            # parse object data
+            rrdata = parse_archery_txt(txt)
+            # object description resource record found
+            if 'o' in rrdata:
+                archery_object['rr_data'] = txt
+                archery_object['object'] = rrdata['o']
+                # type and id for the object if available
+                if 't' in rrdata:
+                    archery_object['type'] = rrdata['t']
+                if 'id' in rrdata:
+                    archery_object['id'] = rrdata['id']
+                # description for archery.rte object
+                if 'd' in rrdata:
+                    archery_object['description'] = rrdata['d']
+            # other records that contains endpoint/grouping data
+            elif 'u' in rrdata:
+                if 't' in rrdata:
+                    if rrdata['t'] in ['archery.group', 'archery.service', 'org.nordugrid.archery',
+                                       'archery.software', 'archery.rte',
+                                       'gpg.pubkey.base64', 'gpg.signed.base64']:
+                        # fetch the data from DNS
+                        child_object = {
+                            'contains': [],
+                            'endpoints': [],
+                            'pointer_rr_data': txt,
+                            'rr_owner': ''
+                        }
+                        # add reftype for raw data referenced objects
+                        if rrdata['t'] in ['gpg.pubkey.base64', 'gpg.signed.base64']:
+                            child_object['reftype'] = rrdata['t']
+                        # add status for child object if defined
+                        if 's' in rrdata and rrdata['s'] != '1':
+                            child_object['status'] = 0
+                        archery_object['contains'].append(child_object)
+                        # enqueue request to fetch child data (child object is already created)
+                        req_queue.put({
+                            'name': rrdata['u'],
+                            'obj': child_object,
+                            'parent_name': pdns_name,
+                        })
+                    else:
+                        rrdata['rr_data'] = txt
+                        archery_object['endpoints'].append(rrdata)
+                else:
+                    logger.error('ARCHERY data in %s contains broken endpoint record without type: %s', dns_name, txt)
+                    continue
+        # check for objects with no endpoints
+        if not archery_object['contains'] and not archery_object['endpoints']:
+            logger.warning('ARCHERY service object defined by %s has no endpoints.', dns_name)
+    except DNSException as err:
+        logger.warning('Failed to query ARCHERY data from %s (Error: %s)', dns_name, err)
+        # if query failed (leftover objects in DNS) - still provide RR owner for the pointer record
+        rrset_name = dns_name
+        if rrset_name.endswith(parent_name):
+            rrset_name = rrset_name[:-len(parent_name)]
+        archery_object['rr_owner'] = rrset_name
+
+
+def _raw_dns_fetch(dnsdata, domain, nameserver=None):
+    resolver = dns.resolver.Resolver()
+    if nameserver is not None:
+        resolver.nameservers = [nameserver]
+
+    for rdns in dnsdata:
+        # format configured data
+        rdns['config_data'] = set()
+        if rdns['rdata']:
+            if isinstance(rdns['rdata'], list):
+                for rdata in rdns['rdata']:
+                    rdns['config_data'].add(rdata)
+            else:
+                rdns['config_data'].add(rdns['rdata'])
+        # fetch and construct server data
+        rdns['server_data'] = set()
+        resolve_name = domain
+        if rdns['name']:
+            resolve_name = rdns['name'] + '.' + resolve_name
+        try:
+            handle_no_answer = True if rdns['type'] == 'NS' else False
+            logger.debug('Querying raw DNS data (type %s) from %s', rdns['type'], resolve_name)
+            rrs = resolver.query(resolve_name, rdns['type'], raise_on_no_answer=(not handle_no_answer))
+            # handle NS records
+            if not rrs.response.answer:
+                for rr in rrs.response.authority:
+                    for lrr in rr.to_text().split('\n'):
+                        rdns['server_data'].add(lrr.split(' ')[-1])
+        except dns.resolver.NXDOMAIN as e:
+            logger.debug('NXDOMAIN received for %s DNS query for domain %s.',
+                         rdns['type'], resolve_name)
+        except dns.resolver.NoAnswer as e:
+            logger.warning('No answer for %s DNS query for domain %s. Error: %s',
+                           rdns['type'], resolve_name, str(e))
+        except dns.resolver.NoNameservers as e:
+            logger.warning('No namservers received for %s DNS query for domain %s. Error: %s',
+                           rdns['type'], resolve_name, str(e))
+        else:
+            for rr in rrs:
+                rdns['server_data'].add(rr.to_text().strip('"'))
+
+#
+# HANDLE DDNS UPDATE
+#
+_tsig_algorithms = {
+    'HMAC-MD5': dns.tsig.HMAC_MD5,
+    'HMAC-SHA1': dns.tsig.HMAC_SHA1,
+    'HMAC-SHA224': dns.tsig.HMAC_SHA224,
+    'HMAC-SHA256': dns.tsig.HMAC_SHA256,
+    'HMAC-SHA384': dns.tsig.HMAC_SHA384,
+    'HMAC-SHA512': dns.tsig.HMAC_SHA512,
+}
+
+
+def archery_ddns_update(domain, nameserver, keyring_dict, new_archery_object, ttl=3600, fetch_threads=1,
+                        keyalgorithm=dns.tsig.default_algorithm):
+    """Incrementally updates ARCHERY data records in DNS"""
+    keyring = dns.tsigkeyring.from_text(keyring_dict)
+    main_rr_owner = domain.rstrip('.') + '.'
+
+    # new ARCHERY TXT data according to provided data object
+    new_dns_rrset = archery_txt_rrset(new_archery_object)
+
+    # old endpoints from querying the ARCHERY DNS zone
+    dns_archery_object = fetch_archery_dns_data(main_rr_owner, nameserver=nameserver, threads=fetch_threads)
+    old_dns_rrset = archery_txt_rrset(dns_archery_object)
+
+    # print(json.dumps(list(new_dns_rrset), indent=2))
+    # print(json.dumps(list(old_dns_rrset), indent=2))
+
+    remove_rrs = old_dns_rrset - new_dns_rrset
+    add_rrs = new_dns_rrset - old_dns_rrset
+    logger.info('DNS incremental update includes %s records to add and %s records to remove', len(add_rrs), len(remove_rrs))
+
+    # print(json.dumps(list(add_rrs), indent=2))
+    # print(json.dumps(list(remove_rrs), indent=2))
+
+    try:
+        update = dns.update.Update(domain, keyring=keyring, keyalgorithm=keyalgorithm)
+        for r in remove_rrs:
+            logger.debug('Going to REMOVE record by means of DDNS update: %s', r)
+            rr = r.split(' ', 1)
+            txts = txt_255(rr[1].replace(' ', r'\ '), getlist=True)
+            update.delete(rr[0], 'txt', ' '.join(txts))
+            if len(update.to_wire()) > 65000:
+                logger.info('Size limit reached. Sending partial DDNS update.')
+                dns.query.tcp(update, nameserver)
+                update = dns.update.Update(domain, keyring=keyring, keyalgorithm=keyalgorithm)
+
+        for a in add_rrs:
+            logger.debug('Going to ADD record by means of DDNS update: %s', a)
+            ar = a.split(' ', 1)
+            txts = txt_255(ar[1].replace(' ', r'\ '), getlist=True)
+            update.add(ar[0], ttl, 'txt', ' '.join(txts))
+            if len(update.to_wire()) > 65000:
+                logger.info('Size limit reached. Sending partial DDNS update.')
+                dns.query.tcp(update, nameserver)
+                update = dns.update.Update(domain, keyring=keyring, keyalgorithm=keyalgorithm)
+
+        # if exception is not raised we have succeeded with update
+        dns.query.tcp(update, nameserver)
+        logger.info('ARCHERY information has been updated for zone %s', domain)
+    except DNSException as e:
+        logger.error('Failed in ARCHERY data DDNS update. Error: %s', e)
+
+    # check raw DNS records are in sync in the zone
+    if 'raw-dns' in archery_object:
+        logger.info('Raw DNS data is defined in the config. Goind to check defined records consistency.')
+        _raw_dns_fetch(archery_object['raw-dns'], domain, nameserver)
+        try:
+            rawupdate = dns.update.Update(domain, keyring=keyring, keyalgorithm=keyalgorithm)
+            needs_rawupdate = False
+            for rr in archery_object['raw-dns']:
+                for cr in list(rr['server_data'] - rr['config_data']):
+                    logger.debug('Going to REMOVE raw DNS record by means of DDNS update: %s %s %s',
+                                 rr['name'], rr['type'], cr)
+                    needs_rawupdate = True
+                    rawupdate.delete(rr['name'], dns.rdatatype.from_text(rr['type']), cr)
+                for cr in list(rr['config_data'] - rr['server_data']):
+                    logger.debug('Going to ADD raw DNS record by means of DDNS update: %s %s %s',
+                                 rr['name'], rr['type'], cr)
+                    needs_rawupdate = True
+                    rawupdate.add(rr['name'], ttl, dns.rdatatype.from_text(rr['type']), cr)
+
+            if needs_rawupdate:
+                dns.query.tcp(rawupdate, nameserver)
+                logger.info('Defined raw DNS data has been updated for zone %s', domain)
+            else:
+                logger.info('Defined raw DNS data is in sync for zone %s', domain)
+        except DNSException as e:
+            logger.error('Failed in raw DNS data DDNS update. Error: %s', e)
+
+#
+# MAIN EXECUTION CYCLE
+#
+def get_parser():
+    """Command line arguments parser"""
+    parser = argparse.ArgumentParser(description='The archery-manage tool used to simplify common operations with ARCHERY, including registry initial bootstrap, integration with topology databases and keeping dynamic information up to date.')
+    parser.add_argument('-d', '--debug', action='store', default='INFO',
+                        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'])
+    parser.add_argument('-s', '--source', action='store', required=True,
+                        help='Services topology source (use \'help\' value to print available sources)')
+    parser.add_argument('-f', '--filter', action='append',
+                        help='Add endpoints filter (use \'help\' value to print available filters)')
+    parser.add_argument('-o', '--output', choices=list(_output_formatters.keys()),
+                        help='Write requested data to stdout')
+    parser.add_argument('--json', action='store_true',
+                        help='Change output format from plaintext to JSON')
+    parser.add_argument('--output-all', action='store_true',
+                        help='Output all services/endpoints including inactive (filters are still applied)')
+    parser.add_argument('-u', '--ddns-update', action='store_true',
+                        help='Invoke DNS zone incremental DDNS update secured by TSIG key')
+    parser.add_argument('--domain', help='Domain name of the ARCHERY endpoint to use (required for DDNS update)')
+    parser.add_argument('--ddns-master-ip', help='Master DNS IP address (required for DDNS update)')
+    parser.add_argument('--ddns-tsig-keyfile', help='TSIG keyfile (required for DDNS update)')
+    parser.add_argument('--ddns-tsig-algorithm', help='Cryptographic algorithm for TSIG',
+                        choices=list(_tsig_algorithms.keys()), default='HMAC-MD5')
+    parser.add_argument('--ttl', action='store', default='3600', type=int,
+                        help='DNS resource records TTL value to use (default is %(default)s)')
+    parser.add_argument('--threads', action='store', default='8', type=int,
+                        help='Number of treads to fetch information in parallel (default is %(default)s)')
+    parser.add_argument('--timeout', action='store', default='10', type=int,
+                        help='Per-source information fetching timeout (default is %(default)s seconds)')
+    return parser
+
+if __name__ == '__main__':
+    # Process command line arguments
+    parser = get_parser()
+    cmd_args = parser.parse_args()
+    # Set requested logging level
+    logger.setLevel(getattr(logging, cmd_args.debug, 20))
+    # Set per-source fetch timeout value
+    _fetch_timeout = cmd_args.timeout
+
+    # Domain name to work with
+    domain = cmd_args.domain
+    # Check DDNS update required options before doing anything
+    if cmd_args.ddns_update:
+        # check for domain
+        if domain is None:
+            logger.error('Domain name (--domain) is required to use DDNS update')
+            sys.exit(1)
+        # check for master nameserver IP
+        if cmd_args.ddns_master_ip is None:
+            logger.error('DNS master IP (--ddns-master-ip) is required to use DDNS update')
+            sys.exit(1)
+        nameserver = cmd_args.ddns_master_ip
+        # check for keyring
+        if cmd_args.ddns_tsig_keyfile is None:
+            logger.error('TSIG keyfile (--ddns-tsig-keyfile) is required to use DDNS update')
+            sys.exit(1)
+        else:
+            try:
+                logger.debug('Reading TSIG key from %s', cmd_args.ddns_tsig_keyfile)
+                with open(cmd_args.ddns_tsig_keyfile, 'r') as tsig_f:
+                    keyring_str = tsig_f.readline()
+                    keyring_s = keyring_str.split(':')
+                    if len(keyring_s) != 2:
+                        logger.error('Failed to parse TSIG keyfile %s. Expected format is keyname:secret',
+                                     cmd_args.ddns_tsig_keyfile)
+                        sys.exit(1)
+                    logger.debug('TSIG key %s has been read successfully', keyring_s[0])
+                    keyring_dict = {keyring_s[0]: keyring_s[1]}
+            except EnvironmentError as err:
+                logger.error('Failed to read TSIG keyfile %s. Error: %s', cmd_args.ddns_tsig_keyfile, err)
+                sys.exit(1)
+
+    # Parse filters for fetching endpoints
+    applied_filters = get_configured_fillters(cmd_args.filter)
+
+    # Base domain name to work with
+    rr_owner = ''
+    if domain is not None:
+        rr_owner += domain.rstrip('.') + '.'
+
+    # Define services topology
+    logger.info('Constructing ARCHERY objects topology according to configuration.')
+    source = cmd_args.source
+    if source.startswith('json:'):
+        logger.info('Obtaining services topology from JSON configuration file: %s', source[5:])
+        archery_object = get_json_topology(source[5:], rr_owner)
+    elif source.startswith('file:'):
+        logger.error('The \'file:\' source type is deprecated. Use \'arcce-list:\' for the same behavior.')
+        sys.exit(1)
+    elif source.startswith('arcce-list:'):
+        logger.info('Obtaining ARC CEs list from file: %s', source[11:])
+        ce_list = get_file_celist(source[11:])
+        archery_object = get_arcce_topology(ce_list, rr_owner)
+    elif source.startswith('egiis:'):
+        logger.info('Obtaining ARC CEs list from EGIIS: %s', source[6:])
+        ce_list = get_egiis_celist(source[6:])
+        logger.debug('Fetched EGIIS CEs list to work with: %s', ', '.join(ce_list))
+        archery_object = get_arcce_topology(ce_list, rr_owner)
+    elif source.startswith('archery:'):
+        logger.info('Obtaining services topology from ARCHERY DNS endpoint: %s', source[8:])
+        archery_object = fetch_archery_dns_data(source[8:], threads=cmd_args.threads)
+    elif source.startswith('gocdb'):
+        logger.info('Obtaining services topology from EGI GOCDB.')
+        archery_object = get_gocdb_topology(rr_owner)
+    elif source == 'help':
+        sources_types = {
+            'json': 'Topology defined in JSON configuration file',
+            'arcce-list': 'List of ARC CE hostnames stored in file',
+            'archery': 'ARCHERY endpoint',
+            'egiis': 'Legacy EGIIS LDAP URI',
+            'gocdb': 'EGI GOCDB',
+        }
+        print('Supported sources types:')
+        for st, sd in sources_types.items():
+            print(' {0:>12}: {1}'.format(st, sd))
+        sys.exit(0)
+    else:
+        logger.error('Unsupported source: %s', source)
+        sys.exit(1)
+
+    # Fetch topology data from defined infosys services
+    logger.info('Fetching endpoints data from information system.')
+    fetch_infosys_data(archery_object, applied_filters, threads=cmd_args.threads)
+
+    # Post-fetch endpoint filtering
+    do_filtering = False
+    for f in applied_filters:  # at least on not on-fetch filter should be defined
+        if not f.on_fetch():
+            do_filtering = True
+            break
+    if do_filtering:
+        logger.info('Starting endpoint filtering loop')
+        filter_endpoints(archery_object, applied_filters)
+
+    # Invoke DDNS update if requested
+    if cmd_args.ddns_update:
+        logger.info('Sending update to DNS master %s via DDNS protocol (using TSIG key %s)',
+                    nameserver, list(keyring_dict.keys())[0])
+        archery_ddns_update(domain, nameserver, keyring_dict, archery_object,
+                            ttl=cmd_args.ttl, fetch_threads=cmd_args.threads,
+                            keyalgorithm=_tsig_algorithms[cmd_args.ddns_tsig_algorithm])
+
+    # Output information if requested
+    if cmd_args.output:
+        formatter_f = _output_formatters[cmd_args.output]
+        formatter_f(archery_object, cmd_args)

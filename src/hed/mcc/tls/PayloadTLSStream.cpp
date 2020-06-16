@@ -3,13 +3,7 @@
 #endif
 
 #include <unistd.h>
-#ifndef WIN32
 #include <sys/poll.h>
-#else
-#define NOGDI
-#include <objbase.h>
-#include <io.h>
-#endif
 
 #include <sys/types.h>
 #include <sys/stat.h>

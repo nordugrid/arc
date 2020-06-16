@@ -47,7 +47,7 @@ namespace Arc {
      *  attempt to acquire a lock.
      **/
     JobInformationStorage(const std::string& name, unsigned nTries = 10, unsigned tryInterval = 500000)
-      : name(name), nTries(nTries), tryInterval(tryInterval), isValid(false) {}
+      : name(name), nTries(nTries), tryInterval(tryInterval), isValid(false), isStorageExisting(false) {}
     virtual ~JobInformationStorage() {}
     
     /// Check if storage is valid

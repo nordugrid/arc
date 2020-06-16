@@ -13,9 +13,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#ifndef WIN32
 #include <poll.h>
-#endif
 #include <dirent.h>
 #include <fcntl.h>
 
@@ -33,7 +31,6 @@ static bool sread_start = true;
 
 static bool sread(int s,void* buf,size_t size) {
   while(size) {
-#ifndef WIN32
     struct pollfd p[1];
     p[0].fd = s;
     p[0].events = POLLIN;
@@ -42,9 +39,6 @@ static bool sread(int s,void* buf,size_t size) {
     if(err == 0) return false;
     if((err == -1) && (errno != EINTR)) return false;
     if(err == 1) {
-#else
-    {
-#endif
       ssize_t l = ::read(s,buf,size);
       if(l <= 0) return false;
       size-=l;
@@ -57,7 +51,6 @@ static bool sread(int s,void* buf,size_t size) {
 
 static bool swrite(int s,const void* buf,size_t size) {
   while(size) {
-#ifndef WIN32
     struct pollfd p[1];
     p[0].fd = s;
     p[0].events = POLLOUT;
@@ -66,9 +59,6 @@ static bool swrite(int s,const void* buf,size_t size) {
     if(err == 0) return false;
     if((err == -1) && (errno != EINTR)) return false;
     if(err == 1) {
-#else
-    {
-#endif
       ssize_t l = ::write(s,buf,size);
       if(l < 0) return false;
       size-=l;
@@ -189,10 +179,8 @@ static bool cleandir(const std::string& path,int& err) {
 }
 
 int main(int argc,char* argv[]) {
-#ifndef WIN32
   uid_t initial_uid = getuid();
   gid_t initial_gid = getgid();
-#endif
   DIR* curdir = NULL;
   int curfile = -1;
 
@@ -222,7 +210,6 @@ int main(int argc,char* argv[]) {
         if(!sread(sin,&uid,sizeof(uid))) return -1;
         if(!sread(sin,&gid,sizeof(gid))) return -1;
         errno = 0;
-#ifndef WIN32
         res = 0;
         seteuid(initial_uid);
         setegid(initial_gid);
@@ -234,7 +221,6 @@ int main(int argc,char* argv[]) {
           errno = 0;
           res = seteuid(uid);
         };
-#endif
         if(!swrite_result(sout,header.cmd,res,errno)) return -1;
       }; break;
  
@@ -247,11 +233,7 @@ int main(int argc,char* argv[]) {
         if(!sread_string(sin,dirname,header.size)) return -1;
         if(header.size) return -1;
         errno = 0;
-#ifndef WIN32
         int res = ::mkdir(dirname.c_str(),mode);
-#else
-        int res = ::mkdir(dirname.c_str());
-#endif
         if((res != 0) && (header.cmd == CMD_MKDIRP)) {
           // resursively up
           std::string::size_type p = dirname.length();
@@ -261,11 +243,7 @@ int main(int argc,char* argv[]) {
               if(p == std::string::npos) break;
               if(p == 0) break;
               errno = 0;
-#ifndef WIN32
               res = ::mkdir(dirname.substr(0,p).c_str(),mode);
-#else
-              res = ::mkdir(dirname.substr(0,p).c_str());
-#endif
               if(res == 0) break;
             };
             if((res == 0) || (errno == EEXIST)) {
@@ -274,11 +252,7 @@ int main(int argc,char* argv[]) {
                 p = dirname.find('/',p+1);
                 if(p == std::string::npos) p = dirname.length();
                 errno = 0;
-#ifndef WIN32
                 res = ::mkdir(dirname.substr(0,p).c_str(),mode);
-#else
-                res = ::mkdir(dirname.substr(0,p).c_str());
-#endif
                 if(res != 0) break;
               };
             };
@@ -296,13 +270,11 @@ int main(int argc,char* argv[]) {
         if(header.size) return -1;
         int res = -1;
         errno = 0;
-#ifndef WIN32
         if(header.cmd == CMD_HARDLINK) {
           res = ::link(oldpath.c_str(),newpath.c_str());
         } else {
           res = ::symlink(oldpath.c_str(),newpath.c_str());
         };
-#endif
         if(!swrite_result(sout,header.cmd,res,errno)) return -1;
       }; break;
 
@@ -527,13 +499,7 @@ int main(int argc,char* argv[]) {
         if(size > sizeof(filebuf)) size = sizeof(filebuf);
         ssize_t l = -1;
         errno = 0;
-#ifndef WIN32
         l = ::pread(curfile,filebuf,size,offset);
-#else
-        if (::lseek(curfile,offset,SEEK_SET) == offset) {
-          l = ::read(curfile,filebuf,size);
-        }
-#endif
         int res = l;
         if(l < 0) l = 0;
         int n = l;
@@ -549,13 +515,7 @@ int main(int argc,char* argv[]) {
         if(header.size) return -1;
         ssize_t l = -1;
         errno = 0;
-#ifndef WIN32
         l = ::pwrite(curfile,filebuf,size,offset);
-#else
-        if (::lseek(curfile,offset,SEEK_SET) == offset) {
-          l = ::write(curfile,filebuf,size);
-        }
-#endif
         int res = l;
         if(!swrite_result(sout,header.cmd,res,errno)) return -1;
       }; break;

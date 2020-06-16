@@ -13,11 +13,11 @@ endif
 # order is important!
 SUBDIRS = common loader message crypto cryptomod \
 	credential credentialmod data security \
-	ws-addressing $(XMLSEC_DIR) ws-security wsrf delegation \
-	communication compute ws infosys $(GLOBUSUTILS_DIR) \
-	credentialstore scitokens
+	ws-addressing $(XMLSEC_DIR) ws-security delegation \
+	communication compute infosys $(GLOBUSUTILS_DIR) \
+	credentialstore otokens
 DIST_SUBDIRS = common loader message crypto cryptomod \
 	credential credentialmod data security \
-	ws-addressing xmlsec ws-security wsrf delegation \
-	communication compute ws infosys globusutils \
-	credentialstore scitokens
+	ws-addressing xmlsec ws-security delegation \
+	communication compute infosys globusutils \
+	credentialstore otokens

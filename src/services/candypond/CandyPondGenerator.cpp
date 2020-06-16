@@ -88,9 +88,6 @@ namespace CandyPond {
     logger.msg(Arc::INFO, "DTR %s finished with state %s", dtr->get_id(), dtr->get_status().str());
     std::string jobid (dtr->get_parent_job_id());
 
-    // Delete LogStreams and LogDestinations
-    dtr->clean_log_destinations();
-
     // Add to finished jobs
     std::string error_msg;
     if (dtr->error()) error_msg = dtr->get_error_status().GetDesc() + ". ";
@@ -152,23 +149,22 @@ namespace CandyPond {
 
     if (generator_state != DataStaging::RUNNING) return false;
 
-    // Logger for this DTR. Uses a string stream to keep log in memory rather
+    std::list<DataStaging::DTRLogDestination> logs;
+    // Logger destinations for this DTR. Uses a string stream to keep log in memory rather
     // than a file. LogStream keeps a reference to the stream so we have to use
     // a pointer. The LogDestinations are deleted when the DTR is received back.
     // TODO: provide access to this log somehow
     std::stringstream * stream = new std::stringstream();
     Arc::LogDestination * output = new Arc::LogStream(*stream);
-    DataStaging::DTRLogger log(new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging"));
-    log->removeDestinations();
-    log->addDestination(*output);
+    logs.push_back(output);
 
-    DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, usercfg, jobid, user.get_uid(), log));
+    DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, usercfg, jobid, user.get_uid(), logs, "DataStaging"));
 
     if (!(*dtr)) {
       logger.msg(Arc::ERROR, "Invalid DTR for source %s, destination %s", source, destination);
-      log->deleteDestinations();
       return false;
     }
+
     // set retry count (tmp errors only)
     dtr->set_tries_left(staging_conf.get_max_retries());
     // set priority
@@ -183,7 +179,7 @@ namespace CandyPond {
     cache_params.substitute(config, user);
     DataStaging::DTRCacheParameters cache_parameters;
     cache_parameters.cache_dirs = cache_params.getCacheDirs();
-    // we are definitely going to download so remote caches are not useful here
+    // we are definitely going to download so read-only caches are not useful here
     dtr->set_cache_parameters(cache_parameters);
     dtr->registerCallback(this, DataStaging::GENERATOR);
     dtr->registerCallback(scheduler, DataStaging::SCHEDULER);

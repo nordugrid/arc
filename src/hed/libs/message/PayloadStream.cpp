@@ -5,10 +5,8 @@
 #include <ctime>
 #include <sys/types.h>
 #include <sys/stat.h>
-#ifndef WIN32
 #include <unistd.h>
 #include <sys/poll.h>
-#endif
 
 #include <arc/Utils.h>
 #include "PayloadStream.h"
@@ -20,17 +18,6 @@ PayloadStream::PayloadStream(int h):timeout_(60),handle_(h),seekable_(false) {
   if(fstat(handle_,&st) != 0) return;
   if(!(S_ISREG(st.st_mode))) return;
   seekable_=true;
-#ifdef WIN32
-  COMMTIMEOUTS to;
-  if(GetCommTimeouts((HANDLE)handle_,&to)) {
-    to.ReadIntervalTimeout=timeout_*1000;
-    to.ReadTotalTimeoutMultiplier=0;
-    to.ReadTotalTimeoutConstant=timeout_*1000;
-    to.WriteTotalTimeoutMultiplier=0;
-    to.WriteTotalTimeoutConstant=timeout_*1000;
-    SetCommTimeouts((HANDLE)handle_,&to);
-  };
-#endif  
   return;
 }
 
@@ -58,7 +45,6 @@ bool PayloadStream::Get(char* buf,int& size) {
       return false;
     };
   };
-#ifndef WIN32
   struct pollfd fd;
   fd.fd=handle_; fd.events=POLLIN | POLLPRI | POLLERR; fd.revents=0;
   int r = 0;
@@ -74,24 +60,16 @@ bool PayloadStream::Get(char* buf,int& size) {
     failure_ = MCC_Status(GENERIC_ERROR,"STREAM","Error in stream's handle");
     return false;
   }
-#endif
   l=::read(handle_,buf,l);
   if(l == -1) {
     FAILSYSERR("Failed reading stream's handle: ");
   }
   size=l;
-#ifndef WIN32
   if((l == 0) && (fd.revents && POLLERR)) {
     // TODO: remove because it never happens
     failure_ = MCC_Status(GENERIC_ERROR,"STREAM","Error in stream's handle");
     return false;
   }
-#else
-  if(l == 0) {
-    failure_ = MCC_Status(GENERIC_ERROR,"STREAM","No data in stream's handle");
-    return false;
-  }
-#endif
   return true;
 }
 
@@ -100,7 +78,6 @@ bool PayloadStream::Put(const char* buf,Size_t size) {
   if(handle_ == -1) return false;
   time_t start = time(NULL);
   for(;size;) {
-#ifndef WIN32
     struct pollfd fd;
     fd.fd=handle_; fd.events=POLLOUT | POLLERR; fd.revents=0;
     int to = timeout_-(unsigned int)(time(NULL)-start);
@@ -118,21 +95,11 @@ bool PayloadStream::Put(const char* buf,Size_t size) {
       failure_ = MCC_Status(GENERIC_ERROR,"STREAM","Error in stream's handle");
       return false;
     };
-#endif
     l=::write(handle_,buf,size);
     if(l == -1) {
       FAILSYSERR("Failed writing into stream's handle: ");
     }
     buf+=l; size-=l;
-#ifdef WIN32
-    if(size > 0) {
-      int to = timeout_-(unsigned int)(time(NULL)-start);
-      if(to < 0) {
-        failure_ = MCC_Status(GENERIC_ERROR,"STREAM","Timeout waiting for outgoing data");
-        return false;
-      };
-    };
-#endif
   };  
   return true;
 }

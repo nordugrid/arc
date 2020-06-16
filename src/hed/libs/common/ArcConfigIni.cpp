@@ -133,80 +133,6 @@ const char* ConfigIni::SubSectionMatch(const char* name) {
 
 // TODO: not all functions can handle tabs and other non-space spaces.
 
-static int hextoint(unsigned char c) {
-  if(c >= 'a') return (c-('a'-10));
-  if(c >= 'A') return (c-('A'-10));
-  return (c-'0');
-}
-
-/// Remove escape chracters from string and decode \x## codes.
-/// Unescaped value of e is also treated as end of string and is converted to \0
-static char* make_unescaped_string(char* str,char e) {
-  size_t l = 0;
-  char* s_end = str;
-  // looking for end of string
-  if(e == 0) { l=strlen(str); s_end=str+l; }
-  else {
-    for(;str[l];l++) {
-      if(str[l] == '\\') { l++; if(str[l] == 0) { s_end=str+l; break; }; };
-      if(e) { if(str[l] == e) { s_end=str+l+1; str[l]=0; break; }; };
-    };
-  };
-  // unescaping
-  if(l==0) return s_end;  // string is empty
-  char* p  = str;
-  char* p_ = str;
-  for(;*p;) {
-    if((*p) == '\\') {
-      p++; 
-      if((*p) == 0) { p--; } // backslash at end of string
-      else if((*p) == 'x') { // 2 hex digits
-        int high,low;
-        p++; 
-        if((*p) == 0) continue; // \x at end of string
-        if(!isxdigit(*p)) { p--; continue; };
-        high=*p;
-        p++;
-        if((*p) == 0) continue; // \x# at end of string
-        if(!isxdigit(*p)) { p-=2; continue; };
-        low=*p;
-        high=hextoint(high); low=hextoint(low);
-        (*p)=(high<<4) | low;
-      };
-    };
-    (*p_)=(*p); p++; p_++;
-  };
-  return s_end;
-}
-
-/// Remove escape characters from string and decode \x## codes.
-static void make_unescaped_string(std::string &str) {
-  std::string::size_type p  = 0;
-  std::string::size_type l = str.length();
-  for(;p<l;) {
-    if(str[p] == '\\') {
-      p++; 
-      if(p >= l) break; // backslash at end of string
-      if(str[p] == 'x') { // 2 hex digits
-        int high,low;
-        p++; 
-        if(p >= l) continue; // \x at end of string
-        high=str[p];
-        if(!isxdigit(high)) { p--; continue; };
-        p++;
-        if(p >= l) continue; // \x# at end of string
-        low=str[p];
-        if(!isxdigit(low)) { p-=2; continue; };
-        high=hextoint(high); low=hextoint(low);
-        str[p]=(high<<4) | low;
-        str.erase(p-3,3); p-=3; l-=3; continue;
-      } else { str.erase(p-1,1); l--; continue; };
-    };
-    p++;
-  };
-  return;
-}
-
 /// Extract element from input buffer and if needed process escape 
 /// characters in it.
 /// \param buf input buffer.
@@ -217,29 +143,21 @@ static void make_unescaped_string(std::string &str) {
 int ConfigIni::NextArg(const char* buf,std::string &str,char separator,char quotes) {
   std::string::size_type i,ii;
   str="";
-  /* skip initial separators and blank spaces */
+  // skip initial separators and blank spaces
   for(i=0;isspace(buf[i]) || buf[i]==separator;i++) {}
   ii=i;
   if((quotes) && (buf[i] == quotes)) { 
     const char* e = strchr(buf+ii+1,quotes);
-    while(e) { // look for unescaped quote
-      if((*(e-1)) != '\\') break; // check for escaped quote
-      e = strchr(e+1,quotes);
-    };
     if(e) {
       ii++; i=e-buf;
       str.append(buf+ii,i-ii);
       i++;
       if(separator && (buf[i] == separator)) i++;
-      make_unescaped_string(str);
       return i;
     };
   };
-  // look for unescaped separator (' ' also means '\t')
+  // look for separator
   for(;buf[i]!=0;i++) {
-    if(buf[i] == '\\') { // skip escape
-      i++; if(buf[i]==0) break; continue;
-    };
     if(separator == ' ') {
       if(isspace(buf[i])) break;
     } else {
@@ -247,7 +165,6 @@ int ConfigIni::NextArg(const char* buf,std::string &str,char separator,char quot
     };
   };
   str.append(buf+ii,i-ii);
-  make_unescaped_string(str);
   if(buf[i]) i++; // skip detected separator
   return i;
 }
@@ -262,3 +179,4 @@ std::string ConfigIni::NextArg(std::string &rest,char separator,char quotes) {
 
 
 } // namespace Arc
+

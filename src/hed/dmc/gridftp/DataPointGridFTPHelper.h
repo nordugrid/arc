@@ -110,6 +110,8 @@ namespace ArcDMCGridFTP {
     DataStatus RemoveFile();
     DataStatus RemoveDir();
     DataStatus do_more_stat(FileInfo& f, DataPoint::DataPointInfoType verb);
+    DataPointGridFTPHelper(DataPointGridFTPHelper const&);
+    DataPointGridFTPHelper& operator=(DataPointGridFTPHelper const&);
   public:
     DataPointGridFTPHelper(const URL& url, const UserConfig& usercfg, std::istream& instream, std::ostream& outstream);
     virtual ~DataPointGridFTPHelper();
@@ -119,6 +121,8 @@ namespace ArcDMCGridFTP {
     void SetStreams(int streams) { ftp_threads = streams; };
     void SetRange(unsigned long long int start, unsigned long long int end) { range_start = start; range_end = end; };
     void SetAllowOutOfOrder(bool out_of_order) { allow_out_of_order = out_of_order; };
+    void SetSecure(bool secure) { force_secure = secure; };
+    void SetPassive(bool passive) { force_passive = passive; };
     DataStatus Read();
     DataStatus Write();
     DataStatus Check();

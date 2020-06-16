@@ -25,11 +25,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <vector>
-#ifndef WIN32
 #include <unistd.h>
-#else
-#include <conio.h>
-#endif
 
 #include <openssl/pem.h>
 #include <openssl/err.h>
@@ -177,6 +173,9 @@ namespace ArcAuthNSS {
     it.data = inBuf;
     it.len = inBufLen;
     dup = SECITEM_DupItem(&it);
+    if(!dup) {
+        return PR_FALSE;
+    }
     // If converting Unicode to ASCII, swap bytes before conversion as neccessary.
     if (!toUnicode && swapBytes) {
       if (p12u_SwapUnicodeBytes(dup) != SECSuccess) {
@@ -187,8 +186,7 @@ namespace ArcAuthNSS {
     // Perform the conversion.
     ret = PORT_UCS2_UTF8Conversion(toUnicode, dup->data, dup->len,
                                    outBuf, maxOutBufLen, outBufLen);
-    if (dup)
-      SECITEM_ZfreeItem(dup, PR_TRUE);
+    SECITEM_ZfreeItem(dup, PR_TRUE);
     return ret;
   }
 
@@ -251,7 +249,7 @@ namespace ArcAuthNSS {
       NSSUtilLogger.msg(ERROR, "Failed to add Independent OID");
     }
     else {
-      NSSUtilLogger.msg(DEBUG, "Succeeded to add anyLanguage OID, tag %d is returned", tag_independent);
+      NSSUtilLogger.msg(DEBUG, "Succeeded to add Independent OID, tag %d is returned", tag_independent);
     }
 
     tag_vomsacseq = SECOID_AddEntry(&oids[4]);
@@ -463,7 +461,7 @@ namespace ArcAuthNSS {
 
     if(!p12cxt->file) {
       p12cxt->error = PR_TRUE;
-      NSSUtilLogger.msg(ERROR, "Failed to open pk12 file");
+      NSSUtilLogger.msg(ERROR, "Failed to open p12 file");
       return PR_FALSE;
     }
 
@@ -489,13 +487,6 @@ namespace ArcAuthNSS {
 
   static p12uContext * p12u_InitFile(PRBool fileImport, char *filename) {
     p12uContext *p12cxt;
-    PRBool fileExist;
-
-    if(fileImport)
-      fileExist = PR_TRUE;
-    else
-      fileExist = PR_FALSE;
-
     p12cxt = (p12uContext *)PORT_ZAlloc(sizeof(p12uContext));
     if(!p12cxt) {
       NSSUtilLogger.msg(ERROR, "Failed to allocate p12 context");
@@ -619,7 +610,6 @@ sec_PKCS12CreateSafeBag(SEC_PKCS12ExportContext *p12ctxt, SECOidTag bagType,
                         void *bagData)
 {
     sec_PKCS12SafeBag *safeBag;
-    PRBool setName = PR_TRUE;
     void *mark = NULL;
     SECStatus rv = SECSuccess;
     SECOidData *oidData = NULL;
@@ -664,7 +654,6 @@ sec_PKCS12CreateSafeBag(SEC_PKCS12ExportContext *p12ctxt, SECOidTag bagType,
         case SEC_OID_PKCS12_V1_SAFE_CONTENTS_BAG_ID:
             safeBag->safeBagContent.safeContents =
                 (sec_PKCS12SafeContents *)bagData;
-            setName = PR_FALSE;
             break;
         default:
             goto loser;
@@ -1518,7 +1507,7 @@ err:
     if(PK11_NeedLogin(slot)) {
       rv = PK11_Authenticate(slot, PR_TRUE, (void*)&passphrase);
       if(rv != SECSuccess) {
-        NSSUtilLogger.msg(ERROR, "Failed to authenticate to token %s.", PK11_GetTokenName(slot));
+        NSSUtilLogger.msg(ERROR, "Failed to authenticate to token %s", PK11_GetTokenName(slot));
         return SECFailure;
       }
     }
@@ -1591,33 +1580,6 @@ err:
 
   static SECStatus DeleteKeyAndCert(const char* privkeyname, PasswordSource& passphrase) {
     return deleteKeyAndCert(privkeyname, passphrase, true);
-  }
-
-  static SECStatus DeleteCertAndKey(const char* certname, PasswordSource& passphrase) {
-    SECStatus rv;
-    CERTCertificate* cert;
-    PK11SlotInfo* slot;
-
-    slot = PK11_GetInternalKeySlot();
-    if(PK11_NeedLogin(slot)) {
-      SECStatus rv = PK11_Authenticate(slot, PR_TRUE, (void*)&passphrase);
-      if(rv != SECSuccess) {
-        NSSUtilLogger.msg(ERROR, "Failed to authenticate to token %s.", PK11_GetTokenName(slot));
-        return SECFailure;
-      }
-    }
-    cert = PK11_FindCertFromNickname((char*)certname, (void*)&passphrase);
-    if(!cert) {
-      PK11_FreeSlot(slot);
-      return SECFailure;
-    }
-    rv = PK11_DeleteTokenCertAndKey(cert, (void*)&passphrase);
-    if(rv != SECSuccess) {
-      NSSUtilLogger.msg(ERROR, "Failed to delete private key that attaches to certificate: %s", certname);
-    }
-    CERT_DestroyCertificate(cert);
-    PK11_FreeSlot(slot);
-    return rv;
   }
 
   static bool InputPrivateKey(std::vector<uint8>& output, const std::string& privk_in) {
@@ -1815,7 +1777,7 @@ err:
     SECKEYPrivateKey* privkey = NULL;
     SECKEYPublicKey* pubkey = NULL;
     CERTName* name = NULL;
-    int keybits = 1024;
+    int keybits = 2048;
     PRArenaPool* arena;
     SECItem* encoding;
     SECOidTag signAlgTag;
@@ -2240,10 +2202,8 @@ err:
     PRArenaPool *arena = NULL;
     SECStatus rv = SECSuccess;
     SECOidData* oid = NULL;
-    SECItem policy_item;
     std::string pl_lang;
     SECOidTag tag;
-    void* mark;
 
     pl_lang = policylang;
     if(pl_lang == "Any language") tag = tag_anylang;
@@ -2370,7 +2330,7 @@ error:
     return (rv);
   }
 
-#if !defined(WIN32) && !defined(MACOS)
+#if !defined(MACOS)
 // CERT_NameFromDERCert 
 // CERT_IssuerNameFromDERCert 
 // CERT_SerialNumberFromDERCert
@@ -2570,11 +2530,10 @@ loser:
     PORT_FreeArena(arena, PR_FALSE);
     return(SECFailure);
 }
-#endif // #if !defined(WIN32) && !defined(MACOS)
+#endif // #if !defined(MACOS)
 
   void nssListUserCertificatesInfo(std::list<certInfo>& certInfolist) {
     CERTCertList* list;
-    CERTCertificate* find_cert = NULL;
     CERTCertListNode* node;
 
     list = PK11_ListCerts(PK11CertListAll, NULL);
@@ -2596,7 +2555,7 @@ loser:
       std::string subject_dn;
       SECItem derSubject;
 
-#if !defined(WIN32) && !defined(MACOS)
+#if !defined(MACOS)
       rv = my_CERT_NameFromDERCert(&cert->derCert, &derSubject);
 #else
       rv = CERT_NameFromDERCert(&cert->derCert, &derSubject);
@@ -2604,23 +2563,27 @@ loser:
 
       if(rv == SECSuccess) {
         char* subjectName = CERT_DerNameToAscii(&derSubject);
-        subject_dn = subjectName;
-        if(subjectName) PORT_Free(subjectName);
+        if(subjectName) {
+          subject_dn = subjectName;
+          PORT_Free(subjectName);
+        }
         cert_info.subject_dn = subject_dn;
       }
 
       std::string issuer_dn;
       SECItem derIssuer;
 
-#if !defined(WIN32) && !defined(MACOS)
+#if !defined(MACOS)
       rv = my_CERT_IssuerNameFromDERCert(&cert->derCert, &derIssuer);
 #else
       rv = CERT_IssuerNameFromDERCert(&cert->derCert, &derIssuer);
 #endif
       if(rv == SECSuccess) {
         char* issuerName = CERT_DerNameToAscii(&derIssuer);
-        issuer_dn = issuerName;
-        if(issuerName) PORT_Free(issuerName);
+        if(issuerName) {
+          issuer_dn = issuerName;
+          PORT_Free(issuerName);
+        }
         cert_info.issuer_dn = issuer_dn;
       }
 
@@ -2628,7 +2591,7 @@ loser:
       std::string serial;
       SECItem derSerial;
 
-#if !defined(WIN32) && !defined(MACOS)
+#if !defined(MACOS)
       rv = my_CERT_SerialNumberFromDERCert (&cert->derCert, &derSerial);
 #else
       rv = CERT_SerialNumberFromDERCert (&cert->derCert, &derSerial);
@@ -2715,7 +2678,6 @@ loser:
     CERTCertificate* cert = NULL;
     PRExplodedTime extime;
     PRTime now, start, end;
-    int serialnum;
     CERTCertificateRequest* req = NULL;
     void* ext_handle; 
     PRArenaPool* arena;
@@ -2756,28 +2718,35 @@ loser:
     validity = CERT_CreateValidity(start, end);
 
     //Subject
-#if !defined(WIN32) && !defined(MACOS)
+#if !defined(MACOS)
     my_CERT_NameFromDERCert(&issuercert->derCert, &derSubject);
 #else
     CERT_NameFromDERCert(&issuercert->derCert, &derSubject);
 #endif
 
+    std::string subname_str;
     char* subjectName = CERT_DerNameToAscii(&derSubject);
-    std::string subname_str = subjectName;
+    if(subjectName) {
+      subname_str = subjectName;
+      PORT_Free(subjectName);
+    }
 
     srand(time(NULL));
     unsigned long random_cn;
     random_cn = rand();
-    char* CN_name = NULL;
-    CN_name = (char*)malloc(sizeof(long)*4 + 1);
+    char* CN_name = (char*)malloc(sizeof(long)*4 + 1);
+    if(!CN_name) {
+      NSSUtilLogger.msg(ERROR, "Can not allocate memory");
+      return false;
+    }
     snprintf(CN_name, sizeof(long)*4 + 1, "%lu", random_cn);
     std::string str = "CN="; str.append(CN_name); str.append(",");
     subname_str.insert(0, str.c_str(), str.length());
+    free(CN_name);
+
     NSSUtilLogger.msg(DEBUG, "Proxy subject: %s", subname_str.c_str());
-    if(CN_name) free(CN_name);
     CERTName* subName = NULL;
     if(!subname_str.empty()) subName = CERT_AsciiToName((char*)(subname_str.c_str()));
-    if(subjectName) PORT_Free(subjectName);
 
     if (validity) {
       if(subName != NULL) {
@@ -2932,7 +2901,6 @@ error:
     certhandle = CERT_GetDefaultCertDB();
 
     rv = DeleteCertOnly(name.c_str());
-    //rv = DeleteCertAndKey(name.c_str(), slotpw);
     if(rv == SECFailure) {
       PR_Close(in);
       PK11_FreeSlot(slot);

@@ -1,0 +1,70 @@
+=====================
+ARC support for OIDC
+=====================
+
+
+Support level
+==============
+Currently support for OIDC tokens in ARC is at technology preview level.
+Only tokens conforming to WLCG profile are supported.
+Currently validation is not strict. Token is parsed and signature is 
+checked if present. But no additional requirements are imposed.
+Tokens are only accepted for client authentication for job submission 
+through EMIES interface.
+
+
+Obtaining and using tokens
+===========================
+
+Suggested way for obtaining token is through oidc-agent utility -
+https://indigo-dc.gitbook.io/oidc-agent/. Install it following 
+instructions for your distribution.
+
+Point your browser at https://wlcg.cloud.cnaf.infn.it/ and create 
+an account.
+
+Start oidc-agent. It will print few lines of shell commands. Copy
+them at command line and execute. They will set up environment 
+variables for other oidc-* commands.
+
+Start oidc-gen. It will guide You through steps to register OIDC 
+client and crete profile for oidc-agent. When asked about scope 
+write 'openid profile wlcg'. You need to run oidc-gen only once.
+Next time You use oidc-agent You can load already created profile
+with 'oidc-add NAME_YOU_CHOOSE' command.
+
+Obtain token and store it into ARC_OTOKEN variable. 
+  export ARC_OTOKEN=`oidc-token NAME_YOU_CHOOSE`
+
+Now submit job to ARC CE with arcsub through EMIES interface. For that
+use option '-S org.ogf.glue.emies.activitycreation'. The token stored
+in ARC_TOKEN variable will be used instead of X.509 certificate for
+authenticating user to ARC CE server. The datastaging currently will
+still use X.509 proxy credentials.
+
+Note: You can use any other method for obtaining WLCG compliant OIDC
+token. Just store it into ARC_OTOKEN variable before calling arcsub.
+
+
+Configuring authorization on server 
+====================================
+
+Token processing is enabled by presence of [otokens] configuration block.
+
+User can be authorized on server by adding dedicated command to authgroup block:
+  otokens=subject issuer audience scope group
+Specified parameters must match those in provided token. Parameters
+can be '*' to match any value. For example
+  otokens=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0 https://wlcg.cloud.cnaf.infn.it/ * * *
+matches user with subject e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0 in token issued by
+https://wlcg.cloud.cnaf.infn.it/ .
+
+User mapping to local account is implemented using simulated X.509 user subject.
+Because subjects obtained from OIDC tokens are unique only in scope used identity
+provider the generated identifier suitable for mapping is composed of issuer and original
+subject by catenating them like "issuer/subject". For example user with subject 
+e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0 in token issued by https://wlcg.cloud.cnaf.infn.it/
+is represented by simulated identifier
+  https://wlcg.cloud.cnaf.infn.it//e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0
+
+

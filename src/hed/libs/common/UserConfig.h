@@ -637,6 +637,13 @@ namespace Arc {
      **/
     const std::string& VOMSESPath();
 
+    /// Get the list of VOMS VOs to be used by default while creating proxy credentials
+    /**
+      This list is populated by the (possibly multiple) `defaultvoms` configuration options.
+      \return a list of defaukt VOMS VOs
+    */
+    const std::list<std::string>& DefaultVOMSes() const { return defaultVomses; };
+
     /// Set user-name for SLCS
     /**
      * Set username which is used for requesting credentials from
@@ -699,6 +706,25 @@ namespace Arc {
      * \since Added in 4.0.0.
      */
     const std::string& CredentialString() const { return credentialString; }
+
+    /// Set authentication token.
+    /**
+     * Assigns OToken (authenticatio and sometimes authorizzation token)
+     * to be used in HTTP communication.
+     *
+     * @param cred The credential represented as a string
+     * \since Added in 6.6.0.
+     */
+    void OToken(const std::string& token) { otoken = token; }
+    /// Get authentication token.
+    /**
+     * Returns the authentication token previously set by
+     * OToken(const std::string&).
+     *
+     * @return String representation of credentials
+     * \since Added in 6.6.0.
+     */
+    const std::string& OToken() const { return otoken; }
 
     /// Set path to user proxy
     /**
@@ -936,6 +962,23 @@ namespace Arc {
      * @see SLCS(const URL&)
      **/
     const URL& SLCS() const { return slcs; }
+
+    /// Check if configuration represents same user identity (false negatives are likely)
+    /**
+     * Compare identity represented by this object to one provided.
+     *
+     * @param other configuration object to compare to
+     * @return true if identities are definitely the same.
+     * @see
+     **/
+    bool IsSameIdentity(UserConfig const & other) const {
+      if(credentialString != other.credentialString) return false;
+      if(proxyPath != other.proxyPath) return false;
+      if(certificatePath != other.certificatePath) return false;
+      if(username != other.username) return false;
+      if(otoken != other.otoken) return false;
+      return true;
+    }
 
     /// Set store directory
     /**
@@ -1194,20 +1237,20 @@ namespace Arc {
      * User::Home() method.
      * @see User::Home()
      **/
-    static const std::string ARCUSERDIRECTORY;
+    static std::string ARCUSERDIRECTORY();
     /// Path to system configuration
     /**
      * The \a SYSCONFIG variable is the path to the system configuration
      * file. This variable is only equal to SYSCONFIGARCLOC if ARC is installed
      * in the root (highly unlikely).
      **/
-    static const std::string SYSCONFIG;
+    static std::string SYSCONFIG();
     /// Path to system configuration at ARC location.
     /**
      * The \a SYSCONFIGARCLOC variable is the path to the system configuration
      * file which reside at the ARC installation location.
      **/
-    static const std::string SYSCONFIGARCLOC;
+    static std::string SYSCONFIGARCLOC();
     /// Path to default configuration file
     /**
      * The \a DEFAULTCONFIG variable is the path to the default
@@ -1215,13 +1258,13 @@ namespace Arc {
      * specified. The path is created from the
      * ARCUSERDIRECTORY object.
      **/
-    static const std::string DEFAULTCONFIG;
+    static std::string DEFAULTCONFIG();
     /// Path to example configuration
     /**
      * The \a EXAMPLECONFIG variable is the path to the example
      * configuration file.
      **/
-    static const std::string EXAMPLECONFIG;
+    static std::string EXAMPLECONFIG();
     /// Path to default job list file
     /**
      * The \a JOBLISTFILE variable specifies the default path to the job list
@@ -1231,7 +1274,7 @@ namespace Arc {
      * @see ARCUSERDIRECTORY
      * \since Added in 4.0.0.
      **/
-    static const std::string JOBLISTFILE;
+    static std::string JOBLISTFILE();
 
     /// Default timeout in seconds
     /**
@@ -1252,7 +1295,7 @@ namespace Arc {
      * @see Broker(const std::string&, const std::string&)
      * @see Broker() const
      **/
-    static const std::string DEFAULT_BROKER;
+    static std::string DEFAULT_BROKER();
 
   private:
 
@@ -1284,6 +1327,7 @@ namespace Arc {
     std::list<std::string> rejectManagementURLs;
 
     std::string credentialString;
+    std::string otoken;
     std::string proxyPath;
     std::string certificatePath;
     std::string keyPath;
@@ -1296,6 +1340,7 @@ namespace Arc {
     URL slcs;
 
     std::string vomsesPath;
+    std::list<std::string> defaultVomses;
 
     std::string storeDirectory;
     std::string downloadDirectory;

@@ -21,11 +21,19 @@ void voms_fqan_t::str(std::string& str) const {
   if(!capability.empty()) str += "/Capability="+capability;
 }
 
-AuthResult AuthUser::match_all(const char* /* line */) {
-  default_voms_=voms_t();
-  default_vo_=NULL;
-  default_group_=NULL;
-  return AAA_POSITIVE_MATCH;
+AuthResult AuthUser::match_all(const char* line) {
+  std::string token = Arc::trim(line);
+  if(token == "yes") {
+    default_voms_=voms_t();
+    default_vo_=NULL;
+    default_group_=NULL;
+    return AAA_POSITIVE_MATCH;
+  }
+  if(token == "no") {
+    return AAA_NO_MATCH;
+  }
+  logger.msg(Arc::ERROR,"Unexpected argument for 'all' rule - %s",token);
+  return AAA_FAILURE;
 }
 
 AuthResult AuthUser::match_group(const char* line) {
@@ -302,6 +310,10 @@ AuthResult AuthUser::evaluate(const char* line) {
         switch(res) {
           case AAA_POSITIVE_MATCH: res = AAA_NEGATIVE_MATCH; break;
           case AAA_NEGATIVE_MATCH: res = AAA_POSITIVE_MATCH; break;
+          case AAA_NO_MATCH:
+          case AAA_FAILURE:
+          default:
+            break;
         };
       };
       return res;
@@ -311,10 +323,11 @@ AuthResult AuthUser::evaluate(const char* line) {
   return AAA_FAILURE; 
 }
 
-const std::vector<struct voms_t>& AuthUser::voms(void) {
+const std::vector<struct voms_t>& AuthUser::voms(void) const {
   if(!voms_extracted) {
     const char* line = "* * * *";
-    match_voms(line);
+    // Little hack to avoid mess with const in legacy code
+    const_cast<AuthUser*>(this)->match_voms(line);
   };
   return voms_data;
 }
@@ -357,6 +370,26 @@ std::string AuthUser::err_to_string(int err) {
   if(err == AAA_NO_MATCH) return "no match";
   if(err == AAA_FAILURE) return "failure";
   return "";
+}
+
+bool AuthUser::check_group(const char* grp) const {
+  if(grp == NULL) return false;
+  for(std::list<group_t>::const_iterator i=groups.begin();i!=groups.end();++i) {
+    if(i->name == grp) return true;
+  };
+  return false;
+};
+
+bool AuthUser::select_group(const char* grp) {
+  default_group_ = NULL;
+  if(grp == NULL) return false;
+  for(std::list<group_t>::const_iterator i=groups.begin();i!=groups.end();++i) {
+    if(i->name == grp) {
+      default_group_ = i->name.c_str();
+      return true;
+    };
+  };
+  return false;
 }
 
 AuthEvaluator::AuthEvaluator(void):name("") {

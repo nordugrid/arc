@@ -12,6 +12,7 @@ class GMConfig;
 class FileData;
 class GMJobRef;
 class JobsList;
+class DTRGenerator;
 
 /**
  * DTRInfo passes state information from data staging to A-REX
@@ -29,6 +30,14 @@ class DTRInfo: public DataStaging::DTRCallback {
   virtual void receiveDTR(DataStaging::DTR_ptr dtr);
 };
 
+class GMJobQueueDTR: public GMJobQueue {
+ private:
+  DTRGenerator& generator;
+ public:
+  GMJobQueueDTR(int priority, char const * name, DTRGenerator& parent): GMJobQueue(priority, name), generator(parent) {};
+  virtual bool CanSwitch(GMJob const& ref, GMJobQueue const& new_queue, bool to_front);
+  virtual bool CanRemove(GMJob const& ref);
+};
 
 /**
  * A-REX implementation of DTR Generator. Note that job migration functionality
@@ -36,7 +45,7 @@ class DTRInfo: public DataStaging::DTRCallback {
  */
 class DTRGenerator: public DataStaging::DTRCallback {
  private:
-  /** Active DTRs. Map of job id to DTR id. */
+  /** Active DTRs. Map of job id to DTR id(s). */
   std::multimap<std::string, std::string> active_dtrs;
   /** Jobs where all DTRs are finished. Map of job id to failure reason (empty if success)
      Finished jobs are stored only by ID because they references are already passed
@@ -49,10 +58,10 @@ class DTRGenerator: public DataStaging::DTRCallback {
   /** DTRs received */
   std::list<DataStaging::DTR_ptr> dtrs_received;
   /** Jobs received */
-  GMJobQueue jobs_received;
+  GMJobQueueDTR jobs_received;
   /** Jobs being processing.
       This list is not protected and is used only from DTRGenerator::thread() */
-  GMJobQueue jobs_processing;
+  GMJobQueueDTR jobs_processing;
   /** Jobs cancelled. List of Job IDs. */
   std::list<std::string> jobs_cancelled;
   /** Lock for events.
@@ -72,7 +81,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
   /** logger to a-rex log */
   static Arc::Logger logger;
   /** Central DTR LogDestination */
-  Arc::LogDestination* central_dtr_log;
+  DataStaging::DTRLogDestination central_dtr_log;
   /** Associated scheduler */
   DataStaging::Scheduler* scheduler;
 
@@ -155,7 +164,7 @@ class DTRGenerator: public DataStaging::DTRCallback {
    * sends them to the Scheduler.
    * @param job Job description object.
    */
-  void receiveJob(GMJobRef& job);
+  bool receiveJob(GMJobRef& job);
 
   /**
    * This method is used by A-REX to cancel on-going DTRs. A cancel request

@@ -1,3 +1,6 @@
+#ifndef __ARC_CLEINT_COMPUTE_UTILS_H_
+#define __ARC_CLEINT_COMPUTE_UTILS_H_
+
 #include <unistd.h>
 #include <string>
 #include <list>
@@ -18,6 +21,8 @@ struct termios;
 // password input.
 class ConsoleRecovery {
  private:
+  ConsoleRecovery(ConsoleRecovery const&);
+  ConsoleRecovery& operator=(ConsoleRecovery const&);
   struct termios * ti;
  public:
   ConsoleRecovery(void);
@@ -31,6 +36,7 @@ class ConsoleRecovery {
   int main(int argc, char **argv) { int xr = 0; { ConsoleRecovery cr; xr = X(argc,argv); }; _exit(xr); return 0; } \
   int X
 #endif
+
 
 /// Returns the URLs of computing elements selected by alias, group name, URL or the default ones
 /**
@@ -128,6 +134,12 @@ public:
                 const std::string& summary = "",
                 const std::string& description = "");
 
+  /// Returns the boolean value indication whether new ARC6 set of target selection options are in use
+  bool isARC6TargetSelectionOptions(Arc::Logger& logger, bool allow_cluster = false);
+
+  /// Implement ARC consistent info/submission endpoint types logic
+  bool canonicalizeARC6InterfaceTypes(Arc::Logger& logger);
+
   bool dryrun;
   bool dumpdescription;
   bool show_credentials;
@@ -138,6 +150,7 @@ public:
   bool keep;
   bool forcesync;
   bool truncate;
+  bool convert;
   bool longlist;
   bool printids;
   bool same;
@@ -146,6 +159,7 @@ public:
   bool show_stdout;
   bool show_stderr;
   bool show_joblog;
+  bool show_json;
   bool usejobname;
   bool forcedownload;
   bool list_configured_services;
@@ -155,6 +169,8 @@ public:
   int testjobid;
   int runtime;
   int timeout;
+
+  std::string show_file;
 
   std::string joblist;
   std::string jobidoutfile;
@@ -177,4 +193,16 @@ public:
 
   std::list<std::string> rejectdiscovery;
   std::list<std::string> rejectmanagement;
+
+  // arc6 consistent, intuitive and streamlined target selection:
+  // command line options
+  std::list<std::string> computing_elements;
+  std::list<std::string> registries;
+  std::string requested_submission_endpoint_type;
+  std::string requested_info_endpoint_type;
+  // post-processed interface types
+  std::list<std::string> submit_types;
+  std::list<std::string> info_types;
 };
+
+#endif // __ARC_CLEINT_COMPUTE_UTILS_H_

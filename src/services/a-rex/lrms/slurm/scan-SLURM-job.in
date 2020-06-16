@@ -7,19 +7,37 @@
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+# Validate control directories supplied on command-line
+if [ -z "$1" ] ; then
+    echo "no control_dir specified" 1>&2; exit 1
+fi
+for ctr_dir in "$@"; do
+    if [ ! -d "$ctr_dir" ]; then
+	echo "called with erronous control dir: $ctr_dir"
+	exit 1
+    fi
+done
 
+joboption_lrms="SLURM"
+lrms_options="slurm_wakeupperiod slurm_use_sacct slurm_bin_path"
+
+# define paths and config parser
 basedir=`dirname $0`
 basedir=`cd $basedir > /dev/null && pwd` || exit $?
+. "${basedir}/lrms_common.sh"
 
-pkglibexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@"
-pkgdatadir="$basedir"
-
-. "${pkgdatadir}/configure-SLURM-env.sh" || exit $?
-
+# include common scan functions
 . "${pkgdatadir}/scan_common.sh" || exit $?
+
+# run common init 
+#  * parse config
+#  * load LRMS-specific env
+#  * set common variables
+common_init
 
 # Prevent multiple instances of scan-slurm-job to run concurrently
 lockfile="${TMPDIR:-@tmp_dir@}/scan-slurm-job.lock"
+
 #Check if lockfile exist, if not, create it.
 (set -C; : > "$lockfile") 2> /dev/null
 if [ "$?" != "0" ]; then
@@ -52,7 +70,7 @@ if [ ! -z "$perflogdir" ]; then
    perflog_common "$perflogdir" "$CONFIG_controldir"
 fi
 
-### use sacct?
+### use sacct
 unset use_sacct
 
 if [ ! -z "${CONFIG_slurm_use_sacct}" ]; then
@@ -61,29 +79,7 @@ if [ ! -z "${CONFIG_slurm_use_sacct}" ]; then
   fi
 fi
 
-### If GM sees the session dirs... copied from scan-pbs-jobs
-RUNTIME_NODE_SEES_FRONTEND=$CONFIG_shared_filesystem
-#default is NFS
-if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-  RUNTIME_NODE_SEES_FRONTEND=yes
-fi
-# locally empty means no
-if [ "${RUNTIME_NODE_SEES_FRONTEND}" = 'no' ] ; then
-  RUNTIME_NODE_SEES_FRONTEND=
-fi
-
 my_id=`id -u`
-
-#Validate control directories supplied on command-line
-if [ -z "$1" ] ; then
-    echo "no control_dir specified" 1>&2; exit 1
-fi
-for ctr_dir in "$@"; do
-    if [ ! -d "$ctr_dir" ]; then
-	echo "called with erronous control dir: $ctr_dir"
-	exit 1
-    fi
-done
 
 if [ ! -z "$perflogdir" ]; then
    #start time stamp
@@ -223,9 +219,9 @@ function handle_exitcode_cancelled {
 
     if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
       exitcode=$tmpexitcode
-    elif [ $exitcode2 -ne 0 ]; then
+    elif [ ! -z "$exitcode2" ] && [ "$exitcode2" -ne 0 ]; then
       exitcode=$(( $exitcode2 + 256 ))
-    elif [ $exitcode1 -ne 0 ]; then
+    elif [ ! -z "$exitcode1" ] && [ "$exitcode1" -ne 0 ]; then
       exitcode=$exitcode1
     else
       exitcode=0
@@ -408,10 +404,10 @@ fi
 
 # Kick the GM
 if [ -n "${kicklist[*]}" ];then
-    "${pkglibexecdir}/gm-kick" \
-	$(for localid in "${kicklist[@]}";do
-	    echo "${basenames[$localid]}.local"
-	    done | xargs)
+    for localid in "${kicklist[@]}";do
+        gridid=`echo "${basenames[$localid]}" | sed 's/.*\.\([^\.]*\)$/\1/'`
+        "${pkglibexecdir}/gm-kick" -j "${gridid}" "${basenames[$localid]}.local"
+    done
 fi
 
 exit 0

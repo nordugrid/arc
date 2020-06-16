@@ -9,7 +9,6 @@
 #SBATCH --get-user-env=10L
 #SBATCH -n 1
 #SBATCH 
-#SBATCH --mem-per-cpu=1000
 
 # Overide umask of execution node (sometime values are really strange)
 umask 077
@@ -163,9 +162,9 @@ fi
 runtimeenvironments=
 if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
   find ./ -type l -exec rm -f "{}" ";"
-  find ./ -type f -exec chmod u+w "{}" ";"
+  chmod -R u+w "./"
   find ./ -type f -perm /200 -exec rm -f "{}" ";"
-  find ./ -type f -exec chmod u+w "{}" ";"
+  chmod -R u+w "./"
 fi
 
   if [ ! -z "$RUNTIME_LOCAL_SCRATCH_DIR" ] && [ ! -z "$RUNTIME_NODE_SEES_FRONTEND" ]; then 

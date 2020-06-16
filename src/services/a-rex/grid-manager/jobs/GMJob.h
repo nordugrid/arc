@@ -12,6 +12,7 @@ namespace ARex {
 class JobsList;
 class JobLocalDescription;
 class GMConfig;
+class JobsMetrics;
 
 /// Possible job states
 enum job_state_t {
@@ -42,6 +43,8 @@ class GMJob {
  friend class GMJobRef;
  friend class GMJobQueue;
  friend class GMJobMock;
+ friend class JobsMetrics;
+
  private:
   // State of the job (state machine)
   job_state_t job_state;
@@ -96,7 +99,6 @@ class GMJob {
 
   /// Queue to which job is currently associated
   GMJobQueue* queue;
-  //std::list<GMJobRef>::iterator queuePos;
 
 
  public:
@@ -171,6 +173,7 @@ public:
     if (job_) job_->RemoveReference();
     job_ = other.job_;
     if(job_) job_->AddReference();
+    return *this;
   }
 
   bool operator==(GMJobRef const& other) const {
@@ -178,6 +181,10 @@ public:
   }
 
   bool operator==(GMJob const* job) const {
+    return (job_ == job);
+  }
+
+  bool operator==(GMJob* job) const {
     return (job_ == job);
   }
 
@@ -189,19 +196,15 @@ public:
     return job_ == NULL;
   }
 
-  bool operator==(GMJobRef const& other) {
-    return (job_ == other.job_);
-  }
-
-  bool operator!=(GMJobRef const& other) {
-    return (job_ != other.job_);
-  }
-
   GMJob& operator*() const {
     return *job_;
   }
 
   GMJob* operator->() const {
+    return job_;
+  }
+
+  operator GMJob*() const {
     return job_;
   }
 
@@ -215,23 +218,35 @@ public:
 class GMJobQueue {
  friend class GMJob;
  private:
-  Glib::RecMutex lock_;
+  // Using global lock intentionally.
+  // It would be possible to have per-queue lock but rules to avoid 
+  // deadlocks between 2 queues and queue+job locks would be too complex
+  // and too easy to break. So as long as we have not so many queues 
+  // global lock is acceptable.
+  static Glib::RecMutex lock_;
   int const priority_;
   std::list<GMJob*> queue_;
+  std::string name_;
   GMJobQueue();
   GMJobQueue(GMJobQueue const& it);
  public:
   //! Construct jobs queue with specified priority.
-  GMJobQueue(int priority);
+  GMJobQueue(int priority, char const * name);
 
   //! Comparison function type definition.
-  typedef bool (*comparator_t)(GMJobRef const& first, GMJobRef const& second);
+  typedef bool (*comparator_t)(GMJob const * first, GMJob const * second);
 
   //! Insert job at end of the queue. Subject to queue priority.
   bool Push(GMJobRef& ref);
 
   //! Insert job into queue at position defined by sorting. Subject to queue priority.
   bool PushSorted(GMJobRef& ref, comparator_t compare);
+
+  //! Check if queue allows for job to be moved into another queue. Default implementation checks priority.
+  virtual bool CanSwitch(GMJob const& ref, GMJobQueue const& new_queue, bool to_front);
+
+  //! Check if queue allows for job to be removed. Default implementation returns true.
+  virtual bool CanRemove(GMJob const& ref);
 
   //! Returns reference to first job in the queue.
   GMJobRef Front();
@@ -247,6 +262,12 @@ class GMJobQueue {
 
   //! Returns true if job is in queue
   bool Exists(const GMJobRef& ref) const;
+
+  //! Returns true if there are no jobs in queue
+  bool IsEmpty() const;
+
+  //! Returns number of jobs in queue
+  int Size() const;
 
   //! Sort jobs in queue
   void Sort(comparator_t compare);
@@ -266,7 +287,7 @@ class GMJobQueue {
 
   //! Gets reference to job identified by key and stored in this queue
   template<typename KEY> GMJobRef Find(KEY const& key) const {
-    Glib::RecMutex::Lock lock(const_cast<Glib::RecMutex&>(lock_));
+    Glib::RecMutex::Lock lock(lock_);
     for(std::list<GMJob*>::const_iterator i = queue_.begin();
                        i != queue_.end(); ++i) {
       if((*i) && (**i == key)) {

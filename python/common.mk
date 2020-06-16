@@ -18,10 +18,6 @@ nodist_pkgpython_PYTHON   = __init__.py $(ARCPYLIBS)
 pyexec_LTLIBRARIES = _arc.la
 endif
 
-if WIN32
-AM_CPPFLAGS = -DWIN32 -DWINNT
-endif
-
 if PYDOXYGEN
 PYDOXFLAGS   = -DPYDOXYGEN
 PYDOXFILE    = pydoxygen.i
@@ -67,7 +63,8 @@ ARCLIBS = \
 
 nodist__arc_la_SOURCES = $(ARCSWIGINIT) $(ARCWRAPPERS)
 
-_arc_la_CXXFLAGS = -include $(top_builddir)/config.h -I$(top_srcdir)/include \
+_arc_la_CXXFLAGS = -include $(top_builddir)/config.h \
+        -I$(top_srcdir)/include -I$(top_builddir)/include \
         $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(PYTHON_CFLAGS) $(ZLIB_CFLAGS) $(DBCXX_CPPFLAGS) \
         -fno-strict-aliasing -DSWIG_COBJECT_TYPES $(AM_CXXFLAGS)
 _arc_la_LIBADD = \
@@ -88,7 +85,7 @@ $(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i $(top_srcdir)/swig/Arc.i $(PY
 	grep -h '^#' $< $(top_srcdir)/swig/Arc.i $(PYDOXFILE) | \
 	$(CXXCOMPILE) $(_arc_la_CXXFLAGS) -M -MT $*_wrap.cpp -MT arc_$*.py -MP -MF "$(DEPDIR)/$*_wrap.deps" -x c++ -
 	$(SWIG) -v -c++ -python $(SWIG_PY3) -threads -o $*_wrap.cpp \
-		-I/usr/include -I$(top_srcdir)/include \
+		-I/usr/include -I$(top_srcdir)/include -I$(top_builddir)/include \
 		$(PYDOXFLAGS) $(SWIG_IS_DBJSTORE_ENABLED) \
 		$(AM_CPPFLAGS) $(OPENSSL_CFLAGS) $(top_srcdir)/swig/$*.i
 # Workaround for RHEL5 swig + EPEL5 python26
@@ -117,7 +114,7 @@ $(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i $(top_srcdir)/swig/Arc.i $(PY
 	sed 's/<(\([,:[:alnum:]]*\))>/<\1>/g' $*_wrap.cpp > $*_wrap.cpp.tmp
 	mv $*_wrap.cpp.tmp $*_wrap.cpp
 # Fix python3 relative import problem
-	sed "s/import _$*/from arc &/" < $*.py > $*.py.new
+	sed "s/^\(\s*\)\(import _$*.*\)/\1from arc \2/" < $*.py > $*.py.new
 	mv $*.py.new $*.py
 # In swig 2.0.12 the erase method of the SharedBenchmarkMap type (swig template) uses a wrong name for the wrapped std::map::erase method.
 	sed 's/std_map_Sl_std_string_Sc_double_Sc_std_less_Sl_std_string_Sg__Sc_std_allocator_Sl_std_pair_Sl_std_string_SS_const_Sc_double_Sg__Sg__Sg/std_map_Sl_std_string_Sc_double_Sg/g' $*_wrap.cpp > $*_wrap.cpp.tmp

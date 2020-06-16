@@ -1,0 +1,65 @@
+#!/bin/sh
+
+PIDFILE=/var/run/arc-acix-scanner.pid
+DEFAULT_LOGFILE=/var/log/arc/arc-acix-scanner.log
+prog=@TWISTD@
+
+RUN=yes
+
+# sysconfig files
+if [ -r /etc/sysconfig/nordugrid ]; then
+    . /etc/sysconfig/nordugrid
+elif [ -r /etc/default/nordugrid ]; then
+    . /etc/default/nordugrid
+fi
+if [ -r /etc/sysconfig/arc-acix-scanner ]; then
+    . /etc/sysconfig/arc-acix-scanner
+elif [ -r /etc/default/arc-acix-scanner ]; then
+    . /etc/default/arc-acix-scanner
+fi
+
+if [ "$RUN" != "yes" ] ; then
+    echo "arc-acix-scanner service is disabled, please adjust the configuration to your"
+    echo "needs and then set RUN to 'yes' in /etc/default/arc-acix-scanner to enable it."
+    return 0
+fi
+
+# ARC_CONFIG
+if [ "x$ARC_CONFIG" = "x" ] && [ -r /etc/arc.conf ]; then
+    ARC_CONFIG=/etc/arc.conf
+fi
+if [ ! -r "$ARC_CONFIG" ]; then
+    echo "ARC configuration not found (usually /etc/arc.conf)"
+    exit 1
+fi
+
+# Check if service is defined in configuration
+libexecdir="${ARC_LOCATION:-@prefix@}/@pkglibexecsubdir@/"
+$libexecdir/arcconfig-parser --config $ARC_CONFIG --block acix-scanner > /dev/null 2>&1
+if [ $? -eq 1 ]; then
+    log_failure_msg "Block [acix-scanner] not defined in configuration"
+    exit 1
+fi
+
+# Load configuration into env vars
+eval "$( $libexecdir/arcconfig-parser --config $ARC_CONFIG --block acix-scanner --export bash )"
+LOGFILE=${CONFIG_logfile:-$DEFAULT_LOGFILE}
+LOGD=`dirname $LOGFILE`
+LOGN=`basename $LOGFILE`
+
+if [ ! -d $LOGD ]; then
+    mkdir -p $LOGD
+fi
+
+APPSTART="
+from acix import scanner;
+from twisted.python import log;
+from twisted.python.logfile import LogFile;
+application = scanner.createApplication();
+log.startLogging(LogFile('$LOGN', '$LOGD', rotateLength=1000000, maxRotatedFiles=25))
+"
+
+TACFILE=`mktemp` || exit 1
+echo $APPSTART > $TACFILE
+
+exec $prog --pidfile $PIDFILE -y $TACFILE -l $LOGFILE

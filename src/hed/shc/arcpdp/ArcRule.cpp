@@ -222,7 +222,7 @@ static ArcSec::MatchResult itemMatch(ArcSec::OrList items, std::list<ArcSec::Req
           res = ((*andit).second)->evaluate((*andit).first, (*reqit)->getAttributeValue());
         } catch(std::exception&) { };
         BooleanAttribute bool_attr(true);
-        if(res->equal(&bool_attr))
+        if(res && res->equal(&bool_attr))
           one_req_matched = true;
         if(res) delete res;
 
