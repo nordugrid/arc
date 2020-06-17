@@ -14,77 +14,107 @@ namespace ARex {
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-  JobStateList::JobStateList(int limit):limit(limit){
-    ratio = 0.;
-    failures = 0;
-    counter = 0;
-  }
-  JobStateList::~JobStateList(){}
+JobStateList::JobStateList(int _limit):limit(_limit){
+  ratio = 0;
+  failures = 0;
+  counter = 0;
+  head = NULL;
+  tail = NULL;
+}
 
-  JobStateList::JobNode::JobNode(int failed):failed(failed){
-  }
-  JobStateList::JobNode::~JobNode(){}
+JobStateList::~JobStateList(){}
 
-  int JobStateList::JobNode::getFailure(){
-      int f;
-      if(next==NULL){ f = failed;}
-      else { f = failed + next->getFailure(); }
-      return f;
+  JobStateList::JobNode::JobNode(JobStateList* _sl, JobNode* _prev, JobNode* _next, int _isfailed, std::string _job_id):
+  sl(_sl),prev(_prev),next(_next),isfailed(_isfailed),job_id(_job_id){
+  //update the previously last node in the list to instead point to NULL, now point to the new node
+  if(prev)prev->next = this;
+  //this is maybe not necessary as in the current set-up the next pointer is always NULL, insce the next of the last item in the list is  NULL
+  if(next)next->prev = this;
+}
+
+JobStateList::JobNode::~JobNode(){}
+
+int JobStateList::JobNode::getFailure(){
+  int f;
+  if(this->next==NULL){ f = isfailed;}
+  else { f = isfailed + this->next->getFailure(); }
+  return f;
+}
+
+int JobStateList::JobNode::getLength(){
+  int length;
+  if(next==NULL){ length = 1;}
+  else { length = 1 + next->getLength(); }
+  return length;
+}
+
+  JobStateList::JobNode* JobStateList::NodeInList(std::string _job_id){
+  
+  JobStateList::JobNode* it = head;
+  if (head != NULL){
+    while(it->next != NULL){
+      
+      if(it->job_id == _job_id){
+	return it;
+      }
+      it = it->next;
     }
-
-  int JobStateList::JobNode::getLength(){
-      int length = 0;
-      if(next==NULL){ length = 1;}
-      else { length = 1 + next->getLength(); }
-      return length;
-    }
+  }
+  return NULL;
+}
 
 
 
-  void JobStateList::setFailure(int failed){
-    int counter;
-    JobStateList::JobNode* node = new JobStateList::JobNode(failed);
-  if(firstNode==NULL){
-    firstNode = node;
-    lastNode = node;
-  } else {
-    node->next = firstNode;
-    firstNode->prev = node;
-    firstNode = node;
-    counter++;
+  void JobStateList::setFailure(int _isfailed,std::string _job_id){
 
-    if(counter>=limit){
-      JobStateList::JobNode* lastnode = lastNode;
-      lastNode = lastnode->prev;
-      lastNode->next = NULL;
-      counter--;
+
+  JobStateList::JobNode* this_node = NodeInList(_job_id);
+  if(this_node){
+    //just replace the failure-state to the new one of the node
+    this_node->isfailed=_isfailed;
+  }
+  else{
+    if(head==NULL){
+      //first node in list 
+      JobStateList::JobNode* node = new JobStateList::JobNode(this,NULL,NULL,_isfailed,_job_id);
+      head = tail = node;
+    } else {
+      //put the new node at the end of the list
+      JobStateList::JobNode* node = new JobStateList::JobNode(this,tail,NULL,_isfailed,_job_id);
+      tail = node;
+      counter++;
+      
+      if(counter>=limit){
+	JobStateList::JobNode* oldhead = head;
+	head = oldhead->next;
+	counter--;
+      }
     }
   }
 }
 
   float JobStateList::getRatio(){
-    int length = 0;
-    if(firstNode!=NULL){
-      failures = firstNode->getFailure();
-      length = firstNode->getLength();
-    } else { failures=0;}
-    
-    if(failures==0){ratio = 0;}
-    else{ ratio = (float)failures/(float)length;}
-    return ratio;
-  }
-  
+    int length= 0;
+    float ratio = 0.;
+      if(head!=NULL){
+        failures = this->getFailures();
+        length = this->getLength();
+	ratio = (float)failures/(float)length;
+      }
+      return ratio;
+    }
+
   int JobStateList::getLength(){
-    int length = 0;
-    if(firstNode!=NULL){length = firstNode->getLength();}
-    return length;
-  }
-  
+      int length = 0;
+      if(head!=NULL){length = head->getLength();}
+      return length;
+    }
+
   int JobStateList::getFailures(){
-    int totalFailure = 0;
-    if(firstNode!=NULL){totalFailure = firstNode->getFailure();}
-    return totalFailure;
-  }
+      int totalFailure = 0;
+      if(head!=NULL){totalFailure = head->getFailure();}
+      return totalFailure;
+    }
 
 
 
@@ -144,7 +174,7 @@ void JobsMetrics::SetGmetricPath(const char* path) {
   /*Only hold 1 for failed or 0 for non-failed job for 100 latest jobs */
   /*does not make sense to initialize it here, it will then be reset for each job-state-change call i.e. each time reportjobstatechange is called*/
 
-  jobstatelist->setFailure(i->CheckFailure(config));
+  jobstatelist->setFailure(i->CheckFailure(config),job_id);
   fail_ratio = (double)jobstatelist->getRatio();
   fail_ratio_changed = true;
 

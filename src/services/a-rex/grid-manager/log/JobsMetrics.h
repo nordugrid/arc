@@ -15,23 +15,25 @@
 
 
 namespace ARex {
-
   class JobStateList {
     /*Holds sucess or fail of last 100 jobs */
 
 
     class JobNode {
-    private:
-      int failed;
 
     public:
+
+      std::string job_id;
+      int isfailed;
+
       int getFailure();
       int getLength();
 
+      JobStateList* sl;
       JobStateList::JobNode* next;
       JobStateList::JobNode* prev;
 
-      JobNode(int state);
+      JobNode(JobStateList* _sl, JobNode* _prev=NULL, JobNode* _next=NULL, int _state=0,std::string _job_id="");
       ~JobNode(void);
 
     };
@@ -42,17 +44,15 @@ namespace ARex {
     float ratio;
     int failures;
     int counter;
-    
-
 
   public:
-    JobStateList::JobNode* firstNode;
-    JobStateList::JobNode* lastNode;
+    JobStateList::JobNode* tail;
+    JobStateList::JobNode* head;
 
-    void setFailure(int st);
+    void setFailure(int st,std::string job_id);
     int getLength();
     int getFailures();
-
+    JobStateList::JobNode* NodeInList(std::string job_id);
     float getRatio();
 
     JobStateList(int length);
@@ -60,6 +60,7 @@ namespace ARex {
 
 
   };
+
 
 
 
