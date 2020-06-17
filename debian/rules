@@ -42,13 +42,13 @@ else
 SYSTEMD = no
 endif
 
-ifeq ($(shell grep -q no-enable /usr/bin/dh_installinit && echo 1),1)
+ifeq ($(shell grep -q no-enable /usr/bin/dh_installinit 2>/dev/null && echo 1),1)
 SYSVNOENBL = --no-enable
 else
 SYSVNOENBL =
 endif
 
-ifeq ($(shell grep -q no-enable /usr/bin/dh_systemd_enable && echo 1),1)
+ifeq ($(shell grep -q no-enable /usr/bin/dh_systemd_enable 2>/dev/null && echo 1),1)
 SYSDNOENBL = --no-enable
 else
 SYSDNOENBL =
