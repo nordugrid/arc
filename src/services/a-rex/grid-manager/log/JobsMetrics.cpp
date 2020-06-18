@@ -112,7 +112,7 @@ void JobsMetrics::Sync(void) {
   if(fail_ratio_changed){
     if(RunMetrics(
 		  std::string("AREX-JOBS-FAIL-RATE"),
-		  Arc::tostring(fail_ratio), "double", "fail/all"
+		  Arc::tostring(fail_ratio), "double", "fail/last-100-jobs"
 		  )) {
       fail_ratio_changed = false;
       return;
