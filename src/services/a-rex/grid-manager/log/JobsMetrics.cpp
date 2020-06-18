@@ -72,13 +72,13 @@ JobStateList::JobNode::~JobNode(){}
       JobStateList::JobNode* node = new JobStateList::JobNode(this,tail,NULL,_isfailed,_job_id);
       tail = node;
       length++;
-      if(_isfailed)this->failures++;
+      if(_isfailed)failures++;
       
       if(length>limit){
 	JobStateList::JobNode* oldhead = head;
 	head = oldhead->next;
 	length--;
-	if (oldhead->isfailed)this->failures--;
+	if (oldhead->isfailed)failures--;
 	delete oldhead;
       }
     }
