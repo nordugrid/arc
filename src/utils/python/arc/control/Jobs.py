@@ -6,6 +6,12 @@ try:
     from .Accounting import AccountingControl
 except ImportError:
     AccountingControl = None
+try:
+    from .DataDelivery import DataDeliveryControl
+except ImportError:
+    DataDeliveryControl = None
+
+
 import subprocess
 import sys
 import re
@@ -449,6 +455,8 @@ class JobsControl(ComponentControl):
             self.job_stats(args)
         elif args.action == 'accounting' and AccountingControl is not None:
             AccountingControl(self.arcconfig).jobcontrol(args)
+        elif args.action == 'datadelivery' and DataDeliveryControl is not None:
+            DataDeliveryControl(self.arcconfig).jobcontrol(args)
 
     def complete_owner(self, args):
         owners = []
@@ -531,3 +539,11 @@ class JobsControl(ComponentControl):
             # add 'job accounting xxx' functionality as well as 'accounting job xxx'
             jobs_accounting = jobs_actions.add_parser('accounting', help='Show job accounting data')
             AccountingControl.register_job_parser(jobs_accounting)
+
+
+        if DataDeliveryControl is not None:
+        # add 'job datadelivery xxx' functionality as well ass 'datadelivery job xxx' 
+            dds_job_ctl = jobs_actions.add_parser('datadelivery',help='Job Datastaging Information for jobs preparing or running.')
+            DataDeliveryControl.register_job_parser(dds_job_ctl)
+
+            
