@@ -175,6 +175,7 @@ Depends:
  ${perl:Depends},
  slapd,
  bdii,
+ nordugrid-arc-arcctl-service (= ${source:Version}),
  lsb-base (>= 3.0-6)
 Description: ARC LDAP-based information services
  NorduGrid is a collaboration aiming at development, maintenance and

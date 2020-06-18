@@ -40,7 +40,7 @@ fi
 
 if [ "$RUN" != "yes" ] ; then
     echo "$prog disabled in configuration"
-    return 0
+    exit 0
 fi
 
 CMD="$ARC_LOCATION/sbin/$prog"
