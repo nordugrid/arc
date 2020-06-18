@@ -26,9 +26,6 @@ namespace ARex {
       std::string job_id;
       int isfailed;
 
-      int getFailure();
-      int getLength();
-
       JobStateList* sl;
       JobStateList::JobNode* next;
       JobStateList::JobNode* prev;
@@ -41,21 +38,20 @@ namespace ARex {
 
   private:
     const int limit;
-    float ratio;
-    int failures;
-    int counter;
 
   public:
+
+    int failures;
+    int length;
+
     JobStateList::JobNode* tail;
     JobStateList::JobNode* head;
 
     void setFailure(int st,std::string job_id);
-    int getLength();
-    int getFailures();
-    JobStateList::JobNode* NodeInList(std::string job_id);
-    float getRatio();
 
-    JobStateList(int length);
+    JobStateList::JobNode* NodeInList(std::string job_id);
+
+    JobStateList(int limit);
     ~JobStateList(void);
 
 

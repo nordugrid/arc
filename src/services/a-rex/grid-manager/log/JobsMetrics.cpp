@@ -15,9 +15,8 @@ namespace ARex {
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 JobStateList::JobStateList(int _limit):limit(_limit){
-  ratio = 0;
   failures = 0;
-  counter = 0;
+  length = 0;
   head = NULL;
   tail = NULL;
 }
@@ -34,19 +33,6 @@ JobStateList::~JobStateList(){}
 
 JobStateList::JobNode::~JobNode(){}
 
-int JobStateList::JobNode::getFailure(){
-  int f;
-  if(this->next==NULL){ f = isfailed;}
-  else { f = isfailed + this->next->getFailure(); }
-  return f;
-}
-
-int JobStateList::JobNode::getLength(){
-  int length;
-  if(next==NULL){ length = 1;}
-  else { length = 1 + next->getLength(); }
-  return length;
-}
 
   JobStateList::JobNode* JobStateList::NodeInList(std::string _job_id){
   
@@ -72,51 +58,32 @@ int JobStateList::JobNode::getLength(){
   if(this_node){
     //just replace the failure-state to the new one of the node
     this_node->isfailed=_isfailed;
+    if(_isfailed)failures++;
   }
   else{
     if(head==NULL){
       //first node in list 
       JobStateList::JobNode* node = new JobStateList::JobNode(this,NULL,NULL,_isfailed,_job_id);
       head = tail = node;
+      length++;
+      if(_isfailed)failures++;
     } else {
       //put the new node at the end of the list
       JobStateList::JobNode* node = new JobStateList::JobNode(this,tail,NULL,_isfailed,_job_id);
       tail = node;
-      counter++;
+      length++;
+      if(_isfailed)this->failures++;
       
-      if(counter>=limit){
+      if(length>limit){
 	JobStateList::JobNode* oldhead = head;
 	head = oldhead->next;
-	counter--;
+	length--;
+	if (oldhead->isfailed)this->failures--;
+	delete oldhead;
       }
     }
   }
 }
-
-  float JobStateList::getRatio(){
-    int length= 0;
-    float ratio = 0.;
-      if(head!=NULL){
-        failures = this->getFailures();
-        length = this->getLength();
-	ratio = (float)failures/(float)length;
-      }
-      return ratio;
-    }
-
-  int JobStateList::getLength(){
-      int length = 0;
-      if(head!=NULL){length = head->getLength();}
-      return length;
-    }
-
-  int JobStateList::getFailures(){
-      int totalFailure = 0;
-      if(head!=NULL){totalFailure = head->getFailure();}
-      return totalFailure;
-    }
-
-
 
 
 
@@ -137,7 +104,7 @@ JobsMetrics::JobsMetrics():enabled(false),proc(NULL) {
 
   time_lastupdate = time(NULL);
 
-  jobstatelist= new JobStateList(100);
+  jobstatelist = new JobStateList(100);
 
 }
 
@@ -175,7 +142,7 @@ void JobsMetrics::SetGmetricPath(const char* path) {
   /*does not make sense to initialize it here, it will then be reset for each job-state-change call i.e. each time reportjobstatechange is called*/
 
   jobstatelist->setFailure(i->CheckFailure(config),job_id);
-  fail_ratio = (double)jobstatelist->getRatio();
+  fail_ratio = (double)jobstatelist->failures/(double)jobstatelist->length; 
   fail_ratio_changed = true;
 
   //actual states (jobstates)
