@@ -15,6 +15,50 @@
 
 
 namespace ARex {
+  class JobStateList {
+    /*Holds sucess or fail of last 100 jobs */
+
+
+    class JobNode {
+
+    public:
+
+      std::string job_id;
+      int isfailed;
+
+      JobStateList* sl;
+      JobStateList::JobNode* next;
+      JobStateList::JobNode* prev;
+
+      JobNode(JobStateList* _sl, JobNode* _prev=NULL, JobNode* _next=NULL, int _state=0,std::string _job_id="");
+      ~JobNode(void);
+
+    };
+
+
+  private:
+    const int limit;
+
+  public:
+
+    int failures;
+    int length;
+
+    JobStateList::JobNode* tail;
+    JobStateList::JobNode* head;
+
+    void setFailure(int st,std::string job_id);
+
+    JobStateList::JobNode* NodeInList(std::string job_id);
+
+    JobStateList(int limit);
+    ~JobStateList(void);
+
+
+  };
+
+
+
 
 class JobsMetrics {
  private:
@@ -25,18 +69,15 @@ class JobsMetrics {
 
   time_t time_lastupdate;
 
-  double fail_ratio;
   unsigned long long int job_counter;
   unsigned long long int job_fail_counter;
-  unsigned long long int jobs_processed[JOB_STATE_UNDEFINED];
   unsigned long long int jobs_in_state[JOB_STATE_UNDEFINED];
   unsigned long long int jobs_state_old_new[JOB_STATE_UNDEFINED+1][JOB_STATE_UNDEFINED];
   unsigned long long int jobs_state_accum[JOB_STATE_UNDEFINED+1];
   unsigned long long int jobs_state_accum_last[JOB_STATE_UNDEFINED+1];
   double jobs_rate[JOB_STATE_UNDEFINED];
 
-  bool fail_ratio_changed;
-  bool jobs_processed_changed[JOB_STATE_UNDEFINED];
+  bool fail_changed;
   bool jobs_in_state_changed[JOB_STATE_UNDEFINED];
   bool jobs_state_old_new_changed[JOB_STATE_UNDEFINED+1][JOB_STATE_UNDEFINED];
   bool jobs_rate_changed[JOB_STATE_UNDEFINED];
@@ -53,6 +94,7 @@ class JobsMetrics {
   static void RunMetricsKicker(void* arg);
   static void SyncAsync(void* arg);
 
+  JobStateList* jobstatelist;
  public:
   JobsMetrics(void);
   ~JobsMetrics(void);
