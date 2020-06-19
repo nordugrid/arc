@@ -56,7 +56,8 @@ JobStateList::JobNode::~JobNode(){}
 
   JobStateList::JobNode* this_node = NodeInList(_job_id);
   if(this_node){
-    //just replace the failure-state to the new one of the node
+    //existing job in the list
+    //update the failure-state of the node
     this_node->isfailed=_isfailed;
     if(_isfailed)failures++;
   }
@@ -68,13 +69,14 @@ JobStateList::JobNode::~JobNode(){}
       length++;
       if(_isfailed)failures++;
     } else {
-      //put the new node at the end of the list
+      //put the new node at the end of the list (newest job)
       JobStateList::JobNode* node = new JobStateList::JobNode(this,tail,NULL,_isfailed,_job_id);
       tail = node;
       length++;
       if(_isfailed)failures++;
       
       if(length>limit){
+	//list is now 1 too long, remove the old head of the list (oldest job)
 	JobStateList::JobNode* oldhead = head;
 	head = oldhead->next;
 	length--;
@@ -88,19 +90,16 @@ JobStateList::JobNode::~JobNode(){}
 
 
 JobsMetrics::JobsMetrics():enabled(false),proc(NULL) {
-  fail_ratio = 0;
   job_counter = 0;
   job_fail_counter = 0;
-  std::memset(jobs_processed, 0, sizeof(jobs_processed));
   std::memset(jobs_in_state, 0, sizeof(jobs_in_state));
-  std::memset(jobs_processed_changed, 0, sizeof(jobs_processed_changed));
   std::memset(jobs_in_state_changed, 0, sizeof(jobs_in_state_changed));
   std::memset(jobs_state_old_new, 0, sizeof(jobs_state_old_new));
   std::memset(jobs_state_old_new_changed, 0, sizeof(jobs_state_old_new_changed));
   std::memset(jobs_rate, 0, sizeof(jobs_rate));
   std::memset(jobs_rate_changed, 0, sizeof(jobs_rate_changed));
 
-  fail_ratio_changed = false;
+  fail_changed = false;
 
   time_lastupdate = time(NULL);
 
@@ -131,24 +130,19 @@ void JobsMetrics::SetGmetricPath(const char* path) {
   std::string job_id = i->job_id;
 
   /*
-    ## - processingjobs -- the number of jobs currently being processed by ARC (jobs
-    ##                     between PREPARING and FINISHING states) -- TO-DO
-    ## - failedjobs -- the ratio of failed jobs to all jobs
-    ## - jobstates -- number of jobs in different A-REX internal stages
+    ## - failed jobs -- of the last 100 jobs, the number of failed jobs
+    ## - fail ratio  -- the ratio of failed jobs to all jobs (redundant)
+    ## - job states -- number of jobs in different A-REX internal stages
   */
   
 
-  /*Only hold 1 for failed or 0 for non-failed job for 100 latest jobs */
-  /*does not make sense to initialize it here, it will then be reset for each job-state-change call i.e. each time reportjobstatechange is called*/
-
+  /*jobstatelist holds jobid and  1 for failed or 0 for non-failed job for 100 latest jobs */
   jobstatelist->setFailure(i->CheckFailure(config),job_id);
-  fail_ratio = (double)jobstatelist->failures/(double)jobstatelist->length; 
-  fail_ratio_changed = true;
+  job_fail_counter = jobstatelist->failures;
+  fail_changed = true;
 
   //actual states (jobstates)
   if(old_state < JOB_STATE_UNDEFINED) {
-    //++(jobs_processed[old_state]);
-    //jobs_processed_changed[old_state] = true;
     --(jobs_in_state[old_state]);
     jobs_in_state_changed[old_state] = true;
   };
@@ -180,16 +174,17 @@ void JobsMetrics::Sync(void) {
   //since only one process can be started from Sync(), only 1 histogram can be sent at a time, therefore return for each call;
   //Sync is therefore called multiple times until there are not more histograms that have changed
 
-  if(fail_ratio_changed){
+  if(fail_changed){
     if(RunMetrics(
-		  std::string("AREX-JOBS-FAIL-RATE"),
-		  Arc::tostring(fail_ratio), "double", "fail/all"
+		  std::string("AREX-JOBS-FAILED-PER-100"),
+		  Arc::tostring(job_fail_counter), "int32", "failed"
 		  )) {
-      fail_ratio_changed = false;
+      fail_changed = false;
       return;
     };
   }
   
+
 
   for(int state = 0; state < JOB_STATE_UNDEFINED; ++state) {
     if(jobs_in_state_changed[state]) {
