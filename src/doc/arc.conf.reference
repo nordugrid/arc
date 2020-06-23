@@ -2419,8 +2419,18 @@
 #cpu_scaling_reference_si00=2400
 
 ## processor_other_description = string - GLUE1 proc description
+## The text entered under this option is copied "as in" in the glue1 
+## rendering of GlueHostProcessorOtherDescription.
+## Cores is used to calculate the number of physical processors for
+##    GlueSubClusterPhysicalCPUs
+## The Benchmark value entered here is ignored by the rest 
+## of ARC configuration. It will NOT be used for accounting.
+## Note that in ARC > 6.3 the proper way of configuring benchmark for both
+## infosys and accounting is by adding it to the [queue:name] blocks.
+## This generic string is kept here for backward compatibility, 
+## and most likely will not work as expected (or as used by CREAM).
 ## default: undefined
-#processor_other_description=Cores 3, Benchmark 9.8-HEP-SPEC06
+#processor_other_description=Cores=3,Benchmark=9.8-HEP-SPEC06
 
 ## glue_site_web = url - GLUE1 site web url
 ## default: undefined
