@@ -2425,7 +2425,7 @@
 ##    GlueSubClusterPhysicalCPUs
 ## The Benchmark value entered here is ignored by the rest 
 ## of ARC configuration. It will NOT be used for accounting.
-## Note that in ARC6 the proper way of configuring benchmark for both
+## Note that in ARC > 6.3 the proper way of configuring benchmark for both
 ## infosys and accounting is by adding it to the [queue:name] blocks.
 ## This generic string is kept here for backward compatibility, 
 ## and most likely will not work as expected (or as used by CREAM).
