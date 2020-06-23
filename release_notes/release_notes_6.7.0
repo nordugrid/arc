@@ -2,18 +2,39 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.X.X     XX.XX.XXXX
+Release Notes for NorduGrid ARC  6.7.0     29.06.2020
 ------------------------------------------------------
 
 
 Highlights in this release
 --------------------------
+This release comes with a handful of nice smaller enhancements and bugfixes.
+
+Ubuntu deployment issues recently discovered are now fixed (Bugzilla 3933).
+We have added the possibility of read-only caches.
+
+The useful arcctl tool has been extended with a datadelivery functionality.
+A first implementation is nowreleased, and more additions are expected in coming releases. 
+
+For ARC stability, several improvements have been made to avoid unexpected errors related
+to datadelivery causing ARC crashes. The crashes have only been seen in the emi-es interface. (Bugzilla 3925)
+
 
 
 The following Bugzilla tickets have been adressed or solved
 ------------------------------------------------------------
-
-
+* 3938  Implement the same definition of failed jobs as in gangliarc
+* 3935  Request: Arcctl jobs kill/killall must actually kill jobs
+* 3934  redirect stdout to stderr in script submit-condor-jobs
+* 3933  arched-start incorrectly uses return instead of exit
+* 3925  AREX crash
+* 3924  Provide a read-only option for a cache
+* 3923  Default infoprovider log level should be INFO
+* 3922  job submission failed with sessiondir=*
+* 3912  arcproxy -i should return non-zero exit code in case of error
+* 3906  Addition to arcctl - make a summary of DTR information
+* 3902  Job reported finished, but missing exit code and proper cpu and walltime
+* 2058  support for the input staging jobs
 
 Documentation
 ==============
