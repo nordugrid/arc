@@ -555,7 +555,7 @@ deploy_staging_el8:
   script:
     - export DOCKER_API_VERSION=1.19
     - deploy_container=el8_`date +%Y%m%dT%H%M`
-    - docker pull maikenp/arc-deploy-centos7
+    - docker pull maikenp/arc-deploy-centos8
     - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
     - cp -r $CI_PROJECT_DIR/rpmbuild/* /rpmbuild
     - ls -lhrt /rpmbuild
@@ -579,7 +579,7 @@ deploy_staging_el8:
   dependencies:
     - packages_el8
   tags:
-    - 158.39.75.5 
+    - 158.37.63.140
   only:
     - branches@nordugrid/arc
     - tags@nordugrid/arc
@@ -656,7 +656,7 @@ deploy_staging_deb10:
   dependencies:
     - packages_deb10
   tags:
-    - 158.37.63.83
+    - 158.37.63.144
     - deploy
   only:
     - branches@nordugrid/arc
@@ -695,7 +695,7 @@ deploy_staging_ubuntu1804:
   dependencies:
     - packages_ubuntu1804
   tags:
-    - 158.37.63.83
+    - 158.39.74.3
     - deploy
   only:
     - branches@nordugrid/arc
