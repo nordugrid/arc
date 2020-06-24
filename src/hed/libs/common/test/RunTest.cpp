@@ -4,6 +4,7 @@
 #endif
 
 
+#include <unistd.h>
 #include <string>
 
 #include <cppunit/extensions/HelperMacros.h>
@@ -41,6 +42,7 @@ void RunTest::setUp() {
 
 
 void RunTest::tearDown() {
+  sleep(5); // wait till Run monitoring thread settles down
 }
 
 static void initializer_func(void* arg) {
