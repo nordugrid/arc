@@ -23,7 +23,7 @@ JobStateList::JobStateList(int _limit):limit(_limit){
 
 JobStateList::~JobStateList(){}
 
-  JobStateList::JobNode::JobNode(JobStateList* _sl, JobNode* _prev, JobNode* _next, int _isfailed, std::string _job_id):
+  JobStateList::JobNode::JobNode(JobStateList* _sl, JobNode* _prev, JobNode* _next, bool _isfailed, std::string _job_id):
   sl(_sl),prev(_prev),next(_next),isfailed(_isfailed),job_id(_job_id){
   //update the previously last node in the list to instead point to NULL, now point to the new node
   if(prev)prev->next = this;
@@ -51,7 +51,7 @@ JobStateList::JobNode::~JobNode(){}
 
 
 
-  void JobStateList::setFailure(int _isfailed,std::string _job_id){
+  void JobStateList::setFailure(bool _isfailed,std::string _job_id){
 
 
   JobStateList::JobNode* this_node = NodeInList(_job_id);
@@ -90,7 +90,6 @@ JobStateList::JobNode::~JobNode(){}
 
 
 JobsMetrics::JobsMetrics():enabled(false),proc(NULL) {
-  job_counter = 0;
   job_fail_counter = 0;
   std::memset(jobs_in_state, 0, sizeof(jobs_in_state));
   std::memset(jobs_in_state_changed, 0, sizeof(jobs_in_state_changed));
@@ -108,6 +107,7 @@ JobsMetrics::JobsMetrics():enabled(false),proc(NULL) {
 }
 
 JobsMetrics::~JobsMetrics() {
+  delete jobstatelist;
 }
 
 void JobsMetrics::SetEnabled(bool val) {

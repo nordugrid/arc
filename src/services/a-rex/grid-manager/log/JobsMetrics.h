@@ -30,7 +30,7 @@ namespace ARex {
       JobStateList::JobNode* next;
       JobStateList::JobNode* prev;
 
-      JobNode(JobStateList* _sl, JobNode* _prev=NULL, JobNode* _next=NULL, int _state=0,std::string _job_id="");
+      JobNode(JobStateList* _sl, JobNode* _prev=NULL, JobNode* _next=NULL, bool _isfailed=false, std::string _job_id="");
       ~JobNode(void);
 
     };
@@ -47,11 +47,11 @@ namespace ARex {
     JobStateList::JobNode* tail;
     JobStateList::JobNode* head;
 
-    void setFailure(int st,std::string job_id);
+    void setFailure(bool _isfailed, std::string _job_id);
 
-    JobStateList::JobNode* NodeInList(std::string job_id);
+    JobStateList::JobNode* NodeInList(std::string _job_id);
 
-    JobStateList(int limit);
+    JobStateList(int _limit);
     ~JobStateList(void);
 
 
@@ -69,7 +69,6 @@ class JobsMetrics {
 
   time_t time_lastupdate;
 
-  unsigned long long int job_counter;
   unsigned long long int job_fail_counter;
   unsigned long long int jobs_in_state[JOB_STATE_UNDEFINED];
   unsigned long long int jobs_state_old_new[JOB_STATE_UNDEFINED+1][JOB_STATE_UNDEFINED];
