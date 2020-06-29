@@ -17,6 +17,8 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 JobStateList::JobStateList(int _limit):limit(_limit){
   failures = 0;
   length = 0;
+  this_node = NULL;
+  oldhead = NULL;
   head = NULL;
   tail = NULL;
 }
@@ -53,13 +55,16 @@ JobStateList::JobNode::~JobNode(){}
 
   void JobStateList::setFailure(bool _isfailed,std::string _job_id){
 
-
-  JobStateList::JobNode* this_node = NodeInList(_job_id);
+    //check if the node is already in the list, and if it is update the failure status
+    this_node = NodeInList(_job_id);
   if(this_node){
     //existing job in the list
-    //update the failure-state of the node
-    this_node->isfailed=_isfailed;
-    if(_isfailed)failures++;
+    if(!this_node->isfailed && _isfailed{
+	//update the failure-state of the node
+	//only update once (i.e. if node was not failed before)
+	this_node->isfailed=_isfailed;
+	if(_isfailed)failures++;
+      }
   }
   else{
     if(head==NULL){
@@ -77,11 +82,11 @@ JobStateList::JobNode::~JobNode(){}
       
       if(length>limit){
 	//list is now 1 too long, remove the old head of the list (oldest job)
-	JobStateList::JobNode* oldhead = head;
+	oldhead = head;
 	head = oldhead->next;
 	length--;
 	if (oldhead->isfailed)failures--;
-	delete oldhead;
+	oldhead = NULL;
       }
     }
   }
@@ -131,7 +136,6 @@ void JobsMetrics::SetGmetricPath(const char* path) {
 
   /*
     ## - failed jobs -- of the last 100 jobs, the number of failed jobs
-    ## - fail ratio  -- the ratio of failed jobs to all jobs (redundant)
     ## - job states -- number of jobs in different A-REX internal stages
   */
   

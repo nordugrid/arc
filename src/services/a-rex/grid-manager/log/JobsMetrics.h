@@ -44,6 +44,8 @@ namespace ARex {
     int failures;
     int length;
 
+    JobStateList::JobNode* this_node;
+    JobStateList::JobNode* oldhead;
     JobStateList::JobNode* tail;
     JobStateList::JobNode* head;
 
