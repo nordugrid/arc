@@ -14,4 +14,12 @@
 
   <xsd:element name="DelegationID" type="xsd:string" minOccurs="0"/>
 
+  <xsd:element name="StartTime" type="xsd:string" minOccurs="0"/>
+
+  <xsd:element name="DryRun" type="xsd:string" minOccurs="0"/>
+
+  <xsd:element name="CredentialService" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+
+  <xsd:element name="AccessControl" type="xsd:string" minOccurs="0"/>
+
 </xsd:schema>
