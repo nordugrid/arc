@@ -59,12 +59,12 @@ JobStateList::JobNode::~JobNode(){}
     this_node = NodeInList(_job_id);
   if(this_node){
     //existing job in the list
-    if(!this_node->isfailed && _isfailed{
-	//update the failure-state of the node
-	//only update once (i.e. if node was not failed before)
-	this_node->isfailed=_isfailed;
-	if(_isfailed)failures++;
-      }
+    if(!this_node->isfailed && _isfailed){
+      //update the failure-state of the node
+      //only update once (i.e. if node was not failed before)
+      this_node->isfailed=_isfailed;
+      if(_isfailed)failures++;
+    }
   }
   else{
     if(head==NULL){
