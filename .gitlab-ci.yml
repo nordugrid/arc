@@ -593,7 +593,7 @@ deploy_staging_deb9:
   stage: deploy_and_test
   image: docker:stable
   script:
-    - mkdir /build
+    - mkdir -p /build
     - cp  $CI_PROJECT_DIR/*.deb /build
     - docker pull maikenp/arc-deploy-debian9
     - deploy_container=deb9_`date +%Y%m%dT%H%M`
@@ -632,7 +632,7 @@ deploy_staging_deb10:
   stage: deploy_and_test
   image: docker:stable
   script:
-    - mkdir /build
+    - mkdir -p /build
     - cp  $CI_PROJECT_DIR/*.deb /build
     - docker pull maikenp/arc-deploy-debian10
     - deploy_container=deb10_`date +%Y%m%dT%H%M`
@@ -671,7 +671,7 @@ deploy_staging_ubuntu1804:
   stage: deploy_and_test
   image: docker:stable
   script:
-    - mkdir /build
+    - mkdir -p /build
     - cp  $CI_PROJECT_DIR/*.deb /build
     - docker pull maikenp/arc-deploy-ubuntu1804
     - deploy_container=ubuntu1804_`date +%Y%m%dT%H%M`
