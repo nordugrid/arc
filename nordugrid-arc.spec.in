@@ -1515,7 +1515,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/AccountingPublishing.py
 %{python3_sitearch}/%{pkgdir}/control/Accounting.py
 %{python3_sitearch}/%{pkgdir}/control/Cache.py
-%{python3_sitearch}/%{pkgdir}/control/DataDelivery.py
+%{python3_sitearch}/%{pkgdir}/control/DataStaging.py
 %{python3_sitearch}/%{pkgdir}/control/Jobs.py
 %{python3_sitearch}/%{pkgdir}/control/JuraArchive.py
 %{python3_sitearch}/%{pkgdir}/control/JuraArchiveSQLite.py
@@ -1525,7 +1525,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingPublishing.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Accounting.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Cache.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/DataDelivery.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/DataStaging.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Jobs.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/JuraArchive.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/JuraArchiveSQLite.*
@@ -1537,7 +1537,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python2_sitearch}/%{pkgdir}/control/AccountingPublishing.py*
 %{python2_sitearch}/%{pkgdir}/control/Accounting.py*
 %{python2_sitearch}/%{pkgdir}/control/Cache.py*
-%{python2_sitearch}/%{pkgdir}/control/DataDelivery.py*
+%{python2_sitearch}/%{pkgdir}/control/DataStaging.py*
 %{python2_sitearch}/%{pkgdir}/control/Jobs.py*
 %{python2_sitearch}/%{pkgdir}/control/JuraArchive.py*
 %{python2_sitearch}/%{pkgdir}/control/JuraArchiveSQLite.py*

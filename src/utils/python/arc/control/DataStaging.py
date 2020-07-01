@@ -15,15 +15,15 @@ def complete_job_id(prefix, parsed_args, **kwargs):
 
 
 
-class DataDeliveryControl(ComponentControl):
+class DataStagingControl(ComponentControl):
     def __init__(self, arcconfig):
-        self.logger = logging.getLogger('ARCCTL.DataDelivery')
+        self.logger = logging.getLogger('ARCCTL.DataStaging')
         self.control_dir = None
         self.arcconfig = arcconfig
 
         # config is mandatory
         if arcconfig is None:
-            self.logger.error('Failed to get parsed arc.conf. DataDelivery control is not possible.')
+            self.logger.error('Failed to get parsed arc.conf. DataStaging control is not possible.')
             sys.exit(1)
             
         # controldir is mandatory
@@ -134,10 +134,14 @@ class DataDeliveryControl(ComponentControl):
 
     def dtrstates(self,args):
 
-        dtrlog = self.arcconfig.get_value('statefile', 'arex/data-staging').rstrip('/')
+        
+        dtrlog = self.arcconfig.get_value('statefile', 'arex/data-staging')
+
         if dtrlog is None:
             self.logger.critical('Job state file name can not be found in arc.conf.')
+            return
 
+        dtrlog = dtrlog.rstrip('/')
         state_counter = {}
         num_lines = 0
 
@@ -167,7 +171,7 @@ class DataDeliveryControl(ComponentControl):
         """ TO-DO print in nice order """
         print_order = ['CACHE_WAIT','STAGING_PREPARING_WAIT','STAGE_PREPARE','TRANSFER_WAIT','TRANSFER','PROCESSING_CACHE']
         if state_counter:
-            print('Number of current datadelivery processes (files):')
+            print('Number of current datastaging processes (files):')
             print('\t{0:<25}{1:<20}{2:<6}'.format('State','Data-delivery host', 'Number'))
             
             """ First print the most important states:"""
@@ -195,7 +199,7 @@ class DataDeliveryControl(ComponentControl):
 
                 
         else:
-            print('No information in %s file: currently no datadelivery processes running',dtrlog)
+            print('No information in %s file: currently no datastaging processes running',dtrlog)
                 
         return
 
@@ -450,7 +454,7 @@ class DataDeliveryControl(ComponentControl):
     @staticmethod
     def register_job_parser(dds_job_ctl):
 
-        dds_job_ctl.set_defaults(handler_class=DataDeliveryControl)
+        dds_job_ctl.set_defaults(handler_class=DataStagingControl)
         dds_job_actions = dds_job_ctl.add_subparsers(title='Job Datastaging Menu', dest='jobaction',metavar='ACTION',help='DESCRIPTION')
         
         dds_job_time = dds_job_actions.add_parser('time', help='Show time spent in preparation')
@@ -465,18 +469,18 @@ class DataDeliveryControl(ComponentControl):
     @staticmethod
     def register_parser(root_parser):
 
-        dds_ctl = root_parser.add_parser('datadelivery',help='DataDelivery info')
-        dds_ctl.set_defaults(handler_class=DataDeliveryControl)
+        dds_ctl = root_parser.add_parser('datastaging',help='DataStaging info')
+        dds_ctl.set_defaults(handler_class=DataStagingControl)
 
 
-        dds_actions = dds_ctl.add_subparsers(title='DataDelivery Control Actions',dest='action',
+        dds_actions = dds_ctl.add_subparsers(title='DataStaging Control Actions',dest='action',
                                              metavar='ACTION', help='DESCRIPTION')
         dds_actions.required = True
         
        
         """ Summary """
         dds_summary_ctl = dds_actions.add_parser('summary',help='Job Datastaging Summary Information for jobs preparing or running.')
-        dds_summary_ctl.set_defaults(handler_class=DataDeliveryControl)
+        dds_summary_ctl.set_defaults(handler_class=DataStagingControl)
         dds_summary_actions = dds_summary_ctl.add_subparsers(title='Job Datastaging Summary Menu',dest='summaryaction',metavar='ACTION',help='DESCRIPTION')
         
         dds_summary_time = dds_summary_actions.add_parser('time',help='Overview of datastaging durations (time that jobs in preparing state) for files where the job.<jobid>.errors file is modified within a selected (or default) timewindow')
@@ -488,12 +492,12 @@ class DataDeliveryControl(ComponentControl):
        
         """ Job """
         dds_job_ctl = dds_actions.add_parser('job',help='Job Datastaging Information for jobs preparing or running.')
-        DataDeliveryControl.register_job_parser(dds_job_ctl)
+        DataStagingControl.register_job_parser(dds_job_ctl)
 
 
         """ Data delivery processes """
         dds_dtr_ctl = dds_actions.add_parser('dtr',help='Data-delivery transfer (DTR) information')
-        dds_dtr_ctl.set_defaults(handler_class=DataDeliveryControl)
+        dds_dtr_ctl.set_defaults(handler_class=DataStagingControl)
         dds_dtr_actions = dds_dtr_ctl.add_subparsers(title='DTR info menu',dest='dtr',metavar='ACTION',help='DESCRIPTION')
         
         dds_dtr_state = dds_dtr_actions.add_parser('state', help='Show summary of DTR state info')
