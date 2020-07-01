@@ -71,10 +71,10 @@ else:
     CTL_COMPONENTS.append(CacheControl)
 
 
-# arcctl datadelivery
+# arcctl datastaging
 try:
-    from .DataDelivery import DataDeliveryControl
+    from .DataStaging import DataStagingControl
 except ImportError:
     pass
 else:
-    CTL_COMPONENTS.append(DataDeliveryControl)
+    CTL_COMPONENTS.append(DataStagingControl)

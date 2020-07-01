@@ -7,9 +7,9 @@ try:
 except ImportError:
     AccountingControl = None
 try:
-    from .DataDelivery import DataDeliveryControl
+    from .DataStaging import DataStagingControl
 except ImportError:
-    DataDeliveryControl = None
+    DataStagingControl = None
 
 
 import subprocess
@@ -455,8 +455,8 @@ class JobsControl(ComponentControl):
             self.job_stats(args)
         elif args.action == 'accounting' and AccountingControl is not None:
             AccountingControl(self.arcconfig).jobcontrol(args)
-        elif args.action == 'datadelivery' and DataDeliveryControl is not None:
-            DataDeliveryControl(self.arcconfig).jobcontrol(args)
+        elif args.action == 'datastaging' and DataStagingControl is not None:
+            DataStagingControl(self.arcconfig).jobcontrol(args)
 
     def complete_owner(self, args):
         owners = []
@@ -541,9 +541,9 @@ class JobsControl(ComponentControl):
             AccountingControl.register_job_parser(jobs_accounting)
 
 
-        if DataDeliveryControl is not None:
-        # add 'job datadelivery xxx' functionality as well ass 'datadelivery job xxx' 
-            dds_job_ctl = jobs_actions.add_parser('datadelivery',help='Job Datastaging Information for jobs preparing or running.')
-            DataDeliveryControl.register_job_parser(dds_job_ctl)
+        if DataStagingControl is not None:
+        # add 'job datastaging xxx' functionality as well ass 'datastaging job xxx' 
+            dds_job_ctl = jobs_actions.add_parser('datastaging',help='Job Datastaging Information for jobs preparing or running.')
+            DataStagingControl.register_job_parser(dds_job_ctl)
 
             
