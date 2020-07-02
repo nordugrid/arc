@@ -13,7 +13,7 @@ This release comes with a handful of nice smaller enhancements and bugfixes.
 Ubuntu deployment issues recently discovered are now fixed (Bugzilla 3933), and
 We have added the possibility of read-only caches (3924).
 
-The useful arcctl tool has been extended with a datadelivery functionality.
+The useful arcctl tool has been extended with datastaging information functionality.
 A first implementation is now released, and more additions are expected in coming releases. 
 
 For ARC stability, several improvements have been made to avoid unexpected errors related
