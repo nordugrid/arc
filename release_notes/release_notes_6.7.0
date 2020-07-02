@@ -11,7 +11,7 @@ Highlights in this release
 This release comes with a handful of nice smaller enhancements and bugfixes.
 
 Ubuntu deployment issues recently discovered are now fixed (Bugzilla 3933), and
-We have added the possibility of read-only caches (3924).
+We have added the possibility of read-only caches (Bugzilla 3924).
 
 The useful arcctl tool has been extended with datastaging information functionality.
 A first implementation is now released, and more additions are expected in coming releases. (Bugzilla 3906)
