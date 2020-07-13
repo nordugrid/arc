@@ -482,7 +482,6 @@ Summary:	ARC Control Tool - service control modules
 Group:		Applications/Internet
 Requires:	%{name} = %{version}-%{release}
 Requires:	%{name}-arcctl = %{version}-%{release}
-BuildArch:	noarch
 
 %description arcctl-service
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -490,7 +489,7 @@ support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 This package contains the service control modules for ARC Contol Tool
-that allow to work with server-side config and manage ARC services.
+that allow working with server-side config and manage ARC services.
 
 %package arex
 Summary:	ARC Resource-coupled EXecution service
@@ -748,7 +747,6 @@ sites, to be used with a local installation of the ARC Control Tower.
 Summary:	ARC REST plugin
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-arex = %{version}-%{release}
 
 %description plugins-arcrest
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -756,6 +754,23 @@ support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 ARC plugin for ARC REST interface technology preview.
+
+%package plugins-python
+Summary:	ARC Python dependent plugin
+Group:		System Environment/Libraries
+Requires:	%{name} = %{version}-%{release}
+%if %{py3default}
+Requires:	python%{python3_pkgversion}-%{name} = %{version}-%{release}
+%else
+Requires:	python2-%{name} = %{version}-%{release}
+%endif
+
+%description plugins-python
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+ARC plugins dependent on Python.
 
 %if %{with_acix}
 %package acix-core
@@ -1061,7 +1076,7 @@ make -C src/libs/data-staging/examples	DESTDIR=$PWD/docdir/devel  pkgdatadir= in
 make -C src/hed/libs/compute/examples	DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
 make -C src/hed/libs/data/examples	DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
 make -C src/hed/acc/PythonBroker	DESTDIR=$PWD/docdir/python pkgdatadir= install-exampleDATA
-make -C python/examples			DESTDIR=$PWD/docdir/python pkgdatadir= install-exampleDATA
+make -C python/examples			DESTDIR=$PWD/docdir/devel  pkgdatadir= install-exampleDATA
 make -C src/tests/echo			DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-exampleDATA
 make -C src/hed				DESTDIR=$PWD/docdir/hed	   pkgdatadir= install-profileDATA
 
@@ -1395,18 +1410,15 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 
 %files arcctl-service
 %if %{py3default}
-%dir %{python3_sitearch}/%{pkgdir}/control
 %{python3_sitearch}/%{pkgdir}/control/Config.py
 %{python3_sitearch}/%{pkgdir}/control/ServiceCommon.py
 %{python3_sitearch}/%{pkgdir}/control/Services.py
 %{python3_sitearch}/%{pkgdir}/control/OSService.py
-%dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Config.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/ServiceCommon.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Services.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/OSService.*
 %else
-%dir %{python2_sitearch}/%{pkgdir}/control
 %{python2_sitearch}/%{pkgdir}/control/Config.py*
 %{python2_sitearch}/%{pkgdir}/control/ServiceCommon.py*
 %{python2_sitearch}/%{pkgdir}/control/Services.py*
@@ -1498,34 +1510,34 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/ssmsend
 %if %{py3default}
 %{python3_sitearch}/%{pkgdir}/ssm
-%dir %{python3_sitearch}/%{pkgdir}/control
 %{python3_sitearch}/%{pkgdir}/control/AccountingDB.py
 %{python3_sitearch}/%{pkgdir}/control/AccountingLegacy.py
 %{python3_sitearch}/%{pkgdir}/control/AccountingPublishing.py
 %{python3_sitearch}/%{pkgdir}/control/Accounting.py
 %{python3_sitearch}/%{pkgdir}/control/Cache.py
+%{python3_sitearch}/%{pkgdir}/control/DataStaging.py
 %{python3_sitearch}/%{pkgdir}/control/Jobs.py
 %{python3_sitearch}/%{pkgdir}/control/JuraArchive.py
 %{python3_sitearch}/%{pkgdir}/control/JuraArchiveSQLite.py
 %{python3_sitearch}/%{pkgdir}/control/RunTimeEnvironment.py
-%dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingDB.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingLegacy.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingPublishing.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Accounting.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Cache.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/DataStaging.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Jobs.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/JuraArchive.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/JuraArchiveSQLite.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/RunTimeEnvironment.*
 %else
 %{python2_sitearch}/%{pkgdir}/ssm
-%dir %{python2_sitearch}/%{pkgdir}/control
 %{python2_sitearch}/%{pkgdir}/control/AccountingDB.py*
 %{python2_sitearch}/%{pkgdir}/control/AccountingLegacy.py*
 %{python2_sitearch}/%{pkgdir}/control/AccountingPublishing.py*
 %{python2_sitearch}/%{pkgdir}/control/Accounting.py*
 %{python2_sitearch}/%{pkgdir}/control/Cache.py*
+%{python2_sitearch}/%{pkgdir}/control/DataStaging.py*
 %{python2_sitearch}/%{pkgdir}/control/Jobs.py*
 %{python2_sitearch}/%{pkgdir}/control/JuraArchive.py*
 %{python2_sitearch}/%{pkgdir}/control/JuraArchiveSQLite.py*
@@ -1561,12 +1573,9 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %{_datadir}/%{pkgdir}/community_rtes.sh
 %if %{py3default}
-%dir %{python3_sitearch}/%{pkgdir}/control
 %{python3_sitearch}/%{pkgdir}/control/CommunityRTE.py
-%dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/CommunityRTE.*
 %else
-%dir %{python2_sitearch}/%{pkgdir}/control
 %{python2_sitearch}/%{pkgdir}/control/CommunityRTE.py*
 %endif
 
@@ -1682,12 +1691,21 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libaccARCREST.so
 %{_libdir}/%{pkgdir}/libaccARCREST.apd
 
+%files plugins-python
+%defattr(-,root,root,-)
+%doc docdir/python/*
+%{_libdir}/%{pkgdir}/libaccPythonBroker.so
+%{_libdir}/%{pkgdir}/libaccPythonBroker.apd
+%{_libdir}/%{pkgdir}/libpythonservice.so
+%{_libdir}/%{pkgdir}/libpythonservice.apd
+
 %if %{with_acix}
 %files acix-core
 %defattr(-,root,root,-)
 %if %{py3default}
 %dir %{python3_sitelib}/acix
 %{python3_sitelib}/acix/__init__.py
+%dir %{python3_sitelib}/acix/__pycache__
 %{python3_sitelib}/acix/__pycache__/__init__.*
 %{python3_sitelib}/acix/core
 %else
@@ -1738,32 +1756,33 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %if %{with_python2}
 %files -n python2-%{name}
 %defattr(-,root,root,-)
-%doc docdir/python/*
 %{python2_sitearch}/_arc.*so
 %if %{py3default}
-%{python2_sitearch}/%{pkgdir}
-%else
-%{python2_sitearch}/%{pkgdir}/[^_p]*.py*
-%{_libdir}/%{pkgdir}/libaccPythonBroker.so
-%{_libdir}/%{pkgdir}/libaccPythonBroker.apd
-%{_libdir}/%{pkgdir}/libpythonservice.so
-%{_libdir}/%{pkgdir}/libpythonservice.apd
+%dir %{python2_sitearch}/%{pkgdir}
+%{python2_sitearch}/%{pkgdir}/__init__.py*
 %endif
+%{python2_sitearch}/%{pkgdir}/[^_p]*.py*
 %endif
 
 %if %{with_python3}
 %files -n python%{python3_pkgversion}-%{name}
 %defattr(-,root,root,-)
 %{python3_sitearch}/_arc.*so
-%if %{py3default}
+%if %{?fedora}%{!?fedora:0} >= 15 || %{?rhel}%{!?rhel:0} >= 7
+# Python >= 3.2 uses __pycache__
+%if ! %{py3default}
+%dir %{python3_sitearch}/%{pkgdir}
+%{python3_sitearch}/%{pkgdir}/__init__.py
+%dir %{python3_sitearch}/%{pkgdir}/__pycache__
+%{python3_sitearch}/%{pkgdir}/__pycache__/__init__.*
+%endif
 %{python3_sitearch}/%{pkgdir}/[^_p]*.py
 %{python3_sitearch}/%{pkgdir}/__pycache__/[^_p]*.*
-%{_libdir}/%{pkgdir}/libaccPythonBroker.so
-%{_libdir}/%{pkgdir}/libaccPythonBroker.apd
-%{_libdir}/%{pkgdir}/libpythonservice.so
-%{_libdir}/%{pkgdir}/libpythonservice.apd
 %else
-%{python3_sitearch}/%{pkgdir}
+# Python 3.1 doesn't use __pycache__
+%dir %{python3_sitearch}/%{pkgdir}
+%{python3_sitearch}/%{pkgdir}/__init__.py*
+%{python3_sitearch}/%{pkgdir}/[^_p]*.py*
 %endif
 %endif
 

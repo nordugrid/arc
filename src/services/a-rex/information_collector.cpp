@@ -144,7 +144,7 @@ bool ARexService::RegistrationCollector(Arc::XMLNode &doc) {
     logger.msg(Arc::VERBOSE, "Registered static information: \n doc: %s",(std::string)doc);
     infodoc_.Release();
   } else
-    logger.msg(Arc::VERBOSE, "Information Registered without static attributes: \n doc: %s",(std::string)doc);
+    logger.msg(Arc::VERBOSE, "Information registered without static attributes: \n doc: %s",(std::string)doc);
 return true;
   //
   // TODO: filter information here.

@@ -199,11 +199,18 @@ AuthResult UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_
           // Plugin should print user[:group] at stdout or nothing if no suitable mapping found
           unix_user.name = stdout_channel;
           split_unixname(unix_user.name,unix_user.group);
-          if(unix_user.name.empty()) return AAA_NO_MATCH; // success but no match
+          if(unix_user.name.empty()) { // success but no match
+            logger.msg(Arc::ERROR,"Plugin %s returned no username",args.front());
+            return AAA_NO_MATCH;
+          };
           return AAA_POSITIVE_MATCH;
         } else {
           logger.msg(Arc::ERROR,"Plugin %s returned too much: %s",args.front(),stdout_channel);
         };
+      } else if(run.Result() == 1) {
+        logger.msg(Arc::ERROR,"Plugin %s returned no mapping",args.front());
+        if(!stderr_channel.empty()) logger.msg(Arc::ERROR,"Plugin %s error: %s",args.front(),stderr_channel);
+        return AAA_NO_MATCH;
       } else {
         logger.msg(Arc::ERROR,"Plugin %s returned: %u",args.front(),run.Result());
       };

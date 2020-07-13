@@ -714,13 +714,6 @@ AC_CHECK_HEADER([glibmm/optioncontext.h], [
     ]
   )
 ])
-AC_TRY_COMPILE([#include <glibmm.h>],[Glib::SignalChildWatch watch = Glib::signal_child_watch();],[glibmm_childwatch=yes],[glibmm_childwatch=no])
-if test "$glibmm_childwatch" = yes; then
-  AC_DEFINE(HAVE_GLIBMM_CHILDWATCH, 1,
-    [define if glibmm have support for controling state of children processes])
-else
-  AC_MSG_NOTICE([WARNING: glibmm has no API for controlling children processes - result of external processes may be inconsistent])
-fi
 AC_TRY_COMPILE([#include <glibmm.h>],[Glib::ModuleFlags flags = Glib::MODULE_BIND_LOCAL;],[glibmm_bind_local=yes],[glibmm_bind_local=no])
 if test "$glibmm_bind_local" = yes; then
   AC_DEFINE(HAVE_GLIBMM_BIND_LOCAL, 1,

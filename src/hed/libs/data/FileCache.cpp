@@ -46,11 +46,12 @@ namespace Arc {
     // make a vector of one item and call _init
     std::vector<std::string> caches;
     std::vector<std::string> draining_caches;
+    std::vector<std::string> readonly_caches;
     if (!cache_path.empty()) 
       caches.push_back(cache_path);
 
     // if problem in init, clear _caches so object is invalid
-    if (!_init(caches, draining_caches, id, job_uid, job_gid))
+    if (!_init(caches, draining_caches, readonly_caches, id, job_uid, job_gid))
       _caches.clear();
   }
 
@@ -60,9 +61,10 @@ namespace Arc {
                        gid_t job_gid) {
 
     std::vector<std::string> draining_caches;
+    std::vector<std::string> readonly_caches;
 
     // if problem in init, clear _caches so object is invalid
-    if (!_init(caches, draining_caches, id, job_uid, job_gid))
+    if (!_init(caches, draining_caches, readonly_caches, id, job_uid, job_gid))
       _caches.clear();
   }
 
@@ -72,13 +74,27 @@ namespace Arc {
                        uid_t job_uid,
                        gid_t job_gid) {
 
+    std::vector<std::string> readonly_caches;
     // if problem in init, clear _caches so object is invalid
-    if (!_init(caches, draining_caches, id, job_uid, job_gid))
+    if (!_init(caches, draining_caches, readonly_caches, id, job_uid, job_gid))
+      _caches.clear();
+  }
+
+  FileCache::FileCache(const std::vector<std::string>& caches,
+                       const std::vector<std::string>& draining_caches,
+                       const std::vector<std::string>& readonly_caches,
+                       const std::string& id,
+                       uid_t job_uid,
+                       gid_t job_gid) {
+
+    // if problem in init, clear _caches so object is invalid
+    if (!_init(caches, draining_caches, readonly_caches, id, job_uid, job_gid))
       _caches.clear();
   }
 
   bool FileCache::_init(const std::vector<std::string>& caches,
                         const std::vector<std::string>& draining_caches,
+                        const std::vector<std::string>& readonly_caches,
                         const std::string& id,
                         uid_t job_uid,
                         gid_t job_gid) {
@@ -130,6 +146,25 @@ namespace Arc {
       cache_params.cache_link_path = "";
       _draining_caches.push_back(cache_params);
     }
+
+    // for each readonly cache
+    for (int i = 0; i < (int)readonly_caches.size(); i++) {
+      std::string cache = readonly_caches[i];
+      std::string cache_path = cache.substr(0, cache.find(" "));
+      if (cache_path.empty()) {
+        logger.msg(ERROR, "No read-only cache directory specified");
+        return false;
+      }
+      // tidy up paths - take off any trailing slashes
+      if (cache_path.rfind("/") == cache_path.length()-1) cache_path = cache_path.substr(0, cache_path.length()-1);
+
+      // add this cache to our list
+      struct CacheParameters cache_params;
+      cache_params.cache_path = cache_path;
+      cache_params.cache_link_path = "";
+      _readonly_caches.push_back(cache_params);
+    }
+
     return true;
   }
 
@@ -497,13 +532,15 @@ namespace Arc {
 
   bool FileCache::Release() const {
 
-    // go through all caches (including draining caches)
+    // go through all caches (including read-only and draining caches)
     // and remove per-job dirs for our job id
     std::vector<std::string> job_dirs;
     for (int i = 0; i < (int)_caches.size(); i++)
       job_dirs.push_back(_caches[i].cache_path + "/" + CACHE_JOB_DIR + "/" + _id);
     for (int i = 0; i < (int)_draining_caches.size(); i++)
       job_dirs.push_back(_draining_caches[i].cache_path + "/" + CACHE_JOB_DIR + "/" + _id); 
+    for (int i = 0; i < (int)_readonly_caches.size(); i++)
+      job_dirs.push_back(_readonly_caches[i].cache_path + "/" + CACHE_JOB_DIR + "/" + _id);
 
     for (int i = 0; i < (int)job_dirs.size(); i++) {
       std::string job_dir = job_dirs[i];
@@ -743,8 +780,8 @@ namespace Arc {
 
   struct CacheParameters FileCache::_chooseCache(const std::string& url) const {
 
-    // When there is only one cache directory   
-    if (_caches.size() == 1) return _caches.front();
+    // When there is only one cache directory
+    if (_caches.size() == 1 && _readonly_caches.empty()) return _caches.front();
 
     std::string hash(_getHash(url));
     struct stat fileStat;
@@ -753,8 +790,17 @@ namespace Arc {
       std::string c_file = i->cache_path + "/" + CACHE_DATA_DIR +"/" + hash;
       if (FileStat(c_file, &fileStat, true)) {
         return *i;
-      }  
+      }
     }
+
+    // check the read-only caches
+    for (std::vector<struct CacheParameters>::const_iterator i = _readonly_caches.begin(); i != _readonly_caches.end(); ++i) {
+      std::string c_file = i->cache_path + "/" + CACHE_DATA_DIR +"/" + hash;
+      if (FileStat(c_file, &fileStat, true)) {
+        return *i;
+      }
+    }
+
     // check to see if a lock file already exists, since cache could be
     // started but no file download was done
     for (std::vector<struct CacheParameters>::const_iterator i = _caches.begin(); i != _caches.end(); ++i) {
@@ -763,7 +809,7 @@ namespace Arc {
         return *i;
       }
     }
-  
+
     // map of cache number and unused space in GB
     std::map<int, float> cache_map;
     // sum of all cache free space
@@ -788,9 +834,9 @@ namespace Arc {
     // shouldn't be possible to get here
     return _caches.front();
   }
-  
+
   float FileCache::_getCacheInfo(const std::string& path) const {
-  
+
     struct statvfs info;
     if (statvfs(path.c_str(), &info) != 0) {
       // if path does not exist info is undefined but the dir will be created in Start() anyway

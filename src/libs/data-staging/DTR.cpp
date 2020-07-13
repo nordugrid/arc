@@ -39,7 +39,8 @@ namespace DataStaging {
            const Arc::UserConfig& usercfg,
            const std::string& jobid,
            const uid_t& uid,
-           DTRLogger log)
+           const std::list<DTRLogDestination>& logs,
+           const std::string& logname)
     :  DTR_ID(""),
        source_url(source),
        destination_url(destination),
@@ -70,16 +71,11 @@ namespace DataStaging {
        delivery_endpoint(LOCAL_DELIVERY),
        use_host_cert_for_remote_delivery(false),
        current_owner(GENERATOR),
-       logger(log),
-       delete_log_destinations(true),
+       log_destinations(logs),
        perf_record(perf_log)
   {
-    if (!logger) {
-      // use root logger if none is supplied
-      logger = new Arc::Logger(Arc::Logger::getRootLogger(), "DTR");
-      logger->addDestinations(Arc::Logger::getRootLogger().getDestinations());
-    }
-    log_destinations = logger->getDestinations();
+    logger = new Arc::Logger(Arc::Logger::getRootLogger(), logname.c_str());
+    logger->addDestinations(get_log_destinations());
 
     // check that endpoints can be handled
     if (!source_endpoint) {
@@ -128,11 +124,20 @@ namespace DataStaging {
     // setting ID last means all the previous steps have to pass for the DTR to be valid
     DTR_ID = Arc::UUID();
     // Prefix all log messages for this DTR with the short ID
-    for (std::list<Arc::LogDestination*>::iterator dest = log_destinations.begin();
+    for (std::list<DTRLogDestination>::iterator dest = log_destinations.begin();
          dest != log_destinations.end(); ++dest) {
       (*dest)->setPrefix("DTR " + get_short_id() + ": ");
     }
   }	
+
+  std::list<Arc::LogDestination*> DTR::get_log_destinations() const {
+    std::list<Arc::LogDestination*> log_dest;
+    for (std::list<DTRLogDestination>::const_iterator dest = log_destinations.begin();
+         dest != log_destinations.end(); ++dest) {
+        log_dest.push_back(dest->Ptr());
+    }
+    return log_dest;
+  }
 
   void DTR::registerCallback(DTRCallback* cb, StagingProcesses owner) {
     lock.lock();
@@ -171,7 +176,7 @@ namespace DataStaging {
     } else {
       DTR_ID = id;
       // Change logging prefix to new ID
-      for (std::list<Arc::LogDestination*>::iterator dest = log_destinations.begin();
+      for (std::list<DTRLogDestination>::iterator dest = log_destinations.begin();
            dest != log_destinations.end(); ++dest) {
         (*dest)->setPrefix("DTR " + get_short_id() + ": ");
       }
@@ -287,17 +292,6 @@ namespace DataStaging {
     return false;
   }
 
-  void DTR::clean_log_destinations(Arc::LogDestination* exclude) {
-    // This method makes sure log_destinations is in sync with the LogDestination
-    // objects inside logger. First clear internal list (not deleting objects)
-    log_destinations.clear();
-    // Then delete objects inside logger if requested
-    if (logger) {
-      if (delete_log_destinations) logger->deleteDestinations(exclude);
-      else logger->removeDestinations();
-    }
-  }
-
   std::list<DTRCallback*> DTR::get_callbacks(const std::map<StagingProcesses,std::list<DTRCallback*> >& proc_callback, StagingProcesses owner) {
     std::list<DTRCallback*> l;
     lock.lock();
@@ -409,11 +403,11 @@ namespace DataStaging {
   }
 
   DTRCacheParameters::DTRCacheParameters(std::vector<std::string> caches,
-                                         std::vector<std::string> remote_caches,
-                                         std::vector<std::string> drain_caches):
+                                         std::vector<std::string> drain_caches,
+                                         std::vector<std::string> readonly_caches):
        cache_dirs(caches),
-       remote_cache_dirs(remote_caches),
-       drain_cache_dirs(drain_caches) {
+       drain_cache_dirs(drain_caches),
+       readonly_cache_dirs(readonly_caches) {
   }
 
   DTRCredentialInfo::DTRCredentialInfo(const std::string& DN,
@@ -464,8 +458,9 @@ namespace DataStaging {
                        const Arc::UserConfig& usercfg,
                        const std::string& jobid,
                        const uid_t& uid,
-                       DTRLogger log) {
-    return DTR_ptr(new DTR(source, destination, usercfg, jobid, uid, log));
+                       const std::list<DTRLogDestination>& logs,
+                       const std::string& logname) {
+    return DTR_ptr(new DTR(source, destination, usercfg, jobid, uid, logs, logname));
   }
 
   DTRLogger createDTRLogger(Arc::Logger& parent,

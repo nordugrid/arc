@@ -284,7 +284,7 @@ static void init_config(const Arc::ServerOptions &options)
         } else {
             Arc::IniConfig ini_parser(ini_config_file);
             if (ini_parser.Evaluate(config) == false) {
-                logger.msg(Arc::ERROR, "Error evaulating profile");
+                logger.msg(Arc::ERROR, "Error evaluating profile");
                 exit(1);
             }
         }

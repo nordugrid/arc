@@ -69,3 +69,12 @@ except ImportError:
     pass
 else:
     CTL_COMPONENTS.append(CacheControl)
+
+
+# arcctl datastaging
+try:
+    from .DataStaging import DataStagingControl
+except ImportError:
+    pass
+else:
+    CTL_COMPONENTS.append(DataStagingControl)

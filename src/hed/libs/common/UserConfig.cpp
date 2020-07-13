@@ -505,7 +505,7 @@ namespace Arc {
         if (test && !dir_test(caCertificatesDirectory)) {
           //std::cerr<<"-- ca_dir test failed"<<std::endl;
           if(require) {
-            logger.msg(WARNING, "Can not access CA certificates directory: %s. The certificates will not be verified.", caCertificatesDirectory);
+            logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified.", caCertificatesDirectory);
             res = false;
           }
           caCertificatesDirectory.clear();

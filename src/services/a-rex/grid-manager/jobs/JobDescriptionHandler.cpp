@@ -384,7 +384,7 @@ bool JobDescriptionHandler::set_execs(const GMJob &job) const {
   if (desc.Application.Executable.Path[0] != '/' && desc.Application.Executable.Path[0] != '$') {
     std::string executable = desc.Application.Executable.Path;
     if(!Arc::CanonicalDir(executable)) {
-      logger.msg(Arc::ERROR, "Bad name for executable: ", executable);
+      logger.msg(Arc::ERROR, "Bad name for executable: %s", executable);
       return false;
     }
     fix_file_permissions_in_session(session_dir+"/"+executable,job,config,true);

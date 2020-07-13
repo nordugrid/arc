@@ -596,6 +596,7 @@ bool JobLocalDescription::write(const std::string& fname) const {
   }
   if(!write_pair(f,"transfershare",transfershare)) return false;
   if(!write_pair(f,"priority",Arc::tostring(priority))) return false;
+  if(!write_pair(f,"dryrun",dryrun)) return false;
   return true;
 }
 
@@ -721,6 +722,7 @@ bool JobLocalDescription::read(const std::string& fname) {
       if(!Arc::stringto(buf,n)) return false;
       priority = n;
     }
+    else if(name == "dryrun") { dryrun = parse_boolean(buf); }
   }
   return true;
 }

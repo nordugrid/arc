@@ -201,7 +201,7 @@ bool contact_voms_servers(std::map<std::string,std::list<std::string> >& vomscmd
     } // voms lines
     if(succeeded == false) {
       if(voms_lines_num > 1) {
-        std::cout << Arc::IString("There are %d servers with the same name: %s in your vomses file, but all of them can not be reached, or can not return valid message.", voms_lines_num, voms_server) << std::endl;
+        std::cout << Arc::IString("There are %d servers with the same name: %s in your vomses file, but none of them can be reached, or can return a valid message.", voms_lines_num, voms_server) << std::endl;
       }
       return false;
     }

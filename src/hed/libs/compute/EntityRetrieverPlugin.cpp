@@ -38,7 +38,7 @@ namespace Arc {
     }
 
     if(!factory_->load(FinderLoader::GetLibrariesList(), EntityRetrieverPlugin<T>::kind, name)) {
-      logger.msg(ERROR, "Unable to locate the \"%s\" plugin. Please refer to installation instructions and check if package providing support for %s plugin is installed", name, name);
+      logger.msg(ERROR, "Unable to locate the \"%s\" plugin. Please refer to installation instructions and check if package providing support for \"%s\" plugin is installed", name, name);
       logger.msg(DEBUG, "%s plugin \"%s\" not found.", EntityRetrieverPlugin<T>::kind, name, name);
       return NULL;
     }

@@ -73,14 +73,14 @@ int RUNMAIN(arcget)(int argc, char **argv) {
   if (opt.downloaddir.empty()) {
     if (!usercfg.JobDownloadDirectory().empty()) {
       opt.downloaddir = usercfg.JobDownloadDirectory();
-      logger.msg(Arc::INFO, "Job download directory from user configuration file: %s ", opt.downloaddir);
+      logger.msg(Arc::INFO, "Job download directory from user configuration file: %s", opt.downloaddir);
     }
     else {
-      logger.msg(Arc::INFO, "Job download directory will be created in present working directory. ");
+      logger.msg(Arc::INFO, "Job download directory will be created in present working directory.");
     }
   }
   else {
-    logger.msg(Arc::INFO, "Job download directory: %s ", opt.downloaddir);
+    logger.msg(Arc::INFO, "Job download directory: %s", opt.downloaddir);
   }
 
   for (std::list<std::string>::const_iterator it = opt.jobidinfiles.begin(); it != opt.jobidinfiles.end(); ++it) {
@@ -170,14 +170,14 @@ int RUNMAIN(arcget)(int argc, char **argv) {
     jobmaster.SelectByID(retrieved);
     if(!jobmaster.Clean()) {
       std::cout << Arc::IString("Warning: Some jobs were not removed from server") << std::endl;
-      std::cout << Arc::IString("         Use arclean to remove retrieved jobs from job list", usercfg.JobListFile()) << std::endl;
+      std::cout << Arc::IString("         Use arcclean to remove retrieved jobs from job list", usercfg.JobListFile()) << std::endl;
       retval = 1;
     }
     cleaned_num = jobmaster.GetIDsProcessed().size();
 
     if (!jobstore->Remove(jobmaster.GetIDsProcessed())) {
       std::cout << Arc::IString("Warning: Failed removing jobs from file (%s)", usercfg.JobListFile()) << std::endl;
-      std::cout << Arc::IString("         Use arclean to remove retrieved jobs from job list", usercfg.JobListFile()) << std::endl;
+      std::cout << Arc::IString("         Use arcclean to remove retrieved jobs from job list", usercfg.JobListFile()) << std::endl;
       retval = 1;
     }
 

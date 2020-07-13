@@ -67,6 +67,8 @@ namespace Arc {
     std::vector<struct CacheParameters> _caches;
     /// Vector of caches to be drained.
     std::vector<struct CacheParameters> _draining_caches;
+    /// Vector of read-only caches.
+    std::vector<struct CacheParameters> _readonly_caches;
     /// A list of URLs that have already been unlocked in Link(). URLs in
     /// this set will not be unlocked in Stop().
     std::set<std::string> _urls_unlocked;
@@ -99,6 +101,7 @@ namespace Arc {
     /// Common code for constructors
     bool _init(const std::vector<std::string>& caches,
                const std::vector<std::string>& draining_caches,
+               const std::vector<std::string>& readonly_caches,
                const std::string& id,
                uid_t job_uid,
                gid_t job_gid);
@@ -170,9 +173,33 @@ namespace Arc {
      * @param job_uid owner of job. The per-job dir will only be
      * readable by this user
      * @param job_gid owner group of job
+     *
+     * @deprecated Should be removed in ARC 7, use 3 vector constructor instead
      */
     FileCache(const std::vector<std::string>& caches,
               const std::vector<std::string>& draining_caches,
+              const std::string& id,
+              uid_t job_uid,
+              gid_t job_gid);
+
+    /// Create a new FileCache instance with multiple cache, read-only and and draining cache directories.
+    /**
+     * @param caches a vector of strings describing caches. The format
+     * of each string is "cache_dir[ link_path]".
+     * @param draining_caches Same format as caches. These are the
+     * paths to caches which are to be drained.
+     * @param readonly_caches Same format as caches. Files in these caches
+     * can be used but no new files are written there.
+     * @param id the job id. This is used to create the per-job dir
+     * which the job's cache files will be hard linked from
+     * @param job_uid owner of job. The per-job dir will only be
+     * readable by this user
+     * @param job_gid owner group of job
+     * @since Added in 6.7
+     */
+    FileCache(const std::vector<std::string>& caches,
+              const std::vector<std::string>& draining_caches,
+              const std::vector<std::string>& readonly_caches,
               const std::string& id,
               uid_t job_uid,
               gid_t job_gid);
