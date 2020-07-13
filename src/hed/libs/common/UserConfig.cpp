@@ -108,6 +108,50 @@ namespace Arc {
     return "";
   }
 
+  static bool clean_otoken(std::string& otoken) {
+    otoken = trim(otoken, " \f\n\r\t\v");
+    if(otoken.empty()) return true;
+    std::size_t pos = otoken.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~+/");
+    if(pos == std::string::npos) return true;
+    pos = otoken.find_first_not_of('=', pos);
+    if(pos == std::string::npos) return true;
+    return false;
+  }
+
+  static std::string load_otoken_from_file(std::string const & otoken_file, bool& failed) {
+    std::string otoken;
+    if(FileRead(otoken_file, otoken)) {
+      failed = !clean_otoken(otoken);
+    } else {
+      failed = (errno != ENOENT);
+    }
+    return otoken;
+  }
+
+  static std::string load_otoken(bool& failed) {
+    // ARC_OTOKEN
+    std::string otoken = GetEnv("BEARER_TOKEN");
+    if(!otoken.empty()) {
+      failed = !clean_otoken(otoken);
+      if(!otoken.empty() || failed) return otoken;
+    }
+    std::string otoken_file = GetEnv("BEARER_TOKEN_FILE");
+    if(!otoken_file.empty()) {
+      otoken = load_otoken_from_file(otoken_file, failed);
+      if(!otoken.empty() || failed) return otoken;
+    }
+    otoken_file = GetEnv("XDG_RUNTIME_DIR");
+    if(!otoken_file.empty()) {
+      otoken_file += "/bt_u" + inttostr(::getuid());
+      otoken = load_otoken_from_file(otoken_file, failed);
+      if(!otoken.empty() || failed) return otoken;
+    }
+    otoken_file = "/tmp/bt_u" + inttostr(::getuid());
+    otoken = load_otoken_from_file(otoken_file, failed);
+
+    return otoken;
+  }
+
   Logger UserConfig::logger(Logger::getRootLogger(), "UserConfig");
 
   std::string UserConfig::DEFAULT_BROKER() {
@@ -346,7 +390,12 @@ namespace Arc {
 
     // Look for credentials.
 
-    otoken = GetEnv("ARC_OTOKEN");
+    bool otoken_failed = false;
+    otoken = load_otoken(otoken_failed);
+    if(otoken_failed) {
+      otoken.clear();
+      logger.msg(WARNING, "Loading OToken failed - ignoring its presence");
+    }
 
     std::string proxy_path = GetEnv("X509_USER_PROXY");
     if (!proxy_path.empty()) {
