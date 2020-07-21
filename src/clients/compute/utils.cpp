@@ -405,12 +405,12 @@ ClientOptions::ClientOptions(Client_t c,
 {
   bool cIsJobMan = (c == CO_CAT || c == CO_CLEAN || c == CO_GET || c == CO_KILL || c == CO_RENEW || c == CO_RESUME || c == CO_STAT || c == CO_ACL);
 
-  DefineOptionsGroup("xaction", "Other actions");
-  DefineOptionsGroup("filtering", "Brokering and filtering");
-  DefineOptionsGroup("format", "Output format modifiers");
-  DefineOptionsGroup("tuning", "Behaviour tuning");
-  DefineOptionsGroup("arc6-target", "ARC6 submission endpoint selection");
-  DefineOptionsGroup("legacy-target", "Legacy options set for defining targets");
+  DefineOptionsGroup("xaction", istring("Other actions"));
+  DefineOptionsGroup("filtering", istring("Brokering and filtering"));
+  DefineOptionsGroup("format", istring("Output format modifiers"));
+  DefineOptionsGroup("tuning", istring("Behaviour tuning"));
+  DefineOptionsGroup("arc6-target", istring("ARC6 submission endpoint selection"));
+  DefineOptionsGroup("legacy-target", istring("Legacy options set for defining targets"));
 
   if ( c == CO_RESUB || c == CO_SUB || c == CO_TEST || c == CO_SYNC ) {
     GroupAddOption("arc6-target", 'C', "computing-element",
