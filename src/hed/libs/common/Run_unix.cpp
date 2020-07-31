@@ -255,7 +255,7 @@ namespace Arc {
                   // In case of error just stop monitoring.
                   close(r->stdout_);
                   r->stdout_ = -1;
-                  logger.msg(ERROR, "Child monitoring stdout is closed");
+                  logger.msg(VERBOSE, "Child monitoring stdout is closed");
                 }
               }
               if (r->stderr_str_ && !(r->stderr_keep_) && (r->stderr_ != -1)) {
@@ -265,7 +265,7 @@ namespace Arc {
                   // In case of error just stop monitoring.
                   close(r->stderr_);
                   r->stderr_ = -1;
-                  logger.msg(ERROR, "Child monitoring stderr is closed");
+                  logger.msg(VERBOSE, "Child monitoring stderr is closed");
                 }
               }
               if (r->stdin_str_ && !(r->stdin_keep_) && (r->stdin_ != -1)) {
@@ -275,7 +275,7 @@ namespace Arc {
                   // In case of error just stop monitoring.
                   close(r->stdin_);
                   r->stdin_ = -1;
-                  logger.msg(ERROR, "Child monitoring stdin is closed");
+                  logger.msg(VERBOSE, "Child monitoring stdin is closed");
                 }
               }
             }

@@ -728,7 +728,8 @@ namespace Arc {
           FileInfo fileinfo;
           DataPoint::DataPointInfoType verb = (DataPoint::DataPointInfoType)
                                               (DataPoint::INFO_TYPE_TIMES |
-                                               DataPoint::INFO_TYPE_CONTENT);
+                                               DataPoint::INFO_TYPE_CONTENT |
+                                               DataPoint::INFO_TYPE_CKSUM);
           DataStatus r = source_url.Stat(fileinfo, verb);
           if (!r.Passed()) {
             logger.msg(ERROR, "Failed to stat source %s", source_url.str());
