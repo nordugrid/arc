@@ -552,7 +552,9 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
   // BES ActivityIdentifier is global job ID
   idgenerator.SetLocalID(id_);
   job_.globalid = idgenerator.GetGlobalID();
-  job_.headnode = idgenerator.GetManager();
+  job_.headnode = idgenerator.GetManagerURL();
+  job_.headhost = idgenerator.GetHostname();
+  job_.globalurl = idgenerator.GetJobURL();
   job_.interface = idgenerator.GetInterface();
   std::string certificates;
   job_.expiretime = time(NULL);
