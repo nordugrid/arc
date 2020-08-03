@@ -125,7 +125,7 @@ namespace Arc {
     if(!result) return result;
     if(check_meta) {
       FileInfo file;
-      if(Stat(file, DataPoint::INFO_TYPE_CONTENT | DataPoint::INFO_TYPE_TIMES)) {
+      if(Stat(file, (DataPoint::DataPointInfoType)(DataPoint::INFO_TYPE_CONTENT | DataPoint::INFO_TYPE_TIMES))) {
         if(file.CheckModified()) SetModified(file.GetModified());
         if(file.CheckSize()) SetSize(file.GetSize());
       }
