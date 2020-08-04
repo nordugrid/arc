@@ -142,6 +142,7 @@ namespace ArcDMCGridFTP {
       ftp_eof_flag = false;
       check_received_length = 0;
       logger.msg(VERBOSE, "check_ftp: globus_ftp_client_register_read");
+      cond.reset();
       res = globus_ftp_client_register_read(&ftp_handle,
                                             (globus_byte_t*)ftp_buf,
                                             sizeof(ftp_buf),
@@ -186,6 +187,7 @@ namespace ArcDMCGridFTP {
   }
 
   DataStatus DataPointGridFTPHelper::RemoveFile() {
+    cond.reset();
     GlobusResult res(globus_ftp_client_delete(&ftp_handle, url.plainstr().c_str(),
                                    &ftp_opattr, &ftp_complete_callback, cbarg));
     if (!res) {
@@ -207,6 +209,7 @@ namespace ArcDMCGridFTP {
   }
 
   DataStatus DataPointGridFTPHelper::RemoveDir() {
+    cond.reset();
     GlobusResult res(globus_ftp_client_rmdir(&ftp_handle, url.plainstr().c_str(),
                                   &ftp_opattr, &ftp_complete_callback, cbarg));
     if (!res) {
@@ -265,6 +268,7 @@ namespace ArcDMCGridFTP {
       if (!add_last_dir(ftp_dir_path, url.plainstr()))
         break;
       logger.msg(VERBOSE, "mkdir_ftp: making %s", ftp_dir_path);
+      cond.reset();
       GlobusResult res(globus_ftp_client_mkdir(&ftp_handle, ftp_dir_path.c_str(), &ftp_opattr,
                                 &ftp_complete_callback, cbarg));
       if (!res) {
@@ -299,6 +303,7 @@ namespace ArcDMCGridFTP {
     if (!remove_last_dir(dirpath)) return DataStatus::Success;
 
     logger.msg(VERBOSE, "Creating directory %s", dirpath);
+    cond.reset();
     GlobusResult res(globus_ftp_client_mkdir(&ftp_handle, dirpath.c_str(), &ftp_opattr,
                               &ftp_complete_callback, cbarg));
     if (!res) {
@@ -693,12 +698,13 @@ namespace ArcDMCGridFTP {
         modify_utime = modify_utime;
       }
     }
-    if ((verb & DataPoint::INFO_TYPE_CONTENT) == DataPoint::INFO_TYPE_CONTENT && !f.CheckCheckSum() && f.GetType() != FileInfo::file_type_dir) {
+    if ((verb & DataPoint::INFO_TYPE_CKSUM) == DataPoint::INFO_TYPE_CKSUM && !f.CheckCheckSum() && f.GetType() != FileInfo::file_type_dir) {
       // not all implementations support checksum so failure is not an error
       logger.msg(DEBUG, "list_files_ftp: "
                         "looking for checksum of %s", f_url);
       char cksum[256];
       std::string cksumtype(upper(default_checksum).c_str());
+      cond.reset();
       res = globus_ftp_client_cksm(&ftp_handle, f_url.c_str(),
                                    &ftp_opattr, cksum, (globus_off_t)0,
                                    (globus_off_t)-1, cksumtype.c_str(),
@@ -714,8 +720,11 @@ namespace ArcDMCGridFTP {
       }
       else if (!callback_status) {
         // reset to success since failing to get checksum should not trigger an error
+        if (callback_status == EOPNOTSUPP)
+          logger.msg(INFO, "list_files_ftp: no checksum information supported");
+        else 
+          logger.msg(INFO, "list_files_ftp: no checksum information returned");
         callback_status = DataStatus::Success;
-        logger.msg(INFO, "list_files_ftp: no checksum information possible");
       }
       else {
         logger.msg(VERBOSE, "list_files_ftp: checksum %s", cksum);
@@ -792,6 +801,7 @@ namespace ArcDMCGridFTP {
       return lister_res;
     }
     DataStatus result = DataStatus::Success;
+    int cksum_failed_cnt = 0;
     for (std::list<FileInfo>::iterator i = lister->begin();
          i != lister->end(); ++i) {
       if (i->GetName()[0] != '/') i->SetName(url.Path()+'/'+i->GetName());
@@ -803,6 +813,17 @@ namespace ArcDMCGridFTP {
         }
       }
       DataExternalComm::OutEntry(outstream<<DataExternalComm::FileInfoTag, *i);
+      if(((verb & DataPoint::INFO_TYPE_CKSUM) == DataPoint::INFO_TYPE_CKSUM) &&
+         (i->GetType() != FileInfo::file_type_dir)) {
+        if(i->GetCheckSum().empty()) {
+          if(++cksum_failed_cnt >= 10) {
+            verb = (Arc::DataPoint::DataPointInfoType)(verb & ~DataPoint::INFO_TYPE_CKSUM);
+            logger.msg(VERBOSE, "Too many failures to obtain checksum - giving up");
+          }
+        } else {
+          cksum_failed_cnt = 0;
+        }
+      }
     }
     return result;
   }
