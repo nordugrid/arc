@@ -60,6 +60,9 @@ if [ -z "$JOB_ACCOUNTING" ]; then
 fi
 # Setting environment variables as specified by user
 export 'GRID_GLOBAL_JOBID=@TEST_JOB_ID@'
+export 'GRID_GLOBAL_JOBURL='
+export 'GRID_GLOBAL_JOBINTERFACE='
+export 'GRID_GLOBAL_JOBHOST='
 
 RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
 RUNTIME_JOB_STDIN=/dev/null

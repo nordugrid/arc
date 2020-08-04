@@ -1,6 +1,6 @@
 --- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
 +++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -21,6 +21,9 @@
+@@ -21,9 +21,12 @@
  }
  # Setting environment variables as specified by user
 -export 'GRID_GLOBAL_JOBID=@TEST_JOB_ID@'
@@ -8,10 +8,13 @@
 +export 'test="TEST"'
 +export 'rte_foo="foo\\bar"'
 +export GRID_GLOBAL_JOBID='gsiftp://@TEST_HOSTNAME@:2811/jobs/rte0_env_backslashes'
+ export 'GRID_GLOBAL_JOBURL='
+ export 'GRID_GLOBAL_JOBINTERFACE='
+ export 'GRID_GLOBAL_JOBHOST='
 
  RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
  RUNTIME_JOB_STDIN=/dev/null
-@@ -101,8 +102,20 @@
+@@ -104,8 +105,20 @@
 
  if [ "$RESULT" = '0' ] ; then
  # Running runtime scripts
@@ -33,7 +36,7 @@
 
  echo "runtimeenvironments=$runtimeenvironments" >> "$RUNTIME_JOB_DIAG"
  if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
-@@ -159,6 +172,12 @@
+@@ -162,6 +175,12 @@
 
  fi
  fi

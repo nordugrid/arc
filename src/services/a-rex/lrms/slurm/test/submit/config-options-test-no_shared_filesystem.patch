@@ -1,8 +1,8 @@
 --- a/basic-script.sh 2014-01-28 11:18:43.152122917 +0100
 +++ b/basic-script.sh 2014-01-28 11:18:43.144122917 +0100
-@@ -22,22 +22,14 @@
- # Setting environment variables as specified by user
- export 'GRID_GLOBAL_JOBID='
+@@ -64,22 +64,14 @@
+ export 'GRID_GLOBAL_JOBINTERFACE='
+ export 'GRID_GLOBAL_JOBHOST='
  
 -RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
 -RUNTIME_JOB_STDIN=/dev/null
