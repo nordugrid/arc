@@ -16,7 +16,7 @@
 * [ ] Announce release on nordugrid-discuss, wlcg-arc-ce-discuss and urt-discuss@mailman.egi.eu email lists (@maikenp)
 * [ ] Publish release notes on web (@oxana)
 * [ ] Update News about release: http://www.nordugrid.org/ (@oxana)
-* [ ] Update link to latest release: http://www.nordugrid.org/arc/ (@oxana)~
+* [ ] Update link to latest release: http://www.nordugrid.org/arc/ (@oxana)
 
 Important bugs/changes to clear before code-freeze
 * [ ]
