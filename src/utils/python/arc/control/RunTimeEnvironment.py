@@ -357,9 +357,14 @@ class RTEControl(ComponentControl):
             os.makedirs(rte_dir_path, mode=0o755)
 
         rte_params_file = rte_params_path + rte
-        with open(rte_params_file, 'w') as rte_parm_f:
-            for p in params.values():
-                rte_parm_f.write('{name}="{value}"\n'.format(**p))
+        self.logger.debug('Writing data to RTE parameters file %s', rte_params_file)
+        try:
+            with open(rte_params_file, 'w') as rte_parm_f:
+                for p in params.values():
+                    rte_parm_f.write('{name}="{value}"\n'.format(**p))
+        except EnvironmentError as err:
+            self.logger.error('Failed to write RTE parameters file %s. Error: %s', rte_params_file, str(err))
+            sys.exit(1)
 
     def params_get(self, rte, is_long=False):
         params = self.__params_parse(rte)
