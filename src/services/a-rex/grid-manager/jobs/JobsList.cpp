@@ -386,11 +386,13 @@ bool JobsList::FailedJob(GMJobRef i,bool cancel) {
   if(job_failed_mark_add(*i,config,i->failure_reason)) {
     i->failure_reason = "";
   } else {
+    logger.msg(Arc::ERROR,"%s: Failed storing failure reason: %s",i->job_id,Arc::StrError(errno));
     r = false;
   }
   if(GetLocalDescription(i)) {
     i->local->uploads=0;
   } else {
+    logger.msg(Arc::ERROR,"%s: Failed reading job description: %s",i->job_id,Arc::StrError(errno));
     r=false;
   }
   // If the job failed during FINISHING then DTR deals with .output
@@ -402,6 +404,7 @@ bool JobsList::FailedJob(GMJobRef i,bool cancel) {
   // Not good looking code
   JobLocalDescription job_desc;
   if(job_desc_handler.parse_job_req(i->get_id(),job_desc) != JobReqSuccess) {
+    logger.msg(Arc::ERROR,"%s: Failed parsing job request.",i->job_id);
     r = false;
   }
   // Convert delegation ids to credential paths.
@@ -1280,14 +1283,19 @@ bool JobsList::CheckJobCancelRequest(GMJobRef i) {
       JobFailStateRemember(i,i->job_state,false);
       // behave like if job failed
       if(!FailedJob(i,true)) {
+        logger.msg(Arc::ERROR,"%s: Failed to turn job into failed during cancel processing.",i->job_id);
         // DO NOT KNOW WHAT TO DO HERE !!!!!!!!!!
       }
       // special processing for INLRMS case
       if(i->job_state == JOB_STATE_INLRMS) {
         SetJobState(i, JOB_STATE_CANCELING, "Request to cancel job");
       }
-      // if FINISHING we wait to get back all DTRs
-      else if (i->job_state != JOB_STATE_PREPARING) {
+      else if (i->job_state == JOB_STATE_PREPARING) {
+        // if PREPARING we wait to get back all DTRs (only if job is still in DTR processing)
+        if(!dtr_generator.hasJob(i)) {
+          SetJobState(i, JOB_STATE_FINISHING, "Request to cancel job");
+        }
+      } else {
         SetJobState(i, JOB_STATE_FINISHING, "Request to cancel job");
       }
       job_cancel_mark_remove(i->job_id,config);
