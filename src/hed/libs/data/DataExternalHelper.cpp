@@ -219,6 +219,12 @@ namespace Arc {
   DataStatus DataExternalHelper::Transfer(const URL& otherendpoint, bool source, DataPoint::TransferCallback callback) {
     if (!plugin)
       return DataStatus::NotInitializedError;
+    // check if checksum is specified as a metadata attribute
+    if (!plugin->GetURL().MetaDataOption("checksumtype").empty() && !plugin->GetURL().MetaDataOption("checksumvalue").empty()) {
+      std::string csum = plugin->GetURL().MetaDataOption("checksumtype") + ':' + plugin->GetURL().MetaDataOption("checksumvalue");
+      logger.msg(INFO, "DataMove::Transfer: using supplied checksum %s", csum);
+      plugin->SetCheckSum(csum);
+    }
     return plugin->Transfer(otherendpoint, source, callback);
   }
 
