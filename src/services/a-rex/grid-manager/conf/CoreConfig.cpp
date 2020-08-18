@@ -170,6 +170,11 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             config.default_queue = default_queue;
           }
           CheckLRMSBackends(default_lrms);
+        else if (command == "benchmark") {
+          std::string default_benchmark = rest;
+          if (!default_benchmark.empty()) {
+            config.default_benchmark = default_benchmark;
+          }
         };
       };
       continue;
@@ -622,6 +627,11 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
     config.helper_log = "/var/log/arc/job.helper.errors";
   }
  
+  if (config.default_benchmark.empty()){
+    // Assign default benchmark value with no CPUTime normalization
+    config.default_benchmark = "HEPSPEC:1.0"
+  }
+
   // Do substitution of control dir and helpers here now we have all the
   // configuration. These are special because they do not change per-user
   config.Substitute(config.control_dir);

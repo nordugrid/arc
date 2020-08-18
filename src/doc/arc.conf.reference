@@ -494,15 +494,20 @@
 #lrms=slurm
 ## CHANGE: slurmpy NEW in 6.0.0. pbspro NEW in 6.1.0
 
-
-
-
 ## lrmsconfig = text - An optional free text field to describe the configuration of your
 ## Local Resource Management System (batch system). The value is published in the infosys,
 ## and is not used otherwise.
 ## default: undefined
 #lrmsconfig=single job per processor
 ## CHANGE: MOVED in 6.0.0 from the [cluster] block.
+
+## benchmark = string - Defines the default benchmark specification to store in
+## the accounting AAR records (as it is) if per-job data is missing.
+## It is advised to set it to cluster-wide defaults in case of reporting to APEL
+## to aviod records diversity for failed jobs or buggy backends.
+## default: HEPSPEC:1.0
+#benchmark=HEPSPEC:12.26
+## CHANGE: NEW in 6.8.0
 
 ## defaultmemory = number - The LRMS memory request of job to be set by the LRMS backend
 ## scripts, if a user submits a job without specifying how much memory should be used.
@@ -2375,8 +2380,7 @@
 ## CHANGE: RENAMED in 6.0.0.s
 ##
 ##
-## end of the [infosys/glue2] schema block ########################
-
+### end of the [infosys/glue2] schema block ########################
 
 ### The [infosys/glue2/ldap] schema sub-block ###########################
 ## Enables the publication of the LDAP-rendering of the GLUE2 infomodel.
