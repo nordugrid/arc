@@ -475,12 +475,12 @@
 ##   - sge     - (Sun/Oracle) Grid Engine
 ##   - condor  - Condor
 ##   - pbs     - PBS (covers Torque and other old PBS flavours e.g. OpenPBS, older PBSPro, etc)
-##   - pbspro  - Altair PBS Professional - CHANGE: NEW in 6.1.0
+##   - pbspro  - Altair PBS Professional
 ##   - lsf     - LSF
 ##   - ll      - LoadLeveler
 ##   - slurm   - SLURM
 ##   - boinc   - Boinc
-##   - slurmpy - new EXPERIMENTAL SLURM scripts (contains the ssh remote batch management as well) - CHANGE: NEW in 6.0.0
+##   - slurmpy - new EXPERIMENTAL SLURM scripts (contains the ssh remote batch management as well)
 ##
 ## The optional "defaultqueue" parameter specifies the name of an existing LRMS queue
 ## in the cluster that will be used by AREX as the default queue to submit grid jobs in case 
@@ -492,6 +492,9 @@
 ## mandatory
 #lrms=pbspro gridlong
 #lrms=slurm
+## CHANGE: slurmpy NEW in 6.0.0. pbspro NEW in 6.1.0
+
+
 
 
 ## lrmsconfig = text - An optional free text field to describe the configuration of your
