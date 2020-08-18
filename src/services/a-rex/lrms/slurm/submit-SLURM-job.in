@@ -100,7 +100,7 @@ fi
 
 # project name for accounting
 if [ ! -z "${joboption_rsl_project}" ] ; then
-  echo "#SBATCH -U $joboption_rsl_project" >> $LRMS_JOB_SCRIPT
+  echo "#SBATCH -A $joboption_rsl_project" >> $LRMS_JOB_SCRIPT
 fi
 # job name for convenience
 if [ ! -z "${joboption_jobname}" ] ; then
