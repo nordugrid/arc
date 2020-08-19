@@ -629,7 +629,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
  
   if (config.default_benchmark.empty()){
     // Assign default benchmark value with no CPUTime normalization
-    config.default_benchmark = "HEPSPEC:1.0"
+    config.default_benchmark = "HEPSPEC:1.0";
   }
 
   // Do substitution of control dir and helpers here now we have all the
