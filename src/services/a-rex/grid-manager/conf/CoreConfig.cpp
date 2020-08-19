@@ -170,6 +170,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             config.default_queue = default_queue;
           }
           CheckLRMSBackends(default_lrms);
+        }
         else if (command == "benchmark") {
           std::string default_benchmark = rest;
           if (!default_benchmark.empty()) {
