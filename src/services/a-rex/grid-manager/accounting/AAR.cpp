@@ -157,8 +157,10 @@ namespace ARex {
         // prefered is MAX memory, but use an AVARAGE metrics as fallback
         unsigned long long int mem_avg_total = 0;
         unsigned long long int mem_max_total = 0;
-        unsigned long long int  mem_avg_resident = 0;
-        unsigned long long int  mem_max_resident = 0;
+        unsigned long long int mem_avg_resident = 0;
+        unsigned long long int mem_max_resident = 0;
+        // benchmark is present
+        bool is_benchmark = false;
         if (Arc::FileRead(fname_src, diag_data)) {
             for (std::list<std::string>::iterator line = diag_data.begin(); line != diag_data.end(); ++line) {
                 // parse key=value lowercasing all keys
@@ -218,11 +220,18 @@ namespace ARex {
                         std::pair <std::string, std::string>("wninstance", value)
                     );
                 } else if (key == "benchmark" ) {
+                    is_benchmark = true;
                     extrainfo.insert(
                         std::pair <std::string, std::string>("benchmark", value)
                     );
                 }
             }
+        }
+        // Insert default LRMS benchmark if missing in the .diag file
+        if (!is_benchmark) {
+            extrainfo.insert(
+                std::pair <std::string, std::string>("benchmark", config.DefaultBenchmark())
+            );
         }
         // Memory: use max if available, otherwise use avarage as a fallback
         usedmemory = mem_max_resident ? mem_max_resident : mem_avg_resident;

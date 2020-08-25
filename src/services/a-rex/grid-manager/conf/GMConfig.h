@@ -199,6 +199,8 @@ public:
   const std::string & DefaultLRMS() const { return default_lrms; }
   /// Default queue
   const std::string & DefaultQueue() const { return default_queue; }
+  /// Default benchmark
+  const std::string & DefaultBenchmark() const { return default_benchmark; }
   /// All configured queues
   const std::list<std::string>& Queues() const { return queues; }
 
@@ -309,6 +311,8 @@ private:
   /// Default LRMS and queue to use
   std::string default_lrms;
   std::string default_queue;
+  /// Default benchmark to store in AAR
+  std::string default_benchmark;
   /// All configured queues
   std::list<std::string> queues;
   /// User running A-REX
