@@ -14,9 +14,9 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 11:18:43.152122917 +0100
 +++ b/basic-script.sh 2014-01-28 11:18:43.144122917 +0100
-@@ -22,22 +22,14 @@
- # Setting environment variables as specified by user
- export 'GRID_GLOBAL_JOBID='
+@@ -26,22 +26,14 @@
+ export 'GRID_GLOBAL_JOBINTERFACE='
+ export 'GRID_GLOBAL_JOBHOST='
  
 -RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
 -RUNTIME_JOB_STDIN="/dev/null"
@@ -65,9 +65,9 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 11:18:43.152122917 +0100
 +++ b/basic-script.sh 2014-01-28 11:18:43.144122917 +0100
-@@ -22,22 +22,14 @@
- # Setting environment variables as specified by user
- export 'GRID_GLOBAL_JOBID='
+@@ -26,22 +26,14 @@
+ export 'GRID_GLOBAL_JOBINTERFACE='
+ export 'GRID_GLOBAL_JOBHOST='
  
 -RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
 -RUNTIME_JOB_STDIN="/dev/null"
@@ -95,7 +95,7 @@ read -r -d '' job_script_patch <<'EOF'
    if [ ! -z "$RUNTIME_LOCAL_SCRATCH_DIR" ] && [ ! -z "$RUNTIME_NODE_SEES_FRONTEND" ]; then
      RUNTIME_NODE_JOB_DIR="$RUNTIME_LOCAL_SCRATCH_DIR"/`basename "$RUNTIME_JOB_DIR"`
      rm -rf "$RUNTIME_NODE_JOB_DIR"
-@@ -140,9 +140,9 @@
+@@ -144,9 +144,9 @@
  fi 
  
  if [ -z "$GNU_TIME" ] ; then
@@ -141,9 +141,9 @@ read -r -d '' job_script_patch <<'EOF'
 +#SBATCH -n 8
  #SBATCH 
  
-@@ -23,22 +23,14 @@
- # Setting environment variables as specified by user
- export 'GRID_GLOBAL_JOBID=@TEST_JOB_ID@'
+@@ -27,22 +27,14 @@
+ export 'GRID_GLOBAL_JOBINTERFACE='
+ export 'GRID_GLOBAL_JOBHOST='
  
 -RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
 +RUNTIME_JOB_DIR=/local/scratch/@TEST_JOB_ID@
@@ -168,7 +168,7 @@ read -r -d '' job_script_patch <<'EOF'
    if [ ! -z "$RUNTIME_LOCAL_SCRATCH_DIR" ] && [ ! -z "$RUNTIME_NODE_SEES_FRONTEND" ]; then
      RUNTIME_NODE_JOB_DIR="$RUNTIME_LOCAL_SCRATCH_DIR"/`basename "$RUNTIME_JOB_DIR"`
      rm -rf "$RUNTIME_NODE_JOB_DIR"
-@@ -99,8 +91,21 @@
+@@ -103,8 +95,21 @@
  RESULT=0
  
  if [ "$RESULT" = '0' ] ; then
@@ -190,7 +190,7 @@ read -r -d '' job_script_patch <<'EOF'
  echo "runtimeenvironments=$runtimeenvironments" >> "$RUNTIME_JOB_DIAG"
  if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
    if [ -r "$SLURM_NODEFILE" ] ; then
-@@ -123,7 +128,7 @@
+@@ -127,7 +132,7 @@
    fi
  nodename=`/bin/hostname -f`
  echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
@@ -199,7 +199,7 @@ read -r -d '' job_script_patch <<'EOF'
  executable='/bin/true'
  # Check if executable exists
  if [ ! -f "$executable" ]; 
-@@ -159,6 +164,15 @@
+@@ -163,6 +168,15 @@
  fi
  # Running RTE scripts (stage 2)
  runtimeenvironments=

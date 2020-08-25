@@ -155,19 +155,25 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
 +++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -21,7 +21,10 @@
+@@ -21,11 +21,13 @@
  . $script
  }
+
  # Setting environment variables as specified by user
 -export 'GRID_GLOBAL_JOBID=@TEST_JOB_ID@'
+-export 'GRID_GLOBAL_JOBURL='
+-export 'GRID_GLOBAL_JOBINTERFACE='
+-export 'GRID_GLOBAL_JOBHOST='
 +export 'job_foo=foobar'
 +export 'test="TEST"'
 +export 'rte_foo="foobar"'
++export 'GRID_GLOBAL_JOBINTERFACE='
++export 'GRID_GLOBAL_JOBHOST='
 +export 'GRID_GLOBAL_JOBID=gsiftp://@TEST_HOSTNAME@:2811/jobs/rte0_env'
  
  RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
  RUNTIME_JOB_STDIN=/dev/null
-@@ -99,8 +102,22 @@
+@@ -103,8 +106,22 @@
  RESULT=0
  
  if [ "$RESULT" = '0' ] ; then
@@ -190,7 +196,7 @@ read -r -d '' job_script_patch <<'EOF'
  echo "runtimeenvironments=$runtimeenvironments" >> "$RUNTIME_JOB_DIAG"
  if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
    if [ -r "$SLURM_NODEFILE" ] ; then
-@@ -159,6 +176,15 @@
+@@ -163,6 +180,15 @@
  fi
  # Running RTE scripts (stage 2)
  runtimeenvironments=
@@ -228,18 +234,25 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
 +++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -21,6 +21,9 @@
+@@ -21,10 +21,13 @@
  }
+
  # Setting environment variables as specified by user
 -export 'GRID_GLOBAL_JOBID=@TEST_JOB_ID@'
+-export 'GRID_GLOBAL_JOBURL='
+-export 'GRID_GLOBAL_JOBINTERFACE='
+-export 'GRID_GLOBAL_JOBHOST='
 +export 'job_foo=foo\\bar'
 +export 'test="TEST"'
 +export 'rte_foo="foo\\bar"'
 +export GRID_GLOBAL_JOBID='gsiftp://@TEST_HOSTNAME@:2811/jobs/rte0_env_backslashes'
++export 'GRID_GLOBAL_JOBURL='
++export 'GRID_GLOBAL_JOBINTERFACE='
++export 'GRID_GLOBAL_JOBHOST='
  
  RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
  RUNTIME_JOB_STDIN=/dev/null
-@@ -101,8 +102,20 @@
+@@ -105,8 +106,20 @@
  
  if [ "$RESULT" = '0' ] ; then
  # Running runtime scripts
@@ -261,7 +274,7 @@ read -r -d '' job_script_patch <<'EOF'
  
  echo "runtimeenvironments=$runtimeenvironments" >> "$RUNTIME_JOB_DIAG"
  if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
-@@ -159,6 +172,12 @@
+@@ -163,6 +176,12 @@
  
  fi
  fi

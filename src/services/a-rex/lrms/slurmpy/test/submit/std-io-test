@@ -11,8 +11,9 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
 +++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -23,9 +23,9 @@
- export 'GRID_GLOBAL_JOBID='
+@@ -26,10 +26,10 @@
+ export 'GRID_GLOBAL_JOBINTERFACE='
+ export 'GRID_GLOBAL_JOBHOST='
  
  RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
 -RUNTIME_JOB_STDIN="/dev/null"
@@ -24,7 +25,7 @@ read -r -d '' job_script_patch <<'EOF'
  RUNTIME_JOB_DIAG=@TEST_SESSION_DIR@/@TEST_JOB_ID@.diag
  if [ ! -z "$RUNTIME_GRIDAREA_DIR" ] ; then
    RUNTIME_JOB_DIR=$RUNTIME_GRIDAREA_DIR/`basename $RUNTIME_JOB_DIR`
-@@ -148,9 +148,9 @@
+@@ -156,9 +156,9 @@
  fi 
  
  if [ -z "$GNU_TIME" ] ; then
@@ -51,8 +52,9 @@ EOF
 read -r -d '' job_script_patch <<'EOF'
 --- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
 +++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -23,9 +23,9 @@
- export 'GRID_GLOBAL_JOBID='
+@@ -26,10 +26,10 @@
+ export 'GRID_GLOBAL_JOBINTERFACE='
+ export 'GRID_GLOBAL_JOBHOST='
  
  RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
 -RUNTIME_JOB_STDIN="/dev/null"
