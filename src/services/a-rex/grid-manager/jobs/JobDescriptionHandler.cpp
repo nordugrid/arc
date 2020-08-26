@@ -242,8 +242,13 @@ bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc,
          it != arc_job_desc.Application.Environment.end(); it++, i++) {
         f<<"joboption_env_"<<i<<"="<<value_for_shell(it->first+"="+it->second,true)<<std::endl;
     }
-    value_for_shell globalid=value_for_shell(job_local_desc.globalid,true);
-    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBID="<<globalid<<std::endl;
+    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBID="<<value_for_shell(job_local_desc.globalid,true)<<std::endl;
+    ++i;
+    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBURL="<<value_for_shell(job_local_desc.globalurl,true)<<std::endl;
+    ++i;
+    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBINTERFACE="<<value_for_shell(job_local_desc.interface,true)<<std::endl;
+    ++i;
+    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBHOST="<<value_for_shell(job_local_desc.headhost,true)<<std::endl;
   }
 
 
