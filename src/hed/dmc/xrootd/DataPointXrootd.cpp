@@ -609,11 +609,9 @@ namespace ArcDMCXrootd {
     // communication in DTR so better to use no debugging
     XrdCl::Log *log = XrdCl::DefaultEnv::GetLog();
     if (logger.getThreshold() == DEBUG) {
-      XrdPosixXrootd::setDebug(1);
       log->SetLevel(XrdCl::Log::DumpMsg);
     }
     else {
-      XrdPosixXrootd::setDebug(0);
       log->SetLevel(XrdCl::Log::ErrorMsg);
     }
   }
