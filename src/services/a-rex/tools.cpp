@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include <arc/ws-addressing/WSA.h>
+#include <arc/URL.h>
 
 #include "tools.h"
 
@@ -185,7 +186,7 @@ namespace ARex {
   //      expired]
   //   Timestamp (dateTime)
   //   Description 0-1
-  Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,const std::string& gm_state,Arc::XMLNode glue_xml,bool failed,bool pending,const std::string& failedstate,const std::string& failedcause) {
+  Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,const std::string& gm_state,bool failed,bool pending,const std::string& failedstate,const std::string& failedcause) {
     std::string primary_state;
     std::list<std::string> state_attributes;
     std::string glue_state("");
@@ -199,6 +200,28 @@ namespace ARex {
     return state;
   }
 
+  Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,Arc::XMLNode glue_xml) {
+    std::string primary_state;
+    std::list<std::string> state_attributes;
+    std::string glue_state("");
+    for(Arc::XMLNode snode = glue_xml["State"]; (bool)snode ; ++snode) {
+      std::string state_str = snode;
+      if(state_str.compare(0, 6, "emies:") == 0) {
+        primary_state = state_str.substr(6);
+      } else if(state_str.compare(0, 10, "emiesattr:") == 0) {
+        state_attributes.push_back(state_str.substr(10));
+      }
+    }
+    Arc::XMLNode state = pnode.NewChild("estypes:ActivityStatus");
+    state.NewChild("estypes:Status") = primary_state;
+    for(std::list<std::string>::iterator st = state_attributes.begin();
+                  st!=state_attributes.end();++st) {
+      state.NewChild("estypes:Attribute") = *st;
+    };
+    return state;
+  }
+
+  /*
   JobIDGeneratorARC::JobIDGeneratorARC(const std::string& endpoint):endpoint_(endpoint) {
   }
 
@@ -236,13 +259,22 @@ namespace ARex {
     return jobid;
   }
 
-  std::string JobIDGeneratorARC::GetManager(void) {
+  std::string JobIDGeneratorARC::GetManagerURL(void) {
     return endpoint_;
+  }
+
+  std::string JobIDGeneratorARC::GetJobURL(void) {
+    return endpoint_ + "/" + id_;
   }
 
   std::string JobIDGeneratorARC::GetInterface(void) {
     return "org.nordugrid.xbes";
   }
+
+  std::string JobIDGeneratorARC::GetHostname(void) {
+    return Arc::URL(endpoint_).Host();
+  }
+  */
 
   JobIDGeneratorES::JobIDGeneratorES(const std::string& endpoint):endpoint_(endpoint) {
   }
@@ -269,12 +301,20 @@ namespace ARex {
     return id_;
   }
 
-  std::string JobIDGeneratorES::GetManager(void) {
+  std::string JobIDGeneratorES::GetManagerURL(void) {
     return endpoint_;
+  }
+
+  std::string JobIDGeneratorES::GetJobURL(void) {
+    return endpoint_ + "/" + id_;
   }
 
   std::string JobIDGeneratorES::GetInterface(void) {
     return "org.ogf.glue.emies.activitycreation";
+  }
+
+  std::string JobIDGeneratorES::GetHostname(void) {
+    return Arc::URL(endpoint_).Host();
   }
 
 
@@ -305,12 +345,20 @@ namespace ARex {
     return id_;
   }
   
-  std::string JobIDGeneratorINTERNAL::GetManager(void) {
-    return endpoint_;
+  std::string JobIDGeneratorINTERNAL::GetManagerURL(void) {
+    return ""; // conroldir?
+  }
+  
+  std::string JobIDGeneratorINTERNAL::GetJobURL(void) {
+    return ""; // job state file?
   }
   
   std::string JobIDGeneratorINTERNAL::GetInterface(void) {
     return "org.nordugrid.internal";
+  }
+
+  std::string JobIDGeneratorINTERNAL::GetHostname(void) {
+    return Arc::URL(endpoint_).Host();
   }
 
 }

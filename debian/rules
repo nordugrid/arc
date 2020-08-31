@@ -18,8 +18,12 @@ endif
 
 ifeq ($(shell dpkg-query -W -f '$${Depends}' libinline-python-perl 2>/dev/null | grep -q python3 && echo 1),1)
 PYVER = 3
+WITH_ALT_PYTHON =
+P = -Npython-nordugrid-arc
 else
 PYVER = 2
+WITH_ALT_PYTHON = --with-altpython=python3
+P = --with python3
 endif
 
 ifeq ($(shell type dh_systemd_enable > /dev/null 2> /dev/null && echo 1),1)
@@ -38,8 +42,20 @@ else
 SYSTEMD = no
 endif
 
+ifeq ($(shell grep -q no-enable /usr/bin/dh_installinit 2>/dev/null && echo 1),1)
+SYSVNOENBL = --no-enable
+else
+SYSVNOENBL =
+endif
+
+ifeq ($(shell grep -q no-enable /usr/bin/dh_systemd_enable 2>/dev/null && echo 1),1)
+SYSDNOENBL = --no-enable
+else
+SYSDNOENBL =
+endif
+
 %:
-	dh $@ --with autoreconf --with python$(PYVER) $(WSD) $(N)
+	dh $@ --with autoreconf $(WSD) --with python$(PYVER) $(P) $(N)
 
 override_dh_auto_configure:
 	if [ ! -f po/POTFILES.in.save ] ; then \
@@ -56,7 +72,8 @@ override_dh_auto_configure:
 		    --enable-systemd=$(SYSTEMD) \
 		    --with-systemd-units-location=/lib/systemd/system \
 		    --with-sysv-scripts-location=/etc/init.d \
-		    --with-python=python$(PYVER)
+		    --with-python=python$(PYVER) \
+		    $(WITH_ALT_PYTHON)
 
 override_dh_auto_clean:
 	dh_auto_clean
@@ -77,6 +94,10 @@ override_dh_auto_clean:
 	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap-slapd.service
 	rm -f debian/nordugrid-arc-acix-scanner.arc-acix-scanner.service
 	rm -f debian/nordugrid-arc-acix-index.arc-acix-index.service
+
+	rm -f debian/*.default
+	rm -f debian/*.maintscript
+	rm -f debian/*.preinst
 
 	if [ -f po/POTFILES.in.save ] ; then \
 	    mv po/POTFILES.in.save po/POTFILES.in ; \
@@ -103,6 +124,16 @@ override_dh_auto_install:
 	    mkdir -p debian/tmp/usr/share/bash-completion; \
 		mv debian/tmp/etc/bash_completion.d \
 		   debian/tmp/usr/share/bash-completion/completions; \
+	fi
+
+	if [ -z "$(SYSVNOENBL)" ] ; then \
+	    for x in debian/*.enable ; do \
+		cp -p $$x $${x%.enable} ; \
+	    done ; \
+	else \
+	    for x in debian/*.no-enable ; do \
+		cp -p $$x $${x%.no-enable} ; \
+	    done ; \
 	fi
 
 	mv debian/tmp/etc/init.d/arc-arex \
@@ -140,26 +171,32 @@ override_dh_auto_install:
 	chmod 4755 debian/tmp/usr/bin/arc-job-cgroup
 
 override_dh_install:
-	dh_install --fail-missing
+	dh_install -p libarccommon3 \
+	  debian/tmp/usr/lib/python$(PYVER).?/site-packages/arc/__init__.py\*
+	if [ $(PYVER) -eq 2 ] ; then \
+	  dh_install -p python3-nordugrid-arc \
+	    debian/tmp/usr/lib/python3.?/site-packages/arc/__init__.py\* ; fi
+	rm debian/tmp/usr/lib/python?.?/site-packages/arc/__init__.py*
+	dh_install --remaining-packages --fail-missing
 
 override_dh_installinit:
-	dh_installinit -p nordugrid-arc-hed --name arched
-	dh_installinit -p nordugrid-arc-arex --name arc-arex
-	dh_installinit -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
-	dh_installinit -p nordugrid-arc-gridftpd --name arc-gridftpd
-	dh_installinit -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
-	dh_installinit -p nordugrid-arc-acix-scanner --name arc-acix-scanner
-	dh_installinit -p nordugrid-arc-acix-index --name arc-acix-index
+	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-hed --name arched
+	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-arex --name arc-arex
+	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
+	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-gridftpd --name arc-gridftpd
+	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
+	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-acix-scanner --name arc-acix-scanner
+	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-acix-index --name arc-acix-index
 
 override_dh_systemd_enable:
-	dh_systemd_enable -p nordugrid-arc-hed --name arched
-	dh_systemd_enable -p nordugrid-arc-arex --name arc-arex
-	dh_systemd_enable -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
-	dh_systemd_enable -p nordugrid-arc-gridftpd --name arc-gridftpd
-	dh_systemd_enable -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
-	dh_systemd_enable -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap-slapd
-	dh_systemd_enable -p nordugrid-arc-acix-scanner --name arc-acix-scanner
-	dh_systemd_enable -p nordugrid-arc-acix-index --name arc-acix-index
+	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-hed --name arched
+	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-arex --name arc-arex
+	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
+	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-gridftpd --name arc-gridftpd
+	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
+	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap-slapd
+	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-acix-scanner --name arc-acix-scanner
+	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-acix-index --name arc-acix-index
 
 override_dh_systemd_start:
 	dh_systemd_start -p nordugrid-arc-hed --name arched
@@ -174,22 +211,38 @@ override_dh_systemd_start:
 override_dh_fixperms:
 	dh_fixperms -X /usr/bin/arc-job-cgroup
 
+ifeq ($(PYVER),2)
 override_dh_python2:
 	dh_python2
 
 	echo "pydeps:Depends=python-ldap, python-isodate, python-stompy" \
 		>> debian/nordugrid-arc-arex.substvars
+	echo "pydeps:Depends=python-dns" \
+		>> debian/nordugrid-arc-community-rtes.substvars
 	echo "pydeps:Depends=python-twisted, python-openssl" \
 		>> debian/nordugrid-arc-acix-core.substvars
 	echo "pydeps:Depends=python-ldap, python-dns" \
 		>> debian/nordugrid-arc-archery-manage.substvars
+	echo "pydeps:Depends=python-nordugrid-arc (= \$${binary:Version})" \
+		>> debian/nordugrid-arc-plugins-python.substvars
+	echo "pydeps:Depends=python-nordugrid-arc (= \$${binary:Version})" \
+		>> debian/nordugrid-arc-arex-python-lrms.substvars
+endif
 
+ifeq ($(PYVER),3)
 override_dh_python3:
 	dh_python3
 
 	echo "pydeps:Depends=python3-ldap, python3-isodate" \
 		>> debian/nordugrid-arc-arex.substvars
+	echo "pydeps:Depends=python3-dns" \
+		>> debian/nordugrid-arc-community-rtes.substvars
 	echo "pydeps:Depends=python3-twisted, python3-openssl" \
 		>> debian/nordugrid-arc-acix-core.substvars
 	echo "pydeps:Depends=python3-ldap, python3-dns" \
 		>> debian/nordugrid-arc-archery-manage.substvars
+	echo "pydeps:Depends=python3-nordugrid-arc (= \$${binary:Version})" \
+		>> debian/nordugrid-arc-plugins-python.substvars
+	echo "pydeps:Depends=python3-nordugrid-arc (= \$${binary:Version})" \
+		>> debian/nordugrid-arc-arex-python-lrms.substvars
+endif

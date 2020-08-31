@@ -1,0 +1,6 @@
+debian/tmp/usr/lib/arc/libaccPythonBroker.so
+debian/tmp/usr/lib/arc/libpythonservice.so
+debian/tmp/usr/lib/arc/libaccPythonBroker.apd
+debian/tmp/usr/lib/arc/libpythonservice.apd
+debian/tmp/usr/share/arc/examples/PythonBroker
+debian/tmp/usr/share/arc/examples/echo_python

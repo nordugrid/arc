@@ -52,8 +52,8 @@ int main(void) {
   if(client_http) {
     Arc::MCC_Status status = client_http->process("GET", "echo", &req_http,&info,&resp_http, idp_name, username, password);
     if(!status) {
-      logger.msg(Arc::ERROR, "HTTP with SAML2SSO invokation failed");
-      throw std::runtime_error("HTTP with SAML2SSO invokation failed");
+      logger.msg(Arc::ERROR, "HTTP with SAML2SSO invocation failed");
+      throw std::runtime_error("HTTP with SAML2SSO invocation failed");
     }
     if(resp_http == NULL) {
       logger.msg(Arc::ERROR,"There was no HTTP response");
@@ -74,8 +74,8 @@ int main(void) {
   Arc::PayloadSOAP* resp_soap = NULL;
   Arc::MCC_Status status = client_soap->process(&req_soap,&resp_soap, idp_name, username, password);
   if(!status) {
-    logger.msg(Arc::ERROR, "SOAP with SAML2SSO invokation failed");
-    throw std::runtime_error("SOAP with SAML2SSO invokation failed");
+    logger.msg(Arc::ERROR, "SOAP with SAML2SSO invocation failed");
+    throw std::runtime_error("SOAP with SAML2SSO invocation failed");
   }
   if(resp_soap == NULL) {
     logger.msg(Arc::ERROR,"There was no SOAP response");

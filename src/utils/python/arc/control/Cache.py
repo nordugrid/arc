@@ -25,6 +25,8 @@ class CacheControl(ComponentControl):
         if not self.cache_dirs:
             self.logger.error('Failed to get cache directories from arc.conf.')
             sys.exit(1)
+        # Strip off any options
+        self.cache_dirs = [i.split()[0] for i in self.cache_dirs]
         self.logger.debug('Following cache locations found: %s', ','.join(self.cache_dirs))
 
     def stats(self):
@@ -100,6 +102,7 @@ class CacheControl(ComponentControl):
 
         cache_actions = cache_ctl.add_subparsers(title='A-REX Cache Actions', dest='action',
                                                  metavar='ACTION', help='DESCRIPTION')
+        cache_actions.required = True
 
         cache_stats = cache_actions.add_parser('stats', help='Show cache usage statistics')
 

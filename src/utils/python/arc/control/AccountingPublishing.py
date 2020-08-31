@@ -148,8 +148,8 @@ class RecordsPublisher(object):
         # get configured accounting targets and options
         self.vomsless_vo = self.arcconfig.get_value('vomsless_vo', ['arex/jura'])
         self.extra_vogroups = self.arcconfig.get_value('vo_group', ['arex/jura'], force_list=True)
-        self.conf_targets = map(lambda t: ('sgas', t), self.arcconfig.get_subblocks('arex/jura/sgas'))
-        self.conf_targets += map(lambda t: ('apel', t), self.arcconfig.get_subblocks('arex/jura/apel'))
+        self.conf_targets = list(map(lambda t: ('sgas', t), self.arcconfig.get_subblocks('arex/jura/sgas')))
+        self.conf_targets += list(map(lambda t: ('apel', t), self.arcconfig.get_subblocks('arex/jura/apel')))
         # accounting database files and connection
         self.accounting_dir = arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting'
         adb_file = self.accounting_dir + '/accounting.db'

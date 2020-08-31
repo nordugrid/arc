@@ -50,7 +50,7 @@ class TestCAControl(ComponentControl):
         # Use values from arc.conf if possible
         self.arcconfig = arcconfig
         if arcconfig is None:
-            if arcctl_ce_mode():
+            if arcctl_server_mode():
                 self.logger.info('Failed to parse arc.conf, using default CA certificates directory')
             else:
                 self.logger.debug('Working in config-less mode. Default paths will be used.')
@@ -66,7 +66,7 @@ class TestCAControl(ComponentControl):
             try:
                 # try to get it from hostname -f
                 hostname_f = subprocess.Popen(['hostname', '-f'], stdout=subprocess.PIPE)
-                self.hostname = hostname_f.stdout.readline().strip()
+                self.hostname = hostname_f.stdout.readline().decode().strip()
                 self.logger.debug('Using hostname from \'hostname -f\': %s', self.hostname)
             except OSError:
                 # fallback
@@ -253,7 +253,7 @@ class TestCAControl(ComponentControl):
                         usercertfiles.keyLocation,
                         os.getcwd()))
         # add subject to allowed list
-        if arcctl_ce_mode():
+        if arcctl_server_mode():
             if not args.no_auth:
                 try:
                     self.logger.info('Adding certificate subject name (%s) to allowed list at %s',
@@ -298,6 +298,7 @@ class TestCAControl(ComponentControl):
 
         testca_actions = testca_ctl.add_subparsers(title='Test CA Actions', dest='action',
                                                    metavar='ACTION', help='DESCRIPTION')
+        testca_actions.required = True
 
         testca_init = testca_actions.add_parser('init', help='Generate self-signed TestCA files')
         add_parser_digest_validity(testca_init)
@@ -322,5 +323,5 @@ class TestCAControl(ComponentControl):
         testca_user.add_argument('-t', '--export-tar', action='store_true',
                                  help='Export tar archive to use from another host')
         testca_user.add_argument('-f', '--force', action='store_true', help='Overwrite files if exist')
-        if arcctl_ce_mode():
+        if arcctl_server_mode():
             testca_user.add_argument('--no-auth', action='store_true', help='Do not add user subject to allowed list')

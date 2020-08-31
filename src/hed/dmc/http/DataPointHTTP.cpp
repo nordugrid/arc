@@ -357,10 +357,10 @@ using namespace Arc;
   }
 
   DataStatus DataPointHTTP::do_stat_http(URL& rurl, FileInfo& file) {
-    PayloadRaw request;
-    PayloadRawInterface *inbuf = NULL;
-    HTTPClientInfo info;
     for(int redirects_max = 10;redirects_max>=0;--redirects_max) {
+      PayloadRawInterface *inbuf = NULL;
+      HTTPClientInfo info;
+      PayloadRaw request;
       std::string path = rurl.FullPathURIEncoded();
       info.lastModified = (time_t)(-1);
       AutoPointer<ClientHTTP> client(acquire_client(rurl));
@@ -485,13 +485,13 @@ using namespace Arc;
     }
     std::multimap<std::string, std::string> propattr;
     propattr.insert(std::pair<std::string, std::string>("Depth","0"));
-    PayloadRawInterface *inbuf = NULL;
-    HTTPClientInfo info;
     for(int redirects_max = 10;redirects_max>=0;--redirects_max) {
       std::string path = rurl.FullPathURIEncoded();
-      info.lastModified = (time_t)(-1);
       AutoPointer<ClientHTTP> client(acquire_client(rurl));
       if (!client) return DataStatus::StatError;
+      PayloadRawInterface *inbuf = NULL;
+      HTTPClientInfo info;
+      info.lastModified = (time_t)(-1);
       MCC_Status r = client->process("PROPFIND", path, propattr, &request, &info, &inbuf);
       if (!r) {
         if (inbuf) { delete inbuf; inbuf = NULL; }
@@ -566,13 +566,13 @@ using namespace Arc;
     }
     std::multimap<std::string, std::string> propattr;
     propattr.insert(std::pair<std::string, std::string>("Depth","1")); // for listing
-    PayloadRawInterface *inbuf = NULL;
-    HTTPClientInfo info;
     for(int redirects_max = 10;redirects_max>=0;--redirects_max) {
       std::string path = rurl.FullPathURIEncoded();
-      info.lastModified = (time_t)(-1);
       AutoPointer<ClientHTTP> client(acquire_client(rurl));
       if (!client) return DataStatus::StatError;
+      PayloadRawInterface *inbuf = NULL;
+      HTTPClientInfo info;
+      info.lastModified = (time_t)(-1);
       MCC_Status r = client->process("PROPFIND", path, propattr, &request, &info, &inbuf);
       if (!r) {
         if (inbuf) { delete inbuf; inbuf = NULL; }
@@ -962,10 +962,10 @@ using namespace Arc;
     std::string path = point.CurrentLocation().FullPathURIEncoded();
     DataStatus failure_code;
     if (!client) return false;
-    HTTPClientInfo transfer_info;
-    PayloadRaw request;
-    PayloadStreamInterface *instream = NULL;
     for(;;) {  // for retries
+      HTTPClientInfo transfer_info;
+      PayloadRaw request;
+      PayloadStreamInterface *instream = NULL;
       MCC_Status r = client->process(ClientHTTPAttributes("GET", path),
                                      &request, &transfer_info,
                                      &instream);
@@ -1248,8 +1248,6 @@ using namespace Arc;
     URL client_url = point.url;
     AutoPointer<ClientHTTP> client(point.acquire_client(client_url));
     if (!client) return false;
-    HTTPClientInfo transfer_info;
-    PayloadRawInterface *response = NULL;
     std::string path = client_url.FullPathURIEncoded();
     // TODO: Do ping to *client in order to check if connection is alive.
     // TODO: But ping itself can destroy connection on 1.0-like servers.
@@ -1269,6 +1267,8 @@ using namespace Arc;
       }
       StreamBuffer request(*point.buffer);
       if (point.CheckSize()) request.Size(point.GetSize());
+      PayloadRawInterface *response = NULL;
+      HTTPClientInfo transfer_info;
       MCC_Status r = client->process(ClientHTTPAttributes("PUT", path, attrs),
                                      &request, &transfer_info, &response);
       if (response) { delete response; response = NULL; }
@@ -1364,6 +1364,7 @@ using namespace Arc;
       MCC_Status r = client->process("PUT", path, &request, &transfer_info,
                                      &response);
       if (response) delete response;
+      response = NULL;
       if (!r) {
         client = NULL;
         // Failed to transfer chunk - retry.
@@ -1432,6 +1433,7 @@ using namespace Arc;
           MCC_Status r = client->process("PUT", path, &request, &transfer_info,
                                          &response);
           if (response) delete response;
+          response = NULL;
           if (!r) {
             client = NULL;
             if ((++retries) > 10) {

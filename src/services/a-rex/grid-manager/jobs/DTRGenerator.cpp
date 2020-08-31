@@ -70,6 +70,11 @@ void DTRGenerator::thread() {
     // look at event queue and deal with any events.
     // This method of iteration should be thread-safe because events
     // are always added to the end of the list
+    logger.msg(Arc::DEBUG, "DTR Generator waiting to process: %d jobs to cancel, %d DTRs, %d new jobs",
+                                 jobs_cancelled.size(), dtrs_received.size(), jobs_received.Size());
+    int cancelled_num = 0;
+    int dtrs_num = 0;
+    int jobs_num = 0;
 
     // take cancelled jobs first so we can ignore other DTRs in those jobs
     Arc::AutoLock<Arc::SimpleCondition> elock(event_lock);
@@ -95,6 +100,7 @@ void DTRGenerator::thread() {
         jobs.RequestAttention(job); // pass job back to states processing
       }
       it_cancel = jobs_cancelled.erase(it_cancel);
+      ++cancelled_num;
     }
 
     // next DTRs sent back from the Scheduler
@@ -103,9 +109,8 @@ void DTRGenerator::thread() {
       elock.unlock();
       processReceivedDTR(*it_dtrs);
       elock.lock();
-      // delete DTR LogDestinations
-      (*it_dtrs)->clean_log_destinations(central_dtr_log);
       it_dtrs = dtrs_received.erase(it_dtrs);
+      ++dtrs_num;
     }
 
     // finally new jobs
@@ -130,9 +135,14 @@ void DTRGenerator::thread() {
         jobs_received.Erase(job); // release from queue cause 'jobs' queues have lower priority
         jobs.RequestAttention(job); // pass job back to states processing
       }
+      ++jobs_num;
     }
     bool queuesEmpty = jobs_cancelled.empty() && dtrs_received.empty() && jobs_received.IsEmpty();
     elock.unlock();
+
+    logger.msg(Arc::DEBUG, "DTR Generator processed: %d jobs to cancel, %d DTRs, %d new jobs",
+                                 cancelled_num, dtrs_num, jobs_num);
+
     // wait till something arrives or go back to processing almost immediately if queues not empty
     event_lock.wait(queuesEmpty ? 50000 : 100);
   } // main processing loop
@@ -146,8 +156,6 @@ void DTRGenerator::thread() {
   std::list<DataStaging::DTR_ptr>::iterator it_dtrs = dtrs_received.begin();
   while (it_dtrs != dtrs_received.end()) {
     processReceivedDTR(*it_dtrs);
-    // delete DTR LogDestinations
-    (*it_dtrs)->clean_log_destinations(central_dtr_log);
     it_dtrs = dtrs_received.erase(it_dtrs);
   }
   run_condition.signal();
@@ -656,11 +664,11 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   // log summary to DTR log and A-REX log
   if (finished_jobs[jobid].empty())
     dtr->get_logger()->msg(Arc::INFO, "%s: All %s %s successfully", jobid,
-                          dtr->get_source()->Local() ? "uploads":"downloads",
-                          (dtr->get_status() == DataStaging::DTRStatus::CANCELLED) ? "cancelled":"finished");
+                           dtr->get_source()->Local() ? istring("uploads") : istring("downloads"),
+                           (dtr->get_status() == DataStaging::DTRStatus::CANCELLED) ? istring("cancelled") : istring("finished"));
   else
     dtr->get_logger()->msg(Arc::INFO, "%s: Some %s failed", jobid,
-                          dtr->get_source()->Local() ? "uploads":"downloads");
+                           dtr->get_source()->Local() ? istring("uploads") : istring("downloads"));
   dlock.unlock();
 
   logger.msg(Arc::DEBUG, "%s: Requesting attention from DTR generator", jobid);
@@ -680,7 +688,7 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
 
   JobId jobid(job->get_id());
   logger.msg(Arc::VERBOSE, "%s: Received data staging request to %s files", jobid,
-             (job->get_state() == JOB_STATE_PREPARING ? "download" : "upload"));
+             (job->get_state() == JOB_STATE_PREPARING ? istring("download") : istring("upload")));
 
   uid_t job_uid = config.StrictSession() ? job->get_user().get_uid() : 0;
   uid_t job_gid = config.StrictSession() ? job->get_user().get_gid() : 0;
@@ -726,6 +734,7 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     return false;
   }
 
+  Arc::Time sessiondir_processing_start;
   if (job->get_state() == JOB_STATE_PREPARING) {
     if (!job_input_read_file(jobid, config, files)) {
       logger.msg(Arc::ERROR, "%s: Failed to read list of input files", jobid);
@@ -905,6 +914,12 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     finished_jobs[jobid] = std::string("Logic error: DTR Generator received job in a bad state");
     return false;
   }
+  Arc::Time sessiondir_processing_end;
+  Arc::Period sessiondir_processing_time = sessiondir_processing_end - sessiondir_processing_start;
+  if ((sessiondir_processing_time.GetPeriod() >= 1) || (sessiondir_processing_time.GetPeriodNanoseconds() > 100000000)) { // >0.1s
+    logger.msg(Arc::WARNING, "%s: Session directory processing takes too long - %u.%06u seconds",
+                               jobid, sessiondir_processing_time.GetPeriod(), sessiondir_processing_time.GetPeriodNanoseconds()/1000);
+  }
   Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
   Arc::UserConfig usercfg(cred_type);
   usercfg.UtilsDirPath(config.ControlDir());
@@ -998,18 +1013,16 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
       usercfg.ProxyPath(default_cred);
       if (Arc::FileRead(default_cred, proxy_cred)) usercfg.CredentialString(proxy_cred);
     }
-    // logger for these DTRs. LogDestinations should be deleted when DTR is received back
-    DataStaging::DTRLogger dtr_log(new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging.DTR"));
-    Arc::LogFile * dest = new Arc::LogFile(job_errors_filename(jobid, config));
+
+    std::list<DataStaging::DTRLogDestination> logs;
+    Arc::LogFile* dest = new Arc::LogFile(job_errors_filename(jobid, config));
     dest->setReopen(true);
     dest->setFormat(Arc::MediumFormat);
-    dtr_log->addDestination(*dest);
-    if (central_dtr_log) {
-      dtr_log->addDestination(*central_dtr_log);
-    }
+    logs.push_back(dest);
+    if (central_dtr_log) logs.push_back(central_dtr_log);
 
     // create DTR and send to Scheduler
-    DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, usercfg, jobid, job->get_user().get_uid(), dtr_log));
+    DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, usercfg, jobid, job->get_user().get_uid(), logs, "DataStaging.DTR"));
     // set retry count (tmp errors only)
     dtr->set_tries_left(staging_conf.max_retries);
     // allow the same file to be uploaded to multiple locations with same LFN
@@ -1034,6 +1047,7 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     // Substitute cache paths
     cache_params.substitute(config, job->get_user());
     cache_parameters.cache_dirs = cache_params.getCacheDirs();
+    cache_parameters.readonly_cache_dirs = cache_params.getReadOnlyCacheDirs();
     dtr->set_cache_parameters(cache_parameters);
     dtr->registerCallback(this,DataStaging::GENERATOR);
     dtr->registerCallback(scheduler, DataStaging::SCHEDULER);
@@ -1339,13 +1353,22 @@ void DTRGenerator::CleanCacheJobLinks(const GMConfig& config, const GMJobRef& jo
     return;
   }
 
+  Arc::Time processing_start;
   CacheConfig cache_config(config.CacheParams());
   cache_config.substitute(config, job->get_user());
   // there is no uid switch during Release so uid/gid is not so important
   Arc::FileCache cache(cache_config.getCacheDirs(),
                        cache_config.getDrainingCacheDirs(),
+                       cache_config.getReadOnlyCacheDirs(),
                        job->get_id(), job->get_user().get_uid(), job->get_user().get_gid());
   cache.Release();
+  Arc::Time processing_end;
+  Arc::Period processing_time = processing_end - processing_start;
+  if ((processing_time.GetPeriod() >= 1) || (processing_time.GetPeriodNanoseconds() > 100000000)) { // >0.1s
+    logger.msg(Arc::WARNING, "%s: Cache cleaning takes too long - %u.%06u seconds",
+                               job->get_id(), processing_time.GetPeriod(), processing_time.GetPeriodNanoseconds()/1000);
+  }
+
 }
 
 } // namespace ARex

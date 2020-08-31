@@ -24,11 +24,14 @@ namespace ARex {
 Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
 
   std::vector<std::string> caches;
+  std::vector<std::string> draining_caches;
+  std::vector<std::string> readonly_caches;
   // use cache dir(s) from conf file
   try {
     CacheConfig cache_config(config.GmConfig().CacheParams());
     cache_config.substitute(config.GmConfig(), config.User());
     caches = cache_config.getCacheDirs();
+    readonly_caches = cache_config.getReadOnlyCacheDirs();
   }
   catch (CacheConfigException& e) {
     logger.msg(Arc::ERROR, "Error with cache configuration: %s", e.what());
@@ -45,7 +48,7 @@ Arc::MCC_Status ARexService::CacheCheck(ARexGMConfig& config,Arc::XMLNode in,Arc
     return Arc::MCC_Status();
   }
 
-  Arc::FileCache cache(caches, CACHE_CHECK_SESSION_DIR_ID ,config.User().get_uid(), config.User().get_gid());
+  Arc::FileCache cache(caches, draining_caches, readonly_caches, CACHE_CHECK_SESSION_DIR_ID ,config.User().get_uid(), config.User().get_gid());
   if (!cache) {
     logger.msg(Arc::ERROR, "Error with cache configuration");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Error with cache configuration");

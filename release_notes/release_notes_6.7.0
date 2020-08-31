@@ -1,0 +1,94 @@
+Advanced Resource Connector (ARC)
+=================================
+
+
+Release Notes for NorduGrid ARC  6.7.0     02.07.2020
+------------------------------------------------------
+
+
+Highlights in this release
+--------------------------
+This release comes with a handful of nice smaller enhancements and bugfixes.
+
+Ubuntu deployment issues recently discovered are now fixed (Bugzilla 3933), and
+We have added the possibility of read-only caches (Bugzilla 3924).
+
+The useful arcctl tool has been extended with datastaging information functionality.
+A first implementation is now released, and more additions are expected in coming releases. (Bugzilla 3906)
+
+For ARC stability, several improvements have been made to avoid unexpected errors related
+to datadelivery causing ARC crashes. The crashes have only been seen in the emi-es interface. (Bugzilla 3925)
+
+
+Note about Centos8 and openldap server
+---------------------------------------
+In Centos8 the openldap	server is not installable because slapd	is not available in the RHEL8 release (Bugzilla 3944).
+As a consequence, the LDAP-based server-side information system interface of the ARC-CE will not be available either.
+If interaction with the ARC-CE relies on LDAP-based information schemas (glue1.3 or nordugrid schema),
+then we recommend that you stay with Centos7 for the time being.
+
+We expect to provide a workaround for future releases.
+
+
+
+The following Bugzilla tickets have been adressed or solved
+------------------------------------------------------------
+* 3938  Implement the same definition of failed jobs as in gangliarc
+* 3935  Request: Arcctl jobs kill/killall must actually kill jobs
+* 3934  redirect stdout to stderr in script submit-condor-jobs
+* 3933  arched-start incorrectly uses return instead of exit
+* 3925  AREX crash
+* 3924  Provide a read-only option for a cache
+* 3923  Default infoprovider log level should be INFO
+* 3922  job submission failed with sessiondir=*
+* 3912  arcproxy -i should return non-zero exit code in case of error
+* 3906  Addition to arcctl - make a summary of DTR information
+* 3902  Job reported finished, but missing exit code and proper cpu and walltime
+* 2058  support for the input staging jobs
+
+Documentation
+==============
+The ARC 6 documentation can be found at http://www.nordugrid.org/arc/arc6
+
+If you miss something or have questions, please contact us!
+
+
+Installing ARC 6 
+=================
+We recommend to install ARC release using the Nordugrid repository.
+* Start with the basics: http://www.nordugrid.org/arc/arc6/admins/try_arc6.html
+* Get production ready: http://www.nordugrid.org/arc/arc6/admins/arc6_install_guide.html 
+
+Note that if you instead install from EPEL for RHEL 7 compatible systems,
+the ARC 6 packages can be found as nordugrid-arc6-* and not nordugrid-arc-*
+This was needed in order to supply both ARC 5 already available for RHEL7 and the new ARC 6.
+
+
+We provide binary builds for all supported versions of
+  * Debian (i386 and amd64)
+  * Fedora (i386 and x86_64) - from Fedora 26 - no i386 support
+  * CentOS EL6 (i386 and x86_64) and EL7/EL8 (x86_64) - from EL7 no i386 support
+  * Ubuntu (i386 and amd64, both LTS and interim releases) - from Ubuntu 20.40 no i386 support
+
+In addition we build nightly packages for older platforms. 
+
+Future support of ARC 5-series
+===============================
+As of June 2020 no more security updates are provided to ARC 5.
+Also since the release of ARC 6 in June 2019, no more development on the ARC 5 code base has been provided.
+
+Production Sites already running ARC 5 will still get operational site support in form of
+deployment and configuration troubleshooting help via GGUS until end June 2021.
+However, we may recommend upgrading to ARC 6 depending on the issues the site is facing. 
+
+ARC5 is available in EPEL7 and will stay there. EPEL8 will only contain ARC 6.
+To install ARC 6 from EPEL7 the package-names are of type: nordugrid-arc6-* 
+
+
+Getting in touch
+==================
+If you need help with the configuration file or have any other questions related to ARC 6, please contact us via
+* Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
+* Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
+
+

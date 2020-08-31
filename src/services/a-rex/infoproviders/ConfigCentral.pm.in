@@ -780,7 +780,9 @@ sub build_config_from_json {
                                       benchmark => 'Benchmark'};
         move_keys $queue, $xeconf, [keys %$xenv_options];
         
-        # TODO: what is this?
+        # TODO: possibly remove. This option was meant to select a group of nodes for a queue 
+        # Since arc 6.6 this is autodiscovered from the batch system for some LRMS.
+        # It may be useful in cloud context, so kept for now
         $xeconf->{NodeSelection} = {};
     }
 
@@ -804,10 +806,11 @@ sub build_config_from_json {
         }
     }
 
-    # TODO: check if this still makes sense
+    # This only happens when no queue is configured. At the moment every queue has its own execution env
     $log->error("No ExecutionEnvironment configured") unless %{$config->{xenvs}};
 
-    # TODO: this blocks below can be entirely removed, ExecutionEnvironments and NodeSelection is discontinued
+    # ExecutionEnvironments are automatically discovered in some LRMS since arc6.6
+    # However manual selection could be useful in the future (for example cloud environments) so this code is kept.
     # Cross-check ExecutionEnvironment references
     for my $s (values %{$config->{shares}}) {
         next unless $s->{ExecutionEnvironmentName};

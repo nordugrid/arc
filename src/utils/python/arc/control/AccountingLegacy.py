@@ -207,6 +207,7 @@ class LegacyAccountingControl(ComponentControl):
 
         accounting_actions = accounting_ctl.add_subparsers(title='Legacy Accounting Actions', dest='legacyaction',
                                                            metavar='ACTION', help='DESCRIPTION')
+        accounting_actions.required = True
 
         # republish
         accounting_republish = accounting_actions.add_parser('republish',

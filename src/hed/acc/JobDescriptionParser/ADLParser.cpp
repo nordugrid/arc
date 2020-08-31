@@ -486,6 +486,47 @@ namespace Arc {
           return false;
         }
       }
+
+
+      /// \mapattr Application.StartTime -> ProcessingStartTime
+      XMLNode start = application["nordugrid-adl:StartTime"];
+      if((bool)start) {
+        parsed_jobdescription.Application.ProcessingStartTime = (std::string)start;
+      }
+
+      /// \mapattr Application.AccessControl -> AccessControl
+      XMLNode acl = application["nordugrid-adl:AccessControl"];
+      if((bool)acl) {
+        std::string acl_str = (std::string)acl;
+        XMLNode node(acl_str);
+        if (!node) {
+          logger.msg(ERROR, "[ADLParser] AccessControl isn't valid XML.");
+          return false;
+        }
+        node.New(parsed_jobdescription.Application.AccessControl);
+      }
+
+      /// \mapattr Application.CredentialService -> CredentialService
+      XMLNode service = application["nordugrid-adl:CredentialService"];
+      for(;(bool)service;++service) {
+        URL url((std::string)service);
+        if (!url) {
+          logger.msg(ERROR, "[ADLParser] CredentialService must contain valid URL.");
+          return false;
+        }
+        parsed_jobdescription.Application.CredentialService.push_back(url);
+      }
+
+      /// \mapattr Application.DryRun -> DryRun
+      XMLNode dry =  application["nordugrid-adl:DryRun"];
+      if((bool)dry) {
+        bool b;
+        if(!ParseFlag(dry,b,logger)) {
+          return false;
+        }
+        parsed_jobdescription.Application.DryRun = b;
+      }
+
       // Notification
       //   *optional
       //   Protocol 1-1 [email]
@@ -918,7 +959,7 @@ namespace Arc {
       generateExecutableTypeElement(application.NewChild("PostExecutable"), *it);
     }
     /// \mapattr Application.LoggingDirectory <- LogDir
-    if(!job.Application.LogDir.empty()) application.NewChild("LoggingDirectory") = job.Application.LogDir;
+    if(!job.Application.LogDir.empty()) application.NewChild("nordugrid-adl:LoggingDirectory") = job.Application.LogDir;
     for (std::list<RemoteLoggingType>::const_iterator it = job.Application.RemoteLogging.begin();
          it != job.Application.RemoteLogging.end(); it++) {
       XMLNode logging = application.NewChild("RemoteLogging");
@@ -953,10 +994,31 @@ namespace Arc {
       }
     }
 
-    // job.Application.ProcessingStartTime
-    // job.Application.AccessControl
-    // job.Application.CredentialService
-    // job.Application.DryRun
+    /// \mapattr Application.StartTime <- ProcessingStartTime 
+    if(job.Application.ProcessingStartTime != -1) {
+      XMLNode start = application.NewChild("nordugrid-adl:StartTime");
+      start = job.Application.ProcessingStartTime.str(MDSTime);
+    }
+
+    /// \mapattr Application.AccessControl <- AccessControl
+    if((bool)job.Application.AccessControl) {
+      XMLNode acl = application.NewChild("nordugrid-adl:AccessControl");
+      std::string acl_str;
+      job.Application.AccessControl.GetXML(acl_str, false);
+      acl = acl_str;
+    }
+
+    /// \mapattr Application.CredentialService <- CredentialService
+    for(std::list<URL>::const_iterator url = job.Application.CredentialService.begin(); url != job.Application.CredentialService.end();++url) {
+      XMLNode service = application.NewChild("nordugrid-adl:CredentialService");
+      service = url->fullstr();;
+    }
+
+    /// \mapattr Application.DryRun <- DryRun
+    if(job.Application.DryRun) {
+      XMLNode dry = application.NewChild("nordugrid-adl:DryRun");
+      dry = booltostr(job.Application.DryRun);
+    }
 
     // Resources
     /// \mapattr Resources.OperatingSystem <- OperatingSystem

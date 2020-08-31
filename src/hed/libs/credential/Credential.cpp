@@ -44,6 +44,10 @@ static void BN_GENCB_free(BN_GENCB* bn) {
 #define X509_set1_notAfter X509_set_notAfter
 #define X509_set1_notBefore X509_set_notBefore
 
+static const unsigned char* ASN1_STRING_get0_data(const ASN1_STRING* x) {
+    return x->data;
+}
+
 #endif
 
 
@@ -59,7 +63,8 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 }
 
 #endif
- 
+
+
 
   #define DEFAULT_DIGEST   ((EVP_MD*)EVP_sha1())
   #define DEFAULT_KEYBITS  (2048)
@@ -906,6 +911,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
         PasswordSource& passphrase4key, const bool is_file) {
     InitCredential(certfile,keyfile,cadir,cafile,passphrase4key,is_file);
   }
+
   Credential::Credential(const std::string& certfile, const std::string& keyfile,
         const std::string& cadir, const std::string& cafile,
         const std::string& passphrase4key, const bool is_file) {
@@ -1410,7 +1416,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
                     LogError();
                   } else {
                     std::string certinfo_sn = SN_proxyCertInfo;
-                    ext = CreateExtension(certinfo_sn, data, 1);
+                    ext = CreateExtension(certinfo_sn, data, true);
                   }
                 }
                 if(ext) {
@@ -1658,27 +1664,38 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     }
 
     STACK_OF(X509_EXTENSION)* req_extensions = NULL;
-    X509_EXTENSION* ext;
     PROXY_POLICY*  policy = NULL;
     ASN1_OBJECT*  policy_lang = NULL;
-    ASN1_OBJECT*  extension_oid = NULL;
-    int nid = NID_undef;
     int i;
 
     //Get the PROXY_CERT_INFO_EXTENSION from request' extension
     req_extensions = X509_REQ_get_extensions(req_);
     for(i=0;i<sk_X509_EXTENSION_num(req_extensions);i++) {
-      ext = sk_X509_EXTENSION_value(req_extensions,i);
-      extension_oid = X509_EXTENSION_get_object(ext);
-      nid = OBJ_obj2nid(extension_oid);
+      X509_EXTENSION* ext = sk_X509_EXTENSION_value(req_extensions,i);
+      ASN1_OBJECT* extension_oid = X509_EXTENSION_get_object(ext);
+      int nid = OBJ_obj2nid(extension_oid);
       if(nid == NID_proxyCertInfo) {
         if(proxy_cert_info_) {
           PROXY_CERT_INFO_EXTENSION_free(proxy_cert_info_);
           proxy_cert_info_ = NULL;
         }
-        if((proxy_cert_info_ = (PROXY_CERT_INFO_EXTENSION*)X509V3_EXT_d2i(ext)) == NULL) {
-           CredentialLogger.msg(ERROR, "Can not convert DER encoded PROXY_CERT_INFO_EXTENSION extension to internal format");
+        ASN1_OCTET_STRING* data = X509_EXTENSION_get_data(ext);
+        if(!data) {
+           CredentialLogger.msg(ERROR, "Missing data in DER encoded PROXY_CERT_INFO_EXTENSION extension");
            LogError(); goto err;
+        }
+        unsigned char const * buf = ASN1_STRING_get0_data(data);
+        long int buf_len = ASN1_STRING_length(data);
+        if(buf_len > 0) {
+           if((proxy_cert_info_ = d2i_PROXY_CERT_INFO_EXTENSION(NULL, &buf, buf_len)) == NULL) {
+               CredentialLogger.msg(ERROR, "Can not convert DER encoded PROXY_CERT_INFO_EXTENSION extension to internal format");
+               LogError(); goto err;
+            }
+        } else {
+           if((proxy_cert_info_ = PROXY_CERT_INFO_EXTENSION_new()) == NULL) {
+               CredentialLogger.msg(ERROR, "Can not create PROXY_CERT_INFO_EXTENSION extension");
+               LogError(); goto err;
+           }
         }
         break;
       }
@@ -1829,12 +1846,58 @@ err:
     return sk_X509_num(cert_chain_);
   }
 
-  bool Credential::AddExtension(const std::string& name, const std::string& data, bool crit) {
-    X509_EXTENSION* ext = CreateExtension(name, data, crit);
-    if(ext) {
-      if(sk_X509_EXTENSION_push(extensions_, ext)) return true;
-      X509_EXTENSION_free(ext);
+  static std::string MakeExtensionData(int type, std::string const& value) {
+    std::string data;
+    GENERAL_NAMES* gens = sk_GENERAL_NAME_new_null();
+    if(gens) {
+      GENERAL_NAME* gen = GENERAL_NAME_new();
+      if(gen) {
+        ASN1_IA5STRING* ia5 = ASN1_IA5STRING_new();
+        if(ia5) {
+          if(ASN1_STRING_set(ia5, value.c_str(), value.length())) {
+            GENERAL_NAME_set0_value(gen, type, ia5);
+            ia5 = NULL;
+            sk_GENERAL_NAME_push(gens, gen);
+            gen = NULL;
+            int length = i2d_GENERAL_NAMES(gens, NULL);
+            if(length > 0) {
+              data.resize(length);
+              unsigned char* data_ptr = reinterpret_cast<unsigned char*>(const_cast<char*>(data.c_str()));
+              length = i2d_GENERAL_NAMES(gens, &data_ptr);
+              if (length > 0) {
+                data.resize(length);
+              } else {
+                data.clear();
+              };
+            };
+          };
+          if(ia5) ASN1_IA5STRING_free(ia5);
+        };
+        if(gen) GENERAL_NAME_free(gen);
+      };
+      if(gen) GENERAL_NAMES_free(gens);
+    };
+    return data;
+  }
+
+  bool Credential::AddExtension(const std::string& name, const std::string& data, bool crit, int type) {
+    X509_EXTENSION* ext = NULL;
+    
+    if(type == -1) { // -1 - raw
+      ext = CreateExtension(name, data, crit);
+    } else {
+      std::string ext_data = MakeExtensionData(type, data);
+      if(ext_data.empty() && !data.empty())
+        return false;
+      ext = CreateExtension(name, ext_data, crit);
     }
+
+    if(!ext)
+      return false;
+
+    if(sk_X509_EXTENSION_push(extensions_, ext)) return true;
+
+    X509_EXTENSION_free(ext);
     return false;
   }
 
@@ -1940,7 +2003,7 @@ err:
         } else {
           certinfo_data.resize(length);
           std::string NID_txt = SN_proxyCertInfo;
-          X509_EXTENSION* certinfo_ext = CreateExtension(NID_txt, certinfo_data, 1);
+          X509_EXTENSION* certinfo_ext = CreateExtension(NID_txt, certinfo_data, true);
           if(certinfo_ext == NULL) {
             CredentialLogger.msg(ERROR, "Can not create extension for PROXY_CERT_INFO");
             LogError(); goto err;
@@ -1988,7 +2051,7 @@ err:
       }
       ASN1_BIT_STRING_free(usage);
       std::string name = "keyUsage";
-      ext = CreateExtension(name, ku_data, 1);
+      ext = CreateExtension(name, ku_data, true);
       if(!ext) {
         CredentialLogger.msg(ERROR, "Can not create extension for keyUsage");
         LogError(); goto err;
@@ -2305,7 +2368,7 @@ err:
       if(cert_) check_cert_type(cert_,cert_type_);
       loadKeyFile(CAkeyfile, pkey_, passphrase4key);
     } catch(std::exception& err){
-      CredentialLogger.msg(ERROR, "ERROR:%s", err.what());
+      CredentialLogger.msg(ERROR, "ERROR: %s", err.what());
       LogError();
     }
   }
@@ -2343,7 +2406,7 @@ err:
       loadKeyFile(CAkeyfile, pkey_, *pass);
       delete pass;
     } catch(std::exception& err){
-      CredentialLogger.msg(ERROR, "ERROR:%s", err.what());
+      CredentialLogger.msg(ERROR, "ERROR: %s", err.what());
       LogError();
     }
   }

@@ -70,7 +70,7 @@ namespace Arc {
     run->KeepStdout(false);
     run->KeepStderr(false);
     run->AssignStderr(log_redirect);
-    logger.msg(DEBUG, "Starting hepler process: %s", ListToString(argv));
+    logger.msg(DEBUG, "Starting helper process: %s", ListToString(argv));
     if(!run->Start()) {
       return DataStatus(errCode, "Failed to start helper process for "+url.plainstr());
     }
@@ -125,7 +125,7 @@ namespace Arc {
     if(!result) return result;
     if(check_meta) {
       FileInfo file;
-      if(Stat(file, DataPoint::INFO_TYPE_CONTENT)) {
+      if(Stat(file, (DataPoint::DataPointInfoType)(DataPoint::INFO_TYPE_CONTENT | DataPoint::INFO_TYPE_TIMES))) {
         if(file.CheckModified()) SetModified(file.GetModified());
         if(file.CheckSize()) SetSize(file.GetSize());
       }
@@ -322,7 +322,7 @@ namespace Arc {
           logger.msg(DEBUG, "StopWriting: "
                             "looking for checksum of %s", url.plainstr());
           FileInfo info;
-          if(Stat(info, DataPoint::INFO_TYPE_CONTENT)) {
+          if(Stat(info, DataPoint::INFO_TYPE_CKSUM)) {
             if(info.CheckCheckSum()) {
               if(csum.length() != info.GetCheckSum().length()) {
                 // Some buggy Globus servers return a different type of checksum to the one requested
@@ -598,6 +598,17 @@ namespace Arc {
       data = sep+1;
     }
     if (size > 0) buffer_.append(data,size);
+  }
+
+  void DataPointDelegate::LogRedirect::Remove(unsigned int) {
+  }
+
+  char const* DataPointDelegate::LogRedirect::Get() const {
+    return NULL;
+  }
+
+  unsigned int DataPointDelegate::LogRedirect::Size() const {
+    return 0;
   }
 
   void DataPointDelegate::LogRedirect::Flush() {

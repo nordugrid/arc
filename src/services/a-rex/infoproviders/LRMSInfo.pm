@@ -105,7 +105,8 @@ my $lrms_info_schema = {
                      },
                     'queuelength' => ''
                 }
-            }
+            },
+            'nodes' => [ '*' ] # list of hostnames or LRMS node id of nodes that belong to the queue
         }
     },
     'jobs' => {

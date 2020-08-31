@@ -242,8 +242,13 @@ bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc,
          it != arc_job_desc.Application.Environment.end(); it++, i++) {
         f<<"joboption_env_"<<i<<"="<<value_for_shell(it->first+"="+it->second,true)<<std::endl;
     }
-    value_for_shell globalid=value_for_shell(job_local_desc.globalid,true);
-    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBID="<<globalid<<std::endl;
+    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBID="<<value_for_shell(job_local_desc.globalid,true)<<std::endl;
+    ++i;
+    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBURL="<<value_for_shell(job_local_desc.globalurl,true)<<std::endl;
+    ++i;
+    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBINTERFACE="<<value_for_shell(job_local_desc.interface,true)<<std::endl;
+    ++i;
+    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBHOST="<<value_for_shell(job_local_desc.headhost,true)<<std::endl;
   }
 
 
@@ -384,7 +389,7 @@ bool JobDescriptionHandler::set_execs(const GMJob &job) const {
   if (desc.Application.Executable.Path[0] != '/' && desc.Application.Executable.Path[0] != '$') {
     std::string executable = desc.Application.Executable.Path;
     if(!Arc::CanonicalDir(executable)) {
-      logger.msg(Arc::ERROR, "Bad name for executable: ", executable);
+      logger.msg(Arc::ERROR, "Bad name for executable: %s", executable);
       return false;
     }
     fix_file_permissions_in_session(session_dir+"/"+executable,job,config,true);

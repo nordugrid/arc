@@ -1120,7 +1120,7 @@ namespace ArcJura
         if (std::find(accepted_types.begin(), accepted_types.end(), type) == accepted_types.end())
           {
             Arc::Logger::rootLogger.msg(Arc::WARNING,
-                                        "Set non standard bechmark type: %s",
+                                        "Set non standard benchmark type: %s",
                                         type);
 
           }

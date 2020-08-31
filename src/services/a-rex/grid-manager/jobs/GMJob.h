@@ -266,6 +266,9 @@ class GMJobQueue {
   //! Returns true if there are no jobs in queue
   bool IsEmpty() const;
 
+  //! Returns number of jobs in queue
+  int Size() const;
+
   //! Sort jobs in queue
   void Sort(comparator_t compare);
 

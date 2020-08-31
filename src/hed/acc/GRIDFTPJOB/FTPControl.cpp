@@ -363,7 +363,7 @@ namespace Arc {
       if(!(result = globus_io_tcp_get_remote_address_ex(&(control_handle.cc_handle.io_handle),
                                      passive_addr.host,&passive_addr.hostlen,&local_port))) {
         std::string globus_err(result.str());
-        logger.msg(VERBOSE, "FTP Job Control:: Failed to apply local address to data connection: %s",
+        logger.msg(VERBOSE, "FTP Job Control: Failed to apply local address to data connection: %s",
                    globus_err);
         return false;
       }

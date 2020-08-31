@@ -110,7 +110,7 @@ process_log_file () {
   exited_killed_jobs=`egrep '^[^;]*;0010;[^;]*;Job;|^[^;]*;0008;[^;]*;Job;[^;]*;Exit_status=|^[^;]*;0008;[^;]*;Job;[^;]*;Job deleted' ${lname} | tail -n+$(( $lines_skip + 1 ))`
 
   #TODO should we add processed lines before jobs have actually been processed? What if the last job only has half a record?
-  new_lines=`echo "$exited_killed_jobs" | wc -l`
+  new_lines=`echo -n "$exited_killed_jobs" | wc -l`
   # new_lines set to 1 when string is empty, should have been 0
   [ "x$exited_killed_jobs" = x ] &&  continue
 
@@ -314,8 +314,8 @@ if [ "$readable_logs" = 'yes' ] ; then
       process_log_file
     fi
     sleep 10
-    time_count=$(( $time_count + 1 ))
-    if [ "$time_count" -gt 60 ] ; then break ; fi
+    time_count=$(( $time_count + 10 ))
+    if [ "$time_count" -ge 60 ] ; then break ; fi
   done
   exit 0
 fi

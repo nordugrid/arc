@@ -68,7 +68,6 @@ MCC_Status ClientVOMSRESTful::process(const std::string& principal,
                                       const std::list<std::string>& targets,
                                       std::string& result) {
   URL url = GetURL();
-  url.ChangePath(url.Path()+"/generate-ac");
   if(!principal.empty()) url.AddHTTPOption("principal",principal,true);
   if(!fqans.empty()) url.AddHTTPOption("fqans",join(fqans,","),true);
   if(lifetime != 0) url.AddHTTPOption("lifetime",(std::string)lifetime,true);

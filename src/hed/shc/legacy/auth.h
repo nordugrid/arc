@@ -34,6 +34,14 @@ struct voms_t {
   std::vector<voms_fqan_t> fqans; /*!< Processed FQANs of user */
 };
 
+struct otokens_t {
+  std::string subject;
+  std::string issuer;
+  std::string audience;
+  std::list<std::string> scopes;
+  std::list<std::string> groups;
+};
+
 class AuthUser {
  private:
   typedef AuthResult (AuthUser:: * match_func_t)(const char* line);
@@ -46,16 +54,20 @@ class AuthUser {
     std::string name;             //
     const char* vo;               // local VO which caused authorization of this group
     struct voms_t voms;           // VOMS attributes which caused authorization of this group
-    group_t(const std::string& name_,const char* vo_,const struct voms_t& voms_):name(name_),vo(vo_?vo_:""),voms(voms_) { };
+    struct otokens_t otokens;     // OTokens attributes which caused authorization of this group
+    group_t(const std::string& name_,const char* vo_,const struct voms_t& voms_,const struct otokens_t& otokens_):
+                                  name(name_),vo(vo_?vo_:""),voms(voms_),otokens(otokens_) { };
   };
 
   struct voms_t default_voms_;
+  struct otokens_t default_otokens_;
   const char* default_vo_;
   const char* default_group_;
 
   // Attributes of user
   std::string subject_;   // DN of certificate
   std::vector<struct voms_t> voms_data_; // VOMS information extracted from message
+  std::vector<struct otokens_t> otokens_data_; // OTokens information extracted from message
 
   // Old attributes - remove or convert
   std::string from;      // Remote hostname
@@ -71,6 +83,7 @@ class AuthUser {
   AuthResult match_file(const char* line);
   AuthResult match_ldap(const char* line);
   AuthResult match_voms(const char* line);
+  AuthResult match_otokens(const char* line);
   AuthResult match_vo(const char* line);
   AuthResult match_lcas(const char *);
   AuthResult match_plugin(const char* line);
@@ -112,7 +125,7 @@ class AuthUser {
   //void set(const char* s,STACK_OF(X509)* cred,const char* hostname = NULL);
   // Evaluate authentication rules
   AuthResult evaluate(const char* line);
-  const char* DN(void) const { return subject_.c_str(); };
+  const char* subject(void) const { return subject_.c_str(); };
   const char* proxy(void) const {
     (const_cast<AuthUser*>(this))->store_credentials();
     return filename.c_str();
@@ -142,6 +155,7 @@ class AuthUser {
     return false;
   };
   const std::vector<struct voms_t>& voms(void);
+  const std::vector<struct otokens_t>& otokens(void);
   const std::list<std::string>& VOs(void);
   const struct voms_t* get_group_voms(const std::string& grp) const {
     const group_t* group = find_group(grp);
@@ -150,6 +164,10 @@ class AuthUser {
   const char* get_group_vo(const std::string& grp) const {
     const group_t* group = find_group(grp);
     return (group == NULL)?NULL:group->vo;
+  };
+  const struct otokens_t* get_group_otokens(const std::string& grp) const {
+    const group_t* group = find_group(grp);
+    return (group == NULL)?NULL:&(group->otokens);
   };
 
 

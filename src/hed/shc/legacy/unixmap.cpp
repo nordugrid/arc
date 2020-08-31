@@ -199,11 +199,18 @@ AuthResult UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_
           // Plugin should print user[:group] at stdout or nothing if no suitable mapping found
           unix_user.name = stdout_channel;
           split_unixname(unix_user.name,unix_user.group);
-          if(unix_user.name.empty()) return AAA_NO_MATCH; // success but no match
+          if(unix_user.name.empty()) { // success but no match
+            logger.msg(Arc::ERROR,"Plugin %s returned no username",args.front());
+            return AAA_NO_MATCH;
+          };
           return AAA_POSITIVE_MATCH;
         } else {
           logger.msg(Arc::ERROR,"Plugin %s returned too much: %s",args.front(),stdout_channel);
         };
+      } else if(run.Result() == 1) {
+        logger.msg(Arc::ERROR,"Plugin %s returned no mapping",args.front());
+        if(!stderr_channel.empty()) logger.msg(Arc::ERROR,"Plugin %s error: %s",args.front(),stderr_channel);
+        return AAA_NO_MATCH;
       } else {
         logger.msg(Arc::ERROR,"Plugin %s returned: %u",args.front(),run.Result());
       };
@@ -223,7 +230,7 @@ AuthResult UnixMap::map_mapfile(const AuthUser& user,unix_user_t& unix_user,cons
   // ... file
   // This is just grid-mapfile
   std::ifstream f(line);
-  if(user.DN()[0] == 0) {
+  if(user.subject()[0] == 0) {
     logger.msg(Arc::ERROR, "User subject match is missing user subject.");
     return AAA_NO_MATCH;
   };
@@ -240,7 +247,7 @@ AuthResult UnixMap::map_mapfile(const AuthUser& user,unix_user_t& unix_user,cons
     if(p>=buf.length()) continue;
     std::string val;
     p = Arc::get_token(val,buf,p," ","\"","\"");
-    if(val != user.DN()) continue;
+    if(val != user.subject()) continue;
     p = Arc::get_token(unix_user.name,buf,p," ","\"","\"");
     f.close();
     return AAA_POSITIVE_MATCH;
@@ -251,7 +258,7 @@ AuthResult UnixMap::map_mapfile(const AuthUser& user,unix_user_t& unix_user,cons
 
 AuthResult UnixMap::map_simplepool(const AuthUser& user,unix_user_t& unix_user,const char* line) {
   // ... directory
-  if(user.DN()[0] == 0) {
+  if(user.subject()[0] == 0) {
     logger.msg(Arc::ERROR, "User pool mapping is missing user subject.");
     return AAA_NO_MATCH;
   };
@@ -260,7 +267,7 @@ AuthResult UnixMap::map_simplepool(const AuthUser& user,unix_user_t& unix_user,c
     logger.msg(Arc::ERROR, "User pool at %s can't be opened.", line);
     return AAA_FAILURE;
   };
-  unix_user.name=pool.map(user.DN());
+  unix_user.name=pool.map(user.subject());
   if(unix_user.name.empty()) {
     logger.msg(Arc::ERROR, "User pool at %s failed to perform user mapping.", line);
     return AAA_FAILURE;

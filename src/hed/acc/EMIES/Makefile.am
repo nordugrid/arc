@@ -14,6 +14,7 @@ libaccEMIES_la_SOURCES  = EMIESClient.cpp EMIESClient.h \
 libaccEMIES_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 libaccEMIES_la_LIBADD = \
+	$(top_builddir)/src/hed/libs/otokens/libarcotokens.la \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
@@ -31,6 +32,7 @@ libaccEMIES_la_LDFLAGS = -no-undefined -avoid-version -module
 arcemiestest_SOURCES = TestEMIESClient.cpp EMIESClient.cpp JobStateEMIES.cpp
 arcemiestest_CXXFLAGS = -I$(top_srcdir)/include $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS)
 arcemiestest_LDADD = \
+	$(top_builddir)/src/hed/libs/otokens/libarcotokens.la \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \

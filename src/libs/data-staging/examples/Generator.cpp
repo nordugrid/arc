@@ -22,8 +22,6 @@ void Generator::receiveDTR(DataStaging::DTR_ptr dtr) {
   Arc::Logger::getRootLogger().addDestinations(root_destinations);
   logger.msg(Arc::INFO, "Received DTR %s back from scheduler in state %s", dtr->get_id(), dtr->get_status().str());
   Arc::Logger::getRootLogger().removeDestinations();
-  // DTR logger destinations can be destroyed when DTR has finished
-  dtr->clean_log_destinations();
   counter.dec();
 }
 
@@ -49,11 +47,10 @@ void Generator::run(const std::string& source, const std::string& destination) {
 
   cfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY());
 
-  DataStaging::DTRLogger log(new Arc::Logger(Arc::Logger::getRootLogger(), "DataStaging"));
-  Arc::LogDestination * dest = new Arc::LogStream(std::cout);
-  log->addDestination(*dest);
+  std::list<DataStaging::DTRLogDestination> logs;
+  logs.push_back(new Arc::LogStream(std::cout));
 
-  DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, cfg, job_id,  Arc::User().get_uid(), log));
+  DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, cfg, job_id,  Arc::User().get_uid(), logs, "DataStaging"));
   if (!(*dtr)) {
     logger.msg(Arc::ERROR, "Problem creating dtr (source %s, destination %s)", source, destination);
     return;

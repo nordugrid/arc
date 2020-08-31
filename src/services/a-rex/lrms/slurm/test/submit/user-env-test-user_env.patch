@@ -1,11 +1,14 @@
 --- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
 +++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -20,6 +20,8 @@
- . $script
- }
+@@ -59,9 +59,11 @@
+     echo "Failed to use both cgroups and GNU time for resource usage accounting. Accounting relies on LRMS information only." 1>&2
+ fi
  # Setting environment variables as specified by user
 +export 'TEST=Testing'
 +export 'TEST2='\''Testing'\'''
  export 'GRID_GLOBAL_JOBID=@TEST_JOB_ID@'
+ export 'GRID_GLOBAL_JOBURL='
+ export 'GRID_GLOBAL_JOBINTERFACE='
+ export 'GRID_GLOBAL_JOBHOST='
  
  RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
