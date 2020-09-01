@@ -1,15 +1,4 @@
-%{!?__python2: %global __python2 /usr/bin/python2}
-%{!?python2_sitearch: %global python2_sitearch %(%{__python2} -Esc "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
-%{!?python2_sitelib: %global python2_sitelib %(%{__python2} -Esc "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
-
-%{!?python3_pkgversion: %global python3_pkgversion 3}
-
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
-
-%if %{?rhel}%{!?rhel:0} == 6
-%filter_provides_in %{python2_sitearch}/.*\.so$
-%filter_setup
-%endif
 
 #
 # Build dependency descrepancies across platforms
@@ -46,6 +35,21 @@
 %global with_python3 1
 %else
 %global with_python3 0
+%endif
+
+%if %{with_python2}
+%{!?__python2: %global __python2 /usr/bin/python2}
+%{!?python2_sitearch: %global python2_sitearch %(%{__python2} -Esc "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+%{!?python2_sitelib: %global python2_sitelib %(%{__python2} -Esc "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%endif
+
+%if %{with_python3}
+%{!?python3_pkgversion: %global python3_pkgversion 3}
+%endif
+
+%if %{?rhel}%{!?rhel:0} == 6
+%filter_provides_in %{python2_sitearch}/.*\.so$
+%filter_setup
 %endif
 
 %if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
