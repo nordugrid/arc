@@ -10,8 +10,8 @@ else
 INTERNAL =
 endif
 
-SUBDIRS = delegation grid-manager infoproviders $(JURA_CLIENT) lrms schema $(INTERNAL) rte
-DIST_SUBDIRS = delegation grid-manager infoproviders jura lrms schema internaljobplugin rte
+SUBDIRS = delegation grid-manager infoproviders $(JURA_CLIENT) lrms schema $(INTERNAL) rte rest
+DIST_SUBDIRS = delegation grid-manager infoproviders jura lrms schema internaljobplugin rte rest
 
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS = test_cache_check
@@ -45,7 +45,7 @@ man_MANS = a-rex-backtrace-collect.8
 
 EXTRA_DIST = arc-sshfs-mount arc.zero.conf
 
-GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la
+GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la rest/libarexrest.la
 
 libarex_la_SOURCES  = arex.cpp job.cpp \
 	create_activity.cpp \

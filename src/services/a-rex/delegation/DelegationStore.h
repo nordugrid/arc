@@ -75,7 +75,7 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
   virtual void ReleaseConsumer(Arc::DelegationConsumerSOAP* c);
 
   /** Release consumer object and delete associated credentials store slot */
-  virtual void RemoveConsumer(Arc::DelegationConsumerSOAP* c);
+  virtual bool RemoveConsumer(Arc::DelegationConsumerSOAP* c);
 
   virtual void CheckConsumers(void);
 
@@ -127,6 +127,9 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
   /** Stores delegated credentials corresponding to delegation request obtained by call to GetRequest().
       Only public part is expected in 'credentials'. */
   bool PutDeleg(const std::string& id,const std::string& client,const std::string& credentials);
+
+  /** Retrieves public part of credentials with specified id and associated with client */
+  bool GetDeleg(const std::string& id, const std::string& client, std::string& credentials);
 
 };
 

@@ -8,6 +8,7 @@
 #include <arc/XMLNode.h>
 #include <arc/FileAccess.h>
 #include <arc/message/MessageAuth.h>
+#include <arc/message/Message.h>
 #include "grid-manager/files/ControlFileContent.h"
 #include "tools.h"
 
@@ -19,6 +20,7 @@ class GMConfig;
 #define JOB_POLICY_OPERATION_CREATE "Create"
 #define JOB_POLICY_OPERATION_MODIFY "Modify"
 #define JOB_POLICY_OPERATION_READ   "Read"
+#define JOB_POLICY_OPERATION_UNDEFINED "Undefined"
 
 class ARexGMConfig {
  private:
@@ -31,6 +33,7 @@ class ARexGMConfig {
   // Separate lists outside GMConfig as they can be substituted per user
   std::vector<std::string> session_roots_;
   std::vector<std::string> session_roots_non_draining_;
+ protected:
   static Arc::Logger logger;
  public:
   ARexGMConfig(const GMConfig& config,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint);
@@ -49,6 +52,14 @@ class ARexGMConfig {
   std::vector<std::string> SessionRoots(void) { return session_roots_; };
 };
 
+class ARexConfigContext:public Arc::MessageContextElement, public ARexGMConfig {
+ public:
+  ARexConfigContext(GMConfig& config,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):
+    ARexGMConfig(config,uname,grid_name,service_endpoint) { };
+  virtual ~ARexConfigContext(void) { };
+  static ARexConfigContext* GetRutimeConfiguration(Arc::Message& inmsg, GMConfig& gmconfig,
+                  std::string const & default_uname, std::string const & default_endpoint);
+};
 
 typedef enum {
   ARexJobNoError,
@@ -97,6 +108,10 @@ class ARexJob {
   operator ARexJobFailure(void) { return failure_type_; };
   /** Return ID assigned to job */
   std::string ID(void) { return id_; };
+  /** Return local user id assigned to job */
+  uid_t UID(void) { return uid_; };
+  /** Return local user group assigned to job */
+  gid_t GID(void) { return gid_; };
   /** Fills provided xml container with job description */
   bool GetDescription(Arc::XMLNode& xmljobdesc);
   /** Cancel processing/execution of job */
