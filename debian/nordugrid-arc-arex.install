@@ -4,7 +4,6 @@ debian/tmp/usr/lib/arc/cache-clean
 debian/tmp/usr/lib/arc/cache-list
 debian/tmp/usr/lib/arc/gm-*
 debian/tmp/usr/lib/arc/inputcheck
-debian/tmp/usr/lib/arc/jura
 debian/tmp/usr/lib/arc/jura-ng
 debian/tmp/usr/lib/arc/smtp-send
 debian/tmp/usr/lib/arc/smtp-send.sh
@@ -67,7 +66,6 @@ debian/tmp/usr/share/arc/sql-schema/arex_accounting_db_schema_v1.sql
 debian/tmp/usr/share/man/man1/arc-config-check.1
 debian/tmp/usr/share/man/man1/cache-clean.1
 debian/tmp/usr/share/man/man1/cache-list.1
-debian/tmp/usr/share/man/man1/jura.1
 debian/tmp/usr/share/man/man8/a-rex-backtrace-collect.8
 debian/tmp/usr/share/man/man8/arc-blahp-logger.8
 debian/tmp/usr/share/man/man8/gm-*.8
@@ -75,14 +73,11 @@ debian/tmp/usr/share/man/man8/gm-*.8
 debian/tmp/usr/lib/python?.?/site-packages/arc/ssm
 
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/AccountingDB.py*
-debian/tmp/usr/lib/python?.?/site-packages/arc/control/AccountingLegacy.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/AccountingPublishing.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/Accounting.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/Cache.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/DataStaging.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/Jobs.py*
-debian/tmp/usr/lib/python?.?/site-packages/arc/control/JuraArchive.py*
-debian/tmp/usr/lib/python?.?/site-packages/arc/control/JuraArchiveSQLite.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/RunTimeEnvironment.py*
 
 debian/tmp/usr/lib/arc/arccandypond

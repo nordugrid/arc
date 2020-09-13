@@ -2,7 +2,6 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from .ControlCommon import *
-from .AccountingLegacy import LegacyAccountingControl
 from .AccountingDB import AccountingDB
 from .AccountingPublishing import RecordsPublisher
 
@@ -424,8 +423,6 @@ class AccountingControl(ComponentControl):
             self.get_apel_brokers(args)
         elif args.action == 'republish':
             self.republish(args)
-        elif args.action == 'legacy':
-            LegacyAccountingControl(self.arcconfig).control(args)
         else:
             self.logger.critical('Unsupported accounting action %s', args.action)
             sys.exit(1)
@@ -484,9 +481,6 @@ class AccountingControl(ComponentControl):
         accounting_actions = accounting_ctl.add_subparsers(title='Accounting Actions', dest='action',
                                                            metavar='ACTION', help='DESCRIPTION')
         accounting_actions.required = True
-
-        # add legacy accounting control as a sub-parser
-        LegacyAccountingControl.register_parser(accounting_actions)
 
         # apel-brockers
         accounting_brokers = accounting_actions.add_parser('apel-brokers',
