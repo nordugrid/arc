@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include <arc/ws-addressing/WSA.h>
+#include <arc/URL.h>
 
 #include "tools.h"
 
@@ -220,6 +221,7 @@ namespace ARex {
     return state;
   }
 
+  /*
   JobIDGeneratorARC::JobIDGeneratorARC(const std::string& endpoint):endpoint_(endpoint) {
   }
 
@@ -257,13 +259,22 @@ namespace ARex {
     return jobid;
   }
 
-  std::string JobIDGeneratorARC::GetManager(void) {
+  std::string JobIDGeneratorARC::GetManagerURL(void) {
     return endpoint_;
+  }
+
+  std::string JobIDGeneratorARC::GetJobURL(void) {
+    return endpoint_ + "/" + id_;
   }
 
   std::string JobIDGeneratorARC::GetInterface(void) {
     return "org.nordugrid.xbes";
   }
+
+  std::string JobIDGeneratorARC::GetHostname(void) {
+    return Arc::URL(endpoint_).Host();
+  }
+  */
 
   JobIDGeneratorES::JobIDGeneratorES(const std::string& endpoint):endpoint_(endpoint) {
   }
@@ -290,12 +301,20 @@ namespace ARex {
     return id_;
   }
 
-  std::string JobIDGeneratorES::GetManager(void) {
+  std::string JobIDGeneratorES::GetManagerURL(void) {
     return endpoint_;
+  }
+
+  std::string JobIDGeneratorES::GetJobURL(void) {
+    return endpoint_ + "/" + id_;
   }
 
   std::string JobIDGeneratorES::GetInterface(void) {
     return "org.ogf.glue.emies.activitycreation";
+  }
+
+  std::string JobIDGeneratorES::GetHostname(void) {
+    return Arc::URL(endpoint_).Host();
   }
 
 
@@ -326,12 +345,20 @@ namespace ARex {
     return id_;
   }
   
-  std::string JobIDGeneratorINTERNAL::GetManager(void) {
-    return endpoint_;
+  std::string JobIDGeneratorINTERNAL::GetManagerURL(void) {
+    return ""; // conroldir?
+  }
+  
+  std::string JobIDGeneratorINTERNAL::GetJobURL(void) {
+    return ""; // job state file?
   }
   
   std::string JobIDGeneratorINTERNAL::GetInterface(void) {
     return "org.nordugrid.internal";
+  }
+
+  std::string JobIDGeneratorINTERNAL::GetHostname(void) {
+    return Arc::URL(endpoint_).Host();
   }
 
 }

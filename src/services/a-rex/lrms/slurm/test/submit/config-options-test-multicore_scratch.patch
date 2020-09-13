@@ -1,6 +1,6 @@
 --- a/basic-script.sh	2019-07-22 17:49:47.678606762 +0200
 +++ b/basic-script.sh	2019-07-22 17:49:47.680606715 +0200
-@@ -7,7 +7,7 @@
+@@ -8,7 +8,7 @@
  #SBATCH --nice=50
  #SBATCH -J 'gridjob'
  #SBATCH --get-user-env=10L
@@ -9,9 +9,9 @@
  #SBATCH 
  
  # Overide umask of execution node (sometime values are really strange)
-@@ -59,22 +59,14 @@
- # Setting environment variables as specified by user
- export 'GRID_GLOBAL_JOBID=@TEST_JOB_ID@'
+@@ -64,22 +64,14 @@
+ export 'GRID_GLOBAL_JOBINTERFACE='
+ export 'GRID_GLOBAL_JOBHOST='
 
 -RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
 -RUNTIME_JOB_STDIN=/dev/null
@@ -39,7 +39,7 @@
    if [ ! -z "$RUNTIME_LOCAL_SCRATCH_DIR" ] && [ ! -z "$RUNTIME_NODE_SEES_FRONTEND" ]; then
      RUNTIME_NODE_JOB_DIR="$RUNTIME_LOCAL_SCRATCH_DIR"/`basename "$RUNTIME_JOB_DIR"`
      rm -rf "$RUNTIME_NODE_JOB_DIR"
-@@ -135,8 +130,21 @@
+@@ -140,8 +135,21 @@
  RESULT=0
  
  if [ "$RESULT" = '0' ] ; then
@@ -61,7 +61,7 @@
  echo "runtimeenvironments=$runtimeenvironments" >> "$RUNTIME_JOB_DIAG"
  if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
    if [ -r "$SLURM_NODEFILE" ] ; then
-@@ -178,7 +186,7 @@
+@@ -181,7 +189,7 @@
    nodename=`/bin/hostname -f`
    echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
  fi
@@ -70,7 +70,7 @@
  echo "Benchmark=HEPSPEC:1.0" >> "$RUNTIME_JOB_DIAG"
  executable='/bin/true'
  # Check if executable exists
-@@ -205,6 +213,15 @@
+@@ -211,6 +219,15 @@
  fi
  # Running RTE scripts (stage 2)
  runtimeenvironments=

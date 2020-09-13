@@ -1,20 +1,25 @@
 --- a/basic-script.sh	2019-07-22 17:40:18.291497489 +0200
 +++ b/basic-script.sh	2019-07-22 17:40:18.293497443 +0200
-@@ -56,8 +58,12 @@
+@@ -58,11 +58,14 @@
  if [ -z "$JOB_ACCOUNTING" ]; then
      echo "Failed to use both cgroups and GNU time for resource usage accounting. Accounting relies on LRMS information only." 1>&2
  fi
 +
  # Setting environment variables as specified by user
 -export 'GRID_GLOBAL_JOBID=@TEST_JOB_ID@'
+-export 'GRID_GLOBAL_JOBURL='
+-export 'GRID_GLOBAL_JOBINTERFACE='
+-export 'GRID_GLOBAL_JOBHOST='
 +export 'job_foo=foobar'
 +export 'test="TEST"'
 +export 'rte_foo="foobar"'
++export 'GRID_GLOBAL_JOBINTERFACE='
++export 'GRID_GLOBAL_JOBHOST='
 +export GRID_GLOBAL_JOBID='gsiftp://@TEST_HOSTNAME@:2811/jobs/rte0_env'
  
  RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
  RUNTIME_JOB_STDIN=/dev/null
-@@ -135,8 +141,22 @@
+@@ -140,8 +143,22 @@
  RESULT=0
  
  if [ "$RESULT" = '0' ] ; then
@@ -37,7 +42,7 @@
  echo "runtimeenvironments=$runtimeenvironments" >> "$RUNTIME_JOB_DIAG"
  if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
    if [ -r "$SLURM_NODEFILE" ] ; then
-@@ -205,6 +225,15 @@
+@@ -211,6 +228,15 @@
  fi
  # Running RTE scripts (stage 2)
  runtimeenvironments=

@@ -205,8 +205,10 @@ sub translator(){
     # Service information. This is an hack to mimic Site-BDII service information.
     my $glueServiceUniqueID = build_glueServiceUniqueID($cluster_attributes{'nordugrid-cluster-name'});
     my $glueservicename = $glue_site_unique_id."-arc";
-    # If you have a custom setup you may want to hack the command below with your own startup script path.
-    my $glueservicestatusinfo=`/etc/init.d/arc-arex status 2>/dev/null` || `systemctl status arc-arex 2>/dev/null` || "Cannot determine service status, see $0 line ".__LINE__;
+    my $glueservicestatusinfo = "UNKNOWN, check /usr/share/arc/glue-generator.pl";
+    # If you have a custom setup you may want to hack the command below with your own startup script path to check service status.
+    my $arexstatus = `arcctl service list -a 2>/dev/null`;
+    $glueservicestatusinfo = "AREX running" if ($arexstatus =~ /arc-arex/);
     chomp $glueservicestatusinfo;
     my $glueservicestatus;
     if ($? == 0) {

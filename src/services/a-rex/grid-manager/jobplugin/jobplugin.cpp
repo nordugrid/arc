@@ -803,8 +803,10 @@ int JobPlugin::close(bool eof) {
     if(globalid[globalid.length()-1] != '/') globalid+="/";
     globalid+=job_id;
     job_desc.globalid=globalid;
+    job_desc.globalurl=globalid;
   };
   job_desc.headnode=endpoint;
+  job_desc.headhost=Arc::URL(endpoint).Host();
   job_desc.interface="org.nordugrid.gridftpjob";
   if(matched_vo != NULL) {
     job_desc.localvo.push_back(matched_vo);

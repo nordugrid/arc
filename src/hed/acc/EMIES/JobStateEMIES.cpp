@@ -72,9 +72,9 @@ namespace Arc {
       if(st.HasAttribute(EMIES_SATTR_CLIENT_STAGEOUT_POSSIBLE_S)) return JobState::FINISHING;
       return JobState::OTHER;
     }
-    /// \mapattr terminal:preprocessing-cancel -> FAILED
-    /// \mapattr terminal:processing-cancel -> FAILED
-    /// \mapattr terminal:postprocessing-cancel -> FAILED
+    /// \mapattr terminal:preprocessing-cancel -> KILLED
+    /// \mapattr terminal:processing-cancel -> KILLED
+    /// \mapattr terminal:postprocessing-cancel -> KILLED
     /// \mapattr terminal:validation-failure -> FAILED
     /// \mapattr terminal:preprocessing-failure -> FAILED
     /// \mapattr terminal:processing-failure -> FAILED
@@ -83,9 +83,9 @@ namespace Arc {
     /// \mapattr terminal:expired -> DELETED
     /// \mapattr terminal:* -> FINISHED
     else if(st.state == EMIES_STATE_TERMINAL_S) {
-      if(st.HasAttribute(EMIES_SATTR_PREPROCESSING_CANCEL_S)) return JobState::FAILED;
-      if(st.HasAttribute(EMIES_SATTR_PROCESSING_CANCEL_S)) return JobState::FAILED;
-      if(st.HasAttribute(EMIES_SATTR_POSTPROCESSING_CANCEL_S)) return JobState::FAILED;
+      if(st.HasAttribute(EMIES_SATTR_PREPROCESSING_CANCEL_S)) return JobState::KILLED;
+      if(st.HasAttribute(EMIES_SATTR_PROCESSING_CANCEL_S)) return JobState::KILLED;
+      if(st.HasAttribute(EMIES_SATTR_POSTPROCESSING_CANCEL_S)) return JobState::KILLED;
       if(st.HasAttribute(EMIES_SATTR_VALIDATION_FAILURE_S)) return JobState::FAILED;
       if(st.HasAttribute(EMIES_SATTR_PREPROCESSING_FAILURE_S)) return JobState::FAILED;
       if(st.HasAttribute(EMIES_SATTR_PROCESSING_FAILURE_S)) return JobState::FAILED;
