@@ -5,7 +5,7 @@ INTERNAL =
 endif
 
 SUBDIRS = delegation grid-manager infoproviders lrms schema $(INTERNAL) rte
-DIST_SUBDIRS = delegation grid-manager infoproviders jura lrms schema internaljobplugin rte
+DIST_SUBDIRS = delegation grid-manager infoproviders lrms schema internaljobplugin rte
 
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS = test_cache_check
