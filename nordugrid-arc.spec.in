@@ -1215,7 +1215,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
-%doc src/doc/arc.conf.reference src/doc/arc.conf.DELETED
+%doc src/doc/arc.conf.reference src/doc/arc.conf.DELETED src/doc/arc.conf.DELETED-6.8.0
 %doc README AUTHORS LICENSE NOTICE
 %{_libdir}/libarccompute.so.*
 %{_libdir}/libarccommunication.so.*
