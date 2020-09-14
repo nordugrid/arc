@@ -27,7 +27,7 @@
 +RTE_function_0 1  "2000" "--test \"TESTING\\ TEST\""
 +if [ $? -ne 0 ]; then
 +    echo "Runtime INCREASEMEMORY_1 stage 1 execution failed." 1>&2
-+    echo "Runtime INCREASEMEMORY_1 stage 1 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    echo "Runtime INCREASEMEMORY_1 stage 1 execution failed." 1>>"${RUNTIME_JOB_STDERR}"
 +    exit 1
 +fi
 +
@@ -36,7 +36,7 @@
 +RTE_function_1 1  "5000"
 +if [ $? -ne 0 ]; then
 +    echo "Runtime INCREASEMEMORY_2 stage 1 execution failed." 1>&2
-+    echo "Runtime INCREASEMEMORY_2 stage 1 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    echo "Runtime INCREASEMEMORY_2 stage 1 execution failed." 1>>"${RUNTIME_JOB_STDERR}"
 +    exit 1
 +fi
 +
@@ -52,7 +52,7 @@
 +RTE_function_0 2  "2000" "--test \"TESTING\\ TEST\""
 +if [ $? -ne 0 ]; then
 +    echo "Runtime INCREASEMEMORY_1 stage 2 execution failed." 1>&2
-+    echo "Runtime INCREASEMEMORY_1 stage 2 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    echo "Runtime INCREASEMEMORY_1 stage 2 execution failed." 1>>"${RUNTIME_JOB_STDERR}"
 +    exit 1
 +fi
 +
@@ -61,7 +61,7 @@
 +RTE_function_1 2  "5000"
 +if [ $? -ne 0 ]; then
 +    echo "Runtime INCREASEMEMORY_2 stage 2 execution failed." 1>&2
-+    echo "Runtime INCREASEMEMORY_2 stage 2 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    echo "Runtime INCREASEMEMORY_2 stage 2 execution failed." 1>>"${RUNTIME_JOB_STDERR}"
 +    exit 1
 +fi
 +
