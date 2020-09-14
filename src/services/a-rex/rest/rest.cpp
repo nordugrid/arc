@@ -526,25 +526,26 @@ static void ParseJobIds(Arc::Message& inmsg, Arc::Message& outmsg, std::list<std
   }
 }
 
-// REST State - A-REX State
-// ACCEPTING	-	ACCEPTED
-// ACCEPTED	- PENDING:ACCEPTED
-// PREPARING - PREPARING
-// PREPARED - PENDING:PREPARING
-// SUBMITTING - SUBMIT
-// QUEUING - INLRMS + LRMS queued
-// RUNNING - INLRMS + LRMS running
-// HELD - INLRMS + LRMS on hold
-// EXITINGLRMS - INLRMS + LRMS finished
-// OTHER - INLRMS + LRMS other
-// EXECUTED - PENDING:INLRMS
-// FINISHING - FINISHING
-// FINISHED - FINISHED + no errors & no cancel
-// FAILED - FINISHED + errors
-// KILLING - CANCELLING | PREPARING + DTR cancel | FINISHING + DTR cancel
-// KILLED - FINISHED + cancel
-// WIPED - DELETED
-static void convertActivityStatusREST(const std::string& gm_state,std::string& rest_state,bool failed,bool pending,const std::string& /*failedstate*/,const std::string& failedcause) {
+//   REST State   A-REX State
+// * ACCEPTING    ACCEPTED
+// * ACCEPTED     PENDING:ACCEPTED
+// * PREPARING    PREPARING
+// * PREPARED     PENDING:PREPARING
+// * SUBMITTING   SUBMIT
+// - QUEUING      INLRMS + LRMS queued
+// - RUNNING      INLRMS + LRMS running
+// - HELD         INLRMS + LRMS on hold
+// - EXITINGLRMS  INLRMS + LRMS finished
+// - OTHER        INLRMS + LRMS other
+// * EXECUTED     PENDING:INLRMS
+// * FINISHING    FINISHING
+// * KILLING      CANCELLING | PREPARING + DTR cancel | FINISHING + DTR cancel
+// * FINISHED     FINISHED + no errors & no cancel
+// * FAILED       FINISHED + errors
+// * KILLED       FINISHED + cancel
+// * WIPED        DELETED
+static void convertActivityStatusREST(const std::string& gm_state,std::string& rest_state,
+                                      bool failed,bool pending,const std::string& /*failedstate*/,const std::string& failedcause) {
   rest_state.clear();
   if(gm_state == "ACCEPTED") {
     if(!pending)
@@ -560,26 +561,30 @@ static void convertActivityStatusREST(const std::string& gm_state,std::string& r
       rest_state="SUBMITTING";
   } else if(gm_state == "INLRMS") {
     if(!pending) {
-
-
-
-
-
-
-    } else
+      // Talking to LRMS would be too heavy. Just choose something innocent enough.
+      rest_state="RUNNING";
+    } else {
       rest_state="EXECUTED";
+    }
   } else if(gm_state == "FINISHING") {
     rest_state="FINISHING";
   } else if(gm_state == "CANCELING") {
     rest_state="KILLING";
   } else if(gm_state == "FINISHED") {
-
-
-
-
-
-
-
+    if(!pending) {
+      if(failed) {
+        // TODO: hack
+        if(failedcause.find("Job is canceled by external request") != std::string::npos) {
+          rest_state = "KILLED";
+        } else {
+          rest_state = "FAILED";
+        }
+      } else {
+        rest_state="FINISHED";
+      }
+    } else {
+      rest_state="EXECUTED";
+    }
   } else if(gm_state == "DELETED") {
     rest_state="WIPED";
   } else {
@@ -866,16 +871,98 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         return HTTPFault(inmsg,outmsg,500,"Missing payload");
       JobIDGeneratorREST idgenerator(config->Endpoint());
       std::string clientid = (inmsg.Attributes()->get("TCP:REMOTEHOST"))+":"+(inmsg.Attributes()->get("TCP:REMOTEPORT"));
-      // TODO: Check for description type and if request is for multiple jobs
-      ARexJob job(desc_str,*config,"",clientid,logger_,idgenerator);
-      if(!job)
-        return HTTPFault(inmsg,outmsg,500,job.Failure().c_str());
+      // TODO: Make ARexJob accept JobDescription directly to avoid reparsing jobs and use Arc::JobDescription::Parse here.
+      // Quck and dirty check for job type
+      std::string::size_type start_pos = desc_str.find_first_not_of(" \t\r\n");
+      if(start_pos == std::string::npos)
+        return HTTPFault(inmsg,outmsg,500,"Payload is empty");
+
       XMLNode listXml("<jobs/>");
-      XMLNode jobXml = listXml.NewChild("job");
-      jobXml.NewChild("status-code") = "201";
-      jobXml.NewChild("reason") = "Created";
-      jobXml.NewChild("id") = job.ID();
-      jobXml.NewChild("state") = "ACCEPTING";
+      // TODO: Split to separate functions
+      switch(desc_str[start_pos]) {
+        case '<': { // XML (multi- or single-ADL)
+          Arc::XMLNode jobs_desc_xml(desc_str);
+          if (jobs_desc_xml.Name() == "ActivityDescriptions") {
+            // multi
+            for(int idx = 0;;++idx) {
+              Arc::XMLNode job_desc_xml = jobs_desc_xml.Child(idx);
+              if(!job_desc_xml)
+                break;
+              XMLNode jobXml = listXml.NewChild("job");
+              ARexJob job(job_desc_xml,*config,"",clientid,logger_,idgenerator);
+              if(!job) {
+                jobXml.NewChild("status-code") = "500";
+                jobXml.NewChild("reason") = job.Failure();
+              } else {
+                jobXml.NewChild("status-code") = "201";
+                jobXml.NewChild("reason") = "Created";
+                jobXml.NewChild("id") = job.ID();
+                jobXml.NewChild("state") = "ACCEPTING";
+              } 
+            }
+          } else {
+            // maybe single
+            XMLNode jobXml = listXml.NewChild("job");
+            ARexJob job(jobs_desc_xml,*config,"",clientid,logger_,idgenerator);
+            if(!job) {
+              jobXml.NewChild("status-code") = "500";
+              jobXml.NewChild("reason") = job.Failure();
+            } else {
+              jobXml.NewChild("status-code") = "201";
+              jobXml.NewChild("reason") = "Created";
+              jobXml.NewChild("id") = job.ID();
+              jobXml.NewChild("state") = "ACCEPTING";
+            } 
+          }
+        }; break;
+
+        case '&': { // single-xRSL
+          XMLNode jobXml = listXml.NewChild("job");
+          ARexJob job(desc_str,*config,"",clientid,logger_,idgenerator);
+          if(!job) {
+            jobXml.NewChild("status-code") = "500";
+            jobXml.NewChild("reason") = job.Failure();
+          } else {
+            jobXml.NewChild("status-code") = "201";
+            jobXml.NewChild("reason") = "Created";
+            jobXml.NewChild("id") = job.ID();
+            jobXml.NewChild("state") = "ACCEPTING";
+          } 
+        }; break;
+
+        case '+': { // multi-xRSL
+          std::list<JobDescription> jobdescs;
+          Arc::JobDescriptionResult result = Arc::JobDescription::Parse(desc_str, jobdescs, "nordugrid:xrsl", "GRIDMANAGER");
+          if (!result) {
+            return HTTPFault(inmsg,outmsg,500,result.str().c_str());
+          } else {
+            for(std::list<JobDescription>::iterator jobdesc = jobdescs.begin(); jobdesc != jobdescs.end(); ++jobdesc) {
+              XMLNode jobXml = listXml.NewChild("job");
+              std::string jobdesc_str;
+              result = jobdesc->UnParse(jobdesc_str, "nordugrid:xrsl", "GRIDMANAGER");
+              if (!result) {
+                jobXml.NewChild("status-code") = "500";
+                jobXml.NewChild("reason") = result.str();
+              } else {
+                ARexJob job(desc_str,*config,"",clientid,logger_,idgenerator);
+                if(!job) {
+                  jobXml.NewChild("status-code") = "500";
+                  jobXml.NewChild("reason") = job.Failure();
+                } else {
+                  jobXml.NewChild("status-code") = "201";
+                  jobXml.NewChild("reason") = "Created";
+                  jobXml.NewChild("id") = job.ID();
+                  jobXml.NewChild("state") = "ACCEPTING";
+               } 
+              }
+            }
+          }
+        }; break;
+
+        default:
+          return HTTPFault(inmsg,outmsg,500,"Payload is not recognized");
+          break;
+      }
       return HTTPResponse(inmsg, outmsg, listXml);
     } else if(action == "info") {
       std::list<std::string> ids;
@@ -953,7 +1040,7 @@ static bool processJobInfo(Arc::Message& inmsg,ARexConfigContext& config, Arc::L
   std::string glue_s;
   Arc::XMLNode glue_xml(job_xml_read_file(id,config.GmConfig(),glue_s)?glue_s:"");
   if(!glue_xml) {
-    // create something minimal
+    // Fallback: create something minimal
     static const char* job_xml_template =
     "<ComputingActivity xmlns=\"http://schemas.ogf.org/glue/2009/03/spec_2.0_r1\"\n"
     "                   BaseType=\"Activity\" CreationTime=\"\" Validity=\"60\">\n"
@@ -1019,14 +1106,32 @@ static bool processJobStatus(Arc::Message& inmsg,ARexConfigContext& config, Arc:
     return false;
   }
   // Collecting job state
-  bool job_pending = false;
-  std::string gm_state = job.State(job_pending);
-  bool job_failed = job.Failed();
-  std::string failed_cause;
-  std::string failed_state = job.FailedState(failed_cause);
+  // Most detailed state is obtianable from XML info
   std::string rest_state;
-  convertActivityStatusREST(gm_state,rest_state,
-                            job_failed,job_pending,failed_state,failed_cause);
+  {
+    std::string glue_s;
+    if(job_xml_read_file(id,config.GmConfig(),glue_s)) {
+      Arc::XMLNode glue_xml(glue_s);
+      if((bool)glue_xml) {
+        for(Arc::XMLNode snode = glue_xml["State"]; (bool)snode ; ++snode) {
+          std::string state_str = snode;
+          if(state_str.compare(0, 7, "arcrest:") == 0) {
+            rest_state = state_str.substr(7);
+          }
+        }
+      }
+    }
+  }
+  if (rest_state.empty()) {
+    // Faster but less detailed state can be computed from GM state
+    bool job_pending = false;
+    std::string gm_state = job.State(job_pending);
+    bool job_failed = job.Failed();
+    std::string failed_cause;
+    std::string failed_state = job.FailedState(failed_cause);
+    convertActivityStatusREST(gm_state,rest_state,
+                              job_failed,job_pending,failed_state,failed_cause);
+  }
   jobXml.NewChild("status-code") = "200";
   jobXml.NewChild("reason") = "OK";
   jobXml.NewChild("id") = id;
