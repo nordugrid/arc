@@ -1,4 +1,4 @@
-ACCOUNTINGCTLPY = Accounting.py AccountingDB.py AccountingPublishing.py AccountingLegacy.py JuraArchive.py JuraArchiveSQLite.py
+ACCOUNTINGCTLPY = Accounting.py AccountingDB.py AccountingPublishing.py
 SERVICESCTLPY = OSPackage.py OSService.py Services.py ServiceCommon.py
 CACTLPY = TestCA.py CertificateGenerator.py
 

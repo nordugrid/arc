@@ -14,6 +14,8 @@ ref_action = parser.add_mutually_exclusive_group(required=True)
 ref_action.add_argument('--extract-defaults', action='store_true', help='dump default values from arc.conf.reference')
 ref_action.add_argument('--include-defaults', action='store_true', help='include default values to arc.conf.reference')
 ref_action.add_argument('--convert-to-rst', action='store_true', help='convert to reStructuredText')
+parser.add_argument('--rst-no-headers', action='store_false', help='do not generate reST header')
+parser.add_argument('--rst-block-label-prefix', action='store', default='', help='reST block label prefix')
 cmd_args = parser.parse_args()
 
 defaults_header = """\
@@ -38,5 +40,8 @@ elif cmd_args.include_defaults:
     reference.parse_defaults(cmd_args.defaults)
     reference.process_reference(cmd_args.reference, print_reference=True)
 elif cmd_args.convert_to_rst:
-    reference.reference2rst(cmd_args.reference)
+    reference.reference2rst(cmd_args.reference,
+      headers=cmd_args.rst_no_headers,
+      block_label_prefix=cmd_args.rst_block_label_prefix
+    )
 
