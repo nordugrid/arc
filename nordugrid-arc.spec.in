@@ -1504,7 +1504,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %dir %{_localstatedir}/spool/arc
 %dir %{_localstatedir}/spool/arc/ssm
 %dir %{_localstatedir}/spool/arc/urs
-%dir %{_localstatedir}/spool/arc/jura
 %{_libexecdir}/%{pkgdir}/ssmsend
 %if %{py3default}
 %{python3_sitearch}/%{pkgdir}/ssm
