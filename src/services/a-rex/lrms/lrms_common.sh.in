@@ -112,7 +112,9 @@ init_lrms_env () {
    # Description of (cross-)mounted disc space on cluster
    RUNTIME_FRONTEND_SEES_NODE=$CONFIG_shared_scratch
    RUNTIME_NODE_SEES_FRONTEND=$CONFIG_shared_filesystem
-   RUNTIME_LOCAL_SCRATCH_DIR=$CONFIG_scratchdir
+   RUNTIME_LOCAL_SCRATCH_DIR=`echo ${CONFIG_scratchdir} | cut -d' ' -f1`
+   RUNTIME_LOCAL_SCRATCH_COPY_TOOL=`echo ${CONFIG_scratchdir} | cut -sd' ' -f2-`
+   RUNTIME_LOCAL_SCRATCH_COPY_TOOL=${RUNTIME_LOCAL_SCRATCH_COPY_TOOL:-mv}
 
    #default is NFS
    if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then

@@ -862,14 +862,17 @@
 ## default: yes
 #shared_filesystem=yes
 
-## scratchdir = path - The path on computing node to move session directory to before
-## execution. If defined should contain the path to the directory on the
-## computing node which can be used to store a jobs' files during execution.
-## Sets the environment variable RUNTIME_LOCAL_SCRATCH_DIR. If the variable is not set,
-## then the session dir is not moved before execution. Don't set this parameter unless
-## you want to move the sessiondir to scratchdir on the node.
+## scratchdir = path [tool] - Specifies the path on the computing node to move
+## session directory to before execution. If defined should contain the path to
+## the directory on the computing node which can be used to store a jobs' files
+## during execution. Sets the environment variable RUNTIME_LOCAL_SCRATCH_DIR.
+## If the variable is not set, then the session dir is not moved before
+## execution. An optional tool can be specified which is used to perform the move.
+## The default is "mv". Additional arguments may be set after the command name.
+## Don't set this parameter unless you want to move the sessiondir
+## to scratchdir on the node. Note that path may not contain spaces.
 ## default: undefined
-#scratchdir=/local/scratch/
+#scratchdir=/local/scratch/ rsync -av
 
 ## shared_scratch = path - The path on frontend where scratchdir can be found. If
 ## defined should contain the path corresponding to that set in scratchdir as

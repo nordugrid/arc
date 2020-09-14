@@ -339,7 +339,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           }
         }
         else if (command == "scratchdir") {
-          std::string scratch = rest;
+          std::string scratch = Arc::ConfigIni::NextArg(rest);
           // don't set if already set by shared_scratch
           if (config.scratch_dir.empty()) config.scratch_dir = scratch;
         }

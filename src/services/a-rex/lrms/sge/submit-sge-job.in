@@ -224,7 +224,8 @@ echo "umask 077" >> $LRMS_JOB_SCRIPT
 ##############################################################
 
 if [ "$RUNTIME_LOCAL_SCRATCH_DIR" ] && [ ! "$RUNTIME_FRONTEND_SEES_NODE" ]; then
-    echo "if [ -d \"${CONFIG_scratchdir:-\$TMPDIR}\" ]; then RUNTIME_LOCAL_SCRATCH_DIR=${CONFIG_scratchdir:-\$TMPDIR}; fi" >> $LRMS_JOB_SCRIPT
+    SCRATCH=`echo ${CONFIG_scratchdir} | cut -d' ' -f1`
+    echo "if [ -d \"${SCRATCH:-\$TMPDIR}\" ]; then RUNTIME_LOCAL_SCRATCH_DIR=${SCRATCH:-\$TMPDIR}; fi" >> $LRMS_JOB_SCRIPT
 fi
 
 sourcewithargs_jobscript

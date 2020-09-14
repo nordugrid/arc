@@ -489,6 +489,7 @@ move_files_to_node () {
   else
     echo "RUNTIME_LOCAL_SCRATCH_DIR=\${RUNTIME_LOCAL_SCRATCH_DIR:-}" >> $LRMS_JOB_SCRIPT
   fi
+  echo "RUNTIME_LOCAL_SCRATCH_COPY_TOOL=\${RUNTIME_LOCAL_SCRATCH_COPY_TOOL:-$RUNTIME_LOCAL_SCRATCH_COPY_TOOL}" >> $LRMS_JOB_SCRIPT
   echo "RUNTIME_FRONTEND_SEES_NODE=\${RUNTIME_FRONTEND_SEES_NODE:-$RUNTIME_FRONTEND_SEES_NODE}" >> $LRMS_JOB_SCRIPT
   echo "RUNTIME_NODE_SEES_FRONTEND=\${RUNTIME_NODE_SEES_FRONTEND:-$RUNTIME_NODE_SEES_FRONTEND}" >> $LRMS_JOB_SCRIPT
   cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
@@ -503,8 +504,8 @@ move_files_to_node () {
       [ "$f" = "$RUNTIME_JOB_DIR/.." ] && continue
       [ "$f" = "$RUNTIME_JOB_DIR/.diag" ] && continue
       [ "$f" = "$RUNTIME_JOB_DIR/.comment" ] && continue
-      if ! mv "$f" "$RUNTIME_NODE_JOB_DIR"; then
-        echo "Failed to move '$f' to '$RUNTIME_NODE_JOB_DIR'" 1>&2
+      if ! $RUNTIME_LOCAL_SCRATCH_COPY_TOOL "$f" "$RUNTIME_NODE_JOB_DIR"; then
+        echo "Failed to '$RUNTIME_LOCAL_SCRATCH_COPY_TOOL' '$f' to '$RUNTIME_NODE_JOB_DIR'" 1>&2
         exit 1
       fi
     done
