@@ -320,7 +320,7 @@ def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
                                  ln + 1, confline.strip('\n'))
                     continue
                 option = option_match.groupdict()['option']
-                value = option_match.groupdict()['value']
+                value = option_match.groupdict()['value'].strip()
                 # ordered lists of options
                 parsed_confdict_ref[block_id]['__options'].append(option)
                 parsed_confdict_ref[block_id]['__values'].append(value)
