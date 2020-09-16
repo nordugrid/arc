@@ -80,8 +80,6 @@ class DTRGenerator: public DataStaging::DTRCallback {
   std::list<std::string> recovered_files;
   /** logger to a-rex log */
   static Arc::Logger logger;
-  /** Central DTR LogDestination */
-  DataStaging::DTRLogDestination central_dtr_log;
   /** Associated scheduler */
   DataStaging::Scheduler* scheduler;
 

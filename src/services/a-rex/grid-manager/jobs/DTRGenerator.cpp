@@ -167,7 +167,6 @@ DTRGenerator::DTRGenerator(const GMConfig& config, JobsList& jobs) :
     jobs_processing(JobsList::ProcessingQueuePriority+2, "DTR processing", *this),
     generator_state(DataStaging::INITIATED),
     config(config),
-    central_dtr_log(NULL),
     staging_conf(config),
     info(config),
     jobs(jobs) {
@@ -185,11 +184,6 @@ DTRGenerator::DTRGenerator(const GMConfig& config, JobsList& jobs) :
   // Read DTR state from previous dump to find any transfers stopped half-way
   // If those destinations appear again, add overwrite=yes
   readDTRState(staging_conf.dtr_log);
-
-  // Central DTR log if configured
-  if (!staging_conf.get_dtr_central_log().empty()) {
-    central_dtr_log = new Arc::LogFile(staging_conf.get_dtr_central_log());
-  }
 
   // Processing limits
   scheduler->SetSlots(staging_conf.max_processor,
@@ -1019,7 +1013,11 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     dest->setReopen(true);
     dest->setFormat(Arc::MediumFormat);
     logs.push_back(dest);
-    if (central_dtr_log) logs.push_back(central_dtr_log);
+    // Central DTR log if configured
+    if (!staging_conf.get_dtr_central_log().empty()) {
+      Arc::LogFile* central_dtr_log = new Arc::LogFile(staging_conf.get_dtr_central_log());
+      logs.push_back(central_dtr_log);
+    }
 
     // create DTR and send to Scheduler
     DataStaging::DTR_ptr dtr(new DataStaging::DTR(source, destination, usercfg, jobid, job->get_user().get_uid(), logs, "DataStaging.DTR"));
