@@ -406,7 +406,7 @@ RTE_jobscript_call () {
             printf "RTE_function_${rte_idx} ${args_value}\n" >> $LRMS_JOB_SCRIPT
             echo "if [ \$? -ne 0 ]; then" >> $LRMS_JOB_SCRIPT
             echo "    echo \"Runtime ${rte_name} stage ${rte_stage} execution failed.\" 1>&2" >> $LRMS_JOB_SCRIPT
-            echo "    echo \"Runtime ${rte_name} stage ${rte_stage} execution failed.\" 1>\"\${RUNTIME_JOB_DIAG}\"" >> $LRMS_JOB_SCRIPT
+            echo "    echo \"Runtime ${rte_name} stage ${rte_stage} execution failed.\" 1>>\"\${RUNTIME_JOB_STDERR}\"" >> $LRMS_JOB_SCRIPT
             echo "    exit 1" >> $LRMS_JOB_SCRIPT
             echo "fi" >> $LRMS_JOB_SCRIPT
             echo "" >> $LRMS_JOB_SCRIPT
