@@ -73,10 +73,7 @@ echo "" >> $LRMS_JOB_SCRIPT
 cat >> $LRMS_JOB_SCRIPT <<"FMARK"
 set -x 
 export RUNTIME_CONFIG_DIR=`pwd`/
-#tar zxvf RTE.tar.gz
-cp ../shared/ATLAS.root ./
 #rename root file
-#unzip RTE file
 FMARK
 echo tar --strip-components=$N -xvf *input.tar.gz >> $LRMS_JOB_SCRIPT
 
@@ -235,34 +232,11 @@ accounting_end
 #######################################
 #  Submit the job
 #######################################
-## generate RTE file on the fly
-joboption_num=0
-rflist=$RUNTIME_CONFIG_DIR/APPS/HEP/ATLAS-SITE
-eval "var_is_set=\${joboption_runtime_$joboption_num+yes}"
-while [ ! -z "${var_is_set}" ] ; do
-   eval "var_value=\${joboption_runtime_$joboption_num}"
-   if [ -r "$RUNTIME_CONFIG_DIR/${var_value}" ] ; then
-      rflist=$rflist" $RUNTIME_CONFIG_DIR/${var_value}"
-   fi
-   joboption_num=$(( $joboption_num + 1 ))
-   eval "var_is_set=\${joboption_runtime_$joboption_num+yes}"
- done
- 
-RN=0
-x=$RUNTIME_CONFIG_DIR
-while [ "$x" != "/" ]
-do
- x=`dirname $x`
- RN=$((RN+1))
-done
-sed -i -e "s/#unzip RTE file/tar --strip-components=$RN -zxvf RTE.tar.gz/g" $LRMS_JOB_SCRIPT
 
 echo "job script ${LRMS_JOB_SCRIPT} built" 1>&2
 JobId=`basename $joboption_directory_orig`
 JobInput=$joboption_directory_orig/$JobId"_input.tar.gz"
 wu=$JobId
-RTE_FILE="rte_"$wu".tar.gz"
-RTE_LOCATION="$joboption_directory_orig/RTE.tar.gz"
 
 echo "#!/bin/bash" >> $LRMS_JOB_BOINC
 echo "set -x" >> $LRMS_JOB_BOINC
@@ -291,8 +265,6 @@ for file in `ls $joboption_directory_orig`
 
 echo tar zhcvf $JobInput $tflist
 echo "tar zhcvf $JobInput $tflist" >> $LRMS_JOB_BOINC
-echo tar zhcvf $RTE_LOCATION $rflist
-echo "tar zhcvf $RTE_LOCATION $rflist" >> $LRMS_JOB_BOINC
 
 echo "cd $PROJECT_ROOT " >>$LRMS_JOB_BOINC
 
@@ -303,8 +275,6 @@ echo "cp $JobInput "'`bin/dir_hier_path '$(basename $JobInput)'`' >> $LRMS_JOB_B
 echo "chmod a+r "'`bin/dir_hier_path '$(basename $JobInput)'`' >> $LRMS_JOB_BOINC
 echo "cp $LRMS_JOB_SCRIPT " '`bin/dir_hier_path' $(basename $LRMS_JOB_SCRIPT)'`' >>$LRMS_JOB_BOINC
 echo "chmod a+r " '`bin/dir_hier_path' $(basename $LRMS_JOB_SCRIPT)'`' >>$LRMS_JOB_BOINC
-echo "cp $RTE_LOCATION " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
-echo "chmod a+r " '`bin/dir_hier_path' $RTE_FILE '`' >> $LRMS_JOB_BOINC
 
 [ -n "$PROJECT_DOWNLOAD_ROOT" ] && echo "cd $PROJECT_DOWNLOAD_ROOT" >> $LRMS_JOB_BOINC
 
@@ -332,7 +302,7 @@ done
 [ -n "$PROJECT_DOWNLOAD_ROOT" ] && echo "cd $PROJECT_ROOT" >> $LRMS_JOB_BOINC
 
 ## generate the input template file
-let ifileno=3+${#RootFile[@]}
+let ifileno=2+${#RootFile[@]}
 i=0
 intmp=""
 while [ $i -lt $ifileno ]
@@ -350,7 +320,7 @@ i=0
 while [ $i -lt ${#RootFile[@]} ]
 do
   intmp="$intmp
- <file_ref>
+  <file_ref>
      <file_number>$i</file_number>
      <open_name>shared/ATLAS.root_$i</open_name>
      <copy_file/>
@@ -364,16 +334,8 @@ intmp="$intmp
      <file_number>$i</file_number>
      <open_name>shared/input.tar.gz</open_name>
      <copy_file/>
-   </file_ref>
-  <file_ref>"
+   </file_ref>"
 
-let i=$i+1
-intmp="$intmp
-     <file_number>$i</file_number>
-     <open_name>shared/RTE.tar.gz</open_name>
-     <copy_file/>
-   </file_ref>
-"
 let i=$i+1
 intmp="$intmp
    <file_ref>
@@ -446,7 +408,6 @@ done
 
 cmd="$cmd \
       $(basename $JobInput) \
-      $RTE_FILE \
       $(basename $LRMS_JOB_SCRIPT)"
 echo $cmd >> $LRMS_JOB_BOINC
 echo 'ret=$?' >>$LRMS_JOB_BOINC
