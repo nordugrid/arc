@@ -81,15 +81,16 @@ If you need help with the configuration file or have any other questions related
 
 
 Known issues
-============
+==============
 * In Centos8 the openldap server is not installable because slapd is not available in the RHEL8 release (Bugzilla 3944).
   As a consequence, the LDAP-based server-side information system interface of the ARC-CE will not be available either.
   If interaction with the ARC-CE relies on LDAP-based information schemas (glue1.3 or nordugrid schema),
   then we recommend that you stay with Centos7 for the time being.
-* Related to the new accounting system and reporting to APEL post release 6.4.0:
-  If you have 10k+ jobs weekly there is a considerable performance hit for generating summary records.
-  It is advised to have apel_messages = urs and have reporting interval decreased to several hours.
-* Accounting records created by ARC 6.4.0 are affected by a bug causing missing benchmark values:
-  https://bugzilla.nordugrid.org./show_bug.cgi?id=3921#c3
-  Instructions in the comment ask you to Update to newer version of ARC and show how to manually fix the benchmark values.
+* Related to the new accounting system introduded in release 6.4.0: 
+** Reporting to APEL: If you process 10k+ jobs weekly there is a considerable performance hit for generating summary records.
+   It is advised to have apel_messages = urs and have reporting interval decreased to several hours.
+** Accounting records created by ARC 6.4.0 are affected by a bug causing missing benchmark values:
+   https://bugzilla.nordugrid.org./show_bug.cgi?id=3921#c3
+   Recommendations are to update to a newer version of ARC.
+   The bugreport gives instructions on how to manually fix the wrong benchmark values.
  
