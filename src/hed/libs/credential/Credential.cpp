@@ -66,7 +66,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
 
 
-  #define DEFAULT_DIGEST   ((EVP_MD*)EVP_sha1())
+  #define DEFAULT_DIGEST   ((EVP_MD*)EVP_sha256())
   #define DEFAULT_KEYBITS  (2048)
 
   CredentialError::CredentialError(const std::string& what) : std::runtime_error(what) { }
@@ -2843,7 +2843,7 @@ error:
     if((digest = EVP_get_digestbyname(md_str)) == NULL) {
       CredentialLogger.msg(INFO, "%s is an unsupported digest type", md_str);
     }
-    if(digest == NULL) digest = EVP_sha1();
+    if(digest == NULL) digest = EVP_sha256();
 
 
     X509_STORE *ctx = NULL;
