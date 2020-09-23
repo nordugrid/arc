@@ -567,19 +567,35 @@ class AccountingDB(object):
 
     def get_apel_summaries(self):
         """Return info corresponding to APEL aggregated summary records"""
+        summaries = []
+        # get RecordID range to limit further filtering
+        record_start = None
+        record_end = None
+        for res in self.__filtered_query('SELECT min(RecordID), max(RecordID) FROM AAR',
+                                         errorstr='Failed to get records range from database'):
+            record_start = res[0]
+            record_end = res[1]
+        if record_start is None or record_end is None:
+            self.logger.error('Database query error. Failed to proceed with APEL summary generation')
+            self.adb_close()
+            return summaries
+        self.logger.debug('Will query extra table for the records in range [%s, %s]', record_start, record_end)
+        # invoke heavy summary query with extra table pre-filtering
         sql = '''SELECT a.UserID, a.VOID, a.EndpointID, a.NodeCount, a.CPUCount,
-              AuthTokenAttributes.AttrValue, JobExtraInfo.InfoValue as RBenchmark,
+              t.AttrValue as AuthToken, e.InfoValue as RBenchmark,
               COUNT(a.RecordID), SUM(a.UsedWalltime), SUM(a.UsedCPUTime), MIN(a.EndTime), MAX(a.EndTime),
               strftime("%Y-%m", a.endTime, "unixepoch") AS YearMonth
               FROM ( SELECT RecordID, UserID, VOID, EndpointID, NodeCount, CPUCount, SubmitTime, EndTime,
                             UsedWalltime, UsedCPUUserTime + UsedCPUKernelTime AS UsedCPUTime FROM AAR
                      WHERE 1=1 <FILTERS>) a
-              LEFT JOIN JobExtraInfo ON JobExtraInfo.RecordID = a.RecordID
-                                    AND JobExtraInfo.InfoKey = "benchmark"
-              LEFT JOIN AuthTokenAttributes ON AuthTokenAttributes.RecordID = a.RecordID
-                                           AND AuthTokenAttributes.AttrKey = "mainfqan"
-              GROUP BY YearMonth, a.UserID, a.VOID, a.EndpointID, a.NodeCount, a.CPUCount, RBenchmark'''
-        summaries = []
+              LEFT JOIN ( SELECT * FROM JobExtraInfo
+                          WHERE JobExtraInfo.RecordID >= {0} AND JobExtraInfo.RecordID <= {1}
+                          AND JobExtraInfo.InfoKey = "benchmark" ) e ON e.RecordID = a.RecordID
+              LEFT JOIN ( SELECT * FROM AuthTokenAttributes
+                          WHERE AuthTokenAttributes.RecordID >= {0} AND AuthTokenAttributes.RecordID <= {1}
+                          AND AuthTokenAttributes.AttrKey = "mainfqan" ) t ON t.RecordID = a.RecordID
+              GROUP BY YearMonth, a.UserID, a.VOID, a.EndpointID,
+                       a.NodeCount, a.CPUCount, RBenchmark'''.format(record_start, record_end)
         self.__fetch_users()
         self.__fetch_wlcgvos()
         self.__fetch_endpoints()
