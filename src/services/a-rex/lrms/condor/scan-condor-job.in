@@ -343,7 +343,10 @@ process_job() {
     localfile=job.$gridid.local
     sessiondir=$(sed -n 's/^sessiondir=//p' "$localfile" | tail -n 1)
     [ -n "$sessiondir" ] || { log "failed reading sessiondir from: $PWD/$localfile"; return 1; }
- 
+
+    # move diag file that end-up in session directory after condor transfer_output (shared_filesystem = no)
+    [ -f "${sessiondir}/${sessiondir##*/}.diag" ] && mv "${sessiondir}/${sessiondir##*/}.diag" "${sessiondir}.diag"
+
     job_read_diag
     lrms_get_accounting
  
