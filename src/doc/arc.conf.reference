@@ -532,6 +532,14 @@
 #gnu_time=/usr/bin/time
 ## CHANGE: MOVED in 6.0.0 from the [arex] block.
 
+## movetool = comand - Redefine the command used to move files during jobscript 
+## execution on LRMS worker node (the command should be available on WNs).
+## This in particular applies to files movement from sessiondir to scratchdir 
+## in the shared sessiondir case.
+## default: mv
+#movetool=rsync -av
+## CHANGE: NEW in 6.8
+
 ### PBS options: set these only in case of lrms=pbs
 ## pbs_bin_path = path - The path to the qstat,pbsnodes,qmgr etc PBS binaries,
 ## no need to set if PBS is not used
@@ -862,17 +870,14 @@
 ## default: yes
 #shared_filesystem=yes
 
-## scratchdir = path [tool] - Specifies the path on the computing node to move
-## session directory to before execution. If defined should contain the path to
-## the directory on the computing node which can be used to store a jobs' files
-## during execution. Sets the environment variable RUNTIME_LOCAL_SCRATCH_DIR.
-## If the variable is not set, then the session dir is not moved before
-## execution. An optional tool can be specified which is used to perform the move.
-## The default is "mv". Additional arguments may be set after the command name.
-## Don't set this parameter unless you want to move the sessiondir
-## to scratchdir on the node. Note that path may not contain spaces.
+## scratchdir = path - The path on computing node to move session directory to before
+## execution. If defined should contain the path to the directory on the
+## computing node which can be used to store a jobs' files during execution.
+## Sets the environment variable RUNTIME_LOCAL_SCRATCH_DIR. If the variable is not set,
+## then the session dir is not moved before execution. Don't set this parameter unless
+## you want to move the sessiondir to scratchdir on the node.
 ## default: undefined
-#scratchdir=/local/scratch/ rsync -av
+#scratchdir=/local/scratch/
 
 ## shared_scratch = path - The path on frontend where scratchdir can be found. If
 ## defined should contain the path corresponding to that set in scratchdir as
