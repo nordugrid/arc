@@ -182,7 +182,7 @@ class DataStagingControl(ComponentControl):
                     pass
 
             """ Now print the TRANSFERRING states"""
-            for key, val in state_counter.iteritems():
+            for key, val in state_counter.items():
                 if 'TRANSFERRING' in key:
                     state = 'TRANSFERRING'
                     host = key.split('_')[-1]
@@ -356,7 +356,7 @@ class DataStagingControl(ComponentControl):
 
 
         """ Calculated avg download speed """
-        for key,val in job_files.iteritems():
+        for key,val in job_files.items():
             if 'size' in val.keys() and 'start_deliver' in val.keys():
                 start_dwnld = datetime.datetime.strptime(val['start_deliver'], "%Y-%m-%d %H:%M:%S")
                 end_dwnld = datetime.datetime.strptime(val['transf_done'], "%Y-%m-%d %H:%M:%S")
@@ -368,7 +368,7 @@ class DataStagingControl(ComponentControl):
         """ TO-DO find a nice way to sort this, maybe removing the files that do not have all info provided? """
         print('\nFile download details for job {}:'.format(args.jobid))
         print('\t{0:<40}{1:<15}{2:<22}{3:<22}{4:<22}{5:<22}{6:<22}{7:<22}{8:<10}'.format('FILENAME','SIZE (MB)','START','END','SCHEDULER-START','DELIVERY-START','TRANSFER-DONE','ALL-DONE','DWLD-SPEED MB/s'))
-        for key,val in job_files.iteritems():
+        for key,val in job_files.items():
             if ('start_deliver' in val.keys() and 'start_sched' in val.keys() and 'return_gen' in val.keys() and 'speed' in val.keys()):
                 print("\t{0:<40}{1:<15.3f}{2:<22}{3:<22}{4:<22}{5:<22}{6:<22}{7:<22}{8:<10.3f}".format(key,val['size'],val['start'],val['end'],val['start_sched'],val['start_deliver'],val['transf_done'],val['return_gen'],val['speed']))     
 
@@ -400,7 +400,7 @@ class DataStagingControl(ComponentControl):
         done_dict={}
         ongoing_dict={}
         failed_dict={}
-        for key,val in datastaging_times.iteritems():
+        for key,val in datastaging_times.items():
             if not val['failed']:
                 if val['done']:
                     done_dict[key]=val
