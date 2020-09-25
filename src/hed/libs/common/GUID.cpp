@@ -36,21 +36,11 @@ static void guid_add_string(std::string& guid, uint32_t n) {
   }
 }
 
-void Arc::GUID(std::string& guid) {
-  if (!initialized) {
-    srandom(time(NULL)+random());
-    initialized = true;
-  }
-  struct timeval tv;
-  struct timezone tz;
-  gettimeofday(&tv, &tz);
-  // Use up to 4 IP addresses
-  uint32_t hostid[4] = {
-    INADDR_ANY, INADDR_ANY, INADDR_ANY, INADDR_ANY
-  };
-  hostid[0] = gethostid();
-  if (htonl(INADDR_LOOPBACK) == hostid[0])
-    hostid[0] = INADDR_ANY;
+static void collect_hostids(uint32_t* hostid) {
+  uint32_t hid = gethostid();
+  if (htonl(INADDR_LOOPBACK) != hid)
+    hostid[0] = hid;
+
   char hostname[1024];
   // Local addresses
   if (gethostname(hostname, sizeof(hostname) - 1) == 0) {
@@ -74,18 +64,32 @@ void Arc::GUID(std::string& guid) {
         }
         if(s_address == INADDR_ANY) continue;
         int i;
-        for (i = 0; i < 3; i++) {
+        for (i = 0; i < 4; i++) {
           if (hostid[i] == INADDR_ANY) break;
           if (s_address == hostid[i]) break;
         }
-        if (i >= 3) continue;
-        if (hostid[i] != INADDR_ANY) continue;
+        if (i >= 4) break;
         hostid[i] = s_address;
       }
       freeaddrinfo(res);  
     }
   }
   // External address (TODO)
+}
+
+void Arc::GUID(std::string& guid) {
+  if (!initialized) {
+    srandom(time(NULL)+random());
+    initialized = true;
+  }
+  struct timeval tv;
+  struct timezone tz;
+  gettimeofday(&tv, &tz);
+  // Use up to 4 IP addresses
+  static uint32_t hostid[4] = {
+    INADDR_ANY, INADDR_ANY, INADDR_ANY, INADDR_ANY
+  };
+  if(hostid[0] == INADDR_ANY) collect_hostids(hostid);
 
   // Use collected information
   guid_add_string(guid, tv.tv_usec);

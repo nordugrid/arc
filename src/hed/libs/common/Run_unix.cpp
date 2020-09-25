@@ -242,7 +242,7 @@ namespace Arc {
               (void)read(handles[0].fd, &dummy, 1);
               logger.msg(DEBUG, "Child monitoring kick detected");
             }
-            if(handles[0].revents & (POLLERR | POLLHUP)) {
+            if(handles[0].revents & POLLERR) {
               logger.msg(ERROR, "Child monitoring internal communication error");
             }
 
@@ -251,7 +251,7 @@ namespace Arc {
               if (r->stdout_str_ && !(r->stdout_keep_) && (r->stdout_ != -1)) {
                 short revents = find_events(r->stdout_, handles.Ptr(), handles_num);
                 if(revents & POLLIN) r->stdout_handler();
-                if(revents & (POLLERR | POLLHUP)) {
+                if(revents & POLLERR) {
                   // In case of error just stop monitoring.
                   close(r->stdout_);
                   r->stdout_ = -1;
@@ -261,7 +261,7 @@ namespace Arc {
               if (r->stderr_str_ && !(r->stderr_keep_) && (r->stderr_ != -1)) {
                 short revents = find_events(r->stderr_, handles.Ptr(), handles_num);
                 if(revents & POLLIN) r->stderr_handler();
-                if(revents & (POLLERR | POLLHUP)) {
+                if(revents & POLLERR) {
                   // In case of error just stop monitoring.
                   close(r->stderr_);
                   r->stderr_ = -1;
@@ -271,7 +271,7 @@ namespace Arc {
               if (r->stdin_str_ && !(r->stdin_keep_) && (r->stdin_ != -1)) {
                 short revents = find_events(r->stdin_, handles.Ptr(), handles_num);
                 if(revents & POLLOUT) r->stdin_handler();
-                if(revents & (POLLERR | POLLHUP)) {
+                if(revents & POLLERR) {
                   // In case of error just stop monitoring.
                   close(r->stdin_);
                   r->stdin_ = -1;
