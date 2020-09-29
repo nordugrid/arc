@@ -168,10 +168,14 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
     // Add certificate chain
     STACK_OF(X509)* chain = cred.GetCertChain();
     int res = 1;
-    for (int id = 0; id < sk_X509_num(chain) && res == 1; ++id) {
-      X509* cert = sk_X509_value(chain,id);
-      res = SSL_CTX_add_extra_chain_cert(sslctx, cert);
+    if(chain) {
+      for (int id = 0; id < sk_X509_num(chain) && res == 1; ++id) {
+        X509* cert = sk_X509_value(chain,id);
+        res = SSL_CTX_add_extra_chain_cert(sslctx, cert);
+      }
+      sk_X509_pop_free(chain, X509_free);
     }
+
     if (res != 1) {
       failure_ = "Can not construct certificate chain from in-memory credentials\n";
       failure_ += HandleError();
