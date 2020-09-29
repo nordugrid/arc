@@ -277,7 +277,7 @@ namespace Arc {
 
 
   // Try to find and load shared library file by name
-  static Glib::Module* probe_module(std::string name,ModuleManager& manager) {
+  static Glib::Module* probe_module(std::string name,ModuleManager& manager,Logger& logger) {
     std::string::size_type p = 0;
     for(;;) {
       p=name.find(':',p);
@@ -285,7 +285,8 @@ namespace Arc {
       name.replace(p,1,"_");
       ++p;
     };
-    return manager.load(name,true);
+    Glib::Module* module = manager.load(name,true);
+    return module;
   }
 
   inline static Glib::Module* reload_module(Glib::Module* module,ModuleManager& manager) {
@@ -293,11 +294,10 @@ namespace Arc {
     return manager.reload(module);
   }
 
-#define unload_module(module,manager) { if(module) unload(module); }
-//  inline static void unload_module(Glib::Module* module,ModuleManager& manager) {
-//    if(!module) return;
-//    manager.unload(module);
-//  }
+  static void unload_module(Glib::Module* module,ModuleManager& manager) {
+    if(!module) return;
+    manager.unload(module);
+  }
 
   const char* plugins_table_name = ARC_PLUGINS_TABLE_SYMB;
 
@@ -360,17 +360,14 @@ namespace Arc {
     // Look for *.apd first by requested plugin kind
     std::string mname = kind;
     AutoPointer<ARCModuleDescriptor> mdesc(probe_descriptor(mname,*this));
-    if(mdesc) {
-      if(!mdesc->contains(kind)) return NULL;
-    };
-    // Descriptor with suitable name not found.
-    // Check if allowed to load executables
-    if(!try_load_) {
-      logger.msg(ERROR, "Could not find loadable module descriptor by name %s",kind);
+    if(!mdesc) {
+      logger.msg(VERBOSE, "Could not find loadable module descriptor by name %s",kind);
       return NULL;
     };
+    if(!mdesc->contains(kind)) return NULL;
+    // Descriptor with suitable name found.
     // Now try to load module directly
-    Glib::Module* module = probe_module(kind,*this);
+    Glib::Module* module = probe_module(kind,*this,logger);
     if (module == NULL) {
       logger.msg(ERROR, "Could not find loadable module by name %s (%s)",kind,strip_newline(Glib::Module::get_last_error()));
       return NULL;
@@ -378,11 +375,11 @@ namespace Arc {
     // Identify table of descriptors
     void *ptr = NULL;
     if(!module->get_symbol(plugins_table_name,ptr)) {
-      logger.msg(VERBOSE, "Module %s is not an ARC plugin (%s)",kind,strip_newline(Glib::Module::get_last_error()));
+      logger.msg(ERROR, "Module %s is not an ARC plugin (%s)",kind,strip_newline(Glib::Module::get_last_error()));
       unload_module(module,*this);
       return NULL;
     };
-    // Try to find plugin in new table
+    // Try to find plugin in loaded module
     PluginDescriptor* desc = (PluginDescriptor*)ptr;
     for(;;) {
       // Look for plugin descriptor of suitable kind
@@ -395,7 +392,7 @@ namespace Arc {
         // Keep plugin loaded and registered.
         Glib::Module* nmodule = reload_module(module,*this);
         if(!nmodule) {
-          logger.msg(VERBOSE, "Module %s failed to reload (%s)",mname,strip_newline(Glib::Module::get_last_error()));
+          logger.msg(ERROR, "Module %s failed to reload (%s)",mname,strip_newline(Glib::Module::get_last_error()));
           // clean up
           delete plugin;
           unload_module(module,*this);
@@ -417,6 +414,7 @@ namespace Arc {
       ++desc;
     };
     // Out of descriptors. Release module and exit.
+    logger.msg(ERROR, "Module %s contains no plugin %s",kind,kind);
     unload_module(module,*this);
     return NULL;
   }
@@ -457,39 +455,29 @@ namespace Arc {
     // Try to load module - first by name of plugin
     std::string mname = name;
     AutoPointer<ARCModuleDescriptor> mdesc(probe_descriptor(mname,*this));
-    if(mdesc) {
-      if(!mdesc->contains(kind,name)) {
-        logger.msg(ERROR, "Loadable module %s contains no requested plugin %s of kind %s",mname,name,kind);
+    if(!mdesc) {
+      mname=kind;
+      mdesc = probe_descriptor(mname,*this);
+      if (!mdesc) {
+        logger.msg(VERBOSE, "Could not find loadable module descriptor by name %s or kind %s",name, kind);
         return NULL;
       };
     };
+    if(!mdesc->contains(kind,name)) {
+      logger.msg(ERROR, "Loadable module %s contains no requested plugin %s of kind %s",mname,name,kind);
+      return NULL;
+    };
     // Descriptor not found or indicates presence of requested kinds.
     // Now try to load module directly
-    Glib::Module* module = try_load_?probe_module(name,*this):NULL;
+    Glib::Module* module = probe_module(mname,*this,logger);
     if (module == NULL) {
-      // Then by kind of plugin
-      mname=kind;
-      mdesc = probe_descriptor(mname,*this);
-      if(mdesc) {
-        if(!mdesc->contains(kind,name)) {
-          logger.msg(ERROR, "Loadable module %s contains no requested plugin %s of kind %s",mname,name,kind);
-          return NULL;
-        };
-      };
-      if(!try_load_) {
-        logger.msg(ERROR, "Could not find loadable module descriptor by names %s and %s",name,kind);
-        return NULL;
-      };
-      // Descriptor not found or indicates presence of requested kinds.
-      // Now try to load module directly
-      module=probe_module(kind,*this);
       logger.msg(ERROR, "Could not find loadable module by names %s and %s (%s)",name,kind,strip_newline(Glib::Module::get_last_error()));
       return NULL;
     };
     // Identify table of descriptors
     void *ptr = NULL;
     if(!module->get_symbol(plugins_table_name,ptr)) {
-      logger.msg(VERBOSE, "Module %s is not an ARC plugin (%s)",mname,strip_newline(Glib::Module::get_last_error()));
+      logger.msg(ERROR, "Module %s is not an ARC plugin (%s)",mname,strip_newline(Glib::Module::get_last_error()));
       unload_module(module,*this);
       return NULL;
     };
@@ -499,7 +487,7 @@ namespace Arc {
       // Keep plugin loaded and registered
       Glib::Module* nmodule = reload_module(module,*this);
       if(!nmodule) {
-        logger.msg(VERBOSE, "Module %s failed to reload (%s)",mname,strip_newline(Glib::Module::get_last_error()));
+        logger.msg(ERROR, "Module %s failed to reload (%s)",mname,strip_newline(Glib::Module::get_last_error()));
         unload_module(module,*this);
         return NULL;
       };
@@ -512,6 +500,7 @@ namespace Arc {
       lock.release();
       return desc->instance(arg);
     };
+    logger.msg(ERROR, "Module %s contains no requested plugin %s of kind %s",mname,name,kind);
     unload_module(module,*this);
     return NULL;
   }
@@ -564,43 +553,44 @@ namespace Arc {
       mname = name;
       // First try to find descriptor of module
       mdesc = probe_descriptor(mname,*this);
-      if(mdesc) {
-        if(!mdesc->contains(kinds)) {
-          //logger.msg(VERBOSE, "Module %s does not contain plugin(s) of specified kind(s)",mname);
-          return false;
-        };
-      };
-      if(!try_load_) {
-        logger.msg(ERROR, "Could not find loadable module descriptor by name %s",name);
+      if(!mdesc) {
+        logger.msg(VERBOSE, "Could not find loadable module descriptor by name %s",name);
         return false;
       };
-      // Descriptor not found or indicates presence of requested kinds.
+      if(!mdesc->contains(kinds)) {
+        //logger.msg(VERBOSE, "Module %s does not contain plugin(s) of specified kind(s)",mname);
+        return false;
+      };
       // Now try to load module directly
-      module = probe_module(mname,*this);
+      module = probe_module(mname,*this,logger);
       if (module == NULL) {
         logger.msg(ERROR, "Could not find loadable module by name %s (%s)",name,strip_newline(Glib::Module::get_last_error()));
         return false;
       };
       // Identify table of descriptors
       if(!module->get_symbol(plugins_table_name,ptr)) {
-        logger.msg(VERBOSE, "Module %s is not an ARC plugin (%s)",mname,strip_newline(Glib::Module::get_last_error()));
+        logger.msg(ERROR, "Module %s is not an ARC plugin (%s)",mname,strip_newline(Glib::Module::get_last_error()));
         unload_module(module,*this);
         return false;
       };
       desc = (PluginDescriptor*)ptr;
     };
     if(kinds.size() > 0) {
+      PluginDescriptor* ndesc = NULL;
       for(std::list<std::string>::const_iterator kind = kinds.begin();
           kind != kinds.end(); ++kind) {
         if(kind->empty()) continue;
-        desc=find_constructor(desc,*kind,0,INT_MAX);
-        if(desc) break;
+        ndesc = find_constructor(desc,*kind,0,INT_MAX);
+        if(ndesc) break;
       };
-      if(!desc) {
-        //logger.msg(VERBOSE, "Module %s does not contain plugin(s) of specified kind(s)",mname);
-        if(module) unload_module(module,*this);
+      if(!ndesc) {
+        if(module) {
+          logger.msg(ERROR, "Module %s does not contain plugin(s) of specified kind(s)",mname);
+          unload_module(module,*this);
+        };
         return false;
       };
+      desc = ndesc;
     };
     if(!mname.empty()) { // this indicates new module is loaded
       Glib::Module* nmodule=reload_module(module,*this);
@@ -656,40 +646,7 @@ namespace Arc {
       return true;
     }
     // Descriptor not found
-    if(!try_load_) return false;
-    // Now try to load module directly
-    Glib::Module* module = probe_module(name,*this);
-    if (module == NULL) return false;
-    // Identify table of descriptors
-    void *ptr = NULL;
-    if(!module->get_symbol(plugins_table_name,ptr)) {
-      unload_module(module,*this);
-      return false;
-    };
-    PluginDescriptor* d = (PluginDescriptor*)ptr;
-    if(!d) {
-      unload_module(module,*this);
-      return false;
-    };
-    unsigned int sane_count = 1024;
-    for(;(d->kind) && (d->name) && (d->instance);++d) {
-      // Checking sanity of record to deal with broken 
-      // plugins.
-      if((--sane_count == 0) ||
-         (!issane(d->name)) ||
-         (!issane(d->kind)) ||
-         (!issane(d->description))) {
-        unload_module(module,*this);
-        return false;
-      };
-      PluginDesc pd;
-      pd.name = d->name;
-      pd.kind = d->kind;
-      if(d->description) pd.description = d->description;
-      pd.version = d->version;
-      desc.plugins.push_back(pd);
-    };
-    return true;
+    return false;
   }
 
   bool PluginsFactory::scan(const std::list<std::string>& names, std::list<ModuleDesc>& descs) {
@@ -741,8 +698,7 @@ namespace Arc {
     }
   }
 
-  PluginsFactory::PluginsFactory(XMLNode cfg): ModuleManager(cfg),
-                                               try_load_(true) {
+  PluginsFactory::PluginsFactory(XMLNode cfg): ModuleManager(cfg) {
   }
 
   PluginArgument::PluginArgument(void): factory_(NULL), module_(NULL) {
