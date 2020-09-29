@@ -339,6 +339,7 @@ namespace ArcDMCRucio {
     MCC_Status r = client.process(attrs, &request, &transfer_info, &response);
 
     if (!r) {
+      delete response; response = NULL;
       return DataStatus(DataStatus::ReadResolveError, "Failed to contact server: " + r.getExplanation());
     }
     if (transfer_info.code != 200) {
@@ -353,15 +354,18 @@ namespace ArcDMCRucio {
     try {
       instream = dynamic_cast<PayloadStreamInterface*>(dynamic_cast<MessagePayload*>(response));
     } catch(std::exception& e) {
+      delete response; response = NULL;
       return DataStatus(DataStatus::ReadResolveError, "Unexpected response from server");
     }
     if (!instream) {
+      delete response; response = NULL;
       return DataStatus(DataStatus::ReadResolveError, "Unexpected response from server");
     }
 
     std::string buf;
     while (instream->Get(buf)) content += buf;
     logger.msg(DEBUG, "Rucio returned %s", content);
+    delete response; response = NULL;
     return DataStatus::Success;
   }
 
