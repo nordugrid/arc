@@ -356,9 +356,10 @@ static int runmain(int argc, char *argv[]) {
 
   bool use_http_comm = false;
   options.AddOption('H', "httpcom", istring("use HTTP communication protocol for contacting VOMS services that provide RESTful access \n"
-                                            "               Note for RESTful access, \'list\' command and multiple VOMS server are not supported\n"
-                                            ), 
-                    use_http_comm);
+                                            "               Note for RESTful access, \'list\' command and multiple VOMS server are not supported\n"), use_http_comm);
+
+  bool use_old_comm = false;
+  options.AddOption('B', "oldcom", istring("use old communication protocol for contacting VOMS services instead of RESTful access\n"), use_old_comm);
 
   bool use_gsi_proxy = false;
   options.AddOption('O', "old", istring("this option is not functional (old GSI proxies are not supported anymore)"), use_gsi_proxy);
@@ -446,6 +447,11 @@ static int runmain(int argc, char *argv[]) {
                     version);
 
   std::list<std::string> params = options.Parse(argc, argv);
+
+  if(use_http_comm && use_old_comm) {
+    logger.msg(Arc::ERROR, "RESTful and old VOMS communication protocols can't be requested simultaneously.");
+    return EXIT_FAILURE;
+  }
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcproxy", VERSION) << std::endl;
@@ -1144,7 +1150,7 @@ static int runmain(int argc, char *argv[]) {
       write_proxy_file(tmp_proxy_path, tmp_proxy_cred_str);
 
       if(!contact_voms_servers(vomscmdlist, orderlist, vomses_path, use_gsi_comm,
-          use_http_comm, voms_period, usercfg, logger, tmp_proxy_path, vomsacseq)) {
+          use_http_comm || !use_old_comm, voms_period, usercfg, logger, tmp_proxy_path, vomsacseq)) {
         remove_proxy_file(tmp_proxy_path);
         return EXIT_FAILURE;
       }
@@ -1248,7 +1254,7 @@ static int runmain(int argc, char *argv[]) {
         logger.msg(Arc::INFO, "Myproxy server did not return proxy with VOMS AC included");
         std::string vomsacseq;
         contact_voms_servers(vomscmdlist, orderlist, vomses_path, use_gsi_comm,
-            use_http_comm, voms_period, usercfg, logger, proxy_path, vomsacseq);
+            use_http_comm || !use_old_comm, voms_period, usercfg, logger, proxy_path, vomsacseq);
         if(!vomsacseq.empty()) {
           Arc::Credential signer(proxy_path, proxy_path, "", "");
           std::string proxy_cert;
@@ -1298,7 +1304,7 @@ static int runmain(int argc, char *argv[]) {
       create_tmp_proxy(tmp_proxy, signer);
       write_proxy_file(tmp_proxy_path, tmp_proxy);
       if(!contact_voms_servers(vomscmdlist, orderlist, vomses_path, use_gsi_comm,
-          use_http_comm, voms_period, usercfg, logger, tmp_proxy_path, vomsacseq)) {
+          use_http_comm || !use_old_comm, voms_period, usercfg, logger, tmp_proxy_path, vomsacseq)) {
         remove_proxy_file(tmp_proxy_path);
         std::cerr << Arc::IString("Proxy generation failed: Failed to retrieve VOMS information.") << std::endl;
         return EXIT_FAILURE;
