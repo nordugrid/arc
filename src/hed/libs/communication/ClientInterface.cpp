@@ -405,6 +405,7 @@ namespace Arc {
       http_entry(NULL),
       default_url(url),
       relative_uri(url.Option("relativeuri") == "yes"),
+      encoded_uri(url.Option("encodeduri") != "no"),
       sec(http_url_to_sec(url,!cfg.otoken.empty())),
       closed(false) {
     XMLNode comp = ConfigMakeComponent(xmlcfg["Chain"], "http.client", "http",
@@ -537,16 +538,16 @@ namespace Arc {
       if(relative_uri) {
         // Workaround for servers which can't handle full URLs in request
         reqmsg.Attributes()->set("HTTP:HOST", url.Host() + ":" + tostring(url.Port()));
-        std::string rpath = url.FullPathURIEncoded();
+        std::string rpath = encoded_uri ? url.FullPathURIEncoded() : url.FullPath();
         if(rpath[0] != '/') rpath.insert(0,"/");
         reqmsg.Attributes()->set("HTTP:ENDPOINT", rpath);
       } else {
-        reqmsg.Attributes()->set("HTTP:ENDPOINT", url.str(true));
+        reqmsg.Attributes()->set("HTTP:ENDPOINT", url.str(encoded_uri));
       }
     } else {
       if(relative_uri) {
         reqmsg.Attributes()->set("HTTP:HOST", default_url.Host() + ":" + tostring(default_url.Port()));
-        std::string rpath = default_url.FullPathURIEncoded();
+        std::string rpath = encoded_uri ? default_url.FullPathURIEncoded() : default_url.FullPath();
         if(rpath[0] != '/') rpath.insert(0,"/");
         reqmsg.Attributes()->set("HTTP:ENDPOINT", rpath);
       }
