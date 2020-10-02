@@ -547,7 +547,7 @@ namespace Arc {
           }
 
           // close all handles inherited from parent
- 	  for(int i=3;i<max_files;i++) { close(i); }; // skiping std* handles
+          for(unsigned int i=3;i<max_files;i++) { close(i); }; // skiping std* handles
 
           (void)::execve(argv[0], argv, envp);
           exit_child(-1, "Failed to execute command\n");
@@ -609,7 +609,7 @@ namespace Arc {
   void Run::Kill(int timeout) {
     if (!running_) return;
     pid_t pid = pid_;
-    if(pid != -1) return;
+    if (pid == -1) return;
     if (timeout > 0) {
       // Kill softly
       ::kill(pid, SIGTERM);
