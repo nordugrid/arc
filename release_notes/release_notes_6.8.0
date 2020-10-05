@@ -2,12 +2,29 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.8.0     23.09.2020
+Release Notes for NorduGrid ARC  6.8.0     05.10.2020
 ------------------------------------------------------
 
+We are pleased to announce the release of ARC 6.8.0.
+
+The largest changes in this release is the removal of the pre 6.4.0 accounting system.
+Since the accounting subsystem changes in 6.4.0 where we went from files to database,
+the old system has lived alongside the new. From 6.8.0 the legacy code is all removed.
+For more details, please see: http://www.nordugrid.org/documents/jura-ng.html
 
 Highlights in this release
 --------------------------
+* Up until now the central datastaging.log file on the ARC-CE had a mix-up of the DTR-id's. This is now fixed in Bugzilla 3874.
+* A benchmark option has been added to the lrms block to mitigate problems with missing benchmarks in the accounting, see details in http://www.nordugrid.org/documents/jura-ng.html.
+* APEL summary query speed up - issues with overloading frontend when updating from pre 6.4.1 to post 6.4.1 accounting system should not not occur. (Bugzilla 3893). 
+
+Important note on xrootd version
+---------------------------------
+ARC 6.8.0 is built with xrootd 5, but on the date of the release xrootd 5 has not yet reached EPEL-stable.
+This means that to install(update) ARC 6.8.0 on RHEL-systems, you must enable the epel-testing repo:
+yum install(update) "nordugrid-arc*" --enablerepo=epel-testing
+or alternatively install xrootd 5 before updating ARC. 
+
 
 Note about Centos8 and openldap server
 ---------------------------------------
@@ -22,6 +39,8 @@ We expect to provide a workaround for future releases.
 
 The following Bugzilla tickets have been adressed or solved
 ------------------------------------------------------------
+* 3959  Problem using delegated credentials in Ubuntu 20.04
+* 3957  arcconfig-parser crash when $VAR variables are not defined
 * 3956  Checksum is not correctly passed to xrootd libraries
 * 3953  Cancelling a job in Preparing (pending) has no effect
 * 3952  EMI-ES reports cancelled jobs as FAILED
@@ -32,6 +51,12 @@ The following Bugzilla tickets have been adressed or solved
 * 3946  Running arcctl commands as normal user silently fails
 * 3942  Failed listing directory on GridFTP server
 * 3940  startTime has no effect in EMIES/ADL
+* 3927  arcproxy use legacy VOMS API and fails with IAM
+* 3921  Benchmark information missing in accounting db when HTCondor backend used in "shared_filesystem = no" mode
+* 3893  Accounting internal changes introduced in 6.4.1 causing overload on the frontend after update
+* 3874  DTR id in datastaging logs
+* 3838  Ensure space trimming in block names all over the code
+
 
 
 Documentation
