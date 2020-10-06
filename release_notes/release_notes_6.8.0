@@ -7,7 +7,7 @@ Release Notes for NorduGrid ARC  6.8.0     07.10.2020
 
 We are pleased to announce the release of ARC 6.8.0.
 
-The largest changes in this release is the removal of the pre 6.4.0 accounting system.
+The largest change in this release is the removal of the pre 6.4.0 accounting system.
 Since the accounting subsystem changes in 6.4.0 where we went from files to database,
 the old system has lived alongside the new. From 6.8.0 the legacy code is all removed.
 For more details of the consequences, and especially changes in arc.conf,
