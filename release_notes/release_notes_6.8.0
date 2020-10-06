@@ -15,25 +15,21 @@ please see: http://www.nordugrid.org/documents/jura-ng.html
 
 Highlights in this release
 --------------------------
-* Up until now the central datastaging.log file on the ARC-CE had a mix-up of the DTR-id's. This is now fixed in Bugzilla 3874.
-* A benchmark option has been added to the lrms block to mitigate problems with missing benchmarks in the accounting, see details in http://www.nordugrid.org/documents/jura-ng.html.
-* APEL summary query speed up - issues with overloading frontend when updating from pre 6.4.1 to post 6.4.1 accounting system should now not occur. (Bugzilla 3893). 
+* Removal of the pre 6.4.1 accounting sub-system. 
+* Up until now the central datastaging.log file on the ARC-CE had a mix-up of the DTR-id's.
+  This is now fixed in Bugzilla 3874.
+* A benchmark option has been added to the lrms block to mitigate problems with missing benchmarks
+  in the accounting, see details in http://www.nordugrid.org/documents/jura-ng.html.
+* APEL summary query speed up - issues with overloading frontend when updating from pre 6.4.1
+  to post 6.4.1 accounting system should now not occur. (Bugzilla 3893). 
 
-Important note on xrootd version
----------------------------------
-ARC 6.8.0 is built with xrootd 5, but on the date of the release xrootd 5 has not yet reached EPEL-stable.
-This means that to install(update) ARC 6.8.0 on RHEL-systems, you must enable the epel-testing repo: 
+Important note on xrootd version for sites using the nordugrid-arc-plugins-xrootd package
+------------------------------------------------------------------------------------------
+For sites who install the nordugrid-arc-plugins-xrootd package note that ARC 6.8.0 is built with xrootd 5.
+On the date of the release xrootd 5 has not yet reached EPEL-stable which means that to install(update) ARC 6.8.0 on RHEL-systems,
+you must enable the epel-testing repo: 
 yum install(update) "nordugrid-arc*" --enablerepo=epel-testing
 or alternatively install xrootd 5 before updating ARC. 
-
-Note about Centos8 and openldap server
----------------------------------------
-In Centos8 the openldap server is not installable because slapd is not available in the RHEL8 release (Bugzilla #3944).
-As a consequence, the LDAP-based server-side information system interface of the ARC-CE will not be available either.
-If interaction with the ARC-CE relies on LDAP-based information schemas (glue1.3 or nordugrid schema),
-then we recommend that you stay with Centos7 for the time being.
-
-We expect to provide a workaround for future releases.
 
 
 The following Bugzilla tickets have been adressed or solved
@@ -80,7 +76,7 @@ We provide binary builds for all supported versions of
   * Debian (i386 and amd64)
   * Fedora (i386 and x86_64) - from Fedora 26 - no i386 support
   * CentOS EL6 (i386 and x86_64) and EL7/EL8 (x86_64) - from EL7 no i386 support
-  * Ubuntu (i386 and amd64, both LTS and interim releases) - from Ubuntu 20.40 no i386 support
+  * Ubuntu (i386 and amd64, both LTS and interim releases) - from Ubuntu 20.04 no i386 support
 
 In addition we build nightly packages for older platforms. 
 
@@ -111,8 +107,6 @@ Known issues
   If interaction with the ARC-CE relies on LDAP-based information schemas (glue1.3 or nordugrid schema),
   then we recommend that you stay with Centos7 for the time being.
 * Related to the new accounting system introduded in release 6.4.0: 
-** Reporting to APEL: If you process 10k+ jobs weekly there is a considerable performance hit for generating summary records.
-   It is advised to have apel_messages = urs and have reporting interval decreased to several hours.
 ** Accounting records created by ARC 6.4.0 are affected by a bug causing missing benchmark values:
    https://bugzilla.nordugrid.org./show_bug.cgi?id=3921#c3
    Recommendations are to update to a newer version of ARC.
