@@ -47,6 +47,7 @@ class AccountingDB(object):
         self.logger = logging.getLogger('ARC.AccountingDB')
         self.db_file = db_file
         self.con = None
+        self.pub_con = None
         # don't try to initialize database if not exists
         if not os.path.exists(db_file):
             self.logger.error('Accounting database file is not exists at %s', db_file)
@@ -77,9 +78,6 @@ class AccountingDB(object):
 
         # select aggregate filtering
         self.sqlfilter = SQLFilter()
-
-        # publishing db
-        self.pub_con = None
 
     def adb_connect(self):
         """Initialize database connection"""
