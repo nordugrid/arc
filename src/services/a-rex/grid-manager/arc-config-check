@@ -460,7 +460,17 @@ sub validconfparams() {
 			push(@validblocks, $blockname) if !$dynamic;
 		}
 	}
-	return ( \@validparams, \@validblocks, \@novalueparams );
+    # allow removed in 6.8.0 (hardcode)
+    push(@validparams, "urdelivery_keepfailed");
+    push(@validparams, "legacy_fallback");
+    push(@validparams, "use_ssl");
+    push(@validparams, "benchmark_type");
+    push(@validparams, "benchmark_value");
+    push(@validparams, "benchmark_description");
+    push(@validparams, "archivedir");
+    push(@validparams, "archivettl");
+    push(@validblocks, "arex/jura/archiving");
+    return ( \@validparams, \@validblocks, \@novalueparams );
 }
 	
 =item configuration check
