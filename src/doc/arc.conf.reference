@@ -27,7 +27,7 @@
 ##  [arex/jura]
 ##  [arex/jura/sgas:targetname]
 ##  [arex/jura/apel:targetname]
-##  [arex/jura/archiving] (removed in 6.8.0)
+##  [arex/jura/archiving]
 ##  [arex/ganglia]
 ##  [gridftpd]
 ##  [gridftpd/jobs]
@@ -1556,8 +1556,7 @@
 ##
 ## NOTE that in the ARC releases before 6.4 the accounting measurements were 
 ##   collected in the job log files that are only used for publishing records.
-##   This functionality was supported for backward compatibility in 6.4-6.7 releases
-##   and was removed in ARC 6.8.0
+##   This functionality is from 6.8.0 deprecated, see the deprecated options below.
 ##
 ## Enable and configure this block if you want to send accounting records to
 ## accounting services.
@@ -1612,6 +1611,17 @@
 #x509_cert_dir=/etc/grid-security/certificates
 ## CHANGE: NEW in 6.0.0.
 
+## urdelivery_keepfailed = days - (deprecated in 6.4.0) Specifies for how many days 
+## JURA will try to send a record to the destination accounting service before it 
+## gives up. Records not successfully sent by after the number of days expired 
+## will be deleted from the controldir/logs directory.
+## The deleted records are nevertheless archived if archiving was turned on.
+## Scatring from 6.4 all records are stored in the accounting database without
+## expiration time independently of publishing process.
+## default: 30
+#urdelivery_keepfailed=30
+## CHANGE: DEPRECATED in 6.4.0.
+##
 ### end of the [arex/jura] block ########################################
 
 ### The [arex/jura/sgas:targetname] blocks ##############################
@@ -1657,8 +1667,17 @@
 ## default: undefined
 #urdelivery_frequency=3600
 ## CHANGE: NEW in 6.4.0.
+
+## legacy_fallback = yes/no - (introduced in 6.4.0) If set to "yes" then accounting records
+## publishing to this target will be handled with the previous version of code (6.0-6.3)
+## that relies on A-REX job log files. Use this option only if you experience problems
+## with the new Jura.
+## default: no
+#legacy_fallback=no
+## CHANGE: NEW in 6.4.0. DEPRECATED in 6.8.0.
 ##
 ### end of the [arex/jura/sgas:targetname] blocks ########################
+
 
 ### The [arex/jura/apel:targetname] blocks ###############################
 ## An APEL sub-block of [arex/jura] enables and configures an APEL accounting
@@ -1675,6 +1694,14 @@
 ## default: undefined
 #targeturl=https://mq.cro-ngi.hr:6162
 
+## use_ssl = yes/no - (deprecated in 6.4.0) Turns on/off ssl for the SSM
+## communication with APEL server. Use only with ARC version < 6.4.0.
+## In ARC 6.4+ "targeturl" protocol defines the usage of SSL.
+## allowedvalues: yes no
+## default: no
+#use_ssl=yes
+## CHANGE: DEPRECATED in 6.4.0.
+
 ## topic = topic_name - Sets the name of the APEL topic to which JURA will publish the
 ## accounting records.
 ## default: /queue/global.accounting.cpu.central
@@ -1690,12 +1717,32 @@
 ## Possible cases are: per-job EMI CAR records ("urs"), APEL summary records ("summaries") 
 ## or "both".
 ## APEL Sync messages are always generated.
-## NOTE that on the heavy loaded sites with 10k+ jobs weekly "summaries" generation has
-##   a performance penalty at the time being. It is advised to use "urs" in this case.
 ## allowedvalues: urs summaries both
 ## default: summaries
 #apel_messages=urs
 ## CHANGE: NEW in 6.4.0.
+
+## benchmark_type = type - (deprecated in 6.4.0) Type of benchmark (Si2k, HEPSPEC) 
+## to be reported in every UR.
+## Starting from 6.4 no need to specify the benchmark values here as those will be 
+## taken from the [queue] block "benchmark" option.
+## default: undefined
+#benchmark_type=HEPSPEC
+## CHANGE: DEPRECATED in 6.4.0.
+
+## benchmark_value = number - (deprecated in 6.4.0) The value of the of benchmark 
+## to be reported in every UR.
+## Starting from 6.4 no need to specify the benchmark values here as those will be 
+## taken from the [queue] block "benchmark" option.
+## default: undefined
+#benchmark_value=2.4
+## CHANGE: DEPRECATED in 6.4.0.
+
+## benchmark_description = string - (deprecated in 6.4.0) Additional description 
+## for the benchmark to be reported in every UR.
+## default: undefined
+#benchmark_description=some description for benchmark
+## CHANGE: DEPRECATED in 6.4.0.
 
 ## vofilter = vo - Configures a job record filtering mechanism based on the
 ## VO attribute of the jobs. Only the matching job records, which was one
@@ -1714,12 +1761,63 @@
 ## treshold of the interval between subsequent records publishing to this target.
 ## NOTE that the actual delivery interval is the value divisible by "urdelivery_frequency"
 ##   defined in [arex/jura] block that define the entire JURA process invocation frequency.
-## APEL recommended value is once per day for "sumaries". Use smaler values for "urs".
+## APEL recommended value is once per day for "summaries". Use smaller values for "urs".
 ## default: 86000
 #urdelivery_frequency=14000
-## CHANGE: NEW in 6.4.0.
+## CHANGE: NEW in 6.4.0. 
+
+## legacy_fallback = yes/no - (introduced in 6.4.0) If set to "yes" then accounting records
+## publishing to this target will be handled with the previous version of code (6.0-6.3)
+## that relies on A-REX job log files. Use this option only if you experience problems
+## with the new Jura.
+## default: no
+#legacy_fallback=no
+## CHANGE: NEW in 6.4.0. DEPRECATED in 6.8.0.
 ##
 ### end of the [arex/jura/apel:targetname] blocks ############################
+
+
+### The [arex/jura/archiving] block #################################################
+## From ARC 6.8.0 this block has no longer any effect, and will be removed in ARC 7.
+##
+## From ARC 6.4.0 to ARC 6.7.0  this block only took action if the "legacy_fallback" option
+##   was set to "yes" for a target. From 6.4 all accounting data is stored in the database
+##   eliminating the need of any additional records archiving.
+##
+## When enabled the usage records generated by JURA are stored
+## in a the specified "archivedir" directory on the disk.
+##
+## Stored records are than processed by accounting archive manager
+## that process the records, store data into SQLite accounting archive database,
+## create new archive structure and maintains the accounting database aging.
+##
+## By default the archiving is turned off.
+#[arex/jura/archiving]
+## CHANGE: DEPRECATED in 6.4.0.
+
+## archivedir = path - Sets the directory path for the jura archived usage records.
+## Usage records generated by jura reporter are stored in this directory with 
+## the following file naming convention used: 
+## "usagerecord<Type>.<jobid>.<random>".
+## Here Type is one of the supported record formats such as OGFUR or CAR.
+## default: /var/spool/arc/jura/archive
+#archivedir=/var/spool/arc/jura/archive
+## CHANGE: DEPRECATED in 6.4.0.
+
+## logfile = path - The name of the accounting database manager logfile.
+## default: /var/log/arc/jura-archive-manager.log
+#logfile=/var/log/arc/jura-archive-manager.log
+## CHANGE: DEPRECATED in 6.4.0.
+
+## archivettl = days - The records time to live (ttl) parameter
+## sets the number of days to keep the usage record files in the accounting database
+## If not specified the files are kept forever.
+## default: undefined
+#archivettl=365
+## CHANGE: DEPRECATED in 6.4.0.
+##
+### end of the [arex/jura/archiving] block ########################
+
 
 ### The [arex/ganglia] block  - previously [gangliarc] ###############################
 ##
