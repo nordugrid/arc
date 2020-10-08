@@ -1556,8 +1556,7 @@
 ##
 ## NOTE that in the ARC releases before 6.4 the accounting measurements were 
 ##   collected in the job log files that are only used for publishing records.
-##   This functionality is still supported for backward compatibility and will be
-##   deprecated in the subsequent ARC releases (notice deprecated options below).
+##   This functionality is from 6.8.0 deprecated, see the deprecated options below.
 ##
 ## Enable and configure this block if you want to send accounting records to
 ## accounting services.
