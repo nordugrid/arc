@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: support@nordugrid.org\n"
-"POT-Creation-Date: 2020-09-18 09:12+0200\n"
-"PO-Revision-Date: 2020-09-18 09:19+0200\n"
+"POT-Creation-Date: 2020-10-07 07:04+0200\n"
+"PO-Revision-Date: 2020-10-07 07:16+0200\n"
 "Last-Translator: name <email@address>\n"
 "Language-Team: \n"
 "Language: sv\n"
@@ -34,7 +34,7 @@ msgstr ""
 #: src/clients/compute/arcresub.cpp:41 src/clients/compute/arcresume.cpp:37
 #: src/clients/compute/arcstat.cpp:42 src/clients/compute/arcsub.cpp:53
 #: src/clients/compute/arcsync.cpp:147 src/clients/compute/arctest.cpp:64
-#: src/clients/credentials/arcproxy.cpp:451 src/clients/data/arccp.cpp:641
+#: src/clients/credentials/arcproxy.cpp:457 src/clients/data/arccp.cpp:641
 #: src/clients/data/arcls.cpp:347 src/clients/data/arcmkdir.cpp:125
 #: src/clients/data/arcrename.cpp:136 src/clients/data/arcrm.cpp:151
 #: src/hed/daemon/unix/main_unix.cpp:341
@@ -50,7 +50,7 @@ msgstr "%s version %s"
 #: src/clients/compute/arcresub.cpp:50 src/clients/compute/arcresume.cpp:46
 #: src/clients/compute/arcstat.cpp:51 src/clients/compute/arcsub.cpp:62
 #: src/clients/compute/arcsync.cpp:156 src/clients/compute/arctest.cpp:86
-#: src/clients/credentials/arcproxy.cpp:459 src/clients/data/arccp.cpp:648
+#: src/clients/credentials/arcproxy.cpp:465 src/clients/data/arccp.cpp:648
 #: src/clients/data/arcls.cpp:355 src/clients/data/arcmkdir.cpp:133
 #: src/clients/data/arcrename.cpp:144 src/clients/data/arcrm.cpp:160
 #: src/libs/data-staging/DataDeliveryLocalComm.cpp:168
@@ -1186,13 +1186,13 @@ msgstr "jobbeskrivningssträng som beskriver jobbet som ska sändas in"
 #: src/clients/compute/utils.cpp:617 src/clients/compute/utils.cpp:623
 #: src/clients/credentials/arcproxy.cpp:345
 #: src/clients/credentials/arcproxy.cpp:352
-#: src/clients/credentials/arcproxy.cpp:370
-#: src/clients/credentials/arcproxy.cpp:377
-#: src/clients/credentials/arcproxy.cpp:395
-#: src/clients/credentials/arcproxy.cpp:399
-#: src/clients/credentials/arcproxy.cpp:414
-#: src/clients/credentials/arcproxy.cpp:424
-#: src/clients/credentials/arcproxy.cpp:428
+#: src/clients/credentials/arcproxy.cpp:371
+#: src/clients/credentials/arcproxy.cpp:378
+#: src/clients/credentials/arcproxy.cpp:396
+#: src/clients/credentials/arcproxy.cpp:400
+#: src/clients/credentials/arcproxy.cpp:415
+#: src/clients/credentials/arcproxy.cpp:425
+#: src/clients/credentials/arcproxy.cpp:429
 msgid "string"
 msgstr "sträng"
 
@@ -1215,7 +1215,7 @@ msgstr "de insända jobbens ID kommer att läggas till i denna fil"
 
 #: src/clients/compute/utils.cpp:634 src/clients/compute/utils.cpp:656
 #: src/clients/compute/utils.cpp:693 src/clients/compute/utils.cpp:701
-#: src/clients/credentials/arcproxy.cpp:437 src/clients/data/arccp.cpp:627
+#: src/clients/credentials/arcproxy.cpp:438 src/clients/data/arccp.cpp:627
 #: src/clients/data/arcls.cpp:333 src/clients/data/arcmkdir.cpp:111
 #: src/clients/data/arcrename.cpp:122 src/clients/data/arcrm.cpp:137
 #: src/services/a-rex/grid-manager/test_write_grami_file.cpp:52
@@ -1285,21 +1285,21 @@ msgstr "skriver ut information om installerade användar- och CA-certifikat"
 msgid "the file storing information about active jobs (default %s)"
 msgstr "filen som lagrar information om aktiva jobb (förval %s)"
 
-#: src/clients/compute/utils.cpp:700 src/clients/credentials/arcproxy.cpp:436
+#: src/clients/compute/utils.cpp:700 src/clients/credentials/arcproxy.cpp:437
 #: src/clients/data/arccp.cpp:626 src/clients/data/arcls.cpp:332
 #: src/clients/data/arcmkdir.cpp:110 src/clients/data/arcrename.cpp:121
 #: src/clients/data/arcrm.cpp:136
 msgid "configuration file (default ~/.arc/client.conf)"
 msgstr "inställningsfil (förval ~/.arc/client.conf)"
 
-#: src/clients/compute/utils.cpp:703 src/clients/credentials/arcproxy.cpp:431
+#: src/clients/compute/utils.cpp:703 src/clients/credentials/arcproxy.cpp:432
 #: src/clients/data/arccp.cpp:621 src/clients/data/arcls.cpp:327
 #: src/clients/data/arcmkdir.cpp:105 src/clients/data/arcrename.cpp:116
 #: src/clients/data/arcrm.cpp:131
 msgid "timeout in seconds (default 20)"
 msgstr "timeout i sekunder (förval 20)"
 
-#: src/clients/compute/utils.cpp:704 src/clients/credentials/arcproxy.cpp:432
+#: src/clients/compute/utils.cpp:704 src/clients/credentials/arcproxy.cpp:433
 #: src/clients/data/arccp.cpp:622 src/clients/data/arcls.cpp:328
 #: src/clients/data/arcmkdir.cpp:106 src/clients/data/arcrename.cpp:117
 #: src/clients/data/arcrm.cpp:132
@@ -1310,7 +1310,7 @@ msgstr "sekunder"
 msgid "list the available plugins"
 msgstr "lista de tillgängliga pluginerna"
 
-#: src/clients/compute/utils.cpp:711 src/clients/credentials/arcproxy.cpp:441
+#: src/clients/compute/utils.cpp:711 src/clients/credentials/arcproxy.cpp:442
 #: src/clients/data/arccp.cpp:631 src/clients/data/arcls.cpp:337
 #: src/clients/data/arcmkdir.cpp:115 src/clients/data/arcrename.cpp:126
 #: src/clients/data/arcrm.cpp:141
@@ -1321,7 +1321,7 @@ msgstr "lista de tillgängliga pluginerna"
 msgid "FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"
 msgstr "FATAL, ERROR, WARNING, INFO, VERBOSE eller DEBUG"
 
-#: src/clients/compute/utils.cpp:712 src/clients/credentials/arcproxy.cpp:442
+#: src/clients/compute/utils.cpp:712 src/clients/credentials/arcproxy.cpp:443
 #: src/clients/data/arccp.cpp:632 src/clients/data/arcls.cpp:338
 #: src/clients/data/arcmkdir.cpp:116 src/clients/data/arcrename.cpp:127
 #: src/clients/data/arcrm.cpp:142
@@ -1332,7 +1332,7 @@ msgstr "FATAL, ERROR, WARNING, INFO, VERBOSE eller DEBUG"
 msgid "debuglevel"
 msgstr "debugnivå"
 
-#: src/clients/compute/utils.cpp:714 src/clients/credentials/arcproxy.cpp:445
+#: src/clients/compute/utils.cpp:714 src/clients/credentials/arcproxy.cpp:446
 #: src/clients/data/arccp.cpp:635 src/clients/data/arcls.cpp:341
 #: src/clients/data/arcmkdir.cpp:119 src/clients/data/arcrename.cpp:130
 #: src/clients/data/arcrm.cpp:145
@@ -1647,31 +1647,39 @@ msgstr ""
 "               Notera att för RESTful åtkomst stöds inte 'list'-kommandot "
 "och mer än en VOMS-server\n"
 
-#: src/clients/credentials/arcproxy.cpp:364
+#: src/clients/credentials/arcproxy.cpp:362
+msgid ""
+"use old communication protocol for contacting VOMS services instead of "
+"RESTful access\n"
+msgstr ""
+"använd det gamla kommunikationsprotokollet för att kontakta VOMS-tjänster "
+"istället för RESTful åtkomst\n"
+
+#: src/clients/credentials/arcproxy.cpp:365
 msgid ""
 "this option is not functional (old GSI proxies are not supported anymore)"
 msgstr "detta alternativ gör ingenting (gamla GSI-proxyer stöds inte längre)"
 
-#: src/clients/credentials/arcproxy.cpp:367
+#: src/clients/credentials/arcproxy.cpp:368
 msgid "print all information about this proxy."
 msgstr "skriv ut all information om denna proxy."
 
-#: src/clients/credentials/arcproxy.cpp:370
+#: src/clients/credentials/arcproxy.cpp:371
 msgid "print selected information about this proxy."
 msgstr "skriv ut utvald information om denna proxy."
 
-#: src/clients/credentials/arcproxy.cpp:373
+#: src/clients/credentials/arcproxy.cpp:374
 msgid "remove proxy"
 msgstr "ta bort proxy"
 
-#: src/clients/credentials/arcproxy.cpp:376
+#: src/clients/credentials/arcproxy.cpp:377
 msgid ""
 "username to MyProxy server (if missing subject of user certificate is used)"
 msgstr ""
 "användarnamn till myproxy-server (om detta saknas används subjektet från "
 "användarcertifikatet)"
 
-#: src/clients/credentials/arcproxy.cpp:381
+#: src/clients/credentials/arcproxy.cpp:382
 msgid ""
 "don't prompt for a credential passphrase, when retrieve a \n"
 "              credential from on MyProxy server. \n"
@@ -1689,7 +1697,7 @@ msgstr ""
 "              (--retrievable_by_cert). Detta alternativ är specifikt för\n"
 "              GET-kommandot när myproxy-servern kontaktas."
 
-#: src/clients/credentials/arcproxy.cpp:392
+#: src/clients/credentials/arcproxy.cpp:393
 msgid ""
 "Allow specified entity to retrieve credential without passphrase.\n"
 "              This option is specific for the PUT command when contacting "
@@ -1699,11 +1707,11 @@ msgstr ""
 "              Detta alternativ är specifikt för PUT-kommandot när\n"
 "              myproxy-servern kontaktas."
 
-#: src/clients/credentials/arcproxy.cpp:398
+#: src/clients/credentials/arcproxy.cpp:399
 msgid "hostname[:port] of MyProxy server"
 msgstr "värdnamn[:port] för myproxy-server"
 
-#: src/clients/credentials/arcproxy.cpp:403
+#: src/clients/credentials/arcproxy.cpp:404
 msgid ""
 "command to MyProxy server. The command can be PUT, GET, INFO, NEWPASS or "
 "DESTROY.\n"
@@ -1740,7 +1748,7 @@ msgstr ""
 "attribut\n"
 "              måste inkluderas i proxyn.\n"
 
-#: src/clients/credentials/arcproxy.cpp:418
+#: src/clients/credentials/arcproxy.cpp:419
 msgid ""
 "use NSS credential database in default Mozilla profiles, \n"
 "              including Firefox, Seamonkey and Thunderbird.\n"
@@ -1748,20 +1756,27 @@ msgstr ""
 "använd NSS-referens-databas i förvalda Mozilla-profiler,\n"
 "              inklusive Firefox, Seamonkey och Thunderbird.\n"
 
-#: src/clients/credentials/arcproxy.cpp:423
+#: src/clients/credentials/arcproxy.cpp:424
 msgid "proxy constraints"
 msgstr "proxybegränsningar"
 
-#: src/clients/credentials/arcproxy.cpp:427
+#: src/clients/credentials/arcproxy.cpp:428
 msgid "password destination=password source"
 msgstr "lösenordsdestination=lösenordskälla"
 
-#: src/clients/credentials/arcproxy.cpp:476
-#: src/clients/credentials/arcproxy.cpp:1178
+#: src/clients/credentials/arcproxy.cpp:452
+msgid ""
+"RESTful and old VOMS communication protocols can't be requested "
+"simultaneously."
+msgstr ""
+"RESTful och gammalt VOMS-kommunikationsprotokoll kan inte begäras samtidigt."
+
+#: src/clients/credentials/arcproxy.cpp:482
+#: src/clients/credentials/arcproxy.cpp:1184
 msgid "Failed configuration initialization."
 msgstr "Misslyckades med att initiera inställningar."
 
-#: src/clients/credentials/arcproxy.cpp:505
+#: src/clients/credentials/arcproxy.cpp:511
 msgid ""
 "Failed to find certificate and/or private key or files have improper "
 "permissions or ownership."
@@ -1769,16 +1784,16 @@ msgstr ""
 "Misslyckades med att hitta certifikat och/eller privat nyckel eller filer "
 "har olämpliga åtkomsträttigheter eller ägare."
 
-#: src/clients/credentials/arcproxy.cpp:506
-#: src/clients/credentials/arcproxy.cpp:518
+#: src/clients/credentials/arcproxy.cpp:512
+#: src/clients/credentials/arcproxy.cpp:524
 msgid "You may try to increase verbosity to get more information."
 msgstr "Du kan försöka att öka debugnivån för att få mer information."
 
-#: src/clients/credentials/arcproxy.cpp:514
+#: src/clients/credentials/arcproxy.cpp:520
 msgid "Failed to find CA certificates"
 msgstr "Misslyckades med att hitta CA-certifikat"
 
-#: src/clients/credentials/arcproxy.cpp:515
+#: src/clients/credentials/arcproxy.cpp:521
 msgid ""
 "Cannot find the CA certificates directory path, please set environment "
 "variable X509_CERT_DIR, or cacertificatesdirectory in a configuration file."
@@ -1786,14 +1801,14 @@ msgstr ""
 "Kan inte hitta sökväg till CA-certifikat-katalogen, sätt miljövariabeln "
 "X509_CERT_DIR, eller cacertificatesdirectory i en inställningsfil."
 
-#: src/clients/credentials/arcproxy.cpp:519
+#: src/clients/credentials/arcproxy.cpp:525
 msgid ""
 "The CA certificates directory is required for contacting VOMS and MyProxy "
 "servers."
 msgstr ""
 "CA-certifikat-katalogen behövs för att kontakta VOMS- och myproxy-servrar."
 
-#: src/clients/credentials/arcproxy.cpp:531
+#: src/clients/credentials/arcproxy.cpp:537
 msgid ""
 "$X509_VOMS_FILE, and $X509_VOMSES are not set;\n"
 "User has not specified the location for vomses information;\n"
@@ -1812,13 +1827,13 @@ msgstr ""
 "vomses,\n"
 "/etc/vomses, /etc/grid-security/vomses, och de motsvarande underkatalogerna"
 
-#: src/clients/credentials/arcproxy.cpp:576
+#: src/clients/credentials/arcproxy.cpp:582
 msgid "Wrong number of arguments!"
 msgstr "Fel antal argument!"
 
-#: src/clients/credentials/arcproxy.cpp:584
-#: src/clients/credentials/arcproxy.cpp:605
-#: src/clients/credentials/arcproxy.cpp:738
+#: src/clients/credentials/arcproxy.cpp:590
+#: src/clients/credentials/arcproxy.cpp:611
+#: src/clients/credentials/arcproxy.cpp:744
 msgid ""
 "Cannot find the path of the proxy file, please setup environment "
 "X509_USER_PROXY, or proxypath in a configuration file"
@@ -1826,18 +1841,18 @@ msgstr ""
 "Kan inte hitta sökväg till proxyfilen, sätt miljövariabeln X509_USER_PROXY, "
 "eller proxypath i en inställningsfil"
 
-#: src/clients/credentials/arcproxy.cpp:591
+#: src/clients/credentials/arcproxy.cpp:597
 #, c-format
 msgid "Cannot remove proxy file at %s"
 msgstr "Kan inte ta bort proxyfil på %s"
 
-#: src/clients/credentials/arcproxy.cpp:593
+#: src/clients/credentials/arcproxy.cpp:599
 #, c-format
 msgid "Cannot remove proxy file at %s, because it's not there"
 msgstr "Kan inte ta bort proxyfil på %s, eftersom den inte existerar"
 
-#: src/clients/credentials/arcproxy.cpp:611
-#: src/clients/credentials/arcproxy.cpp:744
+#: src/clients/credentials/arcproxy.cpp:617
+#: src/clients/credentials/arcproxy.cpp:750
 #, c-format
 msgid ""
 "Cannot find file at %s for getting the proxy. Please make sure this file "
@@ -1846,97 +1861,97 @@ msgstr ""
 "Kan inte hitta fil på %s för att hämta proxyn. Se till att denna fil "
 "existerar."
 
-#: src/clients/credentials/arcproxy.cpp:617
-#: src/clients/credentials/arcproxy.cpp:750
+#: src/clients/credentials/arcproxy.cpp:623
+#: src/clients/credentials/arcproxy.cpp:756
 #, c-format
 msgid "Cannot process proxy file at %s."
 msgstr "Kan inte behandla proxyfil på %s."
 
-#: src/clients/credentials/arcproxy.cpp:620
+#: src/clients/credentials/arcproxy.cpp:626
 #, c-format
 msgid "Subject: %s"
 msgstr "Subjekt: %s"
 
-#: src/clients/credentials/arcproxy.cpp:621
+#: src/clients/credentials/arcproxy.cpp:627
 #, c-format
 msgid "Issuer: %s"
 msgstr "Utfärdare: %s"
 
-#: src/clients/credentials/arcproxy.cpp:622
+#: src/clients/credentials/arcproxy.cpp:628
 #, c-format
 msgid "Identity: %s"
 msgstr "Identitet: %s"
 
-#: src/clients/credentials/arcproxy.cpp:624
+#: src/clients/credentials/arcproxy.cpp:630
 msgid "Time left for proxy: Proxy expired"
 msgstr "Kvarvarande tid för proxy: Proxyns giltighetstid har gått ut"
 
-#: src/clients/credentials/arcproxy.cpp:626
+#: src/clients/credentials/arcproxy.cpp:632
 msgid "Time left for proxy: Proxy not valid yet"
 msgstr "Kvarvarande tid för proxy: Proxyn är inte giltig än"
 
-#: src/clients/credentials/arcproxy.cpp:628
+#: src/clients/credentials/arcproxy.cpp:634
 #, c-format
 msgid "Time left for proxy: %s"
 msgstr "Kvarvarande tid för proxy: %s"
 
-#: src/clients/credentials/arcproxy.cpp:629
+#: src/clients/credentials/arcproxy.cpp:635
 #, c-format
 msgid "Proxy path: %s"
 msgstr "Proxysökväg: %s"
 
-#: src/clients/credentials/arcproxy.cpp:630
+#: src/clients/credentials/arcproxy.cpp:636
 #, c-format
 msgid "Proxy type: %s"
 msgstr "Proxytyp: %s"
 
-#: src/clients/credentials/arcproxy.cpp:631
+#: src/clients/credentials/arcproxy.cpp:637
 #, c-format
 msgid "Proxy key length: %i"
 msgstr "Proxyns nyckellängd: %i"
 
-#: src/clients/credentials/arcproxy.cpp:632
+#: src/clients/credentials/arcproxy.cpp:638
 #, c-format
 msgid "Proxy signature: %s"
 msgstr "Proxysignatur: %s"
 
-#: src/clients/credentials/arcproxy.cpp:641
+#: src/clients/credentials/arcproxy.cpp:647
 msgid "AC extension information for VO "
 msgstr "AC-tilläggsinformation för VO "
 
-#: src/clients/credentials/arcproxy.cpp:644
+#: src/clients/credentials/arcproxy.cpp:650
 msgid "Error detected while parsing this AC"
 msgstr "Fel upptäckt när denna AC tolkades"
 
-#: src/clients/credentials/arcproxy.cpp:657
+#: src/clients/credentials/arcproxy.cpp:663
 msgid "AC is invalid: "
 msgstr "AC är ogiltig: "
 
-#: src/clients/credentials/arcproxy.cpp:687
+#: src/clients/credentials/arcproxy.cpp:693
 #: src/services/a-rex/grid-manager/arc_blahp_logger.cpp:222
 #, c-format
 msgid "Malformed VOMS AC attribute %s"
 msgstr "Felaktigt VOMS-AC-attribut %s"
 
-#: src/clients/credentials/arcproxy.cpp:718
+#: src/clients/credentials/arcproxy.cpp:724
 msgid "Time left for AC: AC is not valid yet"
 msgstr "Kvarvarande tid för AC: AC är inte giltig än"
 
-#: src/clients/credentials/arcproxy.cpp:720
+#: src/clients/credentials/arcproxy.cpp:726
 msgid "Time left for AC: AC has expired"
 msgstr "Kvarvarande tid för AC: ACs giltighetstid har gått ut"
 
-#: src/clients/credentials/arcproxy.cpp:722
+#: src/clients/credentials/arcproxy.cpp:728
 #, c-format
 msgid "Time left for AC: %s"
 msgstr "Kvarvarande tid för AC: %s"
 
-#: src/clients/credentials/arcproxy.cpp:829
+#: src/clients/credentials/arcproxy.cpp:835
 #, c-format
 msgid "Information item '%s' is not known"
 msgstr "Informationspunkt '%s' är okänd"
 
-#: src/clients/credentials/arcproxy.cpp:841
+#: src/clients/credentials/arcproxy.cpp:847
 msgid ""
 "Cannot find the user certificate path, please setup environment "
 "X509_USER_CERT, or certificatepath in a configuration file"
@@ -1944,7 +1959,7 @@ msgstr ""
 "Kan inte hitta sökväg till användarcertifikatet, sätt upp miljövariabeln "
 "X509_USER_CERT, eller certificatepath i en inställningsfil"
 
-#: src/clients/credentials/arcproxy.cpp:845
+#: src/clients/credentials/arcproxy.cpp:851
 msgid ""
 "Cannot find the user private key path, please setup environment "
 "X509_USER_KEY, or keypath in a configuration file"
@@ -1952,7 +1967,7 @@ msgstr ""
 "Kan inte hitta sökväg till privata nyckeln, sätt miljövariabeln "
 "X509_USER_KEY, eller keypath i en inställningsfil"
 
-#: src/clients/credentials/arcproxy.cpp:869
+#: src/clients/credentials/arcproxy.cpp:875
 #, c-format
 msgid ""
 "Cannot parse password source expression %s it must be of type=source format"
@@ -1960,7 +1975,7 @@ msgstr ""
 "Kan inte tolka uttrycket för lösenordskälla %s det måste vara i formatet "
 "typ=källa"
 
-#: src/clients/credentials/arcproxy.cpp:886
+#: src/clients/credentials/arcproxy.cpp:892
 #, c-format
 msgid ""
 "Cannot parse password type %s. Currently supported values are "
@@ -1969,7 +1984,7 @@ msgstr ""
 "Kan inte tolka lösenordstyp %s. Nuvarande giltiga värden är 'key', "
 "'myproxy', 'myproxynew' och 'all'."
 
-#: src/clients/credentials/arcproxy.cpp:901
+#: src/clients/credentials/arcproxy.cpp:907
 #, c-format
 msgid ""
 "Cannot parse password source %s it must be of source_type or source_type:"
@@ -1978,11 +1993,11 @@ msgstr ""
 "Kan inte tolka lösenordskälla %s det måste vara i formatet källtyp eller "
 "källtyp:data. Giltiga källtyper är int, stdin, stream, file."
 
-#: src/clients/credentials/arcproxy.cpp:915
+#: src/clients/credentials/arcproxy.cpp:921
 msgid "Only standard input is currently supported for password source."
 msgstr "Endast standard input är för närvarande giltig för lösenordskälla."
 
-#: src/clients/credentials/arcproxy.cpp:920
+#: src/clients/credentials/arcproxy.cpp:926
 #, c-format
 msgid ""
 "Cannot parse password source type %s. Supported source types are int,stdin,"
@@ -1991,61 +2006,61 @@ msgstr ""
 "Kan inte tolka lösenordskälltyp %s. Giltiga källtyper är int, stdin, stream, "
 "file."
 
-#: src/clients/credentials/arcproxy.cpp:959
+#: src/clients/credentials/arcproxy.cpp:965
 msgid "The start, end and period can't be set simultaneously"
 msgstr "Början, slut och längd kan inte användas samtidigt"
 
-#: src/clients/credentials/arcproxy.cpp:965
+#: src/clients/credentials/arcproxy.cpp:971
 #, c-format
 msgid "The start time that you set: %s can't be recognized."
 msgstr "Starttiden som du angivit: %s kan inte tolkas."
 
-#: src/clients/credentials/arcproxy.cpp:972
+#: src/clients/credentials/arcproxy.cpp:978
 #, c-format
 msgid "The period that you set: %s can't be recognized."
 msgstr "Längden som du angivit: %s kan inte tolkas."
 
-#: src/clients/credentials/arcproxy.cpp:979
+#: src/clients/credentials/arcproxy.cpp:985
 #, c-format
 msgid "The end time that you set: %s can't be recognized."
 msgstr "Sluttiden som du angivit: %s kan inte tolkas."
 
-#: src/clients/credentials/arcproxy.cpp:988
+#: src/clients/credentials/arcproxy.cpp:994
 #, c-format
 msgid "The end time that you set: %s is before start time: %s."
 msgstr "Sluttiden du angivit: %s är före starttiden: %s."
 
-#: src/clients/credentials/arcproxy.cpp:999
+#: src/clients/credentials/arcproxy.cpp:1005
 #, c-format
 msgid "WARNING: The start time that you set: %s is before current time: %s"
 msgstr "Varning: Starttiden du angivit: %s är före nuvarande tidpunkt: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1002
+#: src/clients/credentials/arcproxy.cpp:1008
 #, c-format
 msgid "WARNING: The end time that you set: %s is before current time: %s"
 msgstr "Varning: Sluttiden du angivit: %s är före nuvarande tidpunkt: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1012
+#: src/clients/credentials/arcproxy.cpp:1018
 #, c-format
 msgid "The VOMS AC period that you set: %s can't be recognized."
 msgstr "VOMS-AC-perioden du angivit: %s kan inte tolkas."
 
-#: src/clients/credentials/arcproxy.cpp:1030
+#: src/clients/credentials/arcproxy.cpp:1036
 #, c-format
 msgid "The MyProxy period that you set: %s can't be recognized."
 msgstr "Myproxy-perioden du angivit: %s kan inte tolkas."
 
-#: src/clients/credentials/arcproxy.cpp:1045
+#: src/clients/credentials/arcproxy.cpp:1051
 #, c-format
 msgid "The keybits constraint is wrong: %s."
 msgstr "Begränsningen av antalet bitar i nyckeln är felaktig: %s."
 
-#: src/clients/credentials/arcproxy.cpp:1059
+#: src/clients/credentials/arcproxy.cpp:1065
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1271
 msgid "The NSS database can not be detected in the Firefox profile"
 msgstr "NSS-databasen kan inte upptäckas i Firefox-profilen"
 
-#: src/clients/credentials/arcproxy.cpp:1068
+#: src/clients/credentials/arcproxy.cpp:1074
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1279
 #, c-format
 msgid ""
@@ -2055,90 +2070,90 @@ msgstr ""
 "Det finns %d NSS-baskataloger där certifikat, nycklar och moduldatabaser "
 "finns"
 
-#: src/clients/credentials/arcproxy.cpp:1070
+#: src/clients/credentials/arcproxy.cpp:1076
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1283
 #, c-format
 msgid "Number %d is: %s"
 msgstr "Nummer %d är: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1072
+#: src/clients/credentials/arcproxy.cpp:1078
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1285
 #, c-format
 msgid "Please choose the NSS database you would like to use (1-%d): "
 msgstr "Välj den NSS-databas du vill använda (1-%d): "
 
-#: src/clients/credentials/arcproxy.cpp:1088
+#: src/clients/credentials/arcproxy.cpp:1094
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1297
 #, c-format
 msgid "NSS database to be accessed: %s\n"
 msgstr "NSS-databas som kommer att användas: %s\n"
 
-#: src/clients/credentials/arcproxy.cpp:1159
+#: src/clients/credentials/arcproxy.cpp:1165
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1471
 #, c-format
 msgid "Certificate to use is: %s"
 msgstr "Certifikat som kommer att användas är: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1207
-#: src/clients/credentials/arcproxy.cpp:1321
+#: src/clients/credentials/arcproxy.cpp:1213
+#: src/clients/credentials/arcproxy.cpp:1327
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1528
 msgid "Proxy generation succeeded"
 msgstr "Proxygenerering lyckades"
 
-#: src/clients/credentials/arcproxy.cpp:1208
-#: src/clients/credentials/arcproxy.cpp:1322
+#: src/clients/credentials/arcproxy.cpp:1214
+#: src/clients/credentials/arcproxy.cpp:1328
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1529
 #, c-format
 msgid "Your proxy is valid until: %s"
 msgstr "Din proxy är giltig till: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1227
+#: src/clients/credentials/arcproxy.cpp:1233
 msgid ""
 "The old GSI proxies are not supported anymore. Please do not use -O/--old "
 "option."
 msgstr ""
 "De gamla GSI-proxyerna stöds inte längre. Använd inte alternativ -O/--old."
 
-#: src/clients/credentials/arcproxy.cpp:1246 src/hed/mcc/tls/MCCTLS.cpp:163
+#: src/clients/credentials/arcproxy.cpp:1252 src/hed/mcc/tls/MCCTLS.cpp:163
 #: src/hed/mcc/tls/MCCTLS.cpp:196 src/hed/mcc/tls/MCCTLS.cpp:222
 msgid "VOMS attribute parsing failed"
 msgstr "Tolkning av VOMS-attribut misslyckades"
 
-#: src/clients/credentials/arcproxy.cpp:1248
+#: src/clients/credentials/arcproxy.cpp:1254
 msgid "Myproxy server did not return proxy with VOMS AC included"
 msgstr "Myproxy-server returnerade inte proxy med VOMS AC inkluderat"
 
-#: src/clients/credentials/arcproxy.cpp:1269
+#: src/clients/credentials/arcproxy.cpp:1275
 #: src/hed/libs/credential/ARCProxyUtil.cpp:337
 msgid "Proxy generation failed: No valid certificate found."
 msgstr "Proxygenerering misslyckades: Hittade inget giltigt certifikat."
 
-#: src/clients/credentials/arcproxy.cpp:1274
+#: src/clients/credentials/arcproxy.cpp:1280
 #: src/hed/libs/credential/ARCProxyUtil.cpp:343
 msgid "Proxy generation failed: No valid private key found."
 msgstr "Proxygenerering misslyckades: Hittade ingen giltig privat nyckel."
 
-#: src/clients/credentials/arcproxy.cpp:1278
+#: src/clients/credentials/arcproxy.cpp:1284
 #: src/hed/libs/credential/ARCProxyUtil.cpp:169
 #, c-format
 msgid "Your identity: %s"
 msgstr "Din identitet: %s"
 
-#: src/clients/credentials/arcproxy.cpp:1280
+#: src/clients/credentials/arcproxy.cpp:1286
 #: src/hed/libs/credential/ARCProxyUtil.cpp:350
 msgid "Proxy generation failed: Certificate has expired."
 msgstr "Proxygenerering misslyckades: Certifikatets giltighetstid har gått ut."
 
-#: src/clients/credentials/arcproxy.cpp:1284
+#: src/clients/credentials/arcproxy.cpp:1290
 #: src/hed/libs/credential/ARCProxyUtil.cpp:355
 msgid "Proxy generation failed: Certificate is not valid yet."
 msgstr "Proxygenerering misslyckades: Certifikatet är inte giltigt än."
 
-#: src/clients/credentials/arcproxy.cpp:1295
+#: src/clients/credentials/arcproxy.cpp:1301
 msgid "Proxy generation failed: Failed to create temporary file."
 msgstr "Proxygenerering misslyckades: Misslyckades med att skapa temporär fil."
 
-#: src/clients/credentials/arcproxy.cpp:1303
+#: src/clients/credentials/arcproxy.cpp:1309
 msgid "Proxy generation failed: Failed to retrieve VOMS information."
 msgstr ""
 "Proxygenerering misslyckades: Misslyckades med att hämta VOMS-information."
@@ -18304,7 +18319,7 @@ msgid "%s: Received DTR belongs to inactive job"
 msgstr "%s: Mottagen DTR tillhör inaktivt jobb"
 
 #: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:425
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1065
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1067
 #: src/services/a-rex/grid-manager/jobs/JobsList.cpp:450
 #: src/services/a-rex/grid-manager/jobs/JobsList.cpp:473
 #: src/services/a-rex/grid-manager/jobs/JobsList.cpp:586
@@ -18513,109 +18528,109 @@ msgstr ""
 "%s: Destinationsfil %s lämnades möjligen oavslutad från tidigare A-REX-"
 "körning, kommer att skriva över"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1071
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1073
 #, c-format
 msgid "%s: Failed writing local information"
 msgstr "%s: Misslyckades med att skriva lokal information"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1089
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1091
 #, c-format
 msgid "%s: Cancelling active DTRs"
 msgstr "%s: Avbryter aktiva DTRer"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1096
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1098
 msgid "DTRGenerator is asked to check files for null job"
 msgstr "DTR-generator fick förfrågan att kontrollera filer för null-jobb"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1116
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1118
 #, c-format
 msgid "%s: Can't read list of input files"
 msgstr "%s: Kan inte läsa lista med indatafiler"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1131
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1133
 #, c-format
 msgid "%s: Checking user uploadable file: %s"
 msgstr "%s: Kontrollerar användaruppladdningsbar fil: %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1136
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1138
 #, c-format
 msgid "%s: User has uploaded file %s"
 msgstr "%s: Användare har laddat upp fil %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1143
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1145
 #, c-format
 msgid "%s: Failed writing changed input file."
 msgstr "%s: Misslyckades med att skriva ändrad indatafil."
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1147
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1149
 #, c-format
 msgid "%s: Critical error for uploadable file %s"
 msgstr "%s: Kritiskt fel för uppladdningsbar fil %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1153
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1155
 #, c-format
 msgid "%s: User has NOT uploaded file %s"
 msgstr "%s: Användare har INTE laddat upp fil %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1165
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1167
 #, c-format
 msgid "%s: Uploadable files timed out"
 msgstr "%s: Uppladdningsbara filer avbröts på grund av timeout"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1221
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1247
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1223
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1249
 #, c-format
 msgid "%s: Can't convert checksum %s to int for %s"
 msgstr "%s: Kan inte konvertera checksumma %s till heltal för %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1228
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1242
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1230
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1244
 #, c-format
 msgid "%s: Can't convert filesize %s to int for %s"
 msgstr "%s: Kan inte konvertera filstorlek %s till heltal för %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1237
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1239
 #, c-format
 msgid "%s: Invalid size/checksum information (%s) for %s"
 msgstr "%s: Ogiltig storlek/checksumma information (%s) för %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1259
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1261
 #, c-format
 msgid "%s: Invalid file: %s is too big."
 msgstr "%s: Ogiltig fil: %s är för stor."
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1275
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1277
 #, c-format
 msgid "%s: Failed to switch user ID to %d/%d to read file %s"
 msgstr ""
 "%s: Misslyckades med att byta användar-id till %d/%d för att läsa fil %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1281
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1283
 #, c-format
 msgid "%s: Failed to open file %s for reading"
 msgstr "%s: Misslyckades med att öppna fil %s för läsning"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1289
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1291
 #, c-format
 msgid "%s: Error accessing file %s"
 msgstr "%s: Fel vid åtkomst för fil %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1301
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1303
 #, c-format
 msgid "%s: Error reading file %s"
 msgstr "%s: Fel vid läsning av fil %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1316
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1318
 #, c-format
 msgid "%s: File %s has wrong checksum: %llu. Expected %lli"
 msgstr "%s: Fil %s har felaktig checksumma: %llu. Förväntade %lli"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1322
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1324
 #, c-format
 msgid "%s: Checksum %llu verified for %s"
 msgstr "%s: Checksumma %llu verifierad för %s"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1334
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1336
 msgid ""
 "Found unfinished DTR transfers. It is possible the previous A-REX process "
 "did not shut down normally"
@@ -18623,18 +18638,18 @@ msgstr ""
 "Hittade oavslutade DTR-överföringar. Det är möjligt att en tidigare A-REX-"
 "process inte stängde ned på normal sätt"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1341
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1343
 #, c-format
 msgid "Found DTR %s for file %s left in transferring state from previous run"
 msgstr ""
 "Hittade DTR %s för fil %s kvarlämnad i överförande tillstånd från tidigare "
 "körning"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1350
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1352
 msgid "DTRGenerator is requested to clean links for null job"
 msgstr "DTR-generator fick begäran att ta bort länkar för null-jobb"
 
-#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1366
+#: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1368
 #, c-format
 msgid "%s: Cache cleaning takes too long - %u.%06u seconds"
 msgstr "%s: Cacherensning tar för lång tid - %u.%06u sekunder"
