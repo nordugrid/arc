@@ -82,7 +82,7 @@ Files: src/services/a-rex/infoproviders/glite-info-provider-ldap
 Copyright: Members of the EGEE Collaboration 2004
 License: Apache-2.0
 
-Files: src/services/a-rex/jura/ssm/*
+Files: src/utils/python/arc/ssm/*
 Copyright: 2012 STFC
 License: Apache-2.0
 
