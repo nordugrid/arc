@@ -383,7 +383,7 @@ namespace gridftpd {
   void LdapQuery::Query(const std::string& base,
                         const std::string& filter,
                         const std::vector <std::string>& attributes,
-                        Scope scope) throw (LdapQueryError) {
+                        Scope scope) {
 
     Connect();
 
@@ -442,8 +442,7 @@ namespace gridftpd {
   }
 
 
-  void LdapQuery::Result(ldap_callback callback, void* ref)
-  throw(LdapQueryError) {
+  void LdapQuery::Result(ldap_callback callback, void* ref) {
 
     try {
       HandleResult(callback, ref);
