@@ -72,9 +72,17 @@ namespace Arc {
 
     class DataChunkClient {
      public:
-      DataChunkClient(); // empty
+      // Empty buffer
+      DataChunkClient();
+      // Exteral buffer
       DataChunkClient(void* data, unsigned long long int offset, unsigned long long int size);
+      // Move constructor
+      DataChunkClient(DataChunkClient& other);
+      // Move assignment
+      DataChunkClient& operator=(DataChunkClient& other);
       ~DataChunkClient();
+      // Copy unallocated buffer into allocated
+      DataChunkClient& MakeCopy();
       bool write(std::ostream& outstream) const;
       bool read(std::istream& instream);
       bool getEOF() const { return eof; }

@@ -4,6 +4,8 @@
 #include <config.h>
 #endif
 
+#include <cstring>
+
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include "DataExternalComm.h"
@@ -366,8 +368,33 @@ namespace Arc {
      data((char*)data), data_allocated(false), offset(offset), size(size), eof(false) {
   }
 
+  DataExternalComm::DataChunkClient::DataChunkClient(DataChunkClient& other):
+     data(other.data), data_allocated(other.data_allocated), offset(other.offset), size(other.size), eof(other.eof) {
+    other.data_allocated = false;
+  }
+
+  DataExternalComm::DataChunkClient& DataExternalComm::DataChunkClient::operator=(DataExternalComm::DataChunkClient& other) {
+    if(data_allocated) delete[] data;
+    data = other.data;
+    data_allocated = other.data_allocated;
+    offset= other.offset;
+    size = other.size;
+    eof = other.eof;
+    other.data_allocated = false;
+  }
+
   DataExternalComm::DataChunkClient::~DataChunkClient() {
     if(data_allocated) delete[] data;
+  }
+
+  DataExternalComm::DataChunkClient& DataExternalComm::DataChunkClient::MakeCopy() {
+    if(data_allocated) return *this; // already copied
+    if(!data || !size) return *this;
+    char* new_data = new char[size];
+    std::memcpy(new_data, data, size);
+    data = new_data;
+    data_allocated = true;
+    return *this;
   }
 
   bool DataExternalComm::DataChunkClient::write(std::ostream& outstream) const {

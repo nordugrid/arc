@@ -20,6 +20,8 @@ namespace ArcDMCGridFTP {
 
   using namespace Arc;
 
+  static Logger logger_(Logger::getRootLogger(), "DataPoint.GridFTPDelegate");
+
 
   DataPointGridFTPDelegate::DataPointGridFTPDelegate(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
     : DataPointDelegate((Arc::ArcLocation::GetLibDir()+G_DIR_SEPARATOR_S+"arc-dmcgridftp").c_str(), std::list<std::string>(), url, usercfg, parg) {
@@ -56,6 +58,12 @@ namespace ArcDMCGridFTP {
     if(triesleft < 1) triesleft = 1;
     ResetMeta();
     return true;
+  }
+
+  bool DataPointGridFTPDelegate::WriteOutOfOrder() {
+    // Globus gridftp library does not accept random offsets in stream mode.
+    // See DataPointGridFTP::set_attributes() on why following combination is used.
+    return (is_secure && !force_passive);
   }
 
 

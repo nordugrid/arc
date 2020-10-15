@@ -247,25 +247,13 @@ namespace Arc {
       plugins(NULL),
       instream(instream),
       outstream(outstream),
-      //ftp_active(false),
-      //url(url),
-      //usercfg(usercfg),
-      //instream(instream),
-      //outstream(outstream),
-      //cbarg(new CBArg(this)),
-      //force_secure(true),
-      //force_passive(true),
       threads(1),
       bufsize(65536),
       range_start(0),
       range_end(0),
       force_secure(false),
-      force_passive(false)
-      //allow_out_of_order(true),
-      //credential(NULL),
-      //ftp_eof_flag(false),
-      //check_received_length(0),
-      //data_error(false)
+      force_passive(false),
+      allow_out_of_order(true)
   {
     XMLNode cfg(NS(), "ArcConfig");
     cfg.NewChild("ModuleManager").NewChild("Path") = path;
@@ -329,6 +317,7 @@ int main(int argc, char* argv[]) {
   int logger_format = -1;
   int secure = 1;
   int passive = 1;
+  int out_of_order = 1;
 
   try {
     /* Create options parser */
@@ -342,6 +331,7 @@ int main(int argc, char* argv[]) {
     options.AddOption('F', "format", "logger output format", "format", logger_format);
     options.AddOption('s', "secure", "force secure data connection", "boolean", secure);
     options.AddOption('p', "passive", "force passive data connection", "boolean", passive);
+    options.AddOption('o', "noorder", "allow out of order reading", "boolean", out_of_order);
 
     params = options.Parse(argc, argv);
     if (params.empty()) {
@@ -395,6 +385,7 @@ int main(int argc, char* argv[]) {
     handler->SetRange(range_start, range_end);
     handler->SetSecure(secure);
     handler->SetPassive(passive);
+    handler->ReadOutOfOrder(out_of_order);
     Arc::DataStatus result(Arc::DataStatus::Success);
     if(command == Arc::DataPointDelegate::RenameCommand) {
       if(params.empty()) {
