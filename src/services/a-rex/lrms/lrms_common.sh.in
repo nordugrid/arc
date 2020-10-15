@@ -113,7 +113,7 @@ init_lrms_env () {
    RUNTIME_FRONTEND_SEES_NODE=$CONFIG_shared_scratch
    RUNTIME_NODE_SEES_FRONTEND=$CONFIG_shared_filesystem
    RUNTIME_LOCAL_SCRATCH_DIR=$CONFIG_scratchdir
-   RUNTIME_LOCAL_SCRATCH_COPY_TOOL=${CONFIG_movetool:-mv}
+   RUNTIME_LOCAL_SCRATCH_MOVE_TOOL=${CONFIG_movetool:-mv}
 
    #default is NFS
    if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
