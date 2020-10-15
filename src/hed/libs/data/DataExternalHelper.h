@@ -26,6 +26,7 @@ namespace Arc {
     DataExternalHelper();
     DataExternalHelper(DataExternalHelper const&);
     DataExternalHelper& operator=(DataExternalHelper const&);
+    void SetPluginAttributes();
   public:
     DataExternalHelper(char const * modulepath, char const * modulename, const URL& url, const UserConfig& usercfg, std::istream& instream, std::ostream& outstream);
     virtual ~DataExternalHelper();

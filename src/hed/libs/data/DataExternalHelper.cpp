@@ -21,21 +21,34 @@ namespace Arc {
   Logger DataExternalHelper::logger(Logger::getRootLogger(), "DataPoint.External");
 
 
+  void DataExternalHelper::SetPluginAttributes() {
+    if (!plugin)
+      return;
+
+    plugin->Range(range_start, range_end);
+    plugin->SetSecure(force_secure);
+    plugin->Passive(force_passive);
+    plugin->ReadOutOfOrder(allow_out_of_order);
+  }
+
   DataStatus DataExternalHelper::Check() {
     if (!plugin)
       return DataStatus::NotInitializedError;
+    SetPluginAttributes();
     return plugin->Check(true); // TODO: check_meta
   }
 
   DataStatus DataExternalHelper::Remove() {
     if (!plugin)
       return DataStatus::NotInitializedError;
+    SetPluginAttributes();
     return plugin->Remove();
   }
 
   DataStatus DataExternalHelper::CreateDirectory(bool with_parents) {
     if (!plugin)
       return DataStatus::NotInitializedError;
+    SetPluginAttributes();
     return plugin->CreateDirectory(with_parents);
   }
 
@@ -43,8 +56,7 @@ namespace Arc {
     if (!plugin)
       return DataStatus::NotInitializedError;
 
-
-    plugin->Range(range_start, range_end);
+    SetPluginAttributes();
 
     unsigned int max_inactivity_time = 1000;
 
@@ -106,8 +118,7 @@ namespace Arc {
     if (!plugin)
       return DataStatus::NotInitializedError;
 
-
-    plugin->Range(range_start, range_end);
+    SetPluginAttributes();
 
     unsigned int max_inactivity_time = 1000;
 
@@ -191,6 +202,8 @@ namespace Arc {
     if (!plugin)
       return DataStatus::NotInitializedError;
 
+    SetPluginAttributes();
+
     FileInfo file;
     DataStatus result = plugin->Stat(file, verb);
     if(result)
@@ -201,6 +214,8 @@ namespace Arc {
   DataStatus DataExternalHelper::List(DataPoint::DataPointInfoType verb) {
     if (!plugin)
       return DataStatus::NotInitializedError;
+
+    SetPluginAttributes();
 
     std::list<FileInfo> files;
     DataStatus result = plugin->List(files, verb);
@@ -213,12 +228,14 @@ namespace Arc {
   DataStatus DataExternalHelper::Rename(const URL& newurl) {
     if (!plugin)
       return DataStatus::NotInitializedError;
+    SetPluginAttributes();
     return plugin->Rename(newurl);
   }
 
   DataStatus DataExternalHelper::Transfer(const URL& otherendpoint, bool source, DataPoint::TransferCallback callback) {
     if (!plugin)
       return DataStatus::NotInitializedError;
+    SetPluginAttributes();
     // check if checksum is specified as a metadata attribute
     if (!plugin->GetURL().MetaDataOption("checksumtype").empty() && !plugin->GetURL().MetaDataOption("checksumvalue").empty()) {
       std::string csum = plugin->GetURL().MetaDataOption("checksumtype") + ':' + plugin->GetURL().MetaDataOption("checksumvalue");
@@ -231,6 +248,8 @@ namespace Arc {
   DataStatus DataExternalHelper::Transfer3rdParty(const URL& source, const URL& destination, DataPoint::TransferCallback callback) {
     if (!plugin)
       return DataStatus::NotInitializedError;
+
+    SetPluginAttributes();
 
     class DataPoint3rdParty: public DataPoint {
      public:
