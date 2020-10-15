@@ -40,7 +40,7 @@ namespace ArcDMCGridFTP {
   class ChunkOffsetMatch {
    public:
     ChunkOffsetMatch(unsigned long long int offset):offset(offset) {};
-    bool operator()(DataExternalComm::DataChunkClient const & other) const { return offset == other.getOffset(); };
+    bool operator()(DataExternalComm::DataChunkClient const& other) const { return offset == other.getOffset(); };
    private:
     unsigned long long int offset; 
   };
@@ -447,7 +447,7 @@ namespace ArcDMCGridFTP {
           it->max_offset = offset+length;
           // Check for delayed buffers which fit new offset
           while(!it->delayed_chunks.empty()) {
-            std::list<DataExternalComm::DataChunkClient>::iterator matching_chunk =
+            DataExternalComm::DataChunkClientList::iterator matching_chunk =
               std::find_if(it->delayed_chunks.begin(), it->delayed_chunks.end(), ChunkOffsetMatch(it->max_offset));
             if(matching_chunk == it->delayed_chunks.end()) break;
             unsigned long long int offset = matching_chunk->getOffset();
@@ -462,8 +462,7 @@ namespace ArcDMCGridFTP {
           logger.msg(WARNING, "ftp_read_callback: unexpected data out of order: %llu != %llu", offset, it->max_offset);
           // The numbers below are just wild guess.
           if((it->delayed_chunks.size() < (it->ftp_threads*10)) || ((offset - it->max_offset) < 1024*1024*256)) {
-            it->delayed_chunks.resize(it->delayed_chunks.size()+1);
-            it->delayed_chunks.back() = dataChunk.MakeCopy(); // move asignment passes ownership
+            it->delayed_chunks.push_back(dataChunk.MakeCopy()); // move asignment passes ownership
           } else {
             // Can't use data from this buffer - drop it ad report error
             it->data_error = true;
@@ -598,8 +597,7 @@ namespace ArcDMCGridFTP {
           // The numbers below are just wild guess. It i snot even proper place to compensate for out
           // of order data chunks. It should have been fixed on reading side.
           if((delayed_chunks.size() < (ftp_threads*10)) || ((offset-max_offset) < 1024*1024*256)) {
-            delayed_chunks.resize(delayed_chunks.size()+1);
-            delayed_chunks.back() = dataChunk; // move asignment passes ownership
+            delayed_chunks.push_back(dataChunk); // move asignment passes ownership
             continue;
           }
           logger.msg(ERROR, "ftp_write_thread: too many out of order chunks in stream mode");
@@ -622,7 +620,7 @@ namespace ArcDMCGridFTP {
 
       // Do we have any delayed buffers we could release?
       while(!delayed_chunks.empty()) {
-        std::list<DataExternalComm::DataChunkClient>::iterator matching_chunk =
+        DataExternalComm::DataChunkClientList::iterator matching_chunk =
           std::find_if(delayed_chunks.begin(), delayed_chunks.end(), ChunkOffsetMatch(max_offset));
         if(matching_chunk == delayed_chunks.end()) break;
         dataChunk = *matching_chunk;

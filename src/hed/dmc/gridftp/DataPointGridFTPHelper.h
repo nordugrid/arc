@@ -67,7 +67,7 @@ namespace ArcDMCGridFTP {
     bool allow_out_of_order;
     bool stream_mode;
     bool autodir;
-    std::list<DataExternalComm::DataChunkClient> delayed_chunks;
+    DataExternalComm::DataChunkClientList delayed_chunks;
     unsigned long long int max_offset;
 
     // Current state representation
