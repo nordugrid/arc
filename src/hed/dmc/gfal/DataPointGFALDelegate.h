@@ -23,6 +23,8 @@ namespace ArcDMCGFAL {
     virtual ~DataPointGFALDelegate();
     static Plugin* Instance(PluginArgument *arg);
     virtual bool RequiresCredentials() const;
+    virtual bool WriteOutOfOrder() const;
+  }
   };
 
 } // namespace ArcDMCGFAL

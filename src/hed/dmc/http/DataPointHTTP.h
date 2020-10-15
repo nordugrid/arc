@@ -38,7 +38,7 @@ using namespace Arc;
     virtual DataStatus StopReading();
     virtual DataStatus StopWriting();
     virtual bool RequiresCredentials() const { return url.Protocol() != "http"; };
-    virtual bool WriteOutOfOrder() { return partial_write_allowed; };
+    virtual bool WriteOutOfOrder() const { return partial_write_allowed; };
   private:
     static void read_thread(void *arg);
     static bool read_single(void *arg);

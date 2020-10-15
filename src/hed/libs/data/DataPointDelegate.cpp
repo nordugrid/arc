@@ -567,7 +567,7 @@ namespace Arc {
     StopWriting();
   }
 
-  bool DataPointDelegate::WriteOutOfOrder() {
+  bool DataPointDelegate::WriteOutOfOrder() const {
     // implement
     return true;
   }

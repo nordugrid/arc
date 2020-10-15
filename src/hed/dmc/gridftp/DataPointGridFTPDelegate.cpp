@@ -60,7 +60,7 @@ namespace ArcDMCGridFTP {
     return true;
   }
 
-  bool DataPointGridFTPDelegate::WriteOutOfOrder() {
+  bool DataPointGridFTPDelegate::WriteOutOfOrder() const {
     // Globus gridftp library does not accept random offsets in stream mode.
     // See DataPointGridFTP::set_attributes() on why following combination is used.
     return (is_secure && !force_passive);
