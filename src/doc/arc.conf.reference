@@ -532,6 +532,14 @@
 #gnu_time=/usr/bin/time
 ## CHANGE: MOVED in 6.0.0 from the [arex] block.
 
+## movetool = comand - Redefine the command used to move files during jobscript 
+## execution on LRMS worker node (the command should be available on WNs).
+## This in particular applies to files movement from sessiondir to scratchdir 
+## in the shared sessiondir case.
+## default: mv
+#movetool=rsync -av
+## CHANGE: NEW in 6.8
+
 ### PBS options: set these only in case of lrms=pbs
 ## pbs_bin_path = path - The path to the qstat,pbsnodes,qmgr etc PBS binaries,
 ## no need to set if PBS is not used
