@@ -92,7 +92,7 @@ namespace Arc {
     virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus Rename(const URL& newurl);
     virtual DataStatus Transfer(const URL& otherendpoint, bool source, TransferCallback callback = NULL);
-    virtual bool WriteOutOfOrder();
+    virtual bool WriteOutOfOrder() const;
     virtual bool ProvidesMeta() const;
     virtual const std::string DefaultCheckSum() const;
     virtual bool RequiresCredentials() const;

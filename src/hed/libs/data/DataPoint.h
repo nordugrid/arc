@@ -459,7 +459,7 @@ namespace Arc {
     virtual void ReadOutOfOrder(bool v) = 0;
 
     /// Returns true if DataPoint supports receiving data out of order during writing.
-    virtual bool WriteOutOfOrder() = 0;
+    virtual bool WriteOutOfOrder() const = 0;
 
     /// Allow/disallow additional checks on a source DataPoint before transfer
     /**

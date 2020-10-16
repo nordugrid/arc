@@ -811,7 +811,7 @@ namespace ArcDMCFile {
     return DataStatus::Success;
   }
 
-  bool DataPointFile::WriteOutOfOrder() {
+  bool DataPointFile::WriteOutOfOrder() const {
     if (!url)
       return false;
     if (url.Protocol() == "file")

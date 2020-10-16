@@ -754,6 +754,12 @@ namespace ArcDMCSRM {
     return true;
   }
 
+  bool DataPointSRM::WriteOutOfOrder() const {
+    // Not sure if underlying data destination protocol will support
+    // accepting out-of-order data. So simply say no.
+    return false;
+  }
+
   std::vector<URL> DataPointSRM::TransferLocations() const {
     return turls;
   }

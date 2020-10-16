@@ -55,6 +55,8 @@ namespace Arc {
   }
 
   DataStatus DataPointDelegate::StartCommand(Arc::CountedPointer<Arc::Run>& run, std::list<std::string>& argv, DataStatus::DataStatusType errCode) {
+    argv.push_front(Arc::tostring(allow_out_of_order));
+    argv.push_front("-o");
     argv.push_front(Arc::tostring(force_passive));
     argv.push_front("-p");
     argv.push_front(Arc::tostring(force_secure));
@@ -71,6 +73,7 @@ namespace Arc {
     run->KeepStderr(false);
     run->AssignStderr(log_redirect);
     logger.msg(DEBUG, "Starting helper process: %s", ListToString(argv));
+    Logger::getRootLogger().msg(DEBUG, "Starting helper process: %s", ListToString(argv));
     if(!run->Start()) {
       return DataStatus(errCode, "Failed to start helper process for "+url.plainstr());
     }
@@ -564,7 +567,7 @@ namespace Arc {
     StopWriting();
   }
 
-  bool DataPointDelegate::WriteOutOfOrder() {
+  bool DataPointDelegate::WriteOutOfOrder() const {
     // implement
     return true;
   }
