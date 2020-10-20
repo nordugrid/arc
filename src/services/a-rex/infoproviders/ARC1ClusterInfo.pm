@@ -310,6 +310,95 @@ sub emies_state {
     return $es_state;
 }
 
+sub rest_state {
+    my ($gm_state,$lrms_state,$failure_state) = @_;
+    my $state = [ "None" ];
+
+    my $is_pending = 0;
+    if ($gm_state =~ /^PENDING:/) {
+      $is_pending = 1;
+      $gm_state = substr $gm_state, 8
+    }
+
+    #   REST State   A-REX State
+    # * ACCEPTING    ACCEPTED
+    # * ACCEPTED     PENDING:ACCEPTED
+    # * PREPARING    PREPARING
+    # * PREPARED     PENDING:PREPARING
+    # * SUBMITTING   SUBMIT
+    # * QUEUING      INLRMS + LRMS queued
+    # * RUNNING      INLRMS + LRMS running
+    # * HELD         INLRMS + LRMS on hold
+    # * EXITINGLRMS  INLRMS + LRMS finished
+    # * OTHER        INLRMS + LRMS other
+    # * EXECUTED     PENDING:INLRMS
+    # * FINISHING    FINISHING
+    # * KILLING      CANCELLING
+    # KILLING      PREPARING + DTR cancel | FINISHING + DTR cancel
+    # * FINISHED     FINISHED + no errors & no cancel
+    # * FAILED       FINISHED + errors
+    # * KILLED       FINISHED + cancel
+    # * WIPED        DELETED
+
+    if ($gm_state eq "ACCEPTED") {
+        if ( $is_pending ) {
+            $state = [ "ACCEPTED" ];
+        } else {
+            $state = [ "ACCEPTING" ];
+        }
+    } elsif ($gm_state eq "PREPARING") {
+        if ( $is_pending ) {
+            $state = [ "PREPARED" ];
+        } else {
+            # KILLING
+            $state = [ "PREPARING" ];
+        }
+    } elsif ($gm_state eq "SUBMIT") {
+        $state = [ "SUBMITTING" ];
+    } elsif ($gm_state eq "INLRMS") {
+        if ( $is_pending ) {
+            $state = [ "EXECUTED" ];
+        } else {
+            if (not defined $lrms_state) {
+                $state = [ "OTHER" ];
+            } elsif ($lrms_state eq 'Q') {
+                $state = [ "QUEUING" ];
+            } elsif ($lrms_state eq 'R') {
+                $state = [ "RUNNING" ];
+            } elsif ($lrms_state eq 'EXECUTED'
+                  or $lrms_state eq '') {
+                $state = [ "EXITINGLRMS" ];
+            } elsif ($lrms_state eq 'S') {
+                $state = [ "HELD" ];
+            } else {
+                $state = [ "OTHER" ];
+            }
+        }
+    } elsif ($gm_state eq "FINISHING") {
+        # KILLING
+        $state = [ "FINISHING" ];
+    } elsif ($gm_state eq "CANCELING") {
+        $state = [ "KILLING" ];
+    } elsif ($gm_state eq "KILLED") {
+        $state = [ "KILLED" ];
+    } elsif ($gm_state eq "FAILED") {
+        $state = [ "FAILED" ];
+    } elsif ($gm_state eq "FINISHED") {
+        $state = [ "FINISHED" ];
+    } elsif ($gm_state eq "DELETED") {
+        $state = [ "WIPED" ];
+    } elsif ($gm_state) { # this is the "pending" case
+        $state = [ "None" ];
+    } else {
+        # No idea
+    }
+
+    if ( $is_pending ) {
+      push @{$es_state->{Attributes}}, "server-paused";
+    }
+    return $es_state;
+}
+
 # input is an array with (state, lrms_state, failure_state)
 sub glueState {
     my @ng_status = @_;
@@ -319,6 +408,8 @@ sub glueState {
     push @$status, "file:".@{$local_state->{State}}[0] if $local_state->{State};#try to fix so I have the full state here
     my $bes_state = bes_state(@ng_status);
     push @$status, "bes:".$bes_state->[0] if @$bes_state;
+    my $rest_state = rest_state(@ng_status); 
+    push @$status, "arcrest:".@{$rest_state->{State}}[0] if $rest_state->{State};
     my $emies_state = emies_state(@ng_status);
     push @$status, "emies:".@{$emies_state->{State}}[0] if $emies_state->{State};
     if ($emies_state->{Attributes}) {
@@ -2327,7 +2418,7 @@ sub collect($) {
               # this complicated thing here creates a specialized getComputingActivities
               # version of sub with a builtin parameter!
               #TODO: change interfacename for jobs?
-              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.ogf.glue.emies.activitycreation'); };
+              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.nordugrid.arcrest'); };
             }
 
             # Associations
