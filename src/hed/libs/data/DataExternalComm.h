@@ -72,9 +72,17 @@ namespace Arc {
 
     class DataChunkClient {
      public:
-      DataChunkClient(); // empty
+      // Empty buffer
+      DataChunkClient();
+      // Exteral buffer
       DataChunkClient(void* data, unsigned long long int offset, unsigned long long int size);
+      // Move constructor
+      DataChunkClient(DataChunkClient& other);
+      // Move assignment
+      DataChunkClient& operator=(DataChunkClient& other);
       ~DataChunkClient();
+      // Copy unallocated buffer into allocated
+      DataChunkClient& MakeCopy();
       bool write(std::ostream& outstream) const;
       bool read(std::istream& instream);
       bool getEOF() const { return eof; }
@@ -88,6 +96,36 @@ namespace Arc {
       unsigned long long int offset;
       unsigned long long int size;
       bool eof;
+    };
+
+    // This is wrapper around simple list to make code compatible with old and new compilers.
+    class DataChunkClientList {
+     public:
+      typedef std::list<DataChunkClient*>::iterator chunk_iterator;
+      DataChunkClientList() {};
+      ~DataChunkClientList() {
+        for(chunk_iterator it = chunk_list.begin(); it != chunk_list.end(); ++it) delete *it;
+      };
+      class iterator: public chunk_iterator {
+       public:
+        iterator(chunk_iterator const& other):chunk_iterator(other) {};
+        DataChunkClient& operator*() { return *(chunk_iterator::operator*()); };
+        DataChunkClient* operator->() { return chunk_iterator::operator*(); };
+        DataChunkClient* get() { return chunk_iterator::operator*(); };
+      };
+      //typedef std::list<DataChunkClient*>::iterator iterator;
+      void erase(iterator it) { delete it.get(); chunk_list.erase(it); };
+      void clear() {
+        for(chunk_iterator it = chunk_list.begin(); it != chunk_list.end(); ++it) delete *it;
+        chunk_list.clear();
+      };
+      iterator begin() { return chunk_list.begin(); };
+      iterator end() { return chunk_list.end(); };
+      bool empty() const { return chunk_list.empty(); };
+      std::size_t size() const { return chunk_list.size(); };
+      void push_back(DataChunkClient& source) { chunk_list.push_back(new DataChunkClient(source)); };
+     private:
+      std::list<DataExternalComm::DataChunkClient*> chunk_list;
     };
 
     static bool OutEntry(Arc::Run& run, int timeout, DataChunkExtBuffer const& data);

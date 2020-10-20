@@ -29,7 +29,7 @@
 +RTE_function_0 1 
 +if [ $? -ne 0 ]; then
 +    echo "Runtime RTE stage 1 execution failed." 1>&2
-+    echo "Runtime RTE stage 1 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    echo "Runtime RTE stage 1 execution failed." 1>>"${RUNTIME_JOB_STDERR}"
 +    exit 1
 +fi
 +
@@ -38,7 +38,7 @@
 +RTE_function_1 1 
 +if [ $? -ne 0 ]; then
 +    echo "Runtime EXTRA_RTE stage 1 execution failed." 1>&2
-+    echo "Runtime EXTRA_RTE stage 1 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    echo "Runtime EXTRA_RTE stage 1 execution failed." 1>>"${RUNTIME_JOB_STDERR}"
 +    exit 1
 +fi
 +
@@ -63,7 +63,7 @@
 +RTE_function_0 2 
 +if [ $? -ne 0 ]; then
 +    echo "Runtime RTE stage 2 execution failed." 1>&2
-+    echo "Runtime RTE stage 2 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    echo "Runtime RTE stage 2 execution failed." 1>>"${RUNTIME_JOB_STDERR}"
 +    exit 1
 +fi
 +
@@ -72,7 +72,7 @@
 +RTE_function_1 2 
 +if [ $? -ne 0 ]; then
 +    echo "Runtime EXTRA_RTE stage 2 execution failed." 1>&2
-+    echo "Runtime EXTRA_RTE stage 2 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    echo "Runtime EXTRA_RTE stage 2 execution failed." 1>>"${RUNTIME_JOB_STDERR}"
 +    exit 1
 +fi
 +

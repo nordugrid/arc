@@ -35,7 +35,7 @@
 +RTE_function_0 1 
 +if [ $? -ne 0 ]; then
 +    echo "Runtime ENV stage 1 execution failed." 1>&2
-+    echo "Runtime ENV stage 1 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    echo "Runtime ENV stage 1 execution failed." 1>>"${RUNTIME_JOB_STDERR}"
 +    exit 1
 +fi
 +
@@ -51,7 +51,7 @@
 +RTE_function_0 2 
 +if [ $? -ne 0 ]; then
 +    echo "Runtime ENV stage 2 execution failed." 1>&2
-+    echo "Runtime ENV stage 2 execution failed." 1>"${RUNTIME_JOB_DIAG}"
++    echo "Runtime ENV stage 2 execution failed." 1>>"${RUNTIME_JOB_STDERR}"
 +    exit 1
 +fi
 +

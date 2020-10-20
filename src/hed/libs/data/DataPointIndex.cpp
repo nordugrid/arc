@@ -444,7 +444,7 @@ namespace Arc {
       (*h)->ReadOutOfOrder(v);
   }
 
-  bool DataPointIndex::WriteOutOfOrder() {
+  bool DataPointIndex::WriteOutOfOrder() const {
     if (!h || !*h)
       return false;
     return (*h)->WriteOutOfOrder();

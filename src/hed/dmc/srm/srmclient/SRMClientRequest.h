@@ -83,7 +83,6 @@ namespace ArcDMCSRM {
      * srm://srm.host.org/path/to/file
      */
     SRMClientRequest(const std::list<std::string>& urls)
-      throw (SRMInvalidRequestException)
         : _request_id(0),
           _space_token(""),
           _waiting_time(1),
@@ -107,7 +106,6 @@ namespace ArcDMCSRM {
      * srm://srm.host.org/path/to/file
      */
     SRMClientRequest(const std::string& url="", const std::string& id="")
-      throw (SRMInvalidRequestException)
         : _request_id(0),
           _space_token(""),
           _waiting_time(1),

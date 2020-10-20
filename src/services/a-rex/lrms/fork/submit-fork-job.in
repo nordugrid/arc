@@ -200,7 +200,11 @@ watcher() {
 #######################################
 #  Submit the job
 #######################################
-echo "job script ${LRMS_JOB_SCRIPT} built" 1>&2
+echo "job script ${LRMS_JOB_SCRIPT} built:" 1>&2
+echo "-------------------------------------------------------------------" 1>&2
+cat "$LRMS_JOB_SCRIPT" 1>&2
+echo "-------------------------------------------------------------------" 1>&2
+echo "" 1>&2
 
 # simple queuing system: make hard reference to the queue
 cd "$joboption_directory" 1>&2 || { echo "Could not cd to $joboption_directory, aborting" && exit 1; }

@@ -27,7 +27,6 @@ debian/tmp/usr/lib/python?.?/site-packages/arc/paths.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/paths_dist.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/utils
 debian/tmp/usr/share/arc/arc.parser.defaults
-debian/tmp/usr/share/arc/sql-schema/legacy_jura_archivedb_schema.sql
 debian/tmp/usr/share/arc/schema
 debian/tmp/usr/share/locale/*/LC_MESSAGES/nordugrid-arc.mo
 debian/tmp/usr/share/arc/test-jobs/test-job-*

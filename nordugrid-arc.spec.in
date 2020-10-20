@@ -1,15 +1,4 @@
-%{!?__python2: %global __python2 /usr/bin/python2}
-%{!?python2_sitearch: %global python2_sitearch %(%{__python2} -Esc "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
-%{!?python2_sitelib: %global python2_sitelib %(%{__python2} -Esc "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
-
-%{!?python3_pkgversion: %global python3_pkgversion 3}
-
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
-
-%if %{?rhel}%{!?rhel:0} == 6
-%filter_provides_in %{python2_sitearch}/.*\.so$
-%filter_setup
-%endif
 
 #
 # Build dependency descrepancies across platforms
@@ -46,6 +35,21 @@
 %global with_python3 1
 %else
 %global with_python3 0
+%endif
+
+%if %{with_python2}
+%{!?__python2: %global __python2 /usr/bin/python2}
+%{!?python2_sitearch: %global python2_sitearch %(%{__python2} -Esc "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+%{!?python2_sitelib: %global python2_sitelib %(%{__python2} -Esc "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%endif
+
+%if %{with_python3}
+%{!?python3_pkgversion: %global python3_pkgversion 3}
+%endif
+
+%if %{?rhel}%{!?rhel:0} == 6
+%filter_provides_in %{python2_sitearch}/.*\.so$
+%filter_setup
 %endif
 
 %if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
@@ -1066,7 +1070,6 @@ mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/arc
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc/ssm
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc/urs
-mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc/jura/archive
 
 %find_lang %{name}
 
@@ -1212,7 +1215,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
-%doc src/doc/arc.conf.reference src/doc/arc.conf.DELETED
+%doc src/doc/arc.conf.reference src/doc/arc.conf.DELETED src/doc/arc.conf.DELETED-6.8.0
 %doc README AUTHORS LICENSE NOTICE
 %{_libdir}/libarccompute.so.*
 %{_libdir}/libarccommunication.so.*
@@ -1264,8 +1267,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %dir %{_datadir}/%{pkgdir}
 %{_datadir}/%{pkgdir}/arc.parser.defaults
-%dir %{_datadir}/%{pkgdir}/sql-schema
-%{_datadir}/%{pkgdir}/sql-schema/legacy_jura_archivedb_schema.sql
 %dir %{_datadir}/%{pkgdir}/test-jobs
 %{_datadir}/%{pkgdir}/test-jobs/test-job-*
 %{_datadir}/%{pkgdir}/schema
@@ -1434,7 +1435,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %{_libexecdir}/%{pkgdir}/cache-clean
 %{_libexecdir}/%{pkgdir}/cache-list
-%{_libexecdir}/%{pkgdir}/jura
 %{_libexecdir}/%{pkgdir}/jura-ng
 %{_libexecdir}/%{pkgdir}/gm-delegations-converter
 %{_libexecdir}/%{pkgdir}/gm-jobs
@@ -1495,7 +1495,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/arc-config-check.1*
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
-%doc %{_mandir}/man1/jura.1*
 %doc %{_mandir}/man8/gm-delegations-converter.8*
 %doc %{_mandir}/man8/gm-jobs.8*
 %doc %{_mandir}/man8/arc-blahp-logger.8*
@@ -1505,42 +1504,31 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %dir %{_localstatedir}/spool/arc
 %dir %{_localstatedir}/spool/arc/ssm
 %dir %{_localstatedir}/spool/arc/urs
-%dir %{_localstatedir}/spool/arc/jura
-%dir %{_localstatedir}/spool/arc/jura/archive
 %{_libexecdir}/%{pkgdir}/ssmsend
 %if %{py3default}
 %{python3_sitearch}/%{pkgdir}/ssm
 %{python3_sitearch}/%{pkgdir}/control/AccountingDB.py
-%{python3_sitearch}/%{pkgdir}/control/AccountingLegacy.py
 %{python3_sitearch}/%{pkgdir}/control/AccountingPublishing.py
 %{python3_sitearch}/%{pkgdir}/control/Accounting.py
 %{python3_sitearch}/%{pkgdir}/control/Cache.py
 %{python3_sitearch}/%{pkgdir}/control/DataStaging.py
 %{python3_sitearch}/%{pkgdir}/control/Jobs.py
-%{python3_sitearch}/%{pkgdir}/control/JuraArchive.py
-%{python3_sitearch}/%{pkgdir}/control/JuraArchiveSQLite.py
 %{python3_sitearch}/%{pkgdir}/control/RunTimeEnvironment.py
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingDB.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingLegacy.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/AccountingPublishing.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Accounting.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Cache.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/DataStaging.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Jobs.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/JuraArchive.*
-%{python3_sitearch}/%{pkgdir}/control/__pycache__/JuraArchiveSQLite.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/RunTimeEnvironment.*
 %else
 %{python2_sitearch}/%{pkgdir}/ssm
 %{python2_sitearch}/%{pkgdir}/control/AccountingDB.py*
-%{python2_sitearch}/%{pkgdir}/control/AccountingLegacy.py*
 %{python2_sitearch}/%{pkgdir}/control/AccountingPublishing.py*
 %{python2_sitearch}/%{pkgdir}/control/Accounting.py*
 %{python2_sitearch}/%{pkgdir}/control/Cache.py*
 %{python2_sitearch}/%{pkgdir}/control/DataStaging.py*
 %{python2_sitearch}/%{pkgdir}/control/Jobs.py*
-%{python2_sitearch}/%{pkgdir}/control/JuraArchive.py*
-%{python2_sitearch}/%{pkgdir}/control/JuraArchiveSQLite.py*
 %{python2_sitearch}/%{pkgdir}/control/RunTimeEnvironment.py*
 %endif
 %{_libexecdir}/%{pkgdir}/arccandypond

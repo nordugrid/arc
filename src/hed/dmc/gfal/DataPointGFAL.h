@@ -45,6 +45,7 @@ namespace ArcDMCGFAL {
     // locations so Resolve and AddLocation must be implemented
     virtual DataStatus Resolve(bool source = true);
     virtual DataStatus AddLocation(const URL& url, const std::string& meta);
+    virtual bool WriteOutOfOrder() const;
 
   protected:
     // 3rd party transfer (destination pulls from source)

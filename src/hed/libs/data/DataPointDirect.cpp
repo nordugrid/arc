@@ -74,7 +74,7 @@ namespace Arc {
     allow_out_of_order = val;
   }
 
-  bool DataPointDirect::WriteOutOfOrder() {
+  bool DataPointDirect::WriteOutOfOrder() const {
     return false;
   }
 

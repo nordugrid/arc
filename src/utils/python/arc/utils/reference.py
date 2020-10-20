@@ -183,7 +183,7 @@ def __rst_infotype(infostr):
     sys.stdout.write('\n*{0}:* '.format(infostr))
 
 
-def reference2rst(reference_f):
+def reference2rst(reference_f, headers=True, block_label_prefix=''):
     new_option_re = re.compile(r'^##\s+\*?([a-zA-Z0-9_]+)\s+=\s+')
     block_head_re = re.compile(r'^### The \[([^\]]+)\]')
 
@@ -193,7 +193,8 @@ def reference2rst(reference_f):
         in_codeblock = False
         new_option = False
         block_name = None
-        sys.stdout.write(__rst_top_header)
+        if headers:
+            sys.stdout.write(__rst_top_header)
         for confline in ref_f:
             # replace lines
             for repline, repval in __rst_replacelist:
@@ -221,7 +222,7 @@ def reference2rst(reference_f):
 
 
             # start of blocks
-            if sline.startswith('### The [common] block'):
+            if sline.startswith('### The [common] block') and headers:
                 sys.stdout.write(__rst_blocks_header)
 
             # block name
@@ -229,7 +230,7 @@ def reference2rst(reference_f):
             if block_match:
                 block_name = block_match.group(1)
                 block_headstr = '[{0}] block'.format(block_name)
-                block_label = '\n.. _reference_{0}:\n\n'.format(block_name.split(':')[0])
+                block_label = '\n.. _reference_{0}{1}:\n\n'.format(block_label_prefix, block_name.split(':')[0])
                 sys.stdout.write(block_label.replace('/', '_'))
                 sys.stdout.write(block_headstr + '\n')
                 sys.stdout.write('-' * len(block_headstr) + '\n\n')

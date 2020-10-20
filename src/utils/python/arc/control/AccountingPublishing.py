@@ -273,7 +273,8 @@ class RecordsPublisher(object):
         # init SSM sender
         apelssm = APELSSMSender(target_conf)
         if not apelssm.init_dirq():
-            self.logger.error('Failed to initialize APEL SSM message queue. Sending records to APEL will be disabled. Please check dirq and stomp python modules are installed on your system.')
+            self.logger.error('Failed to initialize APEL SSM message queue. Sending records to APEL will be disabled. '
+                              'Please check dirq and stomp python modules are installed on your system.')
             return None
         # database query filters
         self.logger.debug('Assigning filters to APEL usage records database query')
@@ -382,12 +383,6 @@ class RecordsPublisher(object):
             # check general target options
             if not self.__check_target_confdict(ttype, targetconf):
                 continue
-            # skip legacy fallback targets
-            if 'legacy_fallback' in targetconf:
-                if targetconf['legacy_fallback'] == 'yes':
-                    self.logger.warning(
-                        'Legacy fallback enabled in the configuration for target in [%s] block. Skipping.', target)
-                    continue
             # constrains on reporting frequency
             self.adb.publishing_db_connect(self.pdb_file)
             if 'urdelivery_frequency' in targetconf:

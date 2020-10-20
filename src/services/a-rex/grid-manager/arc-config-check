@@ -460,7 +460,17 @@ sub validconfparams() {
 			push(@validblocks, $blockname) if !$dynamic;
 		}
 	}
-	return ( \@validparams, \@validblocks, \@novalueparams );
+    # allow removed in 6.8.0 (hardcode)
+    push(@validparams, "urdelivery_keepfailed");
+    push(@validparams, "legacy_fallback");
+    push(@validparams, "use_ssl");
+    push(@validparams, "benchmark_type");
+    push(@validparams, "benchmark_value");
+    push(@validparams, "benchmark_description");
+    push(@validparams, "archivedir");
+    push(@validparams, "archivettl");
+    push(@validblocks, "arex/jura/archiving");
+    return ( \@validparams, \@validblocks, \@novalueparams );
 }
 	
 =item configuration check
@@ -681,22 +691,6 @@ sub check_completeness() {
     }
     if (exists($config->{"gridftpd/jobs"}) && !(exists($config->{"gridftpd/jobs"}{"allowaccess"}) || exists($config->{"gridftpd/jobs"}{"denyaccess"}))) {
         w("No allowaccess or denyaccess defined in [gridftpd/jobs]. Interface will be open for all mapped users\n");
-    }
-
-    # Raise error if accounting benchmark for APEL publishing is in the wrong place (new vs old legacy mode)
-    foreach my $accounting_block (keys %$config) {
-      if ($accounting_block =~ /^arex\/jura\/apel/ ) {
-        if (exists($config->{$accounting_block}{'benchmark_value'})) {
-           if ( (! exists($config->{$accounting_block}{'legacy_fallback'})) || (exists($config->{$accounting_block}{'legacy_fallback'}) && $config->{$accounting_block}{'legacy_fallback'} eq 'no' )) {
-               e("APEL accounting publishing block [$accounting_block] contains deprecated bechmark definition. Benchmark values should be defined in [queue] blocks to be stored in accounting database.\n")
-           }
-        }
-        if (exists($config->{$accounting_block}{'legacy_fallback'}) && $config->{$accounting_block}{'legacy_fallback'} eq 'yes') {
-          if ( ! exists($config->{$accounting_block}{'benchmark_value'})) {
-            e("APEL accounting publishing block [$accounting_block] configured to use legacy fallback mode to publish the data using old accounting subsystem implemenetation. In the legacy mode benchmark should be configured withing this block but missing.\n")
-          }
-        }
-      }
     }
 }
 

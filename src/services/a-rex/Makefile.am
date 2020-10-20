@@ -1,17 +1,11 @@
-if JURA_CLIENT_ENABLED
-JURA_CLIENT = jura
-else
-JURA_CLIENT =
-endif
-
 if INTERNAL_ENABLED
 INTERNAL = internaljobplugin
 else
 INTERNAL =
 endif
 
-SUBDIRS = delegation grid-manager infoproviders $(JURA_CLIENT) lrms schema $(INTERNAL) rte rest
-DIST_SUBDIRS = delegation grid-manager infoproviders jura lrms schema internaljobplugin rte rest
+SUBDIRS = delegation grid-manager infoproviders lrms schema $(INTERNAL) rte rest
+DIST_SUBDIRS = delegation grid-manager infoproviders lrms schema internaljobplugin rte rest
 
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS = test_cache_check

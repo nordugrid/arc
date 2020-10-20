@@ -46,6 +46,11 @@ namespace ArcDMCGFAL {
     return true;
   }
 
+  bool DataPointGFALDelegate::WriteOutOfOrder() const {
+    return true; // seek supported
+  }
+
+
 } // namespace ArcDMCGFAL
 
 extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {

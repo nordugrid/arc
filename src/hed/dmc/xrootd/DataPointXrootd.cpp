@@ -41,6 +41,10 @@ namespace ArcDMCXrootd {
       writing(false){
     // set xrootd log level
     set_log_level();
+    // make sure path starts with two slashes
+    if (url.Path().find("//") != 0) {
+      this->url.ChangePath("/" + url.Path());
+    }
   }
 
   DataPointXrootd::~DataPointXrootd() {
@@ -428,7 +432,7 @@ namespace ArcDMCXrootd {
         logger.msg(VERBOSE, "Could not stat file %s: %s", u.plainstr(), StrError(errno));
         return DataStatus(DataStatus::StatError, errno);
       }
-      if (verb & INFO_TYPE_CONTENT) {
+      if (S_ISREG(st.st_mode) && (verb & INFO_TYPE_CONTENT)) {
         if (u.HTTPOption("xrdcl.unzip") != "") {
           logger.msg(WARNING, "Not getting checksum of zip constituent");
         } else {
@@ -588,10 +592,15 @@ namespace ArcDMCXrootd {
   }
 
   DataStatus DataPointXrootd::Transfer(const URL& otherendpoint, bool source, TransferCallback callback) {
+    URL otherurl(otherendpoint);
+    // make sure path starts with two slashes
+    if (otherurl.Path().find("//") != 0) {
+      otherurl.ChangePath("/" + otherurl.Path());
+    }
     if (source) {
-      return copy_file(url.plainstr(), otherendpoint.plainstr(), callback);
+      return copy_file(url.plainstr(), otherurl.plainstr(), callback);
     } else {
-      return copy_file(otherendpoint.plainstr(), url.plainstr(), callback);
+      return copy_file(otherurl.plainstr(), url.plainstr(), callback);
     }
   }
 
@@ -609,11 +618,9 @@ namespace ArcDMCXrootd {
     // communication in DTR so better to use no debugging
     XrdCl::Log *log = XrdCl::DefaultEnv::GetLog();
     if (logger.getThreshold() == DEBUG) {
-      XrdPosixXrootd::setDebug(1);
       log->SetLevel(XrdCl::Log::DumpMsg);
     }
     else {
-      XrdPosixXrootd::setDebug(0);
       log->SetLevel(XrdCl::Log::ErrorMsg);
     }
   }
