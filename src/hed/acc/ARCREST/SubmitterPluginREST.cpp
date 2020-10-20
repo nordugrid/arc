@@ -38,24 +38,43 @@ namespace Arc {
     std::string delegationRequest;
     Arc::MCCConfig cfg;
     usercfg->ApplyToConfig(cfg);
-    std::string delegationPath = url.Path();
-    if(!delegationId.empty()) delegationPath = delegationPath+"/"+delegationId;
     Arc::ClientHTTP client(cfg, url);
-    {
+    if(delegationId.empty())
+      url.AddHTTPOption("action","new");
+    else
+      url.AddHTTPOption("action","renew");
+    std::string delegationPath;
+    if(delegationId.empty()) {
       Arc::PayloadRaw request;
       Arc::PayloadRawInterface* response(NULL);
       Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("GET"), delegationPath, &request, &info, &response);
-      if((!res) || (info.code != 200) || (info.reason.empty()) || (!response)) {
+      Arc::MCC_Status res = client.process(std::string("POST"), &request, &info, &response);
+      if((!res) || (info.code != 201) || (!response)) {
         delete response;
         return false;
       }
-      delegationId = info.reason;
-      for(unsigned int n = 0;response->Buffer(n);++n) {
-        delegationRequest.append(response->Buffer(n),response->BufferSize(n));
+      for(unsigned int n = 0;response->Buffer(n);++n) delegationRequest.append(response->Buffer(n),response->BufferSize(n));
+      delete response;
+      delegationPath = Arc::URL(info.location).Path();
+      std::string::size_type id_pos = delegationPath.rfind('/');
+      if(id_pos == std::string::npos) {
+        return false;
       }
+      delegationId = delegationPath.substr(id_pos);
+    } else {
+      delegationPath = url.Path() + "/" + delegationId;
+      Arc::PayloadRaw request;
+      Arc::PayloadRawInterface* response(NULL);
+      Arc::HTTPClientInfo info;
+      Arc::MCC_Status res = client.process(std::string("POST"), delegationPath, &request, &info, &response);
+      if((!res) || (info.code != 201) || (!response)) {
+        delete response;
+        return false;
+      }
+      for(unsigned int n = 0;response->Buffer(n);++n) delegationRequest.append(response->Buffer(n),response->BufferSize(n));
       delete response;
     }
+
     {
       DelegationProvider* deleg(NULL);
       if (!cfg.credential.empty()) {
@@ -74,7 +93,7 @@ namespace Arc {
       request.Insert(delegationResponse.c_str(),0,delegationResponse.length());
       Arc::PayloadRawInterface* response(NULL);
       Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("PUT"), url.Path()+"/"+delegationId, &request, &info, &response);
+      Arc::MCC_Status res = client.process(std::string("PUT"), delegationPath, &request, &info, &response);
       delete response;
       if((!res) || (info.code != 200) || (!response)) return false;
     }
@@ -82,6 +101,7 @@ namespace Arc {
   }
 
   bool SubmitterPluginREST::AddDelegation(std::string& product, std::string const& delegationId) {
+    // Add delegation durectly into JobDescription
     Arc::XMLNode job(product);
     if(!job) return false;
     NS ns;
@@ -102,19 +122,42 @@ namespace Arc {
     return true;
   }
 
-  SubmissionStatus SubmitterPluginREST::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
-    URL url((endpoint.find("://") == std::string::npos ? "https://" : "") + endpoint, false, 443, "/arex");
+  SubmissionStatus SubmitterPluginREST::SubmitInternal(const std::list<JobDescription>& jobdescs,
+                                           const ExecutionTarget* et, const std::string& endpoint,
+                         EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
+    // TODO: autoversion
+    URL url(et ?
+            et->ComputingEndpoint->URLString :
+            ((endpoint.find("://") == std::string::npos ? "https://" : "") + endpoint, false, 443, "/arex/rest/1.0"));
 
     Arc::URL submissionUrl(url);
     Arc::URL delegationUrl(url);
-    submissionUrl.ChangePath(submissionUrl.Path()+"/*new");
-    delegationUrl.ChangePath(delegationUrl.Path()+"/*deleg");
+    submissionUrl.ChangePath(submissionUrl.Path()+"/jobs");
+    submissionUrl.AddHTTPOption("action","new");
+    delegationUrl.ChangePath(delegationUrl.Path()+"/delegations");
+    delegationUrl.AddHTTPOption("action","new");
 
     SubmissionStatus retval;
+    std::string delegationId;
+    if(jobdescs.empty()) 
+      return retval;
+
+    if(!GetDelegation(delegationUrl, delegationId)) {
+      logger.msg(INFO, "Unable to submit jobs. Failed to delegate credentials.");
+      for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
+        notSubmitted.push_back(&*it);
+      }
+      retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+      return retval;
+    };
+
+    std::string fullProduct;
+    if(jobdescs.size() > 1) fullProduct = "<ActivityDescriptions>";
+    std::list< std::pair<JobDescription,std::list<JobDescription>::const_iterator> > preparedjobdescs;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
       JobDescription preparedjobdesc(*it);
   
-      if (!preparedjobdesc.Prepare()) {
+      if (!(et?preparedjobdesc.Prepare(*et):preparedjobdesc.Prepare())) {
         logger.msg(INFO, "Failed to prepare job description");
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
@@ -130,57 +173,94 @@ namespace Arc {
         continue;
       }
 
-      std::string delegationId;
-      if(!GetDelegation(delegationUrl, delegationId)) {
-        logger.msg(INFO, "Unable to submit job. Failed to delegate credentials.");
-        notSubmitted.push_back(&*it);
-        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-        continue;
-      };
       if(!AddDelegation(product, delegationId)) {
         logger.msg(INFO, "Unable to submit job. Failed to assign delegation to job description.");
         notSubmitted.push_back(&*it);
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       };
+      fullProduct += product;
+      preparedjobdescs.push_back(std::make_pair(preparedjobdesc,it));
+    };
+    if(jobdescs.size() > 1) fullProduct = "</ActivityDescriptions>";
 
-      Arc::MCCConfig cfg;
-      usercfg->ApplyToConfig(cfg);
-      Arc::ClientHTTP client(cfg, submissionUrl);
-      Arc::PayloadRaw request;
-      request.Insert(product.c_str(),0,product.length());
-      Arc::PayloadRawInterface* response(NULL);
-      Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("PUT"), &request, &info, &response);
-      if(!res) {
+    Arc::MCCConfig cfg;
+    usercfg->ApplyToConfig(cfg);
+    Arc::ClientHTTP client(cfg, submissionUrl);
+    Arc::PayloadRaw request;
+    request.Insert(fullProduct.c_str(),0,fullProduct.length());
+    Arc::PayloadRawInterface* response(NULL);
+    Arc::HTTPClientInfo info;
+
+    // TODO: paging, size limit
+    Arc::MCC_Status res = client.process(std::string("POST"), &request, &info, &response);
+    if(!res || !response) {
+      logger.msg(INFO, "Failed to submit all jobs.");
+      for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
         notSubmitted.push_back(&*it);
+      }
+      retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+      retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
+      delete response;
+      return retval;
+    }
+    if(!info.code != 201) {
+      logger.msg(INFO, "Failed to submit all jobs. " + info.reason);
+      for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
+        notSubmitted.push_back(&*it);
+      }
+      retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+      retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
+      delete response;
+      return retval;
+    }
+    Arc::XMLNode jobs_list(response->Content());
+    delete response; response = NULL;
+    if(!jobs_list || (jobs_list.Name() != "jobs")) {
+      logger.msg(INFO, "Failed to submit all jobs. " + info.reason);
+      for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
+        notSubmitted.push_back(&*it);
+      }
+      retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+      retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
+      return retval;
+    }
+    Arc::XMLNode job_item = jobs_list["job"];
+    for (std::list< std::pair<JobDescription,std::list<JobDescription>::const_iterator> >::const_iterator it = preparedjobdescs.begin(); it != preparedjobdescs.end(); ++it) {
+      if(!job_item) { // no more jobs returned 
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        for (; it != preparedjobdescs.end(); ++it) notSubmitted.push_back(&(*(it->second)));
+        break;
+      }
+      std::string code = job_item["status-code"];
+      std::string reason = job_item["reason"];
+      std::string id = job_item["id"];
+      std::string state = job_item["state"];
+      if((code != "201") || id.empty()) {
+        logger.msg(INFO, "Failed to submit all job. " + code + " " + reason);
+        notSubmitted.push_back(&(*(it->second)));
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
         continue;
       }
-      if((info.code != 200) || (info.reason.empty())) {
-        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
-        continue;
-      }
-      URL jobid(url);
-      jobid.ChangePath(jobid.Path()+"/"+info.reason);
+      URL jobid(submissionUrl);
+      jobid.ChangePath(jobid.Path()+"/"+id);
       URL sessionurl = jobid;
-
+      sessionurl.ChangePath(sessionurl.Path()+"/session");
       // compensate for time between request and response on slow networks
       sessionurl.AddOption("encryption=optional",false);
-      if (!PutFiles(preparedjobdesc, sessionurl)) {
+      // TODO: implement multi job PutFiles or run multiple in parallel
+      if (!PutFiles(it->first, sessionurl)) {
         logger.msg(INFO, "Failed uploading local input files");
-        notSubmitted.push_back(&*it);
+        notSubmitted.push_back(&(*(it->second)));
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
+        // TODO: send job cancel request to let server know files are not coming
         continue;
       }
-    
+
       Job j;
-      
-      AddJobDetails(preparedjobdesc, j);
-      
+      AddJobDetails(it->first, j);
       // Proposed mandatory attributes for ARC 3.0
       j.JobID = jobid.fullstr();
       j.ServiceInformationURL = url;
@@ -189,9 +269,9 @@ namespace Arc {
       j.JobStatusInterfaceName = "org.nordugrid.arcrest";
       j.JobManagementURL = url;
       j.JobManagementInterfaceName = "org.nordugrid.arcrest";
-      j.IDFromEndpoint = info.reason;
+      j.IDFromEndpoint = id;
       j.DelegationID.push_back(delegationId);
-      j.LogDir = "/*logs";
+      j.LogDir = "/diagnose";
       
       jc.addEntity(j);
     }
@@ -199,203 +279,18 @@ namespace Arc {
     return retval;
   }
 
+  SubmissionStatus SubmitterPluginREST::Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
+    return SubmitInternal(jobdescs, NULL, endpoint, jc, notSubmitted);
+  }
+
   SubmissionStatus SubmitterPluginREST::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
-    URL url(et.ComputingEndpoint->URLString);
-
-    Arc::URL submissionUrl(url);
-    Arc::URL delegationUrl(url);
-    submissionUrl.ChangePath(submissionUrl.Path()+"/*new");
-    delegationUrl.ChangePath(delegationUrl.Path()+"/*deleg");
-
-    SubmissionStatus retval;
-    for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
-      JobDescription preparedjobdesc(*it);
-  
-      if (!preparedjobdesc.Prepare(et)) {
-        logger.msg(INFO, "Failed to prepare job description");
-        notSubmitted.push_back(&*it);
-        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-        continue;
-      }
-
-      std::string product;
-      JobDescriptionResult ures = preparedjobdesc.UnParse(product, "emies:adl");
-      if (!ures) {
-        logger.msg(INFO, "Unable to submit job. Job description is not valid in the %s format: %s", "emies:adl", ures.str());
-        notSubmitted.push_back(&*it);
-        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-        continue;
-      }
-
-      std::string delegationId;
-      if(!GetDelegation(delegationUrl, delegationId)) {
-        logger.msg(INFO, "Unable to submit job. Failed to delegate credentials.");
-        notSubmitted.push_back(&*it);
-        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-        continue;
-      };
-      if(!AddDelegation(product, delegationId)) {
-        logger.msg(INFO, "Unable to submit job. Failed to assign delegation to job description.");
-        notSubmitted.push_back(&*it);
-        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-        continue;
-      };
-
-      Arc::MCCConfig cfg;
-      usercfg->ApplyToConfig(cfg);
-      Arc::ClientHTTP client(cfg, submissionUrl);
-      Arc::PayloadRaw request;
-      request.Insert(product.c_str(),0,product.length());
-      Arc::PayloadRawInterface* response(NULL);
-      Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("PUT"), &request, &info, &response);
-      if(!res) {
-        notSubmitted.push_back(&*it);
-        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
-        continue;
-      }
-      if((info.code != 200) || (info.reason.empty())) {
-        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
-        continue;
-      }
-      URL jobid(url);
-      jobid.ChangePath(jobid.Path()+"/"+info.reason);
-      URL sessionurl = jobid;
-
-      // compensate for time between request and response on slow networks
-      sessionurl.AddOption("encryption=optional",false);
-      if (!PutFiles(preparedjobdesc, sessionurl)) {
-        logger.msg(INFO, "Failed uploading local input files");
-        notSubmitted.push_back(&*it);
-        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
-        continue;
-      }
-    
-      Job j;
-      
-      AddJobDetails(preparedjobdesc, j);
-      
-      // Proposed mandatory attributes for ARC 3.0
-      j.JobID = jobid.fullstr();
-      j.ServiceInformationURL = url;
-      j.ServiceInformationInterfaceName = "org.nordugrid.arcrest";
-      j.JobStatusURL = url;
-      j.JobStatusInterfaceName = "org.nordugrid.arcrest";
-      j.JobManagementURL = url;
-      j.JobManagementInterfaceName = "org.nordugrid.arcrest";
-      j.IDFromEndpoint = info.reason;
-      j.DelegationID.push_back(delegationId);
-      j.LogDir = "/*logs";
-      
-      jc.addEntity(j);
-    }
-  
-    return retval;
+    return SubmitInternal(jobdescs, &et, "", jc, notSubmitted);
   }
 
   bool SubmitterPluginREST::Migrate(const std::string& jobid, const JobDescription& jobdesc,
                              const ExecutionTarget& et,
                              bool forcemigration, Job& job) {
-    /*
-    URL url(et.ComputingEndpoint->URLString);
-
-    AutoPointer<AREXClient> ac(clients.acquire(url,true));
-
-    std::string idstr;
-    AREXClient::createActivityIdentifier(jobid, idstr);
-
-    JobDescription preparedjobdesc(jobdesc);
-
-    // Modify the location of local files and files residing in a old session directory.
-    for (std::list<InputFileType>::iterator it = preparedjobdesc.DataStaging.InputFiles.begin();
-         it != preparedjobdesc.DataStaging.InputFiles.end(); it++) {
-      if (!it->Sources.front() || it->Sources.front().Protocol() == "file") {
-        it->Sources.front() = URL(jobid + "/" + it->Name);
-      }
-      else {
-        // URL is valid, and not a local file. Check if the source reside at a
-        // old job session directory.
-        const size_t foundRSlash = it->Sources.front().str().rfind('/');
-        if (foundRSlash == std::string::npos) continue;
-
-        const std::string uriPath = it->Sources.front().str().substr(0, foundRSlash);
-        // Check if the input file URI is pointing to a old job session directory.
-        for (std::list<std::string>::const_iterator itAOID = preparedjobdesc.Identification.ActivityOldID.begin();
-             itAOID != preparedjobdesc.Identification.ActivityOldID.end(); itAOID++) {
-          if (uriPath == *itAOID) {
-            it->Sources.front() = URL(jobid + "/" + it->Name);
-            break;
-          }
-        }
-      }
-    }
-
-    if (!preparedjobdesc.Prepare(et)) {
-      logger.msg(INFO, "Failed adapting job description to target resources");
-      clients.release(ac.Release());
-      return false;
-    }
-
-    // Add ActivityOldID.
-    preparedjobdesc.Identification.ActivityOldID.push_back(jobid);
-
-    std::string product;
-    JobDescriptionResult ures = preparedjobdesc.UnParse(product, "emies:adl");
-    if (!ures) {
-      logger.msg(INFO, "Unable to migrate job. Job description is not valid in the %s format: %s", "emies:adl", ures.str());
-      clients.release(ac.Release());
-      return false;
-    }
-
-    std::string sNewjobid;
-    if (!ac->migrate(idstr, product, forcemigration, sNewjobid,
-                    url.Protocol() == "https")) {
-      clients.release(ac.Release());
-      return false;
-    }
-
-    if (sNewjobid.empty()) {
-      logger.msg(INFO, "No job identifier returned by A-REX");
-      clients.release(ac.Release());
-      return false;
-    }
-
-    XMLNode xNewjobid(sNewjobid);
-    URL newjobid((std::string)(xNewjobid["ReferenceParameters"]["JobSessionDir"]));
-
-    URL sessionurl = newjobid;
-    sessionurl.AddOption("threads=3",false);
-    sessionurl.AddOption("encryption=optional",false);
-    sessionurl.AddOption("httpputpartial=yes",false); // for A-REX
-    sessionurl.AddOption("blocksize=5242880",true);
-
-    if (!PutFiles(preparedjobdesc, sessionurl)) {
-      logger.msg(INFO, "Failed uploading local input files");
-      clients.release(ac.Release());
-      return false;
-    }
-
-    AddJobDetails(preparedjobdesc, job);
-    
-    // Proposed mandatory attributes for ARC 3.0
-    job.JobID = newjobid;
-    job.ServiceInformationURL = url;
-    job.ServiceInformationInterfaceName = "org.nordugrid.wsrfglue2";
-    job.JobStatusURL = url;
-    job.JobStatusInterfaceName = "org.nordugrid.xbes";
-    job.JobManagementURL = url;
-    job.JobManagementInterfaceName = "org.nordugrid.xbes";
-    job.IDFromEndpoint = (std::string)xNewjobid["ReferenceParameters"]["a-rex:JobID"];
-    job.StageInDir = sessionurl;
-    job.StageOutDir = sessionurl;
-    job.SessionDir = sessionurl;
-
-    clients.release(ac.Release());
-    return true;
-    */
+    // TODO: Implement
     return false;
   }
 } // namespace Arc
