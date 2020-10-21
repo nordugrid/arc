@@ -713,6 +713,7 @@ Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& o
   if(!config) {
     return HTTPFault(inmsg,outmsg,500,"User can't be assigned configuration");
   }
+  // TODO: Implement new delegations commands as defined above
   // GET - retrieves list of delegations belonging to authenticated user
   // HEAD - supported.
   // PUT - not supported.
@@ -851,6 +852,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
   // POST <base URL>/jobs?action={info|status|kill|clean|restart} - job management operations supporting arrays of jobs.
   // PUT - not supported.
   if((context.method == "GET") || (context.method == "HEAD")) {
+    // TODO: implement state filter
     XMLNode listXml("<jobs/>");
     std::list<std::string> ids = ARexJob::Jobs(*config,logger_);
     for(std::list<std::string>::iterator itId = ids.begin(); itId != ids.end(); ++itId) {
@@ -1249,137 +1251,6 @@ Arc::MCC_Status ARexRest::processJob(Arc::Message& inmsg,Arc::Message& outmsg,
     return HTTPFault(inmsg,outmsg,404,"Wrong job sub-resource requested");
   }
   return HTTPFault(inmsg,outmsg,404,"Missing job sub-resource");
-  /*
-  ARexConfigContext* config = ARexConfigContext::GetRutimeConfiguration(inmsg,config_,uname_,endpoint_);
-  if(!config) {
-    return HTTPFault(inmsg,outmsg,500,"User can't be assigned configuration");
-  }
-  std::list<std::string> ids;
-  if(id == "*") {
-    ParseIds(context.query, ids);
-    if(ids.empty()) {
-      logger_.msg(Arc::VERBOSE, "process: missing job ids in multi-jobs request with subpath %s",context.processed);
-      return HTTPFault(inmsg,outmsg,400,"Missing job ids in multi-jobs request");
-    };
-  };
-  // GET - Retrieves full information about job (famous XML file, possibly automatically converted to JSON).
-  // HEAD - supported.
-  // DELETE - initiates clear request for the job(s).
-  // POST - accepts requests to modify job(s). Currently cancel and restart through passing
-  // in body partial job information with requested job state.
-
-  if((context.method == "GET") || (context.method == "HEAD")) {
-    if(ids.empty()) {
-      // single job
-      std::string errmsg;
-      Arc::XMLNode glue_xml;
-//      if(!processJobGet(inmsg, outmsg, errmsg, *config, logger_, id, glue_xml)) {
-//        return HTTPFault(inmsg,outmsg,404,errmsg.c_str());
-//      }
-      return HTTPResponse(inmsg,outmsg,glue_xml);
-    };
-    // Multi-job request
-    Arc::XMLNode glue_xml("<ComputingActivities xmlns=\"http://schemas.ogf.org/glue/2009/03/spec_2.0_r1\"/>\n");
-    for(std::list<std::string>::iterator idIt = ids.begin(); idIt != ids.end(); ++idIt) {
-      std::string errmsg;
-//      if(!processJobGet(inmsg, outmsg, errmsg, *config, logger_, *idIt, glue_xml)) {
-//        // Job information contains ids. Hence no need to inform about failures explicitely.
-//      };
-    };
-    return HTTPResponse(inmsg,outmsg,glue_xml);
-
-  } else if(context.method == "POST") {
-    // Accepting job information as returned by GET with only job state active
-    // ComputingActivity
-    //     State = emies:primary_state
-    // Acepting either XML or JSON. HTML is a bit too much here.
-    std::string job_str;
-    Arc::MCC_Status res = extract_content(inmsg,job_str,1024*1024);
-    if(!res)
-      return HTTPFault(inmsg,outmsg,500,res.getExplanation().c_str());
-    if(job_str.empty())
-      return HTTPFault(inmsg,outmsg,500,"Missing payload");
-    XMLNode glue_xml(job_str);
-    if (!glue_xml) {
-      glue_xml.Set("<ComputingActivity/>");
-      char const * end = ParseFromJson(glue_xml, job_str.c_str());
-      if(!end || *end)
-        return HTTPFault(inmsg,outmsg,500,"Failed to parse payload");
-    };
-    if(glue_xml.Name() != "ComputingActivity")
-      return HTTPFault(inmsg,outmsg,500,"Payload is incorrect");
-    XMLNode state_xml = glue_xml["State"];
-    bool cancel_request = false;
-    bool restart_request = false;
-    while(state_xml) {
-      std::string state_str = (std::string)state_xml;
-      if(state_str.compare(0,6,"emies:") == 0) {
-        //?state_name.assign(state_str.c_str()+6);
-        if(state_str.compare(6,std::string::npos,"terminal") == 0) {
-          cancel_request = true;
-        } else if(state_str.compare(6,std::string::npos,"accepted") == 0) {
-          restart_request = true;
-        };
-        break;
-      }
-      ++state_xml;
-    }
-    //      accepted|preprocessing|
-    //      processing|processing-accepting|processing-queued|processing-running|
-    //      postprocessing|terminal 
-    if (!cancel_request && !restart_request)
-      return HTTPFault(inmsg,outmsg,500,"Payload is missing acceptable state");
-    if(ids.empty()) {
-      // Single job.
-      ARexJob job(id,*config,logger_);
-      if(!job) {
-        // There is no such job
-        logger_.msg(Arc::ERROR, "REST:GET job %s - %s", id, job.Failure());
-        return HTTPFault(inmsg,outmsg,404,job.Failure().c_str());
-      }
-      if(cancel_request) {
-        if(!job.Cancel())
-          return HTTPFault(inmsg,outmsg,500,job.Failure().c_str());
-      } else if(restart_request) {
-        if(!job.Resume())
-          return HTTPFault(inmsg,outmsg,500,job.Failure().c_str());
-      }
-      // Return new state?
-      return HTTPPOSTDelayedResponse(inmsg,outmsg);
-    } else {
-      // Multi-job request
-
-
-
-
-    }
-  } else if(context.method == "DELETE") {
-    if(ids.empty()) {
-      ARexJob job(id,*config,logger_);
-      if(!job) {
-        // There is no such job
-        logger_.msg(Arc::ERROR, "REST:GET job %s - %s", id, job.Failure());
-        return HTTPFault(inmsg,outmsg,404,job.Failure().c_str());
-      }
-      if(!job.Clean()) {
-        return HTTPFault(inmsg,outmsg,500,job.Failure().c_str());
-      }
-      // Return new state?
-      return HTTPDELETEResponse(inmsg,outmsg,true);
-    };
-    for(std::list<std::string>::iterator idIt = ids.begin(); idIt != ids.end(); ++idIt) {
-      ARexJob job(*idIt,*config,logger_);
-      if(!job) continue;
-      if(!job.Clean()) {
-        std::string errmsg = job.Failure(); 
-        return HTTPFault(inmsg,outmsg,500,errmsg.c_str());
-      }
-    };
-    return HTTPDELETEResponse(inmsg,outmsg,true);
-  }
-  logger_.msg(Arc::VERBOSE, "process: method %s is not supported for subpath %s",context.method,context.processed);
-  return HTTPFault(inmsg,outmsg,501,"Not Implemented");
-  */
 }
 
 // -------------------------------  PER-JOB SESSION DIR -------------------------------------
