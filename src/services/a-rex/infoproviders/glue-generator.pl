@@ -507,7 +507,7 @@ GlueCEPolicyMaxTotalJobs: $queue_attributes{'nordugrid-queue-maxqueuable'}
 GlueCEPolicyMaxWallClockTime: $queue_attributes{'nordugrid-queue-maxcputime'}
 GlueCEPolicyPriority: 1
 GlueCEPolicyAssignedJobSlots: $AssignedSlots\n";
-            if ($queue_attributes{'nordugrid-queue-acl'} eq "DEFALUT") {
+            if ($queue_attributes{'nordugrid-queue-acl'} eq "DEFAULT") {
                 $queue_attributes{'nordugrid-queue-acl'}="VO:ops";
             }
             my @qvos= split / /, $queue_attributes{'nordugrid-queue-acl'};
