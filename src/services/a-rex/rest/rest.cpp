@@ -699,6 +699,7 @@ Arc::MCC_Status ARexRest::processInfo(Arc::Message& inmsg,Arc::Message& outmsg, 
 
 Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& outmsg, ProcessingContext& context) {
   // GET <base URL>/delegations - retrieves list of delegations belonging to authenticated user
+  // HEAD - supported.
   // POST <base URL>/delegations?action=new starts a new delegation process (1st step).
   // PUT <base URL>/delegations/<delegation id> stores public part (2nd step).
   // POST <base URL>/delegations/<delegation id>?action=get,renew,delete used to manage delegation.
@@ -713,11 +714,6 @@ Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& o
   if(!config) {
     return HTTPFault(inmsg,outmsg,500,"User can't be assigned configuration");
   }
-  // TODO: Implement new delegations commands as defined above
-  // GET - retrieves list of delegations belonging to authenticated user
-  // HEAD - supported.
-  // PUT - not supported.
-  // POST - initiates delegation
   if((context.method == "GET") || (context.method == "HEAD")) {
     XMLNode listXml("<delegations/>");
     std::list<std::string> ids = delegation_stores_[config_.DelegationDir()].ListCredIDs(config->GridName());
@@ -767,7 +763,8 @@ void UpdateProxyFile(ARex::DelegationStores& delegation_stores, ARexConfigContex
 }
 
 Arc::MCC_Status ARexRest::processDelegation(Arc::Message& inmsg,Arc::Message& outmsg,ProcessingContext& context,std::string const & id) {
-  // PUT <base URL>/delegations/<delegation id> stores public part (2nd step).
+  // GET,HEAD,DELETE - not supported.
+  // PUT <base URL>/delegations/<delegation id> stores public part (2nd step) to finish delegation procedure or to re-new delegation.
   // POST <base URL>/delegations/<delegation id>?action=get,renew,delete used to manage delegation.
   if(!context.subpath.empty())
     return HTTPFault(inmsg,outmsg,404,"Not Found"); // no more sub-resources
@@ -775,8 +772,6 @@ Arc::MCC_Status ARexRest::processDelegation(Arc::Message& inmsg,Arc::Message& ou
   if(!config)
     return HTTPFault(inmsg,outmsg,500,"User can't be assigned configuration");
 
-  // GET,HEAD,DELETE - not supported.
-  // PUT - stores public part of delegated certificate to finish delegation procedure or to re-new delegation.
   // POST - manages delegation.
   if(context.method == "PUT") {
     // Fetch HTTP content to pass it as delegation
@@ -830,9 +825,11 @@ static bool processJobRestart(Arc::Message& inmsg,ARexConfigContext& config, Arc
 static bool processJobDelegations(Arc::Message& inmsg,ARexConfigContext& config, Arc::Logger& logger, std::string const & id, XMLNode jobXml, ARex::DelegationStores& delegation_stores);
 
 Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,ProcessingContext& context) {
-  // GET <base URL>/jobs[?state=<state1>[&state=<state2>[...]]]
-  // POST <base URL>/jobs?action=new
-  // POST <base URL>/jobs?action={info|status|kill|clean|restart}
+  // GET <base URL>/jobs[?state=<state1[,state2[...]]>]
+  // HEAD - supported.
+  // POST <base URL>/jobs?action=new initiates creation of a new job instance or multiple jobs.
+  // POST <base URL>/jobs?action={info|status|kill|clean|restart|delegations} - job management operations supporting arrays of jobs.
+  // PUT - not supported.
 
   std::string jobId;
   if(GetPathToken(context.subpath, jobId)) {
@@ -846,17 +843,35 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
   if(!config) {
     return HTTPFault(inmsg,outmsg,500,"User can't be assigned configuration");
   }
-  // GET <base URL>/jobs retrieves list of jobs belonging to authenticated user
-  // HEAD - supported.
-  // POST <base URL>/jobs?action=new initiates creation of a new job instance or multiple jobs.
-  // POST <base URL>/jobs?action={info|status|kill|clean|restart} - job management operations supporting arrays of jobs.
-  // PUT - not supported.
   if((context.method == "GET") || (context.method == "HEAD")) {
-    // TODO: implement state filter
+    std::list<std::string> states;
+    tokenize(context["state"], states, ",");
     XMLNode listXml("<jobs/>");
     std::list<std::string> ids = ARexJob::Jobs(*config,logger_);
     for(std::list<std::string>::iterator itId = ids.begin(); itId != ids.end(); ++itId) {
-      listXml.NewChild("job").NewChild("id") = *itId;
+      std::string rest_state;
+      if(!states.empty()) {
+        ARexJob job(*itId,*config,logger_);
+        if(!job) continue; // There is no such job
+        bool job_pending = false;
+        std::string gm_state = job.State(job_pending);
+        bool job_failed = job.Failed();
+        std::string failed_cause;
+        std::string failed_state = job.FailedState(failed_cause);
+        convertActivityStatusREST(gm_state,rest_state,job_failed,job_pending,failed_state,failed_cause);
+        bool state_found = false;
+        for(std::list<std::string>::iterator itState = states.begin(); itState != states.end(); ++itState) {
+          if(rest_state == *itState) {
+            state_found = true;
+            break;
+          }
+        }
+        if(!state_found) continue;
+      } // states filter
+      XMLNode jobXml = listXml.NewChild("job");
+      jobXml.NewChild("id") = *itId;
+      if(!rest_state.empty())
+        jobXml.NewChild("state") = rest_state;
     }
     return HTTPResponse(inmsg, outmsg, listXml);
   } else if(context.method == "POST") {
