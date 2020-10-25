@@ -18,7 +18,7 @@ namespace Arc {
   EndpointQueryingStatus JobListRetrieverPluginREST::Query(const UserConfig& usercfg, const Endpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
-    URL url(CreateURL(endpoint.URLString));
+    URL url(endpoint.URLString);
     if (!url) {
       return s;
     }
@@ -38,10 +38,10 @@ namespace Arc {
       delete response;
       return s;
     }
-    std::string delegationRequest;
-    for(unsigned int n = 0;response->Buffer(n);++n) delegationRequest.append(response->Buffer(n),response->BufferSize(n));
+    std::string jobsResponse;
+    for(unsigned int n = 0;response->Buffer(n);++n) jobsResponse.append(response->Buffer(n),response->BufferSize(n));
     delete response;
-    Arc::XMLNode jobs_list(delegationRequest);
+    Arc::XMLNode jobs_list(jobsResponse);
     if(!jobs_list)
       return s;
     if(jobs_list.Name() != "jobs")
@@ -82,3 +82,4 @@ namespace Arc {
   }
 
 } // namespace Arc
+

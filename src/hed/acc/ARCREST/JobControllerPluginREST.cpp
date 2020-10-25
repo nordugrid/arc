@@ -79,10 +79,26 @@ namespace Arc {
     return true;
   }
 
-  JobState::StateType JobStateARCREST::StateMap(const std::string& state) {
-    /// \mapname ARCBES ARC extended BES
-    /// \mapnote The mapping is case-insensitive, and prefix "pending:" are ignored when performing the mapping.
 /*
+  JobState::StateType JobStateARCREST::StateMap(const std::string& state) {
+ACCEPTING	This is the initial job state. The job has reached the cluster, a session directory was created, the submission client can optionally upload files to the sessiondir. The job waits to be detected by the A-REX, the job processing on the CE hasn’t started yet	ACCEPTED
+ACCEPTED	In the ACCEPTED state the newly created job has been detected by A-REX but can’t go to the next state due to an internal A-REX limit. The submission client can optionally upload files to the sessiondir.	PENDING:ACCEPTED
+PREPARING	The job is undergoing the data stage-in process, input data is being gathered into the session directory (via external downloads or making cached copies available). During this state the submission client still can upload files to the session directory. This is an I/O heavy job state.	PREPARING
+PREPARED	The job successfully completed the data stage-in process and is being held waiting in A-REX’s internal queue before it can be passed over to the batch system	PENDING:PREPARING
+SUBMITTING	The job environment (via using RTEs) and the job batch submission script is being prepared to be followed by the submission to the batch system via using the available batch submission client interface	SUBMIT
+QUEUING	The job is under the control of the local batch system and is “queuing in the batch system”, waiting for a node/available slot	INLRMS
+RUNNING	The job is under the control of the local batch system and is “running in the batch system”, executing on an allocated node under the control of the batch system	INLRMS
+HELD	The job is under the control of the local batch system and is being put on hold or being suspended, for some reason the job is in a “pending state” of the batch system	INLRMS
+EXITINGLRMS	The job is under the control of the local batch system and is finishing its execution on the worker node, the job is “exiting” from the batch system either because the job is completed or because it was terminated	INLRMS
+OTHER	The job is under the control of the local batch system and is in some “other” native batch system state which can not be mapped to any of the previously described batch systems states.	INLRMS
+EXECUTED	The job has successfully completed in the batch system. The job is waiting to be picked up by the A-REX for further processing or waiting for an available data stage-out slot.	PENDING:INLRMS
+FINISHING	The job is undergoing the data stage-out process, A-REX is moving output data to the specified output file locations, the session directory is being cleaned up. Note that failed or terminated jobs can also undergo the FINISHING state. This is an I/O heavy job state	FINISHING
+FINISHED	Successful completion of the job on the cluster. The job has finished ALL its activity on the cluster AND no errors occurred during the job’s lifetime.	FINISHED
+FAILED	Unsuccessful completion of the job. The job failed during one of the processing stages. The job has finished ALL its activity on the cluster and there occurred some problems during the lifetime of the job.	FINISHED
+KILLING	The job was requested to be terminated by an authorized user and as a result it is being killed. A-REX is terminating any active process related to the job, e.g. it interacts with the LRMS by running the job-cancel script or stops data staging processes. Once the job has finished ALL its activity on the cluster it will be moved to the KILLED state.	CANCELLING
+KILLED	The job was terminated as a result of an authorized user request. The job has finished ALL its activity on the cluster.	FINISHED
+WIPED	The generated result of jobs are kept available in the session directory on the cluster for a while after the job reaches its final state (FINISHED, FAILED or KILLED). Later, the job’s session directory and most of the job related data are going to be deleted from the cluster when an expiration time is exceeded. Jobs with expired session directory lifetime are “deleted” from the cluster in the sense that only a minimal set of info is kept about such a job and their state is changed to WIPED	DELETED
+
     std::string state_ = Arc::lower(state);
     std::string::size_type p = state_.find("pending:");
     if(p != std::string::npos) {
@@ -119,8 +135,8 @@ namespace Arc {
     /// \mapattr Any other state -> OTHER
     else
       return JobState::OTHER;
-*/
   }
+*/
 
   URL JobControllerPluginREST::GetAddressOfResource(const Job& job) {
     return job.ServiceInformationURL;
@@ -131,62 +147,67 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  static char const * LogsPrefix = "/*logs";
-  static char const * DelegPrefix = "/*deleg";
-
   void JobControllerPluginREST::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
-/*
-    for (std::list<Job*>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
-      Arc::URL statusUrl(GetAddressOfResource(**it));
-      std::string id((*it)->JobID);
-      std::string::size_type pos = id.rfind('/');
-      if(pos != std::string::npos) id.erase(0,pos+1);
-      statusUrl.ChangePath(statusUrl.Path()+LogsPrefix+"/"+id+"/status"); // simple state
-      Arc::MCCConfig cfg;
-      usercfg->ApplyToConfig(cfg);
-      Arc::ClientHTTP client(cfg, statusUrl);
-      Arc::PayloadRaw request;
-      Arc::PayloadRawInterface* response(NULL);
-      Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("GET"), &request, &info, &response);
-      if((!res) || (info.code != 200) || (response == NULL) || (response->Buffer(0) == NULL)) {
-        delete response;
-        logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID);
-        IDsNotProcessed.push_back((*it)->JobID);
-        continue;
+    class JobInfoNodeProcessor: public InfoNodeProcessor {
+     public:
+      JobInfoNodeProcessor(std::list<Job*>& jobs): jobs(jobs) {}
+
+      virtual void operator()(std::string const& id, XMLNode node) {
+        XMLNode info_document = node["info_document"];
+        if(info_document) {
+
+
+
+
+
+
+        }
       }
-      (*it)->State = JobStateARCREST(std::string(response->Buffer(0),response->BufferSize(0)));
-      delete response;
-      (*it)->LogDir = std::string(LogsPrefix);
-      IDsProcessed.push_back((*it)->JobID);
+
+     private:
+      std::list<Job*>& jobs;
+    };
+
+    JobInfoNodeProcessor infoNodeProcessor(jobs);
+    Arc::URL currentServiceUrl;
+    std::list<std::string> IDs;
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
+        if(!IDs.empty()) {
+          ProcessJobs(currentServiceUrl, "info", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor);
+        }
+        currentServiceUrl = GetAddressOfResource(**it);
+      }
+
+      IDs.push_back((*it)->JobID);
     }
-*/
+    if(!IDs.empty()) {
+      ProcessJobs(currentServiceUrl, "info", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor);
+    }
   }
 
   bool JobControllerPluginREST::CleanJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
     
+    InfoNodeProcessor infoNodeProcessor;
     Arc::URL currentServiceUrl;
     std::list<std::string> IDs;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
-      std::string id(*it->JobID);
-      std::string::size_type pos = id.rfind('/');
-      if(pos != std::string::npos) id.erase(0,pos+1);
-      
       if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
         if(!IDs.empty()) {
-          if (!ProcessJobs(currentServiceUrl, "clean", IDs, IDsProcessed, IDsNotProcessed))
+          if (!ProcessJobs(currentServiceUrl, "clean", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor))
             ok = false;
         }
         currentServiceUrl = GetAddressOfResource(**it);
       }
 
-      IDs.push_back(*it->JobID);
+      IDs.push_back((*it)->JobID);
     }
-
-// TODO
-          //            (*it)->State = JobStateARCREST("FINISHED");
-          //IDsProcessed.push_back((*it)->JobID);
+    if(!IDs.empty()) {
+      if (!ProcessJobs(currentServiceUrl, "clean", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
+        ok = false;
+      }
+    }
 
     return ok;
   }
@@ -194,27 +215,25 @@ namespace Arc {
   bool JobControllerPluginREST::CancelJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
     
+    InfoNodeProcessor infoNodeProcessor;
     Arc::URL currentServiceUrl;
     std::list<std::string> IDs;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
-      std::string id(*it->JobID);
-      std::string::size_type pos = id.rfind('/');
-      if(pos != std::string::npos) id.erase(0,pos+1);
-      
       if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
         if(!IDs.empty()) {
-          if (!ProcessJobs(currentServiceUrl, "kill", IDs, IDsProcessed, IDsNotProcessed))
+          if (!ProcessJobs(currentServiceUrl, "kill", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor))
             ok = false;
         }
         currentServiceUrl = GetAddressOfResource(**it);
       }
 
-      IDs.push_back(*it->JobID);
+      IDs.push_back((*it)->JobID);
     }
-
-// TODO
-          //            (*it)->State = JobStateARCREST("FINISHED");
-          //IDsProcessed.push_back((*it)->JobID);
+    if(!IDs.empty()) {
+      if (!ProcessJobs(currentServiceUrl, "kill", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
+        ok = false;
+      }
+    }
 
     return ok;
   }
@@ -252,27 +271,64 @@ namespace Arc {
       IDsProcessed.push_back((*it)->JobID);
     }
 */
+    ok = false; // not implemented yet
+    return ok;
+  }
+
+  bool JobControllerPluginREST::ResumeJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
+    bool ok = true;
+    
+    InfoNodeProcessor infoNodeProcessor;
+    Arc::URL currentServiceUrl;
+    std::list<std::string> IDs;
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
+        if(!IDs.empty()) {
+          if (!ProcessJobs(currentServiceUrl, "restart", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
+            ok = false;
+          }
+        }
+        currentServiceUrl = GetAddressOfResource(**it);
+      }
+
+      IDs.push_back((*it)->JobID);
+    }
+    if(!IDs.empty()) {
+      if (!ProcessJobs(currentServiceUrl, "restart", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
+        ok = false;
+      }
+    }
+
     return ok;
   }
 
   bool JobControllerPluginREST::ProcessJobs(Arc::URL const & resourceUrl, std::string const & action,
-          std::list<std::string>& IDs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed) {
+          std::list<std::string>& IDs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed,
+          InfoNodeProcessor& infoNodeProcessor) const {
     Arc::URL statusUrl(resourceUrl);
     statusUrl.ChangePath(statusUrl.Path()+"/jobs");
     statusUrl.AddHTTPOption("action",action);
 
-    for (std::list<std::string>::const_iterator it = IDs.begin(); it != IDs.end(); ++it) {
-      std::string id(*it);
-      std::string::size_type pos = id.rfind('/');
-      if(pos != std::string::npos) id.erase(0,pos+1);
-      Arc::XMLNode job = jobs_list.NewChild("job");
-      job.NewChild("id") = id;
-    }
-
     Arc::MCCConfig cfg;
     usercfg->ApplyToConfig(cfg);
     Arc::ClientHTTP client(cfg, statusUrl);
-    Arc::MCC_Status res = client->process(std::string("POST"), &request, &info, &response);
+    Arc::PayloadRaw request;
+    Arc::PayloadRawInterface* response(NULL);
+    Arc::HTTPClientInfo info;
+    {
+      XMLNode jobs_id_list("<jobs/>");
+      for (std::list<std::string>::const_iterator it = IDs.begin(); it != IDs.end(); ++it) {
+        std::string id(*it);
+        std::string::size_type pos = id.rfind('/');
+        if(pos != std::string::npos) id.erase(0,pos+1);
+        Arc::XMLNode job = jobs_id_list.NewChild("job");
+        job.NewChild("id") = id;
+      }
+      std::string jobs_id_str;
+      jobs_id_list.GetXML(jobs_id_str);
+      request.Insert(jobs_id_str.c_str(),0,jobs_id_str.length());
+    }
+    Arc::MCC_Status res = client.process(std::string("POST"), &request, &info, &response);
     if((!res) || (info.code != 201)) {
       logger.msg(WARNING, "Failed to process jobs - wrong response");
       delete response; response = NULL;
@@ -312,7 +368,7 @@ namespace Arc {
       if(jid.empty()) {
         // hmm
       } else {
-        std::list<std::string>::const_iterator it = IDs.begin()
+        std::list<std::string>::const_iterator it = IDs.begin();
         for (; it != IDs.end(); ++it) {
           std::string id(*it);
           std::string::size_type pos = id.rfind('/');
@@ -322,45 +378,18 @@ namespace Arc {
         if(it == IDs.end()) {
           // hmm again
         } else {
-          if(code != "201") {
-            logger.msg(WARNING, "Failed to process job: %s - %s %s", id, code, reason);
+          if(jcode != "201") {
+            logger.msg(WARNING, "Failed to process job: %s - %s %s", jid, jcode, jreason);
             IDsNotProcessed.push_back(*it);
             ok = false;
           } else {
             IDsProcessed.push_back(*it);
           }
+          infoNodeProcessor(*it, job_item);
           IDs.erase(it);
         }
       }
     }
-    return ok;
-  }
-
-  bool JobControllerPluginREST::ResumeJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
-    bool ok = true;
-    
-    Arc::URL currentServiceUrl;
-    std::list<std::string> IDs;
-    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
-      std::string id(*it->JobID);
-      std::string::size_type pos = id.rfind('/');
-      if(pos != std::string::npos) id.erase(0,pos+1);
-      
-      if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
-        if(!IDs.empty()) {
-          if (!ProcessJobs(currentServiceUrl, "restart", IDs, IDsProcessed, IDsNotProcessed))
-            ok = false;
-        }
-        currentServiceUrl = GetAddressOfResource(**it);
-      }
-
-      IDs.push_back(*it->JobID);
-    }
-
-// TODO
-          //            (*it)->State = JobStateARCREST("FINISHED");
-          //IDsProcessed.push_back((*it)->JobID);
-
     return ok;
   }
 
@@ -373,20 +402,20 @@ namespace Arc {
     switch (resource) {
     case Job::STDIN:
       if(job.StdIn.empty()) return false;
-      url.ChangePath(url.Path() + '/session/' + job.StdIn);
+      url.ChangePath(url.Path() + "/session/" + job.StdIn);
       break;
     case Job::STDOUT:
       if(job.StdOut.empty()) return false;
-      url.ChangePath(url.Path() + '/session/' + job.StdOut);
+      url.ChangePath(url.Path() + "/session/" + job.StdOut);
       break;
     case Job::STDERR:
       if(job.StdErr.empty()) return false;
-      url.ChangePath(url.Path() + '/session/' + job.StdErr);
+      url.ChangePath(url.Path() + "/session/" + job.StdErr);
       break;
     case Job::STAGEINDIR:
     case Job::STAGEOUTDIR:
     case Job::SESSIONDIR:
-      url.ChangePath(url.Path() + '/session');
+      url.ChangePath(url.Path() + "/session");
       break;
     case Job::JOBLOG:
       url.ChangePath(url.Path() + "/diagnose/errors");
@@ -400,6 +429,8 @@ namespace Arc {
   }
 
   bool JobControllerPluginREST::GetJobDescription(const Job& job, std::string& desc_str) const {
+    //Arc::URL statusUrl(job.JobID);
+    //statusUrl.ChangePath(statusUrl.Path()+"/diagnose/description");
     Arc::URL statusUrl(GetAddressOfResource(job));
     std::string id(job.JobID);
     std::string::size_type pos = id.rfind('/');
@@ -424,3 +455,4 @@ namespace Arc {
   }
 
 } // namespace Arc
+

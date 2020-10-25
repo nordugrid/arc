@@ -39,12 +39,9 @@ namespace Arc {
     Arc::MCCConfig cfg;
     usercfg->ApplyToConfig(cfg);
     Arc::ClientHTTP client(cfg, url);
-    if(delegationId.empty())
-      url.AddHTTPOption("action","new");
-    else
-      url.AddHTTPOption("action","renew");
     std::string delegationPath;
     if(delegationId.empty()) {
+      url.AddHTTPOption("action","new");
       Arc::PayloadRaw request;
       Arc::PayloadRawInterface* response(NULL);
       Arc::HTTPClientInfo info;
@@ -62,6 +59,7 @@ namespace Arc {
       }
       delegationId = delegationPath.substr(id_pos);
     } else {
+      url.AddHTTPOption("action","renew");
       delegationPath = url.Path() + "/" + delegationId;
       Arc::PayloadRaw request;
       Arc::PayloadRawInterface* response(NULL);
@@ -75,33 +73,38 @@ namespace Arc {
       delete response;
     }
 
-    {
-      DelegationProvider* deleg(NULL);
-      if (!cfg.credential.empty()) {
-        deleg = new DelegationProvider(cfg.credential);
-      }
-      else {
-        const std::string& cert = (!cfg.proxy.empty() ? cfg.proxy : cfg.cert);
-        const std::string& key  = (!cfg.proxy.empty() ? cfg.proxy : cfg.key);
-        if (key.empty() || cert.empty()) return false;
-        deleg = new DelegationProvider(cert, key);
-      }
-      std::string delegationResponse = deleg->Delegate(delegationRequest);
-      delete deleg;
+    DelegationProvider* deleg(NULL);
+    if (!cfg.credential.empty()) {
+      deleg = new DelegationProvider(cfg.credential);
+    }
+    else {
+      const std::string& cert = (!cfg.proxy.empty() ? cfg.proxy : cfg.cert);
+      const std::string& key  = (!cfg.proxy.empty() ? cfg.proxy : cfg.key);
+      if (key.empty() || cert.empty()) return false;
+      deleg = new DelegationProvider(cert, key);
+    }
+    std::string delegationResponse = deleg->Delegate(delegationRequest);
+    delete deleg; deleg = NULL;
 
-      Arc::PayloadRaw request;
-      request.Insert(delegationResponse.c_str(),0,delegationResponse.length());
-      Arc::PayloadRawInterface* response(NULL);
-      Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("PUT"), delegationPath, &request, &info, &response);
-      delete response;
-      if((!res) || (info.code != 200) || (!response)) return false;
+    Arc::PayloadRaw request;
+    request.Insert(delegationResponse.c_str(),0,delegationResponse.length());
+    Arc::PayloadRawInterface* response(NULL);
+    Arc::HTTPClientInfo info;
+    Arc::MCC_Status res = client.process(std::string("PUT"), delegationPath, &request, &info, &response);
+    delete response; response = NULL;
+    if(!res) {
+      logger.msg(INFO, "Failed to communicate to delegation endpoint.");
+      return false;
+    }
+    if (info.code != 200) {
+      logger.msg(INFO, "Unexpected response code from delegation endpoint: %u, %s.", info.code, info.reason);
+      return false;
     }
     return true;
   }
 
   bool SubmitterPluginREST::AddDelegation(std::string& product, std::string const& delegationId) {
-    // Add delegation durectly into JobDescription
+    // Add delegation directly into JobDescription
     Arc::XMLNode job(product);
     if(!job) return false;
     NS ns;
