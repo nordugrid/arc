@@ -106,7 +106,8 @@ sub queueAttributes {
                                                      maxwalltime
                                                      minwalltime
                                                      defaultwalltime
-                                                     maxtotalcputime ));
+                                                     maxtotalcputime
+                                                     acl ));
 }
 
 sub jobAttributes {
