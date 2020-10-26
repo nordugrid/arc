@@ -79,64 +79,46 @@ namespace Arc {
     return true;
   }
 
-/*
   JobState::StateType JobStateARCREST::StateMap(const std::string& state) {
-ACCEPTING	This is the initial job state. The job has reached the cluster, a session directory was created, the submission client can optionally upload files to the sessiondir. The job waits to be detected by the A-REX, the job processing on the CE hasn’t started yet	ACCEPTED
-ACCEPTED	In the ACCEPTED state the newly created job has been detected by A-REX but can’t go to the next state due to an internal A-REX limit. The submission client can optionally upload files to the sessiondir.	PENDING:ACCEPTED
-PREPARING	The job is undergoing the data stage-in process, input data is being gathered into the session directory (via external downloads or making cached copies available). During this state the submission client still can upload files to the session directory. This is an I/O heavy job state.	PREPARING
-PREPARED	The job successfully completed the data stage-in process and is being held waiting in A-REX’s internal queue before it can be passed over to the batch system	PENDING:PREPARING
-SUBMITTING	The job environment (via using RTEs) and the job batch submission script is being prepared to be followed by the submission to the batch system via using the available batch submission client interface	SUBMIT
-QUEUING	The job is under the control of the local batch system and is “queuing in the batch system”, waiting for a node/available slot	INLRMS
-RUNNING	The job is under the control of the local batch system and is “running in the batch system”, executing on an allocated node under the control of the batch system	INLRMS
-HELD	The job is under the control of the local batch system and is being put on hold or being suspended, for some reason the job is in a “pending state” of the batch system	INLRMS
-EXITINGLRMS	The job is under the control of the local batch system and is finishing its execution on the worker node, the job is “exiting” from the batch system either because the job is completed or because it was terminated	INLRMS
-OTHER	The job is under the control of the local batch system and is in some “other” native batch system state which can not be mapped to any of the previously described batch systems states.	INLRMS
-EXECUTED	The job has successfully completed in the batch system. The job is waiting to be picked up by the A-REX for further processing or waiting for an available data stage-out slot.	PENDING:INLRMS
-FINISHING	The job is undergoing the data stage-out process, A-REX is moving output data to the specified output file locations, the session directory is being cleaned up. Note that failed or terminated jobs can also undergo the FINISHING state. This is an I/O heavy job state	FINISHING
-FINISHED	Successful completion of the job on the cluster. The job has finished ALL its activity on the cluster AND no errors occurred during the job’s lifetime.	FINISHED
-FAILED	Unsuccessful completion of the job. The job failed during one of the processing stages. The job has finished ALL its activity on the cluster and there occurred some problems during the lifetime of the job.	FINISHED
-KILLING	The job was requested to be terminated by an authorized user and as a result it is being killed. A-REX is terminating any active process related to the job, e.g. it interacts with the LRMS by running the job-cancel script or stops data staging processes. Once the job has finished ALL its activity on the cluster it will be moved to the KILLED state.	CANCELLING
-KILLED	The job was terminated as a result of an authorized user request. The job has finished ALL its activity on the cluster.	FINISHED
-WIPED	The generated result of jobs are kept available in the session directory on the cluster for a while after the job reaches its final state (FINISHED, FAILED or KILLED). Later, the job’s session directory and most of the job related data are going to be deleted from the cluster when an expiration time is exceeded. Jobs with expired session directory lifetime are “deleted” from the cluster in the sense that only a minimal set of info is kept about such a job and their state is changed to WIPED	DELETED
-
-    std::string state_ = Arc::lower(state);
-    std::string::size_type p = state_.find("pending:");
-    if(p != std::string::npos) {
-      state_.erase(p,8);
-    }
-    /// \mapattr accepted -> ACCEPTED
-    if (state_ == "accepted")
+    if (state == "ACCEPTING")
       return JobState::ACCEPTED;
-    /// \mapattr preparing -> PREPARING
-    /// \mapattr prepared -> PREPARING
-    else if (state_ == "preparing")
+    else if (state == "ACCEPTED")
+      return JobState::ACCEPTED;
+    else if (state == "PREPARING")
       return JobState::PREPARING;
-    /// \mapattr submit -> SUBMITTING
-    else if (state_ == "submit")
+    else if (state == "PREPARED")
+      return JobState::PREPARING;
+    else if (state == "SUBMITTING")
       return JobState::SUBMITTING;
-    /// \mapattr inlrms -> RUNNING
-    else if (state_ == "inlrms")
+    else if (state == "QUEUING")
+      return JobState::QUEUING;
+    else if (state == "RUNNING")
       return JobState::RUNNING;
-    /// \mapattr canceling -> RUNNING
-    else if (state_ == "canceling")
+    else if (state == "HELD")
+      return JobState::HOLD;
+    else if (state == "EXITINGLRMS")
       return JobState::RUNNING;
-    /// \mapattr finishing -> FINISHING
-    else if (state_ == "finishing")
+    else if (state == "OTHER")
+      return JobState::RUNNING;
+    else if (state == "EXECUTED")
+      return JobState::RUNNING;
+    else if (state == "KILLING")
+      return JobState::RUNNING;
+    else if (state == "FINISHING")
       return JobState::FINISHING;
-    /// \mapattr finished -> FINISHED
-    else if (state_ == "finished")
+    else if (state == "FINISHED")
       return JobState::FINISHED;
-    /// \mapattr deleted -> DELETED
-    else if (state_ == "deleted")
+    else if (state == "FAILED")
+      return JobState::FAILED;
+    else if (state == "KILLED")
+      return JobState::KILLED;
+    else if (state == "WIPED")
       return JobState::DELETED;
-    /// \mapattr "" -> UNDEFINED
-    else if (state_ == "")
+    else if (state == "")
       return JobState::UNDEFINED;
-    /// \mapattr Any other state -> OTHER
     else
       return JobState::OTHER;
   }
-*/
 
   URL JobControllerPluginREST::GetAddressOfResource(const Job& job) {
     return job.ServiceInformationURL;
@@ -148,19 +130,23 @@ WIPED	The generated result of jobs are kept available in the session directory o
   }
 
   void JobControllerPluginREST::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
-    class JobInfoNodeProcessor: public InfoNodeProcessor {
+    class JobStateProcessor: public InfoNodeProcessor {
      public:
-      JobInfoNodeProcessor(std::list<Job*>& jobs): jobs(jobs) {}
+      JobStateProcessor(std::list<Job*>& jobs): jobs(jobs) {}
 
       virtual void operator()(std::string const& id, XMLNode node) {
-        XMLNode info_document = node["info_document"];
-        if(info_document) {
-
-
-
-
-
-
+        std::string job_id = node["id"];
+        std::string job_state = node["state"];
+        if(!job_state.empty() && !job_id.empty()) {
+          for(std::list<Job*>::iterator itJob = jobs.begin(); itJob != jobs.end(); ++itJob) {
+            std::string id = (*itJob)->JobID;
+            std::string::size_type pos = id.rfind('/');
+            if(pos != std::string::npos) id.erase(0,pos+1);
+            if(job_id == id) {
+              (*itJob)->State = JobStateARCREST(job_state);
+              break;
+            }
+          }
         }
       }
 
@@ -168,13 +154,13 @@ WIPED	The generated result of jobs are kept available in the session directory o
       std::list<Job*>& jobs;
     };
 
-    JobInfoNodeProcessor infoNodeProcessor(jobs);
+    JobStateProcessor infoNodeProcessor(jobs);
     Arc::URL currentServiceUrl;
     std::list<std::string> IDs;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
         if(!IDs.empty()) {
-          ProcessJobs(currentServiceUrl, "info", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor);
+          ProcessJobs(currentServiceUrl, "status", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor);
         }
         currentServiceUrl = GetAddressOfResource(**it);
       }
@@ -182,7 +168,7 @@ WIPED	The generated result of jobs are kept available in the session directory o
       IDs.push_back((*it)->JobID);
     }
     if(!IDs.empty()) {
-      ProcessJobs(currentServiceUrl, "info", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor);
+      ProcessJobs(currentServiceUrl, "status", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor);
     }
   }
 
