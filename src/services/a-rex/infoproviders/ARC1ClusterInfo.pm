@@ -393,10 +393,7 @@ sub rest_state {
         # No idea
     }
 
-    if ( $is_pending ) {
-      push @{$es_state->{Attributes}}, "server-paused";
-    }
-    return $es_state;
+    return $state;
 }
 
 # input is an array with (state, lrms_state, failure_state)
@@ -409,7 +406,7 @@ sub glueState {
     my $bes_state = bes_state(@ng_status);
     push @$status, "bes:".$bes_state->[0] if @$bes_state;
     my $rest_state = rest_state(@ng_status); 
-    push @$status, "arcrest:".@{$rest_state->{State}}[0] if $rest_state->{State};
+    push @$status, "arcrest:".$rest_state->[0] if $rest_state;
     my $emies_state = emies_state(@ng_status);
     push @$status, "emies:".@{$emies_state->{State}}[0] if $emies_state->{State};
     if ($emies_state->{Attributes}) {
