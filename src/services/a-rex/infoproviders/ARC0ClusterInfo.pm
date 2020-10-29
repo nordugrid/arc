@@ -291,13 +291,6 @@ sub collect($) {
             # merge cluster wide and queue-specific options
             my $sconfig = { %{$config->{service}}, %{$config->{shares}{$share}} };
 
-            my @queue_advertisedvos = ();
-            if ($sconfig->{AdvertisedVO}) {
-                @queue_advertisedvos = @{$sconfig->{AdvertisedVO}};
-                # add VO: suffix to each advertised VO
-                @queue_advertisedvos = map { "VO:".$_ } @queue_advertisedvos;
-            }
-
             $sconfig->{ExecutionEnvironmentName} ||= [];
             my @nxenvs = @{$sconfig->{ExecutionEnvironmentName}};
 
@@ -380,8 +373,6 @@ sub collect($) {
             } elsif ( $qinfo->{totalcpus} ) {
                 $q->{totalcpus} = $qinfo->{totalcpus};
             }	
-
-            $q->{acl} = [ @queue_advertisedvos ] if @queue_advertisedvos;
 
             keys %$gmjobs_info; # reset iterator of each()
 

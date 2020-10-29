@@ -747,14 +747,6 @@ attributetype ( 1.3.6.1.4.1.11604.2.1.3.27
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
     SINGLE-VALUE )
 
-attributetype ( 1.3.6.1.4.1.11604.2.1.3.28
-    NAME 'nordugrid-queue-acl'
-    DESC 'Cluster authorization information'
-    EQUALITY caseExactMatch
-    ORDERING caseExactOrderingMatch
-    SUBSTR caseExactSubstringsMatch
-    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
-
 objectclass ( 1.3.6.1.4.1.11604.2.1.3
     NAME 'nordugrid-queue'
     DESC 'An LRMS queue'
@@ -773,7 +765,7 @@ objectclass ( 1.3.6.1.4.1.11604.2.1.3
 	   nordugrid-queue-homogeneity $ nordugrid-queue-prelrmsqueued $
 	   nordugrid-queue-localqueued $ nordugrid-queue-maxwalltime $
 	   nordugrid-queue-minwalltime $ nordugrid-queue-defaultwalltime $
-	   nordugrid-queue-maxtotalcputime $ nordugrid-queue-acl))
+	   nordugrid-queue-maxtotalcputime ))
 
 #-----------------------------------------------------------------
 #attributes for the nordugrid-job objectclass
