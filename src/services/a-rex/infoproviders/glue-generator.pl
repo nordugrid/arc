@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+
 # Queries NDGF site information and translates it from ARC to GLUE schema
 # Prototype by L.Field (2006)
 # Corrections and Performance enhancements by M.Flechl (2006-08-17)
@@ -87,6 +87,7 @@ my %queue_attributes=(
     'nordugrid-queue-gridqueued' => '',
     'nordugrid-queue-localqueued' => '',
     'nordugrid-queue-prelrmsqueued' => '',
+    'nordugrid-queue-acl' => '',
     );
 
 #all these values will be checked if they are numeric only:
@@ -506,7 +507,11 @@ GlueCEPolicyMaxTotalJobs: $queue_attributes{'nordugrid-queue-maxqueuable'}
 GlueCEPolicyMaxWallClockTime: $queue_attributes{'nordugrid-queue-maxcputime'}
 GlueCEPolicyPriority: 1
 GlueCEPolicyAssignedJobSlots: $AssignedSlots\n";
-            foreach (@vos){
+            if ($queue_attributes{'nordugrid-queue-acl'} eq "DEFAULT") {
+                $queue_attributes{'nordugrid-queue-acl'}="VO:ops";
+            }
+            my @qvos= split / /, $queue_attributes{'nordugrid-queue-acl'};
+            foreach (@qvos){
                 chomp;
                 print "GlueCEAccessControlBaseRule: $_\n";
             }
