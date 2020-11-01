@@ -157,8 +157,8 @@ namespace Arc {
                          EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
     // TODO: autoversion
     URL url(et ?
-            et->ComputingEndpoint->URLString :
-            ((endpoint.find("://") == std::string::npos ? "https://" : "") + endpoint, false, 443, "/arex"));
+            URL(et->ComputingEndpoint->URLString) :
+            URL((endpoint.find("://") == std::string::npos ? "https://" : "") + endpoint, false, 443, "/arex"));
 
     Arc::URL submissionUrl(url);
     Arc::URL delegationUrl(url);

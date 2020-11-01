@@ -358,7 +358,7 @@ namespace Arc {
       if(jid.empty()) {
         // hmm
       } else {
-        std::list<std::string>::const_iterator it = IDs.begin();
+        std::list<std::string>::iterator it = IDs.begin();
         for (; it != IDs.end(); ++it) {
           std::string id(*it);
           std::string::size_type pos = id.rfind('/');
