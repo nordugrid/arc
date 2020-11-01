@@ -551,6 +551,7 @@ prepare() {
     </Component>
     <Component name=\"soap.service\" id=\"soap\">
       <next id=\"plexer\"/>
+      <ContinueNonSOAP>true</ContinueNonSOAP>
     </Component>
     <Plexer name=\"plexer.service\" id=\"plexer\">
       $candypond_plexer
@@ -625,6 +626,7 @@ prepare() {
     </Component>
     <Component name=\"soap.service\" id=\"soap\">
       <next id=\"plexer\"/>
+      <ContinueNonSOAP>true</ContinueNonSOAP>
     </Component>
     <Plexer name=\"plexer.service\" id=\"plexer\">
       $candypond_plexer
