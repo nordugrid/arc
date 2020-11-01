@@ -19,6 +19,22 @@ namespace Arc {
 
   static Logger URLLogger(Logger::getRootLogger(), "URL");
 
+  static std::string::size_type FindProtocolSeparator(const std::string& url) {
+    // Looking for protocol separator
+    std::string::size_type pos = url.find(":");
+    if (pos != std::string::npos) {
+      // Check if protocol looks like protocol
+      for(std::string::size_type p = 0; p < pos; ++p) {
+        char c = url[p];
+        if(isalnum(c) || (c == '+') || (c == '-') || (c == '.')) continue;
+        pos = std::string::npos;
+        break;
+      }
+    }
+    return pos;
+  }
+
+
   std::map<std::string, std::string> URL::ParseOptions(const std::string& optstring, char separator, bool encoded) {
 
     std::map<std::string, std::string> options;
@@ -124,16 +140,7 @@ namespace Arc {
     }
 
     // Looking for protocol separator
-    pos = url.find(":");
-    if (pos != std::string::npos) {
-      // Check if protocol looks like protocol
-      for(std::string::size_type p = 0; p < pos; ++p) {
-        char c = url[p];
-        if(isalnum(c) || (c == '+') || (c == '-') || (c == '.')) continue;
-        pos = std::string::npos;
-        break;
-      }
-    }
+    pos = FindProtocolSeparator(url);
     if (pos == std::string::npos) {
       // URL does not start from protocol - must be simple path
       if (url[0] == '@') {
@@ -369,6 +376,21 @@ namespace Arc {
     host = lower(host);
   }
 
+  void URL::ChangeURL(const std::string& newurl, bool encoded) {
+    std::string::size_type pos = FindProtocolSeparator(newurl);
+    if(pos != std::string::npos) {
+      // Absolute URL
+      operator=(URL(newurl));
+      return;
+    }
+    // Path
+    if(newurl[0] == '/') {
+      // Absolute path
+      ChangeFullPath(newurl, encoded);
+      return;
+    }
+    ChangeFullPath(Path()+"/"+newurl);
+  }
 
   void URL::ParsePath(bool encoded) {
     std::string::size_type pos, pos2, pos3;
@@ -558,6 +580,7 @@ namespace Arc {
   }
 
   void URL::ChangeFullPath(const std::string& newpath, bool encoded) {
+    httpoptions.clear();
     path = newpath;
     ParsePath(encoded);
     std::string basepath = path;
