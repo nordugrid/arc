@@ -980,7 +980,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
           return HTTPFault(inmsg,outmsg,500,"Payload is not recognized");
           break;
       }
-      return HTTPResponse(inmsg, outmsg, listXml);
+      return HTTPPOSTResponse(inmsg, outmsg, listXml);
     } else if(action == "info") {
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
@@ -998,7 +998,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobStatus(inmsg,*config,logger_,*id,jobXml);
       }
-      return HTTPResponse(inmsg, outmsg, listXml);
+      return HTTPPOSTResponse(inmsg, outmsg, listXml);
     } else if(action == "kill") {
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
@@ -1007,7 +1007,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobKill(inmsg,*config,logger_,*id,jobXml);
       }
-      return HTTPResponse(inmsg, outmsg, listXml);
+      return HTTPPOSTResponse(inmsg, outmsg, listXml);
     } else if(action == "clean") {
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
@@ -1016,7 +1016,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobClean(inmsg,*config,logger_,*id,jobXml);
       }
-      return HTTPResponse(inmsg, outmsg, listXml);
+      return HTTPPOSTResponse(inmsg, outmsg, listXml);
     } else if(action == "restart") {
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
@@ -1025,7 +1025,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobRestart(inmsg,*config,logger_,*id,jobXml);
       }
-      return HTTPResponse(inmsg, outmsg, listXml);
+      return HTTPPOSTResponse(inmsg, outmsg, listXml);
     } else if(action == "delegations") {
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
@@ -1034,7 +1034,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobDelegations(inmsg,*config,logger_,*id,jobXml,delegation_stores_);
       }
-      return HTTPResponse(inmsg, outmsg, listXml);      
+      return HTTPPOSTResponse(inmsg, outmsg, listXml);      
     }
     logger_.msg(Arc::VERBOSE, "process: action %s is not supported for subpath %s",action,context.processed);
     return HTTPFault(inmsg,outmsg,501,"Action not implemented");
@@ -1242,8 +1242,8 @@ static bool processJobDelegations(Arc::Message& inmsg,ARexConfigContext& config,
     jobXml.NewChild("id") = id;
     return false;
   }
-  jobXml.NewChild("status-code") = "202";
-  jobXml.NewChild("reason") = "Queued for restarting";
+  jobXml.NewChild("status-code") = "200";
+  jobXml.NewChild("reason") = "OK";
   jobXml.NewChild("id") = id;
   std::list<std::string> ids = delegation_stores[config.GmConfig().DelegationDir()].ListLockedCredIDs(id,config.GridName());
   for(std::list<std::string>::iterator itId = ids.begin(); itId != ids.end(); ++itId) {

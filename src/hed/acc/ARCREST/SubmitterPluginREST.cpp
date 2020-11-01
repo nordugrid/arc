@@ -46,18 +46,32 @@ namespace Arc {
       Arc::PayloadRawInterface* response(NULL);
       Arc::HTTPClientInfo info;
       Arc::MCC_Status res = client.process(std::string("POST"), &request, &info, &response);
-      if((!res) || (info.code != 201) || (!response)) {
+      if(!res) {
+        logger.msg(VERBOSE, "Failed to communicate to delegation endpoint.");
+        delete response;
+        return false;
+      }
+      if(info.code != 201) {
+        logger.msg(VERBOSE, "Unexpected response code from delegation endpoint - %u",info.code);
+        if(response)
+          logger.msg(DEBUG, "Response: %s", std::string(response->Buffer(0),response->BufferSize(0)));
+        delete response;
+        return false;
+      }
+      if(!response) {
+        logger.msg(VERBOSE, "Missing response from delegation endpoint.");
         delete response;
         return false;
       }
       for(unsigned int n = 0;response->Buffer(n);++n) delegationRequest.append(response->Buffer(n),response->BufferSize(n));
       delete response;
-      delegationPath = Arc::URL(info.location).Path();
+      delegationPath = info.location.Path();
       std::string::size_type id_pos = delegationPath.rfind('/');
       if(id_pos == std::string::npos) {
+        logger.msg(INFO, "Unexpected delegation location from delegation endpoint - %s.",info.location.fullstr());
         return false;
       }
-      delegationId = delegationPath.substr(id_pos);
+      delegationId = delegationPath.substr(id_pos+1);
     } else {
       url.AddHTTPOption("action","renew");
       delegationPath = url.Path() + "/" + delegationId;
@@ -65,7 +79,20 @@ namespace Arc {
       Arc::PayloadRawInterface* response(NULL);
       Arc::HTTPClientInfo info;
       Arc::MCC_Status res = client.process(std::string("POST"), delegationPath, &request, &info, &response);
-      if((!res) || (info.code != 201) || (!response)) {
+      if(!res) {
+        logger.msg(VERBOSE, "Failed to communicate to delegation endpoint.");
+        delete response;
+        return false;
+      }
+      if(info.code != 201) {
+        logger.msg(VERBOSE, "Unexpected response code from delegation endpoint - %u",info.code);
+        if(response)
+          logger.msg(DEBUG, "Response: %s", std::string(response->Buffer(0),response->BufferSize(0)));
+        delete response;
+        return false;
+      }
+      if(!response) {
+        logger.msg(VERBOSE, "Missing response from delegation endpoint.");
         delete response;
         return false;
       }
@@ -131,13 +158,13 @@ namespace Arc {
     // TODO: autoversion
     URL url(et ?
             et->ComputingEndpoint->URLString :
-            ((endpoint.find("://") == std::string::npos ? "https://" : "") + endpoint, false, 443, "/arex/rest/1.0"));
+            ((endpoint.find("://") == std::string::npos ? "https://" : "") + endpoint, false, 443, "/arex"));
 
     Arc::URL submissionUrl(url);
     Arc::URL delegationUrl(url);
-    submissionUrl.ChangePath(submissionUrl.Path()+"/jobs");
+    submissionUrl.ChangePath(submissionUrl.Path()+"/rest/1.0/jobs");
     submissionUrl.AddHTTPOption("action","new");
-    delegationUrl.ChangePath(delegationUrl.Path()+"/delegations");
+    delegationUrl.ChangePath(delegationUrl.Path()+"/rest/1.0/delegations");
     delegationUrl.AddHTTPOption("action","new");
 
     SubmissionStatus retval;
@@ -194,9 +221,11 @@ namespace Arc {
     request.Insert(fullProduct.c_str(),0,fullProduct.length());
     Arc::PayloadRawInterface* response(NULL);
     Arc::HTTPClientInfo info;
+    std::multimap<std::string,std::string> attributes;
+    attributes.insert(std::pair<std::string, std::string>("Accept", "text/xml"));
 
     // TODO: paging, size limit
-    Arc::MCC_Status res = client.process(std::string("POST"), &request, &info, &response);
+    Arc::MCC_Status res = client.process(std::string("POST"), attributes, &request, &info, &response);
     if(!res || !response) {
       logger.msg(INFO, "Failed to submit all jobs.");
       for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
@@ -207,8 +236,9 @@ namespace Arc {
       delete response;
       return retval;
     }
-    if(!info.code != 201) {
-      logger.msg(INFO, "Failed to submit all jobs. " + info.reason);
+    if(info.code != 201) {
+      logger.msg(INFO, "Failed to submit all jobs: %u %s", info.code, info.reason);
+      logger.msg(DEBUG, "Response: %s", std::string(response->Buffer(0),response->BufferSize(0)));
       for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
         notSubmitted.push_back(&*it);
       }
@@ -247,13 +277,14 @@ namespace Arc {
         continue;
       }
       URL jobid(submissionUrl);
+      jobid.RemoveHTTPOption("action");
       jobid.ChangePath(jobid.Path()+"/"+id);
-      URL sessionurl = jobid;
-      sessionurl.ChangePath(sessionurl.Path()+"/session");
+      URL sessionUrl = jobid;
+      sessionUrl.ChangePath(sessionUrl.Path()+"/session");
       // compensate for time between request and response on slow networks
-      sessionurl.AddOption("encryption=optional",false);
+      sessionUrl.AddOption("encryption=optional",false);
       // TODO: implement multi job PutFiles or run multiple in parallel
-      if (!PutFiles(it->first, sessionurl)) {
+      if (!PutFiles(it->first, sessionUrl)) {
         logger.msg(INFO, "Failed uploading local input files");
         notSubmitted.push_back(&(*(it->second)));
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;

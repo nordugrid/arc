@@ -160,7 +160,7 @@ namespace Arc {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
         if(!IDs.empty()) {
-          ProcessJobs(currentServiceUrl, "status", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor);
+          ProcessJobs(currentServiceUrl, "status", 200, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor);
         }
         currentServiceUrl = GetAddressOfResource(**it);
       }
@@ -168,7 +168,7 @@ namespace Arc {
       IDs.push_back((*it)->JobID);
     }
     if(!IDs.empty()) {
-      ProcessJobs(currentServiceUrl, "status", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor);
+      ProcessJobs(currentServiceUrl, "status", 200, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor);
     }
   }
 
@@ -181,7 +181,7 @@ namespace Arc {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
         if(!IDs.empty()) {
-          if (!ProcessJobs(currentServiceUrl, "clean", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor))
+          if (!ProcessJobs(currentServiceUrl, "clean", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor))
             ok = false;
         }
         currentServiceUrl = GetAddressOfResource(**it);
@@ -190,7 +190,7 @@ namespace Arc {
       IDs.push_back((*it)->JobID);
     }
     if(!IDs.empty()) {
-      if (!ProcessJobs(currentServiceUrl, "clean", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
+      if (!ProcessJobs(currentServiceUrl, "clean", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
         ok = false;
       }
     }
@@ -207,7 +207,7 @@ namespace Arc {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
         if(!IDs.empty()) {
-          if (!ProcessJobs(currentServiceUrl, "kill", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor))
+          if (!ProcessJobs(currentServiceUrl, "kill", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor))
             ok = false;
         }
         currentServiceUrl = GetAddressOfResource(**it);
@@ -216,7 +216,7 @@ namespace Arc {
       IDs.push_back((*it)->JobID);
     }
     if(!IDs.empty()) {
-      if (!ProcessJobs(currentServiceUrl, "kill", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
+      if (!ProcessJobs(currentServiceUrl, "kill", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
         ok = false;
       }
     }
@@ -270,7 +270,7 @@ namespace Arc {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
         if(!IDs.empty()) {
-          if (!ProcessJobs(currentServiceUrl, "restart", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
+          if (!ProcessJobs(currentServiceUrl, "restart", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
             ok = false;
           }
         }
@@ -280,7 +280,7 @@ namespace Arc {
       IDs.push_back((*it)->JobID);
     }
     if(!IDs.empty()) {
-      if (!ProcessJobs(currentServiceUrl, "restart", IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
+      if (!ProcessJobs(currentServiceUrl, "restart", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
         ok = false;
       }
     }
@@ -288,11 +288,11 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerPluginREST::ProcessJobs(Arc::URL const & resourceUrl, std::string const & action,
+  bool JobControllerPluginREST::ProcessJobs(Arc::URL const & resourceUrl, std::string const & action, int successCode,
           std::list<std::string>& IDs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed,
           InfoNodeProcessor& infoNodeProcessor) const {
     Arc::URL statusUrl(resourceUrl);
-    statusUrl.ChangePath(statusUrl.Path()+"/jobs");
+    statusUrl.ChangePath(statusUrl.Path()+"/rest/1.0/jobs");
     statusUrl.AddHTTPOption("action",action);
 
     Arc::MCCConfig cfg;
@@ -314,9 +314,12 @@ namespace Arc {
       jobs_id_list.GetXML(jobs_id_str);
       request.Insert(jobs_id_str.c_str(),0,jobs_id_str.length());
     }
-    Arc::MCC_Status res = client.process(std::string("POST"), &request, &info, &response);
+    std::multimap<std::string,std::string> attributes;
+    attributes.insert(std::pair<std::string, std::string>("Accept", "text/xml"));
+    Arc::MCC_Status res = client.process(std::string("POST"), attributes, &request, &info, &response);
     if((!res) || (info.code != 201)) {
-      logger.msg(WARNING, "Failed to process jobs - wrong response");
+      logger.msg(WARNING, "Failed to process jobs - wrong response: %u", info.code);
+      if(response) logger.msg(DEBUG, "Content: %s", response->Content());
       delete response; response = NULL;
       for (std::list<std::string>::const_iterator it = IDs.begin(); it != IDs.end(); ++it) {
         logger.msg(WARNING, "Failed to process job: %s", *it);
@@ -325,6 +328,7 @@ namespace Arc {
       return false;
     }
 
+    logger.msg(DEBUG, "Content: %s", response->Content());
     Arc::XMLNode jobs_list(response->Content());
     delete response; response = NULL;
     if(!jobs_list || (jobs_list.Name() != "jobs")) {
@@ -344,8 +348,8 @@ namespace Arc {
           logger.msg(WARNING, "No response returned: %s", *it);
           IDsNotProcessed.push_back(*it);
           ok = false;
-          break;
         }
+        break;
       }
 
       std::string jcode = job_item["status-code"];
@@ -364,7 +368,7 @@ namespace Arc {
         if(it == IDs.end()) {
           // hmm again
         } else {
-          if(jcode != "201") {
+          if(jcode != Arc::tostring(successCode)) {
             logger.msg(WARNING, "Failed to process job: %s - %s %s", jid, jcode, jreason);
             IDsNotProcessed.push_back(*it);
             ok = false;
@@ -421,7 +425,7 @@ namespace Arc {
     std::string id(job.JobID);
     std::string::size_type pos = id.rfind('/');
     if(pos != std::string::npos) id.erase(0,pos+1);
-    statusUrl.ChangePath(statusUrl.Path()+"/jobs/"+id+"/diagnose/description");
+    statusUrl.ChangePath(statusUrl.Path()+"/rest/1.0/jobs/"+id+"/diagnose/description");
 
     Arc::MCCConfig cfg;
     usercfg->ApplyToConfig(cfg);

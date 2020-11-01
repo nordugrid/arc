@@ -36,13 +36,15 @@ namespace Arc {
     uc.ApplyToConfig(cfg);
     // Fetch from information sub-path
     Arc::URL infoUrl(url);
-    infoUrl.ChangePath(infoUrl.Path()+"/info");
+    infoUrl.ChangePath(infoUrl.Path()+"/rest/1.0/info");
     infoUrl.AddOption("schema=glue2",false);
     Arc::ClientHTTP client(cfg, infoUrl);
     Arc::PayloadRaw request;
     Arc::PayloadRawInterface* response(NULL);
     Arc::HTTPClientInfo info;
-    Arc::MCC_Status res = client.process(std::string("GET"), &request, &info, &response);
+    std::multimap<std::string,std::string> attributes;
+    attributes.insert(std::pair<std::string, std::string>("Accept", "text/xml"));
+    Arc::MCC_Status res = client.process(std::string("GET"), attributes, &request, &info, &response);
     if(!res) {
       delete response;
       return Arc::EndpointQueryingStatus(EndpointQueryingStatus::FAILED,res.getExplanation());
@@ -55,14 +57,16 @@ namespace Arc {
       delete response;
       return Arc::EndpointQueryingStatus(EndpointQueryingStatus::FAILED,"No response");
     }
-    logger.msg(VERBOSE, "CONTENT %u: ", response->BufferSize(0), std::string(response->Buffer(0),response->BufferSize(0)));
+    logger.msg(VERBOSE, "CONTENT %u: %s", response->BufferSize(0), std::string(response->Buffer(0),response->BufferSize(0)));
     Arc::XMLNode servicesQueryResponse(response->Buffer(0),response->BufferSize(0));
     delete response;
     if(!servicesQueryResponse) {
+      logger.msg(VERBOSE, "Response is not XML");
       return Arc::EndpointQueryingStatus(EndpointQueryingStatus::FAILED,"Response is not XML");
     }
 
     GLUE2::ParseExecutionTargets(servicesQueryResponse["Domains"]["AdminDomain"]["Services"], csList);
+    logger.msg(VERBOSE, "Parsed domains: %u",csList.size());
     for(std::list<Arc::ComputingServiceType>::iterator cs = csList.begin(); cs != csList.end(); ++cs) {
       cs->AdminDomain->Name = url.Host();
     }
