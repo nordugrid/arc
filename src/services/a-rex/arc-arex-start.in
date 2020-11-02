@@ -255,6 +255,7 @@ prepare() {
     GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_udp_port_range arex/data-staging`
     VOMS_PROCESSING=`readconfigvar "$ARC_RUNTIME_CONFIG" voms_processing common`
     mapping_present=`testconfigblock "$ARC_RUNTIME_CONFIG" mapping`
+    authtokens_present=`testconfigblock "$ARC_RUNTIME_CONFIG" authtokens`
     USERMAP_BLOCK=''
     if [ "$mapping_present" = 'true' ] ; then
       USERMAP_BLOCK='mapping'
@@ -483,18 +484,19 @@ prepare() {
     fi
 
     # Authorization and user mapping for A-REX/EMIES
-    emies_legacy_shc="
-<!-- Do authorization in same way as jobs plugin of gridftpd does -->
-<!-- Beware of hardcoded block name -->
-<SecHandler name=\"arc.authz\" event=\"incoming\">
-  <PDP name=\"arclegacy.pdp\">
-    <ConfigBlock>
-      <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
-      <BlockName>$USERAUTH_BLOCK</BlockName>
-    </ConfigBlock>
-  </PDP>
-</SecHandler>
-"
+    emies_legacy_shc=""
+#    emies_legacy_shc="
+#<!-- Do authorization in same way as jobs plugin of gridftpd does -->
+#<!-- Beware of hardcoded block name -->
+#<SecHandler name=\"arc.authz\" event=\"incoming\">
+#  <PDP name=\"arclegacy.pdp\">
+#    <ConfigBlock>
+#      <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
+#      <BlockName>$USERAUTH_BLOCK</BlockName>
+#    </ConfigBlock>
+#  </PDP>
+#</SecHandler>
+#"
     if [ "$mapping_present" = 'true' ]; then
       emies_legacy_shc="$emies_legacy_shc
 <!-- Perform client mapping according to rules of gridftpd -->
@@ -504,6 +506,17 @@ prepare() {
     <BlockName>$USERMAP_BLOCK</BlockName>
   </ConfigBlock>
 </SecHandler>"
+    fi
+
+
+  
+    authtokens_plugin=""
+    authtokens_handler=""
+    if [ "$authtokens_present" = 'true' ]; then
+      authtokens_plugin="<Plugins><Name>arcshcotokens</Name></Plugins>"
+      authtokens_handler="
+<!-- Collect OTokens information -->
+<SecHandler name=\"otokens.handler\" event=\"incoming\"/>"
     fi
 
     # A-Rex without WS interface
@@ -561,6 +574,7 @@ prepare() {
   <Plugins><Name>identitymap</Name></Plugins>
   <Plugins><Name>arcshc</Name></Plugins>
   <Plugins><Name>arcshclegacy</Name></Plugins>
+  $authtokens_plugin
   $argus_plugin
   <Chain>
     <Component name=\"tcp.service\" id=\"tcp\">
@@ -570,9 +584,11 @@ prepare() {
     <Component name=\"http.service\" id=\"http\">
       <next id=\"soap\">POST</next>
       <next id=\"plexer\"/>
+      $authtokens_handler
     </Component>
     <Component name=\"soap.service\" id=\"soap\">
       <next id=\"plexer\"/>
+      <ContinueNonSOAP>true</ContinueNonSOAP>
     </Component>
     <Plexer name=\"plexer.service\" id=\"plexer\">
       $candypond_plexer
@@ -621,6 +637,7 @@ prepare() {
   <Plugins><Name>identitymap</Name></Plugins>
   <Plugins><Name>arcshc</Name></Plugins>
   <Plugins><Name>arcshclegacy</Name></Plugins>
+  $authtokens_plugin
   $argus_plugin
   <Chain>
     <Component name=\"tcp.service\" id=\"tcp\">
@@ -633,10 +650,12 @@ prepare() {
       <CertificatePath>$X509_USER_CERT</CertificatePath>
       <CACertificatesDir PolicyGlobus=\"true\">$X509_CERT_DIR</CACertificatesDir>
       <VOMSProcessing>$VOMS_PROCESSING</VOMSProcessing>
+      <ClientAuthn>false</ClientAuthn>
     </Component>
     <Component name=\"http.service\" id=\"http\">
       <next id=\"soap\">POST</next>
       <next id=\"plexer\"/>
+      $authtokens_handler
       <!-- Match client to legacy authorization groups -->
       <SecHandler name=\"arclegacy.handler\" event=\"incoming\">
         <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
@@ -644,6 +663,7 @@ prepare() {
     </Component>
     <Component name=\"soap.service\" id=\"soap\">
       <next id=\"plexer\"/>
+      <ContinueNonSOAP>true</ContinueNonSOAP>
     </Component>
     <Plexer name=\"plexer.service\" id=\"plexer\">
       $candypond_plexer
@@ -704,7 +724,7 @@ validate() {
 if [ "$RUN" != "yes" ] ; then
     echo "a-rex disabled, please adjust the configuration to your needs "
     echo "and then set RUN to 'yes' in /etc/default/a-rex to enable it."
-    return 0
+    exit 0
 fi
 
 prepare

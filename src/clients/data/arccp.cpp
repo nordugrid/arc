@@ -527,7 +527,7 @@ static int runmain(int argc, char **argv) {
   signal(SIGTERM, sig_cancel);
   signal(SIGINT, sig_cancel);
 
-  Arc::LogStream logcerr(std::cerr);
+  static Arc::LogStream logcerr(std::cerr);
   logcerr.setFormat(Arc::ShortFormat);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);

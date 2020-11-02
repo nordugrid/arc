@@ -6,7 +6,6 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <pwd.h>
 #include <unistd.h>
 
 #include <arc/loader/Loader.h>
@@ -22,7 +21,7 @@
 #include <arc/StringConv.h>
 #include <arc/FileUtils.h>
 #include <arc/Utils.h>
-#include "job.h"
+#include <arc/otokens/openid_metadata.h>
 #include "grid-manager/log/JobLog.h"
 #include "grid-manager/log/JobsMetrics.h"
 #include "grid-manager/log/HeartBeatMetrics.h"
@@ -68,6 +67,7 @@ char const* ARexService::LogsPath = "*logs";
 char const* ARexService::NewPath = "*new";
 char const* ARexService::DelegationPath = "*deleg";
 char const* ARexService::CachePath = "cache";
+char const* ARexService::RestPath = "rest";
 
 #define AREX_POLICY_OPERATION_URN "http://www.nordugrid.org/schemas/policy-arc/types/a-rex/operation"
 #define AREX_POLICY_OPERATION_ADMIN "Admin"
@@ -237,6 +237,43 @@ std::string ARexSecAttr::get(const std::string& id) const {
   return "";
 };
 
+static bool match_lists(const std::list<std::pair<bool,std::string> >& list1, const std::list<std::string>& list2, std::string& matched) {
+  for(std::list<std::pair<bool,std::string> >::const_iterator l1 = list1.begin(); l1 != list1.end(); ++l1) {
+    for(std::list<std::string>::const_iterator l2 = list2.begin(); l2 != list2.end(); ++l2) {
+      if((l1->second) == (*l2)) {
+        matched = l1->second;
+        return l1->first;
+      };
+    };
+  };
+  return false;
+}
+
+static bool match_groups(std::list<std::pair<bool,std::string> > const & groups, Arc::Message& inmsg) {
+  std::string matched_group;
+  if(!groups.empty()) {
+    Arc::MessageAuth* auth = inmsg.Auth();
+    if(auth) {
+      Arc::SecAttr* sattr = auth->get("ARCLEGACY");
+      if(sattr) {
+        if(match_lists(groups, sattr->getAll("GROUP"), matched_group)) {
+          return true;
+        };
+      };
+    };
+    auth = inmsg.AuthContext();
+    if(auth) {
+      Arc::SecAttr* sattr = auth->get("ARCLEGACY");
+      if(sattr) {
+        if(match_lists(groups, sattr->getAll("GROUP"), matched_group)) {
+          return true;
+        };
+      };
+    };
+  };
+  return false;
+}
+
 static Arc::XMLNode ESCreateResponse(Arc::PayloadSOAP& res,const char* opname) {
   Arc::XMLNode response = res.NewChild(ES_CREATE_NPREFIX + ":" + opname + "Response");
   return response;
@@ -274,13 +311,6 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     if(!*arex) { delete arex; arex=NULL; };
     return arex;
 }
-
-class ARexConfigContext:public Arc::MessageContextElement, public ARexGMConfig {
- public:
-  ARexConfigContext(GMConfig& config,const std::string& uname,const std::string& grid_name,const std::string& service_endpoint):
-    ARexGMConfig(config,uname,grid_name,service_endpoint) { };
-  virtual ~ARexConfigContext(void) { };
-};
 
 void CountedResource::Acquire(void) {
   lock_.lock();
@@ -397,66 +427,6 @@ Arc::MCC_Status ARexService::make_empty_response(Arc::Message& outmsg) {
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-ARexConfigContext* ARexService::get_configuration(Arc::Message& inmsg) {
-  ARexConfigContext* config = NULL;
-  Arc::MessageContextElement* mcontext = (*inmsg.Context())["arex.gmconfig"];
-  if(mcontext) {
-    try {
-      config = dynamic_cast<ARexConfigContext*>(mcontext);
-      logger_.msg(Arc::DEBUG,"Using cached local account '%s'", config->User().Name());
-    } catch(std::exception& e) { };
-  };
-  if(config) return config;
-  // TODO: do configuration detection
-  // TODO: do mapping to local unix name
-  std::string uname;
-  uname=inmsg.Attributes()->get("SEC:LOCALID");
-  if(uname.empty()) uname=uname_;
-  if(uname.empty()) {
-    if(getuid() == 0) {
-      logger_.msg(Arc::ERROR, "Will not map to 'root' account by default");
-      return NULL;
-    };
-    struct passwd pwbuf;
-    char buf[4096];
-    struct passwd* pw;
-    if(getpwuid_r(getuid(),&pwbuf,buf,sizeof(buf),&pw) == 0) {
-      if(pw && pw->pw_name) {
-        uname = pw->pw_name;
-      };
-    };
-  };
-  if(uname.empty()) {
-    logger_.msg(Arc::ERROR, "No local account name specified");
-    return NULL;
-  };
-  logger_.msg(Arc::DEBUG,"Using local account '%s'",uname);
-  std::string grid_name = inmsg.Attributes()->get("TLS:IDENTITYDN");
-  std::string endpoint = endpoint_;
-  if(endpoint.empty()) {
-    std::string http_endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
-    std::string tcp_endpoint = inmsg.Attributes()->get("TCP:ENDPOINT");
-    bool https_proto = !grid_name.empty();
-    endpoint = tcp_endpoint;
-    if(https_proto) {
-      endpoint="https"+endpoint;
-    } else {
-      endpoint="http"+endpoint;
-    };
-    endpoint+=GetPath(http_endpoint);
-  };
-  config=new ARexConfigContext(config_,uname,grid_name,endpoint);
-  if(config) {
-    if(*config) {
-      inmsg.Context()->Add("arex.gmconfig",config);
-    } else {
-      delete config; config=NULL;
-      logger_.msg(Arc::ERROR, "Failed to acquire A-REX's configuration");
-    };
-  };
-  return config;
-}
-
 static std::string GetPath(Arc::Message &inmsg,std::string &base) {
   base = inmsg.Attributes()->get("HTTP:ENDPOINT");
   Arc::AttributeIterator iterator = inmsg.Attributes()->getAll("PLEXER:EXTENSION");
@@ -487,6 +457,47 @@ static void GetIdFromPath(std::string& subpath, std::string& id) {
   while(subpath[0] == '/') subpath.erase(0,1);
 }
 
+Arc::MCC_Status ARexService::preProcessSecurity(Arc::Message& inmsg,Arc::Message& outmsg,Arc::SecAttr* sattr,bool is_soap,ARexConfigContext*& config) {
+  config = NULL;
+  if(sattr) inmsg.Auth()->set("AREX",sattr);
+
+  {
+    Arc::MCC_Status sret = ProcessSecHandlers(inmsg,"incoming");
+    if(!sret) {
+      logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
+      std::string fault_str = "Not authorized: " + std::string(sret);
+      return is_soap ?
+        make_soap_fault(outmsg, fault_str.c_str()) :
+        make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, fault_str.c_str());
+    };
+  };
+
+  // Process grid-manager configuration if not done yet
+  config = ARexConfigContext::GetRutimeConfiguration(inmsg, config_, uname_, endpoint_);
+  if(!config) {
+    logger_.msg(Arc::ERROR, "Can't obtain configuration");
+    // Service is not operational
+    char const* fault = "User can't be assigned configuration";
+    return is_soap ?
+      make_soap_fault(outmsg, fault) :
+      make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, fault);
+  };
+  config->ClearAuths();
+  config->AddAuth(inmsg.Auth());
+  config->AddAuth(inmsg.AuthContext());
+
+  return Arc::MCC_Status(Arc::STATUS_OK);
+}
+
+Arc::MCC_Status ARexService::postProcessSecurity(Arc::Message& outmsg) {
+  Arc::MCC_Status sret = ProcessSecHandlers(outmsg,"outgoing");
+  if(!sret) {
+    logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
+    delete outmsg.Payload(NULL);
+  };
+  return sret;
+}
+
 Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   // Split request path into parts: service, job and file path. 
   // TODO: make it HTTP independent
@@ -501,7 +512,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   std::string id;
   GetIdFromPath(subpath, id);
   // Make SubOpCache separate service
-  enum { SubOpNone, SubOpInfo, SubOpLogs, SubOpNew, SubOpDelegation, SubOpCache } sub_op = SubOpNone;
+  enum { SubOpNone, SubOpInfo, SubOpLogs, SubOpNew, SubOpDelegation, SubOpCache, SubOpRest } sub_op = SubOpNone;
   // Sort out path
   if(id == InfoPath) {
     sub_op = SubOpInfo;
@@ -518,6 +529,9 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   } else if(id == CachePath) {
     sub_op = SubOpCache;
     id.erase();
+  } else if(id == RestPath) {
+    sub_op = SubOpRest;
+    id.erase();
   };
   logger_.msg(Arc::VERBOSE, "process: id: %s", id);
   logger_.msg(Arc::VERBOSE, "process: subop: %s", (sub_op==SubOpNone)?"none":
@@ -525,8 +539,26 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
                                                   ((sub_op==SubOpLogs)?LogsPath:
                                                   ((sub_op==SubOpNew)?NewPath:
                                                   ((sub_op==SubOpDelegation)?DelegationPath:
-                                                  ((sub_op==SubOpCache)?CachePath:"unknown"))))));
+                                                  ((sub_op==SubOpCache)?CachePath:
+                                                  ((sub_op==SubOpRest)?RestPath:"unknown")))))));
   logger_.msg(Arc::VERBOSE, "process: subpath: %s", subpath);
+
+  // Switch to REST ASAP
+  if(sub_op == SubOpRest) {
+    ARexSecAttr* sattr = new ARexSecAttr(std::string(JOB_POLICY_OPERATION_UNDEFINED));
+    if(sattr) sattr->SetResource(endpoint,id,subpath);
+    ARexConfigContext* config(NULL);
+    Arc::MCC_Status sret = preProcessSecurity(inmsg,outmsg,sattr,false,config);
+    if(!sret) return sret;
+
+    sret = rest_.process(inmsg, outmsg);
+
+    if(sret) {
+      sret = postProcessSecurity(outmsg);
+    }
+
+    return sret;
+  }
 
   // Sort out request and identify operation requested
   Arc::PayloadSOAP* inpayload = NULL;
@@ -566,35 +598,10 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   } else if(method == "DELETE") {
     sattr = new ARexSecAttr(std::string(JOB_POLICY_OPERATION_MODIFY));
   }
-  if(sattr) {
-    inmsg.Auth()->set("AREX",sattr);
-    sattr->SetResource(endpoint,id,subpath);
-  }
-
-  {
-    Arc::MCC_Status sret = ProcessSecHandlers(inmsg,"incoming");
-    if(!sret) {
-      logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
-      std::string fault_str = "Not authorized: " + std::string(sret);
-      return (method == "POST") ?
-        make_soap_fault(outmsg, fault_str.c_str()) :
-        make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, fault_str.c_str());
-    };
-  };
-
-  // Process grid-manager configuration if not done yet
-  ARexConfigContext* config = get_configuration(inmsg);
-  if(!config) {
-    logger_.msg(Arc::ERROR, "Can't obtain configuration");
-    // Service is not operational
-    char const* fault = "User can't be assigned configuration";
-    return (method == "POST") ?
-      make_soap_fault(outmsg, fault) :
-      make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, fault);
-  };
-  config->ClearAuths();
-  config->AddAuth(inmsg.Auth());
-  config->AddAuth(inmsg.AuthContext());
+  if(sattr) sattr->SetResource(endpoint,id,subpath);
+  ARexConfigContext* config(NULL);
+  Arc::MCC_Status sret = preProcessSecurity(inmsg,outmsg,sattr,method=="POST",config);
+  if(!sret) return sret;
 
   // Identify which of served endpoints request is for.
   // Using simplified algorithm - POST for SOAP messages,
@@ -755,12 +762,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       logger_.msg(Arc::ERROR, "Per-job POST/SOAP requests are not supported");
       return make_soap_fault(outmsg,"Operation not supported");
     };
-    Arc::MCC_Status sret = ProcessSecHandlers(outmsg,"outgoing");
-    if(!sret) {
-      logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
-      delete outmsg.Payload(NULL);
-      return sret;
-    };
+    Arc::MCC_Status sret = postProcessSecurity(outmsg);
+    if(!sret) return sret;
     return Arc::MCC_Status(Arc::STATUS_OK);
   } else if(method == "GET") {
     // HTTP plugin either provides buffer or stream
@@ -790,16 +793,15 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         break;
     };
     if(ret) {
-      Arc::MCC_Status sret = ProcessSecHandlers(outmsg,"outgoing");
-      if(!sret) {
-        logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s",std::string(sret));
-        delete outmsg.Payload(NULL);
-        return sret;
-      };
+      Arc::MCC_Status sret = postProcessSecurity(outmsg);
+      if(!sret) return sret;
     };
     return ret;
   } else if(method == "HEAD") {
+    logger_.msg(Arc::VERBOSE, "process: HEAD");
+    logger_.msg(Arc::INFO, "HEAD: id %s path %s", id, subpath);
     Arc::MCC_Status ret;
+    CountedResourceLock cl_lock(datalimit_);
     switch(sub_op) {
       case SubOpInfo:
         ret = HeadInfo(inmsg,outmsg,*config,subpath);
@@ -822,12 +824,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         break;
     };
     if(ret) {
-      Arc::MCC_Status sret = ProcessSecHandlers(outmsg,"outgoing");
-      if(!sret) {
-        logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
-        delete outmsg.Payload(NULL);
-        return sret;
-      };
+      Arc::MCC_Status sret = postProcessSecurity(outmsg);
+      if(!sret) return sret;
     };
     return ret;
   } else if(method == "PUT") {
@@ -856,12 +854,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         break;
     };
     if(ret) {
-      Arc::MCC_Status sret = ProcessSecHandlers(outmsg,"outgoing");
-      if(!sret) {
-        logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
-        delete outmsg.Payload(NULL);
-        return sret;
-      };
+      Arc::MCC_Status sret = postProcessSecurity(outmsg);
+      if(!sret) return sret;
     };
     return ret;
   } else if(method == "DELETE") {
@@ -890,12 +884,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         break;
     };
     if(ret) {
-      Arc::MCC_Status sret = ProcessSecHandlers(outmsg,"outgoing");
-      if(!sret) {
-        logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
-        delete outmsg.Payload(NULL);
-        return sret;
-      };
+      Arc::MCC_Status sret = postProcessSecurity(outmsg);
+      if(!sret) return sret;
     };
     return ret;
   } else if(!method.empty()) {
@@ -913,6 +903,9 @@ Arc::MCC_Status ARexService::HeadDelegation(Arc::Message& inmsg,Arc::Message& ou
 }
 
 Arc::MCC_Status ARexService::GetDelegation(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath) {
+  if(!&config) {
+    return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User is not identified");
+  };
   if(!subpath.empty()) {
     return make_http_fault(outmsg,500,"No additional path expected");
   };
@@ -1047,7 +1040,8 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
               infodoc_(true),
               infoprovider_wakeup_period_(0),
               all_jobs_count_(0),
-              gm_(NULL) {
+              gm_(NULL),
+              rest_(cfg, parg, config_, delegation_stores_, all_jobs_count_) {
   valid = false;
   config_.SetJobLog(new JobLog());
   config_.SetJobsMetrics(new JobsMetrics());

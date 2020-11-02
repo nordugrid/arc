@@ -21,21 +21,34 @@ namespace Arc {
   Logger DataExternalHelper::logger(Logger::getRootLogger(), "DataPoint.External");
 
 
+  void DataExternalHelper::SetPluginAttributes() {
+    if (!plugin)
+      return;
+
+    plugin->Range(range_start, range_end);
+    plugin->SetSecure(force_secure);
+    plugin->Passive(force_passive);
+    plugin->ReadOutOfOrder(allow_out_of_order);
+  }
+
   DataStatus DataExternalHelper::Check() {
     if (!plugin)
       return DataStatus::NotInitializedError;
+    SetPluginAttributes();
     return plugin->Check(true); // TODO: check_meta
   }
 
   DataStatus DataExternalHelper::Remove() {
     if (!plugin)
       return DataStatus::NotInitializedError;
+    SetPluginAttributes();
     return plugin->Remove();
   }
 
   DataStatus DataExternalHelper::CreateDirectory(bool with_parents) {
     if (!plugin)
       return DataStatus::NotInitializedError;
+    SetPluginAttributes();
     return plugin->CreateDirectory(with_parents);
   }
 
@@ -43,8 +56,7 @@ namespace Arc {
     if (!plugin)
       return DataStatus::NotInitializedError;
 
-
-    plugin->Range(range_start, range_end);
+    SetPluginAttributes();
 
     unsigned int max_inactivity_time = 1000;
 
@@ -103,13 +115,10 @@ namespace Arc {
   }
 
   DataStatus DataExternalHelper::Write() {
-    static char dummy;
-
     if (!plugin)
       return DataStatus::NotInitializedError;
 
-
-    plugin->Range(range_start, range_end);
+    SetPluginAttributes();
 
     unsigned int max_inactivity_time = 1000;
 
@@ -193,6 +202,8 @@ namespace Arc {
     if (!plugin)
       return DataStatus::NotInitializedError;
 
+    SetPluginAttributes();
+
     FileInfo file;
     DataStatus result = plugin->Stat(file, verb);
     if(result)
@@ -203,6 +214,8 @@ namespace Arc {
   DataStatus DataExternalHelper::List(DataPoint::DataPointInfoType verb) {
     if (!plugin)
       return DataStatus::NotInitializedError;
+
+    SetPluginAttributes();
 
     std::list<FileInfo> files;
     DataStatus result = plugin->List(files, verb);
@@ -215,18 +228,28 @@ namespace Arc {
   DataStatus DataExternalHelper::Rename(const URL& newurl) {
     if (!plugin)
       return DataStatus::NotInitializedError;
+    SetPluginAttributes();
     return plugin->Rename(newurl);
   }
 
   DataStatus DataExternalHelper::Transfer(const URL& otherendpoint, bool source, DataPoint::TransferCallback callback) {
     if (!plugin)
       return DataStatus::NotInitializedError;
+    SetPluginAttributes();
+    // check if checksum is specified as a metadata attribute
+    if (!plugin->GetURL().MetaDataOption("checksumtype").empty() && !plugin->GetURL().MetaDataOption("checksumvalue").empty()) {
+      std::string csum = plugin->GetURL().MetaDataOption("checksumtype") + ':' + plugin->GetURL().MetaDataOption("checksumvalue");
+      logger.msg(INFO, "DataMove::Transfer: using supplied checksum %s", csum);
+      plugin->SetCheckSum(csum);
+    }
     return plugin->Transfer(otherendpoint, source, callback);
   }
 
   DataStatus DataExternalHelper::Transfer3rdParty(const URL& source, const URL& destination, DataPoint::TransferCallback callback) {
     if (!plugin)
       return DataStatus::NotInitializedError;
+
+    SetPluginAttributes();
 
     class DataPoint3rdParty: public DataPoint {
      public:
@@ -243,25 +266,13 @@ namespace Arc {
       plugins(NULL),
       instream(instream),
       outstream(outstream),
-      //ftp_active(false),
-      //url(url),
-      //usercfg(usercfg),
-      //instream(instream),
-      //outstream(outstream),
-      //cbarg(new CBArg(this)),
-      //force_secure(true),
-      //force_passive(true),
       threads(1),
       bufsize(65536),
       range_start(0),
       range_end(0),
       force_secure(false),
-      force_passive(false)
-      //allow_out_of_order(true),
-      //credential(NULL),
-      //ftp_eof_flag(false),
-      //check_received_length(0),
-      //data_error(false)
+      force_passive(false),
+      allow_out_of_order(true)
   {
     XMLNode cfg(NS(), "ArcConfig");
     cfg.NewChild("ModuleManager").NewChild("Path") = path;
@@ -325,6 +336,7 @@ int main(int argc, char* argv[]) {
   int logger_format = -1;
   int secure = 1;
   int passive = 1;
+  int out_of_order = 1;
 
   try {
     /* Create options parser */
@@ -338,6 +350,7 @@ int main(int argc, char* argv[]) {
     options.AddOption('F', "format", "logger output format", "format", logger_format);
     options.AddOption('s', "secure", "force secure data connection", "boolean", secure);
     options.AddOption('p', "passive", "force passive data connection", "boolean", passive);
+    options.AddOption('o', "noorder", "allow out of order reading", "boolean", out_of_order);
 
     params = options.Parse(argc, argv);
     if (params.empty()) {
@@ -391,6 +404,7 @@ int main(int argc, char* argv[]) {
     handler->SetRange(range_start, range_end);
     handler->SetSecure(secure);
     handler->SetPassive(passive);
+    handler->ReadOutOfOrder(out_of_order);
     Arc::DataStatus result(Arc::DataStatus::Success);
     if(command == Arc::DataPointDelegate::RenameCommand) {
       if(params.empty()) {

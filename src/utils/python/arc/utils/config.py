@@ -320,7 +320,7 @@ def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
                                  ln + 1, confline.strip('\n'))
                     continue
                 option = option_match.groupdict()['option']
-                value = option_match.groupdict()['value']
+                value = option_match.groupdict()['value'].strip()
                 # ordered lists of options
                 parsed_confdict_ref[block_id]['__options'].append(option)
                 parsed_confdict_ref[block_id]['__values'].append(value)
@@ -330,6 +330,8 @@ def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
 
 def _config_list_values(block, option):
     """Returns list of options values in the block (list of one element if not multivalued or None if not defined)"""
+    if block not in __parsed_config:
+        return None
     values = None
     if option in __parsed_config[block]['__options']:
         values = [__parsed_config[block]['__values'][i]

@@ -58,7 +58,7 @@ void GridFTP_Commands::data_connect_retrieve_callback(void* arg,globus_ftp_contr
     int fres=it->froot.read(it->data_buffer[i].data,
                 (it->virt_offset)+(it->data_offset),&size);
     if(fres != 0) {
-      logger.msg(Arc::ERROR, "Closing channel (retrieve) due to local read error :%s", it->froot.error);
+      logger.msg(Arc::ERROR, "Closing channel (retrieve) due to local read error: %s", it->froot.error);
       it->force_abort();
       it->free_data_buffer();it->froot.close(false);
       globus_mutex_unlock(&(it->data_lock)); return;

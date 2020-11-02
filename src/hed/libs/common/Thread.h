@@ -110,6 +110,8 @@ namespace Arc {
        but runs thread() method instead of specified function. */
     bool start(SimpleCounter* count = NULL);
 
+    virtual ~Thread(void) {};
+
    protected:
     /// Implement this method and put thread functionality into it
     virtual void thread(void) = 0;

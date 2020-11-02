@@ -4,6 +4,7 @@
 #include <config.h>
 #endif
 
+#include <arpa/inet.h>
 #include <list>
 #include <string>
 
@@ -712,33 +713,48 @@ namespace ArcDMCGridFTP {
         free(sresp);
       }
     } else {
-      // Successful EPSV - response is (|||port|)
-      // Currently more complex responses with protocol and host
-      // are not supported.
+      // Successful EPSV - proper response is (|||port|)
+      // Unfortuantely there are servers which respond with non-empty first and
+      // second part. So we must support that response at least rudimentary.
       if (sresp) {
         char sep = sresp[0];
-        char* lsep = NULL;
         if(sep) {
-          if((sresp[1] == sep) && (sresp[2] == sep) &&
-             ((lsep = (char*)strchr(sresp+3,sep)) != NULL)) {
-            *lsep = 0;
-            pasv_addr.port = strtoul(sresp+3,&lsep,10);
-            if(pasv_addr.port != 0) {
-              // Apply control connection address
-              unsigned short local_port;
-              if(!(res = globus_io_tcp_get_remote_address_ex(&(handle->cc_handle.io_handle),
-                                     pasv_addr.host,&pasv_addr.hostlen,&local_port))) {
-                logger.msg(INFO, "Failed to apply local address to data connection");
-                std::string globus_err(res.str());
-                logger.msg(INFO, "Failure: %s", globus_err);
-                result.SetDesc("Failed to apply local address to data connection for "+urlstr+": "+globus_err);
-                free(sresp);
-                return result;
+          char* lsep1 = (char*)strchr(sresp+1,sep);
+          if(lsep1 != NULL) {
+            char* lsep2 = (char*)strchr(lsep1+1,sep);
+            if(lsep2 != NULL) {
+              char* lsep3 = (char*)strchr(lsep2+1,sep);
+              if(lsep3 != NULL) {
+                *lsep3 = '\0';
+                pasv_addr.port = strtoul(lsep2+1,&lsep3,10);
+                if(pasv_addr.port != 0) {
+                  // Apply control connection address
+                  if((lsep2-lsep1) > 1) {
+                    *lsep2 = '\0';
+                    if(inet_pton(AF_INET, lsep1+1, pasv_addr.host) == 1) {
+                      pasv_addr.hostlen = 4;
+                    } else if(inet_pton(AF_INET6, lsep1+1, pasv_addr.host) == 1) {
+                      pasv_addr.hostlen = 16;
+                    }
+                  } else {
+                    unsigned short local_port;
+                    if(!(res = globus_io_tcp_get_remote_address_ex(&(handle->cc_handle.io_handle),
+                                           pasv_addr.host,&pasv_addr.hostlen,&local_port))) {
+                      logger.msg(INFO, "Failed to apply local address to data connection");
+                      std::string globus_err(res.str());
+                      logger.msg(INFO, "Failure: %s", globus_err);
+                      result.SetDesc("Failed to apply local address to data connection for "+urlstr+": "+globus_err);
+                      free(sresp);
+                      return result;
+                    }
+                  }
+                }
               }
             }
           }
         }
         free(sresp);
+        sresp = NULL;
       }
     }
     if (pasv_addr.hostlen == 0) {
@@ -750,7 +766,7 @@ namespace ArcDMCGridFTP {
       logger.msg(VERBOSE, "Data channel: %d.%d.%d.%d:%d",
                  pasv_addr.host[0], pasv_addr.host[1], pasv_addr.host[2], pasv_addr.host[3],
                  pasv_addr.port);
-    } else {
+    } else { // hostlen = 16
       char buf[8*5];
       snprintf(buf,sizeof(buf),"%04x:%04x:%04x:%04x:%04x:%04x:%04x:%04x",
                  pasv_addr.host[0]<<8  | pasv_addr.host[1],

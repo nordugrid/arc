@@ -37,6 +37,10 @@ static URL options_to_voms_url(const std::string& host, int port, const TCPSec& 
   url.ChangeHost(host);
   url.ChangePort(port);
   url.ChangePath("/generate-ac");
+  // VOMS server does not like absolute URL in request
+  url.AddOption("relativeuri","yes",true);
+  // And it does not understand encoding in HTTP options
+  url.AddOption("encodeduri","no",true);
   return url;
 }
 
@@ -68,10 +72,9 @@ MCC_Status ClientVOMSRESTful::process(const std::string& principal,
                                       const std::list<std::string>& targets,
                                       std::string& result) {
   URL url = GetURL();
-  url.ChangePath(url.Path()+"/generate-ac");
   if(!principal.empty()) url.AddHTTPOption("principal",principal,true);
   if(!fqans.empty()) url.AddHTTPOption("fqans",join(fqans,","),true);
-  if(lifetime != 0) url.AddHTTPOption("lifetime",(std::string)lifetime,true);
+  if(lifetime != 0) url.AddHTTPOption("lifetime",Arc::tostring(lifetime.GetPeriod()),true);
   if(!targets.empty()) url.AddHTTPOption("targets",join(targets,","),true);
   PayloadRaw request;
   PayloadStreamInterface* response = NULL;
@@ -101,26 +104,32 @@ MCC_Status ClientVOMSRESTful::process(const std::string& principal,
     if(resp_str.length() > 4*1024*1024) break; // Some sanity check
   } while(true);
   delete response;
-  //std::cerr<<"--- response: "<<resp_str<<std::endl;
   XMLNode resp(resp_str);
   if(!resp) {
     return MCC_Status(GENERIC_ERROR,"VOMS","Response is not recognized as XML");
   }
-  if(resp.Name() == "voms") {
+  if(resp.Name() == "error") {
+    return MCC_Status(GENERIC_ERROR,"VOMS",(std::string)resp["code"]+": "+(std::string)resp["message"]);
+  } else if(resp.Name() == "voms") {
+    if(resp["error"]) {
+      return MCC_Status(GENERIC_ERROR,"VOMS",(std::string)resp["error"]["code"]+": "+(std::string)resp["error"]["message"]);
+    }
     if(resp["ac"]) {
-      result = (std::string)resp["ac"];
+      result = "-----BEGIN VOMS AC-----\n"+(std::string)resp["ac"]+"\n-----END VOMS AC-----";
     } else {
       result.resize(0);
     }
-    XMLNode warning = resp["warning"];
     std::string warn_str;
+    XMLNode warning = resp["warning"];
     for(;(bool)warning;++warning) {
       if(!warn_str.empty()) warn_str += " ; ";
       warn_str += (std::string)warning;
     }
+    if(info.code != 200) {
+      if(warn_str.empty()) warn_str = info.reason;
+      return MCC_Status(GENERIC_ERROR,"VOMS",warn_str);
+    }
     return MCC_Status(STATUS_OK,"VOMS",warn_str);
-  } else if(resp.Name() == "error") {
-    return MCC_Status(GENERIC_ERROR,"VOMS",(std::string)resp["code"]+": "+(std::string)resp["message"]);
   }
   return MCC_Status(GENERIC_ERROR,"VOMS","Response is missing required 'voms' and 'error' elements");
 }

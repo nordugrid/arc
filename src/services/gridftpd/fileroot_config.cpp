@@ -41,7 +41,6 @@ int FileRoot::config(gridftpd::Daemon &daemon,ServerParams* params) {
     std::string command;
     cf->ReadNext(command,rest);
     if(command.length() == 0) break; /* EOF */
-    int r;
     if(daemon.config(cf->Section(),command,rest) == -1) { cfile.close(); delete cf; return 1; };
 
     if(cf->SubSection()[0] != 0) continue;

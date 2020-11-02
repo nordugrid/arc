@@ -12,11 +12,12 @@
 #include "grid-manager/GridManager.h"
 #include "delegation/DelegationStores.h"
 #include "grid-manager/conf/GMConfig.h"
+#include "rest/rest.h"
+#include "job.h"
 
 namespace ARex {
 
 class ARexGMConfig;
-class ARexConfigContext;
 class CountedResourceLock;
 
 class CountedResource {
@@ -78,7 +79,7 @@ class ARexService: public Arc::Service {
   FileChunksList files_chunks_;
   GMConfig config_;
   GridManager* gm_;
-  ARexConfigContext* get_configuration(Arc::Message& inmsg);
+  ARexRest rest_;
 
   // A-REX operations
   AREXOP(CacheCheck);
@@ -104,6 +105,7 @@ class ARexService: public Arc::Service {
   Arc::MCC_Status GetJob(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
   Arc::MCC_Status GetLogs(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
   Arc::MCC_Status GetInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
+  Arc::MCC_Status GetInfo(Arc::Message& inmsg,Arc::Message& outmsg);
   Arc::MCC_Status GetNew(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
   Arc::MCC_Status GetDelegation(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
   Arc::MCC_Status GetCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
@@ -111,6 +113,7 @@ class ARexService: public Arc::Service {
   Arc::MCC_Status HeadJob(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
   Arc::MCC_Status HeadLogs(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
   Arc::MCC_Status HeadInfo(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
+  Arc::MCC_Status HeadInfo(Arc::Message& inmsg,Arc::Message& outmsg);
   Arc::MCC_Status HeadNew(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
   Arc::MCC_Status HeadDelegation(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
   Arc::MCC_Status HeadCache(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& subpath);
@@ -169,6 +172,9 @@ class ARexService: public Arc::Service {
   ES_SIMPLE_FAULT_HEAD(ESInvalidActivityLimitFault)
   ES_SIMPLE_FAULT_HEAD(ESInvalidParameterFault)
 
+  Arc::MCC_Status preProcessSecurity(Arc::Message& inmsg,Arc::Message& outmsg,Arc::SecAttr* sattr,bool is_soap,ARexConfigContext*& config);
+  Arc::MCC_Status postProcessSecurity(Arc::Message& outmsg);
+
  public:
   ARexService(Arc::Config *cfg,Arc::PluginArgument *parg);
   virtual ~ARexService(void);
@@ -180,6 +186,7 @@ class ARexService: public Arc::Service {
   static char const* NewPath;
   static char const* DelegationPath;
   static char const* CachePath;
+  static char const* RestPath;
 
   // Convenience methods
   static Arc::MCC_Status make_empty_response(Arc::Message& outmsg);

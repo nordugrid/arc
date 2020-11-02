@@ -60,6 +60,9 @@ if [ -z "$JOB_ACCOUNTING" ]; then
 fi
 # Setting environment variables as specified by user
 export 'GRID_GLOBAL_JOBID=@TEST_JOB_ID@'
+export 'GRID_GLOBAL_JOBURL='
+export 'GRID_GLOBAL_JOBINTERFACE='
+export 'GRID_GLOBAL_JOBHOST='
 
 RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
 RUNTIME_JOB_STDIN=/dev/null
@@ -75,6 +78,7 @@ if [ ! -z "$RUNTIME_GRIDAREA_DIR" ] ; then
   RUNTIME_CONTROL_DIR=`echo "$RUNTIME_CONTROL_DIR" | sed "s#^$RUNTIME_JOB_DIR#$RUNTIME_GRIDAREA_DIR#"`
 fi
 RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-}
+RUNTIME_LOCAL_SCRATCH_MOVE_TOOL=${RUNTIME_LOCAL_SCRATCH_MOVE_TOOL:-mv}
 RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-}
 RUNTIME_NODE_SEES_FRONTEND=${RUNTIME_NODE_SEES_FRONTEND:-yes}
   if [ ! -z "$RUNTIME_LOCAL_SCRATCH_DIR" ] && [ ! -z "$RUNTIME_NODE_SEES_FRONTEND" ]; then
@@ -88,8 +92,8 @@ RUNTIME_NODE_SEES_FRONTEND=${RUNTIME_NODE_SEES_FRONTEND:-yes}
       [ "$f" = "$RUNTIME_JOB_DIR/.." ] && continue
       [ "$f" = "$RUNTIME_JOB_DIR/.diag" ] && continue
       [ "$f" = "$RUNTIME_JOB_DIR/.comment" ] && continue
-      if ! mv "$f" "$RUNTIME_NODE_JOB_DIR"; then
-        echo "Failed to move '$f' to '$RUNTIME_NODE_JOB_DIR'" 1>&2
+      if ! $RUNTIME_LOCAL_SCRATCH_MOVE_TOOL "$f" "$RUNTIME_NODE_JOB_DIR"; then
+        echo "Failed to '$RUNTIME_LOCAL_SCRATCH_MOVE_TOOL' '$f' to '$RUNTIME_NODE_JOB_DIR'" 1>&2
         exit 1
       fi
     done

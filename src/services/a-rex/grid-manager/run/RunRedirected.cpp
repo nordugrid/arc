@@ -44,6 +44,7 @@ int RunRedirected::run(const Arc::User& user,const char* cmdname,int in,int out,
   delete rr;
   if(!re.Wait(timeout)) {
     logger.msg(Arc::ERROR,"%s: Failure waiting for child process to finish",cmdname?cmdname:"");
+    re.Kill(5);
     return -1;
   };
   return re.Result();
@@ -75,6 +76,7 @@ int RunRedirected::run(const Arc::User& user,const char* cmdname,int in,int out,
   delete rr;
   if(!re.Wait(timeout)) {
     logger.msg(Arc::ERROR,"%s: Failure waiting for child process to finish",cmdname?cmdname:"");
+    re.Kill(5);
     return -1;
   };
   return re.Result();

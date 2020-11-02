@@ -1,0 +1,1 @@
+rm_conffile /etc/default/arc-acix-scanner 6.7.0

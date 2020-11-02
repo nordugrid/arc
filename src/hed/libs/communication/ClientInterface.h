@@ -80,13 +80,20 @@ namespace Arc {
     OptionalEnc //< Use data encryption only if needed
   };
 
+  enum CredentialUse {
+    UseNoCred,   //< Do not use user credentilas for TLS/GSI
+    UseX509Cred  //< Use X.509 user credentilas for TLS/GSI
+  };
+
   class TCPSec {
   public:
     SecurityLayer sec;
     EncryptionLevel enc;
-    TCPSec(void):sec(NoSec),enc(NoEnc) { };
-    TCPSec(SecurityLayer s):sec(s),enc((s==NoSec)?NoEnc:RequireEnc) { };
-    TCPSec(SecurityLayer s, EncryptionLevel e):sec(s),enc(e) { };
+    CredentialUse cred;
+    TCPSec(void):sec(NoSec),enc(NoEnc),cred(UseNoCred) { };
+    TCPSec(SecurityLayer s):sec(s),enc((s==NoSec)?NoEnc:RequireEnc),cred(UseX509Cred) { };
+    TCPSec(SecurityLayer s, EncryptionLevel e):sec(s),enc(e),cred(UseX509Cred) { };
+    TCPSec(SecurityLayer s, EncryptionLevel e, CredentialUse u):sec(s),enc(e),cred(u) { };
   };
 
   //! Class for setting up a MCC chain for TCP communication
@@ -114,7 +121,7 @@ namespace Arc {
       return tls_entry ? tls_entry : tcp_entry;
     }
     virtual MCC_Status Load();
-    void AddSecHandler(XMLNode handlercfg, TCPSec sec, const std::string& libanme = "", const std::string& libpath = "");
+    void AddSecHandler(XMLNode handlercfg, TCPSec sec, const std::string& libname = "", const std::string& libpath = "");
   protected:
     MCC *tcp_entry;
     MCC *tls_entry;
@@ -146,21 +153,21 @@ namespace Arc {
   public:
     ClientHTTPAttributes(const std::string& method);
     ClientHTTPAttributes(const std::string& method,
-                       std::multimap<std::string, std::string>& attributes);
+                       std::multimap<std::string, std::string> const& attributes);
     ClientHTTPAttributes(const std::string& method, const std::string& path);
     ClientHTTPAttributes(const std::string& method, const std::string& path,
-                       std::multimap<std::string, std::string>& attributes);
+                       std::multimap<std::string, std::string> const& attributes);
     ClientHTTPAttributes(const std::string& method, const std::string& path,
                        uint64_t range_start, uint64_t range_end);
     ClientHTTPAttributes(const std::string& method, const std::string& path,
-                       std::multimap<std::string, std::string>& attributes,
+                       std::multimap<std::string, std::string> const& attributes,
                        uint64_t range_start, uint64_t range_end);
   protected:
     const std::string default_path_;
     std::multimap<std::string, std::string> default_attributes_;
-    const std::string& method_;
-    const std::string& path_;
-    std::multimap<std::string, std::string>& attributes_;
+    const std::string method_;
+    const std::string path_;
+    std::multimap<std::string, std::string> attributes_;
     uint64_t range_start_;
     uint64_t range_end_;
   };
@@ -173,20 +180,20 @@ namespace Arc {
     : public ClientTCP {
   public:
     ClientHTTP()
-      : http_entry(NULL), relative_uri(false), sec(NoSec), closed(false) {}
+      : http_entry(NULL), relative_uri(false), encoded_uri(true), sec(NoSec), closed(false) {}
     ClientHTTP(const BaseConfig& cfg, const URL& url, int timeout = -1, const std::string& proxy_host = "", int proxy_port = 0);
     virtual ~ClientHTTP();
     MCC_Status process(const std::string& method, PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method,
-                       std::multimap<std::string, std::string>& attributes,
+                       std::multimap<std::string, std::string> const& attributes,
                        PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
                        PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
-                       std::multimap<std::string, std::string>& attributes,
+                       std::multimap<std::string, std::string> const& attributes,
                        PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
@@ -194,7 +201,7 @@ namespace Arc {
                        PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
     MCC_Status process(const std::string& method, const std::string& path,
-                       std::multimap<std::string, std::string>& attributes,
+                       std::multimap<std::string, std::string> const& attributes,
                        uint64_t range_start, uint64_t range_end,
                        PayloadRawInterface *request,
                        HTTPClientInfo *info, PayloadRawInterface **response);
@@ -215,7 +222,7 @@ namespace Arc {
     MCC* GetEntry() {
       return http_entry;
     }
-    void AddSecHandler(XMLNode handlercfg, const std::string& libanme = "", const std::string& libpath = "");
+    void AddSecHandler(XMLNode handlercfg, const std::string& libname = "", const std::string& libpath = "");
     virtual MCC_Status Load();
     void RelativeURI(bool val) { relative_uri=val; };
     const URL& GetURL() const { return default_url; };
@@ -224,10 +231,11 @@ namespace Arc {
     MCC *http_entry;
     URL default_url;
     bool relative_uri;
+    bool encoded_uri;
     TCPSec sec;
     bool closed;
     MCC_Status process(const std::string& method, const std::string& path,
-                       std::multimap<std::string, std::string>& attributes,
+                       std::multimap<std::string, std::string> const& attributes,
                        uint64_t range_start, uint64_t range_end,
                        MessagePayload *request,
                        HTTPClientInfo *info, MessagePayload **response);
@@ -246,8 +254,13 @@ namespace Arc {
     virtual ~ClientSOAP();
     /** Send SOAP request and receive response. */
     MCC_Status process(PayloadSOAP *request, PayloadSOAP **response);
+    /** Send SOAP request + additional HTTP header attributes and receive response. */
+    MCC_Status process(std::multimap<std::string, std::string> const& http_attr, PayloadSOAP *request, PayloadSOAP **response);
     /** Send SOAP request with specified SOAP action and receive response. */
     MCC_Status process(const std::string& action, PayloadSOAP *request,
+                       PayloadSOAP **response);
+    /** Send SOAP request with specified SOAP action + additional HTTP header attributes and receive response. */
+    MCC_Status process(std::multimap<std::string, std::string> const& http_attr, const std::string& action, PayloadSOAP *request,
                        PayloadSOAP **response);
     /** Returns entry point to SOAP MCC in configured chain.
        To initialize entry point Load() method must be called. */
@@ -255,7 +268,7 @@ namespace Arc {
       return soap_entry;
     }
     /** Adds security handler to configuration of SOAP MCC */
-    void AddSecHandler(XMLNode handlercfg, const std::string& libanme = "", const std::string& libpath = "");
+    void AddSecHandler(XMLNode handlercfg, const std::string& libname = "", const std::string& libpath = "");
     /** Instantiates pluggable elements according to generated configuration */
     virtual MCC_Status Load();
   protected:

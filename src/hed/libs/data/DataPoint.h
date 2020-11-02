@@ -152,11 +152,12 @@ namespace Arc {
       INFO_TYPE_NAME = 1,     ///< Only name of object (relative).
       INFO_TYPE_TYPE = 2,     ///< Type of object - currently file or dir.
       INFO_TYPE_TIMES = 4,    ///< Timestamps associated with object.
-      INFO_TYPE_CONTENT = 8,  ///< Metadata describing content, like size, checksum, etc.
+      INFO_TYPE_CONTENT = 8,  ///< Metadata describing content, like size, etc.
+      INFO_TYPE_CKSUM = 128,  ///< Metadata describing checksum.
       INFO_TYPE_ACCESS = 16,  ///< Access control - ownership, permission, etc.
       INFO_TYPE_STRUCT = 32,  ///< Fine structure - replicas, transfer locations, redirections.
       INFO_TYPE_REST = 64,    ///< All the other parameters.
-      INFO_TYPE_ALL = 127     ///< All the parameters.
+      INFO_TYPE_ALL = 255     ///< All the parameters.
     };
 
 
@@ -458,7 +459,7 @@ namespace Arc {
     virtual void ReadOutOfOrder(bool v) = 0;
 
     /// Returns true if DataPoint supports receiving data out of order during writing.
-    virtual bool WriteOutOfOrder() = 0;
+    virtual bool WriteOutOfOrder() const = 0;
 
     /// Allow/disallow additional checks on a source DataPoint before transfer
     /**

@@ -214,6 +214,7 @@ Arc::MCC_Status ARexService::ESGetActivityStatus(ARexGMConfig& config,Arc::XMLNo
       ESActivityNotFoundFault(item.NewChild("dummy"),job.Failure());
     } else {
       bool job_pending = false;
+#ifdef HONEST_JOB_STATE
       std::string gm_state = job.State(job_pending);
       bool job_failed = job.Failed();
       std::string failed_cause;
@@ -221,6 +222,17 @@ Arc::MCC_Status ARexService::ESGetActivityStatus(ARexGMConfig& config,Arc::XMLNo
       Arc::XMLNode status = addActivityStatusES(item,gm_state,Arc::XMLNode(),job_failed,job_pending,failed_state,failed_cause);
       status.NewChild("estypes:Timestamp") = job.Modified().str(Arc::ISOTime); // no definition of meaning in specs
       //status.NewChild("estypes:Description);  TODO
+#else
+      std::string glue_s;
+      Arc::XMLNode glue_xml(job_xml_read_file(jobid,config.GmConfig(),glue_s)?glue_s:"");
+      if(!glue_xml) {
+        // Keep job in initial state (see description in ESGetActivityInfo)
+        Arc::XMLNode status = addActivityStatusES(item,"ACCEPTED",Arc::XMLNode(),false,false,"","");
+        status.NewChild("estypes:Timestamp") = job.Modified().str(Arc::ISOTime); // no definition of meaning in specs
+      } else {
+        addActivityStatusES(item,glue_xml);
+      };
+#endif
     };
   };
   return Arc::MCC_Status(Arc::STATUS_OK);
@@ -317,7 +329,7 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
 
       Arc::XMLNode glue_xml(job_xml_read_file(jobid,config.GmConfig(),glue_s)?glue_s:"");
       if(!glue_xml) {
-        // TODO: if xml information is not ready yet create something minimal
+        // If xml information is not ready yet create something minimal
         Arc::XMLNode(job_xml_template).New(glue_xml);
         Arc::URL headnode(config.GmConfig().HeadNode());
         glue_xml["ID"] = std::string("urn:caid:")+headnode.Host()+":org.ogf.glue.emies.activitycreation:"+jobid;
@@ -325,10 +337,19 @@ Arc::MCC_Status ARexService::ESGetActivityInfo(ARexGMConfig& config,Arc::XMLNode
         {
           // Collecting job state
           bool job_pending = false;
+#ifdef HONEST_JOB_STATE
           std::string gm_state = job.State(job_pending);
           bool job_failed = job.Failed();
           std::string failed_cause;
           std::string failed_state = job.FailedState(failed_cause);
+#else
+          // To protect against super fast jobs reaching finished state without
+          // information system populated pretend all such jobs are in initial state.
+          std::string gm_state = "ACCEPTED";
+          bool job_failed = false;
+          std::string failed_cause;
+          std::string failed_state;
+#endif
           std::string primary_state;
           std::list<std::string> state_attributes;
           convertActivityStatusES(gm_state,primary_state,state_attributes,

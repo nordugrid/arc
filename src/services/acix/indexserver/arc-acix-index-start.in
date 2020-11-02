@@ -6,6 +6,17 @@ prog=@TWISTD@
 
 RUN=yes
 
+send_systemd_notify() {
+    # return if no systemd-notify found
+    type systemd-notify >/dev/null 2>&1 || return
+    systemd-notify "$@"
+}
+
+log_failure_msg() {
+    send_systemd_notify --status "Error: $@"
+    echo $@
+}
+
 # sysconfig files
 if [ -r /etc/sysconfig/nordugrid ]; then
     . /etc/sysconfig/nordugrid
@@ -21,7 +32,7 @@ fi
 if [ "$RUN" != "yes" ] ; then
     echo "arc-acix-index service is disabled, please adjust the configuration to your"
     echo "needs and then set RUN to 'yes' in /etc/default/arc-acix-index to enable it."
-    return 0
+    exit 0
 fi
 
 # ARC_CONFIG

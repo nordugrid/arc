@@ -146,7 +146,7 @@ namespace Arc {
         if(err != SQLITE_OK) {
           handleError(NULL, err);
           tearDown();
-          throw SQLiteException(IString("Unable to transfer drop jobs in data base (%s)", name).str(), err);
+          throw SQLiteException(IString("Unable to drop jobs in data base (%s)", name).str(), err);
         }
         err = sqlite3_exec_nobusy(jobDB, "ALTER TABLE jobs_new RENAME TO jobs", NULL, NULL, NULL);   
         if(err != SQLITE_OK) {
@@ -567,7 +567,6 @@ namespace Arc {
     jobs.clear();
 
     try {
-      int ret;
       JobDB db(name);
       std::string sqlcmd = "SELECT * FROM jobs";
       ReadJobsCallbackArg carg(jobs, NULL, NULL, &rejectEndpoints);
@@ -592,7 +591,6 @@ namespace Arc {
     jobs.clear();
     
     try {
-      int ret;
       JobDB db(name);
       std::string sqlcmd = "SELECT * FROM jobs";
       ReadJobsCallbackArg carg(jobs, &jobIdentifiers, &endpoints, &rejectEndpoints);

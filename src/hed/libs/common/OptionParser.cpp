@@ -302,7 +302,6 @@ namespace Arc {
 
       if ( g_it->first == ARC_OPTION_DEFAULT_GROUP ) {
           grp = new Glib::OptionGroup(ARC_OPTION_DEFAULT_GROUP, "Main Group");
-          grp->set_translation_domain(PACKAGE);
           h_entry.AddEntry(*grp);
       } else {
           std::string grp_name;
@@ -313,6 +312,7 @@ namespace Arc {
           }
           grp = new Glib::OptionGroup(g_it->first, grp_name, IString("Show %s help options", g_it->first).str());
       }
+      grp->set_translation_domain(PACKAGE);
 
       bool options_in_group = false;
       for (std::list<std::pair<OptionBase*, std::string> >::iterator it = options.begin();

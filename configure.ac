@@ -193,7 +193,6 @@ enables_monitor=yes
 enables_compute_client=yes
 enables_credentials_client=yes
 enables_data_client=yes
-enables_jura_client=yes
 enables_emies_client=yes
 enables_arcrest_client=yes
 #  Documentation
@@ -215,7 +214,6 @@ enables_compute_client=$enableval
 enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
-enables_jura_client=$enableval
 enables_emies_client=$enableval
 enables_arcrest_client=$enableval
 enables_hed=$enableval
@@ -243,7 +241,6 @@ enables_compute_client=$enableval
 enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
-enables_jura_client=$enableval
 enables_emies_client=$enableval
 enables_arcrest_client=$enableval
 enables_doc=$enableval
@@ -714,13 +711,6 @@ AC_CHECK_HEADER([glibmm/optioncontext.h], [
     ]
   )
 ])
-AC_TRY_COMPILE([#include <glibmm.h>],[Glib::SignalChildWatch watch = Glib::signal_child_watch();],[glibmm_childwatch=yes],[glibmm_childwatch=no])
-if test "$glibmm_childwatch" = yes; then
-  AC_DEFINE(HAVE_GLIBMM_CHILDWATCH, 1,
-    [define if glibmm have support for controling state of children processes])
-else
-  AC_MSG_NOTICE([WARNING: glibmm has no API for controlling children processes - result of external processes may be inconsistent])
-fi
 AC_TRY_COMPILE([#include <glibmm.h>],[Glib::ModuleFlags flags = Glib::MODULE_BIND_LOCAL;],[glibmm_bind_local=yes],[glibmm_bind_local=no])
 if test "$glibmm_bind_local" = yes; then
   AC_DEFINE(HAVE_GLIBMM_BIND_LOCAL, 1,
@@ -2084,11 +2074,6 @@ AC_ARG_ENABLE(data_client, AC_HELP_STRING([--disable-data-client], [disable buil
 AC_MSG_NOTICE([Data client tools enabled: $enables_data_client])
 AM_CONDITIONAL([DATA_CLIENT_ENABLED],[test "x$enables_data_client" = "xyes"])
 
-AC_ARG_ENABLE(jura_client, AC_HELP_STRING([--disable-jura-client], [disable building client tool for communicating JURA]),
-  [enables_jura_client=$enableval],[])
-AC_MSG_NOTICE([JURA client tool enabled: $enables_jura_client])
-AM_CONDITIONAL([JURA_CLIENT_ENABLED],[test "x$enables_jura_client" = "xyes"])
-
 AC_ARG_ENABLE(emies_client, AC_HELP_STRING([--disable-emies-client], [disables building EMI ES-related client plugins.]),
   [enables_emies_client=$enableval],[])
 AC_MSG_NOTICE([EMI ES plugin(s) enabled: $enables_emies_client])
@@ -2107,7 +2092,6 @@ if test "$enables_hed" = "no"; then
           "$enables_compute_client" = "yes" -o \
           "$enables_credentials_client" = "yes" -o \
           "$enables_data_client" = "yes" -o \
-          "$enables_jura_client" = "yes" -o \
           ; then
     AC_MSG_ERROR(HED is needed for building any of the client or service tools. Please enable HED by using --enable-hed.)
   fi
@@ -2192,7 +2176,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/libs/delegation/test/Makefile
                  src/hed/libs/xmlsec/Makefile
                  src/hed/libs/globusutils/Makefile
-                 src/hed/libs/scitokens/Makefile
+                 src/hed/libs/otokens/Makefile
                  src/hed/daemon/Makefile
                  src/hed/daemon/scripts/Makefile
                  src/hed/daemon/schema/Makefile
@@ -2262,6 +2246,7 @@ AC_CONFIG_FILES([Makefile
                  src/hed/shc/delegationsh/schema/Makefile
                  src/hed/shc/legacy/Makefile
                  src/hed/shc/legacy/schema/Makefile
+                 src/hed/shc/otokens/Makefile
                  src/hed/identitymap/Makefile
                  src/hed/identitymap/schema/Makefile
                  src/libs/Makefile
@@ -2279,6 +2264,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/arc-blahp-logger.8
                  src/services/a-rex/grid-manager/gm-jobs.8
                  src/services/a-rex/grid-manager/gm-delegations-converter.8
+                 src/services/a-rex/rest/Makefile
                  src/services/a-rex/delegation/Makefile
                  src/services/a-rex/grid-manager/Makefile
                  src/services/a-rex/grid-manager/accounting/Makefile
@@ -2297,8 +2283,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/infoproviders/ConfigCentral.pm
                  src/services/a-rex/infoproviders/PerfData.pl
                  src/services/a-rex/infoproviders/test/Makefile
-                 src/services/a-rex/jura/Makefile
-                 src/services/a-rex/jura/jura.1
                  src/services/a-rex/lrms/Makefile
                  src/services/a-rex/lrms/test/Makefile
                  src/services/a-rex/lrms/arc/Makefile
@@ -2530,7 +2514,6 @@ ACIX service:       ${enables_acix}
 COMPUTE clients:    ${enables_compute_client}
 DATA clients:       ${enables_data_client}
 CREDENTIAL clients: ${enables_credentials_client}
-JURA client:        ${enables_jura_client}
 
 EMI ES client (ACC): ${enables_emies_client}
 ARC REST client (ACC): ${enables_arcrest_client}

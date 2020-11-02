@@ -4,7 +4,7 @@ Upstream-Contact: contact@nordigrd.org
 Source: http://download.nordugrid.org/packages/nordugrid-arc/releases
 
 Files: *
-Copyright: 2006-2013
+Copyright: 2006-2020
  David Cameron <david.cameron@cern.ch>
  Péter Dóbé <dobe@iit.bme.hu>
  Mattias Ellert <mattias.ellert@fysast.uu.se>
@@ -21,9 +21,11 @@ Copyright: 2006-2013
  Aleksandr Konstantinov <const@takas.lt>
  Balázs Kónya <balazs.konya@hep.lu.se>
  Hajo Nils Krabbenhöft <hajo@h-yo.de>
+ Andrew Lahiff <andrew.lahiff@stfc.ac.uk>
  Juha Lento <juha.lento@csc.fi>
  Peter Lundgaard Rosendahl <prosen@nbi.dk>
  Iván Márton <martoni@niif.hu>
+ Luca Mazzaferro <luca.mazzaferro@rzg.mpg.de>
  Bjarte Mohn <Bjarte.Mohn@fysast.uu.se>
  Steffen Möller <moeller@inb.uni-luebeck.de>
  Zsombor Nagy <zsombor@niif.hu>
@@ -44,6 +46,7 @@ Copyright: 2006-2013
  Salman Zubair Toor <salman.toor@it.uu.se>
  Olli Tourunen <olli.tourunen@csc.fi>
  Petter Urkedal <urkedal@nbi.dk>
+ Wenjing Wu <wuwj@ihep.ac.cn>
  Anders Wäänänen <waananen@nbi.dk>
  Thomas Zangerl <tzangerl@pdc.kth.se>
  .
@@ -62,7 +65,24 @@ Copyright: 2006-2013
  Taras Shevchenko National University of Kyiv (Ukraine)
 License: Apache-2.0
 
-Files: src/services/a-rex/jura/ssm/*
+Files: src/hed/acc/EMIES/schema/GLUE2.xsd
+Copyright: 2011
+ Sergio Andreozzi (EGI.eu)
+ Balazs Konya (Lund University)
+ Shiraz Memon (Forschungszentrum Juelich GmbH)
+ Paul Millar (DESY)
+ Adrian Taga (Oslo University)
+License: Apache-2.0
+
+Files: src/hed/libs/data/cache-clean
+Copyright: 2008 Niklas Edmundsson, Tomas Ögren, David Cameron
+License: Apache-2.0
+
+Files: src/services/a-rex/infoproviders/glite-info-provider-ldap
+Copyright: Members of the EGEE Collaboration 2004
+License: Apache-2.0
+
+Files: src/utils/python/arc/ssm/*
 Copyright: 2012 STFC
 License: Apache-2.0
 

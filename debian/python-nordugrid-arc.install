@@ -1,0 +1,10 @@
+debian/tmp/usr/lib/python2.?/site-packages/_arc.*so
+debian/tmp/usr/lib/python2.?/site-packages/arc/common.py*
+debian/tmp/usr/lib/python2.?/site-packages/arc/communication.py*
+debian/tmp/usr/lib/python2.?/site-packages/arc/compute.py*
+debian/tmp/usr/lib/python2.?/site-packages/arc/credential.py*
+debian/tmp/usr/lib/python2.?/site-packages/arc/data.py*
+debian/tmp/usr/lib/python2.?/site-packages/arc/delegation.py*
+debian/tmp/usr/lib/python2.?/site-packages/arc/loader.py*
+debian/tmp/usr/lib/python2.?/site-packages/arc/message.py*
+debian/tmp/usr/lib/python2.?/site-packages/arc/security.py*

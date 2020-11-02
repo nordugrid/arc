@@ -148,8 +148,8 @@ class RecordsPublisher(object):
         # get configured accounting targets and options
         self.vomsless_vo = self.arcconfig.get_value('vomsless_vo', ['arex/jura'])
         self.extra_vogroups = self.arcconfig.get_value('vo_group', ['arex/jura'], force_list=True)
-        self.conf_targets = map(lambda t: ('sgas', t), self.arcconfig.get_subblocks('arex/jura/sgas'))
-        self.conf_targets += map(lambda t: ('apel', t), self.arcconfig.get_subblocks('arex/jura/apel'))
+        self.conf_targets = list(map(lambda t: ('sgas', t), self.arcconfig.get_subblocks('arex/jura/sgas')))
+        self.conf_targets += list(map(lambda t: ('apel', t), self.arcconfig.get_subblocks('arex/jura/apel')))
         # accounting database files and connection
         self.accounting_dir = arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting'
         adb_file = self.accounting_dir + '/accounting.db'
@@ -273,7 +273,8 @@ class RecordsPublisher(object):
         # init SSM sender
         apelssm = APELSSMSender(target_conf)
         if not apelssm.init_dirq():
-            self.logger.error('Failed to initialize APEL SSM message queue. Sending records to APEL will be disabled. Please check dirq and stomp python modules are installed on your system.')
+            self.logger.error('Failed to initialize APEL SSM message queue. Sending records to APEL will be disabled. '
+                              'Please check dirq and stomp python modules are installed on your system.')
             return None
         # database query filters
         self.logger.debug('Assigning filters to APEL usage records database query')
@@ -382,14 +383,8 @@ class RecordsPublisher(object):
             # check general target options
             if not self.__check_target_confdict(ttype, targetconf):
                 continue
-            # skip legacy fallback targets
-            if 'legacy_fallback' in targetconf:
-                if targetconf['legacy_fallback'] == 'yes':
-                    self.logger.warning(
-                        'Legacy fallback enabled in the configuration for target in [%s] block. Skipping.', target)
-                    continue
             # constrains on reporting frequency
-            self.adb.attach_publishing_db(self.pdb_file)
+            self.adb.publishing_db_connect(self.pdb_file)
             if 'urdelivery_frequency' in targetconf:
                 lastreported = self.adb.get_last_report_time(target)
                 unixtime_now = calendar.timegm(datetime.datetime.today().timetuple())

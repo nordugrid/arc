@@ -294,6 +294,11 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    //  if(!s) break;
    //  logger.msg(VERBOSE, "Allowed cipher: %s",s);
    //};
+   if(!cfg.Hostname().empty()) {
+      if(!SSL_set_tlsext_host_name(ssl_, cfg.Hostname().c_str())) {
+         logger.msg(WARNING, "Faile to assign hostname extension");
+      };
+   };
    SSL_set_bio(ssl_,bio,bio); bio=NULL;
    //SSL_set_connect_state(ssl_);
    if((err=SSL_connect(ssl_)) != 1) {
@@ -318,9 +323,9 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    return;
 error:
    if (failure_) SetFailure(err); // Only set if not already set.
-   if(bio) BIO_free(bio); bio_=NULL;
-   if(ssl_) SSL_free(ssl_); ssl_=NULL;
-   if(sslctx_) SSL_CTX_free(sslctx_); sslctx_=NULL;
+   if(bio) { BIO_free(bio); bio_=NULL; }
+   if(ssl_) { SSL_free(ssl_); ssl_=NULL; }
+   if(sslctx_) { SSL_CTX_free(sslctx_); sslctx_=NULL; }
    return;
 }
 
@@ -357,7 +362,9 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
      SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT | SSL_VERIFY_CLIENT_ONCE, &verify_callback);
    }
    else {
-     SSL_CTX_set_verify(sslctx_, SSL_VERIFY_NONE, NULL);
+     //SSL_CTX_set_verify(sslctx_, SSL_VERIFY_NONE, NULL);
+     // Ask for client certificate but do not fail if not provided
+     SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_CLIENT_ONCE, &verify_callback);
    }
    if(!config_.Set(sslctx_)) {
       SetFailure(config_.Failure());
@@ -403,9 +410,9 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
    return;
 error:
    if (failure_) SetFailure(err); // Only set if not already set.
-   if(bio) BIO_free(bio); bio_=NULL;
-   if(ssl_) SSL_free(ssl_); ssl_=NULL;
-   if(sslctx_) SSL_CTX_free(sslctx_); sslctx_=NULL;
+   if(bio) { BIO_free(bio); bio_=NULL; }
+   if(ssl_) { SSL_free(ssl_); ssl_=NULL; }
+   if(sslctx_) { SSL_CTX_free(sslctx_); sslctx_=NULL; }
    return;
 }
 

@@ -105,7 +105,7 @@ static int runmain(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
-  Arc::LogStream logcerr(std::cerr);
+  static Arc::LogStream logcerr(std::cerr);
   logcerr.setFormat(Arc::ShortFormat);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);
@@ -113,7 +113,7 @@ static int runmain(int argc, char **argv) {
   Arc::ArcLocation::Init(argv[0]);
 
   Arc::OptionParser options(istring("url [url ...]"),
-                            istring("The arcrm command deletes files and on "
+                            istring("The arcrm command deletes files on "
                                     "grid storage elements."));
 
   bool force = false;

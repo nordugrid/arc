@@ -33,6 +33,16 @@ namespace Arc {
     static URL GetAddressOfResource(const Job& job);
     static Logger logger;
     bool GetDelegation(Arc::URL url, std::string& delegationId) const;
+
+    class InfoNodeProcessor {
+     public:
+      virtual void operator()(std::string const& job_id, XMLNode info_node) {};
+    };
+
+    bool ProcessJobs(Arc::URL const & resourceUrl, std::string const & action, int successCode,
+          std::list<std::string>& IDs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed,
+          InfoNodeProcessor& infoNodeProcessor) const;
+
   };
 
 } // namespace Arc

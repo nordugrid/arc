@@ -6,6 +6,12 @@ try:
     from .Accounting import AccountingControl
 except ImportError:
     AccountingControl = None
+try:
+    from .DataStaging import DataStagingControl
+except ImportError:
+    DataStagingControl = None
+
+
 import subprocess
 import sys
 import re
@@ -449,6 +455,8 @@ class JobsControl(ComponentControl):
             self.job_stats(args)
         elif args.action == 'accounting' and AccountingControl is not None:
             AccountingControl(self.arcconfig).jobcontrol(args)
+        elif args.action == 'datastaging' and DataStagingControl is not None:
+            DataStagingControl(self.arcconfig).jobcontrol(args)
 
     def complete_owner(self, args):
         owners = []
@@ -476,6 +484,8 @@ class JobsControl(ComponentControl):
 
         jobs_actions = jobs_ctl.add_subparsers(title='Jobs Control Actions', dest='action',
                                                metavar='ACTION', help='DESCRIPTION')
+        jobs_actions.required = True
+
         jobs_list = jobs_actions.add_parser('list', help='List available A-REX jobs')
         jobs_list.add_argument('-l', '--long', help='Detailed listing of jobs', action='store_true')
         jobs_list.add_argument('-s', '--state', help='Filter jobs by state', action='append', choices=__JOB_STATES)
@@ -529,3 +539,11 @@ class JobsControl(ComponentControl):
             # add 'job accounting xxx' functionality as well as 'accounting job xxx'
             jobs_accounting = jobs_actions.add_parser('accounting', help='Show job accounting data')
             AccountingControl.register_job_parser(jobs_accounting)
+
+
+        if DataStagingControl is not None:
+        # add 'job datastaging xxx' functionality as well ass 'datastaging job xxx' 
+            dds_job_ctl = jobs_actions.add_parser('datastaging',help='Job Datastaging Information for jobs preparing or running.')
+            DataStagingControl.register_job_parser(dds_job_ctl)
+
+            

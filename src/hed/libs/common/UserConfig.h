@@ -707,6 +707,25 @@ namespace Arc {
      */
     const std::string& CredentialString() const { return credentialString; }
 
+    /// Set authentication token.
+    /**
+     * Assigns OToken (authenticatio and sometimes authorizzation token)
+     * to be used in HTTP communication.
+     *
+     * @param cred The credential represented as a string
+     * \since Added in 6.6.0.
+     */
+    void OToken(const std::string& token) { otoken = token; }
+    /// Get authentication token.
+    /**
+     * Returns the authentication token previously set by
+     * OToken(const std::string&).
+     *
+     * @return String representation of credentials
+     * \since Added in 6.6.0.
+     */
+    const std::string& OToken() const { return otoken; }
+
     /// Set path to user proxy
     /**
      * This method will set the path of the user proxy. Note that the
@@ -957,6 +976,7 @@ namespace Arc {
       if(proxyPath != other.proxyPath) return false;
       if(certificatePath != other.certificatePath) return false;
       if(username != other.username) return false;
+      if(otoken != other.otoken) return false;
       return true;
     }
 
@@ -1307,6 +1327,7 @@ namespace Arc {
     std::list<std::string> rejectManagementURLs;
 
     std::string credentialString;
+    std::string otoken;
     std::string proxyPath;
     std::string certificatePath;
     std::string keyPath;

@@ -16,7 +16,6 @@
 #include <arc/DateTime.h>
 #include <arc/Run.h>
 #include "../files/ControlFileContent.h"
-#include "../files/JobLogFile.h"
 #include "../conf/GMConfig.h"
 #include "../accounting/AAR.h"
 #include "../accounting/AccountingDBSQLite.h"
@@ -136,7 +135,7 @@ bool JobLog::RunReporter(const GMConfig &config) {
     if(!joblog->reporter_logfile.empty()) errlog = joblog->reporter_logfile;
   };
   reporter_proc->AssignInitializer(&initializer,errlog.empty()?NULL:(void*)errlog.c_str());
-  logger.msg(Arc::DEBUG, "Running command %s", argv.front());
+  logger.msg(Arc::DEBUG, "Running command: %s", argv.front());
   if(!reporter_proc->Start()) {
     delete reporter_proc;
     reporter_proc = NULL;
@@ -162,15 +161,6 @@ bool JobLog::SetReporterLogFile(const char* fname) {
 }
 
 bool JobLog::WriteJobRecord(GMJob &job, const GMConfig& config) {
-  // Legacy joblog files generation
-  // Files are allways jenerates (as in ARC6.0 and 6.1) and will be processed by legacy jura
-  // when "legacy_fallback" option is defined at least for one of the accounting target blocks
-  if((job.get_state() == JOB_STATE_ACCEPTED) ||
-     (job.get_state() == JOB_STATE_FINISHED)) {
-        // don't care about legacy method success
-        job_log_make_file(job,config,"",report_config); // not assigning urls to records anymore
-  }
-
   // Create accounting DB connection
   std::string accounting_db_path = config.ControlDir() + G_DIR_SEPARATOR_S + ACCOUNTING_SUBDIR + G_DIR_SEPARATOR_S + ACCOUNTING_DB_FILE;
   AccountingDBSQLite adb(accounting_db_path);

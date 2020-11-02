@@ -69,13 +69,13 @@ void JobsList::ExternalHelpers::thread(void) {
 
 JobsList::JobsList(const GMConfig& gmconfig) :
     valid(false),
+    jobs_processing(ProcessingQueuePriority, "processing"),
+    jobs_attention(AttentionQueuePriority, "attention"),
+    jobs_polling(0, "polling"),
+    jobs_wait_for_running(WaitQueuePriority, "wait for running"),
     config(gmconfig), staging_config(gmconfig),
     dtr_generator(config, *this),
     job_desc_handler(config), jobs_pending(0),
-    jobs_polling(0, "polling"),
-    jobs_wait_for_running(WaitQueuePriority, "wait for running"),
-    jobs_attention(AttentionQueuePriority, "attention"),
-    jobs_processing(ProcessingQueuePriority, "processing"),
     helpers(config.Helpers(), *this) {
 
   job_slow_polling_last = time(NULL);
@@ -386,11 +386,13 @@ bool JobsList::FailedJob(GMJobRef i,bool cancel) {
   if(job_failed_mark_add(*i,config,i->failure_reason)) {
     i->failure_reason = "";
   } else {
+    logger.msg(Arc::ERROR,"%s: Failed storing failure reason: %s",i->job_id,Arc::StrError(errno));
     r = false;
   }
   if(GetLocalDescription(i)) {
     i->local->uploads=0;
   } else {
+    logger.msg(Arc::ERROR,"%s: Failed reading job description: %s",i->job_id,Arc::StrError(errno));
     r=false;
   }
   // If the job failed during FINISHING then DTR deals with .output
@@ -402,6 +404,7 @@ bool JobsList::FailedJob(GMJobRef i,bool cancel) {
   // Not good looking code
   JobLocalDescription job_desc;
   if(job_desc_handler.parse_job_req(i->get_id(),job_desc) != JobReqSuccess) {
+    logger.msg(Arc::ERROR,"%s: Failed parsing job request.",i->job_id);
     r = false;
   }
   // Convert delegation ids to credential paths.
@@ -673,14 +676,14 @@ bool JobsList::state_loading(GMJobRef i,bool &state_changed,bool up) {
 
   // first check if job is already in the system
   if (!dtr_generator.hasJob(i)) {
-    dtr_generator.receiveJob(i);
-    return true;
+    return dtr_generator.receiveJob(i);
   }
   // if job has already failed then do not set failed state again if DTR failed
   bool already_failed = i->CheckFailure(config);
   // queryJobFinished() calls i->AddFailure() if any DTR failed
   if (dtr_generator.queryJobFinished(i)) {
     // DTR part already finished. Do other checks if needed.
+    logger.msg(Arc::VERBOSE, "%s: State: %s: data staging finished", i->job_id, (up ? "FINISHING" : "PREPARING"));
 
     bool done = true;
     bool result = true;
@@ -715,7 +718,7 @@ bool JobsList::state_loading(GMJobRef i,bool &state_changed,bool up) {
   }
   else {
     // not finished yet - should not happen
-    logger.msg(Arc::VERBOSE, "%s: State: %s: still in data staging", i->job_id, (up ? "FINISHING" : "PREPARING"));
+    logger.msg(Arc::DEBUG, "%s: State: %s: still in data staging", i->job_id, (up ? "FINISHING" : "PREPARING"));
     // Since something is out of sync do polling as backup solution
     RequestPolling(i);
     return true;
@@ -878,6 +881,35 @@ JobsList::ActJobResult JobsList::ActJobUndefined(GMJobRef i) {
       // This call is not needed here because at higher level WriteJobRecord()
       // is called for every state change
       //if(config.GetJobLog()) config.GetJobLog()->WriteJobRecord(*i,config);
+      // Write initial XML job information file. That should ensure combination of quick job
+      // and slow infosys is not going to produce incomplete job information at next states.
+      // Such effect was detected through observing finished job without exit code. 
+      if(!job_xml_check_file(i->job_id,config)) { // in case job is restarted and we already have xml
+        static const char* job_xml_template = 
+  "<ComputingActivity xmlns=\"http://schemas.ogf.org/glue/2009/03/spec_2.0_r1\" BaseType=\"Activity\" CreationTime=\"\" Validity=\"60\">"
+    "<ID></ID>"
+    "<Name></Name>"
+    "<OtherInfo></OtherInfo>"
+    "<Type>single</Type>"
+    "<IDFromEndpoint></IDFromEndpoint>"
+    "<State>nordugrid:ACCEPTED</State>"
+    "<State>emies:accepted</State>"
+    "<State>emiesattr:client-stagein-possible</State>"
+    "<Owner></Owner>"
+  "</ComputingActivity>";
+        time_t created = job_description_time(i->job_id,config);
+        if(created == 0) created = time(NULL);
+        Arc::XMLNode glue_xml(job_xml_template);
+        glue_xml["ID"] = std::string("urn:caid:")+Arc::URL(config.HeadNode()).Host()+":"+i->local->interface+":"+i->job_id;
+        glue_xml["IDFromEndpoint"] = "urn:idfe:"+i->job_id;
+        glue_xml["OtherInfo"] = "SubmittedVia=" + i->local->interface;
+        glue_xml["Owner"] = i->local->DN;
+        glue_xml["Name"] = i->local->jobname;
+        glue_xml.Attribute("CreationTime") = Arc::Time(created).str(Arc::ISOTime);
+        std::string glue_xml_str;
+        glue_xml.GetXML(glue_xml_str,true);
+        job_xml_write_file(i->job_id,config,glue_xml_str);
+      }
       logger.msg(Arc::DEBUG, "%s: new job is accepted", i->job_id);
       RequestReprocess(i); // process to make job fall into Preparing and wait there
     } else if(new_state == JOB_STATE_FINISHED) {
@@ -990,7 +1022,7 @@ JobsList::ActJobResult JobsList::ActJobPreparing(GMJobRef i) {
         SetJobPending(i, "Waiting for confirmation of stage-in complete from client");
         // The complete stagein will be reported and will cause RequestAttention()
         // RequestPolling(i);
-      } else if(i->local->exec.size() > 0) {
+      } else if(i->local->exec.size() > 0 && !i->local->exec.front().empty()) {
         // Job has executable
         if(!RunningJobsLimitReached()) {
           // And limit of running jobs is not reached
@@ -1191,7 +1223,12 @@ JobsList::ActJobResult JobsList::ActJobFinished(GMJobRef i) {
       // add draining caches
       std::vector<std::string> draining_caches = cache_config.getDrainingCacheDirs();
       for (std::vector<std::string>::iterator it = draining_caches.begin(); it != draining_caches.end(); it++) {
-        cache_per_job_dirs.push_back(it->substr(0, it->find(" "))+"/joblinks");
+        cache_per_job_dirs.push_back(*it+"/joblinks");
+      }
+      // and read-only caches
+      std::vector<std::string> readonly_caches = cache_config.getReadOnlyCacheDirs();
+      for (std::vector<std::string>::iterator it = readonly_caches.begin(); it != readonly_caches.end(); it++) {
+        cache_per_job_dirs.push_back(*it+"/joblinks");
       }
       job_clean_deleted(*i,config,cache_per_job_dirs);
       SetJobState(i, JOB_STATE_DELETED, "Job stayed unattended too long");
@@ -1246,14 +1283,19 @@ bool JobsList::CheckJobCancelRequest(GMJobRef i) {
       JobFailStateRemember(i,i->job_state,false);
       // behave like if job failed
       if(!FailedJob(i,true)) {
+        logger.msg(Arc::ERROR,"%s: Failed to turn job into failed during cancel processing.",i->job_id);
         // DO NOT KNOW WHAT TO DO HERE !!!!!!!!!!
       }
       // special processing for INLRMS case
       if(i->job_state == JOB_STATE_INLRMS) {
         SetJobState(i, JOB_STATE_CANCELING, "Request to cancel job");
       }
-      // if FINISHING we wait to get back all DTRs
-      else if (i->job_state != JOB_STATE_PREPARING) {
+      else if (i->job_state == JOB_STATE_PREPARING) {
+        // if PREPARING we wait to get back all DTRs (only if job is still in DTR processing)
+        if(!dtr_generator.hasJob(i)) {
+          SetJobState(i, JOB_STATE_FINISHING, "Request to cancel job");
+        }
+      } else {
         SetJobState(i, JOB_STATE_FINISHING, "Request to cancel job");
       }
       job_cancel_mark_remove(i->job_id,config);

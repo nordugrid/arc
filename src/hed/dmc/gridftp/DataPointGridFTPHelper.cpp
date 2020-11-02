@@ -37,6 +37,14 @@ namespace ArcDMCGridFTP {
 
   static std::string const default_checksum("adler32");
 
+  class ChunkOffsetMatch {
+   public:
+    ChunkOffsetMatch(unsigned long long int offset):offset(offset) {};
+    bool operator()(DataExternalComm::DataChunkClient const& other) const { return offset == other.getOffset(); };
+   private:
+    unsigned long long int offset; 
+  };
+
   void DataPointGridFTPHelper::ftp_complete_callback(void *arg,
                                                globus_ftp_client_handle_t*,
                                                globus_object_t *error) {
@@ -142,6 +150,7 @@ namespace ArcDMCGridFTP {
       ftp_eof_flag = false;
       check_received_length = 0;
       logger.msg(VERBOSE, "check_ftp: globus_ftp_client_register_read");
+      cond.reset();
       res = globus_ftp_client_register_read(&ftp_handle,
                                             (globus_byte_t*)ftp_buf,
                                             sizeof(ftp_buf),
@@ -186,6 +195,7 @@ namespace ArcDMCGridFTP {
   }
 
   DataStatus DataPointGridFTPHelper::RemoveFile() {
+    cond.reset();
     GlobusResult res(globus_ftp_client_delete(&ftp_handle, url.plainstr().c_str(),
                                    &ftp_opattr, &ftp_complete_callback, cbarg));
     if (!res) {
@@ -207,6 +217,7 @@ namespace ArcDMCGridFTP {
   }
 
   DataStatus DataPointGridFTPHelper::RemoveDir() {
+    cond.reset();
     GlobusResult res(globus_ftp_client_rmdir(&ftp_handle, url.plainstr().c_str(),
                                   &ftp_opattr, &ftp_complete_callback, cbarg));
     if (!res) {
@@ -265,6 +276,7 @@ namespace ArcDMCGridFTP {
       if (!add_last_dir(ftp_dir_path, url.plainstr()))
         break;
       logger.msg(VERBOSE, "mkdir_ftp: making %s", ftp_dir_path);
+      cond.reset();
       GlobusResult res(globus_ftp_client_mkdir(&ftp_handle, ftp_dir_path.c_str(), &ftp_opattr,
                                 &ftp_complete_callback, cbarg));
       if (!res) {
@@ -299,6 +311,7 @@ namespace ArcDMCGridFTP {
     if (!remove_last_dir(dirpath)) return DataStatus::Success;
 
     logger.msg(VERBOSE, "Creating directory %s", dirpath);
+    cond.reset();
     GlobusResult res(globus_ftp_client_mkdir(&ftp_handle, dirpath.c_str(), &ftp_opattr,
                               &ftp_complete_callback, cbarg));
     if (!res) {
@@ -323,6 +336,7 @@ namespace ArcDMCGridFTP {
   DataStatus DataPointGridFTPHelper::Read() {
     if (!ftp_active) return DataStatus::NotInitializedError;
     set_attributes();
+    delayed_chunks.clear();
     bool limit_length = false;
     unsigned long long int range_length = 0;
     if (range_end > range_start) {
@@ -354,6 +368,7 @@ namespace ArcDMCGridFTP {
       return DataStatus(DataStatus::ReadStartError, globus_err);
     }
     // Prepare and inject buffers
+    max_offset = 0;
     int n_buffers = 0;
     for(int n = 0; n < (ftp_threads*2);++n) {
       globus_byte_t* buffer = new globus_byte_t[ftp_bufsize];
@@ -423,11 +438,40 @@ namespace ArcDMCGridFTP {
       it->data_counter.dec();
       it->data_counter_change.signal();
     } else {
-      logger.msg(DEBUG, "ftp_read_callback: success");
+      logger.msg(DEBUG, "ftp_read_callback: success - offset=%u, length=%u, eof=%u, allow oof=%u",(int)offset,(int)length,(int)eof,(int)it->allow_out_of_order);
       if(length > 0) {
         // Report received content
-        DataExternalComm::DataChunkClient dataEntry(buffer, offset, length);
-        dataEntry.write(outstream<<DataExternalComm::DataChunkTag);
+        DataExternalComm::DataChunkClient dataChunk(buffer, offset, length);
+        if(it->allow_out_of_order || (offset == it->max_offset)) {
+          dataChunk.write(outstream<<DataExternalComm::DataChunkTag);
+          it->max_offset = offset+length;
+          // Check for delayed buffers which fit new offset
+          while(!it->delayed_chunks.empty()) {
+            DataExternalComm::DataChunkClientList::iterator matching_chunk =
+              std::find_if(it->delayed_chunks.begin(), it->delayed_chunks.end(), ChunkOffsetMatch(it->max_offset));
+            if(matching_chunk == it->delayed_chunks.end()) break;
+            unsigned long long int offset = matching_chunk->getOffset();
+            unsigned long long int length = matching_chunk->getSize();
+            logger.msg(VERBOSE, "ftp_read_callback: delayed data chunk: %llu %llu", offset, length);
+            matching_chunk->write(outstream<<DataExternalComm::DataChunkTag);
+            it->delayed_chunks.erase(matching_chunk);
+            it->max_offset = offset+length;
+          }
+        } else {
+          // protection against data coming out of order - receiving end can't handle that
+          logger.msg(WARNING, "ftp_read_callback: unexpected data out of order: %llu != %llu", offset, it->max_offset);
+          // The numbers below are just wild guess.
+          if((it->delayed_chunks.size() < (it->ftp_threads*10)) || ((offset - it->max_offset) < 1024*1024*256)) {
+            it->delayed_chunks.push_back(dataChunk.MakeCopy()); // move asignment passes ownership
+          } else {
+            // Can't use data from this buffer - drop it ad report error
+            it->data_error = true;
+            logger.msg(ERROR, "ftp_read_callback: too many unexpected out of order chunks");
+            delete[] buffer;
+            it->data_counter.dec();
+            it->data_counter_change.signal();
+          }
+        }
       }
       if (eof) it->ftp_eof_flag = true;
       if (it->ftp_eof_flag) {
@@ -447,6 +491,7 @@ namespace ArcDMCGridFTP {
         }
       }
     }
+
     if(it->data_counter.get() == 0) {
       DataExternalComm::DataChunkClient dataEntry(NULL, offset+length, 0); // using 0 size as eof indication
       dataEntry.write(outstream<<DataExternalComm::DataChunkTag);
@@ -483,6 +528,7 @@ namespace ArcDMCGridFTP {
   DataStatus DataPointGridFTPHelper::Write() {
     if (!ftp_active) return DataStatus::NotInitializedError;
     set_attributes();
+    delayed_chunks.clear();
     // size of file first
     bool limit_length = false;
     unsigned long long int range_length = 0;
@@ -523,7 +569,7 @@ namespace ArcDMCGridFTP {
     // Read and inject buffers
     data_error = false;
     data_counter.set(0);
-    unsigned long long int max_offset = 0;
+    max_offset = 0;
     while(true) {
       static globus_byte_t dummy;
       logger.msg(VERBOSE, "start_writing_ftp: waiting for data tag");
@@ -544,10 +590,24 @@ namespace ArcDMCGridFTP {
       unsigned long long int length = dataChunk.getSize();
       globus_byte_t* data = reinterpret_cast<globus_byte_t*>(dataChunk.get());
       if(length == 0) data = &dummy;
+      if(stream_mode) {
+        // protection against data coming out of order - stream mode can't handle that
+        if(offset != max_offset) {
+          logger.msg(WARNING, "ftp_write_thread: data out of order in stream mode: %llu != %llu", offset, max_offset);
+          // The numbers below are just wild guess. It i snot even proper place to compensate for out
+          // of order data chunks. It should have been fixed on reading side.
+          if((delayed_chunks.size() < (ftp_threads*10)) || ((offset-max_offset) < 1024*1024*256)) {
+            delayed_chunks.push_back(dataChunk); // move asignment passes ownership
+            continue;
+          }
+          logger.msg(ERROR, "ftp_write_thread: too many out of order chunks in stream mode");
+          GlobusResult(globus_ftp_client_abort(&ftp_handle));
+          break;
+        }
+      }
       logger.msg(VERBOSE, "start_writing_ftp: data chunk: %llu %llu", offset, length);
       data_counter.inc();
-      GlobusResult res(globus_ftp_client_register_write(&ftp_handle,
-                                           data, length, offset,
+      GlobusResult res(globus_ftp_client_register_write(&ftp_handle, data, length, offset,
                                            dataChunk.getEOF()?GLOBUS_TRUE:GLOBUS_FALSE, &ftp_write_callback, cbarg));
       if(!res) {
         data_counter.dec();
@@ -557,6 +617,36 @@ namespace ArcDMCGridFTP {
       }
       if(length != 0) dataChunk.release(); // pass ownership to globus
       if((offset+length) > max_offset) max_offset = offset+length; 
+
+      // Do we have any delayed buffers we could release?
+      while(!delayed_chunks.empty()) {
+        DataExternalComm::DataChunkClientList::iterator matching_chunk =
+          std::find_if(delayed_chunks.begin(), delayed_chunks.end(), ChunkOffsetMatch(max_offset));
+        if(matching_chunk == delayed_chunks.end()) break;
+        dataChunk = *matching_chunk;
+        delayed_chunks.erase(matching_chunk);
+
+        unsigned long long int offset = dataChunk.getOffset();
+        unsigned long long int length = dataChunk.getSize();
+        globus_byte_t* data = reinterpret_cast<globus_byte_t*>(dataChunk.get());
+        if(length == 0) data = &dummy;
+        logger.msg(VERBOSE, "start_writing_ftp: delayed data chunk: %llu %llu", offset, length);
+        data_counter.inc();
+        res = globus_ftp_client_register_write(&ftp_handle,
+                                             data, length, offset,
+                                             dataChunk.getEOF()?GLOBUS_TRUE:GLOBUS_FALSE, &ftp_write_callback, cbarg);
+        if(!res) {
+          data_counter.dec();
+          logger.msg(DEBUG, "ftp_write_thread: Globus error: %s", res.str());
+          GlobusResult(globus_ftp_client_abort(&ftp_handle));
+          break;
+        }
+        if(length != 0) dataChunk.release(); // pass ownership to globus
+        max_offset = offset+length; 
+      }
+      if(!res) break;
+      
+      // Prevent pile up of buffers in memory
       while(data_counter.get() >= (ftp_threads*2)) {
         // Wait for some buffers to be released
         logger.msg(VERBOSE, "start_writing_ftp: waiting for some buffers sent");
@@ -693,12 +783,13 @@ namespace ArcDMCGridFTP {
         modify_utime = modify_utime;
       }
     }
-    if ((verb & DataPoint::INFO_TYPE_CONTENT) == DataPoint::INFO_TYPE_CONTENT && !f.CheckCheckSum() && f.GetType() != FileInfo::file_type_dir) {
+    if ((verb & DataPoint::INFO_TYPE_CKSUM) == DataPoint::INFO_TYPE_CKSUM && !f.CheckCheckSum() && f.GetType() != FileInfo::file_type_dir) {
       // not all implementations support checksum so failure is not an error
       logger.msg(DEBUG, "list_files_ftp: "
                         "looking for checksum of %s", f_url);
       char cksum[256];
       std::string cksumtype(upper(default_checksum).c_str());
+      cond.reset();
       res = globus_ftp_client_cksm(&ftp_handle, f_url.c_str(),
                                    &ftp_opattr, cksum, (globus_off_t)0,
                                    (globus_off_t)-1, cksumtype.c_str(),
@@ -714,8 +805,11 @@ namespace ArcDMCGridFTP {
       }
       else if (!callback_status) {
         // reset to success since failing to get checksum should not trigger an error
+        if (callback_status == EOPNOTSUPP)
+          logger.msg(INFO, "list_files_ftp: no checksum information supported");
+        else 
+          logger.msg(INFO, "list_files_ftp: no checksum information returned");
         callback_status = DataStatus::Success;
-        logger.msg(INFO, "list_files_ftp: no checksum information possible");
       }
       else {
         logger.msg(VERBOSE, "list_files_ftp: checksum %s", cksum);
@@ -792,6 +886,7 @@ namespace ArcDMCGridFTP {
       return lister_res;
     }
     DataStatus result = DataStatus::Success;
+    int cksum_failed_cnt = 0;
     for (std::list<FileInfo>::iterator i = lister->begin();
          i != lister->end(); ++i) {
       if (i->GetName()[0] != '/') i->SetName(url.Path()+'/'+i->GetName());
@@ -803,6 +898,17 @@ namespace ArcDMCGridFTP {
         }
       }
       DataExternalComm::OutEntry(outstream<<DataExternalComm::FileInfoTag, *i);
+      if(((verb & DataPoint::INFO_TYPE_CKSUM) == DataPoint::INFO_TYPE_CKSUM) &&
+         (i->GetType() != FileInfo::file_type_dir)) {
+        if(i->GetCheckSum().empty()) {
+          if(++cksum_failed_cnt >= 10) {
+            verb = (Arc::DataPoint::DataPointInfoType)(verb & ~DataPoint::INFO_TYPE_CKSUM);
+            logger.msg(VERBOSE, "Too many failures to obtain checksum - giving up");
+          }
+        } else {
+          cksum_failed_cnt = 0;
+        }
+      }
     }
     return result;
   }
@@ -849,6 +955,7 @@ namespace ArcDMCGridFTP {
       range_start(0),
       range_end(0),
       allow_out_of_order(true),
+      stream_mode(true),
       credential(NULL),
       ftp_eof_flag(false),
       check_received_length(0),
@@ -928,6 +1035,17 @@ namespace ArcDMCGridFTP {
       }
     }
     ftp_active = true;
+    autodir = true;
+    std::string autodir_s = url.Option("autodir");
+    if(autodir_s == "yes") {
+      autodir = true;
+    } else if(autodir_s == "no") {
+      autodir = false;
+    }
+    lister = new Lister();
+  }
+
+  void DataPointGridFTPHelper::set_attributes(void) {
     ftp_threads = 1;
     ftp_bufsize = 65536;
     if (allow_out_of_order) {
@@ -940,17 +1058,6 @@ namespace ArcDMCGridFTP {
         ftp_threads = 1;
       }
     }
-    autodir = true;
-    std::string autodir_s = url.Option("autodir");
-    if(autodir_s == "yes") {
-      autodir = true;
-    } else if(autodir_s == "no") {
-      autodir = false;
-    }
-    lister = new Lister();
-  }
-
-  void DataPointGridFTPHelper::set_attributes(void) {
     globus_ftp_control_parallelism_t paral;
     if (ftp_threads > 1) {
       paral.fixed.mode = GLOBUS_FTP_CONTROL_PARALLELISM_FIXED;
@@ -977,6 +1084,7 @@ namespace ArcDMCGridFTP {
         logger.msg(VERBOSE, "globus_ftp_client_operationattr_set_authorization: error: %s", r.str());
       }
 
+      stream_mode = true;
       GlobusResult(globus_ftp_client_operationattr_set_mode(&ftp_opattr,
                                                GLOBUS_FTP_CONTROL_MODE_STREAM));
       GlobusResult(globus_ftp_client_operationattr_set_data_protection(&ftp_opattr,
@@ -1019,9 +1127,11 @@ namespace ArcDMCGridFTP {
         GlobusResult(globus_ftp_client_operationattr_set_dcau(&ftp_opattr, &dcau));
       }
       if (force_passive) {
+        stream_mode = true;
         GlobusResult(globus_ftp_client_operationattr_set_mode(&ftp_opattr,
                              GLOBUS_FTP_CONTROL_MODE_STREAM));
       } else {
+        stream_mode = false;
         GlobusResult(globus_ftp_client_operationattr_set_mode(&ftp_opattr,
                              GLOBUS_FTP_CONTROL_MODE_EXTENDED_BLOCK));
       }
@@ -1131,6 +1241,7 @@ int main(int argc, char* argv[]) {
   int logger_format = -1;
   int secure = 1;
   int passive = 1;
+  int out_of_order = 1;
 
   try {
     /* Create options parser */
@@ -1144,6 +1255,7 @@ int main(int argc, char* argv[]) {
     options.AddOption('F', "format", "logger output format", "format", logger_format);
     options.AddOption('s', "secure", "force secure data connection", "boolean", secure);
     options.AddOption('p', "passive", "force passive data connection", "boolean", passive);
+    options.AddOption('o', "noorder", "allow out of order reading", "boolean", out_of_order);
 
     params = options.Parse(argc, argv);
     if (params.empty()) {
@@ -1190,6 +1302,7 @@ int main(int argc, char* argv[]) {
     handler->SetRange(range_start, range_end);
     handler->SetSecure(secure);
     handler->SetPassive(passive);
+    handler->ReadOutOfOrder(out_of_order);
     Arc::DataStatus result(Arc::DataStatus::Success);
     if(command == Arc::DataPointDelegate::RenameCommand) {
       if(params.empty()) {

@@ -269,7 +269,7 @@ static int runmain(int argc, char *argv[]) {
                                     "  subject - subject name of proxy certificate.\n"
                                     "  identity - identity subject name of proxy certificate.\n"
                                     "  issuer - issuer subject name of proxy certificate.\n"
-                                    "  ca - subject name of CA ehich issued initial certificate\n"
+                                    "  ca - subject name of CA which issued initial certificate.\n"
                                     "  path - file system path to file containing proxy.\n"
                                     "  type - type of proxy certificate.\n"
                                     "  validityStart - timestamp when proxy validity starts.\n"
@@ -309,7 +309,7 @@ static int runmain(int argc, char *argv[]) {
                     istring("path"), proxy_path);
 
   std::string cert_path;
-  options.AddOption('C', "cert", istring("path to the certificate file, it can be either PEM, DER, or PKCS12 formated"),
+  options.AddOption('C', "cert", istring("path to the certificate file, it can be either PEM, DER, or PKCS12 formatted"),
                     istring("path"), cert_path);
 
   std::string key_path;
@@ -356,9 +356,10 @@ static int runmain(int argc, char *argv[]) {
 
   bool use_http_comm = false;
   options.AddOption('H', "httpcom", istring("use HTTP communication protocol for contacting VOMS services that provide RESTful access \n"
-                                            "               Note for RESTful access, \'list\' command and multiple VOMS server are not supported\n"
-                                            ), 
-                    use_http_comm);
+                                            "               Note for RESTful access, \'list\' command and multiple VOMS server are not supported\n"), use_http_comm);
+
+  bool use_old_comm = false;
+  options.AddOption('B', "oldcom", istring("use old communication protocol for contacting VOMS services instead of RESTful access\n"), use_old_comm);
 
   bool use_gsi_proxy = false;
   options.AddOption('O', "old", istring("this option is not functional (old GSI proxies are not supported anymore)"), use_gsi_proxy);
@@ -446,6 +447,11 @@ static int runmain(int argc, char *argv[]) {
                     version);
 
   std::list<std::string> params = options.Parse(argc, argv);
+
+  if(use_http_comm && use_old_comm) {
+    logger.msg(Arc::ERROR, "RESTful and old VOMS communication protocols can't be requested simultaneously.");
+    return EXIT_FAILURE;
+  }
 
   if (version) {
     std::cout << Arc::IString("%s version %s", "arcproxy", VERSION) << std::endl;
@@ -612,8 +618,11 @@ static int runmain(int argc, char *argv[]) {
                  "Please make sure this file exists.", proxy_path);
       return EXIT_FAILURE;
     }
-
     Arc::Credential holder(proxy_path, "", "", "");
+    if(!holder.GetCert()) {
+      logger.msg(Arc::ERROR, "Cannot process proxy file at %s.", proxy_path);
+      return EXIT_FAILURE;
+    }
     std::cout << Arc::IString("Subject: %s", holder.GetDN()) << std::endl;
     std::cout << Arc::IString("Issuer: %s", holder.GetIssuerName()) << std::endl;
     std::cout << Arc::IString("Identity: %s", holder.GetIdentityName()) << std::endl;
@@ -672,30 +681,38 @@ static int runmain(int argc, char *argv[]) {
         std::cout << "VO        : "<<voms_attributes[n].voname << std::endl;
         std::cout << "subject   : "<<voms_attributes[n].holder << std::endl;
         std::cout << "issuer    : "<<voms_attributes[n].issuer << std::endl;
-        bool found_uri = false;
         for(int i = 0; i < voms_attributes[n].attributes.size(); i++) {
           std::string attr = voms_attributes[n].attributes[i];
           std::string::size_type pos;
           if((pos = attr.find("hostname=")) != std::string::npos) {
-            if(found_uri) continue;
-            std::string str = attr.substr(pos+9);
-            std::string::size_type pos1 = str.find("/");
-            if(pos1 != std::string::npos) str = str.substr(0, pos1);
-            std::cout << "uri       : " << str <<std::endl;
-            found_uri = true;
+            std::list<std::string> attr_elements;
+            Arc::tokenize(attr, attr_elements, "/");
+            // remove /voname= prefix
+            if ( ! attr_elements.empty() ) attr_elements.pop_front();
+            if ( attr_elements.empty() ) {
+              logger.msg(Arc::WARNING, "Malformed VOMS AC attribute %s", attr);
+              continue;
+            }
+            // policyAuthority (URI) and AC tags
+            if ( attr_elements.size() == 1 ) {
+              std::string uri = attr_elements.front().substr(9);
+              std::cout << "uri       : " << uri <<std::endl;
+            } else {
+              std::string fqan = "";
+              attr_elements.pop_front();
+              // tags rendering is not defined in GFD.182
+              // tags are assigned to members, groups and roles
+              // FQAN-based ARC rendering is used
+              while (! attr_elements.empty () ) {
+                fqan.append("/").append(attr_elements.front());
+                attr_elements.pop_front();
+              }
+              std::cout << "tag       : " << fqan <<std::endl;
+            }
           }
           else {
-            if(attr.find("Role=") == std::string::npos)
-              std::cout << "attribute : " << attr <<"/Role=NULL/Capability=NULL" <<std::endl;
-            else if(attr.find("Capability=") == std::string::npos)
-              std::cout << "attribute : " << attr <<"/Capability=NULL" <<std::endl;
-            else
-              std::cout << "attribute : " << attr <<std::endl;
-          }
-
-          if((pos = attr.find("Role=")) != std::string::npos) {
-            std::string str = attr.substr(pos+5);
-            std::cout << "attribute : role = " << str << " (" << voms_attributes[n].voname << ")"<<std::endl;
+            // Short FQANs are GFD.182 compliant, no need to add Role=NULL
+            std::cout << "attribute : " << attr <<std::endl;
           }
 
           //std::cout << "attribute : "<<voms_attributes[n].attributes[i]<<std::endl;
@@ -723,11 +740,27 @@ static int runmain(int argc, char *argv[]) {
     return EXIT_SUCCESS;
   }
   if(infoitemlist.size() > 0) {
-    std::vector<Arc::VOMSACInfo> voms_attributes;
+    if (proxy_path.empty()) {
+      logger.msg(Arc::ERROR, "Cannot find the path of the proxy file, "
+                 "please setup environment X509_USER_PROXY, "
+                 "or proxypath in a configuration file");
+      return EXIT_FAILURE;
+    }
+    else if (!(Glib::file_test(proxy_path, Glib::FILE_TEST_EXISTS))) {
+      logger.msg(Arc::ERROR, "Cannot find file at %s for getting the proxy. "
+                 "Please make sure this file exists.", proxy_path);
+      return EXIT_FAILURE;
+    }
     Arc::Credential holder(proxy_path, "", "", "");
+    if(!holder.GetCert()) {
+      logger.msg(Arc::ERROR, "Cannot process proxy file at %s.", proxy_path);
+      return EXIT_FAILURE;
+    }
     Arc::VOMSTrustList voms_trust_dn;
     voms_trust_dn.AddRegex(".*");
+    std::vector<Arc::VOMSACInfo> voms_attributes;
     parseVOMSAC(holder, ca_dir, "", voms_dir, voms_trust_dn, voms_attributes, true, true);
+    bool unknownInfo = false;
     for(std::list<std::string>::iterator ii = infoitemlist.begin();
                            ii != infoitemlist.end(); ++ii) {
       if(*ii == "subject") {
@@ -800,8 +833,11 @@ static int runmain(int argc, char *argv[]) {
         std::cout << signTypeToString(holder.GetSigningAlgorithm()) << std::endl;
       } else {
         logger.msg(Arc::ERROR, "Information item '%s' is not known",*ii);
+        unknownInfo = true;
       }
     }
+    if (unknownInfo)
+      return EXIT_FAILURE;
     return EXIT_SUCCESS;
   }
 
@@ -955,7 +991,7 @@ static int runmain(int argc, char *argv[]) {
     } else {
       // otherwise start - optionally - and end are set, period is derived
       if(validityEnd < validityStart) {
-        std::cerr << Arc::IString("The end time that you set: %s is before start time:%s.", (std::string)validityEnd,(std::string)validityStart) << std::endl;
+        std::cerr << Arc::IString("The end time that you set: %s is before start time: %s.", (std::string)validityEnd,(std::string)validityStart) << std::endl;
         // error
         return EXIT_FAILURE;
       }
@@ -1114,7 +1150,7 @@ static int runmain(int argc, char *argv[]) {
       write_proxy_file(tmp_proxy_path, tmp_proxy_cred_str);
 
       if(!contact_voms_servers(vomscmdlist, orderlist, vomses_path, use_gsi_comm,
-          use_http_comm, voms_period, usercfg, logger, tmp_proxy_path, vomsacseq)) {
+          use_http_comm || !use_old_comm, voms_period, usercfg, logger, tmp_proxy_path, vomsacseq)) {
         remove_proxy_file(tmp_proxy_path);
         return EXIT_FAILURE;
       }
@@ -1218,7 +1254,7 @@ static int runmain(int argc, char *argv[]) {
         logger.msg(Arc::INFO, "Myproxy server did not return proxy with VOMS AC included");
         std::string vomsacseq;
         contact_voms_servers(vomscmdlist, orderlist, vomses_path, use_gsi_comm,
-            use_http_comm, voms_period, usercfg, logger, proxy_path, vomsacseq);
+            use_http_comm || !use_old_comm, voms_period, usercfg, logger, proxy_path, vomsacseq);
         if(!vomsacseq.empty()) {
           Arc::Credential signer(proxy_path, proxy_path, "", "");
           std::string proxy_cert;
@@ -1268,7 +1304,7 @@ static int runmain(int argc, char *argv[]) {
       create_tmp_proxy(tmp_proxy, signer);
       write_proxy_file(tmp_proxy_path, tmp_proxy);
       if(!contact_voms_servers(vomscmdlist, orderlist, vomses_path, use_gsi_comm,
-          use_http_comm, voms_period, usercfg, logger, tmp_proxy_path, vomsacseq)) {
+          use_http_comm || !use_old_comm, voms_period, usercfg, logger, tmp_proxy_path, vomsacseq)) {
         remove_proxy_file(tmp_proxy_path);
         std::cerr << Arc::IString("Proxy generation failed: Failed to retrieve VOMS information.") << std::endl;
         return EXIT_FAILURE;

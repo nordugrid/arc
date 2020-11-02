@@ -14,6 +14,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <pwd.h>
 
 
 #include <arc/DateTime.h>
@@ -55,6 +56,79 @@ static std::string rand_uid64(void) {
       (((uint64_t)(t.tv_usec & 0xffff)) << 16) |
       (((uint64_t)(rand() & 0xffff))    << 0);
   return Arc::inttostr(id,16,16);
+}
+
+static std::string GetPath(std::string url){
+  std::string::size_type ds, ps;
+  ds=url.find("//");
+  if (ds==std::string::npos) {
+    ps=url.find("/");
+  } else {
+    ps=url.find("/", ds+2);
+  }
+  if (ps==std::string::npos) return "";
+  return url.substr(ps);
+}
+
+ARexConfigContext* ARexConfigContext::GetRutimeConfiguration(Arc::Message& inmsg, GMConfig& gmconfig,
+             std::string const & default_uname, std::string const & default_endpoint) {
+  ARexConfigContext* config = NULL;
+  Arc::MessageContextElement* mcontext = (*inmsg.Context())["arex.gmconfig"];
+  if(mcontext) {
+    try {
+      config = dynamic_cast<ARexConfigContext*>(mcontext);
+      logger.msg(Arc::DEBUG,"Using cached local account '%s'", config->User().Name());
+    } catch(std::exception& e) { };
+  };
+  if(config) return config;
+  // TODO: do configuration detection
+  // TODO: do mapping to local unix name
+  std::string uname;
+  uname=inmsg.Attributes()->get("SEC:LOCALID");
+  if(uname.empty()) uname=default_uname;
+  if(uname.empty()) {
+    if(getuid() == 0) {
+      logger.msg(Arc::ERROR, "Will not map to 'root' account by default");
+      return NULL;
+    };
+    struct passwd pwbuf;
+    char buf[4096];
+    struct passwd* pw;
+    if(getpwuid_r(getuid(),&pwbuf,buf,sizeof(buf),&pw) == 0) {
+      if(pw && pw->pw_name) {
+        uname = pw->pw_name;
+      };
+    };
+  };
+  if(uname.empty()) {
+    logger.msg(Arc::ERROR, "No local account name specified");
+    return NULL;
+  };
+  logger.msg(Arc::DEBUG,"Using local account '%s'",uname);
+  std::string grid_name = inmsg.Attributes()->get("TLS:IDENTITYDN");
+  std::string endpoint = default_endpoint;
+  if(endpoint.empty()) {
+    std::string http_endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
+    std::string tcp_endpoint = inmsg.Attributes()->get("TCP:ENDPOINT");
+    bool https_proto = !grid_name.empty();
+    endpoint = tcp_endpoint;
+    if(https_proto) {
+      endpoint="https"+endpoint;
+    } else {
+      endpoint="http"+endpoint;
+    };
+    endpoint+=GetPath(http_endpoint);
+  };
+  config=new ARexConfigContext(gmconfig,uname,grid_name,endpoint);
+  if(config) {
+    if(*config) {
+      inmsg.Context()->Add("arex.gmconfig",config);
+    } else {
+      delete config; config=NULL;
+      logger.msg(Arc::ERROR, "Failed to acquire A-REX's configuration");
+    };
+  };
+  return config;
 }
 
 static bool match_lists(const std::list<std::string>& list1, const std::list<std::string>& list2, std::string& matched) {
@@ -296,6 +370,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
   if(!(allowed_to_see_ || allowed_to_maintain_)) { id_.clear(); return; };
   // Checking for presence of session dir and identifying local user id.
   struct stat st;
+  if(job_.sessiondir.empty()) { id_.clear(); return; };
   if(stat(job_.sessiondir.c_str(),&st) != 0) { id_.clear(); return; };
   uid_ = st.st_uid; 
   gid_ = st.st_gid; 
@@ -497,7 +572,7 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
   // 1. If job comes through EMI-ES it has delegations assigned only per file 
   //    through source and target. But ARC has extension to pass global
   //    delegation for whole DataStaging
-  // 2. In ARC BES extension credentils delegated as part of job creation request.
+  // 2. In ARC BES extension credentials delegated as part of job creation request.
   //    Those are provided in credentials variable
   // 3. If neither works and special dynamic output files @list which 
   //    have no targets and no delegations are present then any of 
@@ -564,7 +639,9 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
   // BES ActivityIdentifier is global job ID
   idgenerator.SetLocalID(id_);
   job_.globalid = idgenerator.GetGlobalID();
-  job_.headnode = idgenerator.GetManager();
+  job_.headnode = idgenerator.GetManagerURL();
+  job_.headhost = idgenerator.GetHostname();
+  job_.globalurl = idgenerator.GetJobURL();
   job_.interface = idgenerator.GetInterface();
   std::string certificates;
   job_.expiretime = time(NULL);
@@ -850,7 +927,7 @@ bool ARexJob::UpdateCredentials(const std::string& credentials) {
   if(id_.empty()) return false;
   if(!update_credentials(credentials)) return false;
   GMJob job(id_,Arc::User(uid_),
-            config_.GmConfig().SessionRoot(id_)+"/"+id_,JOB_STATE_ACCEPTED);
+            job_.sessiondir,JOB_STATE_ACCEPTED);
   if(!job_local_write_file(job,config_.GmConfig(),job_)) return false;
   return true;
 }
@@ -866,7 +943,7 @@ bool ARexJob::update_credentials(const std::string& credentials) {
   Arc::Credential cred(credentials,"","","","",false);
   job_.expiretime = cred.GetEndTime();
   GMJob job(id_,Arc::User(uid_),
-            config_.GmConfig().SessionRoot(id_)+"/"+id_,JOB_STATE_ACCEPTED);
+            job_.sessiondir,JOB_STATE_ACCEPTED);
 #if 0
   std::string cred_public;
   cred.OutputCertificate(cred_public);
@@ -918,8 +995,9 @@ bool ARexJob::make_job_id(void) {
 bool ARexJob::delete_job_id(void) {
   if(!config_) return true;
   if(!id_.empty()) {
-    job_clean_final(GMJob(id_,Arc::User(uid_),
-                config_.GmConfig().SessionRoot(id_)+"/"+id_),config_.GmConfig());
+    if(!job_.sessiondir.empty()) // check if session dir was already defined
+      job_clean_final(GMJob(id_,Arc::User(uid_),
+                      job_.sessiondir),config_.GmConfig());
     id_="";
   };
   return true;
@@ -947,7 +1025,7 @@ std::list<std::string> ARexJob::Jobs(ARexGMConfig& config,Arc::Logger& logger) {
 
 std::string ARexJob::SessionDir(void) {
   if(id_.empty()) return "";
-  return config_.GmConfig().SessionRoot(id_)+"/"+id_;
+  return job_.sessiondir;
 }
 
 std::string ARexJob::LogDir(void) {
@@ -987,7 +1065,7 @@ Arc::FileAccess* ARexJob::CreateFile(const std::string& filename) {
     return NULL;
   };
   int lname = fname.length();
-  fname = config_.GmConfig().SessionRoot(id_)+"/"+id_+"/"+fname;
+  fname = job_.sessiondir+"/"+fname;
   // First try to create/open file
   Arc::FileAccess* fa = Arc::FileAccess::Acquire();
   if(!*fa) {
@@ -1030,7 +1108,7 @@ Arc::FileAccess* ARexJob::OpenFile(const std::string& filename,bool for_read,boo
     failure_type_=ARexJobInternalError;
     return NULL;
   };
-  fname = config_.GmConfig().SessionRoot(id_)+"/"+id_+"/"+fname;
+  fname = job_.sessiondir+"/"+fname;
   int flags = 0;
   if(for_read && for_write) { flags=O_RDWR; }
   else if(for_read) { flags=O_RDONLY; }
@@ -1059,7 +1137,7 @@ Arc::FileAccess* ARexJob::OpenDir(const std::string& dirname) {
     return NULL;
   };
   //if(dname.empty()) return NULL;
-  dname = config_.GmConfig().SessionRoot(id_)+"/"+id_+"/"+dname;
+  dname = job_.sessiondir+"/"+dname;
   Arc::FileAccess* fa = Arc::FileAccess::Acquire();
   if(*fa) {
     if(fa->fa_setuid(uid_,gid_)) {
@@ -1122,8 +1200,8 @@ std::string ARexJob::GetFilePath(const std::string& filename) {
   if(id_.empty()) return "";
   std::string fname = filename;
   if(!normalize_filename(fname)) return "";
-  if(fname.empty()) config_.GmConfig().SessionRoot(id_)+"/"+id_;
-  return config_.GmConfig().SessionRoot(id_)+"/"+id_+"/"+fname;
+  if(fname.empty()) return job_.sessiondir;
+  return job_.sessiondir+"/"+fname;
 }
 
 bool ARexJob::ReportFileComplete(const std::string& filename) {

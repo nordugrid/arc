@@ -43,49 +43,74 @@ class SQLFilter(object):
 class AccountingDB(object):
     """A-REX Accounting Records database interface for python tools"""
     def __init__(self, db_file):
-        """Init connection in constructor"""
+        """Try to init connection in constructor to ensure database is accessible"""
         self.logger = logging.getLogger('ARC.AccountingDB')
+        self.db_file = db_file
         self.con = None
+        self.pub_con = None
         # don't try to initialize database if not exists
         if not os.path.exists(db_file):
             self.logger.error('Accounting database file is not exists at %s', db_file)
             sys.exit(1)
         # try to make a connection
-        try:
-            self.con = sqlite3.connect(db_file)
-        except sqlite3.Error as e:
-            self.logger.error('Failed to initialize SQLite connection to %s. Error %s', db_file, str(e))
-            sys.exit(1)
+        self.adb_connect()
+        # ensure Write-Ahead Logging mode
+        jmode = self.__get_value('PRAGMA journal_mode=WAL', errstr='SQLite journal mode')
+        if jmode != 'wal':
+            self.logger.error('Failed to switch SQLite database journal mode to Write-Ahead Logging (WAL). '
+                              'Default "%s" mode continued to be used. '
+                              'This can negatively affect A-REX jobs processing during publishing. '
+                              'It is STRONGLY ADVISED to update SQLite to 3.7.0+!', jmode)
+        else:
+            self.logger.debug('Using SQLite Write-Ahead Logging mode that is non-blocking for read-only queries')
+        #
+        # NOTE: to minimize possibility of locking in any journal mode, AccountingDB object uses connection on-demand
+        #       instead of keeping it open
+        #
+        self.adb_close()
 
-        if self.con is not None:
-            self.logger.debug('Connection to accounting database (%s) has been established successfully', db_file)
-
-        # data structures for memory fetching
+        # data structures for in-memory fetching
         self.queues = {}
         self.users = {}
         self.wlcgvos = {}
         self.statuses = {}
         self.endpoints = {}
+
         # select aggregate filtering
         self.sqlfilter = SQLFilter()
-        # publishing db
-        self.attached_publishing_db = False
 
-    def close(self):
+    def adb_connect(self):
+        """Initialize database connection"""
+        if self.con is not None:
+            self.logger.debug('Using already established SQLite connection to accounting database %s', self.db_file)
+            return
+        try:
+            self.con = sqlite3.connect(self.db_file)
+        except sqlite3.Error as e:
+            self.logger.error('Failed to initialize SQLite connection to %s. Error %s', self.db_file, str(e))
+            sys.exit(1)
+        if self.con is not None:
+            self.logger.debug('Connection to accounting database (%s) has been established successfully', self.db_file)
+
+    def adb_close(self):
         """Terminate database connection"""
         if self.con is not None:
             self.logger.debug('Closing connection to accounting database')
             self.con.close()
-        self.con = None
+            self.con = None
 
     def __del__(self):
-        self.close()
+        self.adb_close()
+        self.publishing_db_close()
 
     # general value fetcher
-    def __get_value(self, sql, params=(), errstr='value'):
+    def __get_value(self, sql, params=(), errstr='value', pubcon=False):
         """General helper to get the one value from database"""
+        db_con = self.con
+        if pubcon:
+            db_con = self.pub_con
         try:
-            for row in self.con.execute(sql, params):
+            for row in db_con.execute(sql, params):
                 return row[0]
         except sqlite3.Error as e:
             if params:
@@ -109,6 +134,7 @@ class AccountingDB(object):
     # helpers to fetch accounting DB normalization databases to internal class structures
     def __fetch_idname_table(self, table):
         """General helper to fetch (id, name) tables content as a dict"""
+        self.adb_connect()
         data = {
             'byid': {},
             'byname': {}
@@ -120,26 +146,33 @@ class AccountingDB(object):
                 data['byname'][row[1]] = row[0]
         except sqlite3.Error as e:
             self.logger.error('Failed to get %s table data from accounting database. Error: %s', table, str(e))
+        self.adb_close()
         return data
 
     def __fetch_queues(self, force=False):
         if not self.queues or force:
+            self.logger.debug('Fetching queues from accounting database')
             self.queues = self.__fetch_idname_table('Queues')
 
     def __fetch_users(self, force=False):
         if not self.users or force:
+            self.logger.debug('Fetching users from accounting database')
             self.users = self.__fetch_idname_table('Users')
 
     def __fetch_wlcgvos(self, force=False):
         if not self.wlcgvos or force:
+            self.logger.debug('Fetching WLCG VOs from accounting database')
             self.wlcgvos = self.__fetch_idname_table('WLCGVOs')
 
     def __fetch_statuses(self, force=False):
         if not self.statuses or force:
+            self.logger.debug('Fetching available job statuses from accounting database')
             self.statuses = self.__fetch_idname_table('Status')
 
     def __fetch_endpoints(self, force=False):
         if not self.endpoints or force:
+            self.logger.debug('Fetching service endpoints from accounting database')
+            self.adb_connect()
             self.endpoints = {
                 'byid': {},
                 'byname': {},
@@ -155,6 +188,7 @@ class AccountingDB(object):
                     self.endpoints['bytype'][row[1]].append(row[0])
             except sqlite3.Error as e:
                 self.logger.error('Failed to get Endpoints table data from accounting database. Error: %s', str(e))
+            self.adb_close()
 
     # retrieve list of names used for filtering stats
     def get_queues(self):
@@ -185,7 +219,10 @@ class AccountingDB(object):
             sql += ' WHERE JobId LIKE ?'
             params += (prefix + '%', )
             errstr = 'Job IDs starting from {0}'
-        return self.__get_list(sql, params, errstr=errstr)
+        self.adb_connect()
+        joblist = self.__get_list(sql, params, errstr=errstr)
+        self.adb_close()
+        return joblist
 
     # construct stats query filters
     def __filter_nameid(self, names, attrdict, attrname, dbfield):
@@ -297,6 +334,7 @@ class AccountingDB(object):
 
     def __filtered_query(self, sql, params=(), errorstr=''):
         """Add defined filters to SQL query and execute it returning the results iterator"""
+        # NOTE: this function does not close DB connection and return sqlite3.Cursor object on successful query
         if not self.sqlfilter.isresult():
             return []
         if '<FILTERS>' in sql:
@@ -308,15 +346,18 @@ class AccountingDB(object):
                 sql += ' WHERE 1=1'  # verified that this does not affect performance
             sql += ' ' + self.sqlfilter.getsql()
         params += self.sqlfilter.getparams()
+        self.adb_connect()
         try:
             res = self.con.execute(sql, params)
             return res
         except sqlite3.Error as e:
             params += (str(e),)
-            self.logger.debug('Failed to execute query: {0}. Error: %s'.format(sql.replace('?', '%s')), *params)
+            self.logger.debug('Failed to execute query: {0}. Error: %s'.format(
+                sql.replace('%', '%%').replace('?', '%s')), *params)
             if errorstr:
                 self.logger.error(errorstr + ' Something goes wrong during SQL query. '
                                              'Use DEBUG loglevel to troubleshoot.')
+            self.adb_close()
             return []
 
     #
@@ -350,6 +391,7 @@ class AccountingDB(object):
                     'rangestart': res[6],
                     'rangeend': res[7]
                 }
+        self.adb_close()
         return stats
 
     def get_job_owners(self):
@@ -358,6 +400,7 @@ class AccountingDB(object):
         for res in self.__filtered_query('SELECT DISTINCT UserID FROM AAR',
                                          errorstr='Failed to get accounted job owners'):
             userids.append(res[0])
+        self.adb_close()
         if userids:
             self.__fetch_users()
             return [self.users['byid'][u] for u in userids]
@@ -369,6 +412,7 @@ class AccountingDB(object):
         for res in self.__filtered_query('SELECT DISTINCT VOID FROM AAR',
                                          errorstr='Failed to get accounted WLCG VOs for jobs'):
             voids.append(res[0])
+        self.adb_close()
         if voids:
             self.__fetch_wlcgvos()
             return [self.wlcgvos['byid'][v] for v in voids]
@@ -380,45 +424,53 @@ class AccountingDB(object):
         for res in self.__filtered_query('SELECT JobID FROM AAR',
                                          errorstr='Failed to get JobIDs'):
             jobids.append(res[0])
+        self.adb_close()
         return jobids
 
     # Querying AARs and their info
     def __fetch_authtokenattrs(self):
         """Return dict that holds list of auth token attributes tuples for every record id"""
         result = {}
+        self.logger.debug('Fetching auth token attributes for AARs from database')
         sql = 'SELECT RecordID, AttrKey, AttrValue FROM AuthTokenAttributes ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
         for row in self.__filtered_query(sql, errorstr='Failed to get AuthTokenAttributes for AAR(s) from database'):
             if row[0] not in result:
                 result[row[0]] = []
             result[row[0]].append((row[1], row[2]))
+        self.adb_close()
         return result
 
     def __fetch_jobevents(self):
         """Return list ordered job event tuples"""
         result = {}
+        self.logger.debug('Fetching job events for AARs from database')
         sql = 'SELECT RecordID, EventKey, EventTime FROM JobEvents ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>) ORDER BY EventTime ASC'
         for row in self.__filtered_query(sql, errorstr='Failed to get JobEvents for AAR(s) from database'):
             if row[0] not in result:
                 result[row[0]] = []
             result[row[0]].append((row[1], row[2]))
+        self.adb_close()
         return result
 
     def __fetch_rtes(self):
         """Return list of job RTEs"""
         result = {}
+        self.logger.debug('Fetching used RTEs for AARs from database')
         sql = 'SELECT RecordID, RTEName FROM RunTimeEnvironments ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
         for row in self.__filtered_query(sql, errorstr='Failed to get RTEs for AAR(s) from database'):
             if row[0] not in result:
                 result[row[0]] = []
             result[row[0]].append(row[1])
+        self.adb_close()
         return result
 
     def __fetch_datatransfers(self):
         """Return list of dicts representing individual job datatransfers"""
         result = {}
+        self.logger.debug('Fetching jobs datatransfer records for AARs from database')
         sql = 'SELECT RecordID, URL, FileSize, TransferStart, TransferEnd, TransferType FROM DataTransfers ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
         for row in self.__filtered_query(sql, errorstr='Failed to get DataTransfers for AAR(s) from database'):
@@ -437,10 +489,12 @@ class AccountingDB(object):
                 'timeend': datetime.datetime.utcfromtimestamp(row[4]),
                 'type':  ttype
             })
+        self.adb_close()
         return result
 
     def __fetch_extrainfo(self):
         """Return dict of extra job info"""
+        self.logger.debug('Fetching extra job info for AARs from database')
         result = {}
         sql = 'SELECT RecordID, InfoKey, InfoValue FROM JobExtraInfo ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
@@ -448,10 +502,12 @@ class AccountingDB(object):
             if row[0] not in result:
                 result[row[0]] = {}
             result[row[0]][row[1]] = row[2]
+        self.adb_close()
         return result
 
     def get_aars(self, resolve_ids=False):
         """Return list of AARs corresponding to filtered query"""
+        self.logger.debug('Fetching AARs main data from database')
         aars = []
         for res in self.__filtered_query('SELECT * FROM AAR', errorstr='Failed to get AAR(s) from database'):
             aar = AAR()
@@ -471,6 +527,7 @@ class AccountingDB(object):
                 endpoint = self.endpoints['byid'][a.aar['EndpointID']]
                 a.aar['Interface'] = endpoint[0]
                 a.aar['EndpointURL'] = endpoint[1]
+        self.adb_close()
         return aars
 
     def enrich_aars(self, aars, authtokens=False, events=False, rtes=False, dtrs=False, extra=False):
@@ -508,22 +565,39 @@ class AccountingDB(object):
 
     def get_apel_summaries(self):
         """Return info corresponding to APEL aggregated summary records"""
+        summaries = []
+        # get RecordID range to limit further filtering
+        record_start = None
+        record_end = None
+        for res in self.__filtered_query('SELECT min(RecordID), max(RecordID) FROM AAR',
+                                         errorstr='Failed to get records range from database'):
+            record_start = res[0]
+            record_end = res[1]
+        if record_start is None or record_end is None:
+            self.logger.error('Database query error. Failed to proceed with APEL summary generation')
+            self.adb_close()
+            return summaries
+        self.logger.debug('Will query extra table for the records in range [%s, %s]', record_start, record_end)
+        # invoke heavy summary query with extra table pre-filtering
         sql = '''SELECT a.UserID, a.VOID, a.EndpointID, a.NodeCount, a.CPUCount,
-              AuthTokenAttributes.AttrValue, JobExtraInfo.InfoValue as Benchmark,
+              t.AttrValue as AuthToken, e.InfoValue as RBenchmark,
               COUNT(a.RecordID), SUM(a.UsedWalltime), SUM(a.UsedCPUTime), MIN(a.EndTime), MAX(a.EndTime),
               strftime("%Y-%m", a.endTime, "unixepoch") AS YearMonth
               FROM ( SELECT RecordID, UserID, VOID, EndpointID, NodeCount, CPUCount, SubmitTime, EndTime,
                             UsedWalltime, UsedCPUUserTime + UsedCPUKernelTime AS UsedCPUTime FROM AAR
                      WHERE 1=1 <FILTERS>) a
-              LEFT JOIN JobExtraInfo ON JobExtraInfo.RecordID = a.RecordID
-                                    AND JobExtraInfo.InfoKey = "benchmark"
-              LEFT JOIN AuthTokenAttributes ON AuthTokenAttributes.RecordID = a.RecordID
-                                           AND AuthTokenAttributes.AttrKey = "mainfqan"
-              GROUP BY YearMonth, a.UserID, a.VOID, a.EndpointID, a.NodeCount, a.CPUCount, Benchmark'''
-        summaries = []
+              LEFT JOIN ( SELECT * FROM JobExtraInfo
+                          WHERE JobExtraInfo.RecordID >= {0} AND JobExtraInfo.RecordID <= {1}
+                          AND JobExtraInfo.InfoKey = "benchmark" ) e ON e.RecordID = a.RecordID
+              LEFT JOIN ( SELECT * FROM AuthTokenAttributes
+                          WHERE AuthTokenAttributes.RecordID >= {0} AND AuthTokenAttributes.RecordID <= {1}
+                          AND AuthTokenAttributes.AttrKey = "mainfqan" ) t ON t.RecordID = a.RecordID
+              GROUP BY YearMonth, a.UserID, a.VOID, a.EndpointID,
+                       a.NodeCount, a.CPUCount, RBenchmark'''.format(record_start, record_end)
         self.__fetch_users()
         self.__fetch_wlcgvos()
         self.__fetch_endpoints()
+        self.logger.debug('Invoking query to fetch APEL summaries data from database')
         for res in self.__filtered_query(sql, errorstr='Failed to get APEL summary info from database'):
             (year, month) = res[12].split('-')
             summaries.append({
@@ -542,6 +616,7 @@ class AccountingDB(object):
                 'timestart': res[10],
                 'timeend': res[11]
             })
+        self.adb_close()
         return summaries
 
     def get_apel_sync(self):
@@ -558,26 +633,29 @@ class AccountingDB(object):
                 'count': res[1],
                 'endpoint': self.endpoints['byid'][res[2]][1]
             })
+        self.adb_close()
         return syncs
 
     def get_latest_endtime(self):
         """Return latest endtime for records matching defined filters"""
+        endtime = None
         sql = 'SELECT MAX(EndTime) FROM AAR'
         for res in self.__filtered_query(sql, errorstr='Failed to get latest endtime for records from database'):
-            return res[0]
-        return None
+            endtime = res[0]
+            break
+        self.adb_close()
+        return endtime
 
     # Publishing state recording
-    def attach_publishing_db(self, dbfile):
-        """Attach publishing database to current connection"""
-        # already attached, nothing to do
-        self.logger.debug('Attaching accounting publishing database at %s', dbfile)
-        if self.attached_publishing_db:
-            self.logger.debug('Database is already attached')
+    def publishing_db_connect(self, dbfile):
+        """Establish connection to publishing state database"""
+        self.logger.debug('Establishing connection to accounting publishing state database at %s', dbfile)
+
+        if self.pub_con is not None:
+            self.logger.debug('Publishing state database is already connected')
             return
         # attach database
-        sql = 'ATTACH DATABASE ? AS pub'
-        dbinit_sql = '''CREATE TABLE IF NOT EXISTS pub.AccountingTargets (
+        dbinit_sql = '''CREATE TABLE IF NOT EXISTS AccountingTargets (
               TargetID    TEXT UNIQUE NOT NULL,
               LastEndTime INTEGER NOT NULL,
               LastReport  INTEGER NOT NULL
@@ -585,40 +663,47 @@ class AccountingDB(object):
         if not os.path.exists(dbfile):
             self.logger.info('Cannot find accounting publishing database file, will going to init %s.', dbfile)
         try:
-            self.con.execute(sql, (dbfile, ))
+            self.pub_con = sqlite3.connect(dbfile)
         except sqlite3.Error as e:
-            self.logger.error('Failed to attach accounting publishing database at %s to the current connection. '
+            self.logger.error('Failed to connect to accounting publishing state database at %s. '
                               'Error: %s', dbfile, str(e))
             sys.exit(1)
         # create table if not exist
         try:
-            self.con.execute(dbinit_sql)
+            self.pub_con.execute(dbinit_sql)
         except sqlite3.Error as e:
-            self.logger.error('Failed to initialize accounting publishing database schema. '
+            self.logger.error('Failed to initialize accounting publishing state database schema. '
                               'Error: %s', str(e))
             sys.exit(1)
         else:
-            self.con.commit()
-        self.logger.info('Accounting publishing database has been attached')
-        self.attached_publishing_db = True
+            self.pub_con.commit()
+        self.logger.info('Established connection to accounting publishing state database')
+
+    def publishing_db_close(self):
+        """Terminate publishing database connection"""
+        if self.pub_con is not None:
+            self.logger.debug('Closing connection to accounting database')
+            self.pub_con.close()
+            self.pub_con = None
 
     def set_last_published_endtime(self, target_id, endtimestamp):
         """Set latest records EndTime published to this target"""
-        sql = 'INSERT OR REPLACE INTO pub.AccountingTargets(TargetID, LastEndTime, LastReport) ' \
+        sql = 'INSERT OR REPLACE INTO AccountingTargets(TargetID, LastEndTime, LastReport) ' \
               'VALUES(?, ?, ?)'
         publish_time = self.unixtimestamp(datetime.datetime.today())
         try:
-            self.con.execute(sql, (target_id, endtimestamp, publish_time))
+            self.pub_con.execute(sql, (target_id, endtimestamp, publish_time))
         except sqlite3.Error as e:
             self.logger.error('Failed to update latest published records EndTime for [%s] target. '
                               'Error: %s', target_id, str(e))
         else:
-            self.con.commit()
+            self.pub_con.commit()
 
     def get_last_published_endtime(self, target_id):
         """Get latest records EndTime published to this target"""
-        sql = 'SELECT LastEndTime FROM pub.AccountingTargets WHERE TargetID = ?'
-        updatetime = self.__get_value(sql, (target_id, ), errstr='Failed to get last published endtime for target [{0}]')
+        sql = 'SELECT LastEndTime FROM AccountingTargets WHERE TargetID = ?'
+        updatetime = self.__get_value(sql, (target_id, ), pubcon=True,
+                                      errstr='Failed to get last published endtime for target [{0}]')
         # if we publish fist time to this target avoid all eternity of records publishing
         # for previous records pushing use republish functionality
         if not updatetime:
@@ -632,8 +717,9 @@ class AccountingDB(object):
 
     def get_last_report_time(self, target_id):
         """Get time of the latest report to this target"""
-        sql = 'SELECT LastReport FROM pub.AccountingTargets WHERE TargetID = ?'
-        updatetime = self.__get_value(sql, (target_id, ), errstr='Failed to get last report time for target [{0}]')
+        sql = 'SELECT LastReport FROM AccountingTargets WHERE TargetID = ?'
+        updatetime = self.__get_value(sql, (target_id, ), pubcon=True,
+                                      errstr='Failed to get last report time for target [{0}]')
         if not updatetime:
             updatetime = 0
         return updatetime

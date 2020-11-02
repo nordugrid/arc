@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 from .ControlCommon import *
 from arc.utils import reference
+import os
 import sys
 import subprocess
 
@@ -107,7 +108,12 @@ class ConfigControl(ComponentControl):
             sys.stdout.write(line)
 
     def verify(self, args):
-        validator_cmd = [ARC_LIBEXEC_DIR + '/arc-config-check']
+        validator_script = ARC_LIBEXEC_DIR + '/arc-config-check'
+        if not os.path.exists(validator_script):
+            self.logger.error('The configuration check script is missing at %s. '
+                              'Note that config validation is currently targeting A-REX only.', validator_script)
+            return 1
+        validator_cmd = [validator_script]
         if args.config:
             validator_cmd += ['--config', args.config]
         if args.verbosity:
@@ -137,6 +143,7 @@ class ConfigControl(ComponentControl):
 
         config_actions = config_ctl.add_subparsers(title='Config Actions', dest='action',
                                                    metavar='ACTION', help='DESCRIPTION')
+        config_actions.required = True
 
         config_dump = config_actions.add_parser('dump', help='Dump ARC CE running configuration')
 

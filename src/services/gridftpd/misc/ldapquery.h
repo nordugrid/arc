@@ -72,13 +72,13 @@ namespace gridftpd {
                  const std::string& filter = "(objectclass=*)",
                  const std::vector <std::string>& attributes =
                  std::vector<std::string>(),
-                 Scope scope = subtree) throw(LdapQueryError);
+                 Scope scope = subtree);
 
       /**
        * Retrieves the result of the query from the ldap-server.
        */
       void Result(ldap_callback callback,
-                  void *ref) throw(LdapQueryError);
+                  void *ref);
 
       /**
        * Returns the hostname of the ldap-server.

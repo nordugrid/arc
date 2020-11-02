@@ -196,7 +196,7 @@ PDPStatus ArcPDP::isPermitted(Message *msg) const {
   //Call the evaluation functionality inside Evaluator
   Response *resp = eval->evaluate(requestxml);
   if(!resp) {
-    logger.msg(ERROR, "Not authorized from arc.pdp - failed to get reponse from Evaluator");
+    logger.msg(ERROR, "Not authorized by arc.pdp - failed to get reponse from Evaluator");
     return false;
   };
   ResponseList rlist = resp->getResponseItems();

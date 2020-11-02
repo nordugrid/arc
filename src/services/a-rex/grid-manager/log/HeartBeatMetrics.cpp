@@ -103,7 +103,7 @@ bool HeartBeatMetrics::RunMetrics(const std::string name, const std::string& val
   if(proc) return false;
   std::list<std::string> cmd;
   if(tool_path.empty()) {
-    logger.msg(Arc::ERROR,"gmetric_bin_path empty in arc.conf (should never happen the default value should be used");
+    logger.msg(Arc::ERROR,"gmetric_bin_path empty in arc.conf (should never happen the default value should be used)");
     return false;
   } else {
     cmd.push_back(tool_path);
@@ -135,8 +135,8 @@ bool HeartBeatMetrics::RunMetrics(const std::string name, const std::string& val
 }
 
 void HeartBeatMetrics::SyncAsync(void* arg) {
-  HeartBeatMetrics& it = *reinterpret_cast<HeartBeatMetrics*>(arg);
-  if(&it) {
+  if(arg) {
+    HeartBeatMetrics& it = *reinterpret_cast<HeartBeatMetrics*>(arg);
     Glib::RecMutex::Lock lock_(it.lock);
     if(it.proc) {
       // Continue only if no failure in previous call.

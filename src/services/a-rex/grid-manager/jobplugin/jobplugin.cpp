@@ -123,28 +123,6 @@ class DirectUserFilePlugin: public DirectFilePlugin {
 
 };
 
-
-static void job_subst(std::string& str,void* arg) {
-  job_subst_t* subs = (job_subst_t*)arg;
-  if(subs->job) for(std::string::size_type p = 0;;) {
-    p=str.find('%',p);
-    if(p==std::string::npos) break;
-    if(str[p+1]=='I') {
-      str.replace(p,2,subs->job->c_str());
-      p+=subs->job->length();
-    } else if(str[p+1]=='S') {
-      str.replace(p,2,"UNKNOWN"); // WRONG
-      p+=7;
-    } else if(str[p+1]=='O') {
-      str.replace(p,2,subs->reason);
-      p+=strlen(subs->reason);
-    } else {
-      p+=2;
-    };
-  };
-  if(subs->user && subs->config) subs->config->Substitute(str, *(subs->user));
-}
-
 JobPlugin::JobPlugin(std::istream &cfile,userspec_t const &user_,FileNode& node):
     cont_plugins(new ContinuationPlugins),
     user_s(user_),
@@ -860,8 +838,10 @@ int JobPlugin::close(bool eof) {
     if(globalid[globalid.length()-1] != '/') globalid+="/";
     globalid+=job_id;
     job_desc.globalid=globalid;
+    job_desc.globalurl=globalid;
   };
   job_desc.headnode=endpoint;
+  job_desc.headhost=Arc::URL(endpoint).Host();
   job_desc.interface="org.nordugrid.gridftpjob";
   if(matched_vo != NULL) {
     job_desc.localvo.push_back(matched_vo);
@@ -1445,7 +1425,6 @@ bool JobPlugin::make_job_id(const std::string &id) {
 }
 
 bool JobPlugin::make_job_id(void) {
-  bool found = false;
   delete_job_id();
   for(int i=0;i<100;i++) {
     //std::string id=Arc::tostring((unsigned int)getpid())+

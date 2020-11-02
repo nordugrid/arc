@@ -58,7 +58,6 @@ namespace Arc {
 
   static bool resolve_link(std::string& path) {
     struct stat linkst;
-    ssize_t r;
     if(lstat(path.c_str(), &linkst) == -1) return false;
     if(!S_ISLNK(linkst.st_mode)) return false;
     AutoPointer<char> linkname(new char[linkst.st_size], &array_deleter);

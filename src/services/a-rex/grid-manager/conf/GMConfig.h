@@ -101,7 +101,13 @@ public:
 
   /// Substitute characters in param specified by % with real values. An
   /// optional User can be specified for the user-related substitutions.
-  bool Substitute(std::string& param, const Arc::User& user=Arc::User()) const;
+  bool Substitute(std::string& param, bool& userSubs, bool& otherSubs, const Arc::User& user=Arc::User()) const;
+
+  bool Substitute(std::string& param, const Arc::User& user=Arc::User()) const {
+    bool userSubs;
+    bool otherSubs;
+    return Substitute(param, userSubs, otherSubs, user);
+  }
 
   /// Set control directory
   void SetControlDir(const std::string &dir);
@@ -184,6 +190,8 @@ public:
   bool EMIESInterfaceEnabled() const { return enable_emies_interface; }
   /// GridFTP job interface endpoint
   const std::string & GridFTPEndpoint() const { return gridftp_endpoint; }
+  /// Whether public information interface is enabled
+  bool PublicInformationEnabled() const { return enable_publicinfo; }
   /// A-REX WS-interface job submission endpoint
   const std::string & AREXEndpoint() const { return arex_endpoint; }
 
@@ -191,6 +199,8 @@ public:
   const std::string & DefaultLRMS() const { return default_lrms; }
   /// Default queue
   const std::string & DefaultQueue() const { return default_queue; }
+  /// Default benchmark
+  const std::string & DefaultBenchmark() const { return default_benchmark; }
   /// All configured queues
   const std::list<std::string>& Queues() const { return queues; }
 
@@ -245,6 +255,8 @@ public:
   /// Returns list of authorization groups for specified queue.
   /// If queue is not specified value for server is returned.
   const std::list<std::pair<bool,std::string> > & MatchingGroups(const char * queue = "") const;
+  /// Returns list of authorization groups for public information.
+  const std::list<std::pair<bool,std::string> > & MatchingGroupsPublicInformation() const;
 
   bool UseSSH() const { return sshfs_mounts_enabled; }
   /// Check if remote directory is mounted
@@ -299,6 +311,8 @@ private:
   /// Default LRMS and queue to use
   std::string default_lrms;
   std::string default_queue;
+  /// Default benchmark to store in AAR
+  std::string default_benchmark;
   /// All configured queues
   std::list<std::string> queues;
   /// User running A-REX
@@ -341,6 +355,8 @@ private:
   bool enable_arc_interface;
   /// Whether EMI-ES interface is enabled
   bool enable_emies_interface;
+  /// Whether public information interface is enabled
+  bool enable_publicinfo;
   /// GridFTP job endpoint
   std::string gridftp_endpoint;
   /// WS-interface endpoint
@@ -353,6 +369,8 @@ private:
   std::map<std::string, std::list<std::string> > authorized_vos;
   /// groups allowed per queue with allow/deny mark (true/false)
   std::map<std::string, std::list<std::pair<bool, std::string> > > matching_groups;
+  /// groups allowed to access public information with allow/deny mark (true/false)
+  std::list<std::pair<bool, std::string> > matching_groups_publicinfo;
 
   /// Indicates whether session, runtime and cache dirs are mounted through sshfs (only suppored by Python backends) 
   bool sshfs_mounts_enabled;

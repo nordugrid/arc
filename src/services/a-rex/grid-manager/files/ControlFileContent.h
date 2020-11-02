@@ -62,7 +62,8 @@ std::ostream &operator<< (std::ostream &o,const Exec &fd);
 class JobLocalDescription {
  /* all values are public, this class is just for convenience */
  public:
- JobLocalDescription(void):jobid(""),globalid(""),headnode(""),lrms(""),queue(""),localid(""),
+ JobLocalDescription(void):jobid(""),globalid(""),headnode(""),headhost(""),globalurl(""),
+                           lrms(""),queue(""),localid(""),
                            DN(""),starttime((time_t)(-1)),lifetime(""),
                            notify(""),processtime((time_t)(-1)),exectime((time_t)(-1)),
                            clientname(""),clientsoftware(""),delegationid(""),
@@ -88,6 +89,8 @@ class JobLocalDescription {
   /* attributes stored in job.ID.local */
   std::string globalid;      /* job id as seen from outside */
   std::string headnode;      /* URL of the cluster's headnode */
+  std::string headhost;      /* hostname of cluster's headnode */
+  std::string globalurl;     /* URL roughly representing job on cluster */
   std::string interface;     /* interface type used to submit job */
   std::string lrms;          /* lrms type to use - pbs */
   std::string queue;         /* queue name  - default */

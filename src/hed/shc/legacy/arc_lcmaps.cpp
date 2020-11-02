@@ -148,10 +148,10 @@ gss_cred_id_t read_globus_credentials(const std::string& filename) {
     gss_buffer_desc peer_buffer;
 #if GLOBUS_GSSAPI_GSI_OLD_OPENSSL
     peer_buffer.value = identity_cert;
-    peer_buffer.length = identity_cert?sizeof(X509*):0; // Globus expects this size despite stored value is X509, not X509*
+    peer_buffer.length = identity_cert?sizeof(X509):0;
 #else
     peer_buffer.value = identity_cert;
-    peer_buffer.length = identity_cert?sizeof(X509*):0;
+    peer_buffer.length = identity_cert?sizeof(X509*):0; // Globus expects this size despite stored value is X509, not X509*
 #endif
     OM_uint32 majstat, minstat;
     majstat = gss_import_name(&minstat, &peer_buffer,
@@ -182,16 +182,16 @@ int main(int argc,char* argv[]) {
   std::string subject;
   std::string filename;
 
-  if(argc > 1) subject = argv[1];
-  if(subject.empty()) {
+  if(argc < 2) {
     logger.msg(Arc::ERROR, "Missing subject name");
     return -1;
   };
-  if(argc > 2) filename = argv[2];
-  if(filename.empty()) {
+  subject = argv[1]; // subject can be empty for anonymous user
+  if(argc < 3) {
     logger.msg(Arc::ERROR, "Missing path of credentials file");
     return -1;
   };
+  filename = argv[2]; // credentials are also not required
   if(argc > 3) lcmaps_library = argv[3];
   if(lcmaps_library.empty()) {
     logger.msg(Arc::ERROR, "Missing name of LCMAPS library");

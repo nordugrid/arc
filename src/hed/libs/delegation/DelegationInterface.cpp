@@ -475,7 +475,7 @@ bool DelegationConsumer::Request(std::string& content) {
   bool res = false;
   content.resize(0);
   EVP_PKEY *pkey = EVP_PKEY_new();
-  const EVP_MD *digest = EVP_sha1();
+  const EVP_MD *digest = EVP_sha256();
   if(pkey) {
     RSA *rsa = (RSA*)key_;
     if(rsa) {
@@ -584,7 +584,7 @@ DelegationProvider::DelegationProvider(const std::string& credentials):key_(NULL
   bool res = false;
 
   OpenSSLInit();
-  EVP_add_digest(EVP_sha1());
+  EVP_add_digest(EVP_sha256());
 
   if(!string_to_x509(credentials,cert,pkey,cert_sk)) goto err;
   cert_=cert; cert=NULL;
@@ -612,7 +612,7 @@ DelegationProvider::DelegationProvider(const std::string& cert_file,const std::s
 
   
   OpenSSLInit();
-  EVP_add_digest(EVP_sha1());
+  EVP_add_digest(EVP_sha256());
 
   if(!string_to_x509(cert_file,key_file,inpwd,cert,pkey,cert_sk)) goto err;
   cert_=cert; cert=NULL;
@@ -656,7 +656,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   X509_EXTENSION *ex = NULL;
   PROXY_CERT_INFO_EXTENSION proxy_info;
   PROXY_POLICY proxy_policy;
-  const EVP_MD *digest = EVP_sha1();
+  const EVP_MD *digest = EVP_sha256();
   X509_NAME *subject = NULL;
   const char* need_ext = "critical,digitalSignature,keyEncipherment";
   std::string proxy_cn;
@@ -810,7 +810,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
     proxy_policy.policyLanguage=obj;
   };
   if(X509_add1_ext_i2d(cert,NID_proxyCertInfo,&proxy_info,1,X509V3_ADD_REPLACE) != 1) goto err;
-  if(policy_string) ASN1_OCTET_STRING_free(policy_string); policy_string=NULL;
+  if(policy_string) { ASN1_OCTET_STRING_free(policy_string); policy_string=NULL; }
   ASN1_OBJECT_free(obj); obj=NULL;
   /*
   PROXY_CERT_INFO_EXTENSION *pci = X509_get_ext_d2i(x, NID_proxyCertInfo, NULL, NULL);
@@ -1394,15 +1394,15 @@ void DelegationContainerSOAP::ReleaseConsumer(DelegationConsumerSOAP* c) {
   return;
 }
 
-void DelegationContainerSOAP::RemoveConsumer(DelegationConsumerSOAP* c) {
+bool DelegationContainerSOAP::RemoveConsumer(DelegationConsumerSOAP* c) {
   lock_.lock();
   ConsumerIterator i = find(c);
-  if(i == consumers_.end()) { lock_.unlock(); return; };
+  if(i == consumers_.end()) { lock_.unlock(); return false; };
   if(i->second->acquired > 0) --(i->second->acquired);
   i->second->to_remove=true;
   remove(i);
   lock_.unlock();
-  return;
+  return true;
 }
 
 DelegationContainerSOAP::ConsumerIterator DelegationContainerSOAP::find(DelegationConsumerSOAP* c) {

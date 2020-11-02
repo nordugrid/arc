@@ -133,12 +133,6 @@ const char* ConfigIni::SubSectionMatch(const char* name) {
 
 // TODO: not all functions can handle tabs and other non-space spaces.
 
-static int hextoint(unsigned char c) {
-  if(c >= 'a') return (c-('a'-10));
-  if(c >= 'A') return (c-('A'-10));
-  return (c-'0');
-}
-
 /// Extract element from input buffer and if needed process escape 
 /// characters in it.
 /// \param buf input buffer.

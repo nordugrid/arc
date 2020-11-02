@@ -185,6 +185,7 @@ static bool arcls(const Arc::URL& dir_url,
                            Arc::DataPoint::INFO_TYPE_TYPE |
                            Arc::DataPoint::INFO_TYPE_TIMES |
                            Arc::DataPoint::INFO_TYPE_CONTENT |
+                           Arc::DataPoint::INFO_TYPE_CKSUM |
                            Arc::DataPoint::INFO_TYPE_ACCESS); 
   if(recursion > 0) verb = (Arc::DataPoint::DataPointInfoType)
                            (verb | Arc::DataPoint::INFO_TYPE_TYPE);
@@ -271,7 +272,7 @@ static int runmain(int argc, char **argv) {
 
   setlocale(LC_ALL, "");
 
-  Arc::LogStream logcerr(std::cerr);
+  static Arc::LogStream logcerr(std::cerr);
   logcerr.setFormat(Arc::ShortFormat);
   Arc::Logger::getRootLogger().addDestination(logcerr);
   Arc::Logger::getRootLogger().setThreshold(Arc::WARNING);

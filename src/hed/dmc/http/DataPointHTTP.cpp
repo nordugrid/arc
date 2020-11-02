@@ -272,7 +272,10 @@ using namespace Arc;
       reading(false),
       writing(false),
       chunks(NULL),
-      transfers_tofinish(0) {}
+      transfers_tofinish(0),
+      partial_read_allowed(url.Option("httpgetpartial") == "yes"),
+      partial_write_allowed(url.Option("httpputpartial") == "yes") {
+  }
 
   DataPointHTTP::~DataPointHTTP() {
     StopReading();
@@ -357,23 +360,23 @@ using namespace Arc;
   }
 
   DataStatus DataPointHTTP::do_stat_http(URL& rurl, FileInfo& file) {
-    PayloadRaw request;
-    PayloadRawInterface *inbuf = NULL;
-    HTTPClientInfo info;
     for(int redirects_max = 10;redirects_max>=0;--redirects_max) {
+      PayloadRawInterface *inbuf = NULL;
+      HTTPClientInfo info;
+      PayloadRaw request;
       std::string path = rurl.FullPathURIEncoded();
       info.lastModified = (time_t)(-1);
       AutoPointer<ClientHTTP> client(acquire_client(rurl));
       if (!client) return DataStatus::StatError;
       // Do HEAD to obtain some metadata
       MCC_Status r = client->process("HEAD", path, &request, &info, &inbuf);
-      if (inbuf) delete inbuf; inbuf = NULL;
+      if (inbuf) { delete inbuf; inbuf = NULL; }
       if (!r) {
         // Because there is no reliable way to check if connection
         // is still alive at this place, we must try again
         client = acquire_new_client(rurl);
         if(client) r = client->process("HEAD", path, &request, &info, &inbuf);
-        if (inbuf) delete inbuf; inbuf = NULL;
+        if (inbuf) { delete inbuf; inbuf = NULL; }
         if(!r) return DataStatus(DataStatus::StatError,r.getExplanation());
       }
       release_client(rurl,client.Release());
@@ -485,27 +488,27 @@ using namespace Arc;
     }
     std::multimap<std::string, std::string> propattr;
     propattr.insert(std::pair<std::string, std::string>("Depth","0"));
-    PayloadRawInterface *inbuf = NULL;
-    HTTPClientInfo info;
     for(int redirects_max = 10;redirects_max>=0;--redirects_max) {
       std::string path = rurl.FullPathURIEncoded();
-      info.lastModified = (time_t)(-1);
       AutoPointer<ClientHTTP> client(acquire_client(rurl));
       if (!client) return DataStatus::StatError;
+      PayloadRawInterface *inbuf = NULL;
+      HTTPClientInfo info;
+      info.lastModified = (time_t)(-1);
       MCC_Status r = client->process("PROPFIND", path, propattr, &request, &info, &inbuf);
       if (!r) {
-        if (inbuf) delete inbuf; inbuf = NULL;
+        if (inbuf) { delete inbuf; inbuf = NULL; }
         // Because there is no reliable way to check if connection
         // is still alive at this place, we must try again
         client = acquire_new_client(rurl);
         if(client) r = client->process("PROPFIND", path, propattr, &request, &info, &inbuf);
         if(!r) {
-          if (inbuf) delete inbuf; inbuf = NULL;
+          if (inbuf) { delete inbuf; inbuf = NULL; }
           return DataStatus(DataStatus::StatError,r.getExplanation());
         }
       }
       if ((info.code != 200) && (info.code != 207)) { // 207 for multistatus response
-        if (inbuf) delete inbuf; inbuf = NULL;
+        if (inbuf) { delete inbuf; inbuf = NULL; }
         release_client(rurl,client.Release());
         if((info.code == 301) || // permanent redirection
            (info.code == 302) || // temporary redirection
@@ -566,27 +569,27 @@ using namespace Arc;
     }
     std::multimap<std::string, std::string> propattr;
     propattr.insert(std::pair<std::string, std::string>("Depth","1")); // for listing
-    PayloadRawInterface *inbuf = NULL;
-    HTTPClientInfo info;
     for(int redirects_max = 10;redirects_max>=0;--redirects_max) {
       std::string path = rurl.FullPathURIEncoded();
-      info.lastModified = (time_t)(-1);
       AutoPointer<ClientHTTP> client(acquire_client(rurl));
       if (!client) return DataStatus::StatError;
+      PayloadRawInterface *inbuf = NULL;
+      HTTPClientInfo info;
+      info.lastModified = (time_t)(-1);
       MCC_Status r = client->process("PROPFIND", path, propattr, &request, &info, &inbuf);
       if (!r) {
-        if (inbuf) delete inbuf; inbuf = NULL;
+        if (inbuf) { delete inbuf; inbuf = NULL; }
         // Because there is no reliable way to check if connection
         // is still alive at this place, we must try again
         client = acquire_new_client(rurl);
         if(client) r = client->process("PROPFIND", path, propattr, &request, &info, &inbuf);
         if(!r) {
-          if (inbuf) delete inbuf; inbuf = NULL;
+          if (inbuf) { delete inbuf; inbuf = NULL; }
           return DataStatus(DataStatus::StatError,r.getExplanation());
         }
       }
       if ((info.code != 200) && (info.code != 207)) { // 207 for multistatus response
-        if (inbuf) delete inbuf; inbuf = NULL;
+        if (inbuf) { delete inbuf; inbuf = NULL; }
         release_client(rurl,client.Release());
         if((info.code == 301) || // permanent redirection
            (info.code == 302) || // temporary redirection
@@ -913,12 +916,12 @@ using namespace Arc;
     HTTPClientInfo info;
     MCC_Status r = client->process("DELETE", url.FullPathURIEncoded(),
                                   &request, &info, &inbuf);
-    if (inbuf) delete inbuf; inbuf = NULL;
+    if (inbuf) { delete inbuf; inbuf = NULL; }
     if(!r) {
       client = acquire_new_client(url);
       if(client) r = client->process("DELETE", url.FullPathURIEncoded(),
                                     &request, &info, &inbuf);
-      if (inbuf) delete inbuf; inbuf = NULL;
+      if (inbuf) { delete inbuf; inbuf = NULL; }
       if(!r) return DataStatus(DataStatus::DeleteError,r.getExplanation());
     }
     release_client(url,client.Release());
@@ -937,12 +940,12 @@ using namespace Arc;
     attributes.insert(std::pair<std::string, std::string>("Destination", url.ConnectionURL() + destination.FullPathURIEncoded()));
     MCC_Status r = client->process("MOVE", url.FullPathURIEncoded(),
                                    attributes, &request, &info, &inbuf);
-    if (inbuf) delete inbuf; inbuf = NULL;
+    if (inbuf) { delete inbuf; inbuf = NULL; }
     if(!r) {
       client = acquire_new_client(url);
       if(client) r = client->process("MOVE", url.FullPathURIEncoded(),
                                      attributes, &request, &info, &inbuf);
-      if (inbuf) delete inbuf; inbuf = NULL;
+      if (inbuf) { delete inbuf; inbuf = NULL; }
       if(!r) return DataStatus(DataStatus::RenameError,r.getExplanation());
     }
     release_client(url,client.Release());
@@ -962,10 +965,10 @@ using namespace Arc;
     std::string path = point.CurrentLocation().FullPathURIEncoded();
     DataStatus failure_code;
     if (!client) return false;
-    HTTPClientInfo transfer_info;
-    PayloadRaw request;
-    PayloadStreamInterface *instream = NULL;
     for(;;) {  // for retries
+      HTTPClientInfo transfer_info;
+      PayloadRaw request;
+      PayloadStreamInterface *instream = NULL;
       MCC_Status r = client->process(ClientHTTPAttributes("GET", path),
                                      &request, &transfer_info,
                                      &instream);
@@ -1073,8 +1076,8 @@ using namespace Arc;
     int retries = 0;
     std::string path = point.CurrentLocation().FullPathURIEncoded();
     DataStatus failure_code;
-    bool partial_read_allowed = (client_url.Option("httpgetpartial") == "yes");
-    if(partial_read_allowed) for (;;) {
+    bool partial_allowed = point.partial_read_allowed && point.allow_out_of_order;
+    if(partial_allowed) for (;;) {
       if(client && client->GetClosed()) client = point.acquire_client(client_url);
       if (!client) {
         transfer_failure = true;
@@ -1228,7 +1231,7 @@ using namespace Arc;
     }
     if (point.transfers_tofinish == 0) {
       // TODO: process/report failure?
-      if(!partial_read_allowed) {
+      if(!partial_allowed) {
         // Reading in single chunk to be done in single thread
         if(!read_single(arg)) {
           transfer_failure = true;
@@ -1248,8 +1251,6 @@ using namespace Arc;
     URL client_url = point.url;
     AutoPointer<ClientHTTP> client(point.acquire_client(client_url));
     if (!client) return false;
-    HTTPClientInfo transfer_info;
-    PayloadRawInterface *response = NULL;
     std::string path = client_url.FullPathURIEncoded();
     // TODO: Do ping to *client in order to check if connection is alive.
     // TODO: But ping itself can destroy connection on 1.0-like servers.
@@ -1269,9 +1270,11 @@ using namespace Arc;
       }
       StreamBuffer request(*point.buffer);
       if (point.CheckSize()) request.Size(point.GetSize());
+      PayloadRawInterface *response = NULL;
+      HTTPClientInfo transfer_info;
       MCC_Status r = client->process(ClientHTTPAttributes("PUT", path, attrs),
                                      &request, &transfer_info, &response);
-      if (response) delete response; response = NULL;
+      if (response) { delete response; response = NULL; }
       if (!r) {
         // It is not clear how to retry if early chunks are not available anymore.
         // Let it retry at higher level.
@@ -1336,10 +1339,10 @@ using namespace Arc;
     bool transfer_failure = false;
     int retries = 0;
     std::string path = client_url.FullPathURIEncoded();
-    bool partial_write_failure = (client_url.Option("httpputpartial") != "yes");
+    bool partial_failure = !point.partial_write_allowed;
     DataStatus failure_code;
     // Fall through if partial PUT is not allowed
-    if(!partial_write_failure) for (;;) {
+    if(!partial_failure) for (;;) {
       if(client && client->GetClosed()) client = point.acquire_client(client_url);
       if (!client) {
         transfer_failure = true;
@@ -1364,6 +1367,7 @@ using namespace Arc;
       MCC_Status r = client->process("PUT", path, &request, &transfer_info,
                                      &response);
       if (response) delete response;
+      response = NULL;
       if (!r) {
         client = NULL;
         // Failed to transfer chunk - retry.
@@ -1392,7 +1396,7 @@ using namespace Arc;
         }
         if (transfer_info.code == 501) { 
           // Not implemented - probably means server does not accept patial PUT
-          partial_write_failure = true;
+          partial_failure = true;
         } else {
           transfer_failure = true;
           failure_code = DataStatus(DataStatus::WriteError, point.http2errno(transfer_info.code), transfer_info.reason);
@@ -1409,7 +1413,7 @@ using namespace Arc;
       point.buffer->error_write(true);
     }
     if (point.transfers_tofinish == 0) {
-      if(partial_write_failure) {
+      if(partial_failure) {
         // Writing in single chunk to be done in single thread
         if(!write_single(arg)) {
           transfer_failure = true;
@@ -1418,7 +1422,7 @@ using namespace Arc;
       }
       // TODO: process/report failure?
       point.buffer->eof_write(true);
-      if ((!partial_write_failure) && (!(point.buffer->error())) && (point.buffer->eof_position() == 0)) {
+      if ((!partial_failure) && (!(point.buffer->error())) && (point.buffer->eof_position() == 0)) {
         // Zero size data was transferred - must send at least one empty packet
         for (;;) {
           if (!client) client = point.acquire_client(client_url);
@@ -1432,6 +1436,7 @@ using namespace Arc;
           MCC_Status r = client->process("PUT", path, &request, &transfer_info,
                                          &response);
           if (response) delete response;
+          response = NULL;
           if (!r) {
             client = NULL;
             if ((++retries) > 10) {

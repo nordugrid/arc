@@ -190,8 +190,8 @@ bool JobDescriptionHandler::write_grami(GMJob &job,const char *opt_add) const {
 }
 
 bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc, GMJob& job, const char* opt_add) const {
+  if(job.GetLocalDescription(config) == NULL) return false;
   JobLocalDescription& job_local_desc = *(job.GetLocalDescription(config));
-  if(&job_local_desc == NULL) return false;
   const std::string session_dir = job.SessionDir();
   const std::string control_dir = config.ControlDir();
   const std::string fgrami = job_control_path(control_dir,job.get_id(),sfx_grami);
@@ -242,8 +242,13 @@ bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc,
          it != arc_job_desc.Application.Environment.end(); it++, i++) {
         f<<"joboption_env_"<<i<<"="<<value_for_shell(it->first+"="+it->second,true)<<std::endl;
     }
-    value_for_shell globalid=value_for_shell(job_local_desc.globalid,true);
-    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBID="<<globalid<<std::endl;
+    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBID="<<value_for_shell(job_local_desc.globalid,true)<<std::endl;
+    ++i;
+    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBURL="<<value_for_shell(job_local_desc.globalurl,true)<<std::endl;
+    ++i;
+    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBINTERFACE="<<value_for_shell(job_local_desc.interface,true)<<std::endl;
+    ++i;
+    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBHOST="<<value_for_shell(job_local_desc.headhost,true)<<std::endl;
   }
 
 
@@ -384,7 +389,7 @@ bool JobDescriptionHandler::set_execs(const GMJob &job) const {
   if (desc.Application.Executable.Path[0] != '/' && desc.Application.Executable.Path[0] != '$') {
     std::string executable = desc.Application.Executable.Path;
     if(!Arc::CanonicalDir(executable)) {
-      logger.msg(Arc::ERROR, "Bad name for executable: ", executable);
+      logger.msg(Arc::ERROR, "Bad name for executable: %s", executable);
       return false;
     }
     fix_file_permissions_in_session(session_dir+"/"+executable,job,config,true);

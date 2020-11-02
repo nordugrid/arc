@@ -32,6 +32,7 @@ namespace ArcDMCGridFTP {
     static Plugin* Instance(PluginArgument *arg);
     virtual bool RequiresCredentials() const;
     virtual bool SetURL(const Arc::URL&);
+    virtual bool WriteOutOfOrder() const;
 
   private:
     bool is_secure;

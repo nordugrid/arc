@@ -34,6 +34,8 @@ common_init () {
     . ${pkgdatadir}/configure-${joboption_lrms}-env.sh || exit $?
     # init common LRMS environmental variables
     init_lrms_env
+    # optionally enable support for community RTEs
+    [ -e "${pkgdatadir}/community_rtes.sh" ] && source "${pkgdatadir}/community_rtes.sh"
 }
 
 control_path () {
@@ -327,9 +329,6 @@ RTE_include_default () {
 
 RTE_path_set () {
     rte_params_path="${CONFIG_controldir}/rte/params/${rte_name}"
-    if [ ! -e "$rte_params_path" ]; then
-        rte_params_path=""
-    fi
     rte_path="${CONFIG_controldir}/rte/enabled/${rte_name}"
     if [ ! -e "$rte_path" ]; then
         rte_path="${CONFIG_controldir}/rte/default/${rte_name}"
@@ -370,7 +369,11 @@ RTE_to_jobscript () {
             # add RTE script content as a function into the job script
             echo "# RunTimeEnvironment function for ${rte_name}:" >> $LRMS_JOB_SCRIPT
             echo "RTE_function_${rte_idx} () {" >> $LRMS_JOB_SCRIPT
-            [ -n "${rte_params_path}" ] && cat "${rte_params_path}" >> $LRMS_JOB_SCRIPT
+            # include parameters file (if exists)
+            [ -e "${rte_params_path}" ] && cat "${rte_params_path}" >> $LRMS_JOB_SCRIPT
+            # include community RTE environment
+            [ -n "${COMMUNITY_RTES}" ] && community_software_environment >> $LRMS_JOB_SCRIPT
+            # include RTE content itself
             cat "${rte_path}" >> $LRMS_JOB_SCRIPT
             echo "}" >> $LRMS_JOB_SCRIPT
         else
@@ -410,7 +413,7 @@ RTE_jobscript_call () {
             printf "RTE_function_${rte_idx} ${args_value}\n" >> $LRMS_JOB_SCRIPT
             echo "if [ \$? -ne 0 ]; then" >> $LRMS_JOB_SCRIPT
             echo "    echo \"Runtime ${rte_name} stage ${rte_stage} execution failed.\" 1>&2" >> $LRMS_JOB_SCRIPT
-            echo "    echo \"Runtime ${rte_name} stage ${rte_stage} execution failed.\" 1>\"\${RUNTIME_JOB_DIAG}\"" >> $LRMS_JOB_SCRIPT
+            echo "    echo \"Runtime ${rte_name} stage ${rte_stage} execution failed.\" 1>>\"\${RUNTIME_JOB_STDERR}\"" >> $LRMS_JOB_SCRIPT
             echo "    exit 1" >> $LRMS_JOB_SCRIPT
             echo "fi" >> $LRMS_JOB_SCRIPT
             echo "" >> $LRMS_JOB_SCRIPT
@@ -437,7 +440,10 @@ RTE_stage0 () {
             # run RTE stage 0
             # WARNING!!! IN SOME CASES DUE TO DIRECT SOURCING OF RTE SCRIPT WITHOUT ANY SAFETY CHECKS 
             #            SPECIALLY CRAFTED RTES CAN BROKE CORRECT SUBMISSION (e.g. RTE redefine 'rte_idx' variable)
-            [ -n "${rte_params_path}" ] && source "${rte_params_path}" 1>&2
+            [ -e "${rte_params_path}" ] && source "${rte_params_path}" 1>&2
+            # prepare RUNTIME_JOB_SWDIR for community-defined RTE software
+            [ -n "${COMMUNITY_RTES}" ] && community_software_prepare
+            # execute RTE script stage 0
             sourcewithargs "$rte_path" $args_value 1>&2
             rte0_exitcode=$?
             if [ $rte0_exitcode -ne 0 ] ; then
@@ -490,6 +496,7 @@ move_files_to_node () {
   else
     echo "RUNTIME_LOCAL_SCRATCH_DIR=\${RUNTIME_LOCAL_SCRATCH_DIR:-}" >> $LRMS_JOB_SCRIPT
   fi
+  echo "RUNTIME_LOCAL_SCRATCH_MOVE_TOOL=\${RUNTIME_LOCAL_SCRATCH_MOVE_TOOL:-$RUNTIME_LOCAL_SCRATCH_MOVE_TOOL}" >> $LRMS_JOB_SCRIPT
   echo "RUNTIME_FRONTEND_SEES_NODE=\${RUNTIME_FRONTEND_SEES_NODE:-$RUNTIME_FRONTEND_SEES_NODE}" >> $LRMS_JOB_SCRIPT
   echo "RUNTIME_NODE_SEES_FRONTEND=\${RUNTIME_NODE_SEES_FRONTEND:-$RUNTIME_NODE_SEES_FRONTEND}" >> $LRMS_JOB_SCRIPT
   cat >> $LRMS_JOB_SCRIPT <<'EOSCR'
@@ -504,8 +511,8 @@ move_files_to_node () {
       [ "$f" = "$RUNTIME_JOB_DIR/.." ] && continue
       [ "$f" = "$RUNTIME_JOB_DIR/.diag" ] && continue
       [ "$f" = "$RUNTIME_JOB_DIR/.comment" ] && continue
-      if ! mv "$f" "$RUNTIME_NODE_JOB_DIR"; then
-        echo "Failed to move '$f' to '$RUNTIME_NODE_JOB_DIR'" 1>&2
+      if ! $RUNTIME_LOCAL_SCRATCH_MOVE_TOOL "$f" "$RUNTIME_NODE_JOB_DIR"; then
+        echo "Failed to '$RUNTIME_LOCAL_SCRATCH_MOVE_TOOL' '$f' to '$RUNTIME_NODE_JOB_DIR'" 1>&2
         exit 1
       fi
     done
@@ -715,6 +722,8 @@ EOSCR
      fi
   fi
   echo "echo \"Benchmark=$joboption_benchmark\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
+  # add queue benchmark to frontend diag (for jobs that failed to reach/start in LRMS)
+  echo "Benchmark=$joboption_benchmark" >> "${joboption_controldir}/job.${joboption_gridid}.diag"
 
   # Define executable and check it exists on the worker node
   echo "executable='$joboption_arg_0'" >> $LRMS_JOB_SCRIPT

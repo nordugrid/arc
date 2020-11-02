@@ -55,6 +55,19 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   if(client) {
     // Client is using safest setup by default
     cipher_list_ = "TLSv1:SSLv3:!eNULL:!aNULL";
+    hostname_ = (std::string)(cfg["Hostname"]);
+    XMLNode protocol_node = cfg["Protocol"];
+    while((bool)protocol_node) {
+      std::string protocol = (std::string)protocol_node;
+      if(!protocol.empty()) {
+        if(protocol.length() > 255) protocol.resize(255);    
+        protocols_.append(1,(char)protocol.length());
+        protocols_.append(protocol);
+      }
+      ++protocol_node;
+    }
+    // protocols must be converted into special format
+    protocols_ = (std::string)(cfg["Protocols"]);
   } else {
     // Server allows client to choose. But requires authentication.
     cipher_list_ = "TLSv1:SSLv3:eNULL:!aNULL";
@@ -200,6 +213,13 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
       return false;
     };
   };
+#if (OPENSSL_VERSION_NUMBER >= 0x10002000L)
+  if(!protocols_.empty()) {
+    if(SSL_CTX_set_alpn_protos(sslctx, (unsigned char const *)protocols_.c_str(), (unsigned int)protocols_.length()) != 0) {
+      // TODO: add warning message
+    };
+  };
+#endif
   return true;
 }
 

@@ -46,10 +46,6 @@ public:
   void tearDown();
 
   void testStart();
-  void testRemoteCache();
-  void testRemoteCacheValidLock();
-  void testRemoteCacheInvalidLock();
-  void testRemoteCacheReplication();
   void testStop();
   void testStopAndDelete();
   void testLinkFile();
@@ -59,6 +55,7 @@ public:
   void testRelease();
   void testCheckDN();
   void testTwoCaches();
+  void testReadOnlyCache();
   void testCreationDate();
   void testConstructor();
   void testBadConstructor();
@@ -765,6 +762,29 @@ void FileCacheTest::testTwoCaches() {
   CPPUNIT_ASSERT(fc2->Release());
 }
 
+void FileCacheTest::testReadOnlyCache() {
+
+  // Set up a cache with one normal cache and one read-only cache
+  std::vector<std::string> caches;
+  caches.push_back(_cache_dir);
+  std::vector<std::string> readonly_caches;
+  caches.push_back(_testroot + "/readonly");
+  std::vector<std::string> draining_caches;
+
+  Arc::FileCache *fc2 = new Arc::FileCache(caches, draining_caches, readonly_caches, "1", _uid, _gid);
+  CPPUNIT_ASSERT(*fc2);
+  // Check that new files are always in the normal cache
+  for (unsigned int i = 0; i < 10; ++i) {
+    std::string newurl(_url + Arc::tostring(i));
+    CPPUNIT_ASSERT(fc2->File(newurl).find(_cache_dir) == 0);
+  }
+
+  // Add a file in the read-only cache and check it is used
+  std::string rofile(_testroot + "readonly/data/8a/929b8384300813ba1dd2d661c42835b80691a2");
+  CPPUNIT_ASSERT(_createFile(rofile));
+  CPPUNIT_ASSERT(fc2->File(_url) == rofile);
+}
+
 void FileCacheTest::testCreationDate() {
 
   // call with non-existent file
@@ -857,6 +877,18 @@ void FileCacheTest::testConstructor() {
   std::string hash = "/8a/929b8384300813ba1dd2d661c42835b80691a2";
   CPPUNIT_ASSERT_EQUAL(std::string(_cache_data_dir + hash), fc8->File(_url));
   delete fc8;
+
+  // constructor with read-only caches
+  std::vector<std::string> readonly_caches;
+  readonly_caches.push_back(_testroot + "readonly");
+
+  Arc::FileCache *fc9 = new Arc::FileCache(caches, draining_caches, readonly_caches, _jobid, _uid, _gid);
+  CPPUNIT_ASSERT(*fc9);
+
+  // file should be in main cache
+  CPPUNIT_ASSERT_EQUAL(std::string(_cache_data_dir + hash), fc9->File(_url));
+  delete fc9;
+
 }
 
 void FileCacheTest::testBadConstructor() {

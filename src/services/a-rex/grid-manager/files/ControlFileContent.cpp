@@ -544,6 +544,8 @@ bool JobLocalDescription::write(const std::string& fname) const {
   };
   if(!write_pair(f,"globalid",globalid)) return false;
   if(!write_pair(f,"headnode",headnode)) return false;
+  if(!write_pair(f,"headhost",headhost)) return false;
+  if(!write_pair(f,"globalurl",globalurl)) return false;
   if(!write_pair(f,"interface",interface)) return false;
   if(!write_pair(f,"lrms",lrms)) return false;
   if(!write_pair(f,"queue",queue)) return false;
@@ -596,6 +598,7 @@ bool JobLocalDescription::write(const std::string& fname) const {
   }
   if(!write_pair(f,"transfershare",transfershare)) return false;
   if(!write_pair(f,"priority",Arc::tostring(priority))) return false;
+  if(!write_pair(f,"dryrun",dryrun)) return false;
   return true;
 }
 
@@ -616,6 +619,7 @@ bool JobLocalDescription::read(const std::string& fname) {
     if(buf.empty()) continue;
     if(name == "lrms") { lrms = buf; }
     else if(name == "headnode") { headnode = buf; }
+    else if(name == "headhost") { headhost = buf; }
     else if(name == "interface") { interface = buf; }
     else if(name == "queue") { queue = buf; }
     else if(name == "localid") { localid = buf; }
@@ -628,6 +632,7 @@ bool JobLocalDescription::read(const std::string& fname) {
     else if(name == "exectime") { exectime = buf; }
     else if(name == "jobreport") { jobreport.push_back(std::string(buf)); }
     else if(name == "globalid") { globalid = buf; }
+    else if(name == "globalurl") { globalurl = buf; }
     else if(name == "jobname") { jobname = buf; }
     else if(name == "projectname") { projectnames.push_back(std::string(buf)); }
     else if(name == "gmlog") { stdlog = buf; }
@@ -721,6 +726,7 @@ bool JobLocalDescription::read(const std::string& fname) {
       if(!Arc::stringto(buf,n)) return false;
       priority = n;
     }
+    else if(name == "dryrun") { dryrun = parse_boolean(buf); }
   }
   return true;
 }

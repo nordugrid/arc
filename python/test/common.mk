@@ -6,17 +6,15 @@ endif
 
 include $(srcdir)/../tests.mk
 
-$(TESTSCRIPTS) testutils.py: $(addprefix ../, $(TESTSCRIPTS) testutils.py)
-
-$(TESTSCRIPTS) testutils.py: %: testutils.py
-	cp -p $(srcdir)/../$* $@
+$(TESTSCRIPTS) testutils.py: %: $(srcdir)/../% testutils.py
+	cp -p $< $@
 
 CLEANFILES = $(TESTSCRIPTS) testutils.py*
 
 clean-local:
 	-rm -rf __pycache__
 
-if PYTHON_ENABLED
+if PYTHON_SWIG_ENABLED
 TESTS_ENVIRONMENT = \
 	ARC_PLUGIN_PATH=$(top_builddir)/src/hed/acc/TEST/.libs \
 	DYLD_LIBRARY_PATH="$(DYLD_LIBRARY_PATH)" \

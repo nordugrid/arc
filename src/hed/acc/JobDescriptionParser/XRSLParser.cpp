@@ -174,7 +174,7 @@ namespace Arc {
     }
 
     if (j.Application.Output.empty()) {
-      result.AddError(IString("'stdout' attribute must specified when 'join' attribute is specified"));
+      result.AddError(IString("'stdout' attribute must be specified when 'join' attribute is specified"));
     }
     else if (!j.Application.Error.empty()) {
       if (j.Application.Error != j.Application.Output) {
@@ -297,21 +297,12 @@ namespace Arc {
       if (parsed_descriptions.front().OtherAttributes.find("nordugrid:xrsl;action") != parsed_descriptions.front().OtherAttributes.end()) {
         action = parsed_descriptions.front().OtherAttributes["nordugrid:xrsl;action"];
       }
-      // action = request means real job description.
-      // Any other action may (and currently should) have almost
-      // empty job description.
-      if (action == "request" && parsed_descriptions.front().Application.Executable.Path.empty()) {
-        result.AddError(IString("No execuable path specified in GRIDMANAGER dialect"));
-      }
     }
     else {
       // action is not expected in client side job request
       for (std::list<JobDescription>::iterator it = parsed_descriptions.begin(); it != parsed_descriptions.end(); it++) {
         if (it->OtherAttributes.find("nordugrid:xrsl;action") != it->OtherAttributes.end()) {
           result.AddError(IString("'action' attribute not allowed in user-side job description"));
-        }
-        if (it->Application.Executable.Path.empty()) {
-          result.AddError(IString("Executable path not specified ('executable' attribute)"));
         }
       }
     }
@@ -1380,12 +1371,6 @@ namespace Arc {
   JobDescriptionParserPluginResult XRSLParser::Assemble(const JobDescription& j, std::string& product, const std::string& language, const std::string& dialect) const {
     if (!IsLanguageSupported(language)) {
       logger.msg(DEBUG, "Wrong language requested: %s",language);
-      return false;
-    }
-
-    // First check if the job description is valid.
-    if (j.Application.Executable.Path.empty()) {
-      logger.msg(DEBUG, "Missing executable");
       return false;
     }
 

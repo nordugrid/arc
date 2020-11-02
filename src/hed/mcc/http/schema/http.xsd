@@ -38,4 +38,12 @@
     </xsd:simpleType>
 </xsd:element>
 
+<xsd:element name="Authorization" type="xsd:string">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        HTTP Authorization Header content. This configuration parameter may be overwritted by HTTP:AUTHORIZATION attribute of message.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
 </xsd:schema>

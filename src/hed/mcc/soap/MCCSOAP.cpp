@@ -144,7 +144,11 @@ bool SOAPSecAttr::Export(SecAttrFormat format,XMLNode &val) const {
   return false;
 }
 
-MCC_SOAP_Service::MCC_SOAP_Service(Config *cfg,PluginArgument* parg):MCC_SOAP(cfg,parg) {
+MCC_SOAP_Service::MCC_SOAP_Service(Config *cfg,PluginArgument* parg):MCC_SOAP(cfg,parg),_continueNonSoap(false) {
+  std::string continueNonSoap = (*cfg)["ContinueNonSOAP"];
+  if((continueNonSoap == "yes") || (continueNonSoap == "true") || (continueNonSoap == "1")) {
+    _continueNonSoap = true;
+  }
 }
 
 MCC_SOAP_Service::~MCC_SOAP_Service(void) {
@@ -203,13 +207,38 @@ MCC_Status MCC_SOAP_Service::process(Message& inmsg,Message& outmsg) {
     logger.msg(WARNING, "empty input payload");
     return make_raw_fault(outmsg,"Missing incoming request");
   }
+  // Check content type from HTTP if present
+  std::string mime_type = inmsg.Attributes()->get("HTTP:Content-Type");
+  if ((mime_type != "application/soap+xml") && 
+      (mime_type != "text/xml") &&
+      (mime_type != "application/xml") &&
+      (mime_type != "")) {
+    if (!_continueNonSoap) {
+      logger.msg(WARNING, "MIME is not suitable for SOAP: %s",mime_type);
+      return make_raw_fault(outmsg,"Request MIME is not SOAP");
+    }
+    MCCInterface* next = Next();
+    if(!next) {
+      logger.msg(WARNING, "empty next chain element");
+      return make_raw_fault(outmsg,"Internal error");
+    }
+    return next->process(inmsg,outmsg); 
+  }
   // Converting payload to SOAP
   PayloadSOAP nextpayload(*inpayload);
   if(!nextpayload) {
-    logger.msg(WARNING, "incoming message is not SOAP");
-    return make_raw_fault(outmsg,"Incoming request is not SOAP");
+    if (!_continueNonSoap) {
+      logger.msg(WARNING, "incoming message is not SOAP");
+      return make_raw_fault(outmsg,"Incoming request is not SOAP");
+    }
+    MCCInterface* next = Next();
+    if(!next) {
+      logger.msg(WARNING, "empty next chain element");
+      return make_raw_fault(outmsg,"Internal error");
+    }
+    return next->process(inmsg,outmsg); 
   }
-  // Creating message to pass to next MCC and setting new payload.. 
+  // Creating message to pass to next MCC and setting new payload.
   // Using separate message. But could also use same inmsg.
   // Just trying to keep it intact as much as possible.
   Message nextinmsg = inmsg;

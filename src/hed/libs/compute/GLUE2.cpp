@@ -261,6 +261,9 @@ namespace Arc {
         if (xComputingShare["Name"]) {
           ComputingShare->Name = (std::string)xComputingShare["Name"];
         }
+        if (xComputingShare["MappingQueue"]) {
+          ComputingShare->MappingQueue = (std::string)xComputingShare["MappingQueue"];
+        }
         if (xComputingShare["MaxWallTime"]) {
           ComputingShare->MaxWallTime = (std::string)xComputingShare["MaxWallTime"];
         }

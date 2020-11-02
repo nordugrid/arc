@@ -38,6 +38,7 @@ using namespace Arc;
     virtual DataStatus StopReading();
     virtual DataStatus StopWriting();
     virtual bool RequiresCredentials() const { return url.Protocol() != "http"; };
+    virtual bool WriteOutOfOrder() const { return partial_write_allowed; };
   private:
     static void read_thread(void *arg);
     static bool read_single(void *arg);
@@ -60,6 +61,8 @@ using namespace Arc;
     int transfers_tofinish;
     Glib::Mutex transfer_lock;
     Glib::Mutex clients_lock;
+    bool partial_read_allowed;
+    bool partial_write_allowed;
   };
 
 } // namespace Arc

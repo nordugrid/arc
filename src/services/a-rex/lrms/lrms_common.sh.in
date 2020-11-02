@@ -25,7 +25,7 @@ parse_arc_conf () {
   # [arex] block needed for directories setup
   arex_options="controldir scratchdir shared_filesystem shared_scratch runtimedir"
   # [lrms] block for most of configuration
-  lrms_options="gnu_time nodename defaultmemory $lrms_options"
+  lrms_options="gnu_time nodename defaultmemory benchmark movetool $lrms_options"
   # [queue] section is relevant to fetch per-queue memory limits, benchmarks and customizations
   queue_options="defaultmemory benchmark $queue_options"
 
@@ -113,6 +113,7 @@ init_lrms_env () {
    RUNTIME_FRONTEND_SEES_NODE=$CONFIG_shared_scratch
    RUNTIME_NODE_SEES_FRONTEND=$CONFIG_shared_filesystem
    RUNTIME_LOCAL_SCRATCH_DIR=$CONFIG_scratchdir
+   RUNTIME_LOCAL_SCRATCH_MOVE_TOOL=${CONFIG_movetool:-mv}
 
    #default is NFS
    if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then

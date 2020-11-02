@@ -128,28 +128,6 @@ lrms_last_call() {
 log () { echo "[`date +%Y-%m-%d\ %T`] $progname: $*" 1>&2; }
 
 #
-# Attempts to switch to uid passed as the first argument and then runs the
-# commands passed as the second argument in a shell. The remaining arguments
-# are passed as arguments to the shell. No warning is given in case switching
-# uid is not possible.
-#
-do_as_uid () {
-    test $# -ge 2 || { log "do_as_uid requires 2 arguments"; return 1; }
-
-    script='use English;
-            my ($uid, @args) = @ARGV;
-            if ( $UID == 0 ) {
-                eval { $UID = $uid };
-                print STDERR "Cannot switch to uid($UID): $@\n" if $@;
-            }
-            system("@posix_shell@","-c",@args);
-            exit 0 if $? eq 0;
-            exit ($?>>8||128+($?&127));
-    '
-    /usr/bin/perl -we "$script" "$@"
-}
-
-#
 # Reads a line from STDIN and prints integer part on STDOUT.
 # If not a valid number, prints nothing and returns 1
 #
@@ -163,84 +141,6 @@ to_integer() {
               }'
 }
 
-#
-# Input variables:
-#   * sessiondir
-#   * uid
-# Output variables:
-#   * diagstring -- the whole contents of .diag
-#   * nodename
-#   * WallTime
-#   * UserTime
-#   * KernelTime
-#   * TotalMemory
-#   * ResidentMemory
-#   * LRMSStartTime
-#   * LRMSEndTime
-#   * exitcode
-#
-job_read_diag() {
-
-    [ -n "$uid" ] && [ -n "$sessiondir" ] \
-    || { log "job_read_diag requires the following to be set: uid sessiondir"; return 1; }
-
-    diagfile=$sessiondir.diag;
-    [ -f "$diagfile" ] || { log "diag file not found at: $sessiondir.diag"; return 1; }
-
-    diagstring=$(do_as_uid $uid "tail -n 1000 '$diagfile'")
-    [ $? = 0 ] || { log "cannot read diag file at: $diagfile"; return 1; }
-
-    nodename=$(echo "$diagstring" | sed -n 's/^nodename=\(..*\)/\1/p')
-    WallTime=$(echo "$diagstring" | sed -n 's/^WallTime=\([0-9.]*\)s/\1/p' | tail -n 1)
-    UserTime=$(echo "$diagstring" | sed -n 's/^UserTime=\([0-9.]*\)s/\1/p' | tail -n 1)
-    KernelTime=$(echo "$diagstring" | sed -n 's/^KernelTime=\([0-9.]*\)s/\1/p' | tail -n 1)
-    TotalMemory=$(echo "$diagstring" | sed -n 's/^AverageTotalMemory=\([0-9.]*\)kB/\1/p' | tail -n 1)
-    ResidentMemory=$(echo "$diagstring" | sed -n 's/^AverageResidentMemory=\([0-9.]*\)kB/\1/p' | tail -n 1)
-    LRMSStartTime=$(echo "$diagstring" | sed -n 's/^LRMSStartTime=\([0-9][0-9]*Z\)/\1/p' | tail -n 1)
-    LRMSEndTime=$(echo "$diagstring" | sed -n 's/^LRMSEndTime=\([0-9][0-9]*Z\)/\1/p' | tail -n 1)
-    exitcode=$(echo "$diagstring" | sed -n 's/^exitcode=\([0-9]*\)/\1/p' | tail -n 1)
-
-    for key in nodename WallTime UserTime KernelTime AverageTotalMemory AverageResidentMemory \
-               exitcode LRMSStartTime LRMSEndTime LRMSExitcode LRMSMessage; do
-        diagstring=$(echo "$diagstring" | grep -v "^$key=")
-    done
-
-    # These are set on the font-end. Not to be overwritten
-    diagstring=$(echo "$diagstring" | grep -v "^frontend_")
-    diagstring=$(echo "$diagstring" | grep -v "^Processors=")
-}
-
-#
-# Input variables:
-#   * sessiondir
-#   * uid
-#   * LRMSExitcode
-#   * LRMSMessage
-#   + all output variables from job_read_diag
-#
-job_write_diag() {
-
-    [ -n "$uid" ] && [ -n "$sessiondir" ] \
-    || { log "job_write_diag requires the following to be set: uid sessiondir"; return 1; }
-
-    diagfile=$sessiondir.diag;
-
-    { echo "$diagstring" && echo
-      [ -n "$nodename" ] && echo "$nodename" | sed -n 's/^\(..*\)/nodename=\1/p'
-      [ -n "$RequestCpus" ] && echo "Processors=${RequestCpus}"
-      [ -n "$WallTime" ] && echo "WallTime=${WallTime}s"
-      [ -n "$UserTime" ] && echo "UserTime=${UserTime}s"
-      [ -n "$KernelTime" ] && echo "KernelTime=${KernelTime}s"
-      [ -n "$TotalMemory" ] && echo "AverageTotalMemory=${TotalMemory}kB"
-      [ -n "$ResidentMemory" ] && echo "AverageResidentMemory=${ResidentMemory}kB"
-      [ -n "$LRMSStartTime" ] && echo "LRMSStartTime=$LRMSStartTime"
-      [ -n "$LRMSEndTime" ] && echo "LRMSEndTime=$LRMSEndTime"
-      [ -n "$LRMSMessage" ] && echo "LRMSMessage=$LRMSMessage"
-      [ -n "$LRMSExitcode" ] && echo "LRMSExitcode=$LRMSExitcode"
-      [ -n "$exitcode" ] && echo "exitcode=$exitcode"
-    } | do_as_uid $uid "cat > '$diagfile'"
-    [ $? = 0 ] || { log "cannot write diag file at: $diagfile"; return 1; }
-}
 
 # Input variables
 #   * gridid
@@ -449,7 +349,10 @@ process_job() {
     localfile=$(control_file "$gridid" "local")
     sessiondir=$(sed -n 's/^sessiondir=//p' "$localfile" | tail -n 1)
     [ -n "$sessiondir" ] || { log "failed reading sessiondir from: $PWD/$localfile"; return 1; }
- 
+
+    # move diag file that end-up in session directory after condor transfer_output (shared_filesystem = no)
+    [ -f "${sessiondir}/${sessiondir##*/}.diag" ] && mv "${sessiondir}/${sessiondir##*/}.diag" "${sessiondir}.diag"
+
     job_read_diag
     lrms_get_accounting
  

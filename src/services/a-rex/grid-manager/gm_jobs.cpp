@@ -283,12 +283,12 @@ int main(int argc, char* argv[]) {
       jobs_total++;
       counters[new_state]++;
       if (pending) counters_pending[new_state]++;
-      JobLocalDescription& job_desc = *(i->GetLocalDescription(config));
-      if (&job_desc == NULL) {
+      if (i->GetLocalDescription(config) == NULL) {
         logger.msg(Arc::ERROR, "Job: %s : ERROR : No local information.", i->get_id());
         exit_code |= 4;
         continue;
       }
+      JobLocalDescription& job_desc = *(i->GetLocalDescription(config));
       if(match_list(job_desc.DN,cancel_users)) {
         cancel_jobs_list.push_back(&(*i));
       }
@@ -461,7 +461,11 @@ int main(int argc, char* argv[]) {
         logger.msg(Arc::ERROR, "Job: %s : ERROR : Failed to put cancel mark", (*job)->get_id());
         exit_code |= 128;
       } else {
-        logger.msg(Arc::INFO, "Job: %s : Cancel request put", (*job)->get_id());
+        if(!ARex::CommFIFO::Signal(config.ControlDir(),(*job)->get_id())) {
+          logger.msg(Arc::WARNING, "Job: %s : Cancel request put but failed to communicate to service", (*job)->get_id());
+        } else {
+          logger.msg(Arc::INFO, "Job: %s : Cancel request put and communicated to service", (*job)->get_id());
+        }
       }
     }
   }
@@ -474,7 +478,11 @@ int main(int argc, char* argv[]) {
         logger.msg(Arc::ERROR, "Job: %s : ERROR : Failed to put clean mark", (*job)->get_id());
         exit_code |= 256;
       } else {
-        logger.msg(Arc::INFO, "Job: %s : Clean request put", (*job)->get_id());
+        if(!ARex::CommFIFO::Signal(config.ControlDir(),(*job)->get_id())) {
+          logger.msg(Arc::WARNING, "Job: %s : Clean request put but failed to communicate to service", (*job)->get_id());
+        } else {
+          logger.msg(Arc::INFO, "Job: %s : Clean request put and communicated to service", (*job)->get_id());
+        }
       }
     }
   }

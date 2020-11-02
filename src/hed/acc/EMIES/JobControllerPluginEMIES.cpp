@@ -155,7 +155,6 @@ namespace Arc {
     MCCConfig cfg;
     usercfg->ApplyToConfig(cfg);
 
-    bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       // 1. Fetch/find delegation ids for each job
       if((*it)->DelegationID.empty()) {

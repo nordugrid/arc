@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+
 # Queries NDGF site information and translates it from ARC to GLUE schema
 # Prototype by L.Field (2006)
 # Corrections and Performance enhancements by M.Flechl (2006-08-17)
@@ -87,6 +87,7 @@ my %queue_attributes=(
     'nordugrid-queue-gridqueued' => '',
     'nordugrid-queue-localqueued' => '',
     'nordugrid-queue-prelrmsqueued' => '',
+    'nordugrid-queue-acl' => '',
     );
 
 #all these values will be checked if they are numeric only:
@@ -205,8 +206,10 @@ sub translator(){
     # Service information. This is an hack to mimic Site-BDII service information.
     my $glueServiceUniqueID = build_glueServiceUniqueID($cluster_attributes{'nordugrid-cluster-name'});
     my $glueservicename = $glue_site_unique_id."-arc";
-    # If you have a custom setup you may want to hack the command below with your own startup script path.
-    my $glueservicestatusinfo=`/etc/init.d/arc-arex status 2>/dev/null` || `systemctl status arc-arex 2>/dev/null` || "Cannot determine service status, see $0 line ".__LINE__;
+    my $glueservicestatusinfo = "UNKNOWN, check /usr/share/arc/glue-generator.pl";
+    # If you have a custom setup you may want to hack the command below with your own startup script path to check service status.
+    my $arexstatus = `arcctl service list -a 2>/dev/null`;
+    $glueservicestatusinfo = "AREX running" if ($arexstatus =~ /arc-arex/);
     chomp $glueservicestatusinfo;
     my $glueservicestatus;
     if ($? == 0) {
@@ -504,7 +507,11 @@ GlueCEPolicyMaxTotalJobs: $queue_attributes{'nordugrid-queue-maxqueuable'}
 GlueCEPolicyMaxWallClockTime: $queue_attributes{'nordugrid-queue-maxcputime'}
 GlueCEPolicyPriority: 1
 GlueCEPolicyAssignedJobSlots: $AssignedSlots\n";
-            foreach (@vos){
+            if ($queue_attributes{'nordugrid-queue-acl'} eq "DEFAULT") {
+                $queue_attributes{'nordugrid-queue-acl'}="VO:ops";
+            }
+            my @qvos= split / /, $queue_attributes{'nordugrid-queue-acl'};
+            foreach (@qvos){
                 chomp;
                 print "GlueCEAccessControlBaseRule: $_\n";
             }

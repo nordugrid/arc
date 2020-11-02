@@ -121,6 +121,8 @@ namespace Arc {
     std::string cafile;
     /// Path to directory of CA certificates
     std::string cadir;
+    /// Authentication token
+    std::string otoken;
     /// Configuration overlay
     XMLNode overlay;
     /// Construct new BaseConfig. Plugin paths are determined automatically.
@@ -143,6 +145,8 @@ namespace Arc {
     void AddCAFile(const std::string& path);
     /// Add CA directory
     void AddCADir(const std::string& path);
+    /// Add authentication token
+    void AddOToken(const std::string& token);
     /// Add configuration overlay
     void AddOverlay(XMLNode cfg);
     /// Read overlay from file

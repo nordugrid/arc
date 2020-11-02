@@ -1,3 +1,6 @@
+#ifndef __ARC_AREX_TOOLS_H__
+#define __ARC_AREX_TOOLS_H__
+
 #include <string>
 #include <arc/XMLNode.h>
 
@@ -18,10 +21,13 @@ class JobIDGenerator {
   virtual void SetLocalID(const std::string& id) = 0;
   virtual Arc::XMLNode GetGlobalID(Arc::XMLNode& pnode) = 0;
   virtual std::string GetGlobalID(void) = 0;
-  virtual std::string GetManager(void) = 0;
+  virtual std::string GetJobURL(void) = 0;
+  virtual std::string GetManagerURL(void) = 0;
+  virtual std::string GetHostname(void) = 0;
   virtual std::string GetInterface(void) = 0;
 };
 
+/*
 class JobIDGeneratorARC:public JobIDGenerator {
  public:
   JobIDGeneratorARC(const std::string& endpoint);
@@ -29,12 +35,15 @@ class JobIDGeneratorARC:public JobIDGenerator {
   virtual void SetLocalID(const std::string& id);
   virtual Arc::XMLNode GetGlobalID(Arc::XMLNode& pnode);
   virtual std::string GetGlobalID(void);
-  virtual std::string GetManager(void);
+  virtual std::string GetJobURL(void);
+  virtual std::string GetManagerURL(void);
+  virtual std::string GetHostname(void);
   virtual std::string GetInterface(void);
  private:
   std::string endpoint_;
   std::string id_;
 };
+*/
 
 class JobIDGeneratorES:public JobIDGenerator {
  public:
@@ -43,7 +52,9 @@ class JobIDGeneratorES:public JobIDGenerator {
   virtual void SetLocalID(const std::string& id);
   virtual Arc::XMLNode GetGlobalID(Arc::XMLNode& pnode);
   virtual std::string GetGlobalID(void);
-  virtual std::string GetManager(void);
+  virtual std::string GetJobURL(void);
+  virtual std::string GetManagerURL(void);
+  virtual std::string GetHostname(void);
   virtual std::string GetInterface(void);
  private:
   std::string endpoint_;
@@ -56,11 +67,19 @@ class JobIDGeneratorINTERNAL:public JobIDGenerator {
   virtual void SetLocalID(const std::string& id);
   virtual Arc::XMLNode GetGlobalID(Arc::XMLNode& pnode);
   virtual std::string GetGlobalID(void);
-  virtual std::string GetManager(void);
+  virtual std::string GetJobURL(void);
+  virtual std::string GetManagerURL(void);
+  virtual std::string GetHostname(void);
   virtual std::string GetInterface(void);
  private:
   std::string endpoint_;
   std::string id_;
+};
+
+class JobIDGeneratorREST:public JobIDGeneratorES {
+ public:
+  JobIDGeneratorREST(const std::string& endpoint):JobIDGeneratorES(endpoint) {};
+  virtual std::string GetInterface(void);
 };
 
 Arc::XMLNode addJobID(Arc::XMLNode& pnode,const std::string& endpoint,const std::string& id);
@@ -72,4 +91,7 @@ std::string makeJobIDINTERNAL(const std::string& endpoint,const std::string& id)
  
 
 }
+
+
+#endif // __ARC_AREX_TOOLS_H__
 

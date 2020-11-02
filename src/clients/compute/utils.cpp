@@ -106,19 +106,19 @@ void showplugins(const std::string& program, const std::list<std::string>& types
   for (std::list<std::string>::const_iterator itType = types.begin();
        itType != types.end(); ++itType) {
     if (*itType == "HED:SubmitterPlugin") {
-      std::cout << Arc::IString("Types of execution services %s is able to submit jobs to:", program) << std::endl;
+      std::cout << Arc::IString("Types of execution services that %s is able to submit jobs to:", program) << std::endl;
     }
     else if (*itType == "HED:ServiceEndpointRetrieverPlugin") {
-      std::cout << Arc::IString("Types of registry services which %s is able collect information from:", program) << std::endl;
+      std::cout << Arc::IString("Types of registry services that %s is able to collect information from:", program) << std::endl;
     }
     else if (*itType == "HED:TargetInformationRetrieverPlugin") {
-      std::cout << Arc::IString("Types of local information services which %s is able collect information from:", program) << std::endl;
+      std::cout << Arc::IString("Types of local information services that %s is able to collect information from:", program) << std::endl;
     }
     else if (*itType == "HED:JobListRetriever") {
-      std::cout << Arc::IString("Types of local information services which %s is able collect job information from:", program) << std::endl;
+      std::cout << Arc::IString("Types of local information services that %s is able to collect job information from:", program) << std::endl;
     }
     else if (*itType == "HED:JobControllerPlugin") {
-      std::cout << Arc::IString("Types of services %s is able to manage jobs at:", program) << std::endl;
+      std::cout << Arc::IString("Types of services that %s is able to manage jobs at:", program) << std::endl;
     }
     else if (*itType == "HED:JobDescriptionParserPlugin") {
       std::cout << Arc::IString("Job description languages supported by %s:", program) << std::endl;
@@ -405,12 +405,12 @@ ClientOptions::ClientOptions(Client_t c,
 {
   bool cIsJobMan = (c == CO_CAT || c == CO_CLEAN || c == CO_GET || c == CO_KILL || c == CO_RENEW || c == CO_RESUME || c == CO_STAT || c == CO_ACL);
 
-  DefineOptionsGroup("xaction", "Other actions");
-  DefineOptionsGroup("filtering", "Brokering and filtering");
-  DefineOptionsGroup("format", "Output format modifiers");
-  DefineOptionsGroup("tuning", "Behaviour tuning");
-  DefineOptionsGroup("arc6-target", "ARC6 submission endpoint selection");
-  DefineOptionsGroup("legacy-target", "Legacy options set for defining targets");
+  DefineOptionsGroup("xaction", istring("Other actions"));
+  DefineOptionsGroup("filtering", istring("Brokering and filtering"));
+  DefineOptionsGroup("format", istring("Output format modifiers"));
+  DefineOptionsGroup("tuning", istring("Behaviour tuning"));
+  DefineOptionsGroup("arc6-target", istring("ARC6 submission endpoint selection"));
+  DefineOptionsGroup("legacy-target", istring("Legacy options set for defining targets"));
 
   if ( c == CO_RESUB || c == CO_SUB || c == CO_TEST || c == CO_SYNC ) {
     GroupAddOption("arc6-target", 'C', "computing-element",
@@ -445,7 +445,7 @@ ClientOptions::ClientOptions(Client_t c,
               clusters);
   } else {
     GroupAddOption("filtering", 'c', "cluster",
-              istring("only select jobs that submitted to this resource"),
+              istring("only select jobs that were submitted to this resource"),
               istring("name"),
               clusters);
   }
@@ -453,7 +453,7 @@ ClientOptions::ClientOptions(Client_t c,
   if (!cIsJobMan && c != CO_SYNC) {
     GroupAddOption("legacy-target", 'I', "infointerface",
               istring("the computing element specified by URL at the command line "
-                      "should be queried using this information interface "),
+                      "should be queried using this information interface"),
               istring("interfacename"),
               infointerface);
   }
@@ -657,7 +657,7 @@ ClientOptions::ClientOptions(Client_t c,
               jobidinfiles);
 
     GroupAddOption("filtering", 'r', "rejectmanagement",
-              istring("skip jobs which are on a computing element with a given URL"),
+              istring("skip jobs that are on a computing element with a given URL"),
               istring("URL"),
               rejectmanagement);    
   }
@@ -677,7 +677,7 @@ ClientOptions::ClientOptions(Client_t c,
   
   if (c == CO_INFO) {
     GroupAddOption("legacy-target", 'S', "submissioninterface",
-              istring("only get information about executon targets which support this job submission interface "
+              istring("only get information about executon targets that support this job submission interface "
                       "(e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes, org.nordugrid.internal)"),
               istring("InterfaceName"),
               requestedSubmissionInterfaceName);

@@ -168,6 +168,7 @@ bool job_acl_write_file(const JobId &id,const GMConfig &config,const std::string
 // Read and write xml file containing job description.
 bool job_xml_read_file(const JobId &id,const GMConfig &config,std::string &xml);
 bool job_xml_write_file(const JobId &id,const GMConfig &config,const std::string &xml);
+bool job_xml_check_file(const JobId &id,const GMConfig &config);
 
 // Write and read file, containing most important/needed job parameters.
 // Information is passed to/from file through 'job' object.

@@ -19,10 +19,10 @@
 namespace ARex {
 
 // Files in control dir, job.id.sfx
-const char * const sfx_failed      = "failed";        // Description of failure
-const char * const sfx_cancel      = "cancel";        // Mark to tell A-REX to cancel job
 const char * const sfx_restart     = "restart";       // Mark to tell A-REX to restart job
 const char * const sfx_clean       = "clean";         // Mark to tell A-REX to clean job
+const char * const sfx_cancel      = "cancel";        // Mark to tell A-REX to cancel job
+const char * const sfx_failed      = "failed";        // Description of failure
 const char * const sfx_status      = "status";        // Current job status
 const char * const sfx_local       = "local";         // Local information about job
 const char * const sfx_errors      = "errors";        // Log of data staging and job submission
@@ -37,7 +37,8 @@ const char * const sfx_output      = "output";        // Output files written by
 const char * const sfx_inputstatus = "input_status";  // Input files staged by client
 const char * const sfx_outputstatus = "output_status";// Output files already staged out
 const char * const sfx_statistics  = "statistics";    // Statistical information on data staging
-const char * const sfx_lrms_done   = "lrms_done";
+const char * const sfx_lrmsdone    = "lrms_done";     // Job execution in lrms exit code and failure reason
+const char * const sfx_lrmsjob     = "lrms_job";      // File LRMS backends keep their specific information
 const char * const sfx_proxy_tmp   = "proxy_tmp";
 const char * const sfx_grami       = "grami";
 
@@ -158,17 +159,17 @@ std::string job_control_path(std::string const& control_dir, std::string const& 
 //}
 
 bool job_lrms_mark_check(const JobId &id,const GMConfig &config) {
-  std::string fname = job_control_path(config.ControlDir(), id, sfx_lrms_done);
+  std::string fname = job_control_path(config.ControlDir(), id, sfx_lrmsdone);
   return job_mark_check(fname);
 }
 
 bool job_lrms_mark_remove(const JobId &id,const GMConfig &config) {
-  std::string fname = job_control_path(config.ControlDir(), id, sfx_lrms_done);
+  std::string fname = job_control_path(config.ControlDir(), id, sfx_lrmsdone);
   return job_mark_remove(fname);
 }
 
 LRMSResult job_lrms_mark_read(const JobId &id,const GMConfig &config) {
-  std::string fname = job_control_path(config.ControlDir(), id, sfx_lrms_done);
+  std::string fname = job_control_path(config.ControlDir(), id, sfx_lrmsdone);
   LRMSResult r("-1 Internal error");
   std::ifstream f(fname.c_str()); if(! f.is_open() ) return r;
   f>>r;
@@ -521,6 +522,11 @@ bool job_xml_read_file(const JobId &id,const GMConfig &config,std::string &xml) 
   return job_description_read_file(fname,xml);
 }
 
+bool job_xml_check_file(const JobId &id,const GMConfig &config) {
+  std::string fname = config.ControlDir() + "/job." + id + sfx_xml;
+  return job_mark_check(fname);
+}
+
 bool job_xml_write_file(const JobId &id,const GMConfig &config,const std::string &xml) {
   std::string fname = job_control_path(config.ControlDir(), id, sfx_xml);
   return Arc::FileCreate(fname, xml);
@@ -710,7 +716,8 @@ bool job_proxy_read_file(const JobId &id,const GMConfig &config,std::string &cre
 bool job_clean_finished(const JobId &id,const GMConfig &config) {
   std::string fname;
   fname = job_control_path(config.ControlDir(), id, sfx_proxy_tmp); remove(fname.c_str());
-  fname = job_control_path(config.ControlDir(), id, sfx_lrms_done); remove(fname.c_str());
+  fname = job_control_path(config.ControlDir(), id, sfx_lrmsdone); remove(fname.c_str());
+  fname = job_control_path(config.ControlDir(), id, sfx_lrmsjob); remove(fname.c_str());
   return true;
 }
 
@@ -724,10 +731,10 @@ bool job_clean_deleted(const GMJob &job,const GMConfig &config,std::list<std::st
     session = job.SessionDir();
   std::string fname;
   fname = job_control_path(config.ControlDir(),id,sfx_proxy); remove(fname.c_str());
-  fname = config.ControlDir()+"/"+subdir_new+"/"+id+sfx_restart; remove(fname.c_str());
+  fname = config.ControlDir()+"/"+subdir_new+"/"+id+"."+sfx_restart; remove(fname.c_str());
   fname = job_control_path(config.ControlDir(),id,sfx_errors); remove(fname.c_str());
-  fname = config.ControlDir()+"/"+subdir_new+"/"+id+sfx_cancel; remove(fname.c_str());
-  fname = config.ControlDir()+"/"+subdir_new+"/"+id+sfx_clean;  remove(fname.c_str());
+  fname = config.ControlDir()+"/"+subdir_new+"/"+id+"."+sfx_cancel; remove(fname.c_str());
+  fname = config.ControlDir()+"/"+subdir_new+"/"+id+"."+sfx_clean;  remove(fname.c_str());
   fname = job_control_path(config.ControlDir(),id,sfx_output); remove(fname.c_str());
   fname = job_control_path(config.ControlDir(),id,sfx_input); remove(fname.c_str());
   fname = job_control_path(config.ControlDir(),id,"grami_log"); remove(fname.c_str());

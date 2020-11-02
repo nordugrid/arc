@@ -1,17 +1,11 @@
-if JURA_CLIENT_ENABLED
-JURA_CLIENT = jura
-else
-JURA_CLIENT =
-endif
-
 if INTERNAL_ENABLED
 INTERNAL = internaljobplugin
 else
 INTERNAL =
 endif
 
-SUBDIRS = delegation grid-manager infoproviders $(JURA_CLIENT) lrms schema $(INTERNAL) rte
-DIST_SUBDIRS = delegation grid-manager infoproviders jura lrms schema internaljobplugin rte
+SUBDIRS = delegation grid-manager infoproviders lrms schema $(INTERNAL) rte rest
+DIST_SUBDIRS = delegation grid-manager infoproviders lrms schema internaljobplugin rte rest
 
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS = test_cache_check
@@ -45,7 +39,7 @@ man_MANS = a-rex-backtrace-collect.8
 
 EXTRA_DIST = arc-sshfs-mount arc.zero.conf
 
-GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la
+GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la rest/libarexrest.la
 
 libarex_la_SOURCES  = arex.cpp job.cpp \
 	create_activity.cpp \
@@ -68,6 +62,7 @@ libarex_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/otokens/libarcotokens.la
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
 libarex_la_LDFLAGS = -no-undefined -avoid-version -module $(DBCXX_LIBS)
 

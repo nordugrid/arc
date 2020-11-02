@@ -156,6 +156,9 @@ namespace Arc {
     /// Changes the path of the URL and all options attached.
     void ChangeFullPath(const std::string& newpath, bool encoded = false);
 
+    /// Changes whole URL possibly taking into account current one if new URL is relative.
+    void ChangeURL(const std::string& newurl, bool encoded = false);
+
     /// Returns HTTP options if any.
     const std::map<std::string, std::string>& HTTPOptions() const;
 

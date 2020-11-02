@@ -238,7 +238,7 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
   std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
 
   if (endpoints.empty()) {
-    logger.msg(Arc::ERROR, "No services specified. Please configure default services in the client configuration,"
+    logger.msg(Arc::ERROR, "No services specified. Please configure default services in the client configuration, "
                            "or specify a cluster or index (-c or -g options, see arcsync -h).");
     return 1;
   }

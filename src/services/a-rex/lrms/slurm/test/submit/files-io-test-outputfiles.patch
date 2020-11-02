@@ -1,7 +1,8 @@
 --- a/basic-script.sh 2014-01-28 10:35:19.780083853 +0100
 +++ b/basic-script.sh 2014-01-28 10:35:19.772083853 +0100
-@@ -23,9 +23,9 @@
- export 'GRID_GLOBAL_JOBID='
+@@ -64,10 +64,10 @@
+ export 'GRID_GLOBAL_JOBINTERFACE='
+ export 'GRID_GLOBAL_JOBHOST='
  
  RUNTIME_JOB_DIR=@TEST_SESSION_DIR@/@TEST_JOB_ID@
 -RUNTIME_JOB_STDIN=/dev/null
@@ -13,7 +14,7 @@
  RUNTIME_JOB_DIAG=@TEST_SESSION_DIR@/@TEST_JOB_ID@.diag
  if [ ! -z "$RUNTIME_GRIDAREA_DIR" ] ; then
    RUNTIME_JOB_DIR=$RUNTIME_GRIDAREA_DIR/`basename $RUNTIME_JOB_DIR`
-@@ -181,9 +181,9 @@
+@@ -201,9 +201,9 @@
    echo "Cannot run $executable: $interpreter: not found" 1>$RUNTIME_JOB_STDOUT 2>$RUNTIME_JOB_STDERR 1>&2
    exit 1; }
  if [ "x$JOB_ACCOUNTING" = "xgnutime" ]; then
@@ -25,7 +26,7 @@
  fi
  RESULT=$?
 
-@@ -161,6 +161,19 @@
+@@ -217,6 +217,19 @@
  if [ ! -z  "$RUNTIME_LOCAL_SCRATCH_DIR" ] ; then
    find ./ -type l -exec rm -f "{}" ";"
    chmod -R u+w "./"
