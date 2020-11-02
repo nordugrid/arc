@@ -274,7 +274,7 @@ class DataStagingControl(ComponentControl):
 
         """ Print out information about files already downloaded """
         sorted_dict = sorted(job_files.items(), key = lambda x: x[1]['end'])
-        print('\nFiles downloaded for job {}:'.format(args.jobid))
+        print('\nAll files for job {}:'.format(args.jobid))
         print('\t{0:<40}{1:<60}{2:<15}{3:<25}{4:<25}{5:<10}{6:<7}'.format('FILENAME','SOURCE','SIZE (MB)','START','END','SECONDS','CACHED'))
         for item in sorted_dict:
             print("\t{0:<40}{1:<60}{2:<15.3f}{3:<25}{4:<25}{5:<10}{6:<7}".format(item[0],item[1]['source'],item[1]['size'],item[1]['start'],item[1]['end'],item[1]['seconds'],item[1]['cached']))
@@ -282,7 +282,7 @@ class DataStagingControl(ComponentControl):
 
         """ Print out information of what files still need to be downloaded """
         if len(tobe_downloaded):
-            print('\nFiles to be downloaded for job {}:'.format(args.jobid))
+            print('\nFiles not yet started or not yet fully downloaded for job {}:'.format(args.jobid))
             print('\t{0:3}{1:<40}'.format('#','FILENAME'))
             for idx,fileN in enumerate(tobe_downloaded):
                 print('\t{0:<3}{1:<40}'.format(idx+1,fileN))
@@ -366,11 +366,15 @@ class DataStagingControl(ComponentControl):
 
         """ Print out information about files already downloaded """
         """ TO-DO find a nice way to sort this, maybe removing the files that do not have all info provided? """
+        downloads = False
         print('\nFile download details for job {}:'.format(args.jobid))
-        print('\t{0:<40}{1:<15}{2:<22}{3:<22}{4:<22}{5:<22}{6:<22}{7:<22}{8:<10}'.format('FILENAME','SIZE (MB)','START','END','SCHEDULER-START','DELIVERY-START','TRANSFER-DONE','ALL-DONE','DWLD-SPEED MB/s'))
+        print('\t{0:<40}{1:<15}{2:<22}{3:<22}{4:<22}{5:<22}{6:<22}{7:<22}{8:<20}'.format('FILENAME','SIZE (MB)','START','END','SCHEDULER-START','DELIVERY-START','TRANSFER-DONE','ALL-DONE','CALC AVG DWLD-SPEED MB/s'))
         for key,val in job_files.items():
             if ('start_deliver' in val.keys() and 'start_sched' in val.keys() and 'return_gen' in val.keys() and 'speed' in val.keys()):
-                print("\t{0:<40}{1:<15.3f}{2:<22}{3:<22}{4:<22}{5:<22}{6:<22}{7:<22}{8:<10.3f}".format(key,val['size'],val['start'],val['end'],val['start_sched'],val['start_deliver'],val['transf_done'],val['return_gen'],val['speed']))     
+                print("\t{0:<40}{1:<15.3f}{2:<22}{3:<22}{4:<22}{5:<22}{6:<22}{7:<22}{8:<20.3f}".format(key,val['size'],val['start'],val['end'],val['start_sched'],val['start_deliver'],val['transf_done'],val['return_gen'],val['speed']))
+                downloads = True
+        if not downloads:
+            print('\tNo download info available, probably because all files for this jobs were already in the cache.')
 
 
                     
