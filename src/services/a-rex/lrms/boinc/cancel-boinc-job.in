@@ -37,15 +37,20 @@ common_init
 
 if [ -z "$joboption_controldir" ] ; then
   joboption_controldir=`dirname "$GRAMI_FILE"`
+  joboption_controldir=`dirname "$joboption_controldir"`
+  joboption_controldir=`dirname "$joboption_controldir"`
+  joboption_controldir=`dirname "$joboption_controldir"`
+  joboption_controldir=`dirname "$joboption_controldir"`
   if [ "$joboption_controldir" = '.' ] ; then
     joboption_controldir="$PWD"
   fi
 fi
 
-job_control_dir="$joboption_controldir"
 if [ -z "$joboption_gridid" ] ; then
-  joboption_gridid=`basename "$GRAMI_FILE" | sed 's/^job\.\(.*\)\.grami$/\1/'`
+  joboption_gridid=`echo "$GRAMI_FILE" | sed 's/.*\([^\/]*\)\/\([^\/]*\)\/\([^\/]*\)\/\([^\/]*\)\/grami$/\1\2\3\4/'
 fi
+
+job_control_dir="$joboption_controldir"
 
 echo "Deleting job $joboption_gridid, local id $joboption_jobid" 1>&2
 
