@@ -186,7 +186,7 @@ namespace ARex {
   //      expired]
   //   Timestamp (dateTime)
   //   Description 0-1
-  Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,const std::string& gm_state,bool failed,bool pending,const std::string& failedstate,const std::string& failedcause) {
+  Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,const std::string& gm_state,Arc::XMLNode glue_xml,bool failed,bool pending,const std::string& failedstate,const std::string& failedcause) {
     std::string primary_state;
     std::list<std::string> state_attributes;
     std::string glue_state("");
@@ -317,6 +317,10 @@ namespace ARex {
     return Arc::URL(endpoint_).Host();
   }
 
+
+  std::string JobIDGeneratorREST::GetInterface(void) {
+    return "org.nordugrid.rest2";
+  }
 
 
   JobIDGeneratorINTERNAL::JobIDGeneratorINTERNAL(const std::string& endpoint):endpoint_(endpoint) {

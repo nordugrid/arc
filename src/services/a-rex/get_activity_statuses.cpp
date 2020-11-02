@@ -219,7 +219,7 @@ Arc::MCC_Status ARexService::ESGetActivityStatus(ARexGMConfig& config,Arc::XMLNo
       bool job_failed = job.Failed();
       std::string failed_cause;
       std::string failed_state = job.FailedState(failed_cause);
-      Arc::XMLNode status = addActivityStatusES(item,gm_state,job_failed,job_pending,failed_state,failed_cause);
+      Arc::XMLNode status = addActivityStatusES(item,gm_state,Arc::XMLNode(),job_failed,job_pending,failed_state,failed_cause);
       status.NewChild("estypes:Timestamp") = job.Modified().str(Arc::ISOTime); // no definition of meaning in specs
       //status.NewChild("estypes:Description);  TODO
 #else
@@ -227,7 +227,7 @@ Arc::MCC_Status ARexService::ESGetActivityStatus(ARexGMConfig& config,Arc::XMLNo
       Arc::XMLNode glue_xml(job_xml_read_file(jobid,config.GmConfig(),glue_s)?glue_s:"");
       if(!glue_xml) {
         // Keep job in initial state (see description in ESGetActivityInfo)
-        Arc::XMLNode status = addActivityStatusES(item,"ACCEPTED",false,false,"","");
+        Arc::XMLNode status = addActivityStatusES(item,"ACCEPTED",Arc::XMLNode(),false,false,"","");
         status.NewChild("estypes:Timestamp") = job.Modified().str(Arc::ISOTime); // no definition of meaning in specs
       } else {
         addActivityStatusES(item,glue_xml);

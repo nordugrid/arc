@@ -148,6 +148,16 @@ namespace ARex {
     return "";
   }
 
+  static void remove_key(std::string& proxy) {
+    while(true) {
+      std::string::size_type start = proxy.find(key_start_tag);
+      if(start == std::string::npos) break;
+      std::string::size_type end = proxy.find(key_end_tag,start+strlen(key_start_tag));
+      if(end == std::string::npos) end = proxy.length();
+      proxy.erase(start,end-start+strlen(key_end_tag));
+    };
+  }
+
   static bool compare_no_newline(const std::string& str1, const std::string& str2) {
     std::string::size_type p1 = 0;
     std::string::size_type p2 = 0;
@@ -239,14 +249,15 @@ namespace ARex {
     acquired_.erase(i);
   }
 
-  void DelegationStore::RemoveConsumer(Arc::DelegationConsumerSOAP* c) {
-    if(!c) return;
+  bool DelegationStore::RemoveConsumer(Arc::DelegationConsumerSOAP* c) {
+    if(!c) return false;
     Glib::Mutex::Lock lock(lock_);
     std::map<Arc::DelegationConsumerSOAP*,Consumer>::iterator i = acquired_.find(c);
-    if(i == acquired_.end()) return; // ????
-    fstore_->Remove(i->second.id,i->second.client); // TODO: Handle failure
+    if(i == acquired_.end()) return false; // ????
+    bool r = fstore_->Remove(i->second.id,i->second.client); // TODO: Handle failure
     delete i->first;
     acquired_.erase(i);
+    return r;
   }
 
   void DelegationStore::CheckConsumers(void) {
@@ -444,6 +455,14 @@ namespace ARex {
       return false;
     };
     ReleaseConsumer(consumer);
+    return true;
+  }
+
+  bool DelegationStore::GetDeleg(const std::string& id, const std::string& client, std::string& credentials) {
+    std::string creds;
+    if(!GetCred(id, client, credentials))
+      return false;
+    remove_key(credentials);
     return true;
   }
 

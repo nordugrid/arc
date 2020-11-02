@@ -1394,15 +1394,15 @@ void DelegationContainerSOAP::ReleaseConsumer(DelegationConsumerSOAP* c) {
   return;
 }
 
-void DelegationContainerSOAP::RemoveConsumer(DelegationConsumerSOAP* c) {
+bool DelegationContainerSOAP::RemoveConsumer(DelegationConsumerSOAP* c) {
   lock_.lock();
   ConsumerIterator i = find(c);
-  if(i == consumers_.end()) { lock_.unlock(); return; };
+  if(i == consumers_.end()) { lock_.unlock(); return false; };
   if(i->second->acquired > 0) --(i->second->acquired);
   i->second->to_remove=true;
   remove(i);
   lock_.unlock();
-  return;
+  return true;
 }
 
 DelegationContainerSOAP::ConsumerIterator DelegationContainerSOAP::find(DelegationConsumerSOAP* c) {

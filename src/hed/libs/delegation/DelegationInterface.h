@@ -214,7 +214,7 @@ class DelegationContainerSOAP {
   /** Releases consumer obtained by call to AddConsumer() or FindConsumer() */
   virtual void ReleaseConsumer(DelegationConsumerSOAP* c);
   /** Releases consumer obtained by call to AddConsumer() or FindConsumer() and deletes it */
-  virtual void RemoveConsumer(DelegationConsumerSOAP* c);
+  virtual bool RemoveConsumer(DelegationConsumerSOAP* c);
   /** Periodic management of stored consumers */
   virtual void CheckConsumers(void);
 
