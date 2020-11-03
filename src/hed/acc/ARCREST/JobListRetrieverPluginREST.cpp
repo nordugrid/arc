@@ -22,7 +22,7 @@ namespace Arc {
     if (!url) {
       return s;
     }
-    url.ChangePath(url.Path()+"/jobs");
+    url.ChangePath(url.Path()+"/rest/1.0/jobs");
 
     logger.msg(DEBUG, "Collecting Job (A-REX REST jobs) information.");
 
@@ -33,7 +33,9 @@ namespace Arc {
     Arc::PayloadRaw request;
     Arc::PayloadRawInterface* response(NULL);
     Arc::HTTPClientInfo info;
-    Arc::MCC_Status res = client.process(std::string("GET"), &request, &info, &response);
+    std::multimap<std::string,std::string> attributes;
+    attributes.insert(std::pair<std::string, std::string>("Accept", "text/xml"));
+    Arc::MCC_Status res = client.process(std::string("GET"), attributes, &request, &info, &response);
     if((!res) || (info.code != 200) || (!response)) {
       delete response;
       return s;
@@ -53,16 +55,16 @@ namespace Arc {
       Job j;
       URL jobIDURL = url;
       jobIDURL.ChangePath(jobIDURL.Path() + "/" + id);
-      URL sessionURL = url;
+      URL sessionURL = jobIDURL;
       sessionURL.ChangePath(sessionURL.Path() + "/session");
 
       // Proposed mandatory attributes for ARC 3.0
       j.JobID = jobIDURL.fullstr();
-      j.ServiceInformationURL = url;
+      j.ServiceInformationURL = endpoint.URLString;
       j.ServiceInformationInterfaceName = "org.nordugrid.arcrest";
-      j.JobStatusURL = url;
+      j.JobStatusURL = endpoint.URLString;
       j.JobStatusInterfaceName = "org.nordugrid.arcrest";
-      j.JobManagementURL = url;
+      j.JobManagementURL = endpoint.URLString;
       j.JobManagementInterfaceName = "org.nordugrid.arcrest";
       j.IDFromEndpoint = id;
       j.StageInDir = sessionURL;

@@ -30,55 +30,6 @@ namespace Arc {
     static JobState::StateType StateMap(const std::string& state);
   };
 
-  bool JobControllerPluginREST::GetDelegation(Arc::URL url, std::string& delegationId) const {
-/*
-    std::string delegationRequest;
-    Arc::MCCConfig cfg;
-    usercfg->ApplyToConfig(cfg);
-    std::string delegationPath = url.Path();
-    if(!delegationId.empty()) delegationPath = delegationPath+"/"+delegationId;
-    Arc::ClientHTTP client(cfg, url);
-    {
-      Arc::PayloadRaw request;
-      Arc::PayloadRawInterface* response(NULL);
-      Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("GET"), delegationPath, &request, &info, &response);
-      if((!res) || (info.code != 200) || (info.reason.empty()) || (!response)) {
-        delete response;
-        return false;
-      }
-      delegationId = info.reason;
-      for(unsigned int n = 0;response->Buffer(n);++n) {
-        delegationRequest.append(response->Buffer(n),response->BufferSize(n));
-      }
-      delete response;
-    }
-    {
-      DelegationProvider* deleg(NULL);
-      if (!cfg.credential.empty()) {
-        deleg = new DelegationProvider(cfg.credential);
-      }
-      else {
-        const std::string& cert = (!cfg.proxy.empty() ? cfg.proxy : cfg.cert);
-        const std::string& key  = (!cfg.proxy.empty() ? cfg.proxy : cfg.key);
-        if (key.empty() || cert.empty()) return false;
-        deleg = new DelegationProvider(cert, key);
-      }
-      std::string delegationResponse = deleg->Delegate(delegationRequest);
-      delete deleg;
-
-      Arc::PayloadRaw request;
-      request.Insert(delegationResponse.c_str(),0,delegationResponse.length());
-      Arc::PayloadRawInterface* response(NULL);
-      Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("PUT"), url.Path()+"/"+delegationId, &request, &info, &response);
-      delete response;
-      if((!res) || (info.code != 200) || (!response)) return false;
-    }
-*/
-    return true;
-  }
-
   JobState::StateType JobStateARCREST::StateMap(const std::string& state) {
     if (state == "ACCEPTING")
       return JobState::ACCEPTED;
