@@ -1047,9 +1047,10 @@ static bool processJobInfo(Arc::Message& inmsg,ARexConfigContext& config, Arc::L
   ARexJob job(id,config,logger);
   if(!job) {
     // There is no such job
-    logger.msg(Arc::ERROR, "REST:GET job %s - %s", id, job.Failure());
+    std::string failure = job.Failure();
+    logger.msg(Arc::ERROR, "REST:GET job %s - %s", id, failure);
     jobXml.NewChild("status-code") = "404";
-    jobXml.NewChild("reason") = job.Failure();
+    jobXml.NewChild("reason") = (!failure.empty()) ? failure : "Job not found";
     jobXml.NewChild("id") = id;
     jobXml.NewChild("info_document");
     return false;
@@ -1115,9 +1116,10 @@ static bool processJobStatus(Arc::Message& inmsg,ARexConfigContext& config, Arc:
   ARexJob job(id,config,logger);
   if(!job) {
     // There is no such job
-    logger.msg(Arc::ERROR, "REST:GET job %s - %s", id, job.Failure());
+    std::string failure = job.Failure();
+    logger.msg(Arc::ERROR, "REST:GET job %s - %s", id, failure);
     jobXml.NewChild("status-code") = "404";
-    jobXml.NewChild("reason") = job.Failure();
+    jobXml.NewChild("reason") = (!failure.empty()) ? failure : "Job not found";
     jobXml.NewChild("id") = id;
     jobXml.NewChild("State") = "None";
     return false;
@@ -1160,16 +1162,18 @@ static bool processJobKill(Arc::Message& inmsg,ARexConfigContext& config, Arc::L
   ARexJob job(id,config,logger);
   if(!job) {
     // There is no such job
-    logger.msg(Arc::ERROR, "REST:KILL job %s - %s", id, job.Failure());
+    std::string failure = job.Failure();
+    logger.msg(Arc::ERROR, "REST:KILL job %s - %s", id, failure);
     jobXml.NewChild("status-code") = "404";
-    jobXml.NewChild("reason") = job.Failure();
+    jobXml.NewChild("reason") = (!failure.empty()) ? failure : "Job not found";
     jobXml.NewChild("id") = id;
     return false;
   }
   if(!job.Cancel()) {
-    logger.msg(Arc::ERROR, "REST:KILL job %s - %s", id, job.Failure());
+    std::string failure = job.Failure();
+    logger.msg(Arc::ERROR, "REST:KILL job %s - %s", id, failure);
     jobXml.NewChild("status-code") = "505";
-    jobXml.NewChild("reason") = job.Failure();
+    jobXml.NewChild("reason") = (!failure.empty()) ? failure : "Job could not be canceled";
     jobXml.NewChild("id") = id;
     return false;
   }
@@ -1183,16 +1187,18 @@ static bool processJobClean(Arc::Message& inmsg,ARexConfigContext& config, Arc::
   ARexJob job(id,config,logger);
   if(!job) {
     // There is no such job
-    logger.msg(Arc::ERROR, "REST:CLEAN job %s - %s", id, job.Failure());
+    std::string failure = job.Failure();
+    logger.msg(Arc::ERROR, "REST:CLEAN job %s - %s", id, failure);
     jobXml.NewChild("status-code") = "404";
-    jobXml.NewChild("reason") = job.Failure();
+    jobXml.NewChild("reason") = (!failure.empty()) ? failure : "Job not found";
     jobXml.NewChild("id") = id;
     return false;
   }
   if(!job.Clean()) {
-    logger.msg(Arc::ERROR, "REST:CLEAN job %s - %s", id, job.Failure());
+    std::string failure = job.Failure();
+    logger.msg(Arc::ERROR, "REST:CLEAN job %s - %s", id, failure);
     jobXml.NewChild("status-code") = "505";
-    jobXml.NewChild("reason") = job.Failure();
+    jobXml.NewChild("reason") = (!failure.empty()) ? failure : "Job could not be cleaned";
     jobXml.NewChild("id") = id;
     return false;
   }
@@ -1206,16 +1212,18 @@ static bool processJobRestart(Arc::Message& inmsg,ARexConfigContext& config, Arc
   ARexJob job(id,config,logger);
   if(!job) {
     // There is no such job
-    logger.msg(Arc::ERROR, "REST:RESTART job %s - %s", id, job.Failure());
+    std::string failure = job.Failure();
+    logger.msg(Arc::ERROR, "REST:RESTART job %s - %s", id, failure);
     jobXml.NewChild("status-code") = "404";
-    jobXml.NewChild("reason") = job.Failure();
+    jobXml.NewChild("reason") = (!failure.empty()) ? failure : "Job not found";
     jobXml.NewChild("id") = id;
     return false;
   }
   if(!job.Resume()) {
-    logger.msg(Arc::ERROR, "REST:RESTART job %s - %s", id, job.Failure());
+    std::string failure = job.Failure();
+    logger.msg(Arc::ERROR, "REST:RESTART job %s - %s", id, failure);
     jobXml.NewChild("status-code") = "505";
-    jobXml.NewChild("reason") = job.Failure();
+    jobXml.NewChild("reason") = (!failure.empty()) ? failure : "Job could not be resumed";
     jobXml.NewChild("id") = id;
     return false;
   }
@@ -1229,16 +1237,10 @@ static bool processJobDelegations(Arc::Message& inmsg,ARexConfigContext& config,
   ARexJob job(id,config,logger);
   if(!job) {
     // There is no such job
-    logger.msg(Arc::ERROR, "REST:RESTART job %s - %s", id, job.Failure());
+    std::string failure = job.Failure();
+    logger.msg(Arc::ERROR, "REST:RESTART job %s - %s", id, failure);
     jobXml.NewChild("status-code") = "404";
-    jobXml.NewChild("reason") = job.Failure();
-    jobXml.NewChild("id") = id;
-    return false;
-  }
-  if(!job.Resume()) {
-    logger.msg(Arc::ERROR, "REST:RESTART job %s - %s", id, job.Failure());
-    jobXml.NewChild("status-code") = "505";
-    jobXml.NewChild("reason") = job.Failure();
+    jobXml.NewChild("reason") = (!failure.empty()) ? failure : "Job not found";
     jobXml.NewChild("id") = id;
     return false;
   }
