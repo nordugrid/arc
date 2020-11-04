@@ -319,7 +319,7 @@ namespace ARex {
 
 
   std::string JobIDGeneratorREST::GetInterface(void) {
-    return "org.nordugrid.rest2";
+    return "org.nordugrid.arcrest";
   }
 
 

@@ -32,7 +32,6 @@ namespace Arc {
   private:
     static URL GetAddressOfResource(const Job& job);
     static Logger logger;
-    bool GetDelegation(Arc::URL url, std::string& delegationId) const;
 
     class InfoNodeProcessor {
      public:
