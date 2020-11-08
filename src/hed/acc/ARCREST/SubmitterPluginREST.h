@@ -31,8 +31,9 @@ namespace Arc {
     virtual SubmissionStatus Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted);
     virtual bool Migrate(const std::string& jobid, const JobDescription& jobdesc, const ExecutionTarget& et, bool forcemigration, Job& job);
 
+    static bool GetDelegation(const UserConfig& usercfg, Arc::URL url, std::string& delegationId);
+
   private:
-    bool GetDelegation(Arc::URL url, std::string& delegationId) const;
     bool AddDelegation(std::string& product, std::string const& delegationId);
     SubmissionStatus SubmitInternal(const std::list<JobDescription>& jobdescs, const ExecutionTarget* et, const std::string& endpoint,
                          EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted);

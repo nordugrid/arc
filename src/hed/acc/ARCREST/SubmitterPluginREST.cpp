@@ -34,10 +34,10 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  bool SubmitterPluginREST::GetDelegation(Arc::URL url, std::string& delegationId) const {
+  bool SubmitterPluginREST::GetDelegation(const UserConfig& usercfg, Arc::URL url, std::string& delegationId) {
     std::string delegationRequest;
     Arc::MCCConfig cfg;
-    usercfg->ApplyToConfig(cfg);
+    usercfg.ApplyToConfig(cfg);
     Arc::ClientHTTP client(cfg, url);
     std::string delegationPath;
     if(delegationId.empty()) {
@@ -45,7 +45,7 @@ namespace Arc {
       Arc::PayloadRaw request;
       Arc::PayloadRawInterface* response(NULL);
       Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("POST"), &request, &info, &response);
+      Arc::MCC_Status res = client.process(std::string("POST"), url.FullPath(), &request, &info, &response);
       if(!res) {
         logger.msg(VERBOSE, "Failed to communicate to delegation endpoint.");
         delete response;
@@ -73,12 +73,13 @@ namespace Arc {
       }
       delegationId = delegationPath.substr(id_pos+1);
     } else {
+      url.ChangePath(url.Path() + "/" + delegationId);
       url.AddHTTPOption("action","renew");
-      delegationPath = url.Path() + "/" + delegationId;
+      delegationPath = url.Path();
       Arc::PayloadRaw request;
       Arc::PayloadRawInterface* response(NULL);
       Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("POST"), delegationPath, &request, &info, &response);
+      Arc::MCC_Status res = client.process(std::string("POST"), url.FullPath(), &request, &info, &response);
       if(!res) {
         logger.msg(VERBOSE, "Failed to communicate to delegation endpoint.");
         delete response;
@@ -172,7 +173,7 @@ namespace Arc {
     if(jobdescs.empty()) 
       return retval;
 
-    if(!GetDelegation(delegationUrl, delegationId)) {
+    if(!GetDelegation(*usercfg, delegationUrl, delegationId)) {
       logger.msg(INFO, "Unable to submit jobs. Failed to delegate credentials.");
       for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
         notSubmitted.push_back(&*it);

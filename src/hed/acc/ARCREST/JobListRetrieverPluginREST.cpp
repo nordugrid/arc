@@ -9,6 +9,7 @@
 #include <arc/message/PayloadRaw.h>
 #include <arc/communication/ClientInterface.h>
 
+#include "JobControllerPluginREST.h"
 #include "JobListRetrieverPluginREST.h"
 
 namespace Arc {
@@ -22,6 +23,7 @@ namespace Arc {
     if (!url) {
       return s;
     }
+    URL jobIDsUrl(url);
     url.ChangePath(url.Path()+"/rest/1.0/jobs");
 
     logger.msg(DEBUG, "Collecting Job (A-REX REST jobs) information.");
@@ -48,6 +50,8 @@ namespace Arc {
       return s;
     if(jobs_list.Name() != "jobs")
       return s;
+    std::list<std::string> IDs;
+    std::list<Job*> idJobs;
     for(Arc::XMLNode job = jobs_list["job"]; (bool)job; ++job) {
       std::string id = job["id"];
       if(id.empty()) continue;
@@ -73,7 +77,42 @@ namespace Arc {
       // j.DelegationID.push_back(delegationId); - TODO: Implement through reading job.#.status
 
       jobs.push_back(j);
+
+      idJobs.push_back(&(jobs.back()));
+      IDs.push_back(id);
     }
+
+    class JobDelegationsProcessor: public JobControllerPluginREST::InfoNodeProcessor {
+     public:
+      JobDelegationsProcessor(std::list<Job*>& jobs): jobs(jobs) {}
+
+      virtual void operator()(std::string const& id, XMLNode node) {
+        std::string job_id = node["id"];
+        XMLNode job_delegation_id = node["delegation_id"];
+        if((bool)job_delegation_id && !job_id.empty()) {
+          for(std::list<Job*>::iterator itJob = jobs.begin(); itJob != jobs.end(); ++itJob) {
+            std::string id = (*itJob)->JobID;
+            std::string::size_type pos = id.rfind('/');
+            if(pos != std::string::npos) id.erase(0,pos+1);
+            if(job_id == id) {
+              while(job_delegation_id) {
+                (*itJob)->DelegationID.push_back((std::string)job_delegation_id);
+                ++job_delegation_id;
+              }
+              break;
+            }
+          }
+        }
+      }
+
+     private:
+      std::list<Job*>& jobs;
+    };
+
+    std::list<std::string> processedIDs;
+    std::list<std::string> notProcessedIDs;
+    JobDelegationsProcessor delegationsProcessor(idJobs);
+    JobControllerPluginREST::ProcessJobs(&usercfg, jobIDsUrl, "delegations", 200, IDs, processedIDs, notProcessedIDs, delegationsProcessor);
 
     // TODO: Because listing/obtaining content is too generic operation
     // maybe it is unsafe to claim that operation suceeded if nothing
