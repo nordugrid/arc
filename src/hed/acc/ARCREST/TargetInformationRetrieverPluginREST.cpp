@@ -24,10 +24,10 @@ namespace Arc {
   Logger TargetInformationRetrieverPluginREST::logger(Logger::getRootLogger(), "TargetInformationRetrieverPlugin.REST");
 
   Arc::EndpointQueryingStatus TargetInformationRetrieverPluginREST::Query(const Arc::UserConfig& uc, const Arc::Endpoint& cie, std::list<Arc::ComputingServiceType>& csList, const Arc::EndpointQueryOptions<Arc::ComputingServiceType>&) const {
-    logger.msg(DEBUG, "Querying WSRF GLUE2 computing info endpoint.");
+    logger.msg(DEBUG, "Querying WSRF GLUE2 computing REST endpoint.");
 
     // TODO: autoversion
-    URL url(cie.URLString);
+    URL url(CreateURL(cie.URLString));
     if (!url) {
       return EndpointQueryingStatus(EndpointQueryingStatus::FAILED,"URL "+cie.URLString+" can't be processed");
     }

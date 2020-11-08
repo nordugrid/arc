@@ -730,7 +730,9 @@ Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& o
     if(!delegation_stores_.GetRequest(config_.DelegationDir(),delegationId,config->GridName(),delegationRequest)) {
       return HTTPFault(inmsg,outmsg,500,"Failed generating delegation request");
     }
-    return HTTPPOSTResponse(inmsg,outmsg,delegationRequest,"application/x-pem-file",delegationId);
+
+    Arc::URL base(inmsg.Attributes()->get("HTTP:ENDPOINT"));
+    return HTTPPOSTResponse(inmsg,outmsg,delegationRequest,"application/x-pem-file",base.Path()+"/"+delegationId);
   }
   logger_.msg(Arc::VERBOSE, "process: method %s is not supported for subpath %s",context.method,context.processed);
   return HTTPFault(inmsg,outmsg,501,"Not Implemented");
