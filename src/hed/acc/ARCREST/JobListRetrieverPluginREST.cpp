@@ -19,7 +19,7 @@ namespace Arc {
   EndpointQueryingStatus JobListRetrieverPluginREST::Query(const UserConfig& usercfg, const Endpoint& endpoint, std::list<Job>& jobs, const EndpointQueryOptions<Job>&) const {
     EndpointQueryingStatus s(EndpointQueryingStatus::FAILED);
 
-    URL url(endpoint.URLString);
+    URL url(CreateURL(endpoint.URLString));
     if (!url) {
       return s;
     }
