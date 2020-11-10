@@ -50,6 +50,7 @@ class DataStagingControl(ComponentControl):
         if args.days:
             twindow =  datetime.timedelta(days=args.days)
         if args.hours:
+            """ This has a default of 1 hr """
             if twindow:
                 twindow = twindow + datetime.timedelta(hours=args.hours)
             else:
@@ -82,52 +83,67 @@ class DataStagingControl(ComponentControl):
         return timestmp_str, timestamp
 
 
-    def __get_time_ds(self,err_f):
+    def __get_time_ds(self,err_f,jobid,twindow_start=None):
 
-        ds_time={'start':'','end':'','dt':'','done':False,'failed':False}
-        ds_start = None
-        ds_end = None
-        with open(err_f,'r') as f:
-            for line in f:
+        """ 
+        Get the total time from PREPARING to SUBMIT which is the total time in PREPARING.
+        Only calculate the time for the jobs that actually have user-deinfed input-files (not pilot-related).
+        Last filter here, to ensure that only jobs that actually were in preparing in the timewindow are counted, in the case where a timewindow is used. 
+        """
 
-                words = re.split(' +', line)
-                words = [word.strip() for word in words]
-             
-                if "ACCEPTED -> PREPARING" in line:
-                
-                    timestmp_str = words[0].strip('[')
-                    timestmp_str = timestmp_str.strip(']')
-                    ds_time['start']=timestmp_str
-                    
-                    timestamp = datetime.datetime.strptime(timestmp_str,'%Y-%m-%dT%H:%M:%SZ')
-                    ds_start = timestamp
+        if not (self.__get_user_defined_inputfiles(jobid)):
+            ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':True}
 
-                elif "PREPARING -> SUBMIT" in line:
-
-                    timestmp_str = words[0].strip('[')
-                    timestmp_str = timestmp_str.strip(']')
-                    ds_time['end']=timestmp_str
-                    
-                    timestamp = datetime.datetime.strptime(timestmp_str,'%Y-%m-%dT%H:%M:%SZ')
-                    ds_end = timestamp
-                
-                    ds_time['done']=True
-                    continue
-
-                elif "PREPARING -> FINISHING" in line and 'failure' in line:
-                    ds_time['failed']=True
-                    continue
-          
-                else:
-                    continue
-                
-
-        if ds_start and ds_end:
-            ds_time['dt']=str(ds_end - ds_start)
-        elif ds_start:
-            ds_time['dt']=str(datetime.datetime.now() - ds_start)
+            
         else:
-            return None
+            ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':False}
+            ds_start = None
+            ds_end = None
+            with open(err_f,'r') as f:
+                for line in f:
+
+                    words = re.split(' +', line)
+                    words = [word.strip() for word in words]
+                
+                    if "ACCEPTED -> PREPARING" in line:
+                    
+                        timestmp_str = words[0].strip('[')
+                        timestmp_str = timestmp_str.strip(']')
+                        ds_time['start']=timestmp_str
+                        
+                        timestamp = datetime.datetime.strptime(timestmp_str,'%Y-%m-%dT%H:%M:%SZ')
+                        ds_start = timestamp
+
+                    elif "PREPARING -> SUBMIT" in line:
+
+                        timestmp_str = words[0].strip('[')
+                        timestmp_str = timestmp_str.strip(']')
+                        ds_time['end']=timestmp_str
+                        
+                        timestamp = datetime.datetime.strptime(timestmp_str,'%Y-%m-%dT%H:%M:%SZ')
+                        ds_end = timestamp
+                        
+                        ds_time['done']=True
+                        continue
+
+                    elif "PREPARING -> FINISHING" in line and 'failure' in line:
+                        ds_time['failed']=True
+                        continue
+                    
+                    else:
+                        continue
+                        
+            if twindow_start and ds_end:
+                """  If the datastaging started """
+                if ds_end < twindow_start:
+                    return None
+
+            if ds_start and ds_end:
+                ds_time['dt']=str(ds_end - ds_start)
+            elif ds_start:
+                ds_time['dt']=str(datetime.datetime.now() - ds_start)
+            else:
+                return None
 
         return ds_time
 
@@ -206,26 +222,53 @@ class DataStagingControl(ComponentControl):
     def get_job_time(self,args):
 
         datastaging_time={}
-        err_f = self.control_dir + '/job.'+args.jobid +'.errors'
-        datastaging_time=self.__get_time_ds(err_f)
+        jobid = args.jobid
+        err_f = self.control_dir + '/job.'+jobid +'.errors'
+        datastaging_time=self.__get_time_ds(err_f,jobid)
         if datastaging_time:
-            print('Datastaging duration for jobid {0:<50}'.format(args.jobid))
-            if datastaging_time['done']:
-                print('\t{0:<21}\t{1:<21}\t{2:<12}'.format('Start','End','Duration'))
-                print("\t{start:<21}\t{end:<21}\t{dt:<12}".format(**datastaging_time))
+            print('\nDatastaging durations for jobid {0:<50}'.format(args.jobid))
+            if datastaging_time['noinput']:
+                print('\tThis jobs has not user-defined input-files, hence no datastaging needed/done.')
             else:
-                print('\tDatastaging still ongoing')
-                print('\t{0:<21}\t{1:<12}'.format('Start','Duration'))
-                print("\t{0:<21}\t{1:<12}".format(datastaging_time['start'],datastaging_time['dt']))
+                if datastaging_time['done']:
+                    print('\t{0:<21}\t{1:<21}\t{2:<12}'.format('Start','End','Duration'))
+                    print("\t{start:<21}\t{end:<21}\t{dt:<12}".format(**datastaging_time))
+                else:
+                    print('\tDatastaging still ongoing')
+                    print('\t{0:<21}\t{1:<12}'.format('Start','Duration'))
+                    print("\t{0:<21}\t{1:<12}".format(datastaging_time['start'],datastaging_time['dt']))
         else:
-            print('No datastaging information for jobid {0:<50} - Try arcctl accounting instead'.format(args.jobid))
+            print('No datastaging information for jobid {0:<50} - Try arcctl accounting instead - the job might be finished.'.format(args.jobid))
 
-    def get_job_files(self,args):
-        job_files = {}
+
+    def __get_user_defined_inputfiles(self,jobid):
+        grami_file = self.control_dir + '/' + 'job.' + jobid + '.grami'
+        all_files = []
+        with open(grami_file,'r') as f:
+            for line in f:
+                if 'joboption_inputfile' in line:
+                    fileN = line.split('=')[-1].strip()
+                    fileN = fileN.replace("'/","")
+                    fileN = fileN.replace("'","")
+                    """ Ignore some default files that are not relevant for data staging """
+                    if 'pandaJobData.out' in fileN or 'runpilot2-wrapper.sh' in fileN or 'queuedata.json' in fileN:
+                        continue
+                    if len(fileN)>0:
+                        all_files.append(fileN)
+        return all_files
+
+
+
+    def get_job_details(self,args):
+        """  Extracts information about the files already downloaded for the job from the jobs statistics file """
+        job_files_done = {}
+        jobid = args.jobid
+
+        """ Get all files to download for job """
+        all_files = self.__get_user_defined_inputfiles(jobid)
 
         """ Get files already downloaded """
-        stat_file = self.control_dir + '/' + 'job.' + args.jobid + '.statistics'
-
+        stat_file = self.control_dir + '/' + 'job.' + jobid + '.statistics'
         with open(stat_file,'r') as f:
             for line in f:
                 line = line.strip()
@@ -246,54 +289,41 @@ class DataStagingControl(ComponentControl):
                     seconds = (end_dtstr - start_dtstr).seconds
 
 
-                    job_files[fileN] = {'size':size,'source':source,'start':start,'end':end,'seconds':seconds,'cached':cached}
-
-                    
-        """ Get all files to download """
-        grami_file = self.control_dir + '/' + 'job.' + args.jobid + '.grami'
-        all_files = []
-        with open(grami_file,'r') as f:
-            for line in f:
-                if 'joboption_inputfile' in line:
-                    fileN = line.split('=')[-1].strip()
-                    fileN = fileN.replace("'/","")
-                    fileN = fileN.replace("'","")
-                    """ Ignore some default files that are not relevant for data staging """
-                    if 'pandaJobData.out' in fileN or 'runpilot2-wrapper.sh' in fileN or 'queuedata.json' in fileN:
-                        continue
-                    if len(fileN)>0:
-                        all_files.append(fileN)
+                    job_files_done[fileN] = {'size':size,'source':source,'start':start,'end':end,'seconds':seconds,'cached':cached}
 
 
+
+    
         """ Collect remaining files to be downloaded """
         tobe_downloaded = []
         for fileN in all_files:
-            if fileN not in job_files.keys():
+            if fileN not in job_files_done.keys():
                 tobe_downloaded.append(fileN)
+
+        """ General info """
+        print('\nInformation  about input-files for jobid {} '.format(jobid))
+        
+        """  Print out a list of all files and if downloaded or not """
+        print('\nState of input-files:')
+        print('\t{0:<8}{1:<60}{2:<12}'.format('COUNTER','FILENAME','DOWNLOADED'))
+        for idx,fileN in enumerate(all_files):
+            downloaded = 'no'
+            if fileN in job_files_done.keys():
+                downloaded = 'yes'
+            print('\t{0:<8}{1:<60}{2:<12}'.format(idx,fileN,downloaded))
                 
-
         """ Print out information about files already downloaded """
-        sorted_dict = sorted(job_files.items(), key = lambda x: x[1]['end'])
-        print('\nAll files for job {}:'.format(args.jobid))
-        print('\t{0:<40}{1:<60}{2:<15}{3:<25}{4:<25}{5:<10}{6:<7}'.format('FILENAME','SOURCE','SIZE (MB)','START','END','SECONDS','CACHED'))
-        for item in sorted_dict:
-            print("\t{0:<40}{1:<60}{2:<15.3f}{3:<25}{4:<25}{5:<10}{6:<7}".format(item[0],item[1]['source'],item[1]['size'],item[1]['start'],item[1]['end'],item[1]['seconds'],item[1]['cached']))
+        sorted_dict = sorted(job_files_done.items(), key = lambda x: x[1]['end'])
+        print('\nDetails for downloaded or cached files:')
+        print('\t{0:<8}{1:<60}{2:<60}{3:<15}{4:<25}{5:<25}{6:<10}{7:<7}'.format('COUNTER','FILENAME','SOURCE','SIZE (MB)','START','END','SECONDS','CACHED'))
+        for idx,item in enumerate(sorted_dict):
+            print("\t{0:<8}{1:<60}{2:<60}{3:<15.3f}{4:<25}{5:<25}{6:<10}{7:<7}".format(idx,item[0],item[1]['source'],item[1]['size'],item[1]['start'],item[1]['end'],item[1]['seconds'],item[1]['cached']))
 
 
-        """ Print out information of what files still need to be downloaded """
-        if len(tobe_downloaded):
-            print('\nFiles not yet started or not yet fully downloaded for job {}:'.format(args.jobid))
-            print('\t{0:3}{1:<40}'.format('#','FILENAME'))
-            for idx,fileN in enumerate(tobe_downloaded):
-                print('\t{0:<3}{1:<40}'.format(idx+1,fileN))
-
-        return job_files
+        return job_files_done
         
 
-    def get_job_speed_avg(self,args):
-        pass
-
-    def get_job_files_detail(self,args,job_files):
+    def get_job_finegrained(self,args,job_files_done):
 
         dtr_file = {}
         file_dtr = {}
@@ -317,13 +347,13 @@ class DataStagingControl(ComponentControl):
                     dtr_file[dtrid_short]=fileN
                     file_dtr[fileN]=dtrid_short
 
-                    if fileN in job_files.keys():
-                        job_files[fileN]['dtrid_short']=dtrid_short
-                        job_files[fileN]['start_sched']=timestmp_str
+                    if fileN in job_files_done.keys():
+                        job_files_done[fileN]['dtrid_short']=dtrid_short
+                        job_files_done[fileN]['start_sched']=timestmp_str
                     else:
-                        job_files[fileN]={}
-                        job_files[fileN]['dtrid_short']=dtrid_short
-                        job_files[fileN]['start_sched']=timestmp_str
+                        job_files_done[fileN]={}
+                        job_files_done[fileN]['dtrid_short']=dtrid_short
+                        job_files_done[fileN]['start_sched']=timestmp_str
 
                 elif 'Delivery received new DTR' in line:
 
@@ -333,7 +363,7 @@ class DataStagingControl(ComponentControl):
                     dtrid_short = words[5].replace(':','')
                     fileN = dtr_file[dtrid_short]
                     
-                    job_files[fileN]['start_deliver']=timestmp_str
+                    job_files_done[fileN]['start_deliver']=timestmp_str
 
                 elif 'Transfer finished' in line:
 
@@ -342,7 +372,7 @@ class DataStagingControl(ComponentControl):
                     dtrid_short = words[5].replace(':','')
                     fileN = dtr_file[dtrid_short]
                     
-                    job_files[fileN]['transf_done']=timestmp_str
+                    job_files_done[fileN]['transf_done']=timestmp_str
 
 
                 elif 'Returning to generator' in line:
@@ -352,26 +382,32 @@ class DataStagingControl(ComponentControl):
                     dtrid_short = words[5].replace(':','')
                     fileN = dtr_file[dtrid_short]
                     
-                    job_files[fileN]['return_gen']=timestmp_str
+                    job_files_done[fileN]['return_gen']=timestmp_str
 
 
         """ Calculated avg download speed """
-        for key,val in job_files.items():
+        """ Calculated by diff in time between 'Delivery received new DTR' and 'Transfer finished 
+        messages for the DTR. '"""
+        for key,val in job_files_done.items():
             if 'size' in val.keys() and 'start_deliver' in val.keys():
                 start_dwnld = datetime.datetime.strptime(val['start_deliver'], "%Y-%m-%d %H:%M:%S")
                 end_dwnld = datetime.datetime.strptime(val['transf_done'], "%Y-%m-%d %H:%M:%S")
                 seconds = (end_dwnld - start_dwnld).seconds
                 speed = float(val['size']/seconds)
-                job_files[key]['speed']=speed
+                job_files_done[key]['speed']=speed
+                job_files_done[key]['seconds']=seconds
+                
 
         """ Print out information about files already downloaded """
         """ TO-DO find a nice way to sort this, maybe removing the files that do not have all info provided? """
         downloads = False
-        print('\nFile download details for job {}:'.format(args.jobid))
-        print('\t{0:<40}{1:<15}{2:<22}{3:<22}{4:<22}{5:<22}{6:<22}{7:<22}{8:<20}'.format('FILENAME','SIZE (MB)','START','END','SCHEDULER-START','DELIVERY-START','TRANSFER-DONE','ALL-DONE','CALC AVG DWLD-SPEED MB/s'))
-        for key,val in job_files.items():
+        print('\nFine-grained details for downloaded files:')
+        print('\t{0:<8}{1:<60}{2:<15}{3:<22}{4:<22}{5:<22}{6:<22}{7:<22}{8:<22}{9:<20}{10:<20}'.format('COUNTER','FILENAME','SIZE (MB)','START','END','SCHEDULER-START','DELIVERY-START','TRANSFER-DONE','ALL-DONE','DWLD-DURATION (s)','CALC AVG DWLD-SPEED MB/s'))
+        idx = 0
+        for key,val in job_files_done.items():
             if ('start_deliver' in val.keys() and 'start_sched' in val.keys() and 'return_gen' in val.keys() and 'speed' in val.keys()):
-                print("\t{0:<40}{1:<15.3f}{2:<22}{3:<22}{4:<22}{5:<22}{6:<22}{7:<22}{8:<20.3f}".format(key,val['size'],val['start'],val['end'],val['start_sched'],val['start_deliver'],val['transf_done'],val['return_gen'],val['speed']))
+                print("\t{0:<8}{1:<60}{2:<15.3f}{3:<22}{4:<22}{5:<22}{6:<22}{7:<22}{8:<22}{9:<20}{10:<20.3f}".format(idx,key,val['size'],val['start'],val['end'],val['start_sched'],val['start_deliver'],val['transf_done'],val['return_gen'],val['seconds'],val['speed']))
+                idx += 1
                 downloads = True
         if not downloads:
             print('\tNo download info available, probably because all files for this jobs were already in the cache.')
@@ -381,7 +417,10 @@ class DataStagingControl(ComponentControl):
 
     def get_summary_times(self,args):
         
-        """ Overview over duration of all datastaging processes in the chosen timewindow """
+        """ Overview over duration of all datastaging processes in the chosen timewindow 
+        Checks job.<jobid>.errors files that have been modified during the timewindow. 
+        Checks duration between ACCEPTED -> PREPARING to PREPARING -> FINISHING stages. 
+        """
         datastaging_times={}
         
         twindow_start = self.__calc_timewindow(args)
@@ -390,47 +429,63 @@ class DataStagingControl(ComponentControl):
 
         err_all = glob.glob(self.control_dir + "/job*.errors")
         for err_f in err_all:
-            mtime=datetime.datetime.fromtimestamp(os.path.getmtime(err_f))
+            try:
+                mtime=datetime.datetime.fromtimestamp(os.path.getmtime(err_f))
 
-            """ Skip all files that are modified before the users chosen timewindow """
-            if mtime < twindow_start:
-                continue
+                """ Skip all files that are modified before the users or default timewindow """
+                if mtime < twindow_start:
+                    continue
 
-            jobid = err_f.split('.')[-2]
-            if self.__get_time_ds(err_f):
-                datastaging_times[jobid]=self.__get_time_ds(err_f)
+                jobid = err_f.split('.')[-2]
+                if self.__get_time_ds(err_f,jobid,twindow_start):
+                    datastaging_times[jobid]=self.__get_time_ds(err_f,jobid,twindow_start)
+            except OSError:
+                """  Files got removed in the meantime, skip this job """
+                pass
 
 
         done_dict={}
         ongoing_dict={}
         failed_dict={}
+        noinput_list=[]
         for key,val in datastaging_times.items():
             if not val['failed']:
+                if val['noinput']:
+                    noinput_list.append(key)
+                    continue
                 if val['done']:
                     done_dict[key]=val
                 else:
                     ongoing_dict[key]=val
             else:
                 failed_dict[key]=val
+        
+        print('\nJobs where no user-defined input-data was defined (no datastaging done/needed): ')
+        for jobid in noinput_list:
+            print('\t{0:}'.format(jobid))
+            
 
         sorted_dict = sorted(done_dict.items(), key = lambda x: x[1]['dt'])
-        print('Sorted list of jobs where datastaging is done:')
+        print('\nSorted list of jobs where datastaging is done:')
+        print('\t{0:<60}{1:<10}{2:<22}'.format('JOBID','DURATION','TIMESTAMP-DONE'))
         for item in sorted_dict:
-            print('\t{0}: {1}'.format(item[0],item[1]['dt']))
+            print('\t{0:<60}{1:<10}{2:<22}'.format(item[0],item[1]['dt'],item[1]['end']))
 
 
         sorted_dict = sorted(ongoing_dict.items(), key = lambda x: x[1]['dt']) 
         if ongoing_dict:
-            print('Sorted list of jobs where datastaging is ongoing:')
+            print('\nSorted list of jobs where datastaging is ongoing:')
+            print('\t{0:<60}{1:<10}'.format('JOBID','DURATION'))
             for item in sorted_dict:
-                print('\t{0}: {1}'.format(item[0],item[1]['dt']))
+                print('\t{0:<60}{1:<10}'.format(item[0],item[1]['dt'].split('.')[0]))
 
 
         sorted_dict = sorted(failed_dict.items(), key = lambda x: x[1]['dt']) 
         if failed_dict:
-            print('Datastaging used for failed jobs:')
+            print('\nDatastaging used for failed jobs:')
+            print('\t{0:<60}{1:<10}'.format('JOBID','DURATION'))
             for item in sorted_dict:
-                print('\t{0}: {1}'.format(item[0],item[1]['dt']))
+                print('\t{0:<60}{1:<10}'.format(item[0],item[1]['dt'].split('.')[0]))
 
     def summarycontrol(self,args):
         if args.summaryaction == 'time':
@@ -438,12 +493,11 @@ class DataStagingControl(ComponentControl):
 
         
     def jobcontrol(self,args):
-        if args.jobaction == 'time':
+        if args.jobaction == 'totaltime-get':
             self.get_job_time(args)
-        elif args.jobaction == 'files':
-            job_files = self.get_job_files(args)
-            if args.details:
-                self.get_job_files_detail(args,job_files)
+        elif args.jobaction == 'details-get':
+            job_files_done = self.get_job_details(args)
+            self.get_job_finegrained(args,job_files_done)
             
 
     def control(self, args):
@@ -461,13 +515,13 @@ class DataStagingControl(ComponentControl):
         dds_job_ctl.set_defaults(handler_class=DataStagingControl)
         dds_job_actions = dds_job_ctl.add_subparsers(title='Job Datastaging Menu', dest='jobaction',metavar='ACTION',help='DESCRIPTION')
         
-        dds_job_time = dds_job_actions.add_parser('time', help='Show time spent in preparation')
-        dds_job_time.add_argument('jobid',help='Job ID').completer = complete_job_id
+        dds_job_total = dds_job_actions.add_parser('totaltime-get', help='Show total time the job spent in preparation')
+        dds_job_total.add_argument('jobid',help='Job ID').completer = complete_job_id
         
-        dds_job_files = dds_job_actions.add_parser('files', help='Show files downloaded')
-        dds_job_files.add_argument('jobid',help='Job ID').completer = complete_job_id
+        dds_job_details = dds_job_actions.add_parser('details-get', help='Show details in times and sizes of files downloaded for job')
+        dds_job_details.add_argument('jobid',help='Job ID').completer = complete_job_id
 
-        dds_job_files.add_argument('-d', '--details', help='Detailed info about jobs files', action='store_true')
+        #dds_job_details.add_argument('-d', '--details', help='Detailed info about jobs files', action='store_true')
 
            
     @staticmethod
