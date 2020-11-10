@@ -132,7 +132,7 @@ fork_packages_deb9:
   image: maikenp/arc-build-debian9
   script:
     - apt-get update -y
-    - echo "6.0.0" > VERSION
+    - echo "6.8.1" > VERSION
     - ./autogen.sh
     - ./configure
     - make dist
@@ -172,7 +172,7 @@ fork_packages_deb10:
   image: maikenp/arc-build-debian10
   script:
     - apt-get update -y
-    - echo "6.0.0" > VERSION
+    - echo "6.8.1" > VERSION
     - ./autogen.sh
     - ./configure
     - make dist
@@ -212,7 +212,7 @@ fork_packages_ubuntu1804:
   image: maikenp/arc-build-ubuntu1804
   script:
     - apt-get update -y
-    - echo "6.0.0" > VERSION
+    - echo "6.8.1" > VERSION
     - ./autogen.sh
     - ./configure
     - make dist
@@ -356,7 +356,7 @@ packages_deb9:
   stage: packages
   image: maikenp/arc-build-debian9
   script:
-    - echo "6.0.0" > VERSION
+    - echo "6.8.1" > VERSION
     - apt-get update -y
     - ./autogen.sh
     - ./configure
@@ -393,7 +393,7 @@ packages_deb10:
   stage: packages
   image: maikenp/arc-build-debian10
   script:
-    - echo "6.0.0" > VERSION
+    - echo "6.8.1" > VERSION
     - apt-get update -y
     - ./autogen.sh
     - ./configure
@@ -431,7 +431,7 @@ packages_ubuntu1804:
   image: maikenp/arc-build-ubuntu1804
   script:
     - apt-get update -y
-    - echo "6.0.0" > VERSION
+    - echo "6.8.1" > VERSION
     - ./autogen.sh
     - ./configure
     - make dist
