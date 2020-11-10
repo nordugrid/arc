@@ -91,12 +91,12 @@ class DataStagingControl(ComponentControl):
         Last filter here, to ensure that only jobs that actually were in preparing in the timewindow are counted, in the case where a timewindow is used. 
         """
 
+        ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':False}
+
         if not (self.__get_user_defined_inputfiles(jobid)):
             ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':True}
-
-            
         else:
-            ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':False}
+            """ This job has user-defined inputfiles for datastaging """
             ds_start = None
             ds_end = None
             with open(err_f,'r') as f:
@@ -131,6 +131,7 @@ class DataStagingControl(ComponentControl):
                         continue
                     
                     else:
+                        """ if this line does not contain target string, continue to next line """
                         continue
                         
             if twindow_start and ds_end:
@@ -144,7 +145,6 @@ class DataStagingControl(ComponentControl):
                 ds_time['dt']=str(datetime.datetime.now() - ds_start)
             else:
                 return None
-
         return ds_time
 
 
@@ -422,33 +422,37 @@ class DataStagingControl(ComponentControl):
         Checks duration between ACCEPTED -> PREPARING to PREPARING -> FINISHING stages. 
         """
         datastaging_times={}
-        
         twindow_start = self.__calc_timewindow(args)
 
         print('This may take some time... Fetching summary of download times for jobs modified after {}'.format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S')))
 
         err_all = glob.glob(self.control_dir + "/job*.errors")
         for err_f in err_all:
+            mtime = None
             try:
                 mtime=datetime.datetime.fromtimestamp(os.path.getmtime(err_f))
-
-                """ Skip all files that are modified before the users or default timewindow """
-                if mtime < twindow_start:
-                    continue
-
-                jobid = err_f.split('.')[-2]
-                if self.__get_time_ds(err_f,jobid,twindow_start):
-                    datastaging_times[jobid]=self.__get_time_ds(err_f,jobid,twindow_start)
             except OSError:
                 """  Files got removed in the meantime, skip this job """
-                pass
+                continue
+        
+            """ Skip all files that are modified before the users or default timewindow """
+            if mtime < twindow_start:
+                continue
+
+            jobid = err_f.split('.')[-2]
+            try:
+                jobdict = self.__get_time_ds(err_f,jobid,twindow_start)
+                if jobdict:
+                    datastaging_times[jobid]=jobdict
+            except:
+                continue
 
 
         done_dict={}
         ongoing_dict={}
         failed_dict={}
         noinput_list=[]
-        for key,val in datastaging_times.items():
+        for key,val in datastaging_times.iteritems():
             if not val['failed']:
                 if val['noinput']:
                     noinput_list.append(key)
@@ -493,9 +497,9 @@ class DataStagingControl(ComponentControl):
 
         
     def jobcontrol(self,args):
-        if args.jobaction == 'totaltime-get':
+        if args.jobaction == 'get-totaltime':
             self.get_job_time(args)
-        elif args.jobaction == 'details-get':
+        elif args.jobaction == 'get-details':
             job_files_done = self.get_job_details(args)
             self.get_job_finegrained(args,job_files_done)
             
@@ -515,10 +519,10 @@ class DataStagingControl(ComponentControl):
         dds_job_ctl.set_defaults(handler_class=DataStagingControl)
         dds_job_actions = dds_job_ctl.add_subparsers(title='Job Datastaging Menu', dest='jobaction',metavar='ACTION',help='DESCRIPTION')
         
-        dds_job_total = dds_job_actions.add_parser('totaltime-get', help='Show total time the job spent in preparation')
+        dds_job_total = dds_job_actions.add_parser('get-totaltime', help='Show the total time spent in the preparation stage for the selected job')
         dds_job_total.add_argument('jobid',help='Job ID').completer = complete_job_id
         
-        dds_job_details = dds_job_actions.add_parser('details-get', help='Show details in times and sizes of files downloaded for job')
+        dds_job_details = dds_job_actions.add_parser('get-details', help='Show details related to the  files downloaded for the selected job')
         dds_job_details.add_argument('jobid',help='Job ID').completer = complete_job_id
 
         #dds_job_details.add_argument('-d', '--details', help='Detailed info about jobs files', action='store_true')
