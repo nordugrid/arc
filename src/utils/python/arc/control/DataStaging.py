@@ -32,7 +32,7 @@ class DataStagingControl(ComponentControl):
             self.logger.critical('Jobs control is not possible without controldir.')
             sys.exit(1)
 
-    def __get_tstamp(self,line):
+    def _get_tstamp(self,line):
         """ Extract timestamp from line of type 
         [2016-08-22 15:17:49] [INFO] ......
         """
@@ -45,7 +45,7 @@ class DataStagingControl(ComponentControl):
         return timestmp_str, timestamp
 
 
-    def __calc_timewindow(self,args):
+    def _calc_timewindow(self,args):
         twindow = None
         if args.days:
             twindow =  datetime.timedelta(days=args.days)
@@ -70,7 +70,7 @@ class DataStagingControl(ComponentControl):
         return twindow_start
 
     
-    def __get_tstamp(self,line):
+    def _get_tstamp(self,line):
         """ Extract timestamp from line of type 
         [2016-08-22 15:17:49] [INFO] ......
         """
@@ -83,7 +83,7 @@ class DataStagingControl(ComponentControl):
         return timestmp_str, timestamp
 
 
-    def __get_time_ds(self,err_f,jobid,twindow_start=None):
+    def _get_timestamps_joblog(self,err_f,jobid,twindow_start=None):
 
         """ 
         Get the total time from PREPARING to SUBMIT which is the total time in PREPARING.
@@ -93,7 +93,7 @@ class DataStagingControl(ComponentControl):
 
         ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':False}
 
-        if not (self.__get_user_defined_inputfiles(jobid)):
+        if not (self._get_user_defined_inputfiles(jobid)):
             ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':True}
         else:
             """ This job has user-defined inputfiles for datastaging """
@@ -240,7 +240,7 @@ class DataStagingControl(ComponentControl):
         datastaging_time={}
         jobid = args.jobid
         err_f = self.control_dir + '/job.'+jobid +'.errors'
-        datastaging_time=self.__get_time_ds(err_f,jobid)
+        datastaging_time=self._get_timestamps_joblog(err_f,jobid)
         if datastaging_time:
             print('\nDatastaging durations for jobid {0:<50}'.format(args.jobid))
             if datastaging_time['noinput']:
@@ -257,7 +257,7 @@ class DataStagingControl(ComponentControl):
             print('No datastaging information for jobid {0:<50} - Try arcctl accounting instead - the job might be finished.'.format(args.jobid))
 
 
-    def __get_user_defined_inputfiles(self,jobid):
+    def _get_user_defined_inputfiles(self,jobid):
         grami_file = self.control_dir + '/' + 'job.' + jobid + '.grami'
         all_files = []
         with open(grami_file,'r') as f:
@@ -281,7 +281,7 @@ class DataStagingControl(ComponentControl):
         jobid = args.jobid
 
         """ Get all files to download for job """
-        all_files = self.__get_user_defined_inputfiles(jobid)
+        all_files = self._get_user_defined_inputfiles(jobid)
 
         """ Get files already downloaded """
         stat_file = self.control_dir + '/' + 'job.' + jobid + '.statistics'
@@ -355,7 +355,7 @@ class DataStagingControl(ComponentControl):
                 if 'Scheduler received new DTR' in line:
                     
                     """ First instance of the new DTR """
-                    timestmp_str, timestmp_obj = self.__get_tstamp(line)
+                    timestmp_str, timestmp_obj = self._get_tstamp(line)
                     dtrid_short = words[5].replace(':','')
                     fileN = words[13].split('/')[-1]
                     fileN = fileN.replace(",","")
@@ -375,7 +375,7 @@ class DataStagingControl(ComponentControl):
 
                     #try:
                     """ Delivery actually starting - waiting time over """
-                    timestmp_str, timestmp_obj = self.__get_tstamp(line)
+                    timestmp_str, timestmp_obj = self._get_tstamp(line)
                     dtrid_short = words[5].replace(':','')
                     fileN = dtr_file[dtrid_short]
                     
@@ -384,7 +384,7 @@ class DataStagingControl(ComponentControl):
                 elif 'Transfer finished' in line:
 
                     """ Transfer done, file downloaded  """
-                    timestmp_str, timestmp_obj = self.__get_tstamp(line)
+                    timestmp_str, timestmp_obj = self._get_tstamp(line)
                     dtrid_short = words[5].replace(':','')
                     fileN = dtr_file[dtrid_short]
                     
@@ -394,7 +394,7 @@ class DataStagingControl(ComponentControl):
                 elif 'Returning to generator' in line:
 
                     """ DTR done """ 
-                    timestmp_str, timestmp_obj = self.__get_tstamp(line)
+                    timestmp_str, timestmp_obj = self._get_tstamp(line)
                     dtrid_short = words[5].replace(':','')
                     fileN = dtr_file[dtrid_short]
                     
@@ -438,7 +438,7 @@ class DataStagingControl(ComponentControl):
         Checks duration between ACCEPTED -> PREPARING to PREPARING -> FINISHING stages. 
         """
         datastaging_times={}
-        twindow_start = self.__calc_timewindow(args)
+        twindow_start = self._calc_timewindow(args)
 
         print('This may take some time... Fetching summary of download times for jobs modified after {}'.format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S')))
 
@@ -457,7 +457,7 @@ class DataStagingControl(ComponentControl):
 
             jobid = err_f.split('.')[-2]
             try:
-                jobdict = self.__get_time_ds(err_f,jobid,twindow_start)
+                jobdict = self._get_timestamps_joblog(err_f,jobid,twindow_start)
                 if jobdict:
                     datastaging_times[jobid]=jobdict
             except:
