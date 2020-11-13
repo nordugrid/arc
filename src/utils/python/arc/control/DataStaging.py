@@ -208,6 +208,13 @@ class DataStagingControl(ComponentControl):
                     if 'local' in host:
                         continue
                     print('\t{0:<25}{1:<20}{2:>6}'.format(state,host,val))
+
+            """  Print out other states """
+            for key, val in state_counter.iteritems():
+                if 'TRANSFERRING' in key or key in print_order or 'local' in key or key in 'ARC_STAGING_TOTAL': continue
+                print('\t{0:<25}{1:<20}{2:>6}'.format(key,'N/A',val))
+                    
+
             try:
                 count_transferring += state_counter['TRANSFERRING_local']
                 print('\t{0:<25}{1:<20}{2:>6}'.format('TRANSFERRING','local',state_counter['TRANSFERRING_local']))
