@@ -2,3 +2,4 @@ debian/tmp/usr/lib/python?.?/site-packages/arc/control/Config.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/ServiceCommon.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/Services.py*
 debian/tmp/usr/lib/python?.?/site-packages/arc/control/OSService.py*
+debian/tmp/usr/lib/python?.?/site-packages/arc/control/Validator.py*
