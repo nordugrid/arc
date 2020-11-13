@@ -83,7 +83,10 @@ class DataStagingControl(ComponentControl):
         return timestmp_str, timestamp
 
 
-    def _get_timestamps_joblog(self,err_f,jobid,twindow_start=None):
+    def _get_filecount_joblog(self,log_f,jobid,twindow_start=None):
+        pass
+        
+    def _get_timestamps_joblog(self,log_f,jobid,twindow_start=None):
 
         """ 
         Get the total time from PREPARING to SUBMIT which is the total time in PREPARING.
@@ -99,7 +102,7 @@ class DataStagingControl(ComponentControl):
             """ This job has user-defined inputfiles for datastaging """
             ds_start = None
             ds_end = None
-            with open(err_f,'r') as f:
+            with open(log_f,'r') as f:
                 for line in f:
 
                     words = re.split(' +', line)
@@ -235,27 +238,6 @@ class DataStagingControl(ComponentControl):
                 
         return
 
-    def get_job_time(self,args):
-
-        datastaging_time={}
-        jobid = args.jobid
-        err_f = self.control_dir + '/job.'+jobid +'.errors'
-        datastaging_time=self._get_timestamps_joblog(err_f,jobid)
-        if datastaging_time:
-            print('\nDatastaging durations for jobid {0:<50}'.format(args.jobid))
-            if datastaging_time['noinput']:
-                print('\tThis job has no user-defined input-files, hence no datastaging needed/done.')
-            else:
-                if datastaging_time['done']:
-                    print('\t{0:<21}\t{1:<21}\t{2:<12}'.format('Start','End','Duration'))
-                    print("\t{start:<21}\t{end:<21}\t{dt:<12}".format(**datastaging_time))
-                else:
-                    print('\tDatastaging still ongoing')
-                    print('\t{0:<21}\t{1:<12}'.format('Start','Duration'))
-                    print("\t{0:<21}\t{1:<12}".format(datastaging_time['start'],datastaging_time['dt']))
-        else:
-            print('No datastaging information for jobid {0:<50} - Try arcctl accounting instead - the job might be finished.'.format(args.jobid))
-
 
     def _get_user_defined_inputfiles(self,jobid):
         grami_file = self.control_dir + '/' + 'job.' + jobid + '.grami'
@@ -273,9 +255,8 @@ class DataStagingControl(ComponentControl):
                         all_files.append(fileN)
         return all_files
 
+    def _get_jobfiles(self,args):
 
-
-    def get_job_details(self,args):
         """  Extracts information about the files already downloaded for the job from the jobs statistics file """
         job_files_done = {}
         jobid = args.jobid
@@ -307,8 +288,36 @@ class DataStagingControl(ComponentControl):
 
                     job_files_done[fileN] = {'size':size,'source':source,'start':start,'end':end,'seconds':seconds,'cached':cached}
 
+        return all_files, job_files_done
+
+    def show_job_time(self,args):
+
+        datastaging_time={}
+        jobid = args.jobid
+        log_f = self.control_dir + '/job.'+jobid +'.errors'
+        datastaging_time=self._get_timestamps_joblog(log_f,jobid)
+
+        if datastaging_time:
+            print('\nDatastaging durations for jobid {0:<50}'.format(args.jobid))
+            if datastaging_time['noinput']:
+                print('\tThis job has no user-defined input-files, hence no datastaging needed/done.')
+            else:
+                if datastaging_time['done']:
+                    print('\t{0:<21}\t{1:<21}\t{2:<12}'.format('Start','End','Duration'))
+                    print("\t{start:<21}\t{end:<21}\t{dt:<12}".format(**datastaging_time))
+                else:
+                    print('\tDatastaging still ongoing')
+                    print('\t{0:<21}\t{1:<12}'.format('Start','Duration'))
+                    print("\t{0:<21}\t{1:<12}".format(datastaging_time['start'],datastaging_time['dt']))
+        else:
+            print('No datastaging information for jobid {0:<50} - Try arcctl accounting instead - the job might be finished.'.format(args.jobid))
 
 
+
+    def show_job_details(self,args):
+        
+
+        all_files, job_files_done = self._get_jobfiles(args)
     
         """ Collect remaining files to be downloaded """
         tobe_downloaded = []
@@ -317,7 +326,7 @@ class DataStagingControl(ComponentControl):
                 tobe_downloaded.append(fileN)
 
         """ General info """
-        print('\nInformation  about input-files for jobid {} '.format(jobid))
+        print('\nInformation  about input-files for jobid {} '.format(args.jobid))
         
         """  Print out a list of all files and if downloaded or not """
         print('\nState of input-files:')
@@ -339,13 +348,13 @@ class DataStagingControl(ComponentControl):
         return job_files_done
         
 
-    def get_job_finegrained(self,args,job_files_done):
+    def show_job_finegrained(self,args,job_files_done):
 
         dtr_file = {}
         file_dtr = {}
 
-        errs_file = self.control_dir + '/' + 'job.' + args.jobid + '.errors'
-        with open(errs_file,'r') as f:
+        log_file = self.control_dir + '/' + 'job.' + args.jobid + '.errors'
+        with open(log_file,'r') as f:
             for line in f:
 
                 words = re.split(' +', line)
@@ -429,9 +438,41 @@ class DataStagingControl(ComponentControl):
             print('\tNo download info available, probably because all files for this jobs were already in the cache.')
 
 
+
+    def show_total_files(self,args):
+        """ 
+        Total number and size of files downloaded in the chosen timewindow 
+        Uses the job.<jobid>.statistics file to extract files downloaded, as this gets updated file by file once a download is done.
+        """
+        datastaging_files={}
+        twindow_start = self._calc_timewindow(args)
+
+        print('This may take some time... Fetching the total number of files downloaded for jobs modified after {}'.format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S')))
+
+        log_all = glob.glob(self.control_dir + "/job.*.statistics")
+        for log_f in log_all:
+            mtime = None
+            try:
+                mtime=datetime.datetime.fromtimestamp(os.path.getmtime(log_f))
+            except OSError:
+                """  Files got removed in the meantime, skip this job """
+                continue
+        
+            """ Skip all files that are modified before the users or default timewindow """
+            if mtime < twindow_start:
+                continue
+
+            jobid = log_f.split('.')[-2]
+            try:
+                jobdict = self._get_filecount_joblog(log_f,jobid,twindow_start)
+                if jobdict:
+                    datastaging_times[jobid]=jobdict
+            except:
+                continue
+
                     
 
-    def get_summary_times(self,args):
+    def show_summary_times(self,args):
         
         """ Overview over duration of all datastaging processes in the chosen timewindow 
         Checks job.<jobid>.errors files that have been modified during the timewindow. 
@@ -442,11 +483,11 @@ class DataStagingControl(ComponentControl):
 
         print('This may take some time... Fetching summary of download times for jobs modified after {}'.format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S')))
 
-        err_all = glob.glob(self.control_dir + "/job*.errors")
-        for err_f in err_all:
+        log_all = glob.glob(self.control_dir + "/job.*.errors")
+        for log_f in log_all:
             mtime = None
             try:
-                mtime=datetime.datetime.fromtimestamp(os.path.getmtime(err_f))
+                mtime=datetime.datetime.fromtimestamp(os.path.getmtime(log_f))
             except OSError:
                 """  Files got removed in the meantime, skip this job """
                 continue
@@ -455,9 +496,9 @@ class DataStagingControl(ComponentControl):
             if mtime < twindow_start:
                 continue
 
-            jobid = err_f.split('.')[-2]
+            jobid = log_f.split('.')[-2]
             try:
-                jobdict = self._get_timestamps_joblog(err_f,jobid,twindow_start)
+                jobdict = self._get_timestamps_joblog(log_f,jobid,twindow_start)
                 if jobdict:
                     datastaging_times[jobid]=jobdict
             except:
@@ -514,15 +555,16 @@ class DataStagingControl(ComponentControl):
 
     def summarycontrol(self,args):
         if args.summaryaction == 'time':
-            self.get_summary_times(args)
-
+            self.show_summary_times(args)
+        if args.summaryaction == 'files':
+            self.show_total_files(args)
         
     def jobcontrol(self,args):
         if args.jobaction == 'get-totaltime':
-            self.get_job_time(args)
+            self.show_job_time(args)
         elif args.jobaction == 'get-details':
-            job_files_done = self.get_job_details(args)
-            self.get_job_finegrained(args,job_files_done)
+            job_files_done = self.show_job_details(args)
+            self.show_job_finegrained(args,job_files_done)
             
 
     def control(self, args):
@@ -566,11 +608,18 @@ class DataStagingControl(ComponentControl):
         dds_summary_ctl.set_defaults(handler_class=DataStagingControl)
         dds_summary_actions = dds_summary_ctl.add_subparsers(title='Job Datastaging Summary Menu',dest='summaryaction',metavar='ACTION',help='DESCRIPTION')
         
-        dds_summary_time = dds_summary_actions.add_parser('time',help='Overview of datastaging durations (time that jobs in preparing state) for files where the job.<jobid>.errors file is modified within a selected (or default) timewindow')
+        dds_summary_time = dds_summary_actions.add_parser('time',help='Show overview of datastaging durations (time that jobs in preparing state) for files where the job.<jobid>.errors file is modified within a selected (or default) timewindow')
         dds_summary_time.add_argument('-d','--days',default=0,type=int,help='Modification time in days (default: %(default)s days)')
         dds_summary_time.add_argument('-hr','--hours',default=1,type=int,help='Modification time in hours (default: %(default)s hour)')
         dds_summary_time.add_argument('-m','--minutes',default=0,type=int,help='Modification time in minutes (default: %(default)s minutes)')
         dds_summary_time.add_argument('-s','--seconds',default=0,type=int,help='Modification time in seconds (default: %(default)s seconds)')
+        
+
+        dds_summary_files = dds_summary_actions.add_parser('files',help='Show the total number and sizes of files downloaded in the chosen timewindow (1 hr is default)')
+        dds_summary_files.add_argument('-d','--days',default=0,type=int,help='Modification time in days (default: %(default)s days)')
+        dds_summary_files.add_argument('-hr','--hours',default=1,type=int,help='Modification time in hours (default: %(default)s hour)')
+        dds_summary_files.add_argument('-m','--minutes',default=0,type=int,help='Modification time in minutes (default: %(default)s minutes)')
+        dds_summary_files.add_argument('-s','--seconds',default=0,type=int,help='Modification time in seconds (default: %(default)s seconds)')
         
        
         """ Job """
