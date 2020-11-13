@@ -167,11 +167,10 @@ class DataStagingControl(ComponentControl):
                         all_files.append(fileN)
         return all_files
 
-    def _get_jobfiles(self,args):
+    def _get_jobfiles(self,args,jobid):
 
-        """  Extracts information about the files already downloaded for the job from the jobs statistics file """
+        """  Extracts information about the files already downloaded for a single job from its jobs statistics file """
         job_files_done = {}
-        jobid = args.jobid
 
         """ Get all files to download for job """
         all_files = self._get_user_defined_inputfiles(jobid)
@@ -240,6 +239,7 @@ class DataStagingControl(ComponentControl):
             self.logger.error('Failed to open DTR state file: %s',dtrlog)
 
         return  state_counter
+
 
     def show_dtrstates(self,args):
 
@@ -324,7 +324,7 @@ class DataStagingControl(ComponentControl):
     def show_job_details(self,args):
         
 
-        all_files, job_files_done = self._get_jobfiles(args)
+        all_files, job_files_done = self._get_jobfiles(args,args.jobid)
     
         """ Collect remaining files to be downloaded """
         tobe_downloaded = []
@@ -446,11 +446,22 @@ class DataStagingControl(ComponentControl):
 
 
 
-    def show_total_files(self,args):
+    def show_summary_files(self,args):
         """ 
         Total number and size of files downloaded in the chosen timewindow 
         Uses the job.<jobid>.statistics file to extract files downloaded, as this gets updated file by file once a download is done.
         """
+
+        n_files_all =  0
+        n_files_cached = 0
+        n_files_downloaded = 0
+
+
+        size_files_all = 0
+        size_files_cached = 0
+        size_files_downloaded = 0
+
+
         datastaging_files={}
         twindow_start = self._calc_timewindow(args)
 
@@ -465,19 +476,52 @@ class DataStagingControl(ComponentControl):
                 """  Files got removed in the meantime, skip this job """
                 continue
         
-            """ Skip all files that are modified before the users or default timewindow """
+            """ Skip all jobs that are last modified before the users or default timewindow """
             if mtime < twindow_start:
                 continue
 
             jobid = log_f.split('.')[-2]
-            try:
-                jobdict = self._get_filecount_joblog(log_f,jobid,twindow_start)
-                if jobdict:
-                    datastaging_times[jobid]=jobdict
-            except:
-                continue
+            all_files, job_files_done = self._get_jobfiles(args,jobid)
 
-                    
+
+
+            for key, val in job_files_done.iteritems():
+                """  Only files in active download during the timewindow are added """
+                end = datetime.datetime.strptime(val['end'], '%Y-%m-%dT%H:%M:%SZ')
+                if end < twindow_start:
+                    continue
+
+                
+                n_files_all += 1
+                """  Originally converted to MB, want GB here """
+                size_files_all += val['size']/1024.
+
+                if val['cached'] == 'yes':
+                    n_files_cached += 1
+                    size_files_cached += val['size']/1024.
+
+                if val['cached'] == 'no':
+                    n_files_downloaded += 1
+                    size_files_downloaded += val['size']/1024.
+
+                
+
+                
+
+        print('Total:')
+        print('Total files: ' + str(n_files_all))
+        print('Total size: ' + str(size_files_all)) + ' GB '
+
+
+        print('Cached:')
+        print('Total files: ' + str(n_files_cached))
+        print('Total size: ' + str(size_files_cached)) + ' GB '
+
+        
+        print('Downloaded:')
+        print('Total files: ' + str(n_files_downloaded))
+        print('Total size: ' + str(size_files_downloaded)) + ' GB '
+
 
     def show_summary_times(self,args):
         
@@ -564,7 +608,7 @@ class DataStagingControl(ComponentControl):
         if args.summaryaction == 'time':
             self.show_summary_times(args)
         if args.summaryaction == 'files':
-            self.show_total_files(args)
+            self.show_summary_files(args)
         
     def jobcontrol(self,args):
         if args.jobaction == 'get-totaltime':
@@ -615,14 +659,14 @@ class DataStagingControl(ComponentControl):
         dds_summary_ctl.set_defaults(handler_class=DataStagingControl)
         dds_summary_actions = dds_summary_ctl.add_subparsers(title='Job Datastaging Summary Menu',dest='summaryaction',metavar='ACTION',help='DESCRIPTION')
         
-        dds_summary_time = dds_summary_actions.add_parser('time',help='Show overview of datastaging durations (time that jobs in preparing state) for files where the job.<jobid>.errors file is modified within a selected (or default) timewindow')
+        dds_summary_time = dds_summary_actions.add_parser('time',help='Show overview of the duration of datastaging for jobs active in the chosen (or default=1hr) timewindow')
         dds_summary_time.add_argument('-d','--days',default=0,type=int,help='Modification time in days (default: %(default)s days)')
         dds_summary_time.add_argument('-hr','--hours',default=1,type=int,help='Modification time in hours (default: %(default)s hour)')
         dds_summary_time.add_argument('-m','--minutes',default=0,type=int,help='Modification time in minutes (default: %(default)s minutes)')
         dds_summary_time.add_argument('-s','--seconds',default=0,type=int,help='Modification time in seconds (default: %(default)s seconds)')
         
 
-        dds_summary_files = dds_summary_actions.add_parser('files',help='Show the total number and sizes of files downloaded in the chosen timewindow (1 hr is default)')
+        dds_summary_files = dds_summary_actions.add_parser('files',help='Show the total number file and and total file-size downloaded in the chosen (or default=1hr)timewindow')
         dds_summary_files.add_argument('-d','--days',default=0,type=int,help='Modification time in days (default: %(default)s days)')
         dds_summary_files.add_argument('-hr','--hours',default=1,type=int,help='Modification time in hours (default: %(default)s hour)')
         dds_summary_files.add_argument('-m','--minutes',default=0,type=int,help='Modification time in minutes (default: %(default)s minutes)')
@@ -630,7 +674,7 @@ class DataStagingControl(ComponentControl):
         
        
         """ Job """
-        dds_job_ctl = dds_actions.add_parser('job',help='Job Datastaging Information for jobs preparing or running.')
+        dds_job_ctl = dds_actions.add_parser('job',help='Job Datastaging Information for a preparing or running job.')
         DataStagingControl.register_job_parser(dds_job_ctl)
 
 
