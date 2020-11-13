@@ -151,7 +151,59 @@ class DataStagingControl(ComponentControl):
         return ds_time
 
 
-    def dtrstates(self,args):
+    def _get_user_defined_inputfiles(self,jobid):
+        grami_file = self.control_dir + '/' + 'job.' + jobid + '.grami'
+        all_files = []
+        with open(grami_file,'r') as f:
+            for line in f:
+                if 'joboption_inputfile' in line:
+                    fileN = line.split('=')[-1].strip()
+                    fileN = fileN.replace("'/","")
+                    fileN = fileN.replace("'","")
+                    """ Ignore some default files that are not relevant for data staging """
+                    if 'pandaJobData.out' in fileN or 'runpilot2-wrapper.sh' in fileN or 'queuedata.json' in fileN:
+                        continue
+                    if len(fileN)>0:
+                        all_files.append(fileN)
+        return all_files
+
+    def _get_jobfiles(self,args):
+
+        """  Extracts information about the files already downloaded for the job from the jobs statistics file """
+        job_files_done = {}
+        jobid = args.jobid
+
+        """ Get all files to download for job """
+        all_files = self._get_user_defined_inputfiles(jobid)
+
+        """ Get files already downloaded """
+        stat_file = self.control_dir + '/' + 'job.' + jobid + '.statistics'
+        with open(stat_file,'r') as f:
+            for line in f:
+                line = line.strip()
+
+                if line and 'inputfile' in line:
+                    words = re.split(',', line)
+                    words = [word.strip() for word in words]
+
+                    fileN = words[0].split('inputfile:')[-1].split('/')[-1]
+                    source = (words[0].split('inputfile:')[-1]).split('=')[-1][:-len(fileN)-1]
+                    size = int(words[1].split('=')[-1])/(1024*1024.)
+                    start = words[2].split('=')[-1]
+                    end = words[3].split('=')[-1]
+                    cached = words[4].split('=')[-1]
+
+                    start_dtstr = datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%SZ')
+                    end_dtstr = datetime.datetime.strptime(end, '%Y-%m-%dT%H:%M:%SZ')
+                    seconds = (end_dtstr - start_dtstr).seconds
+
+
+                    job_files_done[fileN] = {'size':size,'source':source,'start':start,'end':end,'seconds':seconds,'cached':cached}
+
+        return all_files, job_files_done
+
+
+    def _get_dtrstates(self,args):
 
         
         dtrlog = self.arcconfig.get_value('statefile', 'arex/data-staging')
@@ -186,6 +238,12 @@ class DataStagingControl(ComponentControl):
         
         else:
             self.logger.error('Failed to open DTR state file: %s',dtrlog)
+
+        return  state_counter
+
+    def show_dtrstates(self,args):
+
+        state_counter = self._get_dtrstates(args)
 
         """ TO-DO print in nice order """
         print_order = ['CACHE_WAIT','STAGING_PREPARING_WAIT','STAGE_PREPARE','TRANSFER_WAIT','TRANSFER','PROCESSING_CACHE']
@@ -238,57 +296,6 @@ class DataStagingControl(ComponentControl):
                 
         return
 
-
-    def _get_user_defined_inputfiles(self,jobid):
-        grami_file = self.control_dir + '/' + 'job.' + jobid + '.grami'
-        all_files = []
-        with open(grami_file,'r') as f:
-            for line in f:
-                if 'joboption_inputfile' in line:
-                    fileN = line.split('=')[-1].strip()
-                    fileN = fileN.replace("'/","")
-                    fileN = fileN.replace("'","")
-                    """ Ignore some default files that are not relevant for data staging """
-                    if 'pandaJobData.out' in fileN or 'runpilot2-wrapper.sh' in fileN or 'queuedata.json' in fileN:
-                        continue
-                    if len(fileN)>0:
-                        all_files.append(fileN)
-        return all_files
-
-    def _get_jobfiles(self,args):
-
-        """  Extracts information about the files already downloaded for the job from the jobs statistics file """
-        job_files_done = {}
-        jobid = args.jobid
-
-        """ Get all files to download for job """
-        all_files = self._get_user_defined_inputfiles(jobid)
-
-        """ Get files already downloaded """
-        stat_file = self.control_dir + '/' + 'job.' + jobid + '.statistics'
-        with open(stat_file,'r') as f:
-            for line in f:
-                line = line.strip()
-
-                if line and 'inputfile' in line:
-                    words = re.split(',', line)
-                    words = [word.strip() for word in words]
-
-                    fileN = words[0].split('inputfile:')[-1].split('/')[-1]
-                    source = (words[0].split('inputfile:')[-1]).split('=')[-1][:-len(fileN)-1]
-                    size = int(words[1].split('=')[-1])/(1024*1024.)
-                    start = words[2].split('=')[-1]
-                    end = words[3].split('=')[-1]
-                    cached = words[4].split('=')[-1]
-
-                    start_dtstr = datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%SZ')
-                    end_dtstr = datetime.datetime.strptime(end, '%Y-%m-%dT%H:%M:%SZ')
-                    seconds = (end_dtstr - start_dtstr).seconds
-
-
-                    job_files_done[fileN] = {'size':size,'source':source,'start':start,'end':end,'seconds':seconds,'cached':cached}
-
-        return all_files, job_files_done
 
     def show_job_time(self,args):
 
@@ -573,7 +580,7 @@ class DataStagingControl(ComponentControl):
         elif args.action == 'summary':
             self.summarycontrol(args)
         elif args.action == 'dtr':
-            self.dtrstates(args)
+            self.show_dtrstates(args)
 
 
     @staticmethod
