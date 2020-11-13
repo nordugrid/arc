@@ -190,6 +190,8 @@ class DataStagingControl(ComponentControl):
             print('Number of current datastaging processes (files):')
             print('\t{0:<25}{1:<20}{2:<6}'.format('State','Data-delivery host', 'Number'))
             
+            count_transferring = 0
+
             """ First print the most important states:"""
             for state in print_order:
                 try:
@@ -202,13 +204,20 @@ class DataStagingControl(ComponentControl):
                 if 'TRANSFERRING' in key:
                     state = 'TRANSFERRING'
                     host = key.split('_')[-1]
+                    count_transferring += val
                     if 'local' in host:
                         continue
                     print('\t{0:<25}{1:<20}{2:>6}'.format(state,host,val))
             try:
+                count_transferring += state_counter['TRANSFERRING_local']
                 print('\t{0:<25}{1:<20}{2:>6}'.format('TRANSFERRING','local',state_counter['TRANSFERRING_local']))
             except KeyError:
                 pass
+
+            """ Print out divider """
+            print('-'*60)
+            """ Sum up all TRANSFERRING slots """
+            print('\t{0:<25}{1:<20}{2:>6}'.format('TRANSFERRING TOTAL','N/A',count_transferring))
 
             """ Finally print the sum of all dtrs """
             print('\t{0:<25}{1:<20}{2:>6}'.format('ARC_STAGING_TOTAL','N/A',state_counter['ARC_STAGING_TOTAL']))
