@@ -244,7 +244,7 @@ class DataStagingControl(ComponentControl):
         if datastaging_time:
             print('\nDatastaging durations for jobid {0:<50}'.format(args.jobid))
             if datastaging_time['noinput']:
-                print('\tThis jobs has not user-defined input-files, hence no datastaging needed/done.')
+                print('\tThis job has no user-defined input-files, hence no datastaging needed/done.')
             else:
                 if datastaging_time['done']:
                     print('\t{0:<21}\t{1:<21}\t{2:<12}'.format('Start','End','Duration'))
@@ -481,20 +481,24 @@ class DataStagingControl(ComponentControl):
                 failed_dict[key]=val
         
         print('\nJobs where no user-defined input-data was defined (no datastaging done/needed): ')
+        print('Number of jobs:  '+ str(len(noinput_list)))
         for jobid in noinput_list:
             print('\t{0:}'.format(jobid))
             
 
         sorted_dict = sorted(done_dict.items(), key = lambda x: x[1]['dt'])
         print('\nSorted list of jobs where datastaging is done:')
-        print('\t{0:<60}{1:<10}{2:<22}'.format('JOBID','DURATION','TIMESTAMP-DONE'))
-        for item in sorted_dict:
-            print('\t{0:<60}{1:<10}{2:<22}'.format(item[0],item[1]['dt'],item[1]['end']))
+        print('Number of jobs:  '+ str(len(sorted_dict)))
+        if sorted_dict:
+            print('\t{0:<60}{1:<10}{2:<22}'.format('JOBID','DURATION','TIMESTAMP-DONE'))
+            for item in sorted_dict:
+                print('\t{0:<60}{1:<10}{2:<22}'.format(item[0],item[1]['dt'],item[1]['end']))
 
 
         sorted_dict = sorted(ongoing_dict.items(), key = lambda x: x[1]['dt']) 
         if ongoing_dict:
             print('\nSorted list of jobs where datastaging is ongoing:')
+            print('Number of jobs:  ' + str(len(sorted_dict)))
             print('\t{0:<60}{1:<10}'.format('JOBID','DURATION'))
             for item in sorted_dict:
                 print('\t{0:<60}{1:<10}'.format(item[0],item[1]['dt'].split('.')[0]))
@@ -503,6 +507,7 @@ class DataStagingControl(ComponentControl):
         sorted_dict = sorted(failed_dict.items(), key = lambda x: x[1]['dt']) 
         if failed_dict:
             print('\nDatastaging used for failed jobs:')
+            print('Number of jobs:  '+ str(len(sorted_dict)))
             print('\t{0:<60}{1:<10}'.format('JOBID','DURATION'))
             for item in sorted_dict:
                 print('\t{0:<60}{1:<10}'.format(item[0],item[1]['dt'].split('.')[0]))
