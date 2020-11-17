@@ -95,8 +95,11 @@ class DataStagingControl(ComponentControl):
         """
 
         ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':False}
+        has_udef_input = self._has_userdeinfed_inputfiles(jobid)
 
-        if not (self._get_user_defined_inputfiles(jobid)):
+        if has_udef_input is None:
+            print('The grami file  ', grami_file, ' is no longer present. Skipping this job.')
+        elif has_udef_input is False:
             ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':True}
         else:
             """ This job has user-defined inputfiles for datastaging """
@@ -150,30 +153,54 @@ class DataStagingControl(ComponentControl):
                 return None
         return ds_time
 
+    def _has_userdefined_inputfiles(self,jobid):
+        grami_file = self.control_dir + '/' + 'job.' + jobid + '.grami'
+        try:
+            with open(grami_file,'r') as f:
+                for line in f:
+                    if 'joboption_inputfile' in line:
+                        fileN = line.split('=')[-1].strip()
+                        fileN = fileN.replace("'/","")
+                        fileN = fileN.replace("'","")
+                        if not ('panda' in fileN  or 'pilot' in fileN or 'queuedata' in fileN or 'json' in fileN):
+                            return True
 
-    def _get_user_defined_inputfiles(self,jobid):
+        except OSError:
+            return None
+        return False
+
+
+    def _get_inputfilenames(self,jobid):
+        """ The grami-info only contains filename, not URI"""
         grami_file = self.control_dir + '/' + 'job.' + jobid + '.grami'
         all_files = []
-        with open(grami_file,'r') as f:
-            for line in f:
-                if 'joboption_inputfile' in line:
-                    fileN = line.split('=')[-1].strip()
-                    fileN = fileN.replace("'/","")
-                    fileN = fileN.replace("'","")
-                    """ Ignore some default files that are not relevant for data staging """
-                    if 'pandaJobData.out' in fileN or 'runpilot2-wrapper.sh' in fileN or 'queuedata.json' in fileN:
-                        continue
-                    if len(fileN)>0:
-                        all_files.append(fileN)
-        return all_files
+        all_files_user = []
+        try:
+            with open(grami_file,'r') as f:
+                for line in f:
+                    if 'joboption_inputfile' in line:
+                        fileN = line.split('=')[-1].strip()
+                        fileN = fileN.replace("'/","")
+                        fileN = fileN.replace("'","")
+                        if len(fileN)>0:
+                            all_files.append(fileN)
+                            """ Ignore some default files that are not relevant for data staging """
+                        if not( 'panda' in fileN or 'pilot' in fileN or 'queuedata' in fileN or 'json' in fileN):
+                            if len(fileN)>0:
+                                all_files_user.append(fileN)
+        except OSError:
+            """ Will just then return empty all_files and all_files_user lists """
+            pass
+                            
+        return all_files, all_files_user
 
-    def _get_jobfiles(self,args,jobid):
+    def _get_filesforjob(self,args,jobid):
 
         """  Extracts information about the files already downloaded for a single job from its jobs statistics file """
         job_files_done = {}
 
-        """ Get all files to download for job """
-        all_files = self._get_user_defined_inputfiles(jobid)
+        """ Get all files to download for job - uses grami file """
+        all_files, all_files_user = self._get_inputfilenames(jobid)
 
         """ Get files already downloaded """
         stat_file = self.control_dir + '/' + 'job.' + jobid + '.statistics'
@@ -191,15 +218,16 @@ class DataStagingControl(ComponentControl):
                     start = words[2].split('=')[-1]
                     end = words[3].split('=')[-1]
                     cached = words[4].split('=')[-1]
-
+                    atlasfile = False
+                    if 'panda' in fileN or 'pilot' in fileN or 'queuedata' in fileN or 'json' in fileN:
+                        atlasfile = True
                     start_dtstr = datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%SZ')
                     end_dtstr = datetime.datetime.strptime(end, '%Y-%m-%dT%H:%M:%SZ')
                     seconds = (end_dtstr - start_dtstr).seconds
 
+                    job_files_done[fileN] = {'size':size,'source':source,'start':start,'end':end,'seconds':seconds,'cached':cached,'atlasfile':atlasfile}
 
-                    job_files_done[fileN] = {'size':size,'source':source,'start':start,'end':end,'seconds':seconds,'cached':cached}
-
-        return all_files, job_files_done
+        return all_files, all_files_user, job_files_done
 
 
     def _get_dtrstates(self,args):
@@ -324,7 +352,7 @@ class DataStagingControl(ComponentControl):
     def show_job_details(self,args):
         
 
-        all_files, job_files_done = self._get_jobfiles(args,args.jobid)
+        all_files, all_files_user, job_files_done = self._get_filesforjob(args,args.jobid)
     
         """ Collect remaining files to be downloaded """
         tobe_downloaded = []
@@ -452,20 +480,35 @@ class DataStagingControl(ComponentControl):
         Uses the job.<jobid>.statistics file to extract files downloaded, as this gets updated file by file once a download is done.
         """
 
-        n_files_all =  0
+        n_jobs = 0 
+
+        n_files_all = 0
+        n_files_all_user = 0
+        n_files =  0
+        n_files_atlas =  0
+        n_files_user =  0
         n_files_cached = 0
+        n_files_cached_atlas = 0
+        n_files_cached_user = 0
         n_files_downloaded = 0
+        n_files_downloaded_atlas = 0
+        n_files_downloaded_user = 0
 
-
-        size_files_all = 0
+        size_files = 0
+        size_files_atlas = 0
+        size_files_user = 0
         size_files_cached = 0
+        size_files_cached_atlas = 0
+        size_files_cached_user = 0
         size_files_downloaded = 0
+        size_files_downloaded_atlas = 0
+        size_files_downloaded_user = 0
 
 
         datastaging_files={}
         twindow_start = self._calc_timewindow(args)
 
-        print('This may take some time... Fetching the total number of files downloaded for jobs modified after {}'.format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S')))
+        print('This may take some time... Fetching the total number of files downloaded for jobs modified after {}'.format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S\n')))
 
         log_all = glob.glob(self.control_dir + "/job.*.statistics")
         for log_f in log_all:
@@ -481,46 +524,109 @@ class DataStagingControl(ComponentControl):
                 continue
 
             jobid = log_f.split('.')[-2]
-            all_files, job_files_done = self._get_jobfiles(args,jobid)
+            all_files, all_files_user, job_files_done = self._get_filesforjob(args,jobid)
+
+            n_jobs += 1
+            n_files_all += len(all_files)
+            n_files_all_user += len(all_files_user)
 
 
-
+            """ Collecting information for files that are done in stage-in for this job """
             for key, val in job_files_done.iteritems():
                 """  Only files in active download during the timewindow are added """
                 end = datetime.datetime.strptime(val['end'], '%Y-%m-%dT%H:%M:%SZ')
                 if end < twindow_start:
                     continue
-
                 
-                n_files_all += 1
+                n_files += 1
                 """  Originally converted to MB, want GB here """
-                size_files_all += val['size']/1024.
+                size_files += val['size']/1024.
 
+                if val['atlasfile']:
+                    n_files_atlas += 1
+                    size_files_atlas += val['size']/1024.
+                else:
+                    n_files_user += 1
+                    size_files_user += val['size']/1024.
+
+                    
                 if val['cached'] == 'yes':
                     n_files_cached += 1
                     size_files_cached += val['size']/1024.
-
-                if val['cached'] == 'no':
+                    if val['atlasfile']:
+                        n_files_cached_atlas += 1
+                        size_files_cached_atlas += val['size']/1024.
+                    else:
+                        n_files_cached_user += 1
+                        size_files_cached_user += val['size']/1024.
+                else:
                     n_files_downloaded += 1
                     size_files_downloaded += val['size']/1024.
-
-                
-
-                
-
-        print('Total:')
-        print('Total files: ' + str(n_files_all))
-        print('Total size: ' + str(size_files_all)) + ' GB '
+                    if val['atlasfile']:
+                        n_files_downloaded_atlas += 1
+                        size_files_downloaded_atlas += val['size']/1024.
+                    else:
+                        n_files_downloaded_user += 1
+                        size_files_downloaded_user += val['size']/1024.
 
 
-        print('Cached:')
-        print('Total files: ' + str(n_files_cached))
-        print('Total size: ' + str(size_files_cached)) + ' GB '
+        if not n_jobs:
+            print('\nNo active jobs were found in the selected timewindow --> exiting.')
+            return 
 
         
-        print('Downloaded:')
-        print('Total files: ' + str(n_files_downloaded))
-        print('Total size: ' + str(size_files_downloaded)) + ' GB '
+        print('\nTimewindow start: : '+ datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S'))
+        print('\nALL JOBS')
+        print('Number of jobs active since start of timewindow '+ str(n_jobs))
+        print('\tTotal number of inputfiles for these jobs: ' + str(n_files_all))
+        print('\tOut of these, user-defined input-files amounted to: ' + str(n_files_all_user))
+    
+        if not n_files:
+            print('\nNo files were done staging-in during the selected timewindow --> exiting.')
+            return
+
+        print('\nFILES DONE IN STAGE-IN')
+        print('{0:<50}{1:<10}{2:<15}'.format('','NUMBER','SIZE [GB]'))
+        print('{0:<50}{1:<10}{2:<15.1f}'.format('Total',str(n_files),size_files))
+        
+
+        if n_files_atlas:
+            print('{0:<50}{1:<10}{2:<15.1f}'.format('    User-defined',str(n_files_user),size_files_user))
+            print('{0:<50}{1:<10}{2:<15.1f}'.format('    Atlas-files',str(n_files_atlas),size_files_atlas))
+
+
+        print('{0:<50}{1:<10}{2:<15.1f}'.format('Cached Total',str(n_files_cached),size_files_cached))
+        if n_files_atlas:
+            print('{0:<50}{1:<10}{2:<15.1f}'.format('    User-defined',str(n_files_cached_user),size_files_cached_user))
+            print('{0:<50}{1:<10}{2:<15.1f}'.format('    Atlas-files',str(n_files_cached_atlas),size_files_cached_atlas))
+
+        
+        print('{0:<50}{1:<10}{2:<15.1f}'.format('Not-cached Total (downloaded)',str(n_files_downloaded),size_files_downloaded))
+        if n_files_atlas:
+            print('{0:<50}{1:<10}{2:<15.1f}'.format('    User-defined',str(n_files_downloaded_user),size_files_downloaded_user))
+            print('{0:<50}{1:<10}{2:<15.1f}'.format('    Atlas-files',str(n_files_downloaded_atlas),size_files_downloaded_atlas))
+
+
+        print('\n\nRATIOS')
+        print('{0:<50}{1:<20}{2:<20}'.format('','RATIO amount','RATIO size'))
+        if n_files_atlas:
+            try:
+                print('{0:<50}{1:<20.4}{2:<20.4}'.format('Total User/Atlas',(float(n_files_user)/float(n_files_atlas)),float(size_files_user/size_files_atlas)))
+            except ZeroDivisionError:
+                pass
+        try:
+            print('{0:<50}{1:<20.4}{2:<20.4}'.format('Total Cached/non-cached',(float(n_files_cached)/float(n_files_downloaded)),float(size_files_cached/size_files_downloaded)))
+        except ZeroDivisionError:
+            pass
+        if n_files_atlas:
+            try:
+                print('{0:<50}{1:<20.4}{2:<20.4}'.format('Total Cached-user/Cached-atlas',(float(n_files_cached_user)/float(n_files_cached_atlas)),float(size_files_cached_user/size_files_cached_atlas)))
+            except ZeroDivisionError:
+                pass
+            try:
+                print('{0:<50}{1:<20.4}{2:<20.4}'.format('Total Downloaded-user/Downloaded-atlas',(float(n_files_downloaded_user)/float(n_files_downloaded_atlas)),float(size_files_downloaded_user/size_files_downloaded_atlas)))
+            except ZeroDivisionError:
+                pass
 
 
     def show_summary_times(self,args):
