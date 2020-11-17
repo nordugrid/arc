@@ -95,7 +95,7 @@ class DataStagingControl(ComponentControl):
         """
 
         ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':False}
-        has_udef_input = self._has_userdeinfed_inputfiles(jobid)
+        has_udef_input = self._has_userdefined_inputfiles(jobid)
 
         if has_udef_input is None:
             print('The grami file  ', grami_file, ' is no longer present. Skipping this job.')
