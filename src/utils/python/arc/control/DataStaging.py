@@ -508,7 +508,7 @@ class DataStagingControl(ComponentControl):
         datastaging_files={}
         twindow_start = self._calc_timewindow(args)
 
-        print('This may take some time... Fetching the total number of files downloaded for jobs modified after {}'.format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S\n')))
+        print('\nThis may take some time... Fetching the total number of files downloaded for jobs modified after {}'.format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S\n')))
 
         log_all = glob.glob(self.control_dir + "/job.*.statistics")
         for log_f in log_all:
@@ -629,16 +629,16 @@ class DataStagingControl(ComponentControl):
                 pass
 
 
-    def show_summary_times(self,args):
+    def show_summary_jobs(self,args):
         
         """ Overview over duration of all datastaging processes in the chosen timewindow 
         Checks job.<jobid>.errors files that have been modified during the timewindow. 
         Checks duration between ACCEPTED -> PREPARING to PREPARING -> FINISHING stages. 
         """
-        datastaging_times={}
+        datastaging_jobs={}
         twindow_start = self._calc_timewindow(args)
 
-        print('This may take some time... Fetching summary of download times for jobs modified after {}'.format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S')))
+        print('\nThis may take some time... Fetching summary of download times for jobs modified after {}'.format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S')))
 
         log_all = glob.glob(self.control_dir + "/job.*.errors")
         for log_f in log_all:
@@ -657,7 +657,7 @@ class DataStagingControl(ComponentControl):
             try:
                 jobdict = self._get_timestamps_joblog(log_f,jobid,twindow_start)
                 if jobdict:
-                    datastaging_times[jobid]=jobdict
+                    datastaging_jobs[jobid]=jobdict
             except:
                 continue
 
@@ -666,7 +666,7 @@ class DataStagingControl(ComponentControl):
         ongoing_dict={}
         failed_dict={}
         noinput_list=[]
-        for key,val in datastaging_times.iteritems():
+        for key,val in datastaging_jobs.iteritems():
             if not val['failed']:
                 if val['noinput']:
                     noinput_list.append(key)
@@ -711,8 +711,8 @@ class DataStagingControl(ComponentControl):
                 print('\t{0:<60}{1:<10}'.format(item[0],item[1]['dt'].split('.')[0]))
 
     def summarycontrol(self,args):
-        if args.summaryaction == 'time':
-            self.show_summary_times(args)
+        if args.summaryaction == 'jobs':
+            self.show_summary_jobs(args)
         if args.summaryaction == 'files':
             self.show_summary_files(args)
         
@@ -765,11 +765,11 @@ class DataStagingControl(ComponentControl):
         dds_summary_ctl.set_defaults(handler_class=DataStagingControl)
         dds_summary_actions = dds_summary_ctl.add_subparsers(title='Job Datastaging Summary Menu',dest='summaryaction',metavar='ACTION',help='DESCRIPTION')
         
-        dds_summary_time = dds_summary_actions.add_parser('time',help='Show overview of the duration of datastaging for jobs active in the chosen (or default=1hr) timewindow')
-        dds_summary_time.add_argument('-d','--days',default=0,type=int,help='Modification time in days (default: %(default)s days)')
-        dds_summary_time.add_argument('-hr','--hours',default=1,type=int,help='Modification time in hours (default: %(default)s hour)')
-        dds_summary_time.add_argument('-m','--minutes',default=0,type=int,help='Modification time in minutes (default: %(default)s minutes)')
-        dds_summary_time.add_argument('-s','--seconds',default=0,type=int,help='Modification time in seconds (default: %(default)s seconds)')
+        dds_summary_jobs = dds_summary_actions.add_parser('jobs',help='Show overview of the duration of datastaging for jobs active in the chosen (or default=1hr) timewindow')
+        dds_summary_jobs.add_argument('-d','--days',default=0,type=int,help='Modification time in days (default: %(default)s days)')
+        dds_summary_jobs.add_argument('-hr','--hours',default=1,type=int,help='Modification time in hours (default: %(default)s hour)')
+        dds_summary_jobs.add_argument('-m','--minutes',default=0,type=int,help='Modification time in minutes (default: %(default)s minutes)')
+        dds_summary_jobs.add_argument('-s','--seconds',default=0,type=int,help='Modification time in seconds (default: %(default)s seconds)')
         
 
         dds_summary_files = dds_summary_actions.add_parser('files',help='Show the total number file and and total file-size downloaded in the chosen (or default=1hr)timewindow')
