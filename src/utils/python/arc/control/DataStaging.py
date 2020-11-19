@@ -162,7 +162,7 @@ class DataStagingControl(ComponentControl):
                         fileN = line.split('=')[-1].strip()
                         fileN = fileN.replace("'/","")
                         fileN = fileN.replace("'","")
-                        if not ('panda' in fileN  or 'pilot' in fileN or 'queuedata' in fileN or 'json' in fileN):
+                        if not ('panda' in fileN  or 'pilot' in fileN or 'json' in fileN):
                             return True
 
         except OSError:
@@ -182,11 +182,15 @@ class DataStagingControl(ComponentControl):
                         fileN = line.split('=')[-1].strip()
                         fileN = fileN.replace("'/","")
                         fileN = fileN.replace("'","")
+                        
+                        """ ATLAS specific - these files are uploaded by client and not handled by  arex """
+                        if '.json' in fileN or 'pandaJobData.out' in fileN or 'runpilot2-wrapper.sh' in fileN:
+                            continue
+
                         if len(fileN)>0:
                             all_files.append(fileN)
                             """ Ignore some default files that are not relevant for data staging """
-                        if not( 'panda' in fileN or 'pilot' in fileN or 'queuedata' in fileN or 'json' in fileN):
-                            if len(fileN)>0:
+                            if not('panda' in fileN or 'pilot' in fileN or 'json' in fileN):
                                 all_files_user.append(fileN)
         except OSError:
             """ Will just then return empty all_files and all_files_user lists """
@@ -213,14 +217,21 @@ class DataStagingControl(ComponentControl):
                     words = [word.strip() for word in words]
 
                     fileN = words[0].split('inputfile:')[-1].split('/')[-1]
+
+                    """ ATLAS specific - these files are uploaded by client and not handled by  arex """
+                    if 'json' in fileN or 'pandaJobData.out' in fileN or 'runpilot2-wrapper.sh' in fileN:
+                        continue
+
                     source = (words[0].split('inputfile:')[-1]).split('=')[-1][:-len(fileN)-1]
                     size = int(words[1].split('=')[-1])/(1024*1024.)
                     start = words[2].split('=')[-1]
                     end = words[3].split('=')[-1]
                     cached = words[4].split('=')[-1]
                     atlasfile = False
-                    if 'panda' in fileN or 'pilot' in fileN or 'queuedata' in fileN or 'json' in fileN:
+
+                    if 'panda' in fileN or 'pilot2' in fileN:
                         atlasfile = True
+
                     start_dtstr = datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%SZ')
                     end_dtstr = datetime.datetime.strptime(end, '%Y-%m-%dT%H:%M:%SZ')
                     seconds = (end_dtstr - start_dtstr).seconds
@@ -355,30 +366,30 @@ class DataStagingControl(ComponentControl):
         all_files, all_files_user, job_files_done = self._get_filesforjob(args,args.jobid)
     
         """ Collect remaining files to be downloaded """
-        tobe_downloaded = []
+        tobe_stagedin = []
         for fileN in all_files:
             if fileN not in job_files_done.keys():
-                tobe_downloaded.append(fileN)
+                tobe_stagedin.append(fileN)
 
         """ General info """
         print('\nInformation  about input-files for jobid {} '.format(args.jobid))
         
-        """  Print out a list of all files and if downloaded or not """
+        """  Print out a list of all files and if staged-in or not """
         print('\nState of input-files:')
-        print('\t{0:<8}{1:<60}{2:<12}'.format('COUNTER','FILENAME','DOWNLOADED'))
+        print('\t{0:<8}{1:<60}{2:<12}'.format('COUNTER','FILENAME','STAGED-IN'))
         for idx,fileN in enumerate(all_files):
-            downloaded = 'no'
+            staged_in = 'no'
             if fileN in job_files_done.keys():
-                downloaded = 'yes'
-            print('\t{0:<8}{1:<60}{2:<12}'.format(idx,fileN,downloaded))
+                staged_in = 'yes'
+            print('\t{0:<8}{1:<60}{2:<12}'.format(idx+1,fileN,staged_in))
+        print('\tNote: files uploaded by the client appear to not be staged-in, ignore these as AREX does not handle the stage-in of these files.')
                 
         """ Print out information about files already downloaded """
         sorted_dict = sorted(job_files_done.items(), key = lambda x: x[1]['end'])
-        print('\nDetails for downloaded or cached files:')
+        print('\nDetails for files that have been staged in - both downloaded and cached:')
         print('\t{0:<8}{1:<60}{2:<60}{3:<15}{4:<25}{5:<25}{6:<10}{7:<7}'.format('COUNTER','FILENAME','SOURCE','SIZE (MB)','START','END','SECONDS','CACHED'))
         for idx,item in enumerate(sorted_dict):
-            print("\t{0:<8}{1:<60}{2:<60}{3:<15.3f}{4:<25}{5:<25}{6:<10}{7:<7}".format(idx,item[0],item[1]['source'],item[1]['size'],item[1]['start'],item[1]['end'],item[1]['seconds'],item[1]['cached']))
-
+            print("\t{0:<8}{1:<60}{2:<60}{3:<15.3f}{4:<25}{5:<25}{6:<10}{7:<7}".format(idx+1,item[0],item[1]['source'],item[1]['size'],item[1]['start'],item[1]['end'],item[1]['seconds'],item[1]['cached']))
 
         return job_files_done
         
@@ -461,9 +472,9 @@ class DataStagingControl(ComponentControl):
         """ Print out information about files already downloaded """
         """ TO-DO find a nice way to sort this, maybe removing the files that do not have all info provided? """
         downloads = False
-        print('\nFine-grained details for downloaded files:')
+        print('\nFine-grained details for files that have been staged-in by download (not cached):')
         print('\t{0:<8}{1:<60}{2:<15}{3:<22}{4:<22}{5:<22}{6:<22}{7:<22}{8:<22}{9:<20}{10:<20}'.format('COUNTER','FILENAME','SIZE (MB)','START','END','SCHEDULER-START','DELIVERY-START','TRANSFER-DONE','ALL-DONE','DWLD-DURATION (s)','CALC AVG DWLD-SPEED MB/s'))
-        idx = 0
+        idx = 1
         for key,val in job_files_done.items():
             if ('start_deliver' in val.keys() and 'start_sched' in val.keys() and 'return_gen' in val.keys() and 'speed' in val.keys()):
                 print("\t{0:<8}{1:<60}{2:<15.3f}{3:<22}{4:<22}{5:<22}{6:<22}{7:<22}{8:<22}{9:<20}{10:<20.3f}".format(idx,key,val['size'],val['start'],val['end'],val['start_sched'],val['start_deliver'],val['transf_done'],val['return_gen'],val['seconds'],val['speed']))
@@ -503,7 +514,6 @@ class DataStagingControl(ComponentControl):
         size_files_downloaded = 0
         size_files_downloaded_atlas = 0
         size_files_downloaded_user = 0
-
 
         datastaging_files={}
         twindow_start = self._calc_timewindow(args)
