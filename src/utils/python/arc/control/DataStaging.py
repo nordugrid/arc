@@ -146,9 +146,11 @@ class DataStagingControl(ComponentControl):
                     return None
 
             if ds_start and ds_end:
+                """ Datastaging done """
                 ds_time['dt']=str(ds_end - ds_start)
             elif ds_start:
-                ds_time['dt']=str(datetime.datetime.now() - ds_start)
+                """  Datastaging ongoing """
+                ds_time['dt']=str(datetime.datetime.utcnow() - ds_start)
             else:
                 return None
         return ds_time

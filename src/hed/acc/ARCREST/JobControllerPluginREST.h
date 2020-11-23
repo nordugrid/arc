@@ -29,10 +29,19 @@ namespace Arc {
     virtual bool GetURLToJobResource(const Job& job, Job::ResourceType resource, URL& url) const;
     virtual bool GetJobDescription(const Job& job, std::string& desc_str) const;
 
+    class InfoNodeProcessor {
+     public:
+      virtual void operator()(std::string const& job_id, XMLNode info_node) {};
+    };
+
+    static bool ProcessJobs(const UserConfig* usercfg, Arc::URL const & resourceUrl, std::string const & action, int successCode,
+          std::list<std::string>& IDs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed,
+          InfoNodeProcessor& infoNodeProcessor);
+
   private:
     static URL GetAddressOfResource(const Job& job);
     static Logger logger;
-    bool GetDelegation(Arc::URL url, std::string& delegationId) const;
+
   };
 
 } // namespace Arc

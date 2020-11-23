@@ -820,7 +820,7 @@
 ## This log is not used by any other part of ARC so can be safely disabled if you are
 ## not interested in storing jobs log.
 ## default: /var/log/arc/arex-jobs.log
-#joblog=""
+#joblog=
 
 ## fixdirectories = yes/missing/no - Specifies during startup A-REX should
 ## create all directories needed for it operation and set suitable default
@@ -1190,7 +1190,7 @@
 ## Value of zero turns feature off.
 ## default: 0 300 0 300
 #speedcontrol=0 300 100 300
-#speedcontrol=""
+#speedcontrol=
 ## CHANGE: MODIFIED in 6.0.0: missing parameter "speedcontrol=" should also turn the feature off, not just zero value.
 
 ## maxdelivery = number - Maximum number of concurrent file transfers, i.e. active

@@ -18,6 +18,7 @@
 #include <arc/communication/ClientInterface.h>
 #include <arc/delegation/DelegationInterface.h>
 
+#include "SubmitterPluginREST.h"
 #include "JobControllerPluginREST.h"
 
 namespace Arc {
@@ -30,90 +31,43 @@ namespace Arc {
     static JobState::StateType StateMap(const std::string& state);
   };
 
-  bool JobControllerPluginREST::GetDelegation(Arc::URL url, std::string& delegationId) const {
-    std::string delegationRequest;
-    Arc::MCCConfig cfg;
-    usercfg->ApplyToConfig(cfg);
-    std::string delegationPath = url.Path();
-    if(!delegationId.empty()) delegationPath = delegationPath+"/"+delegationId;
-    Arc::ClientHTTP client(cfg, url);
-    {
-      Arc::PayloadRaw request;
-      Arc::PayloadRawInterface* response(NULL);
-      Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("GET"), delegationPath, &request, &info, &response);
-      if((!res) || (info.code != 200) || (info.reason.empty()) || (!response)) {
-        delete response;
-        return false;
-      }
-      delegationId = info.reason;
-      for(unsigned int n = 0;response->Buffer(n);++n) {
-        delegationRequest.append(response->Buffer(n),response->BufferSize(n));
-      }
-      delete response;
-    }
-    {
-      DelegationProvider* deleg(NULL);
-      if (!cfg.credential.empty()) {
-        deleg = new DelegationProvider(cfg.credential);
-      }
-      else {
-        const std::string& cert = (!cfg.proxy.empty() ? cfg.proxy : cfg.cert);
-        const std::string& key  = (!cfg.proxy.empty() ? cfg.proxy : cfg.key);
-        if (key.empty() || cert.empty()) return false;
-        deleg = new DelegationProvider(cert, key);
-      }
-      std::string delegationResponse = deleg->Delegate(delegationRequest);
-      delete deleg;
-
-      Arc::PayloadRaw request;
-      request.Insert(delegationResponse.c_str(),0,delegationResponse.length());
-      Arc::PayloadRawInterface* response(NULL);
-      Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("PUT"), url.Path()+"/"+delegationId, &request, &info, &response);
-      delete response;
-      if((!res) || (info.code != 200) || (!response)) return false;
-    }
-    return true;
-  }
-
   JobState::StateType JobStateARCREST::StateMap(const std::string& state) {
-    /// \mapname ARCBES ARC extended BES
-    /// \mapnote The mapping is case-insensitive, and prefix "pending:" are ignored when performing the mapping.
-    std::string state_ = Arc::lower(state);
-    std::string::size_type p = state_.find("pending:");
-    if(p != std::string::npos) {
-      state_.erase(p,8);
-    }
-    /// \mapattr accepted -> ACCEPTED
-    if (state_ == "accepted")
+    if (state == "ACCEPTING")
       return JobState::ACCEPTED;
-    /// \mapattr preparing -> PREPARING
-    /// \mapattr prepared -> PREPARING
-    else if (state_ == "preparing")
+    else if (state == "ACCEPTED")
+      return JobState::ACCEPTED;
+    else if (state == "PREPARING")
       return JobState::PREPARING;
-    /// \mapattr submit -> SUBMITTING
-    else if (state_ == "submit")
+    else if (state == "PREPARED")
+      return JobState::PREPARING;
+    else if (state == "SUBMITTING")
       return JobState::SUBMITTING;
-    /// \mapattr inlrms -> RUNNING
-    else if (state_ == "inlrms")
+    else if (state == "QUEUING")
+      return JobState::QUEUING;
+    else if (state == "RUNNING")
       return JobState::RUNNING;
-    /// \mapattr canceling -> RUNNING
-    else if (state_ == "canceling")
+    else if (state == "HELD")
+      return JobState::HOLD;
+    else if (state == "EXITINGLRMS")
       return JobState::RUNNING;
-    /// \mapattr finishing -> FINISHING
-    else if (state_ == "finishing")
+    else if (state == "OTHER")
+      return JobState::RUNNING;
+    else if (state == "EXECUTED")
+      return JobState::RUNNING;
+    else if (state == "KILLING")
+      return JobState::RUNNING;
+    else if (state == "FINISHING")
       return JobState::FINISHING;
-    /// \mapattr finished -> FINISHED
-    else if (state_ == "finished")
+    else if (state == "FINISHED")
       return JobState::FINISHED;
-    /// \mapattr deleted -> DELETED
-    else if (state_ == "deleted")
+    else if (state == "FAILED")
+      return JobState::FAILED;
+    else if (state == "KILLED")
+      return JobState::KILLED;
+    else if (state == "WIPED")
       return JobState::DELETED;
-    /// \mapattr "" -> UNDEFINED
-    else if (state_ == "")
+    else if (state == "")
       return JobState::UNDEFINED;
-    /// \mapattr Any other state -> OTHER
     else
       return JobState::OTHER;
   }
@@ -127,61 +81,78 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  static char const * LogsPrefix = "/*logs";
-  static char const * DelegPrefix = "/*deleg";
-
   void JobControllerPluginREST::UpdateJobs(std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
-    for (std::list<Job*>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
-      Arc::URL statusUrl(GetAddressOfResource(**it));
-      std::string id((*it)->JobID);
-      std::string::size_type pos = id.rfind('/');
-      if(pos != std::string::npos) id.erase(0,pos+1);
-      statusUrl.ChangePath(statusUrl.Path()+LogsPrefix+"/"+id+"/status"); // simple state
-      Arc::MCCConfig cfg;
-      usercfg->ApplyToConfig(cfg);
-      Arc::ClientHTTP client(cfg, statusUrl);
-      Arc::PayloadRaw request;
-      Arc::PayloadRawInterface* response(NULL);
-      Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("GET"), &request, &info, &response);
-      if((!res) || (info.code != 200) || (response == NULL) || (response->Buffer(0) == NULL)) {
-        delete response;
-        logger.msg(WARNING, "Job information not found in the information system: %s", (*it)->JobID);
-        IDsNotProcessed.push_back((*it)->JobID);
-        continue;
+    class JobStateProcessor: public InfoNodeProcessor {
+     public:
+      JobStateProcessor(std::list<Job*>& jobs): jobs(jobs) {}
+
+      virtual void operator()(std::string const& id, XMLNode node) {
+        std::string job_id = node["id"];
+        std::string job_state = node["state"];
+        if(!job_state.empty() && !job_id.empty()) {
+          for(std::list<Job*>::iterator itJob = jobs.begin(); itJob != jobs.end(); ++itJob) {
+            std::string id = (*itJob)->JobID;
+            std::string::size_type pos = id.rfind('/');
+            if(pos != std::string::npos) id.erase(0,pos+1);
+            if(job_id == id) {
+              (*itJob)->State = JobStateARCREST(job_state);
+              // (*itJob)->RestartState = ;
+              // (*itJob)->StageInDir = (std::string)aid["esainfo:StageInDirectory"];
+              // (*itJob)->StageOutDir = (std::string)aid["esainfo:StageInDirectory"];
+              // (*itJob)->SessionDir = (std::string)aid["esainfo:StageInDirectory"];
+              // (*itJob)->DelegationID.push_back ;
+              // (*itJob)->JobID = ;
+              break;
+            }
+          }
+        }
       }
-      (*it)->State = JobStateARCREST(std::string(response->Buffer(0),response->BufferSize(0)));
-      delete response;
-      (*it)->LogDir = std::string(LogsPrefix);
-      IDsProcessed.push_back((*it)->JobID);
+
+     private:
+      std::list<Job*>& jobs;
+    };
+
+    JobStateProcessor stateProcessor(jobs);
+    Arc::URL currentServiceUrl;
+    std::list<std::string> IDs;
+    for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
+      if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
+        if(!IDs.empty()) {
+          std::list<std::string> fakeIDs = IDs;
+          ProcessJobs(usercfg, currentServiceUrl, "status", 200, IDs, IDsProcessed, IDsNotProcessed, stateProcessor);
+        }
+        currentServiceUrl = GetAddressOfResource(**it);
+      }
+
+      IDs.push_back((*it)->JobID);
+    }
+    if(!IDs.empty()) {
+      std::list<std::string> fakeIDs = IDs;
+      ProcessJobs(usercfg, currentServiceUrl, "status", 200, IDs, IDsProcessed, IDsNotProcessed, stateProcessor);
     }
   }
 
   bool JobControllerPluginREST::CleanJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
+    
+    InfoNodeProcessor infoNodeProcessor;
+    Arc::URL currentServiceUrl;
+    std::list<std::string> IDs;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
-      Arc::URL statusUrl(GetAddressOfResource(**it));
-      std::string id((*it)->JobID);
-      std::string::size_type pos = id.rfind('/');
-      if(pos != std::string::npos) id.erase(0,pos+1);
-      statusUrl.ChangePath(statusUrl.Path()+LogsPrefix+"/"+id+"/status");
-      Arc::MCCConfig cfg;
-      usercfg->ApplyToConfig(cfg);
-      Arc::ClientHTTP client(cfg, statusUrl);
-      Arc::PayloadRaw request;
-      std::string const new_state("DELETED");
-      request.Insert(new_state.c_str(),0,new_state.length());
-      Arc::PayloadRawInterface* response(NULL);
-      Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("PUT"), &request, &info, &response);
-      delete response;
-      if((!res) || (info.code != 200)) {
-        logger.msg(WARNING, "Failed to clean job: %s", (*it)->JobID);
-        IDsNotProcessed.push_back((*it)->JobID);
-        ok = false;
-        continue;
+      if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
+        if(!IDs.empty()) {
+          if (!ProcessJobs(usercfg, currentServiceUrl, "clean", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor))
+            ok = false;
+        }
+        currentServiceUrl = GetAddressOfResource(**it);
       }
-      IDsProcessed.push_back((*it)->JobID);
+
+      IDs.push_back((*it)->JobID);
+    }
+    if(!IDs.empty()) {
+      if (!ProcessJobs(usercfg, currentServiceUrl, "clean", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
+        ok = false;
+      }
     }
 
     return ok;
@@ -189,30 +160,25 @@ namespace Arc {
 
   bool JobControllerPluginREST::CancelJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
+    
+    InfoNodeProcessor infoNodeProcessor;
+    Arc::URL currentServiceUrl;
+    std::list<std::string> IDs;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
-      Arc::URL statusUrl(GetAddressOfResource(**it));
-      std::string id((*it)->JobID);
-      std::string::size_type pos = id.rfind('/');
-      if(pos != std::string::npos) id.erase(0,pos+1);
-      statusUrl.ChangePath(statusUrl.Path()+LogsPrefix+"/"+id+"/status");
-      Arc::MCCConfig cfg;
-      usercfg->ApplyToConfig(cfg);
-      Arc::ClientHTTP client(cfg, statusUrl);
-      Arc::PayloadRaw request;
-      std::string const new_state("FINISHED");
-      request.Insert(new_state.c_str(),0,new_state.length());
-      Arc::PayloadRawInterface* response(NULL);
-      Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("PUT"), &request, &info, &response);
-      delete response;
-      if((!res) || (info.code != 200)) {
-        logger.msg(WARNING, "Failed to cancel job: %s", (*it)->JobID);
-        IDsNotProcessed.push_back((*it)->JobID);
-        ok = false;
-        continue;
+      if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
+        if(!IDs.empty()) {
+          if (!ProcessJobs(usercfg, currentServiceUrl, "kill", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor))
+            ok = false;
+        }
+        currentServiceUrl = GetAddressOfResource(**it);
       }
-      (*it)->State = JobStateARCREST("FINISHED");
-      IDsProcessed.push_back((*it)->JobID);
+
+      IDs.push_back((*it)->JobID);
+    }
+    if(!IDs.empty()) {
+      if (!ProcessJobs(usercfg, currentServiceUrl, "kill", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
+        ok = false;
+      }
     }
 
     return ok;
@@ -222,7 +188,7 @@ namespace Arc {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Arc::URL delegationUrl(GetAddressOfResource(**it));
-      delegationUrl.ChangePath(delegationUrl.Path()+DelegPrefix);
+      delegationUrl.ChangePath(delegationUrl.Path()+"/rest/1.0/delegations");
       // 1. Fetch/find delegation ids for each job
       if((*it)->DelegationID.empty()) {
         logger.msg(INFO, "Job %s has no delegation associated. Can't renew such job.", (*it)->JobID);
@@ -236,7 +202,7 @@ namespace Arc {
       for(;did != (*it)->DelegationID.end();++did) {
         std::string delegationId(*did);
         if(!delegationId.empty()) {
-          if(!GetDelegation(delegationUrl, delegationId)) {
+          if(!SubmitterPluginREST::GetDelegation(*usercfg, delegationUrl, delegationId)) {
             logger.msg(INFO, "Job %s failed to renew delegation %s.", (*it)->JobID, *did);
             break;
           }
@@ -254,34 +220,123 @@ namespace Arc {
 
   bool JobControllerPluginREST::ResumeJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
+    
+    InfoNodeProcessor infoNodeProcessor;
+    Arc::URL currentServiceUrl;
+    std::list<std::string> IDs;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
-      Arc::URL statusUrl(GetAddressOfResource(**it));
-      std::string id((*it)->JobID);
-      std::string::size_type pos = id.rfind('/');
-      if(pos != std::string::npos) id.erase(0,pos+1);
-      statusUrl.ChangePath(statusUrl.Path()+LogsPrefix+"/"+id+"/status");
-      Arc::MCCConfig cfg;
-      usercfg->ApplyToConfig(cfg);
-      Arc::ClientHTTP client(cfg, statusUrl);
-      Arc::PayloadRaw request;
-      // It is not really important which state is requested.
-      // Server will handle moving job to last failed state anyway.
-      std::string const new_state("PREPARING");
-      request.Insert(new_state.c_str(),0,new_state.length());
-      Arc::PayloadRawInterface* response(NULL);
-      Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("PUT"), &request, &info, &response);
-      delete response;
-      if((!res) || (info.code != 200)) {
-        logger.msg(WARNING, "Failed to cancel job: %s", (*it)->JobID);
-        IDsNotProcessed.push_back((*it)->JobID);
-        ok = false;
-        continue;
+      if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
+        if(!IDs.empty()) {
+          if (!ProcessJobs(usercfg, currentServiceUrl, "restart", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
+            ok = false;
+          }
+        }
+        currentServiceUrl = GetAddressOfResource(**it);
       }
-      (*it)->State = JobStateARCREST("FINISHED");
-      IDsProcessed.push_back((*it)->JobID);
+
+      IDs.push_back((*it)->JobID);
+    }
+    if(!IDs.empty()) {
+      if (!ProcessJobs(usercfg, currentServiceUrl, "restart", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
+        ok = false;
+      }
     }
 
+    return ok;
+  }
+
+  bool JobControllerPluginREST::ProcessJobs(const UserConfig* usercfg, Arc::URL const & resourceUrl, std::string const & action, int successCode,
+          std::list<std::string>& IDs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed,
+          InfoNodeProcessor& infoNodeProcessor) {
+    Arc::URL statusUrl(resourceUrl);
+    statusUrl.ChangePath(statusUrl.Path()+"/rest/1.0/jobs");
+    statusUrl.AddHTTPOption("action",action);
+
+    Arc::MCCConfig cfg;
+    usercfg->ApplyToConfig(cfg);
+    Arc::ClientHTTP client(cfg, statusUrl);
+    Arc::PayloadRaw request;
+    Arc::PayloadRawInterface* response(NULL);
+    Arc::HTTPClientInfo info;
+    {
+      XMLNode jobs_id_list("<jobs/>");
+      for (std::list<std::string>::const_iterator it = IDs.begin(); it != IDs.end(); ++it) {
+        std::string id(*it);
+        std::string::size_type pos = id.rfind('/');
+        if(pos != std::string::npos) id.erase(0,pos+1);
+        Arc::XMLNode job = jobs_id_list.NewChild("job");
+        job.NewChild("id") = id;
+      }
+      std::string jobs_id_str;
+      jobs_id_list.GetXML(jobs_id_str);
+      request.Insert(jobs_id_str.c_str(),0,jobs_id_str.length());
+    }
+    std::multimap<std::string,std::string> attributes;
+    attributes.insert(std::pair<std::string, std::string>("Accept", "text/xml"));
+    Arc::MCC_Status res = client.process(std::string("POST"), attributes, &request, &info, &response);
+    if((!res) || (info.code != 201)) {
+      logger.msg(WARNING, "Failed to process jobs - wrong response: %u", info.code);
+      if(response && response->Content()) logger.msg(DEBUG, "Content: %s", response->Content());
+      delete response; response = NULL;
+      for (std::list<std::string>::const_iterator it = IDs.begin(); it != IDs.end(); ++it) {
+        logger.msg(WARNING, "Failed to process job: %s", *it);
+        IDsNotProcessed.push_back(*it);
+      }
+      return false;
+    }
+
+    if(response->Content()) logger.msg(DEBUG, "Content: %s", response->Content());
+    Arc::XMLNode jobs_list(response->Content()?response->Content():"");
+    delete response; response = NULL;
+    if(!jobs_list || (jobs_list.Name() != "jobs")) {
+      logger.msg(WARNING, "Failed to process jobs - failed to parse response");
+      for (std::list<std::string>::const_iterator it = IDs.begin(); it != IDs.end(); ++it) {
+        logger.msg(WARNING, "Failed to process job: %s", *it);
+        IDsNotProcessed.push_back(*it);
+      }
+      return false;
+    }
+
+    bool ok = true;
+    Arc::XMLNode job_item = jobs_list["job"];
+    for (;; ++job_item) {
+      if(!job_item) { // no more jobs returned 
+        for (std::list<std::string>::const_iterator it = IDs.begin(); it != IDs.end(); ++it) {
+          logger.msg(WARNING, "No response returned: %s", *it);
+          IDsNotProcessed.push_back(*it);
+          ok = false;
+        }
+        break;
+      }
+
+      std::string jcode = job_item["status-code"];
+      std::string jreason = job_item["reason"];
+      std::string jid = job_item["id"];
+      if(jid.empty()) {
+        // hmm
+      } else {
+        std::list<std::string>::iterator it = IDs.begin();
+        for (; it != IDs.end(); ++it) {
+          std::string id(*it);
+          std::string::size_type pos = id.rfind('/');
+          if(pos != std::string::npos) id.erase(0,pos+1);
+          if (id == jid) break;
+        }
+        if(it == IDs.end()) {
+          // hmm again
+        } else {
+          if(jcode != Arc::tostring(successCode)) {
+            logger.msg(WARNING, "Failed to process job: %s - %s %s", jid, jcode, jreason);
+            IDsNotProcessed.push_back(*it);
+            ok = false;
+          } else {
+            IDsProcessed.push_back(*it);
+          }
+          infoNodeProcessor(*it, job_item);
+          IDs.erase(it);
+        }
+      }
+    }
     return ok;
   }
 
@@ -294,25 +349,26 @@ namespace Arc {
     switch (resource) {
     case Job::STDIN:
       if(job.StdIn.empty()) return false;
-      url.ChangePath(url.Path() + '/' + job.StdIn);
+      url.ChangePath(url.Path() + "/session/" + job.StdIn);
       break;
     case Job::STDOUT:
       if(job.StdOut.empty()) return false;
-      url.ChangePath(url.Path() + '/' + job.StdOut);
+      url.ChangePath(url.Path() + "/session/" + job.StdOut);
       break;
     case Job::STDERR:
       if(job.StdErr.empty()) return false;
-      url.ChangePath(url.Path() + '/' + job.StdErr);
+      url.ChangePath(url.Path() + "/session/" + job.StdErr);
       break;
     case Job::STAGEINDIR:
     case Job::STAGEOUTDIR:
     case Job::SESSIONDIR:
+      url.ChangePath(url.Path() + "/session");
       break;
     case Job::JOBLOG:
+      url.ChangePath(url.Path() + "/diagnose/errors");
+      break;
     case Job::JOBDESCRIPTION:
-      std::string path = url.Path();
-      path.insert(path.rfind('/'), LogsPrefix);
-      url.ChangePath(path + ((resource == Job::JOBLOG) ? "/errors" : "/description"));
+      url.ChangePath(url.Path() + "/diagnose/description");
       break;
     }
 
@@ -320,11 +376,14 @@ namespace Arc {
   }
 
   bool JobControllerPluginREST::GetJobDescription(const Job& job, std::string& desc_str) const {
+    //Arc::URL statusUrl(job.JobID);
+    //statusUrl.ChangePath(statusUrl.Path()+"/diagnose/description");
     Arc::URL statusUrl(GetAddressOfResource(job));
     std::string id(job.JobID);
     std::string::size_type pos = id.rfind('/');
     if(pos != std::string::npos) id.erase(0,pos+1);
-    statusUrl.ChangePath(statusUrl.Path()+LogsPrefix+"/"+id+"/description");
+    statusUrl.ChangePath(statusUrl.Path()+"/rest/1.0/jobs/"+id+"/diagnose/description");
+
     Arc::MCCConfig cfg;
     usercfg->ApplyToConfig(cfg);
     Arc::ClientHTTP client(cfg, statusUrl);
@@ -343,3 +402,4 @@ namespace Arc {
   }
 
 } // namespace Arc
+

@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <pwd.h>
 
 #include <arc/DateTime.h>
 #include <arc/Thread.h>
@@ -43,6 +44,79 @@
 using namespace ARex;
 
 Arc::Logger ARexGMConfig::logger(Arc::Logger::getRootLogger(), "ARexGMConfig");
+
+static std::string GetPath(std::string url){
+  std::string::size_type ds, ps;
+  ds=url.find("//");
+  if (ds==std::string::npos) {
+    ps=url.find("/");
+  } else {
+    ps=url.find("/", ds+2);
+  }
+  if (ps==std::string::npos) return "";
+  return url.substr(ps);
+}
+
+ARexConfigContext* ARexConfigContext::GetRutimeConfiguration(Arc::Message& inmsg, GMConfig& gmconfig,
+             std::string const & default_uname, std::string const & default_endpoint) {
+  ARexConfigContext* config = NULL;
+  Arc::MessageContextElement* mcontext = (*inmsg.Context())["arex.gmconfig"];
+  if(mcontext) {
+    try {
+      config = dynamic_cast<ARexConfigContext*>(mcontext);
+      logger.msg(Arc::DEBUG,"Using cached local account '%s'", config->User().Name());
+    } catch(std::exception& e) { };
+  };
+  if(config) return config;
+  // TODO: do configuration detection
+  // TODO: do mapping to local unix name
+  std::string uname;
+  uname=inmsg.Attributes()->get("SEC:LOCALID");
+  if(uname.empty()) uname=default_uname;
+  if(uname.empty()) {
+    if(getuid() == 0) {
+      logger.msg(Arc::ERROR, "Will not map to 'root' account by default");
+      return NULL;
+    };
+    struct passwd pwbuf;
+    char buf[4096];
+    struct passwd* pw;
+    if(getpwuid_r(getuid(),&pwbuf,buf,sizeof(buf),&pw) == 0) {
+      if(pw && pw->pw_name) {
+        uname = pw->pw_name;
+      };
+    };
+  };
+  if(uname.empty()) {
+    logger.msg(Arc::ERROR, "No local account name specified");
+    return NULL;
+  };
+  logger.msg(Arc::DEBUG,"Using local account '%s'",uname);
+  std::string grid_name = inmsg.Attributes()->get("TLS:IDENTITYDN");
+  std::string endpoint = default_endpoint;
+  if(endpoint.empty()) {
+    std::string http_endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
+    std::string tcp_endpoint = inmsg.Attributes()->get("TCP:ENDPOINT");
+    bool https_proto = !grid_name.empty();
+    endpoint = tcp_endpoint;
+    if(https_proto) {
+      endpoint="https"+endpoint;
+    } else {
+      endpoint="http"+endpoint;
+    };
+    endpoint+=GetPath(http_endpoint);
+  };
+  config=new ARexConfigContext(gmconfig,uname,grid_name,endpoint);
+  if(config) {
+    if(*config) {
+      inmsg.Context()->Add("arex.gmconfig",config);
+    } else {
+      delete config; config=NULL;
+      logger.msg(Arc::ERROR, "Failed to acquire A-REX's configuration");
+    };
+  };
+  return config;
+}
 
 static bool match_lists(const std::list<std::string>& list1, const std::list<std::string>& list2, std::string& matched) {
   for(std::list<std::string>::const_iterator l1 = list1.begin(); l1 != list1.end(); ++l1) {

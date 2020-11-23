@@ -1415,15 +1415,18 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/ServiceCommon.py
 %{python3_sitearch}/%{pkgdir}/control/Services.py
 %{python3_sitearch}/%{pkgdir}/control/OSService.py
+%{python3_sitearch}/%{pkgdir}/control/Validator.py
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Config.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/ServiceCommon.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Services.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/OSService.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/Validator.*
 %else
 %{python2_sitearch}/%{pkgdir}/control/Config.py*
 %{python2_sitearch}/%{pkgdir}/control/ServiceCommon.py*
 %{python2_sitearch}/%{pkgdir}/control/Services.py*
 %{python2_sitearch}/%{pkgdir}/control/OSService.py*
+%{python2_sitearch}/%{pkgdir}/control/Validator.py*
 %endif
 
 %files arex

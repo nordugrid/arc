@@ -1,13 +1,18 @@
+#ifndef __ARC_AREX_TOOLS_H__
+#define __ARC_AREX_TOOLS_H__
+
 #include <string>
 #include <arc/XMLNode.h>
 
 namespace ARex {
 
+void convertActivityStatus(const std::string& gm_state,std::string& bes_state,std::string& arex_state,bool failed = false,bool pending = false);
+
+Arc::XMLNode addActivityStatus(Arc::XMLNode pnode,const std::string& gm_state,Arc::XMLNode glue_xml = Arc::XMLNode(),bool failed = false,bool pending = false);
+
 void convertActivityStatusES(const std::string& gm_state,std::string& primary_state,std::list<std::string>& state_attributes,bool failed,bool pending,const std::string& failedstate,const std::string& failedcause);
 
-Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,const std::string& gm_state,bool failed,bool pending,const std::string& failedstate = "",const std::string& failedcause = "");
-
-Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,Arc::XMLNode glue_xml);
+Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,const std::string& gm_state,Arc::XMLNode glue_xml = Arc::XMLNode(),bool failed = false,bool pending = false,const std::string& failedstate = "",const std::string& failedcause = "");
 
 class JobIDGenerator {
  public:
@@ -71,6 +76,12 @@ class JobIDGeneratorINTERNAL:public JobIDGenerator {
   std::string id_;
 };
 
+class JobIDGeneratorREST:public JobIDGeneratorES {
+ public:
+  JobIDGeneratorREST(const std::string& endpoint):JobIDGeneratorES(endpoint) {};
+  virtual std::string GetInterface(void);
+};
+
 Arc::XMLNode addJobID(Arc::XMLNode& pnode,const std::string& endpoint,const std::string& id);
 std::string makeJobID(const std::string& endpoint,const std::string& id);
 Arc::XMLNode addJobIDES(Arc::XMLNode& pnode,const std::string& endpoint,const std::string& id);
@@ -80,4 +91,7 @@ std::string makeJobIDINTERNAL(const std::string& endpoint,const std::string& id)
  
 
 }
+
+
+#endif // __ARC_AREX_TOOLS_H__
 

@@ -3,8 +3,16 @@
 from __future__ import print_function
 
 import argparse
+import logging
 import sys
 import os
+
+logger = logging.getLogger('ARC.ConfigParserPy')
+logger.setLevel(logging.WARNING)
+log_handler_stderr = logging.StreamHandler()
+log_handler_stderr.setFormatter(
+    logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
+logger.addHandler(log_handler_stderr)
 
 # ARC-prefix path in PYTHONPATH
 arc_prefix_pythonpath = '@PYTHON_SITE_ARCH@'.replace('${prefix}', '@prefix@')

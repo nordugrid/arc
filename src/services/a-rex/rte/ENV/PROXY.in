@@ -28,4 +28,8 @@ elif [ "x$1" = "x1" ]; then
     else
         export X509_CERT_DIR="${X509_CERT_DIR:-/etc/grid-security/certificates}"
     fi
+elif [ "x$1" = "x2" ]; then
+    if [ "x$COPY_CACERT_DIR" = "xYes" ]; then
+        rm -rf ${RUNTIME_JOB_DIR}/arc/certificates
+    fi
 fi

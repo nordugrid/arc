@@ -532,8 +532,8 @@ namespace Arc {
     repmsg.Attributes(&attributes_rep);
     repmsg.Context(&context);
     reqmsg.Attributes()->set("HTTP:METHOD", method);
+    URL url(default_url);
     if (!path.empty()) {
-      URL url(default_url);
       url.ChangeFullPath(path,true);
       if(relative_uri) {
         // Workaround for servers which can't handle full URLs in request
@@ -581,7 +581,12 @@ namespace Arc {
     for(AttributeIterator i = repmsg.Attributes()->getAll("HTTP:set-cookie");i.hasMore();++i) {
       info->cookies.push_back(*i);
     }
-    info->location = URL(repmsg.Attributes()->get("HTTP:location"), true);
+    std::string location = repmsg.Attributes()->get("HTTP:location");
+    if(!location.empty()) {
+      URL locationUrl(url);
+      locationUrl.ChangeURL(location, true);
+      info->location = locationUrl;
+    }
     // Put all headers in generic map
     for(AttributeIterator i = repmsg.Attributes()->getAll();i.hasMore();++i) {
       info->headers.insert(std::pair<std::string, std::string>(i.key(), *i));

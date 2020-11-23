@@ -441,7 +441,7 @@ namespace ARex {
     Glib::Mutex::Lock lock(lock_);
     // map lock to id,owner 
     {
-      std::string sqlcmd = "SELECT id,owner FROM rec WHERE uid IN SELECT uid FROM lock WHERE (lockid = '"+sql_escape(lock_id)+"')";
+      std::string sqlcmd = "SELECT id,owner FROM rec WHERE uid IN (SELECT uid FROM lock WHERE (lockid = '"+sql_escape(lock_id)+"'))";
       FindCallbackIdOwnerArg arg(ids);
       if(!dberr("removelock:get",sqlite3_exec_nobusy(sqlcmd.c_str(), &FindCallbackIdOwner, &arg, NULL))) {
         //return false;
@@ -466,7 +466,7 @@ namespace ARex {
     Glib::Mutex::Lock lock(lock_);
     // map lock to id,owner 
     {
-      std::string sqlcmd = "SELECT id,owner FROM rec WHERE uid IN SELECT uid FROM lock WHERE (lockid = '"+sql_escape(lock_id)+"')";
+      std::string sqlcmd = "SELECT id,owner FROM rec WHERE uid IN (SELECT uid FROM lock WHERE (lockid = '"+sql_escape(lock_id)+"'))";
       FindCallbackIdOwnerArg arg(ids);
       if(!dberr("listlocked:get",sqlite3_exec_nobusy(sqlcmd.c_str(), &FindCallbackIdOwner, &arg, NULL))) {
         return false;
