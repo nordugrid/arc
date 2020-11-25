@@ -264,7 +264,9 @@ class Validator(object):
         # Check lrms name is correct
         lrms_submit = os.path.join(ARC_DATA_DIR, 'submit-%s-job' % config_dict['lrms']['lrms'])
         if not os.path.exists(lrms_submit):
-            self.error("%s is not an allowed lrms name" % config_dict['lrms']['lrms'])
+            # Special exception for slurm/SLURM - maybe remove in ARC 7
+            if config_dict['lrms']['lrms'].lower() != 'slurm':
+                self.error("%s is not an allowed lrms name" % config_dict['lrms']['lrms'])
 
     def validate_certificates(self):
         """Check the certificate setup is ok"""
