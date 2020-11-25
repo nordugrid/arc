@@ -674,7 +674,7 @@ prepare() {
 }
 
 validate() {
-    CHECK_CMD=$ARC_LOCATION/@sbindir@/arcctl
+    CHECK_CMD=$ARC_LOCATION/sbin/arcctl
     if [ ! -x $CHECK_CMD ]; then
         log_failure_msg "Could not find or execute arcctl tool"
         return 1
