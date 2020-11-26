@@ -35,9 +35,9 @@ This was needed in order to supply both ARC 5 already available for RHEL7 and th
 
 We provide binary builds for all supported versions of
   * Debian (i386 and amd64)
-  * Fedora (i386 and x86_64) - from Fedora 26 - no i386 support
-  * CentOS EL6 (i386 and x86_64) and EL7/EL8 (x86_64) - from EL7 no i386 support
-  * Ubuntu (i386 and amd64, both LTS and interim releases) - from Ubuntu 20.40 no i386 support
+  * Fedora (x86_64)
+  * Centos/RHEL (x86_64)
+  * Ubuntu (i386 and amd64, both LTS and interim releases) - from Ubuntu 20.04 no i386 support
 
 In addition we build nightly packages for older platforms. 
 
