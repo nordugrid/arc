@@ -280,16 +280,23 @@ class Validator(object):
             self.error("%s does not exist" % x509_host_cert)
         else:
             # Verify cert
+            # With python3-only we can use subprocess.run
             try:
-                output = subprocess.check_output(["openssl", "verify", "-CApath",
-                                                  x509_cert_dir, x509_host_cert])
-                self.logger.info(output.decode().strip())
-            except subprocess.CalledProcessError as cpe:
-                self.error("Host certificate verification failed: %s" % cpe.output)
+                result = subprocess.Popen(["openssl", "verify", "-CApath", x509_cert_dir,
+                                           x509_host_cert], stdout=subprocess.PIPE,
+                                           stderr=subprocess.STDOUT)
+            except Exception as e:
+                self.error("Host certificate verification failed: %s" % str(e))
+                return
+            out = result.communicate()[0]
+            if result.returncode != 0:
+                self.error("Host certificate verification failed: %s" % out.decode())
             else:
                 # Check expiration date, warn if less than one week away
-                enddate = subprocess.check_output(["openssl", "x509", "-enddate", "-noout", "-in",
-                                                   x509_host_cert]).decode().strip().split('=')[-1]
+                result = subprocess.Popen(["openssl", "x509", "-enddate", "-noout", "-in",
+                                           x509_host_cert], stdout=subprocess.PIPE,
+                                           stderr=subprocess.STDOUT)
+                enddate = result.communicate()[0].decode().strip().split('=')[-1]
                 # Redirect output (-noout doesn't work in openssl1.1.1)
                 # With python3-only we can use subprocess.DEVNULL
                 with open(os.devnull, 'w') as dev_null:
@@ -297,7 +304,7 @@ class Validator(object):
                                         "-in", x509_host_cert], stdout=dev_null, stderr=dev_null):
                         self.warning("Host certificate will expire on %s" % enddate)
                     else:
-                        self.logger.info("Host certificate will expire on %s", enddate)
+                        self.logger.info("Host certificate will expire on %s" % enddate)
 
         # Check key
         if not os.path.exists(x509_host_key):
