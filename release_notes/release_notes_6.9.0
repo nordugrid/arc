@@ -1,0 +1,94 @@
+Advanced Resource Connector (ARC)
+=================================
+
+
+Release Notes for NorduGrid ARC  6.9.0     30.11.2020
+------------------------------------------------------
+We are pleased to announce the release of ARC 6.9.0.
+
+
+Highlights in this release
+---------------------------
+
+
+REST interface
+~~~~~~~~~~~~~~~
+
+In this release the main highlight is a technical preview of the REST interface.
+The specifications are detailed here: http://www.nordugrid.org/documents/arc6/tech/rest/rest.html
+
+Note that this is a new implementation replacing the earlier REST technical preview implementation.
+
+We are keen for feedback to this interface, and expect a standard version to be ready in the new year. 
+
+
+arcctl datadelivery
+~~~~~~~~~~~~~~~~~~~
+
+Some changes and improvements have been done to the arcctl datastaging tool.
+Note that some options have now changed names, to hopefully better describe the function.
+
+
+arc.conf
+~~~~~~~~~
+A new option has been added to the lrms block of arc.conf, namely movetool (Bugzilla 3239).
+This allows you  to specify what move-tool AREX will use when moving files from the sessiondir
+to the scratchdir. This option is only relevant if you have scratchdir enabled. 
+http://www.nordugrid.org/documents/arc6/admins/reference.html#movetool
+
+
+
+The following Bugzilla tickets have been adressed or solved
+------------------------------------------------------------
+* 3970  REST interface reimplementation
+* 3965  multiple 'du' on cache
+* 3964  Time zone issue in arcctl datastaging job time
+* 3393  Possible data corruption bug in arccp
+* 3239  configurable mv or cp (to scratch) in  submit_common.sh
+
+
+Documentation
+==============
+The ARC 6 documentation can be found at http://www.nordugrid.org/arc/arc6
+
+If you miss something or have questions, please contact us!
+
+
+Installing ARC 6 
+=================
+We recommend to install ARC release using the Nordugrid repository.
+* Start with the basics: http://www.nordugrid.org/arc/arc6/admins/try_arc6.html
+* Get production ready: http://www.nordugrid.org/arc/arc6/admins/arc6_install_guide.html 
+
+Note that if you instead install from EPEL for RHEL 7 compatible systems,
+the ARC 6 packages can be found as nordugrid-arc6-* and not nordugrid-arc-*
+This was needed in order to supply both ARC 5 already available for RHEL7 and the new ARC 6.
+
+
+We provide binary builds for all supported versions of
+  * Debian (i386 and amd64)
+  * Fedora (x86_64)
+  * Centos/RHEL (x86_64)
+  * Ubuntu (i386 and amd64, both LTS and interim releases) - from Ubuntu 20.04 no i386 support
+
+In addition we build nightly packages for older platforms. 
+
+Future support of ARC 5-series
+===============================
+Note that now that ARC 6 is released, we will only provide security updates of ARC 5.
+In particular:
+1) No new feature development is planned or going on for ARC5 and no bug-fixing development 
+   will happen on ARC5 code base in the future except for security issues.
+2) Security fixes for ARC5 will be provided till end of June 2020.
+3) Production Sites already running ARC 5 will be able to get deployment and configuration 
+   troubleshooting help via GGUS till end June 2021. This we call "operational site support".
+4) ARC5 is available in EPEL7 and will stay there. EPEL8 will only contain ARC 6.
+
+
+Getting in touch
+==================
+If you need help with the configuration file or have any other questions related to ARC 6, please contact us via
+* Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
+* Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
+
+
