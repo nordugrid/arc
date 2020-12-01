@@ -16,6 +16,7 @@ REST interface
 
 In this release the main highlight is a technical preview of the REST interface.
 The specifications are detailed here: http://www.nordugrid.org/documents/arc6/tech/rest/rest.html
+To try out the REST interface, install the nordugrid-arc-plugins-arcrest package. 
 
 Note that this is a new implementation replacing the earlier REST technical preview implementation.
 
