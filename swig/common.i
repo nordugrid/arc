@@ -103,7 +103,7 @@ protected:
     // thread state created/assigned.
     PyGILState_STATE gstate = PyGILState_Ensure();
     char s = c;
-    PyObject_CallMethod(m_PyObj, (char*) "write", (char*) "s#", &s, 1);
+    PyObject_CallMethod(m_PyObj, (char*) "write", (char*) "s#", &s, Py_ssize_t(1));
     PyGILState_Release(gstate);
     return c;
   }
@@ -111,7 +111,7 @@ protected:
     // Call to PyGILState_Ensure ensures there is Python
     // thread state created/assigned.
     PyGILState_STATE gstate = PyGILState_Ensure();
-    PyObject_CallMethod(m_PyObj, (char*) "write", (char*) "s#", s, int(count));
+    PyObject_CallMethod(m_PyObj, (char*) "write", (char*) "s#", s, Py_ssize_t(count));
     PyGILState_Release(gstate);
     return count;
   }
