@@ -483,7 +483,7 @@ class DataStagingControl(ComponentControl):
                 idx += 1
                 downloads = True
         if not downloads:
-            print('\tNo download info available, probably because all files for this jobs were already in the cache.')
+            print('\tNo download info available, probably because all files staged-in for this job were from the cache.')
 
 
 
@@ -777,14 +777,14 @@ class DataStagingControl(ComponentControl):
         dds_summary_ctl.set_defaults(handler_class=DataStagingControl)
         dds_summary_actions = dds_summary_ctl.add_subparsers(title='Job Datastaging Summary Menu',dest='summaryaction',metavar='ACTION',help='DESCRIPTION')
         
-        dds_summary_jobs = dds_summary_actions.add_parser('jobs',help='Show overview of the duration of datastaging for jobs active in the chosen (or default=1hr) timewindow')
+        dds_summary_jobs = dds_summary_actions.add_parser('jobs',help='Show an overview of the duration of datastaging for jobs active in the chosen (or default=1hr) timewindow')
         dds_summary_jobs.add_argument('-d','--days',default=0,type=int,help='Modification time in days (default: %(default)s days)')
         dds_summary_jobs.add_argument('-hr','--hours',default=1,type=int,help='Modification time in hours (default: %(default)s hour)')
         dds_summary_jobs.add_argument('-m','--minutes',default=0,type=int,help='Modification time in minutes (default: %(default)s minutes)')
         dds_summary_jobs.add_argument('-s','--seconds',default=0,type=int,help='Modification time in seconds (default: %(default)s seconds)')
         
 
-        dds_summary_files = dds_summary_actions.add_parser('files',help='Show the total number file and and total file-size downloaded in the chosen (or default=1hr)timewindow')
+        dds_summary_files = dds_summary_actions.add_parser('files',help='Show the total number of files and the total file-size downloaded in the chosen (or default=1hr) timewindow')
         dds_summary_files.add_argument('-d','--days',default=0,type=int,help='Modification time in days (default: %(default)s days)')
         dds_summary_files.add_argument('-hr','--hours',default=1,type=int,help='Modification time in hours (default: %(default)s hour)')
         dds_summary_files.add_argument('-m','--minutes',default=0,type=int,help='Modification time in minutes (default: %(default)s minutes)')
