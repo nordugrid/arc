@@ -458,7 +458,7 @@ ClientOptions::ClientOptions(Client_t c,
     GroupAddOption("legacy-target", 'I', "infointerface",
               istring("the computing element specified by URL at the command line "
                       "should be queried using this information interface. "
-                      "\tAllowed values are: org.nordugrid.ldapng, org.nordugrid.ldapglue2, org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo"),
+                      "\tAllowed values are: org.nordugrid.ldapng, org.nordugrid.ldapglue2 and org.ogf.glue.emies.resourceinfo"),
               istring("interfacename"),
               infointerface);
   }
