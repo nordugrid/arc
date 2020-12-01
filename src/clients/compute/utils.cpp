@@ -427,16 +427,14 @@ ClientOptions::ClientOptions(Client_t c,
   if ( c == CO_RESUB || c == CO_SUB || c == CO_TEST ) {
     GroupAddOption("arc6-target", 'T', "submission-endpoint-type",
             istring("require the specified endpoint type for job submission.\n"
-                    "\tAllowed values are: org.nordugrid.arcrest, org.nordugrid.emies, org.nordugrid.gridftp or org.nordugrid.gridftpjob and  org.nordugrid.internal.\n"
-                    "\tYou can omit the prefix org.nordugrid and just specify the shortnames: arcrest, emies, gridftp or internal "),
+                    "\tAllowed values are: arcrest, emies, gridftp or gridftpjob and internal."),
             istring("type"),
             requested_submission_endpoint_type);
 
     GroupAddOption("arc6-target", 'Q', "info-endpoint-type",
             istring("require information query using the specified information endpoint type.\n"
                     "\tSpecial value 'NONE' will disable all resource information queries and the following brokering.\n"
-                    "\tAllowed values are: org.nordugrid.ldap.nordugrid org.nordugrid.ldap.glue2 org.nordugrid.emies org.nordugrid.arcrest and org.nordugrid.internal.\n"
-                    "\tYou can omit the prefix org.nordugrid and just specify the shortnames: ldap.nordugrid, ldap.glue2, emies, arcrest or internal."),
+                    "\tAllowed values are: ldap.nordugrid, ldap.glue2, emies, arcrest and internal."),
             istring("type"),
             requested_info_endpoint_type);
   }
