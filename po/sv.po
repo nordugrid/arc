@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: support@nordugrid.org\n"
-"POT-Creation-Date: 2020-11-12 14:33+0100\n"
-"PO-Revision-Date: 2020-11-24 05:08+0100\n"
+"POT-Creation-Date: 2020-12-01 21:38+0100\n"
+"PO-Revision-Date: 2020-12-01 21:41+0100\n"
 "Last-Translator: Mattias Ellert <mattias.ellert@physics.uu.se>\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -987,24 +987,32 @@ msgid "registry"
 msgstr "register"
 
 #: src/clients/compute/utils.cpp:429
-msgid "require the specified endpoint type for job submission"
-msgstr "kräv den angivna ändpunktstypen för jobbinsändning"
+msgid ""
+"require the specified endpoint type for job submission.\n"
+"\tAllowed values are: arcrest, emies, gridftp or gridftpjob and internal."
+msgstr ""
+"kräv den angivna ändpunktstypen för jobbinsändning.\n"
+"\tTillåtna värden är: arcrest, emies, gridftp eller gridftpjob och internal."
 
-#: src/clients/compute/utils.cpp:430 src/clients/compute/utils.cpp:436
+#: src/clients/compute/utils.cpp:431 src/clients/compute/utils.cpp:438
 msgid "type"
 msgstr "typ"
 
-#: src/clients/compute/utils.cpp:434
+#: src/clients/compute/utils.cpp:435
 msgid ""
-"require information query using the specified information endpoint type. "
-"Special value 'NONE' will disable all resource information queries and the "
-"following brokering"
+"require information query using the specified information endpoint type.\n"
+"\tSpecial value 'NONE' will disable all resource information queries and the "
+"following brokering.\n"
+"\tAllowed values are: ldap.nordugrid, ldap.glue2, emies, arcrest and "
+"internal."
 msgstr ""
-"kräv informationsförfrågan med den angivna informationsändpunkstypen. "
-"Särskilda värdet 'NONE' stänger av alla resursinformationsförfrågningar och "
-"den efterföljande resursmatchningen"
+"kräv informationsförfrågan med den angivna informationsändpunkstypen.\n"
+"\tSärskilda värdet 'NONE' stänger av alla resursinformationsförfrågningar "
+"och den efterföljande resursmatchningen.\n"
+"\tTillåtna värden är: ldap.nordugrid, ldap.glue2, emies, arcrest och "
+"internal."
 
-#: src/clients/compute/utils.cpp:442
+#: src/clients/compute/utils.cpp:444
 msgid ""
 "select one or more computing elements: name can be an alias for a single CE, "
 "a group of CEs or a URL"
@@ -1012,28 +1020,32 @@ msgstr ""
 "välj en eller flera beräkningsresurser: namn kan vara ett alias för en "
 "enskild beräkningsresurs, en grupp av beräkningsresurser eller en URL"
 
-#: src/clients/compute/utils.cpp:444 src/clients/compute/utils.cpp:449
-#: src/clients/compute/utils.cpp:465 src/clients/compute/utils.cpp:585
+#: src/clients/compute/utils.cpp:446 src/clients/compute/utils.cpp:451
+#: src/clients/compute/utils.cpp:468 src/clients/compute/utils.cpp:588
 msgid "name"
 msgstr "namn"
 
-#: src/clients/compute/utils.cpp:448
+#: src/clients/compute/utils.cpp:450
 msgid "only select jobs that were submitted to this resource"
 msgstr "välj endast jobb som sändes in till denna resurs"
 
-#: src/clients/compute/utils.cpp:455
+#: src/clients/compute/utils.cpp:457
 msgid ""
 "the computing element specified by URL at the command line should be queried "
-"using this information interface"
+"using this information interface.\n"
+"\tAllowed values are: org.nordugrid.ldapng, org.nordugrid.ldapglue2 and org."
+"ogf.glue.emies.resourceinfo"
 msgstr ""
 "beräkningsresursen angiven med URL på kommandoraden ska frågas med detta "
-"informationsgränssnitt"
+"informationsgränssnitt.\n"
+"\tTillåtna värden är: org.nordugrid.ldapng, org.nordugrid.ldapglue2 och org."
+"ogf.glue.emies.resourceinfo"
 
-#: src/clients/compute/utils.cpp:457
+#: src/clients/compute/utils.cpp:460
 msgid "interfacename"
 msgstr "gränssnittsnamn"
 
-#: src/clients/compute/utils.cpp:463
+#: src/clients/compute/utils.cpp:466
 msgid ""
 "selecting a computing element for the new jobs with a URL or an alias, or "
 "selecting a group of computing elements with the name of the group"
@@ -1041,105 +1053,105 @@ msgstr ""
 "att välja en beräkningsresurs för de nya jobben med en URL eller ett alias, "
 "eller att välja en grupp av beräkningselement med gruppen namn"
 
-#: src/clients/compute/utils.cpp:471
+#: src/clients/compute/utils.cpp:474
 msgid "force migration, ignore kill failure"
 msgstr "tvångsmigrering, ignorera om avbrytandet av jobbet misslyckas"
 
-#: src/clients/compute/utils.cpp:477
+#: src/clients/compute/utils.cpp:480
 msgid "keep the files on the server (do not clean)"
 msgstr "behåll filerna på servern (ta inte bort)"
 
-#: src/clients/compute/utils.cpp:483
+#: src/clients/compute/utils.cpp:486
 msgid "do not ask for verification"
 msgstr "fråga inte efter bekräftelse"
 
-#: src/clients/compute/utils.cpp:487
+#: src/clients/compute/utils.cpp:490
 msgid "truncate the joblist before synchronizing"
 msgstr "trunkera jobblistan för synkronisering"
 
-#: src/clients/compute/utils.cpp:491
+#: src/clients/compute/utils.cpp:494
 msgid "do not collect information, only convert jobs storage format"
 msgstr "samla inte in information, konvertera endast lagringsformat"
 
-#: src/clients/compute/utils.cpp:497 src/clients/data/arcls.cpp:288
+#: src/clients/compute/utils.cpp:500 src/clients/data/arcls.cpp:288
 msgid "long format (more information)"
 msgstr "långt format (mer information)"
 
-#: src/clients/compute/utils.cpp:503
+#: src/clients/compute/utils.cpp:506
 msgid "print a list of services configured in the client.conf"
 msgstr "skriv ut en lista med tjänster konfigurerade i client.conf"
 
-#: src/clients/compute/utils.cpp:509
+#: src/clients/compute/utils.cpp:512
 msgid "show the stdout of the job (default)"
 msgstr "visa jobbets stdout (förval)"
 
-#: src/clients/compute/utils.cpp:513
+#: src/clients/compute/utils.cpp:516
 msgid "show the stderr of the job"
 msgstr "visa jobbets stderr"
 
-#: src/clients/compute/utils.cpp:517
+#: src/clients/compute/utils.cpp:520
 msgid "show the CE's error log of the job"
 msgstr "visa jobbets beräkningsresurs-fellogg"
 
-#: src/clients/compute/utils.cpp:521
+#: src/clients/compute/utils.cpp:524
 msgid "show the specified file from job's session directory"
 msgstr "visa den angivna filen från jobbets sessionskatalog"
 
-#: src/clients/compute/utils.cpp:522
+#: src/clients/compute/utils.cpp:525
 msgid "filepath"
 msgstr "sökväg"
 
-#: src/clients/compute/utils.cpp:528
+#: src/clients/compute/utils.cpp:531
 msgid ""
 "download directory (the job directory will be created in this directory)"
 msgstr "nedladdningskatalog (jobbkatalogen kommer att skapas i denna katalog)"
 
-#: src/clients/compute/utils.cpp:530
+#: src/clients/compute/utils.cpp:533
 msgid "dirname"
 msgstr "katalognamn"
 
-#: src/clients/compute/utils.cpp:534
+#: src/clients/compute/utils.cpp:537
 msgid "use the jobname instead of the short ID as the job directory name"
 msgstr ""
 "använd jobbets namn i stället för dess korta ID för jobbkatalogens namn"
 
-#: src/clients/compute/utils.cpp:539
+#: src/clients/compute/utils.cpp:542
 msgid "force download (overwrite existing job directory)"
 msgstr "tvångsnedladdning (skriv över existerande jobbkatalog)"
 
-#: src/clients/compute/utils.cpp:545
+#: src/clients/compute/utils.cpp:548
 msgid "instead of the status only the IDs of the selected jobs will be printed"
 msgstr "i stället för status skriv endast de utvalda jobbens ID"
 
-#: src/clients/compute/utils.cpp:549
+#: src/clients/compute/utils.cpp:552
 msgid "sort jobs according to jobid, submissiontime or jobname"
 msgstr "sortera jobb efter jobb-id, insändningstid eller jobbnamn"
 
-#: src/clients/compute/utils.cpp:550 src/clients/compute/utils.cpp:553
+#: src/clients/compute/utils.cpp:553 src/clients/compute/utils.cpp:556
 msgid "order"
 msgstr "ordning"
 
-#: src/clients/compute/utils.cpp:552
+#: src/clients/compute/utils.cpp:555
 msgid "reverse sorting of jobs according to jobid, submissiontime or jobname"
 msgstr "omvänd sortering av jobb efter jobb-id, insändningstid eller jobbnamn"
 
-#: src/clients/compute/utils.cpp:556
+#: src/clients/compute/utils.cpp:559
 msgid "show jobs where status information is unavailable"
 msgstr "visa jobb för vilka statusinformation inte är tillgänglig"
 
-#: src/clients/compute/utils.cpp:560
+#: src/clients/compute/utils.cpp:563
 msgid "show status information in JSON format"
 msgstr "visa statusinformation i JSON-format"
 
-#: src/clients/compute/utils.cpp:566
+#: src/clients/compute/utils.cpp:569
 msgid "resubmit to the same resource"
 msgstr "sänd in till samma resurs igen"
 
-#: src/clients/compute/utils.cpp:570
+#: src/clients/compute/utils.cpp:573
 msgid "do not resubmit to the same resource"
 msgstr "sänd inte in till samma resurs igen"
 
-#: src/clients/compute/utils.cpp:576
+#: src/clients/compute/utils.cpp:579
 msgid ""
 "remove the job from the local list of jobs even if the job is not found in "
 "the infosys"
@@ -1147,7 +1159,7 @@ msgstr ""
 "ta bort jobbet från den lokala jobblistan även om jobbet inte hittas i "
 "informationssystemet"
 
-#: src/clients/compute/utils.cpp:583
+#: src/clients/compute/utils.cpp:586
 msgid ""
 "select one or more registries: name can be an alias for a single registry, a "
 "group of registries or a URL"
@@ -1155,35 +1167,35 @@ msgstr ""
 "välj ett eller flera register: namn kan vara ett alias för ett enskilt "
 "register, en grupp av register eller en URL"
 
-#: src/clients/compute/utils.cpp:591
+#: src/clients/compute/utils.cpp:594
 msgid "submit test job given by the number"
 msgstr "sänd in test-jobb givet av numret"
 
-#: src/clients/compute/utils.cpp:592 src/clients/compute/utils.cpp:596
+#: src/clients/compute/utils.cpp:595 src/clients/compute/utils.cpp:599
 msgid "int"
 msgstr "heltal"
 
-#: src/clients/compute/utils.cpp:595
+#: src/clients/compute/utils.cpp:598
 msgid "test job runtime specified by the number"
 msgstr "test-jobbets körtid anges av numret"
 
-#: src/clients/compute/utils.cpp:602
+#: src/clients/compute/utils.cpp:605
 msgid "only select jobs whose status is statusstr"
 msgstr "välj endast jobb vars status är statusstr"
 
-#: src/clients/compute/utils.cpp:603
+#: src/clients/compute/utils.cpp:606
 msgid "statusstr"
 msgstr "statusstr"
 
-#: src/clients/compute/utils.cpp:609
+#: src/clients/compute/utils.cpp:612
 msgid "all jobs"
 msgstr "alla jobb"
 
-#: src/clients/compute/utils.cpp:615
+#: src/clients/compute/utils.cpp:618
 msgid "jobdescription string describing the job to be submitted"
 msgstr "jobbeskrivningssträng som beskriver jobbet som ska sändas in"
 
-#: src/clients/compute/utils.cpp:617 src/clients/compute/utils.cpp:623
+#: src/clients/compute/utils.cpp:620 src/clients/compute/utils.cpp:626
 #: src/clients/credentials/arcproxy.cpp:345
 #: src/clients/credentials/arcproxy.cpp:352
 #: src/clients/credentials/arcproxy.cpp:371
@@ -1196,25 +1208,25 @@ msgstr "jobbeskrivningssträng som beskriver jobbet som ska sändas in"
 msgid "string"
 msgstr "sträng"
 
-#: src/clients/compute/utils.cpp:621
+#: src/clients/compute/utils.cpp:624
 msgid "jobdescription file describing the job to be submitted"
 msgstr "jobbeskrivningsfil som beskriver jobbet som ska sändas in"
 
-#: src/clients/compute/utils.cpp:629
+#: src/clients/compute/utils.cpp:632
 msgid "select broker method (list available brokers with --listplugins flag)"
 msgstr ""
 "välj resursmatchningsmetod (lista tillgängliga mäklare med --listplugins)"
 
-#: src/clients/compute/utils.cpp:630
+#: src/clients/compute/utils.cpp:633
 msgid "broker"
 msgstr "mäklare"
 
-#: src/clients/compute/utils.cpp:633
+#: src/clients/compute/utils.cpp:636
 msgid "the IDs of the submitted jobs will be appended to this file"
 msgstr "de insända jobbens ID kommer att läggas till i denna fil"
 
-#: src/clients/compute/utils.cpp:634 src/clients/compute/utils.cpp:656
-#: src/clients/compute/utils.cpp:693 src/clients/compute/utils.cpp:701
+#: src/clients/compute/utils.cpp:637 src/clients/compute/utils.cpp:659
+#: src/clients/compute/utils.cpp:696 src/clients/compute/utils.cpp:704
 #: src/clients/credentials/arcproxy.cpp:438 src/clients/data/arccp.cpp:627
 #: src/clients/data/arcls.cpp:333 src/clients/data/arcmkdir.cpp:111
 #: src/clients/data/arcrename.cpp:122 src/clients/data/arcrm.cpp:137
@@ -1222,95 +1234,99 @@ msgstr "de insända jobbens ID kommer att läggas till i denna fil"
 msgid "filename"
 msgstr "filnamn"
 
-#: src/clients/compute/utils.cpp:638
+#: src/clients/compute/utils.cpp:641
+#, fuzzy
 msgid ""
-"only use this interface for submitting (e.g. org.nordugrid.gridftpjob, org."
-"ogf.glue.emies.activitycreation, org.ogf.bes, org.nordugrid.internal)"
+"only use this interface for submitting.\n"
+"\tAllowed values are: org.nordugrid.gridftpjob or org.nordugrid.gridftp, org."
+"ogf.glue.emies.activitycreation and org.nordugrid.internal"
 msgstr ""
-"använd endast detta gränssnitt för insändning (t.ex. org.nordugrid."
-"gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes, org.nordugrid."
-"internal)"
+"använd endast detta gränssnitt för insändning.\n"
+"\tTillåtna värden är: org.nordugrid.gridftpjob eller org.nordugrid.gridftp, "
+"org.ogf.glue.emies.activitycreation och org.nordugrid.internal"
 
-#: src/clients/compute/utils.cpp:640 src/clients/compute/utils.cpp:682
+#: src/clients/compute/utils.cpp:643 src/clients/compute/utils.cpp:685
 msgid "InterfaceName"
 msgstr "Gränssnittsnamn"
 
-#: src/clients/compute/utils.cpp:647
+#: src/clients/compute/utils.cpp:650
 msgid "skip the service with the given URL during service discovery"
 msgstr "hoppa över tjänst med den angivna URLen under tjänstesökning"
 
-#: src/clients/compute/utils.cpp:648 src/clients/compute/utils.cpp:661
+#: src/clients/compute/utils.cpp:651 src/clients/compute/utils.cpp:664
 #: src/clients/data/arccp.cpp:607
 msgid "URL"
 msgstr "URL"
 
-#: src/clients/compute/utils.cpp:655
+#: src/clients/compute/utils.cpp:658
 msgid "a file containing a list of jobIDs"
 msgstr "en fil som innehåller en lista med jobb-id"
 
-#: src/clients/compute/utils.cpp:660
+#: src/clients/compute/utils.cpp:663
 msgid "skip jobs that are on a computing element with a given URL"
 msgstr "hoppa över jobb som är på en beräkningsresurs med en given URL"
 
-#: src/clients/compute/utils.cpp:666
+#: src/clients/compute/utils.cpp:669
 msgid "submit jobs as dry run (no submission to batch system)"
 msgstr "sänd in jobb som dryrun (ingen insändning till batchsystemet)"
 
-#: src/clients/compute/utils.cpp:669
+#: src/clients/compute/utils.cpp:672
 msgid "submit directly - no resource discovery or matchmaking"
 msgstr "direkt insändning - ingen resurssökning eller resursmatchning"
 
-#: src/clients/compute/utils.cpp:673
+#: src/clients/compute/utils.cpp:676
 msgid ""
 "do not submit - dump job description in the language accepted by the target"
 msgstr ""
 "sänd inte in - skriv ut jobbeskrivning i ett språk som accepteras av target"
 
-#: src/clients/compute/utils.cpp:680
+#: src/clients/compute/utils.cpp:683
 msgid ""
 "only get information about executon targets that support this job submission "
-"interface (e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies."
-"activitycreation, org.ogf.bes, org.nordugrid.internal)"
+"interface.\n"
+"\tAllowed values are org.nordugrid.gridftpjob or org.nordugrid.gridftp, org."
+"ogf.glue.emies.activitycreation and org.nordugrid.internal"
 msgstr ""
 "hämta endast information om exekverings-target som stöder detta "
-"jobbinsändningsgränssnitt (t.ex. org.nordugrid.gridftpjob, org.ogf.glue."
-"emies.activitycreation, org.ogf.bes, org.nordugrid.internal)"
+"jobbinsändningsgränssnitt.\n"
+"\tTillåtna värden är org.nordugrid.gridftpjob eller org.nordugrid.gridftp, "
+"org.ogf.glue.emies.activitycreation och org.nordugrid.internal"
 
-#: src/clients/compute/utils.cpp:687
+#: src/clients/compute/utils.cpp:690
 msgid "prints info about installed user- and CA-certificates"
 msgstr "skriver ut information om installerade användar- och CA-certifikat"
 
-#: src/clients/compute/utils.cpp:692
+#: src/clients/compute/utils.cpp:695
 #, c-format
 msgid "the file storing information about active jobs (default %s)"
 msgstr "filen som lagrar information om aktiva jobb (förval %s)"
 
-#: src/clients/compute/utils.cpp:700 src/clients/credentials/arcproxy.cpp:437
+#: src/clients/compute/utils.cpp:703 src/clients/credentials/arcproxy.cpp:437
 #: src/clients/data/arccp.cpp:626 src/clients/data/arcls.cpp:332
 #: src/clients/data/arcmkdir.cpp:110 src/clients/data/arcrename.cpp:121
 #: src/clients/data/arcrm.cpp:136
 msgid "configuration file (default ~/.arc/client.conf)"
 msgstr "inställningsfil (förval ~/.arc/client.conf)"
 
-#: src/clients/compute/utils.cpp:703 src/clients/credentials/arcproxy.cpp:432
+#: src/clients/compute/utils.cpp:706 src/clients/credentials/arcproxy.cpp:432
 #: src/clients/data/arccp.cpp:621 src/clients/data/arcls.cpp:327
 #: src/clients/data/arcmkdir.cpp:105 src/clients/data/arcrename.cpp:116
 #: src/clients/data/arcrm.cpp:131
 msgid "timeout in seconds (default 20)"
 msgstr "timeout i sekunder (förval 20)"
 
-#: src/clients/compute/utils.cpp:704 src/clients/credentials/arcproxy.cpp:433
+#: src/clients/compute/utils.cpp:707 src/clients/credentials/arcproxy.cpp:433
 #: src/clients/data/arccp.cpp:622 src/clients/data/arcls.cpp:328
 #: src/clients/data/arcmkdir.cpp:106 src/clients/data/arcrename.cpp:117
 #: src/clients/data/arcrm.cpp:132
 msgid "seconds"
 msgstr "sekunder"
 
-#: src/clients/compute/utils.cpp:707
+#: src/clients/compute/utils.cpp:710
 msgid "list the available plugins"
 msgstr "lista de tillgängliga pluginerna"
 
-#: src/clients/compute/utils.cpp:711 src/clients/credentials/arcproxy.cpp:442
+#: src/clients/compute/utils.cpp:714 src/clients/credentials/arcproxy.cpp:442
 #: src/clients/data/arccp.cpp:631 src/clients/data/arcls.cpp:337
 #: src/clients/data/arcmkdir.cpp:115 src/clients/data/arcrename.cpp:126
 #: src/clients/data/arcrm.cpp:141
@@ -1321,7 +1337,7 @@ msgstr "lista de tillgängliga pluginerna"
 msgid "FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"
 msgstr "FATAL, ERROR, WARNING, INFO, VERBOSE eller DEBUG"
 
-#: src/clients/compute/utils.cpp:712 src/clients/credentials/arcproxy.cpp:443
+#: src/clients/compute/utils.cpp:715 src/clients/credentials/arcproxy.cpp:443
 #: src/clients/data/arccp.cpp:632 src/clients/data/arcls.cpp:338
 #: src/clients/data/arcmkdir.cpp:116 src/clients/data/arcrename.cpp:127
 #: src/clients/data/arcrm.cpp:142
@@ -1332,7 +1348,7 @@ msgstr "FATAL, ERROR, WARNING, INFO, VERBOSE eller DEBUG"
 msgid "debuglevel"
 msgstr "debugnivå"
 
-#: src/clients/compute/utils.cpp:714 src/clients/credentials/arcproxy.cpp:446
+#: src/clients/compute/utils.cpp:717 src/clients/credentials/arcproxy.cpp:446
 #: src/clients/data/arccp.cpp:635 src/clients/data/arcls.cpp:341
 #: src/clients/data/arcmkdir.cpp:119 src/clients/data/arcrename.cpp:130
 #: src/clients/data/arcrm.cpp:145
