@@ -36,11 +36,10 @@ Note that some options have now changed names, to hopefully better describe the 
 
 arc.conf
 ~~~~~~~~~
-A new option has been added to the lrms block of arc.conf, namely movetool (Bugzilla 3239).
+A new option has been added to the lrms block of arc.conf, namely 'movetool' (Bugzilla 3239).
 This allows you  to specify what move-tool AREX will use when moving files from the sessiondir
 to the scratchdir. This option is only relevant if you have scratchdir enabled. 
 http://www.nordugrid.org/documents/arc6/admins/reference.html#movetool
-
 
 
 The following Bugzilla tickets have been adressed or solved
@@ -50,6 +49,8 @@ The following Bugzilla tickets have been adressed or solved
 * 3964  Time zone issue in arcctl datastaging job time
 * 3393  Possible data corruption bug in arccp
 * 3239  configurable mv or cp (to scratch) in  submit_common.sh
+* 3972  ARC client submission and endpoint interfaces
+* 3955  Delivery process does not exit on failure
 
 
 Documentation
