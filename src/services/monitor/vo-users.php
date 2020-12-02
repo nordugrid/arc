@@ -66,7 +66,8 @@ if( $debug ) dbgmsg("<div align=\"left\"><i>:::&gt; ".$errors["114"].$tlim.$erro
 
 if( $debug ) dbgmsg($errors["117"].$host.":".$port);
 
-$ds = ldap_connect($host,$port);
+$ldapuri = "ldap://".$host.":".$port;
+$ds = ldap_connect($ldapuri);
 
 if ($ds) {
   

@@ -90,6 +90,7 @@ function recursive_archery_info ($endpoint, $schema, $errors, $debug=0, $looplim
     // Query archery for endpoints info
     $archery_endpoints = query_dns_archery($endpoint, $errors, $debug);
     foreach ($archery_endpoints as $ainfo) {
+      if ( !empty($ainfo['t']) ) {
         if ($ainfo['t'] == 'org.nordugrid.archery' OR $ainfo['t'] == 'archery' OR 
             $ainfo['t'] == 'archery.service' OR $ainfo['t'] == 'archery.group' ) {
             if (isset($ainfo['s'])) {
@@ -106,7 +107,7 @@ function recursive_archery_info ($endpoint, $schema, $errors, $debug=0, $looplim
             if ( $schema !== 'NG' ) continue;
             // ldap://<host>:2135/Mds-Vo-Name=local,o=grid
             $parsed_url = array();
-            if ( preg_match('/^ldap:\/\/(?P<host>[^:]+):(?<port>[0-9]+)\/(?P<base>.*)/', $ainfo['u'], $parsed_url) ) {
+            if ( !empty($ainfo['u']) && preg_match('/^ldap:\/\/(?P<host>[^:]+):(?<port>[0-9]+)\/(?P<base>.*)/', $ainfo['u'], $parsed_url) ) {
                 if ( check_blacklist($parsed_url['host'])) {
                     if ( $debug ) dbgerr_html($errors["122"].$parsed_url['host']);
                     continue;
@@ -137,6 +138,7 @@ function recursive_archery_info ($endpoint, $schema, $errors, $debug=0, $looplim
             // skip all unsupported endpoints (e.g. submission endpoints, WS endpoints, etc)
             continue;
         }
+      }
     }
     return $endpoints;
 }

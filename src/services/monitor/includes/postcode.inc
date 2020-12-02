@@ -51,7 +51,8 @@ function add_country($cllist)
   for ( $l = 0; $l < $nclus; $l++ ) {
     $host   = $cllist[$l]["host"];
     $port   = $cllist[$l]["port"];
-    $clconn = ldap_connect($host,$port);
+    $ldapuri = "ldap://".$host.":".$port;
+    $clconn = ldap_connect($ldapuri);
     array_push($conarr,$clconn);      
     array_push($idxarr,$l);      
   }

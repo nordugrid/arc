@@ -113,8 +113,9 @@ $sitetag = array (); /* a tag to skip duplicated entries */
 for ( $k = 0; $k < $nc; $k++ ) {
   $clhost = $gentries[$k]["host"];
   $clport = $gentries[$k]["port"];
+  $ldapuri = "ldap://".$clhost.":".$clport;
 
-  $clconn = ldap_connect($clhost,$clport);
+  $clconn = ldap_connect($ldapuri);
   if ( $clconn && !$sitetag[$clhost] ) {
     array_push($dsarray,$clconn);
     array_push($hnarray,$clhost);
