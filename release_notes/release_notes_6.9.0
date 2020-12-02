@@ -43,8 +43,14 @@ http://www.nordugrid.org/documents/arc6/admins/reference.html#movetool
 
 New configuration validation tool
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-The configuration validation tool `arc-config-check` has been rewritten and is now part of `arcctl`.
-This tool is run automatically as part of A-REX start up, but can be run manually with `arcctl config verify`.
+The configuration validation tool `arc-config-check` has been rewritten as an integral part of `arcctl`.
+This tool is not yet run automatically as part of A-REX start up, which is still using `arc-config-check`,
+but can be run manually with `arcctl config verify`.
+
+We encourage people to try the new validation tool and report any issues through the usual channels.
+In a future ARC release the new tool will enforce validation during A-REX start up and `arc-config-check`
+will be deprecated and then removed.
+
 
 
 The following Bugzilla tickets have been adressed or solved
