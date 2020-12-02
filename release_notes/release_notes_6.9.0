@@ -19,10 +19,9 @@ The specifications are detailed here: http://www.nordugrid.org/documents/arc6/te
 
 Note that this is a new implementation replacing the earlier REST technical preview implementation.
 
-To try out the REST interface:  install the nordugrid-arc-plugins-arcrest package and enable the
-[arex/ws] and [arex/ws/jobs] blocks. For the moment the emies and rest interfaces are enabled
-using the same block. 
 
+The REST interface is enabled on the CE by the [arex/ws/jobs] block in arc.conf.
+To use this interface with ARC clients, install the nordugrid-arc-plugins-rest package.
 
 We are keen for feedback to this interface, and expect a standard version to be ready in the new year. 
 
@@ -40,6 +39,12 @@ A new option has been added to the lrms block of arc.conf, namely 'movetool' (Bu
 This allows you  to specify what move-tool AREX will use when moving files from the sessiondir
 to the scratchdir. This option is only relevant if you have scratchdir enabled. 
 http://www.nordugrid.org/documents/arc6/admins/reference.html#movetool
+
+
+New configuration validation tool
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The configuration validation tool `arc-config-check` has been rewritten and is now part of `arcctl`.
+This tool is run automatically as part of A-REX start up, but can be run manually with `arcctl config verify`.
 
 
 The following Bugzilla tickets have been adressed or solved
