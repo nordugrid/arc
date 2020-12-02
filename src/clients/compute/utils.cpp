@@ -638,8 +638,8 @@ ClientOptions::ClientOptions(Client_t c,
               jobidoutfile);
     
     GroupAddOption("legacy-target", 'S', "submissioninterface",
-              istring("only use this interface for submitting "
-                      "Allowed values are:  org.nordugrid.gridftpjob or org.nordugrid.gridftp, org.ogf.glue.emies.activitycreation and org.nordugrid.internal"),
+              istring("only use this interface for submitting.\n"
+                      "\tAllowed values are: org.nordugrid.gridftpjob or org.nordugrid.gridftp, org.ogf.glue.emies.activitycreation and org.nordugrid.internal"),
               istring("InterfaceName"),
               requestedSubmissionInterfaceName);
 
