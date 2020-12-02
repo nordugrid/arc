@@ -262,11 +262,12 @@ class Validator(object):
                          "Interface will be open for all mapped users")
 
         # Check lrms name is correct
-        lrms_submit = os.path.join(ARC_DATA_DIR, 'submit-%s-job' % config_dict['lrms']['lrms'])
+        lrms = config_dict['lrms']['lrms'].split()[0]
+        lrms_submit = os.path.join(ARC_DATA_DIR, 'submit-%s-job' % lrms)
         if not os.path.exists(lrms_submit):
             # Special exception for slurm/SLURM - maybe remove in ARC 7
-            if config_dict['lrms']['lrms'].lower() != 'slurm':
-                self.error("%s is not an allowed lrms name" % config_dict['lrms']['lrms'])
+            if lrms.lower() != 'slurm':
+                self.error("%s is not an allowed lrms name" % lrms)
 
     def validate_certificates(self):
         """Check the certificate setup is ok"""
