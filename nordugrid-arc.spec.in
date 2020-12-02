@@ -407,9 +407,15 @@ Group:		System Environment/Libraries
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
+%if %{?rhel}%{!?rhel:0} == 8
+#		slapd package not available in EPEL 8
+Recommends:	openldap-servers
+Recommends:	bdii
+%else
 Requires:	openldap-servers
-Requires:	glue-schema >= 2.0.10
 Requires:	bdii
+%endif
+Requires:	glue-schema >= 2.0.10
 Requires:	%{name}-arcctl-service = %{version}-%{release}
 Provides:	%{name}-ldap-infosys = %{version}-%{release}
 Obsoletes:	%{name}-ldap-infosys < 6.0.0
@@ -909,8 +915,6 @@ Python 3 bindings for ARC.
 %package nordugridmap
 Summary:	ARC's nordugridmap tool
 Group:		Applications/Internet
-Requires:	perl(Crypt::SSLeay)
-Requires:	perl(Crypt::OpenSSL::X509)
 Requires:	crontabs
 Obsoletes:	%{name}-gridmap-utils < 6.0.0
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6

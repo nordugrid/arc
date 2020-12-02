@@ -649,11 +649,10 @@ Conflicts:
  nordugrid-arc-gridmap-utils (<< 6.0.0~)
 Architecture: all
 Depends:
- libnet-ldap-perl,
- libxml-dom-perl,
- libcrypt-ssleay-perl,
+ liblwp-protocol-https-perl,
  libsoap-lite-perl,
- libcrypt-openssl-x509-perl,
+ liburi-perl,
+ libxml-dom-perl,
  ${perl:Depends},
  ${misc:Depends}
 Recommends:
