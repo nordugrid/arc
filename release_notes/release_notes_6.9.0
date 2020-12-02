@@ -16,9 +16,13 @@ REST interface
 
 In this release the main highlight is a technical preview of the REST interface.
 The specifications are detailed here: http://www.nordugrid.org/documents/arc6/tech/rest/rest.html
-To try out the REST interface, install the nordugrid-arc-plugins-arcrest package. 
 
 Note that this is a new implementation replacing the earlier REST technical preview implementation.
+
+To try out the REST interface:  install the nordugrid-arc-plugins-arcrest package and enable the
+[arex/ws] and [arex/ws/jobs] blocks. For the moment the emies and rest interfaces are enabled
+using the same block. 
+
 
 We are keen for feedback to this interface, and expect a standard version to be ready in the new year. 
 
