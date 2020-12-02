@@ -31,7 +31,7 @@ function cnvname ( $uname, $flag="0" )
     
     //  $family   = substr(strrchr($uname, " "), 1);
 
-    $name = $cn{0}.".";                          /* First letter of the name (doesn't work with 8-bit strings) */
+    $name = $cn[0].".";                          /* First letter of the name (doesn't work with 8-bit strings) */
     if ( $flag == 2 ) $name = $names[0];
     eval("\$name = \"$name\";"); 
 
