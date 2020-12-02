@@ -674,12 +674,12 @@ prepare() {
 }
 
 validate() {
-    CHECK_CMD=$ARC_LOCATION/sbin/arcctl
+    CHECK_CMD=$ARC_LOCATION/@pkglibexecsubdir@/arc-config-check
     if [ ! -x $CHECK_CMD ]; then
-        log_failure_msg "Could not find or execute arcctl tool"
+        log_failure_msg "Could not find or execute arc-config-check tool"
         return 1
     fi
-    eval "$CHECK_CMD --config $ARC_CONFIG $@ config verify"
+    eval "$CHECK_CMD --config $ARC_CONFIG $@"
     RETVAL=$?
     return $RETVAL
 }
@@ -697,7 +697,7 @@ validate >> "$LOGFILE" 2>&1
 RETVAL=$?
 if [ $RETVAL != 0 ]; then
     # Run validator again to print errors to stdout
-    validate -d ERROR
+    validate --skip-warnings
     log_failure_msg "Configuration validation failed"
     exit 1
 fi
