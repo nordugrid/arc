@@ -2,7 +2,7 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.9.0     30.11.2020
+Release Notes for NorduGrid ARC  6.9.0     03.12.2020
 ------------------------------------------------------
 We are pleased to announce the release of ARC 6.9.0.
 
@@ -58,11 +58,11 @@ The following Bugzilla tickets have been adressed or solved
 * 3970  REST interface reimplementation
 * 3965  multiple 'du' on cache
 * 3964  Time zone issue in arcctl datastaging job time
+* 3932  monitor broken with php7
 * 3393  Possible data corruption bug in arccp
 * 3239  configurable mv or cp (to scratch) in  submit_common.sh
 * 3972  ARC client submission and endpoint interfaces
 * 3955  Delivery process does not exit on failure
-
 
 Documentation
 ==============
