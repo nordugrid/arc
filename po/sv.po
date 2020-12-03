@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: support@nordugrid.org\n"
 "POT-Creation-Date: 2020-12-01 21:38+0100\n"
-"PO-Revision-Date: 2020-12-01 21:41+0100\n"
+"PO-Revision-Date: 2020-12-02 22:45+0100\n"
 "Last-Translator: Mattias Ellert <mattias.ellert@physics.uu.se>\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -1235,7 +1235,6 @@ msgid "filename"
 msgstr "filnamn"
 
 #: src/clients/compute/utils.cpp:641
-#, fuzzy
 msgid ""
 "only use this interface for submitting.\n"
 "\tAllowed values are: org.nordugrid.gridftpjob or org.nordugrid.gridftp, org."
