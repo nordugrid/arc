@@ -1,4 +1,4 @@
-
+#!/usr/bin/perl -w
 # Queries NDGF site information and translates it from ARC to GLUE schema
 # Prototype by L.Field (2006)
 # Corrections and Performance enhancements by M.Flechl (2006-08-17)
