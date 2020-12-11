@@ -302,13 +302,13 @@ class JobsList {
   // Call ActJob for all jobs for which RequestPolling was called
   bool ActJobsPolling(void);
 
-  // Look for new or restarted jobs. Jobs are added to list with state UNDEFINED
+  // Look for new or restarted jobs. Jobs are added to list with state UNDEFINED and requested for attention.
   bool ScanNewJobs(void);
 
-  // Look for new job with specified id. Job is added to list with state UNDEFINED
+  // Look for new job with specified id. Job is added to list with state UNDEFINED and requested for attention.
   bool ScanNewJob(const JobId& id);
 
-  // Look for old job with specified id. Job is added to list with its current state
+  // Look for old job with specified id. Job is added to list with its current state and requested for attention.
   bool ScanOldJob(const JobId& id);
 
   // Pick jobs which have been marked for restarting, cancelling or cleaning
