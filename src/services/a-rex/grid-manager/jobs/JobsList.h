@@ -83,8 +83,12 @@ class JobsList {
   // number of jobs currently in pending state
   int jobs_pending;
 
-  // Add job into list without checking if it is already there.
-  bool AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid,job_state_t state = JOB_STATE_UNDEFINED);
+  // Add job into list. It is supposed to be called only for jobs which are not in main list.
+  bool AddJob(const JobId &id,uid_t uid,gid_t gid,job_state_t state,const char* reason = NULL);
+
+  bool AddJob(const JobId &id,uid_t uid,gid_t gid,const char* reason = NULL) {
+    return AddJob(id, uid, gid, JOB_STATE_UNDEFINED, reason);
+  }
 
   // Perform all actions necessary in case of job failure
   bool FailedJob(GMJobRef i,bool cancel);
@@ -109,10 +113,10 @@ class JobsList {
   // into account what was already transferred
   bool RecreateTransferLists(GMJobRef i);
   // Read into ids all jobs in the given dir except those already being handled
-  bool ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) const;
+  bool ScanJobDescs(const std::string& cdir,std::list<JobFDesc>& ids) const;
   // Check and read into id information about job in the given dir 
   // (id has job id filled on entry) unless job is already handled
-  bool ScanJob(const std::string& cdir,JobFDesc& id);
+  bool ScanJobDesc(const std::string& cdir,JobFDesc& id);
   // Read into ids all jobs in the given dir with marks given by suffices
   // (corresponding to file suffixes) except those of jobs already handled
   bool ScanMarks(const std::string& cdir,const std::list<std::string>& suffices,std::list<JobFDesc>& ids);

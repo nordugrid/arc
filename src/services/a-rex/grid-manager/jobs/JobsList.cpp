@@ -174,7 +174,7 @@ void JobsList::SetJobPending(GMJobRef i, const char* reason) {
   };
 }
 
-bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid,job_state_t state){
+bool JobsList::AddJob(const JobId &id,uid_t uid,gid_t gid,job_state_t state,const char* reason){
   GMJobRef i(new GMJob(id,Arc::User(uid)));
   i->keep_finished=config.KeepFinished();
   i->keep_deleted=config.KeepDeleted();
@@ -190,15 +190,23 @@ bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid,job_state_t sta
                              "A-REX may be left in an inconsistent state", id);
     }
     Glib::RecMutex::Lock lock(jobs_lock);
-    jobs[id] = i;
-    RequestReprocess(i); // To make job being properly thrown from system
+    if(jobs.find(id) != jobs.end()) {
+      logger.msg(Arc::ERROR, "%s: unexpected failed job add request: %s", i->job_id, reason?reason:"");
+    } else {
+      jobs[id] = i;
+      RequestReprocess(i); // To make job being properly thrown from system
+    }
     return false;
   }
   i->session_dir = i->local->sessiondir;
   if (i->session_dir.empty()) i->session_dir = config.SessionRoot(id)+'/'+id;
   Glib::RecMutex::Lock lock(jobs_lock);
-  jobs[id] = i;
-  RequestAttention(i);
+  if(jobs.find(id) != jobs.end()) {
+    logger.msg(Arc::ERROR, "%s: unexpected job add request: %s", i->job_id, reason?reason:"");
+  } else {
+    jobs[id] = i;
+    RequestAttention(i);
+  }
   return true;
 }
 
@@ -1621,7 +1629,7 @@ bool JobsList::RestartJobs(void) {
   return res1 && res2;
 }
 
-bool JobsList::ScanJob(const std::string& cdir, JobFDesc& id) {
+bool JobsList::ScanJobDesc(const std::string& cdir, JobFDesc& id) {
   if(!FindJob(id.id)) {
     std::string fname=cdir+'/'+"job."+id.id+".status";
     uid_t uid;
@@ -1635,7 +1643,7 @@ bool JobsList::ScanJob(const std::string& cdir, JobFDesc& id) {
   return false;
 }
 
-bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) const {
+bool JobsList::ScanJobDescs(const std::string& cdir,std::list<JobFDesc>& ids) const {
   class JobFilterSkipExisting: public JobFilter {
   public:
     JobFilterSkipExisting(JobsList const& jobs): jobs_(jobs) {};
@@ -1729,8 +1737,8 @@ bool JobsList::ScanNewJob(const JobId& id) {
     JobFDesc fid(id);
     std::string cdir=config.ControlDir();
     std::string ndir=cdir+"/"+subdir_new;
-    if(!ScanJob(ndir,fid)) return false;
-    return AddJobNoCheck(fid.id,fid.uid,fid.gid);
+    if(!ScanJobDesc(ndir,fid)) return false;
+    return AddJob(fid.id,fid.uid,fid.gid,"scan for specific new job");
   }
   return false;
 }
@@ -1739,10 +1747,10 @@ bool JobsList::ScanOldJob(const JobId& id) {
   JobFDesc fid(id);
   std::string cdir=config.ControlDir();
   std::string ndir=cdir+"/"+subdir_old;
-  if(!ScanJob(ndir,fid)) return false;
+  if(!ScanJobDesc(ndir,fid)) return false;
   job_state_t st = job_state_read_file(id,config);
   if(st == JOB_STATE_FINISHED || st == JOB_STATE_DELETED) {
-    return AddJobNoCheck(fid.id,fid.uid,fid.gid,st);
+    return AddJob(fid.id,fid.uid,fid.gid,st,"scan for specific old job");
   };
   return false;
 }
@@ -1757,25 +1765,25 @@ bool JobsList::ScanNewJobs(void) {
     std::list<JobFDesc> ids;
     // For picking up jobs after service restart
     std::string odir=cdir+"/"+subdir_rew;
-    if(!ScanJobs(odir,ids)) return false;
+    if(!ScanJobDescs(odir,ids)) return false;
     // sorting by date
     ids.sort();
     for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
       if((config.MaxJobs() != -1) && (AcceptedJobs() >= config.MaxJobs())) break;
-      AddJobNoCheck(id->id,id->uid,id->gid);
+      AddJob(id->id,id->uid,id->gid,"scan for new jobs in restarting");
     };
   };
   if((config.MaxJobs() == -1) || (AcceptedJobs() < config.MaxJobs())) {
     std::list<JobFDesc> ids;
     // For new jobs
     std::string ndir=cdir+"/"+subdir_new;
-    if(!ScanJobs(ndir,ids)) return false;
+    if(!ScanJobDescs(ndir,ids)) return false;
     // sorting by date
     ids.sort();
     for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
       if((config.MaxJobs() != -1) && (AcceptedJobs() >= config.MaxJobs())) break;
       // adding job with file's uid/gid
-      AddJobNoCheck(id->id,id->uid,id->gid);
+      AddJob(id->id,id->uid,id->gid,"scan for new jobs in new");
     };
   };
   perfrecord.End("SCAN-JOBS-NEW");
@@ -1808,7 +1816,7 @@ bool JobsList::ScanNewMarks(void) {
     // Check if such job finished and add it to list.
     if(st == JOB_STATE_FINISHED) {
       // That will activate its processing at least for one step.
-      AddJobNoCheck(id->id,id->uid,id->gid,st);
+      AddJob(id->id,id->uid,id->gid,st,"scan for new jobs in marks");
     }
   }
 
