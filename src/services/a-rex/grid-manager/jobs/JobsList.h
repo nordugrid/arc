@@ -102,7 +102,9 @@ class JobsList {
   //bool DestroyJob(iterator &i,bool finished=true,bool active=true);
   // Perform actions necessary in case job goes to/is in SUBMITTING/CANCELING state
   bool state_submitting(GMJobRef i,bool &state_changed);
+  bool state_submitting_success(GMJobRef i,bool &state_changed,std::string local_id);
   bool state_canceling(GMJobRef i,bool &state_changed);
+  bool state_canceling_success(GMJobRef i,bool &state_changed);
   // Same for PREPARING/FINISHING
   bool state_loading(GMJobRef i,bool &state_changed,bool up);
   // Get the state in which the job failed from .local file
