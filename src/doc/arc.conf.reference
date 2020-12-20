@@ -820,7 +820,7 @@
 ## This log is not used by any other part of ARC so can be safely disabled if you are
 ## not interested in storing jobs log.
 ## default: /var/log/arc/arex-jobs.log
-#joblog=""
+#joblog=
 
 ## fixdirectories = yes/missing/no - Specifies during startup A-REX should
 ## create all directories needed for it operation and set suitable default
@@ -1190,7 +1190,7 @@
 ## Value of zero turns feature off.
 ## default: 0 300 0 300
 #speedcontrol=0 300 100 300
-#speedcontrol=""
+#speedcontrol=
 ## CHANGE: MODIFIED in 6.0.0: missing parameter "speedcontrol=" should also turn the feature off, not just zero value.
 
 ## maxdelivery = number - Maximum number of concurrent file transfers, i.e. active
@@ -1354,8 +1354,8 @@
 ## AREX offers a set of web service interfaces implented via either REST or WS-SOAP.
 ## This block enables the job management, info query, delegation protocols through both the REST and 
 ## EMIES interface. 
-## Consult the http://www.nordugrid.org/documents/EMI-ES-Specification_v1.16.odt for EMIES inteface description 
-## and read the TO-BE-PROVIDED ARC-REST interface specification.
+## Consult the http://svn.nordugrid.org/repos/nordugrid/doc/trunk/tech_doc/emi-es/EMI-ES-Specification_v1.16.pdf for EMIES inteface description 
+## and read the http://www.nordugrid.org/documents/arc6/tech/rest/rest.html for the REST interface specification.
 #[arex/ws/jobs]
 ## CHANGE: NEW sub-block in 6.0.0.
 

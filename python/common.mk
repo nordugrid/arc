@@ -66,7 +66,7 @@ nodist__arc_la_SOURCES = $(ARCSWIGINIT) $(ARCWRAPPERS)
 _arc_la_CXXFLAGS = -include $(top_builddir)/config.h \
         -I$(top_srcdir)/include -I$(top_builddir)/include \
         $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(PYTHON_CFLAGS) $(ZLIB_CFLAGS) $(DBCXX_CPPFLAGS) \
-        -fno-strict-aliasing -DSWIG_COBJECT_TYPES $(AM_CXXFLAGS)
+        -fno-strict-aliasing -DSWIG_COBJECT_TYPES -DPY_SSIZE_T_CLEAN $(AM_CXXFLAGS)
 _arc_la_LIBADD = \
         $(ARCLIBS) $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(PYTHON_LIBS) $(ZLIB_LIBS) $(DBCXX_LIBS)
 _arc_la_LDFLAGS = -no-undefined -avoid-version -module

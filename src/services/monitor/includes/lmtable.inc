@@ -50,7 +50,7 @@ class LmTable {
    * @param locset array
    * @desc Starts an HTML table
    */
-  function LmTable( $wintyp, $locset, $schema = "NG") {
+  function __construct( $wintyp, $locset, $schema = "NG") {
     /*
      * Initialisation of a table: 
      * definition of colors
@@ -62,7 +62,10 @@ class LmTable {
     
     ob_implicit_flush(TRUE);
 #    ob_start();
-    ob_end_flush();
+    while (ob_get_level() > 0) {
+      ob_end_flush();
+    }
+
 
     require ('settings.inc');
 
@@ -295,7 +298,7 @@ class LmTableFree extends LmTableSp {
    * @param headers array
    * @desc Starts an HTML table
    */
-  function LmTableFree( $headers ) {
+  function __construct( $headers ) {
     
     ob_implicit_flush(0);
     ob_start();

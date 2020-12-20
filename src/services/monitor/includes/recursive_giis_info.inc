@@ -68,7 +68,8 @@ function recursive_giis_info($giislist,$element,$errors,$debug="0",$loopcnt="1")
     }
     if ( $debug == 2 ) dbgmsg("<div align=\"left\">".$errors["117"]."<b>$ghost</b>...");
     $fp = @fsockopen($ghost, $gport, $errno, $errstr, 2);
-    $gconn = ldap_connect($ghost,$gport);
+    $ldapuri = "ldap://".$ghost.":".$gport;
+    $gconn = ldap_connect($ldapuri);
     if ( $fp && $gconn ) {
       fclose($fp);
       if ( $debug == 2 ) dbgmsg($errors["118"]);
@@ -104,7 +105,8 @@ function recursive_giis_info($giislist,$element,$errors,$debug="0",$loopcnt="1")
     }
   }
 
-  $nhosts  = count($srarray);
+  $nhosts  = 0;
+  if ( !empty($srarray) ) $nhosts  = count($srarray);
 
   // If EGIISes are found, loop on contacted EGIISes
   if ( $nhosts ) {

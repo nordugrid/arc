@@ -48,7 +48,7 @@ class LmDoc { // class LmDoc
    * @param extratitle string
    * @desc Creates a new HTML document of type wintyp, title appended with an optional extratitle
    */
-  function LmDoc ( $wintyp="", $extratitle="" ) { // function LmDoc ()
+  function __construct ( $wintyp="", $extratitle="" ) { // function LmDoc ()
       header("Content-type: text/html; charset=utf-8");
       ob_implicit_flush(0);
       ob_start();
@@ -219,7 +219,9 @@ class LmDoc { // class LmDoc
       // Closes the HTML document
       echo "\n</center>\n";
       echo "</body></html>\n";
-      ob_end_flush();
+      while (ob_get_level() > 0) {
+        ob_end_flush();
+      }
       ob_implicit_flush();
     }
 	
@@ -249,13 +251,31 @@ function dbgmsg( $dbgtxt="Debug" )
  * @param x int
  * @param y int
  * @param n int
+ * @param lang string
+ * @param debug int
  * @desc Returns a new monitor window URL
  */
 $agent = @$_SERVER["HTTP_USER_AGENT"] ;
 if ( !defined("USERAGENT") ) define("USERAGENT",$agent);
 
-function popup( $contact, $x=400, $y=300, $n=1, $lang, $debug )
+function popup()
 {
+  $numargs = func_num_args();
+  $contact  = func_get_arg(0);
+  if ( $numargs < 2 ) {
+    $x = 400;
+    $y = 300;
+    $n = 1;
+  } elseif ( $numargs < 5 ) {
+    $lang = "default";
+    $debug = 0;
+  } else {
+    $x        = func_get_arg(1); // 400
+    $y        = func_get_arg(2); // 300
+    $n        = func_get_arg(3); // 1
+    $lang     = func_get_arg(4);
+    $debug    = func_get_arg(5);
+  }
   ( USERAGENT ) ? $agent = USERAGENT : $agent = "lynx";
   if ( preg_match("/opera/i",$agent) 
        || preg_match("/lynx/i",$agent) 

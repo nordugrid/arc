@@ -251,7 +251,7 @@ namespace Arc {
     Arc::XMLNode jobs_list(response->Content());
     delete response; response = NULL;
     if(!jobs_list || (jobs_list.Name() != "jobs")) {
-      logger.msg(INFO, "Failed to submit all jobs. " + info.reason);
+      logger.msg(INFO, "Failed to submit all jobs: %s", info.reason);
       for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
         notSubmitted.push_back(&*it);
       }
@@ -271,7 +271,7 @@ namespace Arc {
       std::string id = job_item["id"];
       std::string state = job_item["state"];
       if((code != "201") || id.empty()) {
-        logger.msg(INFO, "Failed to submit all job. " + code + " " + reason);
+        logger.msg(INFO, "Failed to submit all jobs: %s %s", code, reason);
         notSubmitted.push_back(&(*(it->second)));
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;

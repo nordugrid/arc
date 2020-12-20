@@ -426,13 +426,15 @@ ClientOptions::ClientOptions(Client_t c,
 
   if ( c == CO_RESUB || c == CO_SUB || c == CO_TEST ) {
     GroupAddOption("arc6-target", 'T', "submission-endpoint-type",
-            istring("require the specified endpoint type for job submission"),
+            istring("require the specified endpoint type for job submission.\n"
+                    "\tAllowed values are: arcrest, emies, gridftp or gridftpjob and internal."),
             istring("type"),
             requested_submission_endpoint_type);
 
     GroupAddOption("arc6-target", 'Q', "info-endpoint-type",
-            istring("require information query using the specified information endpoint type. "
-                    "Special value 'NONE' will disable all resource information queries and the following brokering"),
+            istring("require information query using the specified information endpoint type.\n"
+                    "\tSpecial value 'NONE' will disable all resource information queries and the following brokering.\n"
+                    "\tAllowed values are: ldap.nordugrid, ldap.glue2, emies, arcrest and internal."),
             istring("type"),
             requested_info_endpoint_type);
   }
@@ -453,7 +455,8 @@ ClientOptions::ClientOptions(Client_t c,
   if (!cIsJobMan && c != CO_SYNC) {
     GroupAddOption("legacy-target", 'I', "infointerface",
               istring("the computing element specified by URL at the command line "
-                      "should be queried using this information interface"),
+                      "should be queried using this information interface.\n"
+                      "\tAllowed values are: org.nordugrid.ldapng, org.nordugrid.ldapglue2 and org.ogf.glue.emies.resourceinfo"),
               istring("interfacename"),
               infointerface);
   }
@@ -635,8 +638,8 @@ ClientOptions::ClientOptions(Client_t c,
               jobidoutfile);
     
     GroupAddOption("legacy-target", 'S', "submissioninterface",
-              istring("only use this interface for submitting "
-                      "(e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes, org.nordugrid.internal)"),
+              istring("only use this interface for submitting.\n"
+                      "\tAllowed values are: org.nordugrid.gridftpjob or org.nordugrid.gridftp, org.ogf.glue.emies.activitycreation and org.nordugrid.internal"),
               istring("InterfaceName"),
               requestedSubmissionInterfaceName);
 
@@ -677,8 +680,8 @@ ClientOptions::ClientOptions(Client_t c,
   
   if (c == CO_INFO) {
     GroupAddOption("legacy-target", 'S', "submissioninterface",
-              istring("only get information about executon targets that support this job submission interface "
-                      "(e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes, org.nordugrid.internal)"),
+              istring("only get information about executon targets that support this job submission interface.\n"
+                      "\tAllowed values are org.nordugrid.gridftpjob or org.nordugrid.gridftp, org.ogf.glue.emies.activitycreation and org.nordugrid.internal"),
               istring("InterfaceName"),
               requestedSubmissionInterfaceName);
   }

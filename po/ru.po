@@ -5,15 +5,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: support@nordugrid.org\n"
-"POT-Creation-Date: 2020-10-06 17:02+0200\n"
-"PO-Revision-Date: 2020-10-06 17:20+0200\n"
+"POT-Creation-Date: 2020-11-25 20:32+0100\n"
+"PO-Revision-Date: 2020-11-25 21:05+0100\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 2.3\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n"
 "%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Poedit-KeywordsList: msg:2;IString:1;istring:1;FindNTrans:1,2\n"
@@ -45,8 +45,8 @@ msgstr ""
 #: src/clients/data/arcls.cpp:347 src/clients/data/arcmkdir.cpp:125
 #: src/clients/data/arcrename.cpp:136 src/clients/data/arcrm.cpp:151
 #: src/hed/daemon/unix/main_unix.cpp:341
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1172
-#: src/hed/libs/data/DataExternalHelper.cpp:349
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1263
+#: src/hed/libs/data/DataExternalHelper.cpp:358
 #, c-format
 msgid "%s version %s"
 msgstr "%s, версия %s"
@@ -1582,7 +1582,6 @@ msgstr ""
 "не поддерживаются\n"
 
 #: src/clients/credentials/arcproxy.cpp:362
-#| msgid "use GSI communication protocol for contacting VOMS services"
 msgid ""
 "use old communication protocol for contacting VOMS services instead of RESTful access\n"
 msgstr ""
@@ -2614,24 +2613,7 @@ msgid "Status for service endpoint \"%s\" is set to inactive in ARCHERY. Skippin
 msgstr ""
 "Состояние точки доступа службы \"%s\" задано как неактивное в ARCHERY. Пропускается."
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:149
-#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:130
-#, c-format
-msgid "Job information not found in the information system: %s"
-msgstr "Информация о задаче в информационной системе не обнаружена: %s"
-
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:179
-#, c-format
-msgid "Failed to clean job: %s"
-msgstr "Ошибка удаления задачи: %s"
-
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:209
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:276
-#, c-format
-msgid "Failed to cancel job: %s"
-msgstr "Ошибка отмены задачи: %s"
-
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:228
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:194
 #: src/hed/acc/EMIES/JobControllerPluginEMIES.cpp:161
 #: src/services/a-rex/internaljobplugin/JobControllerPluginINTERNAL.cpp:149
 #, c-format
@@ -2639,42 +2621,106 @@ msgid "Job %s has no delegation associated. Can't renew such job."
 msgstr ""
 "С задачей %s не ассоциировано никакого делегирования. Задача не может быть обновлена."
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:240
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:206
 #: src/services/a-rex/internaljobplugin/JobControllerPluginINTERNAL.cpp:161
 #, c-format
 msgid "Job %s failed to renew delegation %s."
 msgstr "Задача %s не смогла обновить делегирование %s."
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:337
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:278
+#, c-format
+#| msgid "Failed to parse Rucio response: %s"
+msgid "Failed to process jobs - wrong response: %u"
+msgstr "Сбой обработки задач - неверный отклик: %u"
+
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:279
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:288
+#, c-format
+msgid "Content: %s"
+msgstr "Содержимое: %s"
+
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:282
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:294
+#, c-format
+msgid "Failed to process job: %s"
+msgstr "Сбой обработки задачи: %s"
+
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:292
+msgid "Failed to process jobs - failed to parse response"
+msgstr "Сбой обработки задач - сбой разборки отклика"
+
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:305
+#, c-format
+msgid "No response returned: %s"
+msgstr "Не получен отклик: %s"
+
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:329
+#, c-format
+#| msgid "Failed to move %s to %s: %s"
+msgid "Failed to process job: %s - %s %s"
+msgstr "Сбой разборки задачи: %s - %s %s"
+
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:396
 #, c-format
 msgid "Failed retrieving job description for job: %s"
 msgstr "Сбой извлечения описания задачи: %s"
 
-#: src/hed/acc/ARCREST/JobListRetrieverPluginREST.cpp:25
+#: src/hed/acc/ARCREST/JobListRetrieverPluginREST.cpp:29
 msgid "Collecting Job (A-REX REST jobs) information."
 msgstr "Собирается информация о задаче (задачи на A-REX REST)"
 
-#: src/hed/acc/ARCREST/JobListRetrieverPluginREST.cpp:29
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:50
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:84
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:124
+msgid "Failed to communicate to delegation endpoint."
+msgstr "Сбой сообщения со службой делегирования."
+
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:55
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:89
 #, c-format
-msgid "Failed retrieving job IDs: Unsupported url (%s) given"
-msgstr "Сбой извлечения ярлыков задач: задан неподдерживаемый URL (%s)"
+#| msgid "Delegated credential from delegation service: %s"
+msgid "Unexpected response code from delegation endpoint - %u"
+msgstr "Неверный код отклика службы делегирования - %u"
 
-#: src/hed/acc/ARCREST/JobListRetrieverPluginREST.cpp:37
-msgid "Failed retrieving job IDs"
-msgstr "Сбой извлечения ярлыков задач"
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:57
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:91
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:242 src/hed/dmc/gridftp/Lister.cpp:223
+#: src/hed/dmc/gridftp/Lister.cpp:243 src/hed/dmc/gridftp/Lister.cpp:468
+#: src/hed/dmc/gridftp/Lister.cpp:475 src/hed/dmc/gridftp/Lister.cpp:497
+#: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:163
+#: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:196
+#, c-format
+msgid "Response: %s"
+msgstr "Ответ: %s"
 
-#: src/hed/acc/ARCREST/JobListRetrieverPluginREST.cpp:40
-msgid ""
-"Error encoutered during job ID retrieval. All job IDs might not have been retrieved"
-msgstr "Сбой в процессе извлечения ярлыков задач: возможно, не все ярлыки извлечены"
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:62
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:96
+msgid "Missing response from delegation endpoint."
+msgstr "Отсутствует отклик службы делегирования."
 
-#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:118
-#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:215
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:71
+#, c-format
+#| msgid ""
+#| "Get delegated credential from delegation service: \n"
+#| " %s"
+msgid "Unexpected delegation location from delegation endpoint - %s."
+msgstr "Неверное расположение делегирования от службы делегирования - %s."
+
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:128
+#, c-format
+#| msgid "Delegated credential from delegation service: %s"
+msgid "Unexpected response code from delegation endpoint: %u, %s."
+msgstr "Неверный код отклика службы делегирования: %u, %s."
+
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:177
+msgid "Unable to submit jobs. Failed to delegate credentials."
+msgstr "Засылка задач не удалась. Сбой делегирования параметров доступа."
+
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:192
 msgid "Failed to prepare job description"
 msgstr "Сбой подготовки описания задачи"
 
-#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:127
-#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:224
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:201
 #: src/hed/acc/EMIES/SubmitterPluginEMIES.cpp:87
 #: src/hed/acc/EMIES/SubmitterPluginEMIES.cpp:401
 #: src/hed/acc/GRIDFTPJOB/SubmitterPluginGRIDFTPJOB.cpp:116
@@ -2683,29 +2729,54 @@ msgstr "Сбой подготовки описания задачи"
 msgid "Unable to submit job. Job description is not valid in the %s format: %s"
 msgstr "Невозможно заслать задачу. Описание задачи в формате %s недействительно: %s"
 
-#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:135
-#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:232
-msgid "Unable to submit job. Failed to delegate credentials."
-msgstr "Засылка задачи не удалась. Сбой делегирования параметров доступа."
-
-#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:141
-#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:238
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:208
 msgid "Unable to submit job. Failed to assign delegation to job description."
 msgstr "Засылка задачи не удалась. Сбой присвоения делегирования описанию задачи."
 
-#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:173
-#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:270
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:231
+msgid "Failed to submit all jobs."
+msgstr "Сбой засылки всех задач."
+
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:241
+#, c-format
+#| msgid "Failed to submit job"
+msgid "Failed to submit all jobs: %u %s"
+msgstr "Сбой засылки всех задач: %u %s"
+
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:254
+#, c-format
+#| msgid "Failed to submit job"
+msgid "Failed to submit all jobs: %s"
+msgstr "Сбой засылки всех задач: %s"
+
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:274
+#, c-format
+msgid "Failed to submit all jobs: %s %s"
+msgstr "Сбой засылки всех задач: %s %s"
+
+#: src/hed/acc/ARCREST/SubmitterPluginREST.cpp:289
 msgid "Failed uploading local input files"
 msgstr "Сбой выгрузки локальных входных файлов"
 
-#: src/hed/acc/ARCREST/TargetInformationRetrieverPluginREST.cpp:29
-msgid "Querying WSRF GLUE2 computing info endpoint."
-msgstr "Опрашивается точка доступа WSRF GLUE2 к информации о вычислительном ресурсе."
+#: src/hed/acc/ARCREST/TargetInformationRetrieverPluginREST.cpp:27
+msgid "Querying WSRF GLUE2 computing REST endpoint."
+msgstr "Опрашивается точка доступа WSRF GLUE2 к информации о вычислительном ресурсе REST."
 
-#: src/hed/acc/ARCREST/TargetInformationRetrieverPluginREST.cpp:58
+#: src/hed/acc/ARCREST/TargetInformationRetrieverPluginREST.cpp:60
 #, c-format
-msgid "CONTENT %u: "
-msgstr "CONTENT %u: "
+#| msgid "CONTENT %u: "
+msgid "CONTENT %u: %s"
+msgstr "СОДЕРЖИМОЕ %u: %s"
+
+#: src/hed/acc/ARCREST/TargetInformationRetrieverPluginREST.cpp:64
+msgid "Response is not XML"
+msgstr "Отклик не в формате XML"
+
+#: src/hed/acc/ARCREST/TargetInformationRetrieverPluginREST.cpp:69
+#, c-format
+#| msgid "  Prepared slots: %u"
+msgid "Parsed domains: %u"
+msgstr "Разобрано доменов: %u"
 
 #: src/hed/acc/Broker/DescriptorsBroker.cpp:14
 msgid "Sorting according to free slots in queue"
@@ -3075,8 +3146,8 @@ msgstr "Проверка соответствия описания ресурс�
 
 #: src/hed/acc/EMIES/TestEMIESClient.cpp:228 src/hed/dmc/gridftp/DataPointGridFTP.cpp:560
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:819
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:477
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:621
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:517
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:706
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:129
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:169
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1214
@@ -3085,7 +3156,7 @@ msgstr "Проверка соответствия описания ресурс�
 #: src/hed/identitymap/ArgusPDPClient.cpp:444 src/hed/identitymap/ArgusPEPClient.cpp:98
 #: src/hed/identitymap/ArgusPEPClient.cpp:345 src/hed/libs/common/Thread.cpp:241
 #: src/hed/libs/common/Thread.cpp:244 src/hed/libs/common/Thread.cpp:247
-#: src/hed/libs/credential/Credential.cpp:1042 src/hed/libs/data/DataPointDelegate.cpp:625
+#: src/hed/libs/credential/Credential.cpp:1042 src/hed/libs/data/DataPointDelegate.cpp:628
 #: src/hed/mcc/tcp/PayloadTCPSocket.cpp:68 src/hed/mcc/tcp/PayloadTCPSocket.cpp:84
 #: src/hed/mcc/tcp/PayloadTCPSocket.cpp:100 src/hed/mcc/tcp/PayloadTCPSocket.cpp:119
 #: src/hed/mcc/tcp/PayloadTCPSocket.cpp:129 src/hed/mcc/tcp/PayloadTCPSocket.cpp:137
@@ -3424,6 +3495,11 @@ msgstr ""
 "Не удалось создать ссылку для информации - проверьте, доступен ли подгружаемый модуль "
 "ARC LDAP DMC."
 
+#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:130
+#, c-format
+msgid "Job information not found in the information system: %s"
+msgstr "Информация о задаче в информационной системе не обнаружена: %s"
+
 #: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:132
 msgid ""
 "This job was very recently submitted and might not yet have reached the information "
@@ -3641,7 +3717,6 @@ msgid "[ADLParser] Wrong time %s in ExpirationTime."
 msgstr "[ADLParser] ExpirationTime содержит недопустимое время %s."
 
 #: src/hed/acc/JobDescriptionParser/ADLParser.cpp:503
-#| msgid "[ADLParser] Coprocessor is not supported yet."
 msgid "[ADLParser] AccessControl isn't valid XML."
 msgstr "[ADLParser] AccessControl не является допустимым XML."
 
@@ -4582,7 +4657,7 @@ msgid "Can't delete file %s: %s"
 msgstr "Невозможно удалить файл %s: %s"
 
 #: src/hed/dmc/file/DataPointFile.cpp:521 src/hed/dmc/gridftp/DataPointGridFTP.cpp:335
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:305
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:313
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1466
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:545 src/hed/dmc/xrootd/DataPointXrootd.cpp:565
 #, c-format
@@ -4850,18 +4925,18 @@ msgid "Transfer succeeded"
 msgstr "Передача удалась"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:38
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:46
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:54
 msgid "ftp_complete_callback: success"
 msgstr "ftp_complete_callback: успех"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:44
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:52
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:60
 #, c-format
 msgid "ftp_complete_callback: error: %s"
 msgstr "ftp_complete_callback: ошибка: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:60
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:68
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:76
 msgid "ftp_check_callback"
 msgstr "ftp_check_callback"
 
@@ -4881,20 +4956,20 @@ msgstr "ftp_check_callback"
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1130
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1138
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1144
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:70
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:98
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:275
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:311
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:644
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:677
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:714
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:845
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:908
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:918
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:926
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:934
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:942
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:948
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:78
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:106
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:283
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:319
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:729
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:762
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:799
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:930
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:994
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1004
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1012
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1020
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1028
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1034
 #: src/services/gridftpd/commands.cpp:1226 src/services/gridftpd/dataread.cpp:76
 #: src/services/gridftpd/dataread.cpp:173 src/services/gridftpd/datawrite.cpp:59
 #: src/services/gridftpd/datawrite.cpp:146
@@ -4903,12 +4978,12 @@ msgid "Globus error: %s"
 msgstr "Ошибка Globus: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:73
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:81
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:89
 msgid "Excessive data received while checking file access"
 msgstr "При проверке прав доступа к файлу получены избыточные данные"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:89
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:97
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:105
 msgid "Registration of Globus FTP buffer failed - cancel check"
 msgstr "Сбой регистрации буфера Globus FTP - проверка прерывается"
 
@@ -4947,71 +5022,71 @@ msgid "check_ftp: obtained modification date: %s"
 msgstr "check_ftp: получена дата изменения: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:167
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:137
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:145
 msgid "check_ftp: globus_ftp_client_get failed"
 msgstr "check_ftp: сбой в globus_ftp_client_get"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:174
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:144
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:152
 msgid "check_ftp: globus_ftp_client_register_read"
 msgstr "check_ftp: globus_ftp_client_register_read"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:185
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:156
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:164
 msgid "check_ftp: timeout waiting for partial get"
 msgstr "check_ftp: истекло время ожидания частичной загрузки"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:215
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:183
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:191
 #, c-format
 msgid "File delete failed, attempting directory delete for %s"
 msgstr "Сбой при удалении файла, попытка удаления каталога для %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:225
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:194
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:202
 msgid "delete_ftp: globus_ftp_client_delete failed"
 msgstr "delete_ftp: сбой в globus_ftp_client_delete"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:231
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:252
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:200
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:222
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:208
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:230
 msgid "delete_ftp: timeout waiting for delete"
 msgstr "delete_ftp: истекло время ожидания команды delete"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:246
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:216
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:224
 msgid "delete_ftp: globus_ftp_client_rmdir failed"
 msgstr "delete_ftp: сбой в globus_ftp_client_rmdir"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:301
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:270
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:278
 #, c-format
 msgid "mkdir_ftp: making %s"
 msgstr "mkdir_ftp: создаётся %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:309
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:279
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:287
 msgid "mkdir_ftp: timeout waiting for mkdir"
 msgstr "mkdir_ftp: истекло время ожидания команды mkdir"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:344
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:315
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:323
 msgid "Timeout waiting for mkdir"
 msgstr "Истекло время ожидания команды mkdir"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:370
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:337
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:346
 msgid "start_reading_ftp"
 msgstr "start_reading_ftp"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:374
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:341
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:350
 msgid "start_reading_ftp: globus_ftp_client_get"
 msgstr "start_reading_ftp: globus_ftp_client_get"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:388
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:355
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:364
 msgid "start_reading_ftp: globus_ftp_client_get failed"
 msgstr "start_reading_ftp: сбой в globus_ftp_client_get"
 
@@ -5058,7 +5133,7 @@ msgid "ftp_read_thread: data callback failed - aborting: %s"
 msgstr "ftp_read_thread: сбой обратного вызова данных - прерывание: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:477
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:370
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:380
 #, c-format
 msgid "ftp_read_thread: Globus error: %s"
 msgstr "ftp_read_thread: ошибка Globus: %s"
@@ -5074,34 +5149,33 @@ msgid "ftp_read_thread: failed to register Globus buffer - will try later: %s"
 msgstr "ftp_read_thread: сбой при регистрации буфера Globus - попробуем попозже: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:508
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:386
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:396
 msgid "ftp_read_thread: waiting for eof"
 msgstr "ftp_read_thread: ожидание конца файла"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:512
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:390
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:400
 msgid "ftp_read_thread: waiting for buffers released"
 msgstr "ftp_read_thread: ожидание разблокировки буферов"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:516
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:398
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:577
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:408
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:662
 msgid "ftp_read_thread: failed to release buffers - leaking"
 msgstr "ftp_read_thread: сбой сброса буферов - утечка"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:521
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:405
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:415
 msgid "ftp_read_thread: exiting"
 msgstr "ftp_read_thread: выход"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:539
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:426
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:436
 #, c-format
 msgid "ftp_read_callback: failure: %s"
 msgstr "ftp_read_callback: сбой: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:542
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:431
 msgid "ftp_read_callback: success"
 msgstr "ftp_read_callback: успех"
 
@@ -5110,22 +5184,22 @@ msgid "Failed to get ftp file"
 msgstr "Не удалось получить файл ftp"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:594
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:502
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:543
 msgid "start_writing_ftp: mkdir"
 msgstr "start_writing_ftp: mkdir"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:597
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:504
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:545
 msgid "start_writing_ftp: mkdir failed - still trying to write"
 msgstr "start_writing_ftp: сбой mkdir - всё же пытаемся записать"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:599
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:506
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:547
 msgid "start_writing_ftp: put"
 msgstr "start_writing_ftp: put"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:613
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:520
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:561
 msgid "start_writing_ftp: put failed"
 msgstr "start_writing_ftp: сбой в put"
 
@@ -5134,31 +5208,31 @@ msgid "start_writing_ftp: globus_thread_create failed"
 msgstr "start_writing_ftp: сбой в globus_thread_create"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:640
-#: src/hed/libs/data/DataPointDelegate.cpp:304
+#: src/hed/libs/data/DataPointDelegate.cpp:307
 msgid "StopWriting: aborting connection"
 msgstr "StopWriting: прерывание связи"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:664
-#: src/hed/libs/data/DataPointDelegate.cpp:318
+#: src/hed/libs/data/DataPointDelegate.cpp:321
 #, c-format
 msgid "StopWriting: Calculated checksum %s"
 msgstr "StopWriting: Вычислена контрольная сумма %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:668
-#: src/hed/libs/data/DataPointDelegate.cpp:322
+#: src/hed/libs/data/DataPointDelegate.cpp:325
 #, c-format
 msgid "StopWriting: looking for checksum of %s"
 msgstr "StopWriting: поиск контрольной суммы %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:677
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:912
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:713
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:798
 msgid "list_files_ftp: globus_ftp_client_cksm failed"
 msgstr "list_files_ftp: сбой globus_ftp_client_cksm"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:681
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:916
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:717
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:802
 msgid "list_files_ftp: timeout waiting for cksum"
 msgstr "list_files_ftp: истекло время ожидания проверочной суммы"
 
@@ -5169,24 +5243,24 @@ msgstr "list_files_ftp: информация о контрольных сумм�
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:691
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:926
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:730
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:815
 #, c-format
 msgid "list_files_ftp: checksum %s"
 msgstr "list_files_ftp: проверочная сумма %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:694
-#: src/hed/libs/data/DataPointDelegate.cpp:329
+#: src/hed/libs/data/DataPointDelegate.cpp:332
 msgid "Checksum type returned by server is different to requested type, cannot compare"
 msgstr "Тип контрольной суммы на сервере отличается от запрошенного, сравнение невозможно"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:696
-#: src/hed/libs/data/DataPointDelegate.cpp:331
+#: src/hed/libs/data/DataPointDelegate.cpp:334
 #, c-format
 msgid "Calculated checksum %s matches checksum reported by server"
 msgstr "Вычисленная проверочная сумма %s совпадает с проверочной суммой сервера"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:699
-#: src/hed/libs/data/DataPointDelegate.cpp:334
+#: src/hed/libs/data/DataPointDelegate.cpp:337
 #, c-format
 msgid ""
 "Checksum mismatch between calculated checksum %s and checksum reported by server %s"
@@ -5211,7 +5285,7 @@ msgid "ftp_write_thread: waiting for eof"
 msgstr "ftp_read_thread: ожидание конца файла"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:763
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:575
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:660
 msgid "ftp_write_thread: waiting for buffers released"
 msgstr "ftp_write_thread: ожидание разблокировки буферов"
 
@@ -5220,186 +5294,186 @@ msgid "ftp_write_thread: failed to release buffers - leaking"
 msgstr "ftp_write_thread: сбой сброса буферов - утечка"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:776
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:582
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:667
 msgid "ftp_write_thread: exiting"
 msgstr "ftp_write_thread: выход"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:799
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:601
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:686
 #, c-format
 msgid "ftp_write_callback: failure: %s"
 msgstr "ftp_write_callback: сбой: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:802
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:603
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:688
 #, c-format
 msgid "ftp_write_callback: success %s"
 msgstr "ftp_write_callback: успех %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:817
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:619
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:704
 msgid "Failed to store ftp file"
 msgstr "Не удалось сохранить файл ftp"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:825
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:624
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:709
 msgid "ftp_put_complete_callback: success"
 msgstr "ftp_put_complete_callback: успех"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:841
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:638
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:723
 #, c-format
 msgid "list_files_ftp: looking for size of %s"
 msgstr "list_files_ftp: поиск размера %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:845
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:642
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:727
 msgid "list_files_ftp: globus_ftp_client_size failed"
 msgstr "list_files_ftp: сбой в globus_ftp_client_size"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:851
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:852
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:648
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:649
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:733
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:734
 msgid "list_files_ftp: timeout waiting for size"
 msgstr "list_files_ftp: истекло время ожидания размера"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:858
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:655
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:740
 msgid "list_files_ftp: failed to get file's size"
 msgstr "list_files_ftp: не удалось определить размер файла"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:870
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:668
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:753
 #, c-format
 msgid "list_files_ftp: looking for modification time of %s"
 msgstr "list_files_ftp: определение времени изменения %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:876
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:674
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:759
 msgid "list_files_ftp: globus_ftp_client_modification_time failed"
 msgstr "list_files_ftp: сбой globus_ftp_client_modification_time"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:883
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:681
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:766
 msgid "list_files_ftp: timeout waiting for modification_time"
 msgstr "list_files_ftp: истекло время ожидания modification_time"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:891
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:689
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:774
 msgid "list_files_ftp: failed to get file's modification time"
 msgstr "list_files_ftp: не удалось определить время изменения файла"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:903
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:703
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:788
 #, c-format
 msgid "list_files_ftp: looking for checksum of %s"
 msgstr "list_files_ftp: поиск проверочной суммы %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:942
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:743
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:828
 #, c-format
 msgid "Failed to obtain stat from FTP: %s"
 msgstr "Не удалось получить список статус через FTP: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:948
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:748
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:833
 msgid "No results returned from stat"
 msgstr "Вызов stat не возвратил никаких результатов"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:954
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:754
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:839
 #, c-format
 msgid "Wrong number of objects (%i) for stat from ftp: %s"
 msgstr "Неверное количество объектов (%i) для операции stat от ftp: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:968
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:767
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:852
 #, c-format
 msgid "Unexpected path %s returned from server"
 msgstr "Сервер возвратил неожиданный путь %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1007
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:800
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:885
 #, c-format
 msgid "Failed to obtain listing from FTP: %s"
 msgstr "Не удалось получить список файлов через FTP: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1050
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:843
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:928
 msgid "Rename: globus_ftp_client_move failed"
 msgstr "Переименование: сбой в globus_ftp_client_move"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1056
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:849
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:934
 msgid "Rename: timeout waiting for operation to complete"
 msgstr "Переименование: истекло время ожидания завершения операции"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1103
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:907
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:993
 msgid "init_handle: globus_ftp_client_handleattr_init failed"
 msgstr "init_handle: сбой в globus_ftp_client_handleattr_init"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1112
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:916
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1002
 msgid "init_handle: globus_ftp_client_handleattr_set_gridftp2 failed"
 msgstr "init_handle: сбой в globus_ftp_client_handleattr_set_gridftp2"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1121
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:925
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1011
 msgid "init_handle: globus_ftp_client_handle_init failed"
 msgstr "init_handle: сбой в globus_ftp_client_handlea_init"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1128
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:932
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1018
 msgid "init_handle: globus_ftp_client_operationattr_init failed"
 msgstr "init_handle: сбой в globus_ftp_client_operationattr_init"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1136
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:940
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1026
 msgid "init_handle: globus_ftp_client_operationattr_set_allow_ipv6 failed"
 msgstr "init_handle: сбой globus_ftp_client_operationattr_set_allow_ipv6"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1142
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:946
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1032
 msgid "init_handle: globus_ftp_client_operationattr_set_delayed_pasv failed"
 msgstr "init_handle: сбой globus_ftp_client_operationattr_set_delayed_pasv"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1190
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1218
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:998
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1026
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1084
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1113
 #, c-format
 msgid "globus_ftp_client_operationattr_set_authorization: error: %s"
 msgstr "globus_ftp_client_operationattr_set_authorization: ошибка: %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1217
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1025
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1112
 msgid "Failed to set credentials for GridFTP transfer"
 msgstr "Не удалось установить параметры доступа для передачи данных по GridFTP"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1223
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1031
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1118
 msgid "Using secure data transfer"
 msgstr "Используется защищённая передача данных"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1228
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1036
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1123
 msgid "Using insecure data transfer"
 msgstr "Используется незащищённая передача данных"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1255
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1061
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1150
 msgid "~DataPoint: destroy ftp_handle"
 msgstr "~DataPoint: уничтожение ftp_handle"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1258
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1064
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1153
 msgid "~DataPoint: destroy ftp_handle failed - retrying"
 msgstr "~DataPoint: уничтожение ftp_handle не удалось - новая попытка"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:1276
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1082
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1171
 msgid "~DataPoint: failed to destroy ftp_handle - leaking"
 msgstr "~DataPoint: уничтожение ftp_handle не удалось - утечка"
 
@@ -5411,84 +5485,120 @@ msgstr ""
 "Отсутствует указание на фабрику и/или модуль. Использование Globus в неопределённом "
 "режиме небезопасно - вызов (Grid)FTP заблокирован. Свяжитесь с разработчиками."
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:378
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:388
 msgid "ftp_read_thread: failed to register buffers"
 msgstr "ftp_read_thread: сбой регистрации буферов"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:393
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:403
 msgid "ftp_read_thread: failed to release buffers"
 msgstr "ftp_read_thread: сбой сброса буферов"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:451
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:441
+#, c-format
+msgid "ftp_read_callback: success - offset=%u, length=%u, eof=%u, allow oof=%u"
+msgstr "ftp_read_callback: успех - offset=%u, length=%u, eof=%u, allow oof=%u"
+
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:455
+#, c-format
+#| msgid "ftp_read_callback: failure: %s"
+msgid "ftp_read_callback: delayed data chunk: %llu %llu"
+msgstr "ftp_read_callback: задержанный блок данных: %llu %llu"
+
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:462
+#, c-format
+msgid "ftp_read_callback: unexpected data out of order: %llu != %llu"
+msgstr "ftp_read_callback: неверные неупорядоченные данные: %llu != %llu"
+
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:469
+msgid "ftp_read_callback: too many unexpected out of order chunks"
+msgstr "ftp_read_callback: избыток неверных неупорядоченных блоков"
+
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:490
 #, c-format
 msgid "ftp_read_callback: Globus error: %s"
 msgstr "ftp_read_callback: ошибка Globus: %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:475
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:515
 msgid "ftp_get_complete_callback: Failed to get ftp file"
 msgstr "ftp_get_complete_callback: Сбой получения файла ftp"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:480
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:520
 msgid "ftp_get_complete_callback: success"
 msgstr "ftp_get_complete_callback: успех"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:534
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:575
 msgid "start_writing_ftp: waiting for data tag"
 msgstr "start_writing_ftp: ожидание метки данных"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:537
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:578
 msgid "start_writing_ftp: failed to read data tag"
 msgstr "start_writing_ftp: сбой чтения метки данных"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:542
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:583
 msgid "start_writing_ftp: waiting for data chunk"
 msgstr "start_writing_ftp: ожидание куска данных"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:544
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:585
 msgid "start_writing_ftp: failed to read data chunk"
 msgstr "start_writing_ftp: сбой чтения куска данных"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:552
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:596
+#, c-format
+msgid "ftp_write_thread: data out of order in stream mode: %llu != %llu"
+msgstr "ftp_write_thread: неупорядоченные данные в поточном режиме: %llu != %llu"
+
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:603
+msgid "ftp_write_thread: too many out of order chunks in stream mode"
+msgstr "ftp_write_thread: избыток неупорядоченных блоков в поточном режиме"
+
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:608
 #, c-format
 msgid "start_writing_ftp: data chunk: %llu %llu"
 msgstr "start_writing_ftp: кусок данных: %llu %llu"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:559
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:614
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:640
 #, c-format
 msgid "ftp_write_thread: Globus error: %s"
 msgstr "ftp_write_thread: ошибка Globus: %s"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:567
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:633
+#, c-format
+#| msgid "start_writing_ftp: data chunk: %llu %llu"
+msgid "start_writing_ftp: delayed data chunk: %llu %llu"
+msgstr "start_writing_ftp: задержанный блок данных: %llu %llu"
+
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:652
 msgid "start_writing_ftp: waiting for some buffers sent"
 msgstr "start_writing_ftp: ожидание отправки буферов"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:573
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:658
 msgid "ftp_write_thread: waiting for transfer complete"
 msgstr "ftp_write_thread: ожидание завершения передачи"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:724
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:809
 msgid "list_files_ftp: no checksum information supported"
 msgstr "list_files_ftp: информация о контрольных суммах не поддерживается"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:726
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:811
 msgid "list_files_ftp: no checksum information returned"
 msgstr "list_files_ftp: не получена информация о контрольных суммах"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:821
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:906
 msgid "Too many failures to obtain checksum - giving up"
 msgstr "Слишком много сбоев  попытки получения контрольной суммы - прерывание"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1175
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1266
 msgid "Expecting Command and URL provided"
 msgstr "Задайте команду и URL"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1182
-#: src/hed/libs/data/DataExternalHelper.cpp:367
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1273
+#: src/hed/libs/data/DataExternalHelper.cpp:376
 msgid "Expecting Command among arguments"
 msgstr "Одним из аргументов должна быть команда"
 
-#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1186
-#: src/hed/libs/data/DataExternalHelper.cpp:371
+#: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:1277
+#: src/hed/libs/data/DataExternalHelper.cpp:380
 msgid "Expecting URL among arguments"
 msgstr "Одним из аргументов должен быть URL"
 
@@ -5498,15 +5608,6 @@ msgstr "Одним из аргументов должен быть URL"
 #, c-format
 msgid "Failure: %s"
 msgstr "Ошибка: %s"
-
-#: src/hed/dmc/gridftp/Lister.cpp:223 src/hed/dmc/gridftp/Lister.cpp:243
-#: src/hed/dmc/gridftp/Lister.cpp:468 src/hed/dmc/gridftp/Lister.cpp:475
-#: src/hed/dmc/gridftp/Lister.cpp:497
-#: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:163
-#: src/hed/shc/pdpserviceinvoker/PDPServiceInvoker.cpp:196
-#, c-format
-msgid "Response: %s"
-msgstr "Ответ: %s"
 
 #: src/hed/dmc/gridftp/Lister.cpp:288
 msgid "Error getting list of files (in list)"
@@ -5768,34 +5869,34 @@ msgstr "Передача данных прервана"
 msgid "Failed to transfer data"
 msgstr "Не удалось передать данные"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:388 src/hed/dmc/http/DataPointHTTP.cpp:517
-#: src/hed/dmc/http/DataPointHTTP.cpp:598 src/hed/dmc/http/DataPointHTTP.cpp:1000
-#: src/hed/dmc/http/DataPointHTTP.cpp:1144 src/hed/dmc/http/DataPointHTTP.cpp:1289
+#: src/hed/dmc/http/DataPointHTTP.cpp:391 src/hed/dmc/http/DataPointHTTP.cpp:520
+#: src/hed/dmc/http/DataPointHTTP.cpp:601 src/hed/dmc/http/DataPointHTTP.cpp:1003
+#: src/hed/dmc/http/DataPointHTTP.cpp:1147 src/hed/dmc/http/DataPointHTTP.cpp:1292
 #, c-format
 msgid "Redirecting to %s"
 msgstr "Перенаправление к %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:670
+#: src/hed/dmc/http/DataPointHTTP.cpp:673
 #, c-format
 msgid "Stat: obtained size %llu"
 msgstr "Проверка: получен размер %llu"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:674
+#: src/hed/dmc/http/DataPointHTTP.cpp:677
 #, c-format
 msgid "Stat: obtained modification time %s"
 msgstr "Stat: получено время изменения %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:903
+#: src/hed/dmc/http/DataPointHTTP.cpp:906
 #, c-format
 msgid "Check: obtained size %llu"
 msgstr "Проверка: получен размер %llu"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:905
+#: src/hed/dmc/http/DataPointHTTP.cpp:908
 #, c-format
 msgid "Check: obtained modification time %s"
 msgstr "Check: получено время изменения %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:1017 src/hed/dmc/http/DataPointHTTP.cpp:1164
+#: src/hed/dmc/http/DataPointHTTP.cpp:1020 src/hed/dmc/http/DataPointHTTP.cpp:1167
 #, c-format
 msgid "HTTP failure %u - %s"
 msgstr "Ошибка HTTP %u - %s"
@@ -6228,7 +6329,7 @@ msgstr "Сбой сброса завершившегося запроса"
 msgid "ListFiles: looking for metadata: %s"
 msgstr "ListFiles: поиск метаданных: %s"
 
-#: src/hed/dmc/srm/DataPointSRM.cpp:815
+#: src/hed/dmc/srm/DataPointSRM.cpp:821
 #, c-format
 msgid "plugin for transport protocol %s is not installed"
 msgstr "не установлен подключаемый модуль для протокола транспортного уровня %s"
@@ -6364,8 +6465,8 @@ msgstr "Ошибка при разборе отзыва с сервера - ин
 #: src/services/gridftpd/misc/ldapquery.cpp:183
 #: src/services/gridftpd/misc/ldapquery.cpp:186
 #: src/services/gridftpd/misc/ldapquery.cpp:392
-#: src/services/gridftpd/misc/ldapquery.cpp:623
-#: src/services/gridftpd/misc/ldapquery.cpp:632
+#: src/services/gridftpd/misc/ldapquery.cpp:622
+#: src/services/gridftpd/misc/ldapquery.cpp:631
 #, c-format
 msgid "%s: %s"
 msgstr "%s: %s"
@@ -7251,63 +7352,63 @@ msgstr "Поток завершился прерыванием в Glib: %s"
 msgid "Thread exited with generic exception: %s"
 msgstr "Поток завершился общим прерыванием: %s"
 
-#: src/hed/libs/common/URL.cpp:121
+#: src/hed/libs/common/URL.cpp:137
 #, c-format
 msgid "URL is not valid: %s"
 msgstr "Недействительный адрес: %s"
 
-#: src/hed/libs/common/URL.cpp:181
+#: src/hed/libs/common/URL.cpp:188
 #, c-format
 msgid "Illegal URL - path must be absolute: %s"
 msgstr "Недопустимый URL - путь должен быть абсолютным: %s"
 
-#: src/hed/libs/common/URL.cpp:186
+#: src/hed/libs/common/URL.cpp:193
 #, c-format
 msgid "Illegal URL - no hostname given: %s"
 msgstr "Недопустимый адрес - не содержится имя узла: %s"
 
-#: src/hed/libs/common/URL.cpp:275
+#: src/hed/libs/common/URL.cpp:282
 #, c-format
 msgid "Illegal URL - path must be absolute or empty: %s"
 msgstr "Недопустимый URL - путь должен быть абсолютным или пустым: %s"
 
-#: src/hed/libs/common/URL.cpp:291
+#: src/hed/libs/common/URL.cpp:298
 #, c-format
 msgid "Illegal URL - no closing ] for IPv6 address found: %s"
 msgstr "Недопустимый URL - отсутствует закрывающая скобка ] для адреса IPv6: %s"
 
-#: src/hed/libs/common/URL.cpp:299
+#: src/hed/libs/common/URL.cpp:306
 #, c-format
 msgid "Illegal URL - closing ] for IPv6 address is followed by illegal token: %s"
 msgstr ""
 "Недопустимый URL - за закрывающей скобкой ] для адреса IPv6 следует недопустимый "
 "маркёр: %s"
 
-#: src/hed/libs/common/URL.cpp:315
+#: src/hed/libs/common/URL.cpp:322
 #, c-format
 msgid "Invalid port number in %s"
 msgstr "Недопустимый номер порта в %s"
 
-#: src/hed/libs/common/URL.cpp:418
+#: src/hed/libs/common/URL.cpp:440
 #, c-format
 msgid "Unknown LDAP scope %s - using base"
 msgstr "Неизвестный контекст LDAP %s - используется base"
 
-#: src/hed/libs/common/URL.cpp:580
+#: src/hed/libs/common/URL.cpp:603
 msgid "Attempt to assign relative path to URL - making it absolute"
 msgstr "Попытка интерпретации относительного путь как URL - заменяется на абсолютный"
 
-#: src/hed/libs/common/URL.cpp:679
+#: src/hed/libs/common/URL.cpp:702
 #, c-format
 msgid "URL option %s does not have format name=value"
 msgstr "Опция URL %s не задана в формате имя=значение"
 
-#: src/hed/libs/common/URL.cpp:1144
+#: src/hed/libs/common/URL.cpp:1167
 #, c-format
 msgid "urllist %s contains invalid URL: %s"
 msgstr "urllist %s содержит недопустимый URL: %s"
 
-#: src/hed/libs/common/URL.cpp:1149
+#: src/hed/libs/common/URL.cpp:1172
 #, c-format
 msgid "URL protocol is not urllist: %s"
 msgstr "Протокол URL не является urllist: %s"
@@ -11772,37 +11873,37 @@ msgstr "Ошибка инициализации библиотеки OpenSSL"
 msgid "Number of OpenSSL locks changed - reinitializing"
 msgstr "Изменилось число блокировок OpenSSL - повторная инициализация"
 
-#: src/hed/libs/data/DataExternalHelper.cpp:146
+#: src/hed/libs/data/DataExternalHelper.cpp:157
 msgid "failed to read data tag"
 msgstr "сбой чтения метки данных"
 
-#: src/hed/libs/data/DataExternalHelper.cpp:150
+#: src/hed/libs/data/DataExternalHelper.cpp:161
 msgid "waiting for data chunk"
 msgstr "ожидание куска данных"
 
-#: src/hed/libs/data/DataExternalHelper.cpp:152
+#: src/hed/libs/data/DataExternalHelper.cpp:163
 msgid "failed to read data chunk"
 msgstr "сбой чтения куска данных"
 
-#: src/hed/libs/data/DataExternalHelper.cpp:160
+#: src/hed/libs/data/DataExternalHelper.cpp:171
 #, c-format
 msgid "data chunk: %llu %llu"
 msgstr "кусок данных: %llu %llu"
 
-#: src/hed/libs/data/DataExternalHelper.cpp:225
+#: src/hed/libs/data/DataExternalHelper.cpp:242
 #, c-format
 msgid "DataMove::Transfer: using supplied checksum %s"
 msgstr "DataMove::Transfer: используется заданная контрольная сумма %s"
 
-#: src/hed/libs/data/DataExternalHelper.cpp:352
+#: src/hed/libs/data/DataExternalHelper.cpp:361
 msgid "Expecting Module, Command and URL provided"
 msgstr "Ожидается указание модуля, команды и URL"
 
-#: src/hed/libs/data/DataExternalHelper.cpp:359
+#: src/hed/libs/data/DataExternalHelper.cpp:368
 msgid "Expecting Command module path among arguments"
 msgstr "Одним из аргументов должен быть путь к Command module"
 
-#: src/hed/libs/data/DataExternalHelper.cpp:363
+#: src/hed/libs/data/DataExternalHelper.cpp:372
 msgid "Expecting Command module name among arguments"
 msgstr "Одним из аргументов должно быть название Command module"
 
@@ -12267,89 +12368,89 @@ msgstr ""
 msgid "Failed to load plugin for URL %s"
 msgstr "Сбой подгрузки подключаемого модуля для URL %s"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:73
+#: src/hed/libs/data/DataPointDelegate.cpp:75 src/hed/libs/data/DataPointDelegate.cpp:76
 #: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1983
 #, c-format
 msgid "Starting helper process: %s"
 msgstr "Запускается вспомогательный процесс: %s"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:177
+#: src/hed/libs/data/DataPointDelegate.cpp:180
 msgid "start_reading"
 msgstr "start_reading"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:186
+#: src/hed/libs/data/DataPointDelegate.cpp:189
 msgid "start_reading: helper start failed"
 msgstr "start_reading: сбой запуска ассистента"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:194
+#: src/hed/libs/data/DataPointDelegate.cpp:197
 msgid "start_reading: thread create failed"
 msgstr "start_reading: сбой создания потока"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:210
+#: src/hed/libs/data/DataPointDelegate.cpp:213
 msgid "StopReading: aborting connection"
 msgstr "StopReading: прерывание связи"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:215
+#: src/hed/libs/data/DataPointDelegate.cpp:218
 msgid "stop_reading: waiting for transfer to finish"
 msgstr "stop_reading: ожидание завершения пересылки"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:218
+#: src/hed/libs/data/DataPointDelegate.cpp:221
 #, c-format
 msgid "stop_reading: exiting: %s"
 msgstr "stop_reading: выход: %s"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:228
+#: src/hed/libs/data/DataPointDelegate.cpp:231
 msgid "read_thread: get and register buffers"
 msgstr "read_thread: получение и регистрация буферов"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:236
+#: src/hed/libs/data/DataPointDelegate.cpp:239
 #, c-format
 msgid "read_thread: for_read failed - aborting: %s"
 msgstr "read_thread: сбой for_read - прерывание: %s"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:244
+#: src/hed/libs/data/DataPointDelegate.cpp:247
 #, c-format
 msgid "read_thread: non-data tag '%c' from external process - leaving: %s"
 msgstr "read_thread: несоответствующая данным метка '%c' из внешнего процесса - выход: %s"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:253
+#: src/hed/libs/data/DataPointDelegate.cpp:256
 #, c-format
 msgid "read_thread: data read error from external process - aborting: %s"
 msgstr "read_thread: ошибка чтения данных из внешнего процесса - прерывание: %s"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:261
+#: src/hed/libs/data/DataPointDelegate.cpp:264
 msgid "read_thread: exiting"
 msgstr "read_thread: выход"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:282
+#: src/hed/libs/data/DataPointDelegate.cpp:285
 msgid "start_writing_ftp: helper start failed"
 msgstr "start_writing_ftp: сбой запуска ассистента"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:290
+#: src/hed/libs/data/DataPointDelegate.cpp:293
 msgid "start_writing_ftp: thread create failed"
 msgstr "start_writing_ftp: сбой создания потока"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:340
+#: src/hed/libs/data/DataPointDelegate.cpp:343
 msgid "No checksum information possible"
 msgstr "Информация о контрольных суммах недоступна"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:356
+#: src/hed/libs/data/DataPointDelegate.cpp:359
 msgid "write_thread: get and pass buffers"
 msgstr "write_thread: получение и передача буферов"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:363
+#: src/hed/libs/data/DataPointDelegate.cpp:366
 msgid "write_thread: for_write failed - aborting"
 msgstr "write_thread: сбой for_write - прерывание"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:367
+#: src/hed/libs/data/DataPointDelegate.cpp:370
 msgid "write_thread: for_write eof"
 msgstr "write_thread: конец файла for_write"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:381
+#: src/hed/libs/data/DataPointDelegate.cpp:384
 msgid "write_thread: out failed - aborting"
 msgstr "write_thread: сбой вывода - прерывание"
 
-#: src/hed/libs/data/DataPointDelegate.cpp:389
+#: src/hed/libs/data/DataPointDelegate.cpp:392
 msgid "write_thread: exiting"
 msgstr "write_thread: выход"
 
@@ -13414,11 +13515,12 @@ msgstr "Схема отсутствует! Сверка пропускается
 msgid "Could not validate message!"
 msgstr "Не удалось подтвердить достоверность сообщения!"
 
-#: src/hed/mcc/msgvalidator/MCCMsgValidator.cpp:245 src/hed/mcc/soap/MCCSOAP.cpp:237
+#: src/hed/mcc/msgvalidator/MCCMsgValidator.cpp:245 src/hed/mcc/soap/MCCSOAP.cpp:222
+#: src/hed/mcc/soap/MCCSOAP.cpp:236 src/hed/mcc/soap/MCCSOAP.cpp:266
 msgid "empty next chain element"
 msgstr "следующий элемент в цепи пустой"
 
-#: src/hed/mcc/msgvalidator/MCCMsgValidator.cpp:257 src/hed/mcc/soap/MCCSOAP.cpp:253
+#: src/hed/mcc/msgvalidator/MCCMsgValidator.cpp:257 src/hed/mcc/soap/MCCSOAP.cpp:282
 msgid "next element of the chain returned empty payload"
 msgstr "следующий элемент в цепи возвратил пустую нагрузку"
 
@@ -13426,38 +13528,44 @@ msgstr "следующий элемент в цепи возвратил пус�
 msgid "next element of the chain returned invalid payload"
 msgstr "следующий элемент в цепи возвратил пустую нагрузку"
 
-#: src/hed/mcc/soap/MCCSOAP.cpp:203
+#: src/hed/mcc/soap/MCCSOAP.cpp:207
 msgid "empty input payload"
 msgstr "пустая нагрузка на входе"
 
-#: src/hed/mcc/soap/MCCSOAP.cpp:209
+#: src/hed/mcc/soap/MCCSOAP.cpp:217
+#, c-format
+#| msgid "Object is not suitable for listing"
+msgid "MIME is not suitable for SOAP: %s"
+msgstr "MIME не подходит для SOAP: %s"
+
+#: src/hed/mcc/soap/MCCSOAP.cpp:231
 msgid "incoming message is not SOAP"
 msgstr "входящее сообщение не в формате SOAP"
 
-#: src/hed/mcc/soap/MCCSOAP.cpp:229
+#: src/hed/mcc/soap/MCCSOAP.cpp:258
 #, c-format
 msgid "Security check failed in SOAP MCC for incoming message: %s"
 msgstr "Сбой проверки безопасности в SOAP MCC для входящего сообщения: %s"
 
-#: src/hed/mcc/soap/MCCSOAP.cpp:245
+#: src/hed/mcc/soap/MCCSOAP.cpp:274
 #, c-format
 msgid "next element of the chain returned error status: %s"
 msgstr "следующий элемент цепи возвратил статус ошибки: %s"
 
-#: src/hed/mcc/soap/MCCSOAP.cpp:264
+#: src/hed/mcc/soap/MCCSOAP.cpp:293
 msgid "next element of the chain returned unknown payload - passing through"
 msgstr "следующий элемент в цепи возвратил неопознанную нагрузку - пропускается"
 
-#: src/hed/mcc/soap/MCCSOAP.cpp:269 src/hed/mcc/soap/MCCSOAP.cpp:285
+#: src/hed/mcc/soap/MCCSOAP.cpp:298 src/hed/mcc/soap/MCCSOAP.cpp:314
 #, c-format
 msgid "Security check failed in SOAP MCC for outgoing message: %s"
 msgstr "Сбой проверки безопасности в SOAP MCC для исходящего сообщения: %s"
 
-#: src/hed/mcc/soap/MCCSOAP.cpp:339
+#: src/hed/mcc/soap/MCCSOAP.cpp:368
 msgid "Security check failed in SOAP MCC for outgoing message"
 msgstr "Не прошла проверка безопасности в SOAP MCC для исходящего сообщения"
 
-#: src/hed/mcc/soap/MCCSOAP.cpp:392
+#: src/hed/mcc/soap/MCCSOAP.cpp:421
 msgid "Security check failed in SOAP MCC for incoming message"
 msgstr "Не прошла проверка безопасности в SOAP MCC для входящего сообщения"
 
@@ -14101,13 +14209,13 @@ msgstr "Не удалось создать контекст делегирова
 msgid "Delegation handler with delegatee role starts to process"
 msgstr "Запущен обработчик делегирования с ролью делегата"
 
-#: src/hed/shc/delegationsh/DelegationSH.cpp:152 src/services/a-rex/arex.cpp:626
+#: src/hed/shc/delegationsh/DelegationSH.cpp:152 src/services/a-rex/arex.cpp:568
 #: src/services/candypond/CandyPond.cpp:526
 #: src/services/data-staging/DataDeliveryService.cpp:624
 msgid "process: POST"
 msgstr "процесс: POST"
 
-#: src/hed/shc/delegationsh/DelegationSH.cpp:159 src/services/a-rex/arex.cpp:633
+#: src/hed/shc/delegationsh/DelegationSH.cpp:159 src/services/a-rex/arex.cpp:575
 #: src/services/candypond/CandyPond.cpp:535
 #: src/services/data-staging/DataDeliveryService.cpp:633
 #: src/services/wrappers/python/pythonwrapper.cpp:416
@@ -15947,184 +16055,143 @@ msgstr "Не найдены действительные параметры до
 msgid "Problem creating dtr (source %s, destination %s)"
 msgstr "Проблема при создании DTR (источник %s, назначение %s)"
 
-#: src/services/a-rex/arex.cpp:444
-#, c-format
-msgid "Using cached local account '%s'"
-msgstr "Используется кэшированная местная учётная запись '%s'"
-
-#: src/services/a-rex/arex.cpp:456
-msgid "Will not map to 'root' account by default"
-msgstr "По умолчанию привязки к учётной записи 'root' не будет"
-
-#: src/services/a-rex/arex.cpp:469
-msgid "No local account name specified"
-msgstr "Не указано имя локальной учётной записи"
-
-#: src/services/a-rex/arex.cpp:472
-#, c-format
-msgid "Using local account '%s'"
-msgstr "Используется локальная учётная запись '%s'"
-
-#: src/services/a-rex/arex.cpp:476
-msgid "TLS provides no identity, going for OTokens"
-msgstr "TLS не передал  идентификацию, переход к OTokens"
-
-#: src/services/a-rex/arex.cpp:532
-msgid "Service access is not allowed for this user"
-msgstr "Доступ к службе для этого пользователя закрыт"
-
-#: src/services/a-rex/arex.cpp:545
-msgid "Failed to acquire A-REX's configuration"
-msgstr "Не удалось получить настройки A-REX"
-
-#: src/services/a-rex/arex.cpp:569 src/services/candypond/CandyPond.cpp:569
+#: src/services/a-rex/arex.cpp:449 src/services/candypond/CandyPond.cpp:569
 #: src/services/data-staging/DataDeliveryService.cpp:681
 #, c-format
 msgid "SOAP operation is not supported: %s"
 msgstr "Операция SOAP не поддерживается: %s"
 
-#: src/services/a-rex/arex.cpp:586
+#: src/services/a-rex/arex.cpp:467 src/services/a-rex/arex.cpp:495
+#, c-format
+msgid "Security Handlers processing failed: %s"
+msgstr "Сбой в процессе обработки прав доступа: %s"
+
+#: src/services/a-rex/arex.cpp:478
+msgid "Can't obtain configuration"
+msgstr "Не удалось получить настройки"
+
+#: src/services/a-rex/arex.cpp:507 src/services/a-rex/rest/rest.cpp:614
 #, c-format
 msgid "Connection from %s: %s"
 msgstr "Соединение с %s: %s"
 
-#: src/services/a-rex/arex.cpp:589
+#: src/services/a-rex/arex.cpp:510 src/services/a-rex/rest/rest.cpp:618
 #, c-format
 msgid "process: method: %s"
 msgstr "процесс: метод: %s"
 
-#: src/services/a-rex/arex.cpp:590
+#: src/services/a-rex/arex.cpp:511 src/services/a-rex/rest/rest.cpp:619
 #, c-format
 msgid "process: endpoint: %s"
 msgstr "процесс: конечная точка: %s"
 
-#: src/services/a-rex/arex.cpp:612
+#: src/services/a-rex/arex.cpp:536
 #, c-format
 msgid "process: id: %s"
 msgstr "процесс: идентификатор: %s"
 
-#: src/services/a-rex/arex.cpp:613
+#: src/services/a-rex/arex.cpp:537
 #, c-format
 msgid "process: subop: %s"
 msgstr "процесс: подопция: %s"
 
-#: src/services/a-rex/arex.cpp:619
+#: src/services/a-rex/arex.cpp:544
 #, c-format
 msgid "process: subpath: %s"
 msgstr "процесс: подкаталог: %s"
 
-#: src/services/a-rex/arex.cpp:639 src/services/candypond/CandyPond.cpp:543
+#: src/services/a-rex/arex.cpp:581 src/services/candypond/CandyPond.cpp:543
 #: src/services/data-staging/DataDeliveryService.cpp:641 src/tests/echo/echo.cpp:98
 #, c-format
 msgid "process: request=%s"
 msgstr "процесс: запрос=%s"
 
-#: src/services/a-rex/arex.cpp:644 src/services/candypond/CandyPond.cpp:548
+#: src/services/a-rex/arex.cpp:586 src/services/candypond/CandyPond.cpp:548
 #: src/services/data-staging/DataDeliveryService.cpp:646 src/tests/count/count.cpp:69
 msgid "input does not define operation"
 msgstr "не задана операция на вводе"
 
-#: src/services/a-rex/arex.cpp:647 src/services/candypond/CandyPond.cpp:551
+#: src/services/a-rex/arex.cpp:589 src/services/candypond/CandyPond.cpp:551
 #: src/services/data-staging/DataDeliveryService.cpp:649 src/tests/count/count.cpp:72
 #, c-format
 msgid "process: operation: %s"
 msgstr "процесс: операция: %s"
 
-#: src/services/a-rex/arex.cpp:667 src/services/a-rex/arex.cpp:876
-#: src/services/a-rex/arex.cpp:911 src/services/a-rex/arex.cpp:946
-#: src/services/a-rex/arex.cpp:980 src/services/a-rex/arex.cpp:1014
-#, c-format
-msgid "Security Handlers processing failed: %s"
-msgstr "Сбой в процессе обработки прав доступа: %s"
-
-#: src/services/a-rex/arex.cpp:681
-msgid "Can't obtain configuration. Public information is disabled."
-msgstr "Не удалось получить конфигурацию. Открытая информация недоступна."
-
-#: src/services/a-rex/arex.cpp:691
-msgid "Can't obtain configuration. Public information is disallowed for this user."
-msgstr ""
-"Не удалось получить конфигурацию. Открытая информация недоступна для этого пользователя."
-
-#: src/services/a-rex/arex.cpp:698
-msgid "Can't obtain configuration. Only public information is provided."
-msgstr "Не удалось получить конфигурацию. Только открытая информация доступна."
-
-#: src/services/a-rex/arex.cpp:713
+#: src/services/a-rex/arex.cpp:614
 msgid "POST request on special path is not supported"
 msgstr "Запрос POST на специфический путь не поддерживается"
 
-#: src/services/a-rex/arex.cpp:719
-msgid "Per-job POST/SOAP requests are not supported"
-msgstr "Запросы POST/SOAP предваряющие задачу не поддерживаются"
-
-#: src/services/a-rex/arex.cpp:727
+#: src/services/a-rex/arex.cpp:619
 msgid "process: factory endpoint"
 msgstr "процесс: конечная точка фабрики"
 
-#: src/services/a-rex/arex.cpp:870 src/services/candypond/CandyPond.cpp:580
+#: src/services/a-rex/arex.cpp:756 src/services/candypond/CandyPond.cpp:580
 #: src/services/data-staging/DataDeliveryService.cpp:692 src/tests/echo/echo.cpp:158
 #, c-format
 msgid "process: response=%s"
 msgstr "процесс: отзыв=%s"
 
-#: src/services/a-rex/arex.cpp:883
+#: src/services/a-rex/arex.cpp:762
+msgid "Per-job POST/SOAP requests are not supported"
+msgstr "Запросы POST/SOAP предваряющие задачу не поддерживаются"
+
+#: src/services/a-rex/arex.cpp:770
 msgid "process: GET"
 msgstr "процесс: GET"
 
-#: src/services/a-rex/arex.cpp:884
+#: src/services/a-rex/arex.cpp:771
 #, c-format
 msgid "GET: id %s path %s"
 msgstr "GET: идентификатор %s путь %s"
 
-#: src/services/a-rex/arex.cpp:918
+#: src/services/a-rex/arex.cpp:801
 msgid "process: HEAD"
 msgstr "процесс: HEAD"
 
-#: src/services/a-rex/arex.cpp:919
+#: src/services/a-rex/arex.cpp:802
 #, c-format
 msgid "HEAD: id %s path %s"
 msgstr "HEAD: идентификатор %s путь %s"
 
-#: src/services/a-rex/arex.cpp:953
+#: src/services/a-rex/arex.cpp:832
 msgid "process: PUT"
 msgstr "процес: PUT"
 
-#: src/services/a-rex/arex.cpp:987
+#: src/services/a-rex/arex.cpp:862
 msgid "process: DELETE"
 msgstr "процесс: DELETE"
 
-#: src/services/a-rex/arex.cpp:1021
+#: src/services/a-rex/arex.cpp:892
 #, c-format
 msgid "process: method %s is not supported"
 msgstr "процесс: метод %s не поддерживается"
 
-#: src/services/a-rex/arex.cpp:1024
+#: src/services/a-rex/arex.cpp:895
 msgid "process: method is not defined"
 msgstr "процесс: неопределённый метод"
 
-#: src/services/a-rex/arex.cpp:1135
+#: src/services/a-rex/arex.cpp:1006
 msgid "Failed to run Grid Manager thread"
 msgstr "Сбой запуска потока Grid Manager"
 
-#: src/services/a-rex/arex.cpp:1194
+#: src/services/a-rex/arex.cpp:1066
 #, c-format
 msgid "Failed to process configuration in %s"
 msgstr "Не удалось обработать настройки в %s"
 
-#: src/services/a-rex/arex.cpp:1199
+#: src/services/a-rex/arex.cpp:1071
 msgid "No control directory set in configuration"
 msgstr "Не найден контрольный каталог в файле настроек"
 
-#: src/services/a-rex/arex.cpp:1203
+#: src/services/a-rex/arex.cpp:1075
 msgid "No session directory set in configuration"
 msgstr "Не найден каталог сессии в файле настроек"
 
-#: src/services/a-rex/arex.cpp:1207
+#: src/services/a-rex/arex.cpp:1079
 msgid "No LRMS set in configuration"
 msgstr "Не найдена СУПО в файле настроек"
 
-#: src/services/a-rex/arex.cpp:1212
+#: src/services/a-rex/arex.cpp:1084
 #, c-format
 msgid "Failed to create control directory %s"
 msgstr "Ошибка создания контрольного каталога %s"
@@ -16276,17 +16343,17 @@ msgstr "NEW:  запись новой задачи: достигнут макс�
 msgid "Wiping and re-creating whole storage"
 msgstr "Уничтожение и воссоздание всего хранилища"
 
-#: src/services/a-rex/delegation/DelegationStore.cpp:204
-#: src/services/a-rex/delegation/DelegationStore.cpp:305
+#: src/services/a-rex/delegation/DelegationStore.cpp:214
+#: src/services/a-rex/delegation/DelegationStore.cpp:316
 #, c-format
 msgid "DelegationStore: TouchConsumer failed to create file %s"
 msgstr "DelegationStore: TouchConsumer не смог создать файл %s"
 
-#: src/services/a-rex/delegation/DelegationStore.cpp:265
+#: src/services/a-rex/delegation/DelegationStore.cpp:276
 msgid "DelegationStore: PeriodicCheckConsumers failed to resume iterator"
 msgstr "DelegationStore: сбой возобновления итератора процессом PeriodicCheckConsumers"
 
-#: src/services/a-rex/delegation/DelegationStore.cpp:285
+#: src/services/a-rex/delegation/DelegationStore.cpp:296
 #, c-format
 msgid "DelegationStore: PeriodicCheckConsumers failed to remove old delegation %s - %s"
 msgstr ""
@@ -17479,13 +17546,13 @@ msgstr "Не удалось записать ACL"
 
 #: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:937
 #: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:944
-#: src/services/a-rex/job.cpp:688
+#: src/services/a-rex/job.cpp:762
 #, c-format
 msgid "Failed to run external plugin: %s"
 msgstr "Не удалось запустить внешний подключаемый модуль: %s"
 
 #: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:948
-#: src/services/a-rex/job.cpp:692
+#: src/services/a-rex/job.cpp:766
 #, c-format
 msgid "Plugin response: %s"
 msgstr "Ответ подключаемого модуля: %s"
@@ -17540,7 +17607,7 @@ msgid "ID contains forbidden characters"
 msgstr "ID содержит недопустимые символы"
 
 #: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1374
-#: src/services/a-rex/job.cpp:891
+#: src/services/a-rex/job.cpp:965
 #, c-format
 msgid "Failed to create file in %s"
 msgstr "Не удалось создать файл в %s"
@@ -18142,19 +18209,16 @@ msgstr "%s: %i"
 
 #: src/services/a-rex/grid-manager/jobs/JobsList.cpp:389
 #, c-format
-#| msgid "Failed setting file owner: %s"
 msgid "%s: Failed storing failure reason: %s"
 msgstr "%s: Сбой записи причины сбоя: %s"
 
 #: src/services/a-rex/grid-manager/jobs/JobsList.cpp:395
 #, c-format
-#| msgid "Failed preparing job description"
 msgid "%s: Failed reading job description: %s"
 msgstr "%s: Сбой чтения описания задачи: %s"
 
 #: src/services/a-rex/grid-manager/jobs/JobsList.cpp:407
 #, c-format
-#| msgid "Failed preparing job description"
 msgid "%s: Failed parsing job request."
 msgstr "%s: Сбой разборки запроса задачи."
 
@@ -18459,7 +18523,6 @@ msgstr "%s: Прерывание задачи по запросу пользов
 
 #: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1286
 #, c-format
-#| msgid "%s: Failed running cancellation process"
 msgid "%s: Failed to turn job into failed during cancel processing."
 msgstr "%s: Сбой присвоения задаче состояния сбоя при обрыве исполнения."
 
@@ -18596,21 +18659,21 @@ msgstr "%s: Ассистент задачи прерван"
 
 #: src/services/a-rex/grid-manager/run/RunParallel.cpp:103
 #: src/services/a-rex/grid-manager/run/RunRedirected.cpp:24
-#: src/services/a-rex/grid-manager/run/RunRedirected.cpp:55
+#: src/services/a-rex/grid-manager/run/RunRedirected.cpp:56
 #, c-format
 msgid "%s: Failure creating slot for child process"
 msgstr "%s: Сбой создания области памяти для дочернего процесса"
 
 #: src/services/a-rex/grid-manager/run/RunParallel.cpp:111
 #: src/services/a-rex/grid-manager/run/RunRedirected.cpp:30
-#: src/services/a-rex/grid-manager/run/RunRedirected.cpp:61
+#: src/services/a-rex/grid-manager/run/RunRedirected.cpp:62
 #, c-format
 msgid "%s: Failure creating data storage for child process"
 msgstr "%s: Сбой создания хранилища данных для дочернего процесса"
 
 #: src/services/a-rex/grid-manager/run/RunParallel.cpp:155
 #: src/services/a-rex/grid-manager/run/RunRedirected.cpp:41
-#: src/services/a-rex/grid-manager/run/RunRedirected.cpp:72
+#: src/services/a-rex/grid-manager/run/RunRedirected.cpp:73
 #, c-format
 msgid "%s: Failure starting child process"
 msgstr "%s: Сбой при запуске дочернего процесса"
@@ -18626,7 +18689,7 @@ msgid "%s: Plugin failed"
 msgstr "%s: Сбой подключаемого модуля"
 
 #: src/services/a-rex/grid-manager/run/RunRedirected.cpp:46
-#: src/services/a-rex/grid-manager/run/RunRedirected.cpp:77
+#: src/services/a-rex/grid-manager/run/RunRedirected.cpp:78
 #, c-format
 msgid "%s: Failure waiting for child process to finish"
 msgstr "%s: Сбой ожидания окончания дочернего процесса"
@@ -18855,42 +18918,64 @@ msgstr "Локальные задачи успешно перечислены, �
 msgid "Failed submitting job description"
 msgstr "Сбой засылки описания задачи"
 
-#: src/services/a-rex/job.cpp:113
+#: src/services/a-rex/job.cpp:67
+#, c-format
+msgid "Using cached local account '%s'"
+msgstr "Используется кэшированная местная учётная запись '%s'"
+
+#: src/services/a-rex/job.cpp:78
+msgid "Will not map to 'root' account by default"
+msgstr "По умолчанию привязки к учётной записи 'root' не будет"
+
+#: src/services/a-rex/job.cpp:91
+msgid "No local account name specified"
+msgstr "Не указано имя локальной учётной записи"
+
+#: src/services/a-rex/job.cpp:94
+#, c-format
+msgid "Using local account '%s'"
+msgstr "Используется локальная учётная запись '%s'"
+
+#: src/services/a-rex/job.cpp:115
+msgid "Failed to acquire A-REX's configuration"
+msgstr "Не удалось получить настройки A-REX"
+
+#: src/services/a-rex/job.cpp:187
 #, c-format
 msgid "Cannot handle local user %s"
 msgstr "Невозможно обслужить локального пользователя %s"
 
-#: src/services/a-rex/job.cpp:161
+#: src/services/a-rex/job.cpp:235
 #, c-format
 msgid "%s: Failed to parse user policy"
 msgstr "%s: Сбой при разборе правил допуска пользователя"
 
-#: src/services/a-rex/job.cpp:166
+#: src/services/a-rex/job.cpp:240
 #, c-format
 msgid "%s: Failed to load evaluator for user policy "
 msgstr "%s: Не удалось подгрузить анализатор для правил допуска пользователей "
 
-#: src/services/a-rex/job.cpp:271
+#: src/services/a-rex/job.cpp:345
 #, c-format
 msgid "%s: Unknown user policy '%s'"
 msgstr "%s: Неизвестное правило допуска пользователя '%s'"
 
-#: src/services/a-rex/job.cpp:576 src/services/a-rex/job.cpp:600
+#: src/services/a-rex/job.cpp:650 src/services/a-rex/job.cpp:674
 #, c-format
 msgid "Credential expires at %s"
 msgstr "Срок действия параметров доступа истекает в %s"
 
-#: src/services/a-rex/job.cpp:578 src/services/a-rex/job.cpp:602
+#: src/services/a-rex/job.cpp:652 src/services/a-rex/job.cpp:676
 #, c-format
 msgid "Credential handling exception: %s"
 msgstr "Прерывание при обработке параметров доступа: %s"
 
-#: src/services/a-rex/job.cpp:899
+#: src/services/a-rex/job.cpp:973
 #, c-format
 msgid "Out of tries while allocating new job ID in %s"
 msgstr "Закончились попытки присвоения нового ярлыка задачи в %s"
 
-#: src/services/a-rex/job.cpp:1138
+#: src/services/a-rex/job.cpp:1212
 msgid "No non-draining session dirs available"
 msgstr "Нет каталогов сессий не в состоянии разгрузки"
 
@@ -18904,7 +18989,7 @@ msgstr "%s: запись файла %s: отсутствуют полезные 
 msgid "%s: put file %s: unrecognized payload"
 msgstr "%s: запись файла %s: неопознанные полезные файлы"
 
-#: src/services/a-rex/put.cpp:172
+#: src/services/a-rex/put.cpp:172 src/services/a-rex/rest/rest.cpp:1534
 #, c-format
 msgid "%s: put file %s: failed to create file: %s"
 msgstr "%s: запись файла %s: сбой при создании файла: %s"
@@ -18923,6 +19008,67 @@ msgstr "%s: удаление файла %s: сбой получения пути
 #, c-format
 msgid "%s: delete file %s: failed to open file/dir: %s"
 msgstr "%s: удаление файла %s: сбой открытия файла/каталога: %s"
+
+#: src/services/a-rex/rest/rest.cpp:623
+#, c-format
+#| msgid "process: subpath: %s"
+msgid "REST: process %s at %s"
+msgstr "REST: обработка %s в %s"
+
+#: src/services/a-rex/rest/rest.cpp:666 src/services/a-rex/rest/rest.cpp:682
+#: src/services/a-rex/rest/rest.cpp:737 src/services/a-rex/rest/rest.cpp:816
+#: src/services/a-rex/rest/rest.cpp:1044 src/services/a-rex/rest/rest.cpp:1635
+#, c-format
+#| msgid "process: method %s is not supported"
+msgid "process: method %s is not supported for subpath %s"
+msgstr "обработка: метод %s не поддерживается для части пути %s"
+
+#: src/services/a-rex/rest/rest.cpp:688
+#, c-format
+#| msgid "process: method %s is not supported"
+msgid "process: schema %s is not supported for subpath %s"
+msgstr "обработка: схема %s не поддерживается для части пути %s"
+
+#: src/services/a-rex/rest/rest.cpp:813 src/services/a-rex/rest/rest.cpp:1041
+#, c-format
+#| msgid "process: method %s is not supported"
+msgid "process: action %s is not supported for subpath %s"
+msgstr "обработка: действие %s не поддерживается для части пути %s"
+
+#: src/services/a-rex/rest/rest.cpp:1053 src/services/a-rex/rest/rest.cpp:1122
+#: src/services/a-rex/rest/rest.cpp:1481 src/services/a-rex/rest/rest.cpp:1624
+#, c-format
+msgid "REST:GET job %s - %s"
+msgstr "REST:GET задачи %s - %s"
+
+#: src/services/a-rex/rest/rest.cpp:1168 src/services/a-rex/rest/rest.cpp:1176
+#, c-format
+msgid "REST:KILL job %s - %s"
+msgstr "REST:KILL задачи %s - %s"
+
+#: src/services/a-rex/rest/rest.cpp:1193 src/services/a-rex/rest/rest.cpp:1201
+#, c-format
+#| msgid "EMIES:CancelActivity: job %s - %s"
+msgid "REST:CLEAN job %s - %s"
+msgstr "REST:CLEAN задачи %s - %s"
+
+#: src/services/a-rex/rest/rest.cpp:1218 src/services/a-rex/rest/rest.cpp:1226
+#: src/services/a-rex/rest/rest.cpp:1243
+#, c-format
+msgid "REST:RESTART job %s - %s"
+msgstr "REST:RESTART задачи %s - %s"
+
+#: src/services/a-rex/rest/rest.cpp:1527
+#, c-format
+#| msgid "%s: put file %s: there is no payload"
+msgid "REST:PUT job %s: file %s: there is no payload"
+msgstr "REST:PUT задачи %s: файл %s: отсутствует нагрузка"
+
+#: src/services/a-rex/rest/rest.cpp:1547
+#, c-format
+#| msgid "%s: put file %s: %s"
+msgid "HTTP:PUT %s: put file %s: %s"
+msgstr "HTTP:PUT %s: запись файла %s: %s"
 
 #: src/services/a-rex/test_cache_check.cpp:24 src/tests/count/test_client.cpp:20
 #: src/tests/echo/echo_test4axis2c/test_client.cpp:20 src/tests/echo/test_client.cpp:21
@@ -20233,7 +20379,7 @@ msgid "%s: %s:%i"
 msgstr "%s: %s:%i"
 
 #: src/services/gridftpd/misc/ldapquery.cpp:390
-#: src/services/gridftpd/misc/ldapquery.cpp:468
+#: src/services/gridftpd/misc/ldapquery.cpp:467
 #, c-format
 msgid "%s %s"
 msgstr "%s %s"
@@ -20677,6 +20823,36 @@ msgstr "Ждём 10 секунд..."
 msgid "Waiting ends."
 msgstr "Ожидание завершено."
 
+#~ msgid "Failed to cancel job: %s"
+#~ msgstr "Ошибка отмены задачи: %s"
+
+#~ msgid "Failed retrieving job IDs: Unsupported url (%s) given"
+#~ msgstr "Сбой извлечения ярлыков задач: задан неподдерживаемый URL (%s)"
+
+#~ msgid "Failed retrieving job IDs"
+#~ msgstr "Сбой извлечения ярлыков задач"
+
+#~ msgid ""
+#~ "Error encoutered during job ID retrieval. All job IDs might not have been retrieved"
+#~ msgstr "Сбой в процессе извлечения ярлыков задач: возможно, не все ярлыки извлечены"
+
+#~ msgid "TLS provides no identity, going for OTokens"
+#~ msgstr "TLS не передал  идентификацию, переход к OTokens"
+
+#~ msgid "Service access is not allowed for this user"
+#~ msgstr "Доступ к службе для этого пользователя закрыт"
+
+#~ msgid "Can't obtain configuration. Public information is disabled."
+#~ msgstr "Не удалось получить конфигурацию. Открытая информация недоступна."
+
+#~ msgid "Can't obtain configuration. Public information is disallowed for this user."
+#~ msgstr ""
+#~ "Не удалось получить конфигурацию. Открытая информация недоступна для этого "
+#~ "пользователя."
+
+#~ msgid "Can't obtain configuration. Only public information is provided."
+#~ msgstr "Не удалось получить конфигурацию. Только открытая информация доступна."
+
 #~ msgid "ServiceURL missing"
 #~ msgstr "Отсутствует ServiceURL"
 
@@ -20975,9 +21151,6 @@ msgstr "Ожидание завершено."
 
 #~ msgid "Starting hepler process: %s"
 #~ msgstr "Запускается процесс ассистента: %s"
-
-#~ msgid "Can't obtain configuration"
-#~ msgstr "Не удалось получить настройки"
 
 #~ msgid "Running command %s"
 #~ msgstr "Выполняется команда %s"
@@ -21283,9 +21456,6 @@ msgstr "Ожидание завершено."
 
 #~ msgid "No job identifier returned by BES service"
 #~ msgstr "Служба BES не возвратила ни одного ярлыка задачи"
-
-#~ msgid "Failed to prepare job description to target resources"
-#~ msgstr "Сбой подготовки описания задачи для засылки по назначению"
 
 #~ msgid "Failed adapting job description to target resources"
 #~ msgstr "Сбой адаптирования описания задачи для засылки по назначению"
