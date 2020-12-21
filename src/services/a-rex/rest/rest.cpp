@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <algorithm>
 
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
