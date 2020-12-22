@@ -6,9 +6,9 @@ StopWhenUnneeded=true
 
 [Service]
 Type=forking
-Environment=FORCE_ARC_RUNDIR=/var/run/arc
-PIDFile=/var/run/arc/bdii/db/slapd.pid
+Environment=FORCE_ARC_RUNDIR=/run/arc
+PIDFile=/run/arc/bdii/db/slapd.pid
 ExecStartPre=@prefix@/@pkgdatasubdir@/create-slapd-config
-ExecStart=/bin/sh /var/run/arc/infosys/bdii-slapd.cmd
-ExecStartPost=/bin/sh /var/run/arc/infosys/bdii-slapd-post.cmd
+ExecStart=/bin/sh /run/arc/infosys/bdii-slapd.cmd
+ExecStartPost=/bin/sh /run/arc/infosys/bdii-slapd-post.cmd
 NotifyAccess=all

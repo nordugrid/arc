@@ -7,7 +7,7 @@
 >
   <!-- Common configuration of the daemon -->
   <Server>
-    <Pidfile>/var/run/arched.pid</Pidfile>
+    <Pidfile>/run/arched.pid</Pidfile>
     <Logger level="DEBUG">/var/log/arc/arched.log</Logger>
   </Server>
   <!-- Where to find plugins -->
