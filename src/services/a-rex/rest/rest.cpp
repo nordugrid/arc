@@ -19,6 +19,16 @@
 
 #include "rest.h"
 
+namespace Arc {
+  template<class InputIterator, class UnaryPredicate>
+  InputIterator FindIf(InputIterator first, InputIterator last, UnaryPredicate pred) {
+    while (first!=last) {
+      if (pred(*first)) return first;
+      ++first;
+    }
+    return last;
+  }
+}
 
 using namespace ARex;
 using namespace Arc;
@@ -56,7 +66,7 @@ static void RenderToJson(Arc::XMLNode xml, std::string& output, int depth = 0) {
         XMLNode child = xml.Child(n);
         if(!child) break;
         std::string name = child.Name();
-        std::list< std::pair<std::string,int> >::iterator nameIt = std::find_if(names.begin(),names.end(),MatchFirst(name));
+        std::list< std::pair<std::string,int> >::iterator nameIt = FindIf(names.begin(),names.end(),MatchFirst(name));
         if(nameIt == names.end())
             names.push_back(std::make_pair(name,1));
         else
