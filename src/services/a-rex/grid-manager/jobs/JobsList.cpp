@@ -148,8 +148,9 @@ void JobsList::SetJobState(GMJobRef i, job_state_t new_state, const char* reason
       job_errors_mark_add(*i,config,msg);
       // During intermediate period job.proxy file must contain full delegated proxy.
       // To ensure its content is up to date even if proxy was updated in store here
-      // we update content of that file on every job state change.
-      UpdateJobCredentials(i);
+      // we update content of that file on every active job state change.
+      if((new_state != JOB_STATE_DELETED) && (new_state != JOB_STATE_UNDEFINED))
+        UpdateJobCredentials(i);
     };
   };
 }
@@ -174,7 +175,7 @@ void JobsList::SetJobPending(GMJobRef i, const char* reason) {
   };
 }
 
-bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid,job_state_t state){
+bool JobsList::AddJob(const JobId &id,uid_t uid,gid_t gid,job_state_t state,const char* reason){
   GMJobRef i(new GMJob(id,Arc::User(uid)));
   i->keep_finished=config.KeepFinished();
   i->keep_deleted=config.KeepDeleted();
@@ -190,15 +191,23 @@ bool JobsList::AddJobNoCheck(const JobId &id,uid_t uid,gid_t gid,job_state_t sta
                              "A-REX may be left in an inconsistent state", id);
     }
     Glib::RecMutex::Lock lock(jobs_lock);
-    jobs[id] = i;
-    RequestReprocess(i); // To make job being properly thrown from system
+    if(jobs.find(id) != jobs.end()) {
+      logger.msg(Arc::ERROR, "%s: unexpected failed job add request: %s", i->job_id, reason?reason:"");
+    } else {
+      jobs[id] = i;
+      RequestReprocess(i); // To make job being properly thrown from system
+    }
     return false;
   }
   i->session_dir = i->local->sessiondir;
   if (i->session_dir.empty()) i->session_dir = config.SessionRoot(id)+'/'+id;
   Glib::RecMutex::Lock lock(jobs_lock);
-  jobs[id] = i;
-  RequestAttention(i);
+  if(jobs.find(id) != jobs.end()) {
+    logger.msg(Arc::ERROR, "%s: unexpected job add request: %s", i->job_id, reason?reason:"");
+  } else {
+    jobs[id] = i;
+    RequestAttention(i);
+  }
   return true;
 }
 
@@ -229,18 +238,18 @@ bool JobsList::RequestAttention(const JobId& id) {
   GMJobRef i = FindJob(id);
   if(!i) {
     // Must be new job arriving or finished job which got user request or whatever
-    if(ScanNewJob(id) || ScanOldJob(id)) {
-      i = FindJob(id);
+    if(!ScanNewJob(id) && !ScanOldJob(id))
+      return false;
+    // If scanned successfuly job is immediately requested for attention.
+  } else {
+    if(!RequestAttention(i)) {
+      // Request by id most probably means there is somethng external pending.
+      // And because we do not want external cancel request to get lost, check
+      // immediately and inform DTR generator immediately (so it does not hold job).
+      if(job_cancel_mark_check(i->job_id,config)) dtr_generator.cancelJob(i);
+      // Please note job is not canceled here. But cancel mark will be picked up later.
+      return false;
     };
-  };
-  if(!i) return false;
-  if(!RequestAttention(i)) {
-    // Request by id most probably means there is somethng external pending.
-    // And because we do not want external cancel request to get lost, check
-    // immediately and inform DTR generator immediately (so it does not hold job).
-    if(job_cancel_mark_check(i->job_id,config)) dtr_generator.cancelJob(i);
-    // Please note job is not canceled here. But cancel mark will be picked up later.
-    return false;
   };
   return true;
 }
@@ -454,8 +463,37 @@ bool JobsList::GetLocalDescription(GMJobRef i) const {
 }
 
 void JobsList::CleanChildProcess(GMJobRef i) {
-  delete i->child; i->child=NULL;
-  if((i->job_state == JOB_STATE_SUBMITTING) || (i->job_state == JOB_STATE_CANCELING)) --jobs_scripts;
+  if(i->child) {
+    delete i->child; i->child=NULL;
+    if((i->job_state == JOB_STATE_SUBMITTING) || (i->job_state == JOB_STATE_CANCELING)) --jobs_scripts;
+  }
+}
+
+bool JobsList::state_submitting_success(GMJobRef i,bool &state_changed,std::string local_id) {
+  CleanChildProcess(i);
+  if(local_id.empty()) {
+    local_id=job_desc_handler.get_local_id(i->job_id);
+    if(local_id.empty()) {
+      logger.msg(Arc::ERROR,"%s: Failed obtaining lrms id",i->job_id);
+      i->AddFailure("Failed extracting LRMS ID due to some internal error");
+      JobFailStateRemember(i,JOB_STATE_SUBMITTING);
+      return false;
+    }
+  }
+  // put id into local information file
+  if(!GetLocalDescription(i)) {
+    i->AddFailure("Internal error");
+    return false;
+  }
+  i->local->localid=local_id;
+  if(!job_local_write_file(*i,config,*(i->local))) {
+    i->AddFailure("Internal error");
+    logger.msg(Arc::ERROR,"%s: Failed writing local information: %s",i->job_id,Arc::StrError(errno));
+    return false;
+  }
+  // move to next state
+  state_changed=true;
+  return true;
 }
 
 bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
@@ -467,8 +505,14 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
       // returning true but not advancing to next state should cause retry
       return true;
     }
+    // Just in case we are recovering from restart or failure check if we already have 
+    // LRMS id (previously run submission script succeeded).
+    std::string local_id=job_desc_handler.get_local_id(i->job_id);
+    if(!local_id.empty()) {
+      // Have local id - skip running submition script
+      return state_submitting_success(i,state_changed,local_id);
+    }
     // write grami file for submit-X-job
-    // TODO: read existing grami file to check if job is already submitted
     if(!(i->GetLocalDescription(config))) {
       logger.msg(Arc::ERROR,"%s: Failed reading local information",i->job_id);
       i->AddFailure("Internal error: can't read local file");
@@ -500,12 +544,11 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
     ++jobs_scripts;
     if((config.MaxScripts()!=-1) && (jobs_scripts>=config.MaxScripts())) {
       logger.msg(Arc::WARNING,"%s: LRMS scripts limit of %u is reached - suspending submit/cancel",
-                           i->job_id,config.MaxScripts());
+                              i->job_id,config.MaxScripts());
     }
     return true;
   }
   // child was run - check if exited and then exit code
-  bool simulate_success = false;
   if(i->child->Running()) {
     // child is running - come later
     // Due to unknown reason sometimes child exit event is lost.
@@ -515,12 +558,12 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
     if((Arc::Time() - i->child->RunTime()) > Arc::Period(CHILD_RUN_TIME_SUSPICIOUS)) {
       // Check if local id is already obtained
       std::string local_id=job_desc_handler.get_local_id(i->job_id);
-      if(local_id.length() > 0) {
-        simulate_success = true;
+      if(!local_id.empty()) {
         logger.msg(Arc::ERROR,"%s: Job submission to LRMS takes too long, but ID is already obtained. Pretending submission is done.",i->job_id);
+        return state_submitting_success(i,state_changed,local_id);
       }
     }
-    if((!simulate_success) && (Arc::Time() - i->child->RunTime()) > Arc::Period(CHILD_RUN_TIME_TOO_LONG)) {
+    if((Arc::Time() - i->child->RunTime()) > Arc::Period(CHILD_RUN_TIME_TOO_LONG)) {
       // In any case it is way too long. Job must fail. Otherwise it will hang forever.
       CleanChildProcess(i);
       logger.msg(Arc::ERROR,"%s: Job submission to LRMS takes too long. Failing.",i->job_id);
@@ -529,43 +572,40 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
       // It would be nice to cancel if job finally submits. But we do not know id.
       return false;
     }
-    if(!simulate_success) return true;
+    return true;
   }
-  if(!simulate_success) {
-    // real processing
-    logger.msg(Arc::INFO,"%s: state SUBMIT: child exited with code %i",i->job_id,i->child->Result());
-    // Another workaround in Run class may also detect lost child.
-    // It then sets exit code to -1. This value is also set in
-    // case child was killed. So it is worth to check grami anyway.
-    if((i->child->Result() != 0) && (i->child->Result() != -1)) {
-      logger.msg(Arc::ERROR,"%s: Job submission to LRMS failed",i->job_id);
-      JobFailStateRemember(i,JOB_STATE_SUBMITTING);
+  // real processing
+  logger.msg(Arc::INFO,"%s: state SUBMIT: child exited with code %i",i->job_id,i->child->Result());
+  // Another workaround in Run class may also detect lost child.
+  // It then sets exit code to -1. This value is also set in
+  // case child was killed. So it is worth to check grami anyway.
+  if((i->child->Result() != 0) && (i->child->Result() != -1)) {
+    logger.msg(Arc::ERROR,"%s: Job submission to LRMS failed",i->job_id);
+    JobFailStateRemember(i,JOB_STATE_SUBMITTING);
+    CleanChildProcess(i);
+    i->AddFailure("Job submission to LRMS failed");
+    return false;
+  }
+  // success code - process LRMS job id
+  return state_submitting_success(i,state_changed,"");
+}
+
+bool JobsList::state_canceling_success(GMJobRef i,bool &state_changed) {
+  // job diagnostics collection done in background (scan-*-job script)
+  if(!job_lrms_mark_check(i->job_id,config)) {
+    // job diag not yet collected - come later
+    if((i->child->ExitTime() != Arc::Time::UNDEFINED) &&
+       ((Arc::Time() - i->child->ExitTime()) > Arc::Period(Arc::Time::HOUR))) {
+      // it takes too long
+      logger.msg(Arc::ERROR,"%s: state CANCELING: timeout waiting for cancellation",i->job_id);
       CleanChildProcess(i);
-      i->AddFailure("Job submission to LRMS failed");
       return false;
     }
+    return true;
   } else {
-    // Just pretend everything is alright
-  }
-  CleanChildProcess(i);
-  // success code - get LRMS job id
-  std::string local_id=job_desc_handler.get_local_id(i->job_id);
-  if(local_id.length() == 0) {
-    logger.msg(Arc::ERROR,"%s: Failed obtaining lrms id",i->job_id);
-    i->AddFailure("Failed extracting LRMS ID due to some internal error");
-    JobFailStateRemember(i,JOB_STATE_SUBMITTING);
-    return false;
-  }
-  // put id into local information file
-  if(!GetLocalDescription(i)) {
-    i->AddFailure("Internal error");
-    return false;
-  }
-  i->local->localid=local_id;
-  if(!job_local_write_file(*i,config,*(i->local))) {
-    i->AddFailure("Internal error");
-    logger.msg(Arc::ERROR,"%s: Failed writing local information: %s",i->job_id,Arc::StrError(errno));
-    return false;
+    logger.msg(Arc::INFO,"%s: state CANCELING: job diagnostics collected",i->job_id);
+    CleanChildProcess(i);
+    job_diagnostics_mark_move(*i,config);
   }
   // move to next state
   state_changed=true;
@@ -612,7 +652,6 @@ bool JobsList::state_canceling(GMJobRef i,bool &state_changed) {
     return true;
   }
   // child was run - check if exited
-  bool simulate_success = false;
   if(i->child->Running()) {
     // child is running - come later
     // Due to unknown reason sometimes child exit event is lost.
@@ -621,55 +660,34 @@ bool JobsList::state_canceling(GMJobRef i,bool &state_changed) {
     if((Arc::Time() - i->child->RunTime()) > Arc::Period(CHILD_RUN_TIME_SUSPICIOUS)) {
       // Check if diagnostics collection is done
       if(job_lrms_mark_check(i->job_id,config)) {
-        simulate_success = true;
         logger.msg(Arc::ERROR,"%s: Job cancellation takes too long, but diagnostic collection seems to be done. Pretending cancellation succeeded.",i->job_id);
+        return state_canceling_success(i,state_changed);
       }
     }
-    if((!simulate_success) && (Arc::Time() - i->child->RunTime()) > Arc::Period(CHILD_RUN_TIME_TOO_LONG)) {
+    if((Arc::Time() - i->child->RunTime()) > Arc::Period(CHILD_RUN_TIME_TOO_LONG)) {
       // In any case it is way too long. Job must fail. Otherwise it will hang forever.
       logger.msg(Arc::ERROR,"%s: Job cancellation takes too long. Failing.",i->job_id);
       CleanChildProcess(i);
       return false;
     }
-    if(!simulate_success) return true;
-  }
-  if(!simulate_success) {
-    // real processing
-    if((i->child->ExitTime() != Arc::Time::UNDEFINED) &&
-       ((Arc::Time() - i->child->ExitTime()) < (config.WakeupPeriod()*2))) {
-      // not ideal solution
-      logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i",i->job_id,i->child->Result());
-    }
-    // Another workaround in Run class may also detect lost child.
-    // It then sets exit code to -1. This value is also set in
-    // case child was killed. So it is worth to check grami anyway.
-    if((i->child->Result() != 0) && (i->child->Result() != -1)) {
-      logger.msg(Arc::ERROR,"%s: Failed to cancel running job",i->job_id);
-      CleanChildProcess(i);
-      return false;
-    }
-  } else {
-    // Just pretend everything is alright
-  }
-  // job diagnostics collection done in background (scan-*-job script)
-  if(!job_lrms_mark_check(i->job_id,config)) {
-    // job diag not yet collected - come later
-    if((i->child->ExitTime() != Arc::Time::UNDEFINED) &&
-       ((Arc::Time() - i->child->ExitTime()) > Arc::Period(Arc::Time::HOUR))) {
-      // it takes too long
-      logger.msg(Arc::ERROR,"%s: state CANCELING: timeout waiting for cancellation",i->job_id);
-      CleanChildProcess(i);
-      return false;
-    }
     return true;
-  } else {
-    logger.msg(Arc::INFO,"%s: state CANCELING: job diagnostics collected",i->job_id);
-    CleanChildProcess(i);
-    job_diagnostics_mark_move(*i,config);
   }
-  // move to next state
-  state_changed=true;
-  return true;
+  // real processing
+  if((i->child->ExitTime() != Arc::Time::UNDEFINED) &&
+     ((Arc::Time() - i->child->ExitTime()) < (config.WakeupPeriod()*2))) {
+    // not ideal solution
+    logger.msg(Arc::INFO,"%s: state CANCELING: child exited with code %i",i->job_id,i->child->Result());
+  }
+  // Another workaround in Run class may also detect lost child.
+  // It then sets exit code to -1. This value is also set in
+  // case child was killed. So it is worth to check grami anyway.
+  if((i->child->Result() != 0) && (i->child->Result() != -1)) {
+    logger.msg(Arc::ERROR,"%s: Failed to cancel running job",i->job_id);
+    CleanChildProcess(i);
+    return false;
+  }
+
+  return state_canceling_success(i,state_changed);
 }
 
 bool JobsList::state_loading(GMJobRef i,bool &state_changed,bool up) {
@@ -1151,6 +1169,7 @@ JobsList::ActJobResult JobsList::ActJobFinished(GMJobRef i) {
     logger.msg(Arc::INFO,"%s: Job is requested to clean - deleting",i->job_id);
     UnlockDelegation(i);
     // delete everything
+    SetJobState(i, JOB_STATE_UNDEFINED, "Request to clean job");
     job_clean_final(*i,config);
     return JobDropped;
   }
@@ -1233,10 +1252,10 @@ JobsList::ActJobResult JobsList::ActJobFinished(GMJobRef i) {
       job_clean_deleted(*i,config,cache_per_job_dirs);
       SetJobState(i, JOB_STATE_DELETED, "Job stayed unattended too long");
       RequestSlowPolling(i);
-      // DELETED jobs not kept in memory. So it is not important if return is Success or Dropped
-      return JobDropped;
+      return JobSuccess;
     } else {
       // delete everything
+      SetJobState(i, JOB_STATE_UNDEFINED, "Job stayed unattended too long");
       job_clean_final(*i,config);
       return JobDropped;
     }
@@ -1255,6 +1274,7 @@ JobsList::ActJobResult JobsList::ActJobDeleted(GMJobRef i) {
     logger.msg(Arc::INFO,"%s: Job is ancient - delete rest of information",i->job_id);
     UnlockDelegation(i); // not needed here but in case someting went wrong previously
     // delete everything
+    SetJobState(i, JOB_STATE_UNDEFINED, "Job stayed deleted too long");
     job_clean_final(*i,config);
     return JobDropped;
   }
@@ -1435,7 +1455,7 @@ bool JobsList::ActJob(GMJobRef& i) {
   // Process state changes, also those generated by error processing
   if(old_reported_state != i->job_state) {
     if(old_reported_state != JOB_STATE_UNDEFINED) {
-      // Report state change into log
+      // Report state change into log. But not if job just picked up.
       logger.msg(Arc::INFO,"%s: State: %s from %s",
             i->job_id.c_str(),GMJob::get_state_name(i->job_state),
             GMJob::get_state_name(old_reported_state));
@@ -1443,8 +1463,10 @@ bool JobsList::ActJob(GMJobRef& i) {
     old_reported_state=i->job_state;
   };
 
+  if (job_result != JobDropped) {
+
   if(old_state != i->job_state) {
-    // Job changed state
+    // Job changed state. Skip state change processing if job is about to be dropped.
     if(!job_state_write_file(*i,config,i->job_state,i->job_pending)) {
       i->AddFailure("Failed writing job status: "+Arc::StrError(errno));
       job_result = ActJobFailed(i); // immedaitely process failure
@@ -1506,6 +1528,9 @@ bool JobsList::ActJob(GMJobRef& i) {
       job_result = ActJobFailed(i); // immedaitely process failure
     }
   };
+
+  }; // !JobDropped
+
 
   if(job_result == JobFailed) {
     // If it is still job failed then just force everything down
@@ -1621,7 +1646,7 @@ bool JobsList::RestartJobs(void) {
   return res1 && res2;
 }
 
-bool JobsList::ScanJob(const std::string& cdir, JobFDesc& id) {
+bool JobsList::ScanJobDesc(const std::string& cdir, JobFDesc& id) {
   if(!FindJob(id.id)) {
     std::string fname=cdir+'/'+id.id+"."+sfx_status;
     uid_t uid;
@@ -1635,7 +1660,7 @@ bool JobsList::ScanJob(const std::string& cdir, JobFDesc& id) {
   return false;
 }
 
-bool JobsList::ScanJobs(const std::string& cdir,std::list<JobFDesc>& ids) const {
+bool JobsList::ScanJobDescs(const std::string& cdir,std::list<JobFDesc>& ids) const {
   class JobFilterSkipExisting: public JobFilter {
   public:
     JobFilterSkipExisting(JobsList const& jobs): jobs_(jobs) {};
@@ -1729,8 +1754,8 @@ bool JobsList::ScanNewJob(const JobId& id) {
     JobFDesc fid(id);
     std::string cdir=config.ControlDir();
     std::string ndir=cdir+"/"+subdir_new;
-    if(!ScanJob(ndir,fid)) return false;
-    return AddJobNoCheck(fid.id,fid.uid,fid.gid);
+    if(!ScanJobDesc(ndir,fid)) return false;
+    return AddJob(fid.id,fid.uid,fid.gid,"scan for specific new job");
   }
   return false;
 }
@@ -1739,10 +1764,10 @@ bool JobsList::ScanOldJob(const JobId& id) {
   JobFDesc fid(id);
   std::string cdir=config.ControlDir();
   std::string ndir=cdir+"/"+subdir_old;
-  if(!ScanJob(ndir,fid)) return false;
+  if(!ScanJobDesc(ndir,fid)) return false;
   job_state_t st = job_state_read_file(id,config);
   if(st == JOB_STATE_FINISHED || st == JOB_STATE_DELETED) {
-    return AddJobNoCheck(fid.id,fid.uid,fid.gid,st);
+    return AddJob(fid.id,fid.uid,fid.gid,st,"scan for specific old job");
   };
   return false;
 }
@@ -1757,25 +1782,25 @@ bool JobsList::ScanNewJobs(void) {
     std::list<JobFDesc> ids;
     // For picking up jobs after service restart
     std::string odir=cdir+"/"+subdir_rew;
-    if(!ScanJobs(odir,ids)) return false;
+    if(!ScanJobDescs(odir,ids)) return false;
     // sorting by date
     ids.sort();
     for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
       if((config.MaxJobs() != -1) && (AcceptedJobs() >= config.MaxJobs())) break;
-      AddJobNoCheck(id->id,id->uid,id->gid);
+      AddJob(id->id,id->uid,id->gid,"scan for new jobs in restarting");
     };
   };
   if((config.MaxJobs() == -1) || (AcceptedJobs() < config.MaxJobs())) {
     std::list<JobFDesc> ids;
     // For new jobs
     std::string ndir=cdir+"/"+subdir_new;
-    if(!ScanJobs(ndir,ids)) return false;
+    if(!ScanJobDescs(ndir,ids)) return false;
     // sorting by date
     ids.sort();
     for(std::list<JobFDesc>::iterator id=ids.begin();id!=ids.end();++id) {
       if((config.MaxJobs() != -1) && (AcceptedJobs() >= config.MaxJobs())) break;
       // adding job with file's uid/gid
-      AddJobNoCheck(id->id,id->uid,id->gid);
+      AddJob(id->id,id->uid,id->gid,"scan for new jobs in new");
     };
   };
   perfrecord.End("SCAN-JOBS-NEW");
@@ -1808,7 +1833,7 @@ bool JobsList::ScanNewMarks(void) {
     // Check if such job finished and add it to list.
     if(st == JOB_STATE_FINISHED) {
       // That will activate its processing at least for one step.
-      AddJobNoCheck(id->id,id->uid,id->gid,st);
+      AddJob(id->id,id->uid,id->gid,st,"scan for new jobs in marks");
     }
   }
 

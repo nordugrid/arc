@@ -861,7 +861,8 @@ sub check_certificates() {
 
 }
 
-
+# Add this warning when A-REX is enforcing new validator
+# w("*** This tool is DEPRECATED and will be REMOVED in a future ARC release. Please use 'arcctl config verify' instead. ***\n");
 timecheck($timeserver, 60, 0.01);
 confcheck($conffile);
 check_applications();

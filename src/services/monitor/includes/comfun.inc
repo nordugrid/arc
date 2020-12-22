@@ -12,7 +12,11 @@
  */
 function ldap_entry_comp($a, $b)
 {
-  return strcasecmp ($a[CMPKEY][0],$b[CMPKEY][0]);
+  if ( !empty($a[CMPKEY][0]) && !empty( $b[CMPKEY][0]) ) {
+    return strcasecmp ($a[CMPKEY][0],$b[CMPKEY][0]);
+  } else {
+    return 0;
+  }  
 }
 
 /**
@@ -34,11 +38,15 @@ function dncmp($a, $b)
  */
 function quetcmp ($a, $b) 
 {
-  $tm1 = ($a[CMPKEY][0])?$a[CMPKEY][0]:999999;
-  $tm2 = ($b[CMPKEY][0])?$b[CMPKEY][0]:999999;
   if (gettype($a) != "array") return -1;
   if (gettype($b) != "array") return 1;
-  return $tm1-$tm2;
+  if ( !empty($a[CMPKEY][0]) && !empty( $b[CMPKEY][0]) ) {
+    $tm1 = ($a[CMPKEY][0])?$a[CMPKEY][0]:999999;
+    $tm2 = ($b[CMPKEY][0])?$b[CMPKEY][0]:999999;
+    return $tm1-$tm2;
+  } else {
+    return 0;
+  }
 }
 
 /**

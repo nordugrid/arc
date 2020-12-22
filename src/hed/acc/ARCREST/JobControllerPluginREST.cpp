@@ -18,6 +18,7 @@
 #include <arc/communication/ClientInterface.h>
 #include <arc/delegation/DelegationInterface.h>
 
+#include "SubmitterPluginREST.h"
 #include "JobControllerPluginREST.h"
 
 namespace Arc {
@@ -29,55 +30,6 @@ namespace Arc {
     JobStateARCREST(const std::string& state): JobState(state, &StateMap) {}
     static JobState::StateType StateMap(const std::string& state);
   };
-
-  bool JobControllerPluginREST::GetDelegation(Arc::URL url, std::string& delegationId) const {
-/*
-    std::string delegationRequest;
-    Arc::MCCConfig cfg;
-    usercfg->ApplyToConfig(cfg);
-    std::string delegationPath = url.Path();
-    if(!delegationId.empty()) delegationPath = delegationPath+"/"+delegationId;
-    Arc::ClientHTTP client(cfg, url);
-    {
-      Arc::PayloadRaw request;
-      Arc::PayloadRawInterface* response(NULL);
-      Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("GET"), delegationPath, &request, &info, &response);
-      if((!res) || (info.code != 200) || (info.reason.empty()) || (!response)) {
-        delete response;
-        return false;
-      }
-      delegationId = info.reason;
-      for(unsigned int n = 0;response->Buffer(n);++n) {
-        delegationRequest.append(response->Buffer(n),response->BufferSize(n));
-      }
-      delete response;
-    }
-    {
-      DelegationProvider* deleg(NULL);
-      if (!cfg.credential.empty()) {
-        deleg = new DelegationProvider(cfg.credential);
-      }
-      else {
-        const std::string& cert = (!cfg.proxy.empty() ? cfg.proxy : cfg.cert);
-        const std::string& key  = (!cfg.proxy.empty() ? cfg.proxy : cfg.key);
-        if (key.empty() || cert.empty()) return false;
-        deleg = new DelegationProvider(cert, key);
-      }
-      std::string delegationResponse = deleg->Delegate(delegationRequest);
-      delete deleg;
-
-      Arc::PayloadRaw request;
-      request.Insert(delegationResponse.c_str(),0,delegationResponse.length());
-      Arc::PayloadRawInterface* response(NULL);
-      Arc::HTTPClientInfo info;
-      Arc::MCC_Status res = client.process(std::string("PUT"), url.Path()+"/"+delegationId, &request, &info, &response);
-      delete response;
-      if((!res) || (info.code != 200) || (!response)) return false;
-    }
-*/
-    return true;
-  }
 
   JobState::StateType JobStateARCREST::StateMap(const std::string& state) {
     if (state == "ACCEPTING")
@@ -144,6 +96,12 @@ namespace Arc {
             if(pos != std::string::npos) id.erase(0,pos+1);
             if(job_id == id) {
               (*itJob)->State = JobStateARCREST(job_state);
+              // (*itJob)->RestartState = ;
+              // (*itJob)->StageInDir = (std::string)aid["esainfo:StageInDirectory"];
+              // (*itJob)->StageOutDir = (std::string)aid["esainfo:StageInDirectory"];
+              // (*itJob)->SessionDir = (std::string)aid["esainfo:StageInDirectory"];
+              // (*itJob)->DelegationID.push_back ;
+              // (*itJob)->JobID = ;
               break;
             }
           }
@@ -154,13 +112,14 @@ namespace Arc {
       std::list<Job*>& jobs;
     };
 
-    JobStateProcessor infoNodeProcessor(jobs);
+    JobStateProcessor stateProcessor(jobs);
     Arc::URL currentServiceUrl;
     std::list<std::string> IDs;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
         if(!IDs.empty()) {
-          ProcessJobs(currentServiceUrl, "status", 200, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor);
+          std::list<std::string> fakeIDs = IDs;
+          ProcessJobs(usercfg, currentServiceUrl, "status", 200, IDs, IDsProcessed, IDsNotProcessed, stateProcessor);
         }
         currentServiceUrl = GetAddressOfResource(**it);
       }
@@ -168,7 +127,8 @@ namespace Arc {
       IDs.push_back((*it)->JobID);
     }
     if(!IDs.empty()) {
-      ProcessJobs(currentServiceUrl, "status", 200, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor);
+      std::list<std::string> fakeIDs = IDs;
+      ProcessJobs(usercfg, currentServiceUrl, "status", 200, IDs, IDsProcessed, IDsNotProcessed, stateProcessor);
     }
   }
 
@@ -181,7 +141,7 @@ namespace Arc {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
         if(!IDs.empty()) {
-          if (!ProcessJobs(currentServiceUrl, "clean", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor))
+          if (!ProcessJobs(usercfg, currentServiceUrl, "clean", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor))
             ok = false;
         }
         currentServiceUrl = GetAddressOfResource(**it);
@@ -190,7 +150,7 @@ namespace Arc {
       IDs.push_back((*it)->JobID);
     }
     if(!IDs.empty()) {
-      if (!ProcessJobs(currentServiceUrl, "clean", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
+      if (!ProcessJobs(usercfg, currentServiceUrl, "clean", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
         ok = false;
       }
     }
@@ -207,7 +167,7 @@ namespace Arc {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
         if(!IDs.empty()) {
-          if (!ProcessJobs(currentServiceUrl, "kill", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor))
+          if (!ProcessJobs(usercfg, currentServiceUrl, "kill", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor))
             ok = false;
         }
         currentServiceUrl = GetAddressOfResource(**it);
@@ -216,7 +176,7 @@ namespace Arc {
       IDs.push_back((*it)->JobID);
     }
     if(!IDs.empty()) {
-      if (!ProcessJobs(currentServiceUrl, "kill", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
+      if (!ProcessJobs(usercfg, currentServiceUrl, "kill", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
         ok = false;
       }
     }
@@ -226,10 +186,9 @@ namespace Arc {
 
   bool JobControllerPluginREST::RenewJobs(const std::list<Job*>& jobs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed, bool isGrouped) const {
     bool ok = true;
-/*
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Arc::URL delegationUrl(GetAddressOfResource(**it));
-      delegationUrl.ChangePath(delegationUrl.Path()+DelegPrefix);
+      delegationUrl.ChangePath(delegationUrl.Path()+"/rest/1.0/delegations");
       // 1. Fetch/find delegation ids for each job
       if((*it)->DelegationID.empty()) {
         logger.msg(INFO, "Job %s has no delegation associated. Can't renew such job.", (*it)->JobID);
@@ -243,7 +202,7 @@ namespace Arc {
       for(;did != (*it)->DelegationID.end();++did) {
         std::string delegationId(*did);
         if(!delegationId.empty()) {
-          if(!GetDelegation(delegationUrl, delegationId)) {
+          if(!SubmitterPluginREST::GetDelegation(*usercfg, delegationUrl, delegationId)) {
             logger.msg(INFO, "Job %s failed to renew delegation %s.", (*it)->JobID, *did);
             break;
           }
@@ -256,8 +215,6 @@ namespace Arc {
       }
       IDsProcessed.push_back((*it)->JobID);
     }
-*/
-    ok = false; // not implemented yet
     return ok;
   }
 
@@ -270,7 +227,7 @@ namespace Arc {
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
         if(!IDs.empty()) {
-          if (!ProcessJobs(currentServiceUrl, "restart", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
+          if (!ProcessJobs(usercfg, currentServiceUrl, "restart", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
             ok = false;
           }
         }
@@ -280,7 +237,7 @@ namespace Arc {
       IDs.push_back((*it)->JobID);
     }
     if(!IDs.empty()) {
-      if (!ProcessJobs(currentServiceUrl, "restart", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
+      if (!ProcessJobs(usercfg, currentServiceUrl, "restart", 202, IDs, IDsProcessed, IDsNotProcessed, infoNodeProcessor)) {
         ok = false;
       }
     }
@@ -288,9 +245,9 @@ namespace Arc {
     return ok;
   }
 
-  bool JobControllerPluginREST::ProcessJobs(Arc::URL const & resourceUrl, std::string const & action, int successCode,
+  bool JobControllerPluginREST::ProcessJobs(const UserConfig* usercfg, Arc::URL const & resourceUrl, std::string const & action, int successCode,
           std::list<std::string>& IDs, std::list<std::string>& IDsProcessed, std::list<std::string>& IDsNotProcessed,
-          InfoNodeProcessor& infoNodeProcessor) const {
+          InfoNodeProcessor& infoNodeProcessor) {
     Arc::URL statusUrl(resourceUrl);
     statusUrl.ChangePath(statusUrl.Path()+"/rest/1.0/jobs");
     statusUrl.AddHTTPOption("action",action);
@@ -319,7 +276,7 @@ namespace Arc {
     Arc::MCC_Status res = client.process(std::string("POST"), attributes, &request, &info, &response);
     if((!res) || (info.code != 201)) {
       logger.msg(WARNING, "Failed to process jobs - wrong response: %u", info.code);
-      if(response) logger.msg(DEBUG, "Content: %s", response->Content());
+      if(response && response->Content()) logger.msg(DEBUG, "Content: %s", response->Content());
       delete response; response = NULL;
       for (std::list<std::string>::const_iterator it = IDs.begin(); it != IDs.end(); ++it) {
         logger.msg(WARNING, "Failed to process job: %s", *it);
@@ -328,8 +285,8 @@ namespace Arc {
       return false;
     }
 
-    logger.msg(DEBUG, "Content: %s", response->Content());
-    Arc::XMLNode jobs_list(response->Content());
+    if(response->Content()) logger.msg(DEBUG, "Content: %s", response->Content());
+    Arc::XMLNode jobs_list(response->Content()?response->Content():"");
     delete response; response = NULL;
     if(!jobs_list || (jobs_list.Name() != "jobs")) {
       logger.msg(WARNING, "Failed to process jobs - failed to parse response");

@@ -20,6 +20,7 @@ function ldap_nice_dump() {
 
   $tlim = 10;
   $tout = 11;
+  $exclude = array();
 
   $strings = func_get_arg(0);
   $ds      = func_get_arg(1);
@@ -44,7 +45,7 @@ function ldap_nice_dump() {
           $filstr = "(|(objectClass=".GOBJ_AJOB."))";
       }
   }
-  $sr     = @ldap_search($ds,$dn,$filstr,array("*"),0,0,$tlim,LDAP_DEREF_NEVER);
+  $sr     = ldap_search($ds,$dn,$filstr,array("*"),0,0,$tlim,LDAP_DEREF_NEVER);
 
   if ($sr) {
     
@@ -79,48 +80,48 @@ function ldap_nice_dump() {
       
         for ($i=0; $i<$nfields; $i++) {
           $curatt = $entries[$i];
-	  if ( $exclude && in_array($curatt,$exclude) ) continue;
+          if ( $exclude && in_array($curatt,$exclude) ) continue;
           $engatt = ($isattr[$curatt]) ? $isattr[$curatt] : $curatt;
           $nval   = $entries[$curatt]["count"];
         
-	  $encatt = rawurlencode($curatt);
-	  $attwin = popup("attlist.php?attribute=$encatt",650,300,7);
+          $encatt = rawurlencode($curatt);
+          $attwin = popup("attlist.php?attribute=$encatt",650,300,7);
 
-	  $attstring   = @( $mdsattr[$curatt] ) ? "<b>$engatt</b>" : "<a href=\"$attwin\"><b>$engatt</b></a>";
+          $attstring   = @( $mdsattr[$curatt] ) ? "<b>$engatt</b>" : "<a href=\"$attwin\"><b>$engatt</b></a>";
           $drowcont[0] = $attstring;
           $drowcont[1] = "&nbsp;";
         
           if ($nval==0) $dtable->addrow($drowcont);
         
-	  $drowcont[1] = "";
-	  if ( $nval > 4 ) $drowcont[1] = $fhead;
-	  for ($k=0; $k<$nval; $k++) {
-	    $curval = $entries[$curatt][$k];
+          $drowcont[1] = "";
+          if ( $nval > 4 ) $drowcont[1] = $fhead;
+          for ($k=0; $k<$nval; $k++) {
+            $curval = $entries[$curatt][$k];
 
-	    // Strip HTML tags some smart folks are adding
-	    $curval = strip_tags($curval);
+            // Strip HTML tags some smart folks are adding
+            $curval = strip_tags($curval);
 	  
-	    // Some time-stamp readability adjustment
-	    if ( strlen($curval) == 15 && $curval{14} == "Z" ) $curval=cnvtime($curval);
+            // Some time-stamp readability adjustment
+            if ( strlen($curval) == 15 && $curval[14] == "Z" ) $curval=cnvtime($curval);
 	  
-	    $encval = htmlspecialchars($curval,ENT_QUOTES,"UTF-8");
+            $encval = htmlspecialchars($curval,ENT_QUOTES,"UTF-8");
 
-	    // E-mail masquerading for short lists (dunno what to do with long lists)
-	    if (strpos($curval,"@",1) && $nval<5) {
-	      $m = mylo ($curval);
-	      if ( $m[0] ) $encval = "<script type='text/javascript'>mylo('".$m[0]."','".$m[1]."','".$m[2]."','".$m[3]."')</script><noscript>JS disabled</noscript>";
-	    }
+            // E-mail masquerading for short lists (dunno what to do with long lists)
+            if (strpos($curval,"@",1) && $nval<5) {
+              $m = mylo ($curval);
+              if ( !empty($m[0]) ) $encval = "<script type='text/javascript'>mylo('".$m[0]."','".$m[1]."','".$m[2]."','".$m[3]."')</script><noscript>JS disabled</noscript>";
+            }
 
-	    if ( $nval > 4 ) {
-	      $drowcont[1] .= "$encval";
-	      if ( $k < $nval-1 ) $drowcont[1] .= "\n";
-	    } else {
-	      $drowcont[1] .= $encval;
-	      if ( $k < $nval-1 ) $drowcont[1] .= "<br>&nbsp;";
-	    }
-	  }
-	  if ( $nval > 4 ) $drowcont[1] .= $ftail;
-	  $dtable->addrow($drowcont);
+            if ( $nval > 4 ) {
+              $drowcont[1] .= "$encval";
+              if ( $k < $nval-1 ) $drowcont[1] .= "\n";
+            } else {
+              $drowcont[1] .= $encval;
+              if ( $k < $nval-1 ) $drowcont[1] .= "<br>&nbsp;";
+            }
+          }
+          if ( $nval > 4 ) $drowcont[1] .= $ftail;
+          $dtable->addrow($drowcont);
         }
         $dtable->close();
         echo "<br>";

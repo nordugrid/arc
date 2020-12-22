@@ -12,7 +12,7 @@
  * an HTML table, containing the full resource info
  */
 
-set_include_path(get_include_path().":".getcwd()."/includes".":".getcwd()."/lang");
+set_include_path(get_include_path().":".getcwd()."/includes".":".getcwd()."/lang"); 
 
 require_once('headfoot.inc');
 require_once('lmtable.inc');
@@ -23,7 +23,7 @@ require_once('ldap_nice_dump.inc');
 
 // getting parameters
 
-$host   = @( $_GET["host"] )   ? $_GET["host"]   : "quark.hep.lu.se";
+$host   = @( $_GET["host"] )   ? $_GET["host"]   : "pikolit.ijs.si";
 $port   = @( $_GET["port"] )   ? $_GET["port"]   : 2135;
 $isse   = @( $_GET["isse"] )   ? $_GET["isse"]   : 0;
 $schema = @( $_GET["schema"] ) ? $_GET["schema"] : "NG";
@@ -75,8 +75,10 @@ if( $debug ) dbgmsg("<div align=\"left\"><i>:::&gt; ".$errors["101"].$tlim.$erro
 // establish connection to the requested LDAP server
 
 $chost = $host;
-if ( $isse ) $chost=substr(strstr($host,":"),1);   
-$ds = ldap_connect($chost,$port);
+if ( $isse ) $chost=substr(strstr($host,":"),1);
+$ldapuri = "ldap://".$chost.":".$port;
+$ds = ldap_connect($ldapuri);
+
 if ($ds) {
      
   // If contact OK, search for clusters
@@ -167,7 +169,7 @@ if ($ds) {
 	// filling the table
 
 	$qrowcont[] = "<a href=\"$quewin\">$qname</a>";
-        if ( $mapque ) {
+        if ( !empty($mapque) ) {
           $qrowcont[] = "$mapque";
         }
 	$qrowcont[] = "$qstatus";

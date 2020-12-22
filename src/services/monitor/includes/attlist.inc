@@ -5,6 +5,7 @@ require_once('cnvtime.inc');
 require_once('comfun.inc');
 require_once('toreload.inc');
 require_once('recursive_giis_info.inc');
+require_once('archery.inc');
 require('ldap_purge.inc');
 
 /**
@@ -15,7 +16,7 @@ require('ldap_purge.inc');
  * @param strings array
  * @desc Retrieves the list of objects satisfying attr1ibute/filter selection criteria
  */
-function do_attlist ($thething,$attributes,$signs,$filters,$strings,$giislist)
+function do_attlist ($thething,$attributes,$signs,$filters,$strings,$giislist,$archery_list)
 {
   $errors = &$strings["errors"];
   $isattr = &$strings["isattr"];
@@ -24,7 +25,7 @@ function do_attlist ($thething,$attributes,$signs,$filters,$strings,$giislist)
 
   // Header table
   
-  LmDoc::tabletop("",TOPTIT);
+  (new LmDoc)->tabletop("",TOPTIT);
   
   $tlim = 20;
   $tout = 20;
@@ -72,8 +73,12 @@ function do_attlist ($thething,$attributes,$signs,$filters,$strings,$giislist)
   }
   $filter .= ")";
 
-  $gentries = recursive_giis_info($giislist,$thething,$errors,0);
-  $nc       = count($gentries);
+  if ( ! empty($giislist) )     {
+    $gentries = recursive_giis_info($giislist,$thething,$errors,0,1);
+    $nc       = count($gentries);
+  }
+  // TODO: fix for GLUE2 schema
+  if ( ! empty($archery_list) ) $gentries = array_merge($gentries, archery_info($archery_list, "NG", $errors, 0));
 
   if ( !$nc ) {
     $errno = 1;
@@ -89,8 +94,9 @@ function do_attlist ($thething,$attributes,$signs,$filters,$strings,$giislist)
   for ( $k = 0; $k < $nc; $k++ ) {
     $clhost = $gentries[$k]["host"];
     $clport = $gentries[$k]["port"];
+    $ldapuri = "ldap://".$clhost.":".$clport;
 
-    $clconn = ldap_connect($clhost,$clport);
+    $clconn = ldap_connect($ldapuri);
     if ( $clconn && !$sitetag[$clhost] ) {
       array_push($dsarray,$clconn);
       array_push($pnarray,$clport);

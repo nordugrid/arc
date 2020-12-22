@@ -172,11 +172,11 @@ override_dh_auto_install:
 
 override_dh_install:
 	dh_install -p libarccommon3 \
-	  debian/tmp/usr/lib/python$(PYVER).?/site-packages/arc/__init__.py\*
+	  debian/tmp/usr/lib/python$(PYVER).*/site-packages/arc/__init__.py\*
 	if [ $(PYVER) -eq 2 ] ; then \
 	  dh_install -p python3-nordugrid-arc \
-	    debian/tmp/usr/lib/python3.?/site-packages/arc/__init__.py\* ; fi
-	rm debian/tmp/usr/lib/python?.?/site-packages/arc/__init__.py*
+	    debian/tmp/usr/lib/python3.*/site-packages/arc/__init__.py\* ; fi
+	rm debian/tmp/usr/lib/python?.*/site-packages/arc/__init__.py*
 	dh_install --remaining-packages --fail-missing
 
 override_dh_installinit:

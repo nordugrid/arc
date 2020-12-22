@@ -158,7 +158,7 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
   if ( ! empty($giislist) )     {
       $ngiis    = count($giislist);
       $ts1      = time();
-      $gentries = recursive_giis_info($giislist,"cluster",$errors,$debug);
+      $gentries = recursive_giis_info($giislist,"cluster",$errors,$debug,1);
       $ts2      = time();
       if($debug) dbgmsg("<br><b>".$errors["106"].$ngiis." (".($ts2-$ts1).$errors["104"].")</b><br>");
   }
@@ -196,7 +196,8 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
     $clport = $gentries[$k]["port"];
     $basedn = $gentries[$k]["base"];
     $fp = @fsockopen($clhost, $clport, $errno, $errstr, 2);
-    $clconn = ldap_connect($clhost,$clport);
+    $ldapuri = "ldap://".$clhost.":".$clport;
+    $clconn = ldap_connect($ldapuri);
     if ( $fp && $clconn && !@$sitetag[$clhost] ) {
       fclose($fp);
       array_push($dsarray,$clconn);
@@ -377,7 +378,9 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
 	  
 	    // Country name massaging
 	  
-	    $vo = guess_country($curname,$entries[$i][CLU_ZIPC][0]);
+      $zip = "";
+	    if ( !empty($entries[$i][CLU_ZIPC][0]) ) $zip = $entries[$i][CLU_ZIPC][0];
+      $vo = guess_country($curname,$zip);
 	    if ($debug==2) dbgmsg("<i>$ids: <b>$curname</b>".$errors["112"]."$vo</i><br>");
 	    $vostring = $_SERVER['PHP_SELF']."?display=vo=$vo";
       if ( $lang != "default") $vostring .= "&lang=".$lang;

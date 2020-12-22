@@ -1,4 +1,4 @@
 debian/tmp/usr/share/arc/job_script.stubs
 debian/tmp/usr/share/arc/SLURMPYmod.pm
 debian/tmp/usr/lib/arc/arc-sshfs-mount
-debian/tmp/usr/lib/python?.?/site-packages/arc/lrms
+debian/tmp/usr/lib/python?.*/site-packages/arc/lrms

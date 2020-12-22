@@ -29,11 +29,11 @@ require_once('ldap_nice_dump.inc');
 
 // getting parameters
 
-$host   = ( $_GET["host"] )  ? $_GET["host"]  : "quark.hep.lu.se";
-$port   = ( $_GET["port"] )  ? $_GET["port"]  : 2135;
-$qname  = $_GET["qname"];
-$schema = ( $_GET["schema"] )  ? $_GET["schema"]  : "";
-$debug  = ( $_GET["debug"] ) ? $_GET["debug"] : 0;
+$host   = ( !empty($_GET["host"]) )  ? $_GET["host"]  : "nordugrid.unibe.ch";
+$port   = ( !empty($_GET["port"]) )  ? $_GET["port"]  : 2135;
+$qname  = ( !empty($_GET["qname"]) ) ? $_GET["qname"] : "all";
+$schema = ( !empty($_GET["schema"]) )  ? $_GET["schema"]  : "";
+$debug  = ( !empty($_GET["debug"]) ) ? $_GET["debug"] : 0;
 $lang   = @$_GET["lang"];
 if ( !$lang )    $lang    = "default"; // browser language
 define("FORCE_LANG",$lang);
@@ -78,7 +78,8 @@ if ( $schema == "GLUE2") {
   
 // Establish connection to the requested LDAP server
   
-$ds = ldap_connect($host,$port);
+$ldapuri = "ldap://".$host.":".$port;
+$ds = ldap_connect($ldapuri);
 if ($ds) {
     
   // If contact OK, search for NorduGrid clusters
@@ -176,11 +177,11 @@ if ($ds) {
           $family   = cnvname($uname, 2);
 
           $jname   = htmlentities($entries[$i][JOB_NAME][0]);
-          $jobname = ($entries[$i][JOB_NAME][0]) ? $jname : "<font color=\"red\">N/A</font>";
-          $time    = ($entries[$i][JOB_USET][0]) ? $entries[$i][JOB_USET][0] : "";
-          $memory  = ($entries[$i][JOB_USEM][0]) ? $entries[$i][JOB_USEM][0] : "";
-          $ncpus   = ($entries[$i][JOB_CPUS][0]) ? $entries[$i][JOB_CPUS][0] : "";
-          $error   = ($entries[$i][JOB_ERRS][0]);
+          $jobname = ( !empty($entries[$i][JOB_NAME][0]) ) ? $jname : "<font color=\"red\">N/A</font>";
+          $time    = ( !empty($entries[$i][JOB_USET][0]) ) ? $entries[$i][JOB_USET][0] : "";
+          $memory  = ( !empty($entries[$i][JOB_USEM][0]) ) ? $entries[$i][JOB_USEM][0] : "";
+          $ncpus   = ( !empty($entries[$i][JOB_CPUS][0]) ) ? $entries[$i][JOB_CPUS][0] : "";
+          $error   = ( !empty($entries[$i][JOB_ERRS][0]) );
           if ( $error ) $error = ( preg_match("/user/i",$error) ) ? "X" : "!";
           $status  = "All";
           $newwin  = popup("jobstat.php?host=$host&port=$port&status=$status&jobdn=$jobdn",750,430,4,$lang,$debug);

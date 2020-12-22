@@ -1,2 +1,2 @@
 debian/tmp/usr/share/arc/community_rtes.sh
-debian/tmp/usr/lib/python?.?/site-packages/arc/control/CommunityRTE.py*
+debian/tmp/usr/lib/python?.*/site-packages/arc/control/CommunityRTE.py*
