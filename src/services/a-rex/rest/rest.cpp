@@ -20,10 +20,9 @@
 #include "rest.h"
 
 namespace Arc {
-  template<class InputIterator, class UnaryPredicate>
-  InputIterator FindIf(InputIterator first, InputIterator last, UnaryPredicate pred) {
-    while (first!=last) {
-      if (pred(*first)) return first;
+  std::list< std::pair<std::string,int> >::iterator FindFirst(std::list< std::pair<std::string,int> >::iterator first, std::list< std::pair<std::string,int> >::iterator last, std::string const & str) {
+    while (first != last) {
+      if (first->first == str) return first;
       ++first;
     }
     return last;
@@ -55,18 +54,10 @@ static void RenderToJson(Arc::XMLNode xml, std::string& output, int depth = 0) {
     // in which elements appear.
     std::list< std::pair<std::string,int> > names;
     for(int n = 0; ; ++n) {
-        class MatchFirst {
-          public:
-            MatchFirst(std::string& str):str(str) {};
-            bool operator()(std::pair<std::string,int> const & item) { return str == item.first; };
-          private:
-            std::string& str;
-        };
-
         XMLNode child = xml.Child(n);
         if(!child) break;
         std::string name = child.Name();
-        std::list< std::pair<std::string,int> >::iterator nameIt = FindIf(names.begin(),names.end(),MatchFirst(name));
+        std::list< std::pair<std::string,int> >::iterator nameIt = FindFirst(names.begin(),names.end(),name);
         if(nameIt == names.end())
             names.push_back(std::make_pair(name,1));
         else
