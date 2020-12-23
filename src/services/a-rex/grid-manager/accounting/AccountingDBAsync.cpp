@@ -11,7 +11,7 @@ namespace ARex {
   class AccountingDBThread: public Arc::Thread {
    friend class AccountingDBAsync;
    public:
-    const int MaxQueueDepth = 10000;
+    static const std::size_t MaxQueueDepth = 10000;
 
     static AccountingDBThread& Instance();
     bool Push(AccountingDBAsync::Event* event);
