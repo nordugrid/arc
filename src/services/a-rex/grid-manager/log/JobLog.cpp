@@ -199,7 +199,7 @@ bool JobLog::WriteJobRecord(GMJob &job, const GMConfig& config) {
   timespec tend;
   clock_gettime(CLOCK_MONOTONIC, &tend);
   unsigned long long int dt = ((unsigned long long int)tend.tv_sec*1000 + tend.tv_nsec/1000000 - (unsigned long long int)tstart.tv_sec*1000 - tstart.tv_nsec/1000000);
-  logger.msg(Arc::DEBUG,": writing record took %llu ms", dt);
+  logger.msg(Arc::DEBUG,": writing accounting record took %llu ms", dt);
 
   return r;
 }

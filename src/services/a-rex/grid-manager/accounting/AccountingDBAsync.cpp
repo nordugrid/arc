@@ -41,6 +41,7 @@ namespace ARex {
   AccountingDBThread::~AccountingDBThread() {
     Push(new AccountingDBAsync::EventQuit());
     while(!exited_) sleep(1);
+    Arc::AutoLock<Arc::SimpleCondition> lock(lock_);
     while(!queue_.empty()) { delete queue_.front(); queue_.pop_front(); }
   }
 
@@ -58,9 +59,10 @@ namespace ARex {
   void AccountingDBThread::thread() {
     while(true) {
       Arc::AutoLock<Arc::SimpleCondition> lock(lock_);
-      lock_.wait_nonblock();
-      if(queue_.empty()) continue;
-
+      if(queue_.empty()) {
+        lock_.wait_nonblock();
+        if(queue_.empty()) continue;
+      }
       Arc::AutoPointer<AccountingDBAsync::Event> event(queue_.front());
       queue_.pop_front();
       AccountingDBAsync::EventQuit* eventQuit = dynamic_cast<AccountingDBAsync::EventQuit*>(event.Ptr());
