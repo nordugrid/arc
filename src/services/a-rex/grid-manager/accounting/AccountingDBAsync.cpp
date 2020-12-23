@@ -9,12 +9,12 @@
 
 namespace ARex {
   class AccountingDBThread: public Arc::Thread {
-   friend AccountingDBAsync;
+   friend class AccountingDBAsync;
    public:
     const int MaxQueueDepth = 10000;
 
     static AccountingDBThread& Instance();
-    void Push(AccountingDBAsync::Event* event);
+    bool Push(AccountingDBAsync::Event* event);
 
    private:
     AccountingDBThread();
@@ -45,7 +45,7 @@ namespace ARex {
     while(!queue_.empty()) { delete queue_.front(); queue_.pop_front(); }
   }
 
-  void AccountingDBThread::Push(AccountingDBAsync::Event* event) {
+  bool AccountingDBThread::Push(AccountingDBAsync::Event* event) {
     Arc::AutoLock<Arc::SimpleCondition> lock(lock_);
     while(queue_.size() >= MaxQueueDepth) {
       lock.unlock();
@@ -54,6 +54,7 @@ namespace ARex {
     };
     queue_.push_back(event);
     lock_.signal_nonblock();
+    return true;
   }
 
   void AccountingDBThread::thread() {
@@ -110,15 +111,15 @@ namespace ARex {
   }
 
    bool AccountingDBAsync::createAAR(AAR& aar) {
-     AccountingDBThread::Instance().Push(new EventCreateAAR(name, aar));
+     return AccountingDBThread::Instance().Push(new EventCreateAAR(name, aar));
    }
 
    bool AccountingDBAsync::updateAAR(AAR& aar) {
-     AccountingDBThread::Instance().Push(new EventUpdateAAR(name, aar));
+     return AccountingDBThread::Instance().Push(new EventUpdateAAR(name, aar));
    }
 
    bool AccountingDBAsync::addJobEvent(aar_jobevent_t& events, const std::string& jobid) {
-     AccountingDBThread::Instance().Push(new EventAddJobEvent(name, events, jobid));
+     return AccountingDBThread::Instance().Push(new EventAddJobEvent(name, events, jobid));
    }
 
    AccountingDBAsync::Event::Event(std::string const& name): name(name) {
