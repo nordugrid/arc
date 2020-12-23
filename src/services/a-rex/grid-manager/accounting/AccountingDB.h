@@ -40,7 +40,7 @@ namespace ARex {
          * is also recorded here
          **/
         virtual bool updateAAR(AAR& aar) = 0;
-        /// Add job even record to AAR
+        /// Add job event record to AAR
         /**
          * write record about job state change to accounting log 
          **/
