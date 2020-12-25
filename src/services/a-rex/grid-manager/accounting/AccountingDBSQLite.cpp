@@ -96,7 +96,7 @@ namespace ARex {
 
     AccountingDBSQLite::AccountingDBSQLite(const std::string& name) : AccountingDB(name), db(NULL) {
         isValid = false;
-        // chech database file exists
+        // check database file exists
         if (!Glib::file_test(name, Glib::FILE_TEST_EXISTS)) {
             const std::string dbdir = Glib::path_get_dirname(name);
             // Check if the parent directory exist

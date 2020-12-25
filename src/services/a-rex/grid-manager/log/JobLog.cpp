@@ -19,6 +19,7 @@
 #include "../conf/GMConfig.h"
 #include "../accounting/AAR.h"
 #include "../accounting/AccountingDBSQLite.h"
+#include "../accounting/AccountingDBAsync.h"
 #include "JobLog.h"
 
 #define ACCOUNTING_SUBDIR "accounting"
@@ -160,33 +161,47 @@ bool JobLog::SetReporterLogFile(const char* fname) {
   return true;
 }
 
+static AccountingDB* AccountingDBCtor(std::string const & name) {
+  return new AccountingDBSQLite(name);
+}
+
 bool JobLog::WriteJobRecord(GMJob &job, const GMConfig& config) {
+  bool r = true;
+  timespec tstart;
+  clock_gettime(CLOCK_MONOTONIC, &tstart);
   // Create accounting DB connection
   std::string accounting_db_path = config.ControlDir() + G_DIR_SEPARATOR_S + ACCOUNTING_SUBDIR + G_DIR_SEPARATOR_S + ACCOUNTING_DB_FILE;
-  AccountingDBSQLite adb(accounting_db_path);
-
+  AccountingDBAsync adb(accounting_db_path, &AccountingDBCtor);
   if (!adb.IsValid()) {
     logger.msg(Arc::ERROR,": Failure creating accounting database connection");
-    return false;
+    r = false;
   }
   
   // create initial AAR record in the accounting database on ACCEPTED
-  if(job.get_state() == JOB_STATE_ACCEPTED) {
+  else if(job.get_state() == JOB_STATE_ACCEPTED) {
     AAR aar;
     aar.FetchJobData(job, config);
-    return adb.createAAR(aar);
+    r = adb.createAAR(aar);
   }
 
   // update all job metrics when job FINISHED
-  if (job.get_state() == JOB_STATE_FINISHED) {
+  else if (job.get_state() == JOB_STATE_FINISHED) {
     AAR aar;
     aar.FetchJobData(job, config);
-    return adb.updateAAR(aar);
+    r = adb.updateAAR(aar);
   }
 
-  // record job state change event in the accounting database
-  aar_jobevent_t jobevent(job.get_state_name(), Arc::Time());
-  return adb.addJobEvent(jobevent, job.get_id());
+  else {
+    // record job state change event in the accounting database
+    aar_jobevent_t jobevent(job.get_state_name(), Arc::Time());
+    r = adb.addJobEvent(jobevent, job.get_id());
+  }
+  timespec tend;
+  clock_gettime(CLOCK_MONOTONIC, &tend);
+  unsigned long long int dt = ((unsigned long long int)tend.tv_sec*1000 + tend.tv_nsec/1000000 - (unsigned long long int)tstart.tv_sec*1000 - tstart.tv_nsec/1000000);
+  logger.msg(Arc::DEBUG,": writing accounting record took %llu ms", dt);
+
+  return r;
 }
 
 void JobLog::SetCredentials(std::string const &key_path,std::string const &certificate_path,std::string const &ca_certificates_dir)
