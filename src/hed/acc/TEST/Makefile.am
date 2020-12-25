@@ -1,8 +1,8 @@
 pkglibtestdir = $(pkglibdir)/test
 pkglibtest_LTLIBRARIES = libaccTEST.la
-noinst_DATA = libaccTEST.apd.in
 noinst_SCRIPTS = libaccTEST.apd
 CLEANFILES=$(noinst_SCRIPTS)
+EXTRA_DIST = libaccTEST.apd.in
 
 libaccTEST_la_SOURCES = \
 	JobControllerPluginTestACC.cpp JobControllerPluginTestACC.h \
