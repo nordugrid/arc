@@ -1,5 +1,6 @@
 pkglibtestdir = $(pkglibdir)/test
 pkglibtest_LTLIBRARIES = libaccTEST.la
+noinst_DATA = libaccTEST.apd.in
 noinst_SCRIPTS = libaccTEST.apd
 CLEANFILES=$(noinst_SCRIPTS)
 
