@@ -1,0 +1,6 @@
+name="file"
+kind="HED:DMC"
+description="Regular local file"
+version="0"
+priority="128"
+

@@ -27,6 +27,22 @@ public:
 };
 
 void ChainTest::TestPlugin() {
+  {
+    std::ofstream apd(".libs/libtestmcc.apd",std::ios::trunc);
+    apd<<"name=\"testmcc\""<<std::endl;
+    apd<<"kind=\"HED:MCC\""<<std::endl;
+    apd<<"version=\"0\""<<std::endl;
+    apd<<"priority=\"128\""<<std::endl;
+  }
+
+  {
+    std::ofstream apd(".libs/libtestservice.apd",std::ios::trunc);
+    apd<<"name=\"testservice\""<<std::endl;
+    apd<<"kind=\"HED:SERVICE\""<<std::endl;
+    apd<<"version=\"0\""<<std::endl;
+    apd<<"priority=\"128\""<<std::endl;
+  }
+
   std::string config_xml("\
 <?xml version=\"1.0\"?>\n\
 <ArcConfig xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\">\n\

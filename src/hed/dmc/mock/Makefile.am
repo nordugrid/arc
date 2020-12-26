@@ -1,4 +1,7 @@
 pkglib_LTLIBRARIES = libdmcmock.la
+noinst_SCRIPTS = libdmcmock.apd
+CLEANFILES=$(noinst_SCRIPTS)
+EXTRA_DIST = libdmcmock.apd.in
 
 libdmcmock_la_SOURCES = DataPointMock.cpp DataPointMock.h
 libdmcmock_la_CXXFLAGS = -I$(top_srcdir)/include \
@@ -10,3 +13,9 @@ libdmcmock_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
 libdmcmock_la_LDFLAGS = -no-undefined -avoid-version -module
+
+libdmcmock.apd: libdmcmock.apd.in libdmcmock.la
+	mkdir -p .libs
+	cp libdmcmock.apd.in .libs/libdmcmock.apd
+	cp libdmcmock.apd.in libdmcmock.apd
+

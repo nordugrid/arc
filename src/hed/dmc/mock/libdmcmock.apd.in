@@ -1,0 +1,6 @@
+name="mock"
+kind="HED:DMC"
+description="Dummy protocol"
+version="0"
+priority="128"
+

@@ -595,15 +595,10 @@ err:
              std::vector<std::string> &fqan, std::vector<std::string> &targets, 
              std::vector<std::string>& attributes, std::string &voname, std::string &uri, int lifetime) {
 
-    EVP_PKEY* issuerkey = NULL;
-    X509* holder = NULL;
-    X509* issuer = NULL;
-    STACK_OF(X509)* issuerchain = NULL;
-
-    issuer = issuer_cred.GetCert();
-    issuerchain = issuer_cred.GetCertChain();
-    issuerkey = issuer_cred.GetPrivKey();
-    holder = holder_cred.GetCert();
+    X509* issuer = issuer_cred.GetCert();
+    STACK_OF(X509)* issuerchain = issuer_cred.GetCertChain();
+    EVP_PKEY* issuerkey = issuer_cred.GetPrivKey();
+    X509* holder = holder_cred.GetCert();
 
     AC* ac = AC_new();
 

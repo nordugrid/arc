@@ -702,4 +702,10 @@ if [ $RETVAL != 0 ]; then
     exit 1
 fi
 
+# Raise limit on number of file descriptors to max
+hlimit=`ulimit -H -n`
+if [ ! -z "$hlimit" ] ; then
+  ulimit -S -n "$hlimit" 2>/dev/null
+fi
+
 exec $CMD "$@"

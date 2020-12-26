@@ -1,5 +1,8 @@
 pkglibtestdir = $(pkglibdir)/test
 pkglibtest_LTLIBRARIES = libaccTEST.la
+noinst_SCRIPTS = libaccTEST.apd
+CLEANFILES=$(noinst_SCRIPTS)
+EXTRA_DIST = libaccTEST.apd.in
 
 libaccTEST_la_SOURCES = \
 	JobControllerPluginTestACC.cpp JobControllerPluginTestACC.h \
@@ -19,3 +22,10 @@ libaccTEST_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 libaccTEST_la_LDFLAGS = -no-undefined -avoid-version -module
+
+
+libaccTEST.apd: libaccTEST.apd.in libaccTEST.la
+	mkdir -p .libs
+	cp libaccTEST.apd.in .libs/libaccTEST.apd
+	cp libaccTEST.apd.in libaccTEST.apd
+

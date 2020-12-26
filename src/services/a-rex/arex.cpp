@@ -307,6 +307,10 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     Arc::ServicePluginArgument* srvarg =
             arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
     if(!srvarg) return NULL;
+    Arc::PluginsFactory* factory = srvarg->get_factory();;
+    Glib::Module* module = srvarg->get_module();;
+    if(factory && module)
+      factory->makePersistent(module);
     ARexService* arex = new ARexService((Arc::Config*)(*srvarg),arg);
     if(!*arex) { delete arex; arex=NULL; };
     return arex;

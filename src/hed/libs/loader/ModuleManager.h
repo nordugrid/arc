@@ -106,10 +106,6 @@ class ModuleManager
         plugin_trash_t plugin_trash; /** Trash bin of reloaded modules */
         ModuleManager(const ModuleManager&) {};
         ModuleManager& operator=(const ModuleManager&) { return *this; };
-    protected:
-        /** Unload module by its identifier.
-           Decreases load counter and unloads module when it reaches 0. */
-        void unload(Glib::Module* module);
     public:
         /** Constructor.
            It is supposed to process correponding configuration subtree
@@ -126,6 +122,9 @@ class ModuleManager
           old module handler is unloaded. In case of error old
           module is not unloaded. */
         Glib::Module* reload(Glib::Module* module);
+        /** Unload module by its identifier.
+           Decreases load counter and unloads module when it reaches 0. */
+        void unload(Glib::Module* module);
         /** Increase usage count of loaded module.
            It is intended to be called by plugins or other code which
            needs prevent module to be unloaded while its code is running.
