@@ -272,7 +272,10 @@ using namespace Arc;
       reading(false),
       writing(false),
       chunks(NULL),
-      transfers_tofinish(0) {}
+      transfers_tofinish(0),
+      partial_read_allowed(url.Option("httpgetpartial") == "yes"),
+      partial_write_allowed(url.Option("httpputpartial") == "yes") {
+  }
 
   DataPointHTTP::~DataPointHTTP() {
     StopReading();
@@ -1073,8 +1076,8 @@ using namespace Arc;
     int retries = 0;
     std::string path = point.CurrentLocation().FullPathURIEncoded();
     DataStatus failure_code;
-    bool partial_read_allowed = (client_url.Option("httpgetpartial") == "yes");
-    if(partial_read_allowed) for (;;) {
+    bool partial_allowed = point.partial_read_allowed && point.allow_out_of_order;
+    if(partial_allowed) for (;;) {
       if(client && client->GetClosed()) client = point.acquire_client(client_url);
       if (!client) {
         transfer_failure = true;
@@ -1228,7 +1231,7 @@ using namespace Arc;
     }
     if (point.transfers_tofinish == 0) {
       // TODO: process/report failure?
-      if(!partial_read_allowed) {
+      if(!partial_allowed) {
         // Reading in single chunk to be done in single thread
         if(!read_single(arg)) {
           transfer_failure = true;
@@ -1336,10 +1339,10 @@ using namespace Arc;
     bool transfer_failure = false;
     int retries = 0;
     std::string path = client_url.FullPathURIEncoded();
-    bool partial_write_failure = (client_url.Option("httpputpartial") != "yes");
+    bool partial_failure = !point.partial_write_allowed;
     DataStatus failure_code;
     // Fall through if partial PUT is not allowed
-    if(!partial_write_failure) for (;;) {
+    if(!partial_failure) for (;;) {
       if(client && client->GetClosed()) client = point.acquire_client(client_url);
       if (!client) {
         transfer_failure = true;
@@ -1393,7 +1396,7 @@ using namespace Arc;
         }
         if (transfer_info.code == 501) { 
           // Not implemented - probably means server does not accept patial PUT
-          partial_write_failure = true;
+          partial_failure = true;
         } else {
           transfer_failure = true;
           failure_code = DataStatus(DataStatus::WriteError, point.http2errno(transfer_info.code), transfer_info.reason);
@@ -1410,7 +1413,7 @@ using namespace Arc;
       point.buffer->error_write(true);
     }
     if (point.transfers_tofinish == 0) {
-      if(partial_write_failure) {
+      if(partial_failure) {
         // Writing in single chunk to be done in single thread
         if(!write_single(arg)) {
           transfer_failure = true;
@@ -1419,7 +1422,7 @@ using namespace Arc;
       }
       // TODO: process/report failure?
       point.buffer->eof_write(true);
-      if ((!partial_write_failure) && (!(point.buffer->error())) && (point.buffer->eof_position() == 0)) {
+      if ((!partial_failure) && (!(point.buffer->error())) && (point.buffer->eof_position() == 0)) {
         // Zero size data was transferred - must send at least one empty packet
         for (;;) {
           if (!client) client = point.acquire_client(client_url);

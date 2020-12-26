@@ -180,7 +180,7 @@ namespace Arc {
     : public ClientTCP {
   public:
     ClientHTTP()
-      : http_entry(NULL), relative_uri(false), sec(NoSec), closed(false) {}
+      : http_entry(NULL), relative_uri(false), encoded_uri(true), sec(NoSec), closed(false) {}
     ClientHTTP(const BaseConfig& cfg, const URL& url, int timeout = -1, const std::string& proxy_host = "", int proxy_port = 0);
     virtual ~ClientHTTP();
     MCC_Status process(const std::string& method, PayloadRawInterface *request,
@@ -231,6 +231,7 @@ namespace Arc {
     MCC *http_entry;
     URL default_url;
     bool relative_uri;
+    bool encoded_uri;
     TCPSec sec;
     bool closed;
     MCC_Status process(const std::string& method, const std::string& path,

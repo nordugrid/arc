@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 from .ControlCommon import *
+from .Validator import Validator
 from arc.utils import reference
 import os
 import sys
@@ -108,18 +109,15 @@ class ConfigControl(ComponentControl):
             sys.stdout.write(line)
 
     def verify(self, args):
-        validator_script = ARC_LIBEXEC_DIR + '/arc-config-check'
-        if not os.path.exists(validator_script):
-            self.logger.error('The configuration check script is missing at %s. '
-                              'Note that config validation is currently targeting A-REX only.', validator_script)
-            return 1
-        validator_cmd = [validator_script]
-        if args.config:
-            validator_cmd += ['--config', args.config]
-        if args.verbosity:
-            validator_cmd.append('--' + args.verbosity)
-        self.logger.debug('Running ARC configuration validator script: %s', ' '.join(validator_cmd))
-        return subprocess.call(validator_cmd)
+        validator = Validator(self.arcconfig, args.config)
+        validator.validate()
+        if validator.errors:
+            self.logger.error("Validation returned %d error(s) and %d warning(s)", validator.errors, validator.warnings)
+        elif validator.warnings:
+            self.logger.warning("Validation returned no errors and %d warning(s)", validator.warnings)
+        else:
+            self.logger.info("Validation returned no errors or warnings")
+        return validator.errors
 
     def control(self, args):
         if args.action == 'dump':
@@ -160,5 +158,3 @@ class ConfigControl(ComponentControl):
                                   choices=ConfigControl.__brief_list.keys())
 
         config_verify = config_actions.add_parser('verify', help='Verify ARC CE configuration syntax')
-        config_verify.add_argument('-v', '--verbosity', choices=['quiet', 'verbose', 'debug', 'skip-warnings'],
-                                   help='Controls verbosity of config validation output')

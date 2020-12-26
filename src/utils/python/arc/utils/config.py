@@ -5,13 +5,8 @@ import sys
 import subprocess
 from arc.paths import *
 
-# init module logger
-logger = logging.getLogger('ARC.ConfigParserPy')
-logger.setLevel(logging.WARNING)
-log_handler_stderr = logging.StreamHandler()
-log_handler_stderr.setFormatter(
-    logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
-logger.addHandler(log_handler_stderr)
+# init module __logger
+__logger = logging.getLogger('ARC.Config')
 
 # module-wise data structures to store parsed configs
 __parsed_config = {}
@@ -64,7 +59,7 @@ def parse_arc_conf(conf_f=__def_path_arcconf, defaults_f=__def_path_defaults):
             # merge defaults to parsed arc.conf
             _merge_defults()
         else:
-            logger.error('There is no defaults file at %s. Default values will not be substituted.', defaults_f)
+            __logger.error('There is no defaults file at %s. Default values will not be substituted.', defaults_f)
     # evaluate special values
     _evaluate_values()
 
@@ -90,22 +85,22 @@ def save_run_config(runconf_f=__def_path_runconf):
     try:
         runconf_dir = '/'.join(runconf_f.split('/')[:-1])
     except AttributeError:
-        logger.error('Failed to save runtime configuration. Runtime path %s is invalid.', runconf_f)
+        __logger.error('Failed to save runtime configuration. Runtime path %s is invalid.', runconf_f)
         sys.exit(1)
     try:
         if not os.path.exists(runconf_dir):
-            logger.debug('Making %s directory', runconf_dir)
+            __logger.debug('Making %s directory', runconf_dir)
             os.makedirs(runconf_dir, mode=0o755)
         dump_arc_conf(runconf_f)
     except IOError as e:
-        logger.error('Failed to save runtime configuration to %s. Error: %s', runconf_f, e.strerror)
+        __logger.error('Failed to save runtime configuration to %s. Error: %s', runconf_f, e.strerror)
         sys.exit(1)
 
 
 def load_run_config(runconf_f=__def_path_runconf):
     """Load runing configuration (without parsing defaults)"""
     if not os.path.exists(runconf_f):
-        logger.error('There is no running configuration in %s. Dump it first.', runconf_f)
+        __logger.error('There is no running configuration in %s. Dump it first.', runconf_f)
         sys.exit(1)
     _parse_config(runconf_f, __parsed_config, __parsed_blocks)
 
@@ -134,10 +129,10 @@ def _conf_substitute_exec(optstr):
             exec_sp = subprocess.Popen(ev.groupdict()['command'].split(' '), stdout=subprocess.PIPE)
             value = exec_sp.stdout.readline().decode('utf-8').strip()
         except OSError:
-            logger.error('Failed to find %s command to substitute in %s. Config is not usable, terminating.',
+            __logger.error('Failed to find %s command to substitute in %s. Config is not usable, terminating.',
                          ev.groupdict()['command'], ev.group(0))
             sys.exit(1)
-        logger.debug('Substituting command output %s value: %s', ev.group(0), value)
+        __logger.debug('Substituting command output %s value: %s', ev.group(0), value)
         optstr = optstr.replace(ev.group(0), value)
         subst = True
     return subst, optstr
@@ -160,20 +155,20 @@ def _conf_substitute_var(optstr, current_block):
             subst_value = _config_list_values(block, refvar)
         # but there are cases with missing block
         elif block in __default_blocks:
-            logger.warning('Reference variable for %s is in the block not defined in arc.conf', v.group(0))
+            __logger.warning('Reference variable for %s is in the block not defined in arc.conf', v.group(0))
             subst_value = _config_list_values(block, refvar)
             if subst_value is not None:
                 if subst_value[0] == __no_default:
                     subst_value = None
         if subst_value is None:
-            logger.debug('Value for %s is not defined in arc.conf and no default value set.', v.group(0))
+            __logger.debug('Value for %s is not defined in arc.conf and no default value set.', v.group(0))
             subst_optstr = None
             break
         else:
             newopstr = []
             for opt in subst_optstr:
                 for value in subst_value:
-                    logger.debug('Substituting variable %s value: %s', v.group(0), value)
+                    __logger.debug('Substituting variable %s value: %s', v.group(0), value)
                     newopstr.append(opt.replace(v.group(0), value))
             subst_optstr = newopstr
     return subst, subst_optstr
@@ -186,13 +181,13 @@ def _conf_substitute_eval(optstr):
     for ev in evalr:
         try:
             value = str(eval(ev.groupdict()['evalstr']))
-            logger.debug('Substituting evaluation %s value: %s', ev.group(0), value)
+            __logger.debug('Substituting evaluation %s value: %s', ev.group(0), value)
             optstr = optstr.replace(ev.group(0), value)
             subst = True
         except SyntaxError:
-            logger.error('Wrong syntax to evaluate %s', ev.group(0))
+            __logger.error('Wrong syntax to evaluate %s', ev.group(0))
         except NameError as err:
-            logger.error('Wrong identifiers to evaluate %s: %s', ev.group(0), str(err))
+            __logger.error('Wrong identifiers to evaluate %s: %s', ev.group(0), str(err))
     return subst, optstr
 
 
@@ -206,7 +201,7 @@ def _process_config():
             loglevel_value = __parsed_config[block]['__values'][loglevel_idx]
             if loglevel_value in str_loglevels.keys():
                 loglevel_num_value = str_loglevels[loglevel_value]
-                logger.debug('Replacing loglevel %s with numeric value %s in [%s].',
+                __logger.debug('Replacing loglevel %s with numeric value %s in [%s].',
                              loglevel_value, loglevel_num_value, block)
                 __parsed_config[block]['__values'][loglevel_idx] = loglevel_num_value
 
@@ -225,7 +220,7 @@ def _merge_defults():
                         __parsed_config[block]['__options'].append(opt)
                         __parsed_config[block]['__values'].append(val)
         else:
-            logger.warning('Configuration block [%s] is not in the defaults file.', dblock)
+            __logger.warning('Configuration block [%s] is not in the defaults file.', dblock)
 
 
 def _evaluate_values():
@@ -316,7 +311,7 @@ def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
             option_match = __arcconf_re['option'].match(confline)
             if option_match:
                 if block_id is None:
-                    logger.error('Option definition comes before block definition and will be ignored - line #%s: %s',
+                    __logger.error('Option definition comes before block definition and will be ignored - line #%s: %s',
                                  ln + 1, confline.strip('\n'))
                     continue
                 option = option_match.groupdict()['option']
@@ -325,7 +320,7 @@ def _parse_config(conf_f, parsed_confdict_ref, parsed_blockslist_ref):
                 parsed_confdict_ref[block_id]['__options'].append(option)
                 parsed_confdict_ref[block_id]['__values'].append(value)
                 continue
-            logger.warning("Failed to parse line #%s: %s", ln + 1, confline.strip('\n'))
+            __logger.warning("Failed to parse line #%s: %s", ln + 1, confline.strip('\n'))
 
 
 def _config_list_values(block, option):
@@ -408,7 +403,7 @@ def export_bash(blocks=None, subsections=False, options_filter=None):
         for k, v in zip(__parsed_config[b]['__options'], __parsed_config[b]['__values']):
             if options_filter:
                 if k not in options_filter:
-                    logger.debug('Option "%s" will not be exported (not in allowed list)', k)
+                    __logger.debug('Option "%s" will not be exported (not in allowed list)', k)
                     continue
             bash_key = 'CONFIG_' + k
             # if key exists already in block (multivalued) - create list of values
@@ -494,6 +489,9 @@ def get_config_dict(blocks=None):
         blocks = [_canonicalize_blockid(b) for b in blocks]
     return _config_dict(blocks)
 
+def get_default_config_dict():
+    """Returns the dictionary of default configuration"""
+    return __default_config
 
 def get_config_blocks():
     """Returns list of configuration blocks (order is preserved)"""

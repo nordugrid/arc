@@ -75,7 +75,7 @@ namespace Arc {
     virtual DataStatus Remove();
 
     virtual void ReadOutOfOrder(bool v);
-    virtual bool WriteOutOfOrder();
+    virtual bool WriteOutOfOrder() const;
 
     virtual void SetAdditionalChecks(bool v);
     virtual bool GetAdditionalChecks() const;

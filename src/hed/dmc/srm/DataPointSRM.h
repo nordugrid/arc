@@ -54,6 +54,7 @@ namespace ArcDMCSRM {
     virtual bool ProvidesMeta() const;
     virtual bool AcceptsMeta() const;
     virtual bool IsStageable() const;
+    virtual bool WriteOutOfOrder() const;
     virtual std::vector<URL> TransferLocations() const;
     virtual void ClearTransferLocations();
 

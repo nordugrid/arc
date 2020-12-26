@@ -119,7 +119,7 @@ namespace ArcDMCGridFTP {
     virtual DataStatus Stat(FileInfo& file, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus List(std::list<FileInfo>& files, DataPointInfoType verb = INFO_TYPE_ALL);
     virtual DataStatus Rename(const URL& newurl);
-    virtual bool WriteOutOfOrder();
+    virtual bool WriteOutOfOrder() const;
     virtual bool ProvidesMeta() const;
     virtual const std::string DefaultCheckSum() const;
     virtual bool RequiresCredentials() const;

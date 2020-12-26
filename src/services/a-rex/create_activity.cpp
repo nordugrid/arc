@@ -106,7 +106,7 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
       resp.NewChild("estypes:ActivityID")=job.ID();
       resp.NewChild("estypes:ActivityMgmtEndpointURL")=config.Endpoint();
       resp.NewChild("estypes:ResourceInfoEndpointURL")=config.Endpoint();
-      Arc::XMLNode rstatus = addActivityStatusES(resp,"ACCEPTED",false,false);
+      Arc::XMLNode rstatus = addActivityStatusES(resp,"ACCEPTED",Arc::XMLNode(),false,false);
       //resp.NewChild("escreate:ETNSC");
       resp.NewChild("escreate:StageInDirectory").NewChild("escreate:URL")=config.Endpoint()+"/"+job.ID();
       resp.NewChild("escreate:SessionDirectory").NewChild("escreate:URL")=config.Endpoint()+"/"+job.ID();

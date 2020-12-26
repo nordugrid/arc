@@ -76,6 +76,11 @@ are welcomed. Source code can be found in the Coderefinery gitlab repository.
 ARC SOURCE:
   <https://source.coderefinery.org/nordugrid/arc>
 
+Regular ARC developers should have an account on Coderefinery and use
+the defined procedures for contributing. Those wishing to submit occasional
+patches can do so by submitting pull requests on the GitHub mirror at
+<https://github.com/nordugrid/arc>. Those pull requests will be merged
+by the ARC release team into the Coderefinery repository.
 
 Ongoing and completed e-Science research projects and student 
 assignments related to the middleware are listed

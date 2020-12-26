@@ -663,7 +663,7 @@ DataStatus DataPointS3::StopWriting() {
   return DataStatus::Success;
 }
 
-bool DataPointS3::WriteOutOfOrder() { return false; }
+bool DataPointS3::WriteOutOfOrder() const { return false; }
 
 } // namespace Arc
 

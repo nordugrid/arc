@@ -32,6 +32,8 @@ class MCC_SOAP_Service: public MCC_SOAP
         MCC_SOAP_Service(Config *cfg,PluginArgument* parg);
         virtual ~MCC_SOAP_Service(void);
         virtual MCC_Status process(Message&,Message&);
+    private:
+        bool _continueNonSoap;
 };
 
 /* This is client side of SOAP processing MCC.

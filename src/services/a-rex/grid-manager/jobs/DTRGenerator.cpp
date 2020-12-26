@@ -1016,6 +1016,8 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     // Central DTR log if configured
     if (!staging_conf.get_dtr_central_log().empty()) {
       Arc::LogFile* central_dtr_log = new Arc::LogFile(staging_conf.get_dtr_central_log());
+      central_dtr_log->setReopen(true);
+      central_dtr_log->setFormat(Arc::MediumFormat);
       logs.push_back(central_dtr_log);
     }
 

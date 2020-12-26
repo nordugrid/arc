@@ -17,6 +17,8 @@ require_once('ldap_purge.inc');
 $lang   = @$_GET["lang"];
 if ( !$lang )  $lang    = "default"; // browser language
 define("FORCE_LANG",$lang);
+$debug   = @$_GET["debug"];
+if ( !$debug )  $debug    = 0;
 
 // Setting up the page itself
 
@@ -43,7 +45,7 @@ $vos = array (
 		     "name"   => "NorduGrid guests",
 		     "server" => "https://www.pdc.kth.se/grid/swegrid-vo",
 		     "port"   => "",
-		     "dn"     => "vo.ng-guest-vo"
+		     "dn"     => ""
 		     ),
 	      array (
 		     "name"   => "NorduGrid developers",
@@ -173,30 +175,35 @@ foreach ( $vos as $contact ) {
   $server    = $contact["server"];
   $port      = $contact["port"];
   $dn        = $contact["dn"];
-  $group     = $contact["group"];
+  $group     = "";
+  if ( !empty($contact["group"]) ) $group = $contact["group"];
 
-  $nusers    = "";
+  $nusers    = 0;
 
   if ( $dn ) { // open ldap connection
-    $ds = ldap_connect($server,$port);
+    $ldapuri = "ldap://".$server.":".$port;
+    $ds = ldap_connect($ldapuri);
     if ($ds) {
       if ( $group ) {
-	$newfilter = "(objectclass=*)";
-	$newdn     = $group.",".$dn;
-	$newlim    = array("dn","member");
-	$sr        = @ldap_search($ds,$newdn,$newfilter,$newlim,0,0,10,LDAP_DEREF_NEVER);
-	$groupdesc = @ldap_get_entries($ds,$sr);
-	$nusers    = $groupdesc[0]["member"]["count"];
+        $newfilter = "(objectclass=*)";
+        $newdn     = $group.",".$dn;
+        $newlim    = array("dn","member");
+        $sr        = @ldap_search($ds,$newdn,$newfilter,$newlim,0,0,10,LDAP_DEREF_NEVER);
+        if ($sr) {
+          $groupdesc = @ldap_get_entries($ds,$sr);
+          $nusers    = $groupdesc[0]["member"]["count"];
+        }
       } else {
-	$sr = @ldap_search($ds,$dn,"(objectclass=organizationalPerson)",array("dn"),0,0,10,LDAP_DEREF_NEVER);
-	if ($sr) $nusers = @ldap_count_entries($ds,$sr);
+        $sr = @ldap_search($ds,$dn,"(objectclass=organizationalPerson)",array("dn"),0,0,10,LDAP_DEREF_NEVER);
+        if ($sr) $nusers = @ldap_count_entries($ds,$sr);
       }
     }
     $vostring  = popup("vo-users.php?host=$server&port=$port&vo=$dn&group=$group",750,300,6,$lang,$debug);
   } else {
     $url = $server."/".$group;
     $users = file($url);
-    $nusers = count($users);
+    $nusers = 0;
+    if ( !empty($users) ) $nusers = count($users);
     $vostring = popup($url,750,300,6,$lang,$debug);
   }
   
@@ -208,9 +215,9 @@ foreach ( $vos as $contact ) {
   $rowcont = array ();
 }
 
-$votable->close;
+$votable->close();
 
-$toppage->close;
+$toppage->close();
 
      /*
 

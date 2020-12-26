@@ -635,6 +635,9 @@ namespace ArcDMCGFAL {
     return true;
   }
 
+  bool DataPointGFAL::WriteOutOfOrder() const {
+    return true; // seek supported
+  }
 
 
 } // namespace ArcDMCGFAL

@@ -92,7 +92,8 @@ if( $debug ) dbgmsg("<div align=\"left\"><i>:::&gt; ".$errors["101"].$tlim.$erro
 
 // Establish connection to the requested LDAP server
 
-$ds    = ldap_connect($host,$port);
+$ldapuri = "ldap://".$host.":".$port;
+$ds    = ldap_connect($ldapuri);
 $bdn   = DN_LOCAL;
 $topdn = DN_GLOBL;
 if ( $schema == "GLUE2") {

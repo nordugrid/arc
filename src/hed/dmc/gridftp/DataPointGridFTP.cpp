@@ -1301,7 +1301,7 @@ namespace ArcDMCGridFTP {
     return new DataPointGridFTP(*dmcarg, *dmcarg, dmcarg);
   }
 
-  bool DataPointGridFTP::WriteOutOfOrder() {
+  bool DataPointGridFTP::WriteOutOfOrder() const {
     return true;
   }
 

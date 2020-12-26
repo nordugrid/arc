@@ -12,6 +12,8 @@
 #include "grid-manager/GridManager.h"
 #include "delegation/DelegationStores.h"
 #include "grid-manager/conf/GMConfig.h"
+#include "rest/rest.h"
+#include "job.h"
 
 namespace ARex {
 
@@ -77,7 +79,7 @@ class ARexService: public Arc::Service {
   FileChunksList files_chunks_;
   GMConfig config_;
   GridManager* gm_;
-  ARexGMConfig* get_configuration(Arc::Message& inmsg);
+  ARexRest rest_;
 
   // A-REX operations
   AREXOP(CacheCheck);
@@ -170,6 +172,9 @@ class ARexService: public Arc::Service {
   ES_SIMPLE_FAULT_HEAD(ESInvalidActivityLimitFault)
   ES_SIMPLE_FAULT_HEAD(ESInvalidParameterFault)
 
+  Arc::MCC_Status preProcessSecurity(Arc::Message& inmsg,Arc::Message& outmsg,Arc::SecAttr* sattr,bool is_soap,ARexConfigContext*& config);
+  Arc::MCC_Status postProcessSecurity(Arc::Message& outmsg);
+
  public:
   ARexService(Arc::Config *cfg,Arc::PluginArgument *parg);
   virtual ~ARexService(void);
@@ -181,6 +186,7 @@ class ARexService: public Arc::Service {
   static char const* NewPath;
   static char const* DelegationPath;
   static char const* CachePath;
+  static char const* RestPath;
 
   // Convenience methods
   static Arc::MCC_Status make_empty_response(Arc::Message& outmsg);

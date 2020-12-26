@@ -22,9 +22,11 @@ namespace Arc {
     unsigned long long int range_end;
     bool force_secure;
     bool force_passive;
+    bool allow_out_of_order;
     DataExternalHelper();
     DataExternalHelper(DataExternalHelper const&);
     DataExternalHelper& operator=(DataExternalHelper const&);
+    void SetPluginAttributes();
   public:
     DataExternalHelper(char const * modulepath, char const * modulename, const URL& url, const UserConfig& usercfg, std::istream& instream, std::ostream& outstream);
     virtual ~DataExternalHelper();
@@ -35,6 +37,7 @@ namespace Arc {
    // void SetAllowOutOfOrder(bool out_of_order) { allow_out_of_order = out_of_order; };
     void SetSecure(bool secure) { force_secure = secure; };
     void SetPassive(bool passive) { force_passive = passive; };
+    void ReadOutOfOrder(bool out_of_order) { allow_out_of_order = out_of_order; }
     DataStatus Rename(const URL& newurl);
     DataStatus List(DataPoint::DataPointInfoType verb = DataPoint::INFO_TYPE_ALL);
     DataStatus Stat(DataPoint::DataPointInfoType verb = DataPoint::INFO_TYPE_ALL);

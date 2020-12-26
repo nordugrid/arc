@@ -9,7 +9,7 @@
  #SBATCH 
  
  # Overide umask of execution node (sometime values are really strange)
-@@ -64,22 +64,14 @@
+@@ -64,23 +64,15 @@
  export 'GRID_GLOBAL_JOBINTERFACE='
  export 'GRID_GLOBAL_JOBHOST='
 
@@ -33,13 +33,14 @@
 +RUNTIME_JOB_STDOUT="/dev/null"
 +RUNTIME_JOB_STDERR="/dev/null"
 +RUNTIME_LOCAL_SCRATCH_DIR=${RUNTIME_LOCAL_SCRATCH_DIR:-/local/scratch}
+ RUNTIME_LOCAL_SCRATCH_MOVE_TOOL=${RUNTIME_LOCAL_SCRATCH_MOVE_TOOL:-mv}
  RUNTIME_FRONTEND_SEES_NODE=${RUNTIME_FRONTEND_SEES_NODE:-}
 -RUNTIME_NODE_SEES_FRONTEND=${RUNTIME_NODE_SEES_FRONTEND:-yes}
 +RUNTIME_NODE_SEES_FRONTEND=${RUNTIME_NODE_SEES_FRONTEND:-}
    if [ ! -z "$RUNTIME_LOCAL_SCRATCH_DIR" ] && [ ! -z "$RUNTIME_NODE_SEES_FRONTEND" ]; then
      RUNTIME_NODE_JOB_DIR="$RUNTIME_LOCAL_SCRATCH_DIR"/`basename "$RUNTIME_JOB_DIR"`
      rm -rf "$RUNTIME_NODE_JOB_DIR"
-@@ -140,8 +135,21 @@
+@@ -141,8 +136,21 @@
  RESULT=0
  
  if [ "$RESULT" = '0' ] ; then
@@ -61,7 +62,7 @@
  echo "runtimeenvironments=$runtimeenvironments" >> "$RUNTIME_JOB_DIAG"
  if [ ! "X$SLURM_NODEFILE" = 'X' ] ; then
    if [ -r "$SLURM_NODEFILE" ] ; then
-@@ -181,7 +189,7 @@
+@@ -182,7 +190,7 @@
    nodename=`/bin/hostname -f`
    echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
  fi
@@ -70,7 +71,7 @@
  echo "Benchmark=HEPSPEC:1.0" >> "$RUNTIME_JOB_DIAG"
  executable='/bin/true'
  # Check if executable exists
-@@ -211,6 +219,15 @@
+@@ -212,6 +220,15 @@
  fi
  # Running RTE scripts (stage 2)
  runtimeenvironments=

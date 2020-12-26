@@ -41,9 +41,11 @@ array("host" => "index4.nordugrid.org",
 // list of ARCHERY endpoints to query
 $archery_list = array (
     array (
-        "endpoint" => "grid.org.ua",
-        // TODO: add country grouping identifier if needed (something not sounds like VO :-))
-    )
+/* ATLAS at NDGF */ 
+       "endpoint" => "ndgf.org")
+/* NorduGrid */,
+    array (
+       "endpoint" => "nordugrid.org")
 );
 
 // list of available EMIRs
