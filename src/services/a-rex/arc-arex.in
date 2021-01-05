@@ -85,11 +85,11 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ `id -u` = 0 ] ; then
-    # Debian does not have /var/lock/subsys
-    if [ -d /var/lock/subsys ]; then
-        LOCKFILE=/var/lock/subsys/arex
+    # Debian does not have /run/lock/subsys
+    if [ -d /run/lock/subsys ]; then
+        LOCKFILE=/run/lock/subsys/arex
     else
-        LOCKFILE=/var/lock/arex
+        LOCKFILE=/run/lock/arex
     fi
 else
     LOCKFILE=$HOME/arex.lock

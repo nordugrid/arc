@@ -6,11 +6,11 @@ BindsTo=arc-infosys-ldap-slapd.service
 
 [Service]
 Type=forking
-Environment=FORCE_ARC_RUNDIR=/var/run/arc
-PIDFile=/var/run/arc/bdii/bdii-update.pid
+Environment=FORCE_ARC_RUNDIR=/run/arc
+PIDFile=/run/arc/bdii/bdii-update.pid
 ExecStartPre=@prefix@/@pkgdatasubdir@/create-bdii-config
-ExecStart=/bin/sh /var/run/arc/infosys/bdii-update.cmd
-ExecStartPost=/bin/sh /var/run/arc/infosys/bdii-update-post.cmd
+ExecStart=/bin/sh /run/arc/infosys/bdii-update.cmd
+ExecStartPost=/bin/sh /run/arc/infosys/bdii-update-post.cmd
 NotifyAccess=all
 
 [Install]

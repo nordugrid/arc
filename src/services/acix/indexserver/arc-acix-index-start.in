@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PIDFILE=/var/run/arc-acix-index.pid
+PIDFILE=/run/arc-acix-index.pid
 DEFAULT_LOGFILE=/var/log/arc/arc-acix-index.log
 prog=@TWISTD@
 

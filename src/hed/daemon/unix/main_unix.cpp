@@ -371,7 +371,7 @@ int main(int argc, char **argv)
 
             /* overwrite config variables by cmdline options */
             merge_options_and_config(config, options);
-            std::string pid_file = (config["Server"]["PidFile"] ? (std::string)config["Server"]["PidFile"] : "/var/run/arched.pid");
+            std::string pid_file = (config["Server"]["PidFile"] ? (std::string)config["Server"]["PidFile"] : "/run/arched.pid");
             std::string user = (std::string)config["Server"]["User"];
             std::string group = (std::string)config["Server"]["Group"];
 
