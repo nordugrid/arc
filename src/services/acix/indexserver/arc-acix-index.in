@@ -45,7 +45,7 @@ else
     exit 1
 fi
 
-PIDFILE=/var/run/arc-acix-index.pid
+PIDFILE=/run/arc-acix-index.pid
 prog=@TWISTD@
 
 # sysconfig files
@@ -68,11 +68,11 @@ if [ ! -d "$ARC_LOCATION" ]; then
 fi
 
 if [ `id -u` = 0 ] ; then
-    # Debian does not have /var/lock/subsys
-    if [ -d /var/lock/subsys ]; then
-        LOCKFILE=/var/lock/subsys/arc-acix-index
+    # Debian does not have /run/lock/subsys
+    if [ -d /run/lock/subsys ]; then
+        LOCKFILE=/run/lock/subsys/arc-acix-index
     else
-        LOCKFILE=/var/lock/arc-acix-index
+        LOCKFILE=/run/lock/arc-acix-index
     fi
 else
     LOCKFILE=$HOME/arc-acix-index.lock

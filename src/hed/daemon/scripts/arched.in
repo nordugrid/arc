@@ -62,14 +62,14 @@ fi
 
 # PID and lock file
 if [ `id -u` = 0 ] ; then
-    # Debian does not have /var/lock/subsys
-    if [ -d /var/lock/subsys ]; then
-	LOCKFILE=/var/lock/subsys/$prog
+    # Debian does not have /run/lock/subsys
+    if [ -d /run/lock/subsys ]; then
+	LOCKFILE=/run/lock/subsys/$prog
     else
-	LOCKFILE=/var/lock/$prog
+	LOCKFILE=/run/lock/$prog
     fi
     if [ "x$PID_FILE" = "x" ]; then
-	PID_FILE=/var/run/$prog.pid
+	PID_FILE=/run/$prog.pid
     fi
 else
     LOCKFILE=$HOME/$prog.lock

@@ -195,7 +195,7 @@
 ## CHANGE: DELETED
 
 ## pidfile = pid - pid file of the daemon.
-## default: /var/run/gangliarc.pid
+## default: /run/gangliarc.pid
 #pidfile=/tmp/gangliarc.pid
 ## CHANGE: DELETED
 
@@ -267,7 +267,7 @@
 ## cachetime affects old infoproviders, and forces the validity time of the record.
 ## CHANGE139: DELETED. not parsed any longer.
 
-## giis_fifo - path to fifo used by EGIIS. default is /var/run/arc/giis-fifo
+## giis_fifo - path to fifo used by EGIIS. default is /run/arc/giis-fifo
 ## CHANGE140: DELETED. hardcode it in startupscript!
 
 ## user = unix_user - the unix user running the infosys processes such as

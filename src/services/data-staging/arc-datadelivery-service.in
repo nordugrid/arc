@@ -72,11 +72,11 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ `id -u` = 0 ] ; then
-    # Debian does not have /var/lock/subsys
-    if [ -d /var/lock/subsys ]; then
-        LOCKFILE=/var/lock/subsys/$prog-datadelivery-service
+    # Debian does not have /run/lock/subsys
+    if [ -d /run/lock/subsys ]; then
+        LOCKFILE=/run/lock/subsys/$prog-datadelivery-service
     else
-        LOCKFILE=/var/lock/$prog-datadelivery-service
+        LOCKFILE=/run/lock/$prog-datadelivery-service
     fi
 else
     LOCKFILE=$HOME/$prog-datadelivery-service.lock

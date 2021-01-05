@@ -4,7 +4,7 @@ After=network.target local_fs.target
 
 [Service]
 Type=forking
-PIDFile=/var/run/arc-acix-index.pid
+PIDFile=/run/arc-acix-index.pid
 ExecStart=/usr/share/arc/arc-acix-index-start
 
 [Install]

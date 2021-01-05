@@ -416,7 +416,7 @@ sub confchecktripel($$$) {
 sub check_logrotate($$$$) {
     my ($block, $name, $value, $defaultlocation) = @_;
     my $defaultlogpath = '/var/log/arc/';
-    my $defaultpidpath = '/var/run/';
+    my $defaultpidpath = '/run/';
     my $defaultlocations = {
                             'arexlogfile' => $defaultlogpath.'arex.log',
                             'arexpidfile' => $defaultpidpath.'arched-arex.pid',
