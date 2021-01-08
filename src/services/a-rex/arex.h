@@ -172,8 +172,8 @@ class ARexService: public Arc::Service {
   ES_SIMPLE_FAULT_HEAD(ESInvalidActivityLimitFault)
   ES_SIMPLE_FAULT_HEAD(ESInvalidParameterFault)
 
-  Arc::MCC_Status preProcessSecurity(Arc::Message& inmsg,Arc::Message& outmsg,Arc::SecAttr* sattr,bool is_soap,ARexConfigContext*& config);
-  Arc::MCC_Status postProcessSecurity(Arc::Message& outmsg);
+  Arc::MCC_Status preProcessSecurity(Arc::Message& inmsg,Arc::Message& outmsg,Arc::SecAttr* sattr,bool is_soap,ARexConfigContext*& config,bool& passed);
+  Arc::MCC_Status postProcessSecurity(Arc::Message& outmsg,bool& passed);
 
  public:
   ARexService(Arc::Config *cfg,Arc::PluginArgument *parg);
