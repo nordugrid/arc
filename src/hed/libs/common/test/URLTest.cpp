@@ -17,6 +17,7 @@ class URLTest
   CPPUNIT_TEST(TestGsiftpUrl);
   CPPUNIT_TEST(TestLdapUrl);
   CPPUNIT_TEST(TestHttpUrl);
+  CPPUNIT_TEST(TestDavsUrl);
   CPPUNIT_TEST(TestFileUrl);
   CPPUNIT_TEST(TestLdapUrl2);
   CPPUNIT_TEST(TestOptUrl);
@@ -38,6 +39,7 @@ public:
   void TestGsiftpUrl();
   void TestLdapUrl();
   void TestHttpUrl();
+  void TestDavsUrl();
   void TestFileUrl();
   void TestLdapUrl2();
   void TestOptUrl();
@@ -53,7 +55,7 @@ public:
   void TestOptions();
 
 private:
-  Arc::URL *gsiftpurl, *gsiftpurl2, *ldapurl, *httpurl, *fileurl, *ldapurl2, *opturl, *ftpurl, *srmurl, *rooturl, *ip6url, *ip6url2, *ip6url3;
+  Arc::URL *gsiftpurl, *gsiftpurl2, *ldapurl, *httpurl, *davsurl, *fileurl, *ldapurl2, *opturl, *ftpurl, *srmurl, *rooturl, *ip6url, *ip6url2, *ip6url3;
 };
 
 
@@ -62,6 +64,7 @@ void URLTest::setUp() {
   gsiftpurl2 = new Arc::URL("gsiftp://hathi.hep.lu.se:2811/public:/test.txt:checksumtype=adler32");
   ldapurl = new Arc::URL("ldap://grid.uio.no/o=grid/mds-vo-name=local");
   httpurl = new Arc::URL("http://www.nordugrid.org/monitor:v1.php?debug=2&newpath=/path/to/file&sort=yes&symbols=() *!%\"");
+  davsurl = new Arc::URL("davs://dav.ndgf.org:443/test/file1:checksumtype=adler32:checksumvalue=3d1ae86e");
   fileurl = new Arc::URL("file:/home/grid/runtime/TEST-ATLAS-8.0.5");
   ldapurl2 = new Arc::URL("ldap://grid.uio.no/mds-vo-name=local, o=grid");
   opturl = new Arc::URL("gsiftp://hathi.hep.lu.se;threads=10;autodir=yes/public/test.txt");
@@ -79,6 +82,7 @@ void URLTest::tearDown() {
   delete gsiftpurl2;
   delete ldapurl;
   delete httpurl;
+  delete davsurl;
   delete fileurl;
   delete ldapurl2;
   delete opturl;
@@ -167,6 +171,21 @@ void URLTest::TestHttpUrl() {
 }
 
 
+void URLTest::TestDavsUrl() {
+  CPPUNIT_ASSERT(*davsurl);
+  CPPUNIT_ASSERT_EQUAL(std::string("davs"), davsurl->Protocol());
+  CPPUNIT_ASSERT(davsurl->Username().empty());
+  CPPUNIT_ASSERT(davsurl->Passwd().empty());
+  CPPUNIT_ASSERT_EQUAL(std::string("dav.ndgf.org"), davsurl->Host());
+  CPPUNIT_ASSERT_EQUAL(443, davsurl->Port());
+  CPPUNIT_ASSERT_EQUAL(std::string("/test/file1"), davsurl->FullPathURIEncoded());
+  CPPUNIT_ASSERT(davsurl->Options().empty());
+  CPPUNIT_ASSERT(davsurl->Locations().empty());
+  CPPUNIT_ASSERT_EQUAL(std::string("adler32"), davsurl->MetaDataOption("checksumtype"));
+  CPPUNIT_ASSERT_EQUAL(std::string("3d1ae86e"), davsurl->MetaDataOption("checksumvalue"));
+}
+
+
 void URLTest::TestFileUrl() {
   CPPUNIT_ASSERT(*fileurl);
   CPPUNIT_ASSERT_EQUAL(std::string("file"), fileurl->Protocol());
@@ -247,6 +266,7 @@ void URLTest::TestSrmUrl() {
   CPPUNIT_ASSERT(srmurl->Locations().empty());
   CPPUNIT_ASSERT_EQUAL(std::string("adler32"), srmurl->MetaDataOption("checksumtype"));
 }
+
 
 void URLTest::TestRootUrl() {
   CPPUNIT_ASSERT(*rooturl);
