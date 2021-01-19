@@ -37,7 +37,7 @@ fi
 
 # Define runtime config location for infosys LDAP
 prefix=@prefix@
-runtime_config_dir=@localstatedir@/run/arc
+runtime_config_dir=/run/arc
 if [ ! -d "$runtime_config_dir" ]; then
     mkdir -p "$runtime_config_dir"
 fi
@@ -85,7 +85,7 @@ if [ ! -x $bdii_update_cmd ]; then
     exit 1
 fi
 
-infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}
+infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/run/arc/infosys}
 mkdir -p ${infosys_ldap_run_dir}
 chown ${bdii_user}: ${infosys_ldap_run_dir}
 
@@ -105,7 +105,7 @@ bdii_debug_level=${CONFIG_bdii_debug_level:-WARNING}
 
 bdii_tmp_dir=${CONFIG_bdii_tmp_dir:-/var/tmp/arc/bdii}
 bdii_var_dir=${CONFIG_bdii_var_dir:-/var/lib/arc/bdii}
-bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
+bdii_run_dir=${CONFIG_bdii_run_dir:-/run/arc/bdii}
 bdii_log_dir=${CONFIG_bdii_log_dir:-/var/log/arc/bdii}
 bdii_log_file="${bdii_log_dir}/bdii-update.log"
 
@@ -161,11 +161,11 @@ fi
 
 rm -f "${update_pid_file}"
 
-# Debian does not have /var/lock/subsys
-if [ -d /var/lock/subsys ]; then
-    update_lock_file=${update_lock_file:-/var/lock/subsys/arc-bdii-update}
+# Debian does not have /run/lock/subsys
+if [ -d /run/lock/subsys ]; then
+    update_lock_file=${update_lock_file:-/run/lock/subsys/arc-bdii-update}
 else
-    update_lock_file=${update_lock_file:-/var/lock/arc-bdii-update}
+    update_lock_file=${update_lock_file:-/run/lock/arc-bdii-update}
 fi
 
 # Check directories and permissions

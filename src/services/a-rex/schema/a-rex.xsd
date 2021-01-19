@@ -669,7 +669,7 @@
     <!-- Not ported elements
     #logsize="100000 2"
     #logfile="/var/log/arc/grid-manager.log"
-    #pidfile="/var/run/grid-manager.pid"
+    #pidfile="/run/grid-manager.pid"
     #localcred="0 acquire@/opt/nordugrid/lib/afs.so %C/job.%I.proxy"
     #allowsubmit="mygroup"
     #allownew=no

@@ -55,7 +55,7 @@ attributes depending on how the mapping should be done.
     xmlns:tls="http://www.nordugrid.org/schemas/tls/2009/08"
   >
   <base:Server>
-    <base:PidFile inisections="datadelivery-service common" initag="pidfile" inidefaultvalue="/var/run/arched.pid"/>
+    <base:PidFile inisections="datadelivery-service common" initag="pidfile" inidefaultvalue="/run/arched.pid"/>
     <base:User inisections="datadelivery-service common" initag="user"/>
     <base:Group inisections="common" initag="group"/>
     <base:Logger>

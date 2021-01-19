@@ -7,6 +7,6 @@
   rotate 14
   create
   postrotate
-  kill -HUP `cat /var/run/arched-datadelivery-service.pid 2> /dev/null` 2> /dev/null || true
+  kill -HUP `cat /run/arched-datadelivery-service.pid 2> /dev/null` 2> /dev/null || true
   endscript
 }

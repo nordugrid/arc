@@ -27,7 +27,7 @@
 #define DEFAULT_MAX_CONECTIONS (100)
 #define DEFAULT_GRIDFTP_PORT 2811
 #define DEFAULT_LOG_FILE "/var/log/arc/gridftpd.log"
-#define DEFAULT_PID_FILE "/var/run/gridftpd.pid"
+#define DEFAULT_PID_FILE "/run/gridftpd.pid"
 
 GridFTP_Commands *client;
 static int max_connections = 0;

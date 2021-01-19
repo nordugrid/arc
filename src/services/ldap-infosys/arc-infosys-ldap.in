@@ -95,7 +95,7 @@ fi
 
 # Define runtime config location for infosys LDAP
 prefix=@prefix@
-runtime_config_dir=@localstatedir@/run/arc
+runtime_config_dir=/run/arc
 if [ ! -d "$runtime_config_dir" ]; then
     mkdir -p "$runtime_config_dir"
 fi
@@ -140,25 +140,25 @@ if [ ! -x $bdii_update_cmd ]; then
     exit 1
 fi
 
-bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
+bdii_run_dir=${CONFIG_bdii_run_dir:-/run/arc/bdii}
 slapd_pid_file=${bdii_run_dir}/db/slapd.pid
 update_pid_file=${CONFIG_bdii_update_pid_file:-$bdii_run_dir/bdii-update.pid}
 
 if [ `id -u` = 0 ]; then
-    # Debian does not have /var/lock/subsys
-    if [ -d /var/lock/subsys ]; then
-	slapd_lock_file=${slapd_lock_file:-/var/lock/subsys/$prog-slapd}
-	update_lock_file=${update_lock_file:-/var/lock/subsys/$prog-bdii}
+    # Debian does not have /run/lock/subsys
+    if [ -d /run/lock/subsys ]; then
+	slapd_lock_file=${slapd_lock_file:-/run/lock/subsys/$prog-slapd}
+	update_lock_file=${update_lock_file:-/run/lock/subsys/$prog-bdii}
     else
-	slapd_lock_file=${slapd_lock_file:-/var/lock/$prog-slapd}
-	update_lock_file=${update_lock_file:-/var/lock/$prog-bdii}
+	slapd_lock_file=${slapd_lock_file:-/run/lock/$prog-slapd}
+	update_lock_file=${update_lock_file:-/run/lock/$prog-bdii}
     fi
 else
     slapd_lock_file=$HOME/$prog-slapd
     update_lock_file=$HOME/$prog-bdii
 fi
 
-infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}
+infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/run/arc/infosys}
 BDII_CONF=${CONFIG_bdii_conf:-${infosys_ldap_run_dir}/bdii.conf}
 
 start () {
