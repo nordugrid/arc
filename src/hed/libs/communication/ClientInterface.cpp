@@ -542,7 +542,7 @@ namespace Arc {
         if(rpath[0] != '/') rpath.insert(0,"/");
         reqmsg.Attributes()->set("HTTP:ENDPOINT", rpath);
       } else {
-        reqmsg.Attributes()->set("HTTP:ENDPOINT", url.str(encoded_uri));
+        reqmsg.Attributes()->set("HTTP:ENDPOINT", url.plainstr(encoded_uri));
       }
     } else {
       if(relative_uri) {
