@@ -11,14 +11,15 @@ sub new {
 
 # bools come in lowecase, must be uppercased for LDAP
 # In the XML schema allowed values are: true, false, undefined
-# In the LDAP schema allowed values are: TRUE, FALSE
+# In the LDAP schema the above has been synced in arc 6.10, 
+#  previously only uppercase TRUE, FALSE where allowed
 sub uc_bools {
     my ($data, @keys) = @_;
     for (@keys) {
         my $val = $data->{$_};
         next unless defined $val;
-        $data->{$_} = $val = uc $val;
-        delete $data->{$_} unless $val eq 'FALSE' or $val eq 'TRUE';
+        $data->{$_} = $val = lc $val;
+        delete $data->{$_} unless $val eq 'false' or $val eq 'true' or $val eq 'undefined';
     }
 }
 
