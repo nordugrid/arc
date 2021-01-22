@@ -13,7 +13,7 @@ sub new {
 # In the XML schema allowed values are: true, false, undefined
 # In the LDAP schema the above has been synced in arc 6.10, 
 #  previously only uppercase TRUE, FALSE where allowed
-sub uc_bools {
+sub lc_bools {
     my ($data, @keys) = @_;
     for (@keys) {
         my $val = $data->{$_};
@@ -64,7 +64,7 @@ sub DomainAttributes {
 
 sub AdminDomainAttributes {
     my ($self, $data) = @_;
-    uc_bools($data, qw( Distributed ));
+    lc_bools($data, qw( Distributed ));
     $self->DomainAttributes($data);
     $self->attribute(objectClass => "GLUE2AdminDomain");
     $self->attributes($data, "GLUE2AdminDomain", qw( Distributed Owner ));
@@ -216,7 +216,7 @@ sub ComputingEndpointAttributes {
 
 sub ComputingShareAttributes {
     my ($self, $data) = @_;
-    uc_bools($data, qw( Preemption ));
+    lc_bools($data, qw( Preemption ));
     $self->ShareAttributes($data);
     $self->attribute(objectClass => "GLUE2ComputingShare");
     $self->attributes($data, "GLUE2ComputingShare", qw( MappingQueue
@@ -269,7 +269,7 @@ sub ComputingShareAttributes {
 
 sub ComputingManagerAttributes {
     my ($self, $data) = @_;
-    uc_bools($data, qw( Reservation BulkSubmission Homogeneous WorkingAreaShared WorkingAreaGuaranteed ));
+    lc_bools($data, qw( Reservation BulkSubmission Homogeneous WorkingAreaShared WorkingAreaGuaranteed ));
     $self->ManagerAttributes($data);
     $self->attribute(objectClass => "GLUE2ComputingManager");
     $self->attributes($data, "GLUE2ComputingManager", qw( Reservation
@@ -309,7 +309,7 @@ sub BenchmarkAttributes {
 
 sub ExecutionEnvironmentAttributes {
     my ($self, $data) = @_;
-    uc_bools($data, qw( VirtualMachine ConnectivityIn ConnectivityOut ));
+    lc_bools($data, qw( VirtualMachine ConnectivityIn ConnectivityOut ));
     $self->ResourceAttributes($data);
     $self->attribute(objectClass => "GLUE2ExecutionEnvironment");
     $self->attributes($data, "GLUE2ExecutionEnvironment", qw( Platform
