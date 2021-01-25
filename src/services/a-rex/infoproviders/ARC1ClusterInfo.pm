@@ -3217,11 +3217,11 @@ sub collect($) {
                 $execenv->{NetworkInfo} = [ $xeconfig->{NetworkInfo} ] if $xeconfig->{NetworkInfo};
 
                 if ($callcount == 1) {
-                    $log->warning("MainMemorySize not set for ExecutionEnvironment $xenv") unless $xeinfo->{pmem};
-                    $log->warning("OSFamily not set for ExecutionEnvironment $xenv") unless $sysname;
-                    $log->warning("ConnectivityIn not set for ExecutionEnvironment $xenv")
+                    $log->info("MainMemorySize not set for ExecutionEnvironment $xenv, will default to 9999999") unless $xeinfo->{pmem};
+                    $log->info("OSFamily not set for ExecutionEnvironment $xenv") unless $sysname;
+                    $log->info("ConnectivityIn not set for ExecutionEnvironment $xenv, will default to undefined")
                         unless defined $xeconfig->{ConnectivityIn};
-                    $log->warning("ConnectivityOut not set for ExecutionEnvironment $xenv")
+                    $log->info("ConnectivityOut not set for ExecutionEnvironment $xenv, will default to undefined")
                         unless defined $xeconfig->{ConnectivityOut};
 
                     my @missing;
