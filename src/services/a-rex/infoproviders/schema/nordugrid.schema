@@ -749,7 +749,7 @@ attributetype ( 1.3.6.1.4.1.11604.2.1.3.27
 
 attributetype ( 1.3.6.1.4.1.11604.2.1.3.28
     NAME 'nordugrid-queue-acl'
-    DESC 'Cluster authorization information'
+    DESC 'Queue authorization information'
     EQUALITY caseExactMatch
     ORDERING caseExactOrderingMatch
     SUBSTR caseExactSubstringsMatch
