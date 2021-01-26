@@ -367,6 +367,7 @@ sub get_host_info {
     # Considering only common cache disk space (not including per-user caches)
     if ($control->{'.'}) {
         my $cachedirs = $control->{'.'}{cachedir} || [];
+        my ($cachemax, $cachemin) = split " ", $control->{'.'}{cachesize};
         my @paths = map { my @pair = split " ", $_; $pair[0] } @$cachedirs;
         if (@paths) {
             my %res = Sysinfo::diskspaces(@paths);
@@ -374,13 +375,14 @@ sub get_host_info {
                 $log->warning("Failed checking disk space available in common cache directories")
             } else {
                 # What to publish as CacheFree if there are multiple cache disks?
-                # Should be highWatermark factored in?
+                # HighWatermark is factored in
+                # Only accurate if caches are on filesystems of their own
+                $host_info->{cache_total} = (defined $cachemax) ? $res{totalsum}*$cachemax/100 : $res{totalsum};
                 # Opting to publish the least free space on any of the cache
                 # disks -- at least this has a simple meaning and is useful to
-                # diagnose if a disk gets full.
-                $host_info->{cache_free} = $res{freemin};
-                # Only accurate if caches are on filesystems of their own
-                $host_info->{cache_total} = $res{totalsum};
+                # diagnose if a disk gets full -- but upper limit is 
+                # the max space usable calculated above, for consistency
+                $host_info->{cache_free} = ($res{freemin} >= $host_info->{cache_total}) ? $host_info->{cache_total} : $res{freemin};
             }
         }
     }
