@@ -74,7 +74,6 @@ our $host_info_schema = {
                 diskfree => '' # unit: MB
             }
         },
-   EMIversion => [ '' ] # taken from /etc/emi-version if exists
 };
 
 our $log = LogUtils->getLogger(__PACKAGE__);
@@ -407,14 +406,6 @@ sub get_host_info {
     $host_info->{processes} = Sysinfo::processid(@{$options->{processes}});
 
     $host_info->{ports} = get_ports_info($options->{processes},$options->{ports});
-
-    # gets EMI version from /etc/emi-version if any.
-    my $EMIversion;
-     if  (-r "/etc/emi-version") {
-       chomp ( $EMIversion = `cat /etc/emi-version 2>/dev/null`);
-       if ($?) { $log->warning("Failed reading EMI version file. Assuming non-EMI deployment. Install emi-version package if you're running EMI version of ARC")}
-     }
-     $host_info->{EMIversion} = [ 'MiddlewareName=EMI' , "MiddlewareVersion=$EMIversion" ] if ($EMIversion);
 
     return $host_info;
 }
