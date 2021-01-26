@@ -65,9 +65,6 @@ If you need help with the configuration file or have any other questions related
 
 Known issues
 ==============
-* For sites with nordugrid-plugins-xrootd installed epel-testing repo must be enabled, otherwise update will fail. 
-  This is because at the time of the 6.8.0 release  the xrootd 5 had not  yet reached epel-stable, and ARC is built
-  with xrootd 5. 
 * In Centos8 the openldap server is not installable because slapd is not available in the RHEL8 release (Bugzilla 3944).
   As a consequence, the LDAP-based server-side information system interface of the ARC-CE will not be available either.
   If interaction with the ARC-CE relies on LDAP-based information schemas (glue1.3 or nordugrid schema),
