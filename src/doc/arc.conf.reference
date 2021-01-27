@@ -1722,7 +1722,7 @@
 ## treshold of the interval between subsequent records publishing to this target.
 ## NOTE that the actual delivery interval is the value divisible by "urdelivery_frequency"
 ##   defined in [arex/jura] block that define the entire JURA process invocation frequency.
-## APEL recommended value is once per day for "sumaries". Use smaler values for "urs".
+## APEL recommended value is once per day for "summaries". Use smaller values for "urs".
 ## default: 86000
 #urdelivery_frequency=14000
 ## CHANGE: NEW in 6.4.0.
