@@ -116,12 +116,15 @@ my $share_options = {
     mincputime => '*',
     minwalltime => '*'
 };
+my $cache_options = {
+   cachedir => [ '*' ],
+   cachesize => '*'
+};
 my $gmuser_options = {
     controldir => '',
     sessiondir => [ '' ],
-    cachedir => [ '*' ],
-    cachesize => '*',
     defaultttl => '*',
+    %$cache_options
 };
 my $gmcommon_options = {
     arcversion => '',
@@ -211,6 +214,7 @@ my $glue2_options = {
     enabled => '',
     computingservice_qualitylevel => '*' # 157
 };
+
 
 # # # # # # # # # # # # # #
 
@@ -629,6 +633,19 @@ sub build_config_from_json {
         $config->{arex}{ws}{emies}{enabled} = 0;
     }
 
+   # cache handling, mixes info from different blocks into control
+   $config->{arex}{cache} ||= {};
+    if (defined $jsonconf->{'arex/cache'}) {
+       my $cacheopts = $jsonconf->{'arex/cache'};
+       # moved to control for legacy reasons
+       move_keys $cacheopts, $config->{control}{'.'}, [keys %$cache_options];
+    }
+    $config->{arex}{cache}{cleaner} ||= {};
+    if (defined $jsonconf->{'arex/cache/cleaner'}) {
+       my $cacheopts = $jsonconf->{'arex/cache/cleaner'};
+       # moved to control for legacy reasons
+       move_keys $cacheopts, $config->{control}{'.'}, [keys %$cache_options];
+    }
 
     # gridftpd config
     if ((defined $jsonconf->{'gridftpd/jobs'}) || (defined $jsonconf->{'gridftpd'})) {
