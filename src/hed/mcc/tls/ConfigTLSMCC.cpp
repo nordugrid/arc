@@ -171,7 +171,9 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
     if(chain) {
       for (int id = 0; id < sk_X509_num(chain) && res == 1; ++id) {
         X509* cert = sk_X509_value(chain,id);
-        res = SSL_CTX_add_extra_chain_cert(sslctx, cert);
+        // Differently from SSL_CTX_use_certificate call to SSL_CTX_add_extra_chain_cert does not
+        // increase reference counter (calls sk_x509_push inside). So must call it here.
+        res = SSL_CTX_add_extra_chain_cert(sslctx, X509_dup(cert));
       }
       sk_X509_pop_free(chain, X509_free);
     }
