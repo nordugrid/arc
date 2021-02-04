@@ -377,11 +377,13 @@ sub get_host_info {
                 # HighWatermark is factored in
                 # Only accurate if caches are on filesystems of their own
                 $host_info->{cache_total} = (defined $cachemax) ? $res{totalsum}*$cachemax/100 : $res{totalsum};
+                $host_info->{cache_total} = int $host_info->{cache_total};
                 # Opting to publish the least free space on any of the cache
                 # disks -- at least this has a simple meaning and is useful to
                 # diagnose if a disk gets full -- but upper limit is 
                 # the max space usable calculated above, for consistency
                 $host_info->{cache_free} = ($res{freemin} >= $host_info->{cache_total}) ? $host_info->{cache_total} : $res{freemin};
+                $host_info->{cache_free} = int $host_info->{cache_free};
             }
         }
     }
