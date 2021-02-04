@@ -4,6 +4,7 @@
 #include <config.h>
 #endif
 
+#include <openssl/sha.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/credential/Credential.h>
@@ -48,13 +49,21 @@ namespace Arc {
     std::string emptycadir;
     std::string emptycafile;
     Credential credential(*certpath, *keypath, emptycadir, emptycafile);
-    std::string escaped_dn = escape_chars(credential.GetIdentityName(), filter_esc, '\\', false, escape_hex);
+    std::string dn = credential.GetIdentityName();
+    std::string escaped_dn = escape_chars(dn, filter_esc, '\\', false, escape_hex);
+    std::string hashed_dn;
+    {
+      unsigned char hash[SHA512_DIGEST_LENGTH];
+      SHA512((unsigned char const *)dn.c_str(), dn.length(), hash);
+      for(int idx = 0; idx < SHA512_DIGEST_LENGTH; ++idx)
+        hashed_dn += inttostr((unsigned int)hash[idx], 16, 2);
+    }
 
     //Query GRIS for all relevant information
     url.ChangeLDAPScope(URL::subtree);
 
     // Applying filter. Must be done through EndpointQueryOptions.
-    url.ChangeLDAPFilter("(|(nordugrid-job-globalowner=" + escaped_dn + ")(objectClass=nordugrid-cluster))");
+    url.ChangeLDAPFilter("(|(nordugrid-job-globalowner=" + escaped_dn + ")(nordugrid-job-globalowner=" + hashed_dn + ")(objectClass=nordugrid-cluster))");
 
     DataBuffer buffer;
     DataHandle handler(url, uc);
