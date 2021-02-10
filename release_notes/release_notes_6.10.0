@@ -10,7 +10,7 @@ Release Notes for NorduGrid ARC  6.10.0     10.02.2021
 Highlights in this release
 --------------------------
 There are two important updates in this release.
-The first handles the submitter information in regards to GDBR,
+The first handles the submitter information in regards to GDPR,
 and the second fixes a bug causing AREX to crash.
 
 1. Submitters certificate DN and GDPR (Bugzilla 3980)
