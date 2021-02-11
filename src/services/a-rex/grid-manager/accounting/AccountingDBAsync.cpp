@@ -79,7 +79,7 @@ namespace ARex {
       };
       AccountingDBAsync::EventUpdateAAR* eventUpdateAAR = dynamic_cast<AccountingDBAsync::EventUpdateAAR*>(event.Ptr());
       if(eventUpdateAAR) {
-        db->second->createAAR(eventUpdateAAR->aar);
+        db->second->updateAAR(eventUpdateAAR->aar);
         continue;
       };
       AccountingDBAsync::EventAddJobEvent* eventAddJobEvent = dynamic_cast<AccountingDBAsync::EventAddJobEvent*>(event.Ptr());
