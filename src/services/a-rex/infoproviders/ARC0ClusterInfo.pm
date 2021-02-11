@@ -33,23 +33,30 @@ sub prioritizedvalues {
    return undef;
 }
 
+# optimization for GDPR, hash of DN->sha512hash
+my $dnhashes = {};
+
 # sub to create a sha512 has using coreutils' sha512sum
-# input: a text string, usually a user DN
+# input: a text string, usually a user DN, a hash of DN->hash
+
 sub sha512sum {
-  my ($text) = @_;
-  my $digestfromcmd = '';
-  my $digestcmd = "echo -n \'$text\' | sha512sum -t";
-  open(my $shasum, "-|", $digestcmd) // $log->warning("Fork failed while running $digestcmd, error: $!");
-  while (my $cmdout = <$shasum>) {
-    chomp $cmdout;
-    $digestfromcmd = substr($cmdout, 0, index($cmdout, " "));
-  }
-  close($shasum);
-  # should the encoding fails, we put a placeholder
+  my ($text,$dnhashes) = @_;
+  my $digestfromcmd = defined $dnhashes->{$text} ? $dnhashes->{$text} : '';
+  if ( (! defined $digestfromcmd) or ($digestfromcmd eq '') ) {
+     my $digestcmd = "echo -n \'$text\' | sha512sum -t";
+     open(my $shasum, "-|", $digestcmd) // $log->warning("Fork failed while running $digestcmd, error: $!");
+     while (my $cmdout = <$shasum>) {
+       chomp $cmdout;
+       $digestfromcmd = substr($cmdout, 0, index($cmdout, " "));
+     }
+     close($shasum);
+  };
+  # should the encoding fail, we put a placeholder
   if ( $digestfromcmd eq '' or $digestfromcmd =~ /\s/) {
      $digestfromcmd = 'UNDEFINEDVALUE';
      $log->warning("sha512sum failed in ".__PACKAGE__.".pm, using placeholder $digestfromcmd");
   }
+  $dnhashes->{$text} = $digestfromcmd;
   return $digestfromcmd;
 }
 
@@ -422,7 +429,7 @@ sub collect($) {
                 $j->{name} = $jobid;
                 $j->{globalid} = $c->{contactstring}."/$jobid";
                 # Starting from ARC 6.10 we out a hash here for GDPR compliance.
-                $j->{globalowner} = sha512sum($gmjob->{subject}) if $gmjob->{subject};
+                $j->{globalowner} = sha512sum($gmjob->{subject},$dnhashes) if $gmjob->{subject};
                 $j->{jobname} = $gmjob->{jobname} if $gmjob->{jobname};
                 $j->{submissiontime} = $gmjob->{starttime} if $gmjob->{starttime};
                 $j->{execcluster} = $hostname if $hostname;
