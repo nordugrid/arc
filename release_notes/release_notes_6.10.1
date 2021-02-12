@@ -1,0 +1,117 @@
+=================================
+Advanced Resource Connector (ARC)
+=================================
+
+
+Release Notes for NorduGrid ARC  6.10.1     12.02.2021
+=======================================================
+
+After the brief release of ARC 6.10.0 and the retraction quickly
+after, this release tackles the slowness encountered from the hashing code
+related to Bug 3980 (GDPR). 
+
+We at the same time spotted a problem in the Accounting code which also
+has been fixed, see Bug 3992.
+
+Highlights in this release
+--------------------------
+There are two important updates in this release.
+The first handles the submitter information in regards to GDPR,
+and the second fixes a bug causing AREX to crash.
+
+1. Submitters certificate DN and GDPR (Bugzilla 3980)
+   With ARC 6.10.0 the submitters DN is now exposed in a hashed format.
+   This means that ARC no longer publishes the submitters DN in clear text
+   and therefore complies with GDPR regulations.
+   Note that the arcsync command from ARC clients version <= 6.9.0 will not work,
+   as the DN's no longer will match. Updating the ARC client is required for arcsync to work.
+
+2. AREX crashes related to the security processing in AREX (Bugzilla 3978)
+   Some sites experienced regular AREX crashes with the ARC 6.9.0 release.
+   This was due to a bug in the code which handled the detection of failure in the security processing.
+   This is now fixed. 
+
+In addition to these important changes, the release contains several other bugfixes and improvements as
+can be seen in the list of adressed Bugzilla tickets below. 
+
+
+
+
+The following Bugzilla tickets have been adressed or solved
+------------------------------------------------------------
+* 3993  The amount of fork calls to sha512sum was slowing down infoproviders
+* 3992  Wrong function call in AccountingDBAsync
+* 3987  AREX crashes - nightlies 20200120 - libcrypto
+* 3979  output files with davs:// destination created with wrong filename
+* 3978  Bug in detecting security processing failure in A-REX
+* 3976  double submission to slurm
+* 3962  Arex crash caused by memory leaks with many open handles - nightlies 20200921020916
+The following Bugzilla tickets have been partly resolved: 
+* 3980  nordugrid-job-globalowner of the nordugrid ldap schema is not GDPR compliant
+* 3974  cache info is not published
+* 3929  GLUE2ComputingShareMaxMainMemory, GLUE2ComputingShareMaxVirtualMemory  and GLUE2ExecutionEnvironmentMainMemorySize affected by homogeneity
+
+
+
+Documentation
+==============
+The ARC 6 documentation can be found at http://www.nordugrid.org/arc/arc6
+
+If you miss something or have questions, please contact us!
+
+
+Installing ARC 6 
+=================
+We recommend to install ARC release using the Nordugrid repository.
+* Start with the basics: http://www.nordugrid.org/arc/arc6/admins/try_arc6.html
+* Get production ready: http://www.nordugrid.org/arc/arc6/admins/arc6_install_guide.html 
+
+Note that if you instead install from EPEL for RHEL 7 compatible systems,
+the ARC 6 packages can be found as nordugrid-arc6-* and not nordugrid-arc-*
+This was needed in order to supply both ARC 5 already available for RHEL7 and the new ARC 6.
+
+
+We provide binary builds for all supported versions of
+  * Debian (i386 and amd64)
+  * Fedora (x86_64)
+  * Centos/RHEL (x86_64)
+  * Ubuntu (i386 and amd64, both LTS and interim releases) - from Ubuntu 20.04 no i386 support
+
+In addition we build nightly packages for older platforms. 
+
+
+Future support of ARC 5-series
+===============================
+As of June 2020 no more security updates are provided to ARC 5.
+Also since the release of ARC 6 in June 2019, no more development on the ARC 5 code base has been provided.
+
+Production Sites already running ARC 5 will still get operational site support in form of
+deployment and configuration troubleshooting help via GGUS until end June 2021.
+However, we may recommend upgrading to ARC 6 depending on the issues the site is facing. 
+
+ARC5 is available in EPEL7 and will stay there. EPEL8 will only contain ARC 6.
+To install ARC 6 from EPEL7 the package-names are of type: nordugrid-arc6-* 
+
+
+Getting in touch
+==================
+If you need help with the configuration file or have any other questions related to ARC 6, please contact us via
+* Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
+* Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
+
+
+Known issues
+==============
+* The arcsync command from ARC clients version <= 6.9.0 will not work together
+  with ARC >=6.10.0 sites. This is due to the hashing of the submitters DN from ARC version 6.10.0.
+  Updating the ARC client is required for arcsync to work.
+* In Centos8 the openldap server is not installable because slapd is not available in the RHEL8 release (Bugzilla 3944).
+  As a consequence, the LDAP-based server-side information system interface of the ARC-CE will not be available either.
+  If interaction with the ARC-CE relies on LDAP-based information schemas (glue1.3 or nordugrid schema),
+  then we recommend that you stay with Centos7 for the time being.
+* Related to the new accounting system introduded in release 6.4.0: 
+  * Accounting records created by ARC 6.4.0 are affected by a bug causing missing benchmark values:
+   https://bugzilla.nordugrid.org./show_bug.cgi?id=3921#c3
+   Recommendations are to update to a newer version of ARC.
+   The bugreport gives instructions on how to manually fix the wrong benchmark values.
+
