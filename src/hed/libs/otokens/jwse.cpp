@@ -128,7 +128,7 @@ namespace Arc {
       char const* signatureEnd = jwseCompact.c_str() + jwseCompact.length();
       std::string signature = Base64::decodeURLSafe(signatureStart, signatureEnd-signatureStart);
       bool verifyResult = false;
-      logger_.msg(DEBUG, "JWSE::Input: JWS: signature algorthm: %s", algObject->valuestring);
+      logger_.msg(DEBUG, "JWSE::Input: JWS: signature algorithm: %s", algObject->valuestring);
       signAlg_ = algObject->valuestring;
       if(strcmp(algObject->valuestring, "none") == 0) {
         verifyResult = signature.empty(); // expecting empty signature if no protection is requested

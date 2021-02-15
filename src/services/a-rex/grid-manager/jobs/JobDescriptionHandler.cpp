@@ -359,7 +359,7 @@ JobReqResult JobDescriptionHandler::get_acl(const Arc::JobDescription& arc_job_d
   Arc::XMLNode typeNode = arc_job_desc.Application.AccessControl["Type"];
   Arc::XMLNode contentNode = arc_job_desc.Application.AccessControl["Content"];
   if( !contentNode ) {
-    std::string failure = "acl element wrongly formated - missing Content element";
+    std::string failure = "acl element wrongly formatted - missing Content element";
     logger.msg(Arc::ERROR, failure);
     return JobReqResult(JobReqMissingFailure, "", failure);
   };

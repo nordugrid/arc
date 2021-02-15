@@ -443,7 +443,7 @@ void GridFTP_Commands::commands_callback(void* arg,globus_ftp_control_handle_t *
       char* arg = get_arg(command->base.raw_command);
       if(parse_eport(arg,&(command->port.host_port)) != 0) {
         logger.msg(Arc::VERBOSE, "Command EPRT");
-        logger.msg(Arc::ERROR, "Failed to parse remote addres %s",arg);
+        logger.msg(Arc::ERROR, "Failed to parse remote address %s",arg);
         it->send_response("553 Failed to parse port for data transfer\r\n");
         return;
       }

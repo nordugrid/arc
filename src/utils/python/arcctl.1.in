@@ -31,7 +31,7 @@ Specifies the configuration file to be used. By default the \fBarc.conf\fP(5) is
 Show help messages
 
 .SH COMPONENTS
-The following components can be controlled by arcctl at the time of writting:
+The following components can be controlled by arcctl at the time of writing:
 .TP 16
 .I services
 Controlling ARC CE services.
@@ -65,7 +65,7 @@ Configure ENV/PROXY RunTime Environment to disable CA certificates copying
 .IP
 \f(CW# arcctl rte params-set ENV/PROXY COPY_CACERT_DIR No\fR
 .PP
-Use ENV/RTE RunTime Environment by default for every job (even if not explicitely 
+Use ENV/RTE RunTime Environment by default for every job (even if not explicitly
 requested in job description)
 .IP
 \f(CW# arcctl rte default ENV/RTE\fR
@@ -90,7 +90,7 @@ Get the brief summary of configured storage areas for ARC services
 .IP
 \f(CW# arcctl config brief --type storage\fR
 .PP
-Generage tarball with test user certificate to tranfer to another machine
+Generate tarball with test user certificate to transfer to another machine
 .IP
 \f(CW# arcctl test-ca usercert --export-tar\fR
 .PP

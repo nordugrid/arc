@@ -312,14 +312,14 @@ namespace Arc {
      * - Key/certificate paths specified by the environment variables
      *   X509_USER_KEY and X509_USER_CERT. If values  are set and
      *   corresponding files do not exist it considered to be an error
-     *   and no other locations are tried. Error message is supressed
+     *   and no other locations are tried. Error message is suppressed
      *   if proxy was previously found.
      * - Current key/certificate paths passed to the contructor or
      *   explicitly set using the setter methods KeyPath(const std::string&)
      *   and CertificatePath(const std::string&) or read from configuration
      *   by constructor or LoadConfiguartionFile() method. If values
      *   are set and corresponding files do not exist it is an error
-     *   and no other locations are tried. Error message is supressed
+     *   and no other locations are tried. Error message is suppressed
      *   if proxy was previously found.
      * - Key/certificate paths ~/.arc/usercert.pem and ~/.arc/userkey.pem
      *   respectively are tried. It is not an error if not found.

@@ -377,7 +377,7 @@ Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode
   char* buf = (char*)::malloc(st.st_size+1);
   if(!buf) {
     ::close(h);
-    ESINFOFAULT("Failed to allocate memory for resoure information");
+    ESINFOFAULT("Failed to allocate memory for resource information");
   };
   off_t p = 0;
   for(;p<st.st_size;) {
@@ -477,7 +477,7 @@ Arc::MCC_Status ARexService::ESQueryResourceInfo(ARexGMConfig& config,Arc::XMLNo
   char* buf = (char*)::malloc(st.st_size+1);
   if(!buf) {
     ::close(h);
-    ESFAULT("Failed to allocate memory for resoure information");
+    ESFAULT("Failed to allocate memory for resource information");
   };
   off_t p = 0;
   for(;p<st.st_size;) {
