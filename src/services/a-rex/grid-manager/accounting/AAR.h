@@ -5,6 +5,7 @@
 #include <map>
 #include <list>
 #include <arc/DateTime.h>
+#include <arc/Logger.h>
 
 namespace ARex {
 

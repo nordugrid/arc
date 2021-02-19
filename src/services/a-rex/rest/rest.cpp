@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <algorithm>
 
 #include <arc/message/PayloadRaw.h>
 #include <arc/message/PayloadStream.h>
@@ -18,6 +19,15 @@
 
 #include "rest.h"
 
+namespace Arc {
+  std::list< std::pair<std::string,int> >::iterator FindFirst(std::list< std::pair<std::string,int> >::iterator first, std::list< std::pair<std::string,int> >::iterator last, std::string const & str) {
+    while (first != last) {
+      if (first->first == str) return first;
+      ++first;
+    }
+    return last;
+  }
+}
 
 using namespace ARex;
 using namespace Arc;
@@ -39,18 +49,46 @@ static void RenderToJson(Arc::XMLNode xml, std::string& output, int depth = 0) {
         return;
     }
     output += "{";
-    bool newElement = true;
+    // Because JSON does not allow for same key we must first
+    // group XML elements by names. Using list to preserve order
+    // in which elements appear.
+    std::list< std::pair<std::string,int> > names;
     for(int n = 0; ; ++n) {
         XMLNode child = xml.Child(n);
-        if (!child) break;
-        if(!newElement) output += ",";
-        output += "\"";
-        output += child.Name();
-        output += "\"";
-        output += ":";
-        RenderToJson(child, output, depth+1);
-        newElement = false;
+        if(!child) break;
+        std::string name = child.Name();
+        std::list< std::pair<std::string,int> >::iterator nameIt = FindFirst(names.begin(),names.end(),name);
+        if(nameIt == names.end())
+            names.push_back(std::make_pair(name,1));
+        else
+            ++(nameIt->second); 
     }
+    bool newElement = true;
+    for(std::list< std::pair<std::string,int> >::iterator nameIt = names.begin(); nameIt != names.end(); ++nameIt) {
+        XMLNode child = xml[nameIt->first.c_str()];
+        if(child) {
+            if(!newElement) output += ",";
+            newElement = false;
+            output += "\"";
+            output += child.Name();
+            output += "\"";
+            output += ":";
+            if(nameIt->second == 1) {
+                RenderToJson(child, output, depth+1);
+            } else {
+                output += "[";
+                bool newItem = true;
+                while(child) {
+                    if(!newItem) output += ",";
+                    newItem = false;
+                    RenderToJson(child, output, depth+1);
+                    ++child;
+                }
+                output += "]";
+            }
+        }
+    }
+    // Hope no attributes with same name
     if(xml.AttributesSize() > 0) {
         if(!newElement) output += ",";
         output += "\"_attributes\":{";
@@ -156,17 +194,17 @@ static char const * ParseFromJson(Arc::XMLNode& xml, char const * input, int dep
         // array
         char const * nameStart = SkipWS(input);
         XMLNode item = xml;
-        if(*nameStart == ']') while(true) {
+        if(*nameStart != ']') while(true) {
             input = ParseFromJson(item,input,depth+1);
             if(!input) return NULL;
             input = SkipWS(input);
             if(*input == ',') {
                 // next element
                 ++input;
-                item = xml.NewChild(item.Name());
+                item = xml.Parent().NewChild(item.Name());
             } else if(*input == ']') {
                 // last element
-                item = xml.NewChild(item.Name()); // It will be deleted outside loop
+                item = xml.Parent().NewChild(item.Name()); // It will be deleted outside loop
                 break;
             } else {
                 return NULL;
@@ -513,6 +551,7 @@ static void ParseJobIds(Arc::Message& inmsg, Arc::Message& outmsg, std::list<std
   std::string contentType = inmsg.Attributes()->get("HTTP:content-type");
   Arc::XMLNode listXml;
   if(contentType == "application/json") {
+    Arc::XMLNode("<jobs/>").Move(listXml);    
     (void)ParseFromJson(listXml, content.c_str());
   } else if((contentType == "application/xml") || contentType.empty()) {
     Arc::XMLNode(content).Move(listXml);    

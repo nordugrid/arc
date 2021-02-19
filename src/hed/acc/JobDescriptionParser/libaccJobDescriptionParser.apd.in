@@ -1,0 +1,12 @@
+name="XRSLParser"
+kind="HED:JobDescriptionParserPlugin"
+description="NorduGrid xRSL (nordugrid:xrsl)"
+version="0"
+priority="128"
+
+name="EMIESADLParser"
+kind="HED:JobDescriptionParserPlugin"
+description="EMI-ES ADL (emies:adl)"
+version="0"
+priority="128"
+

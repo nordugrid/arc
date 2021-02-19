@@ -30,7 +30,7 @@ export ARC_LOCATION
 
 if [ `id -u` = 0 ] ; then
     if [ "x$PID_FILE" = "x" ]; then
-	PID_FILE=/var/run/$prog.pid
+	PID_FILE=/run/$prog.pid
     fi
 else
     if [ "x$PID_FILE" = "x" ]; then

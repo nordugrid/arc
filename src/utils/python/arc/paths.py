@@ -15,7 +15,7 @@ except ImportError:
     ARC_LIBEXEC_DIR = ARC_LOCATION + '/libexec/arc'
     ARC_DATA_DIR = ARC_LOCATION + '/share/arc'
     ARC_LIB_DIR = ARC_LOCATION + '/lib64/arc'
-    ARC_RUN_DIR = '/var/run/arc'
+    ARC_RUN_DIR = '/run/arc'
     ARC_DOC_DIR = ARC_LOCATION + '/share/doc/nordugrid-arc/'
     ARC_CONF = '/etc/arc.conf'
     ARC_VERSION = 'devel'

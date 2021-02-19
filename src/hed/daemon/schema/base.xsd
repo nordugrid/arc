@@ -38,7 +38,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:all>
-            <xsd:element name="PidFile" type="xsd:string" minOccurs="0" maxOccurs="1" default="/var/run/arched.pid">
+            <xsd:element name="PidFile" type="xsd:string" minOccurs="0" maxOccurs="1" default="/run/arched.pid">
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
                     Path to pid file.

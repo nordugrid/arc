@@ -1,0 +1,42 @@
+name="TEST"
+kind="HED:BrokerPlugin"
+description=""
+version="0"
+priority="128"
+
+name="TEST"
+kind="HED:JobControllerPlugin"
+description=""
+version="0"
+priority="128"
+
+name="TEST"
+kind="HED:JobDescriptionParserPlugin"
+description=""
+version="0"
+priority="128"
+
+name="TEST"
+kind="HED:SubmitterPlugin"
+description=""
+version="0"
+priority="128"
+
+name="TEST"
+kind="HED:TargetInformationRetrieverPlugin"
+description="TargetInformationRetriever test plugin"
+version="0"
+priority="128"
+
+name="TEST"
+kind="HED:ServiceEndpointRetrieverPlugin"
+description="ServiceEndpointRetriever test plugin"
+version="0"
+priority="128"
+
+name="TEST"
+kind="HED:JobListRetrieverPlugin"
+description="JobListRetriever test plugin"
+version="0"
+priority="128"
+

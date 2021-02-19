@@ -307,6 +307,10 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
     Arc::ServicePluginArgument* srvarg =
             arg?dynamic_cast<Arc::ServicePluginArgument*>(arg):NULL;
     if(!srvarg) return NULL;
+    Arc::PluginsFactory* factory = srvarg->get_factory();;
+    Glib::Module* module = srvarg->get_module();;
+    if(factory && module)
+      factory->makePersistent(module);
     ARexService* arex = new ARexService((Arc::Config*)(*srvarg),arg);
     if(!*arex) { delete arex; arex=NULL; };
     return arex;
@@ -457,7 +461,8 @@ static void GetIdFromPath(std::string& subpath, std::string& id) {
   while(subpath[0] == '/') subpath.erase(0,1);
 }
 
-Arc::MCC_Status ARexService::preProcessSecurity(Arc::Message& inmsg,Arc::Message& outmsg,Arc::SecAttr* sattr,bool is_soap,ARexConfigContext*& config) {
+Arc::MCC_Status ARexService::preProcessSecurity(Arc::Message& inmsg,Arc::Message& outmsg,Arc::SecAttr* sattr,bool is_soap,ARexConfigContext*& config,bool& passed) {
+  passed = false;
   config = NULL;
   if(sattr) inmsg.Auth()->set("AREX",sattr);
 
@@ -486,14 +491,17 @@ Arc::MCC_Status ARexService::preProcessSecurity(Arc::Message& inmsg,Arc::Message
   config->AddAuth(inmsg.Auth());
   config->AddAuth(inmsg.AuthContext());
 
+  passed = true;
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
-Arc::MCC_Status ARexService::postProcessSecurity(Arc::Message& outmsg) {
+Arc::MCC_Status ARexService::postProcessSecurity(Arc::Message& outmsg, bool& passed) {
+  passed = true;
   Arc::MCC_Status sret = ProcessSecHandlers(outmsg,"outgoing");
   if(!sret) {
     logger_.msg(Arc::ERROR, "Security Handlers processing failed: %s", std::string(sret));
     delete outmsg.Payload(NULL);
+    passed = false;
   };
   return sret;
 }
@@ -548,13 +556,15 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     ARexSecAttr* sattr = new ARexSecAttr(std::string(JOB_POLICY_OPERATION_UNDEFINED));
     if(sattr) sattr->SetResource(endpoint,id,subpath);
     ARexConfigContext* config(NULL);
-    Arc::MCC_Status sret = preProcessSecurity(inmsg,outmsg,sattr,false,config);
-    if(!sret) return sret;
+    bool passed = false;
+    Arc::MCC_Status sret = preProcessSecurity(inmsg,outmsg,sattr,false,config,passed);
+    if(!passed) return sret;
 
     sret = rest_.process(inmsg, outmsg);
 
     if(sret) {
-      sret = postProcessSecurity(outmsg);
+      bool passed = false;
+      sret = postProcessSecurity(outmsg,passed);
     }
 
     return sret;
@@ -600,8 +610,9 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   }
   if(sattr) sattr->SetResource(endpoint,id,subpath);
   ARexConfigContext* config(NULL);
-  Arc::MCC_Status sret = preProcessSecurity(inmsg,outmsg,sattr,method=="POST",config);
-  if(!sret) return sret;
+  bool passed = false;
+  Arc::MCC_Status sret = preProcessSecurity(inmsg,outmsg,sattr,method=="POST",config,passed);
+  if(!passed) return sret;
 
   // Identify which of served endpoints request is for.
   // Using simplified algorithm - POST for SOAP messages,
@@ -762,8 +773,9 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       logger_.msg(Arc::ERROR, "Per-job POST/SOAP requests are not supported");
       return make_soap_fault(outmsg,"Operation not supported");
     };
-    Arc::MCC_Status sret = postProcessSecurity(outmsg);
-    if(!sret) return sret;
+    bool passed = false;
+    Arc::MCC_Status sret = postProcessSecurity(outmsg,passed);
+    if(!passed) return sret;
     return Arc::MCC_Status(Arc::STATUS_OK);
   } else if(method == "GET") {
     // HTTP plugin either provides buffer or stream
@@ -793,8 +805,9 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         break;
     };
     if(ret) {
-      Arc::MCC_Status sret = postProcessSecurity(outmsg);
-      if(!sret) return sret;
+      bool passed = false;
+      Arc::MCC_Status sret = postProcessSecurity(outmsg,passed);
+      if(!passed) return sret;
     };
     return ret;
   } else if(method == "HEAD") {
@@ -824,8 +837,9 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         break;
     };
     if(ret) {
-      Arc::MCC_Status sret = postProcessSecurity(outmsg);
-      if(!sret) return sret;
+      bool passed = false;
+      Arc::MCC_Status sret = postProcessSecurity(outmsg,passed);
+      if(!passed) return sret;
     };
     return ret;
   } else if(method == "PUT") {
@@ -854,8 +868,9 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         break;
     };
     if(ret) {
-      Arc::MCC_Status sret = postProcessSecurity(outmsg);
-      if(!sret) return sret;
+      bool passed = false;
+      Arc::MCC_Status sret = postProcessSecurity(outmsg,passed);
+      if(!passed) return sret;
     };
     return ret;
   } else if(method == "DELETE") {
@@ -884,8 +899,9 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         break;
     };
     if(ret) {
-      Arc::MCC_Status sret = postProcessSecurity(outmsg);
-      if(!sret) return sret;
+      bool passed = false;
+      Arc::MCC_Status sret = postProcessSecurity(outmsg,passed);
+      if(!passed) return sret;
     };
     return ret;
   } else if(!method.empty()) {

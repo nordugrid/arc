@@ -74,7 +74,6 @@ our $host_info_schema = {
                 diskfree => '' # unit: MB
             }
         },
-   EMIversion => [ '' ] # taken from /etc/emi-version if exists
 };
 
 our $log = LogUtils->getLogger(__PACKAGE__);
@@ -367,6 +366,7 @@ sub get_host_info {
     # Considering only common cache disk space (not including per-user caches)
     if ($control->{'.'}) {
         my $cachedirs = $control->{'.'}{cachedir} || [];
+        my ($cachemax, $cachemin) = split " ", $control->{'.'}{cachesize};
         my @paths = map { my @pair = split " ", $_; $pair[0] } @$cachedirs;
         if (@paths) {
             my %res = Sysinfo::diskspaces(@paths);
@@ -374,13 +374,16 @@ sub get_host_info {
                 $log->warning("Failed checking disk space available in common cache directories")
             } else {
                 # What to publish as CacheFree if there are multiple cache disks?
-                # Should be highWatermark factored in?
+                # HighWatermark is factored in
+                # Only accurate if caches are on filesystems of their own
+                $host_info->{cache_total} = (defined $cachemax) ? $res{totalsum}*$cachemax/100 : $res{totalsum};
+                $host_info->{cache_total} = int $host_info->{cache_total};
                 # Opting to publish the least free space on any of the cache
                 # disks -- at least this has a simple meaning and is useful to
-                # diagnose if a disk gets full.
-                $host_info->{cache_free} = $res{freemin};
-                # Only accurate if caches are on filesystems of their own
-                $host_info->{cache_total} = $res{totalsum};
+                # diagnose if a disk gets full -- but upper limit is 
+                # the max space usable calculated above, for consistency
+                $host_info->{cache_free} = ($res{freemin} >= $host_info->{cache_total}) ? $host_info->{cache_total} : $res{freemin};
+                $host_info->{cache_free} = int $host_info->{cache_free};
             }
         }
     }
@@ -407,14 +410,6 @@ sub get_host_info {
     $host_info->{processes} = Sysinfo::processid(@{$options->{processes}});
 
     $host_info->{ports} = get_ports_info($options->{processes},$options->{ports});
-
-    # gets EMI version from /etc/emi-version if any.
-    my $EMIversion;
-     if  (-r "/etc/emi-version") {
-       chomp ( $EMIversion = `cat /etc/emi-version 2>/dev/null`);
-       if ($?) { $log->warning("Failed reading EMI version file. Assuming non-EMI deployment. Install emi-version package if you're running EMI version of ARC")}
-     }
-     $host_info->{EMIversion} = [ 'MiddlewareName=EMI' , "MiddlewareVersion=$EMIversion" ] if ($EMIversion);
 
     return $host_info;
 }

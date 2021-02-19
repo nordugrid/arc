@@ -208,7 +208,6 @@ namespace Arc {
 
       modules_t_ modules_;
 
-      bool try_load_;
       static Logger logger;
       bool load(const std::string& name,const std::list<std::string>& kinds,const std::list<std::string>& pnames);
     public:
@@ -219,8 +218,6 @@ namespace Arc {
          for analyzing its content. If set to false only *.apd
          files are checked. Modules without corresponding *.apd
          will be ignored. Default is true; */
-      void TryLoad(bool v) { try_load_ = v; };
-      bool TryLoad(void) { return try_load_; };
       /** These methods load module named lib'name', locate plugin
          constructor functions of specified 'kind' and 'name' (if specified)
          and call it. Supplied argument affects way plugin instance is created

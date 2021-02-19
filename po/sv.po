@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: support@nordugrid.org\n"
-"POT-Creation-Date: 2020-12-01 21:38+0100\n"
-"PO-Revision-Date: 2020-12-02 22:45+0100\n"
+"POT-Creation-Date: 2021-02-10 05:52+0100\n"
+"PO-Revision-Date: 2021-02-10 06:20+0100\n"
 "Last-Translator: Mattias Ellert <mattias.ellert@physics.uu.se>\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -55,7 +55,7 @@ msgstr "%s version %s"
 #: src/clients/data/arcrename.cpp:144 src/clients/data/arcrm.cpp:160
 #: src/libs/data-staging/DataDeliveryLocalComm.cpp:168
 #: src/services/a-rex/grid-manager/GridManager.cpp:111
-#: src/services/a-rex/grid-manager/log/JobLog.cpp:138
+#: src/services/a-rex/grid-manager/log/JobLog.cpp:139
 #, c-format
 msgid "Running command: %s"
 msgstr "Kör kommando: %s"
@@ -3118,7 +3118,7 @@ msgid "Listing jobs succeeded, %d jobs found"
 msgstr "Listning av jobb lyckades, hittade %d jobb"
 
 #: src/hed/acc/EMIES/JobListRetrieverPluginEMIES.cpp:53
-#: src/hed/acc/LDAP/JobListRetrieverPluginLDAPNG.cpp:102
+#: src/hed/acc/LDAP/JobListRetrieverPluginLDAPNG.cpp:111
 #: src/services/a-rex/internaljobplugin/JobListRetrieverPluginINTERNAL.cpp:83
 #, c-format
 msgid ""
@@ -4369,10 +4369,10 @@ msgstr "Extraherare[%s] (%s): %s innehåller %s"
 msgid "Adding endpoint '%s' with interface name %s"
 msgstr "Lägger till ändpunkt '%s' men gränssnittsnamn %s"
 
-#: src/hed/acc/LDAP/JobListRetrieverPluginLDAPNG.cpp:63
+#: src/hed/acc/LDAP/JobListRetrieverPluginLDAPNG.cpp:72
 #: src/hed/acc/LDAP/ServiceEndpointRetrieverPluginEGIIS.cpp:46
 #: src/hed/acc/LDAP/TargetInformationRetrieverPluginLDAPGLUE2.cpp:47
-#: src/hed/acc/LDAP/TargetInformationRetrieverPluginLDAPNG.cpp:58
+#: src/hed/acc/LDAP/TargetInformationRetrieverPluginLDAPNG.cpp:57
 msgid "Can't create information handle - is the ARC ldap DMC plugin available?"
 msgstr ""
 "Kan inte skapa informationshandtag - är ARCs ldap-DMC-plugin tillgänglig?"
@@ -4402,12 +4402,12 @@ msgstr ""
 msgid "Wrong format of the \"FreeSlotsWithDuration\" = \"%s\" (\"%s\")"
 msgstr "Felaktigt format för \"FreeSlotsWithDuration\" = \"%s\" (\"%s\")"
 
-#: src/hed/acc/LDAP/TargetInformationRetrieverPluginLDAPNG.cpp:390
+#: src/hed/acc/LDAP/TargetInformationRetrieverPluginLDAPNG.cpp:389
 #, c-format
 msgid "Unable to parse the %s.%s value from execution service (%s)."
 msgstr "Kan inte tolka %s.%s-värdet från beräkningstjänsten (%s)."
 
-#: src/hed/acc/LDAP/TargetInformationRetrieverPluginLDAPNG.cpp:391
+#: src/hed/acc/LDAP/TargetInformationRetrieverPluginLDAPNG.cpp:390
 #, c-format
 msgid "Value of %s.%s is \"%s\""
 msgstr "Värdet av %s.%s är \"%s\""
@@ -4723,7 +4723,7 @@ msgstr "Oväntat argument tillhandahållet"
 
 #: src/hed/dmc/acix/DataPointACIX.cpp:93 src/hed/dmc/acix/DataPointACIX.cpp:342
 #: src/hed/dmc/rucio/DataPointRucio.cpp:220
-#: src/hed/dmc/rucio/DataPointRucio.cpp:449
+#: src/hed/dmc/rucio/DataPointRucio.cpp:453
 #, c-format
 msgid "No locations found for %s"
 msgstr "Inga platser hittade för %s"
@@ -6303,47 +6303,47 @@ msgstr "Kan inte hantera URL %s"
 msgid "Acquired auth token for %s: %s"
 msgstr "Erhöll autentiserings-token för %s: %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:364
+#: src/hed/dmc/rucio/DataPointRucio.cpp:367
 #, c-format
 msgid "Rucio returned %s"
 msgstr "Rucio returnerade: %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:389
+#: src/hed/dmc/rucio/DataPointRucio.cpp:393
 #, c-format
 msgid "Failed to parse Rucio response: %s"
 msgstr "Misslyckades med att tolka Rucio-svar: %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:395
+#: src/hed/dmc/rucio/DataPointRucio.cpp:399
 #, c-format
 msgid "Filename not returned in Rucio response: %s"
 msgstr "Filnamn returnerades inte i Rucio-svar: %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:401
+#: src/hed/dmc/rucio/DataPointRucio.cpp:405
 #, c-format
 msgid "Unexpected name returned in Rucio response: %s"
 msgstr "Oväntat namn returnerat i Rucio-svar: %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:407
+#: src/hed/dmc/rucio/DataPointRucio.cpp:411
 #, c-format
 msgid "No RSE information returned in Rucio response: %s"
 msgstr "Ingen RSE-information returnerad i Rucio-svar: %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:434
+#: src/hed/dmc/rucio/DataPointRucio.cpp:438
 #, c-format
 msgid "No filesize information returned in Rucio response for %s"
 msgstr "Ingen information om filstorlek returnerad i Rucio-svar för %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:437
+#: src/hed/dmc/rucio/DataPointRucio.cpp:441
 #, c-format
 msgid "%s: size %llu"
 msgstr "%s: storlek %llu"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:441
+#: src/hed/dmc/rucio/DataPointRucio.cpp:445
 #, c-format
 msgid "No checksum information returned in Rucio response for %s"
 msgstr "Ingen information om checksumma returnerad i Rucio-svar för %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:444
+#: src/hed/dmc/rucio/DataPointRucio.cpp:448
 #, c-format
 msgid "%s: checksum %s"
 msgstr "%s: checksumma %s"
@@ -7690,26 +7690,26 @@ msgstr "Ogiltig URL - avslutande ] för IPv6-adress följs av ogiltigt token: %s
 msgid "Invalid port number in %s"
 msgstr "Ogiltigt portnummer i %s"
 
-#: src/hed/libs/common/URL.cpp:440
+#: src/hed/libs/common/URL.cpp:453
 #, c-format
 msgid "Unknown LDAP scope %s - using base"
 msgstr "Okänt LDAP-scope %s - använder base"
 
-#: src/hed/libs/common/URL.cpp:603
+#: src/hed/libs/common/URL.cpp:616
 msgid "Attempt to assign relative path to URL - making it absolute"
 msgstr "Försöker tilldela relativ sökväg till URL - gör den absolut"
 
-#: src/hed/libs/common/URL.cpp:702
+#: src/hed/libs/common/URL.cpp:715
 #, c-format
 msgid "URL option %s does not have format name=value"
 msgstr "URL-alternativ %s har inte formatet namn=värde"
 
-#: src/hed/libs/common/URL.cpp:1167
+#: src/hed/libs/common/URL.cpp:1180
 #, c-format
 msgid "urllist %s contains invalid URL: %s"
 msgstr "urllistan %s innehåller ogiltig URL: %s"
 
-#: src/hed/libs/common/URL.cpp:1172
+#: src/hed/libs/common/URL.cpp:1185
 #, c-format
 msgid "URL protocol is not urllist: %s"
 msgstr "URL-protokollet är inte urllist: %s"
@@ -12004,38 +12004,38 @@ msgstr "VOMS: skapa FQAN: %s"
 msgid "VOMS: create attribute: %s"
 msgstr "VOMS: skapa attribut: %s"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:650
+#: src/hed/libs/credential/VOMSUtil.cpp:645
 msgid "VOMS: Can not allocate memory for parsing AC"
 msgstr "VOMS: Kan inte allokera minne för att tolka AC"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:658
+#: src/hed/libs/credential/VOMSUtil.cpp:653
 msgid "VOMS: Can not allocate memory for storing the order of AC"
 msgstr "VOMS: Kan inte allokera minne för att att lagra ordningen för AC"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:684
+#: src/hed/libs/credential/VOMSUtil.cpp:679
 msgid "VOMS: Can not parse AC"
 msgstr "VOMS: Kan inte tolka AC"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:714
+#: src/hed/libs/credential/VOMSUtil.cpp:709
 msgid "VOMS: CA directory or CA file must be provided"
 msgstr "VOMS: CA-katalog för CA-fil måste tillhandahållas"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:778
+#: src/hed/libs/credential/VOMSUtil.cpp:773
 msgid "VOMS: failed to verify AC signature"
 msgstr "VOMS: misslyckades med att verifiera AC-signatur"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:847
+#: src/hed/libs/credential/VOMSUtil.cpp:842
 #, c-format
 msgid "VOMS: trust chain to check: %s "
 msgstr "VOMS: tillitskedja att kontrollera: %s "
 
-#: src/hed/libs/credential/VOMSUtil.cpp:855
+#: src/hed/libs/credential/VOMSUtil.cpp:850
 #, c-format
 msgid ""
 "VOMS: the DN in certificate: %s does not match that in trusted DN list: %s"
 msgstr "VOMS: DN i certifikat: %s matchar inte det i betrodda DN-listan: %s"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:861
+#: src/hed/libs/credential/VOMSUtil.cpp:856
 #, c-format
 msgid ""
 "VOMS: the Issuer identity in certificate: %s does not match that in trusted "
@@ -12044,17 +12044,17 @@ msgstr ""
 "VOMS: utfärdaridentiteten i certifikat: %s matchar inte den i betrodda DN-"
 "listan: %s"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:896
+#: src/hed/libs/credential/VOMSUtil.cpp:891
 #, c-format
 msgid "VOMS: The lsc file %s does not exist"
 msgstr "VOMS: lsc-filen %s existerar inte"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:902
+#: src/hed/libs/credential/VOMSUtil.cpp:897
 #, c-format
 msgid "VOMS: The lsc file %s can not be open"
 msgstr "VOMS: lsc-filen %s kan inte öppnas"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:950
+#: src/hed/libs/credential/VOMSUtil.cpp:945
 msgid ""
 "VOMS: there is no constraints of trusted voms DNs, the certificates stack in "
 "AC will not be checked."
@@ -12062,72 +12062,72 @@ msgstr ""
 "VOMS: det finns inga villkor på betrodda voms-DN, certifikatstacken i AC "
 "kommer inte att kontrolleras."
 
-#: src/hed/libs/credential/VOMSUtil.cpp:983
+#: src/hed/libs/credential/VOMSUtil.cpp:978
 msgid "VOMS: unable to match certificate chain against VOMS trusted DNs"
 msgstr "VOMS: kunde inte matcha certifikatkedja mot VOMS betrodda DN"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1003
+#: src/hed/libs/credential/VOMSUtil.cpp:998
 msgid "VOMS: AC signature verification failed"
 msgstr "VOMS: AC-signaturverifiering misslyckades"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1012
+#: src/hed/libs/credential/VOMSUtil.cpp:1007
 msgid "VOMS: unable to verify certificate chain"
 msgstr "VOMS: kunde inte verifiera certifikatkedja"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1018
+#: src/hed/libs/credential/VOMSUtil.cpp:1013
 #, c-format
 msgid "VOMS: cannot validate AC issuer for VO %s"
 msgstr "VOMS: kunde inte validera AC-utfärdare för VO %s"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1041
+#: src/hed/libs/credential/VOMSUtil.cpp:1036
 #, c-format
 msgid "VOMS: directory for trusted service certificates: %s"
 msgstr "VOMS: katalog för betrodda tjänstecertifikat: %s"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1067
+#: src/hed/libs/credential/VOMSUtil.cpp:1062
 #, c-format
 msgid "VOMS: Cannot find certificate of AC issuer for VO %s"
 msgstr "VOMS: kan inte hitta AC-utfärdarens certifikat för VO %s"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1089
+#: src/hed/libs/credential/VOMSUtil.cpp:1084
 msgid "VOMS: Can not find AC_ATTR with IETFATTR type"
 msgstr "VOMS: kan inte hitta AC_ATTR med IETFATTR-typ"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1096
+#: src/hed/libs/credential/VOMSUtil.cpp:1091
 msgid "VOMS: case of multiple IETFATTR attributes not supported"
 msgstr "VOMS: mer än ett IETFATTR-attribut stöds inte"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1106
+#: src/hed/libs/credential/VOMSUtil.cpp:1101
 msgid "VOMS: case of multiple policyAuthority not supported"
 msgstr "VOMS: mer än en policyAuthority stöds inte"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1122
+#: src/hed/libs/credential/VOMSUtil.cpp:1117
 msgid "VOMS: the format of policyAuthority is unsupported - expecting URI"
 msgstr "VOMS: formatet för policyAuthority stöd inte - förväntar URI"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1131
+#: src/hed/libs/credential/VOMSUtil.cpp:1126
 msgid ""
 "VOMS: the format of IETFATTRVAL is not supported - expecting OCTET STRING"
 msgstr "VOMS: formatet för IETFATTRVAL stöds inte - förväntar OCTET STRING"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1188
+#: src/hed/libs/credential/VOMSUtil.cpp:1183
 msgid "VOMS: the grantor attribute is empty"
 msgstr "VOMS: grantor-attributet är tomt"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1206
+#: src/hed/libs/credential/VOMSUtil.cpp:1201
 msgid "VOMS: the attribute name is empty"
 msgstr "VOMS: attributnamnet är tomt"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1212
+#: src/hed/libs/credential/VOMSUtil.cpp:1207
 #, c-format
 msgid "VOMS: the attribute value for %s is empty"
 msgstr "VOMS: attributvärdet för %s är tomt"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1217
+#: src/hed/libs/credential/VOMSUtil.cpp:1212
 msgid "VOMS: the attribute qualifier is empty"
 msgstr "VOMS: attributkvalifieraren är tom"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1249
+#: src/hed/libs/credential/VOMSUtil.cpp:1244
 msgid ""
 "VOMS: both idcenoRevAvail and authorityKeyIdentifier certificate extensions "
 "must be present"
@@ -12135,54 +12135,54 @@ msgstr ""
 "VOMS: både idcenoRevAvail och authorityKeyIdentifier certifikattilläggen "
 "måste vara närvarande"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1283
+#: src/hed/libs/credential/VOMSUtil.cpp:1278
 #, c-format
 msgid "VOMS: FQDN of this host %s does not match any target in AC"
 msgstr "VOMS: FQDN för denna värd %s matchar inte något target i AC"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1288
+#: src/hed/libs/credential/VOMSUtil.cpp:1283
 msgid "VOMS: the only supported critical extension of the AC is idceTargets"
 msgstr "VOMS: det enda kritiska tillägget till AC som stöds är idceTargets"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1303
+#: src/hed/libs/credential/VOMSUtil.cpp:1298
 msgid "VOMS: failed to parse attributes from AC"
 msgstr "VOMS: misslyckades med att tolka attribut från AC"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1347
+#: src/hed/libs/credential/VOMSUtil.cpp:1342
 msgid "VOMS: authorityKey is wrong"
 msgstr "VOMS: authorityKey är felaktig"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1375
+#: src/hed/libs/credential/VOMSUtil.cpp:1370
 msgid "VOMS: missing AC parts"
 msgstr "VOMS: saknade AC-delar"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1392
+#: src/hed/libs/credential/VOMSUtil.cpp:1387
 msgid "VOMS: unsupported time format in AC - expecting GENERALIZED TIME"
 msgstr "VOMS: tidsformat i AC som inte stöds - förväntade GENERALIZED TIME"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1398
+#: src/hed/libs/credential/VOMSUtil.cpp:1393
 msgid "VOMS: AC is not yet valid"
 msgstr "VOMS: AC är inte giltig än"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1405
+#: src/hed/libs/credential/VOMSUtil.cpp:1400
 msgid "VOMS: AC has expired"
 msgstr "VOMS: giltighetstiden för AC har gått ut"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1420
+#: src/hed/libs/credential/VOMSUtil.cpp:1415
 msgid "VOMS: AC is not complete - missing Serial or Issuer information"
 msgstr "VOMS: AC är inte komplett - saknar Serial- eller Issuer-information"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1425
+#: src/hed/libs/credential/VOMSUtil.cpp:1420
 #, c-format
 msgid "VOMS: the holder serial number is:  %lx"
 msgstr "VOMS: innehavarens serienummer är:  %lx"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1426
+#: src/hed/libs/credential/VOMSUtil.cpp:1421
 #, c-format
 msgid "VOMS: the serial number in AC is:  %lx"
 msgstr "VOMS: serienumret i AC är:  %lx"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1429
+#: src/hed/libs/credential/VOMSUtil.cpp:1424
 #, c-format
 msgid ""
 "VOMS: the holder serial number %lx is not the same as the serial number in "
@@ -12194,26 +12194,26 @@ msgstr ""
 "ett proxycertifikat med ett annat serienummer än det ursprungliga EEC-"
 "certifikatet"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1438
+#: src/hed/libs/credential/VOMSUtil.cpp:1433
 msgid "VOMS: the holder information in AC is wrong"
 msgstr "VOMS: innehavarinformationen is AC är felaktig"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1460
+#: src/hed/libs/credential/VOMSUtil.cpp:1455
 #, c-format
 msgid "VOMS: DN of holder in AC: %s"
 msgstr "VOMS: innehavarans DN i AC: %s"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1461
+#: src/hed/libs/credential/VOMSUtil.cpp:1456
 #, c-format
 msgid "VOMS: DN of holder: %s"
 msgstr "VOMS: innehavarans DN: %s"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1462
+#: src/hed/libs/credential/VOMSUtil.cpp:1457
 #, c-format
 msgid "VOMS: DN of issuer: %s"
 msgstr "VOMS: utfärdarens DN: %s"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1469
+#: src/hed/libs/credential/VOMSUtil.cpp:1464
 msgid ""
 "VOMS: the holder name in AC is not related to the distinguished name in "
 "holder certificate"
@@ -12221,49 +12221,49 @@ msgstr ""
 "VOMS: innehavarens namn i AC är inte relaterat till DN i innehavarens "
 "certifikat"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1481
-#: src/hed/libs/credential/VOMSUtil.cpp:1488
+#: src/hed/libs/credential/VOMSUtil.cpp:1476
+#: src/hed/libs/credential/VOMSUtil.cpp:1483
 msgid "VOMS: the holder issuerUID is not the same as that in AC"
 msgstr "VOMS: innehavarens utfärdar-UID är inte detsamma som det i AC"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1501
+#: src/hed/libs/credential/VOMSUtil.cpp:1496
 msgid "VOMS: the holder issuer name is not the same as that in AC"
 msgstr "VOMS: innehavarens utfärdarnamn är inte detsamma som det i AC"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1511
+#: src/hed/libs/credential/VOMSUtil.cpp:1506
 msgid "VOMS: the issuer information in AC is wrong"
 msgstr "VOMS: utfärdarinformationen i AC är felaktig"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1519
+#: src/hed/libs/credential/VOMSUtil.cpp:1514
 #, c-format
 msgid "VOMS: the issuer name %s is not the same as that in AC - %s"
 msgstr "VOMS: utfärdarnamnet %s är inte det samma som det i AC - %s"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1527
+#: src/hed/libs/credential/VOMSUtil.cpp:1522
 msgid ""
 "VOMS: the serial number of AC INFO is too long - expecting no more than 20 "
 "octets"
 msgstr ""
 "VOMS: serienumret i AC INFO är för långt - förväntade inte mer än 20 bytes"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1557
-#: src/hed/libs/credential/VOMSUtil.cpp:1565
-#: src/hed/libs/credential/VOMSUtil.cpp:1573
-#: src/hed/libs/credential/VOMSUtil.cpp:1581
-#: src/hed/libs/credential/VOMSUtil.cpp:1604
+#: src/hed/libs/credential/VOMSUtil.cpp:1552
+#: src/hed/libs/credential/VOMSUtil.cpp:1560
+#: src/hed/libs/credential/VOMSUtil.cpp:1568
+#: src/hed/libs/credential/VOMSUtil.cpp:1576
+#: src/hed/libs/credential/VOMSUtil.cpp:1599
 msgid "VOMS: unable to extract VO name from AC"
 msgstr "VOMS: kunde inte extrahera VO-namn från AC"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1595
+#: src/hed/libs/credential/VOMSUtil.cpp:1590
 #, c-format
 msgid "VOMS: unable to determine hostname of AC from VO name: %s"
 msgstr "VOMS: Kunde inte bestämma värdnamn i AC från VO-namn: %s"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1614
+#: src/hed/libs/credential/VOMSUtil.cpp:1609
 msgid "VOMS: can not verify the signature of the AC"
 msgstr "VOMS: kan inte verifiera ACs signatur"
 
-#: src/hed/libs/credential/VOMSUtil.cpp:1620
+#: src/hed/libs/credential/VOMSUtil.cpp:1615
 msgid "VOMS: problems while parsing information in AC"
 msgstr "VOMS: problem vid tolkning ac information i AC"
 
@@ -12815,7 +12815,7 @@ msgstr "Misslyckades med att ladda in plugin för URL %s"
 
 #: src/hed/libs/data/DataPointDelegate.cpp:75
 #: src/hed/libs/data/DataPointDelegate.cpp:76
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1983
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:2008
 #, c-format
 msgid "Starting helper process: %s"
 msgstr "Startar hjälpprocess: %s"
@@ -13555,42 +13555,58 @@ msgstr "Hittade inte %s i cache"
 msgid "Specified module not found in cache"
 msgstr "Angiven modul hittades inte i cache"
 
-#: src/hed/libs/loader/Plugin.cpp:369 src/hed/libs/loader/Plugin.cpp:574
+#: src/hed/libs/loader/Plugin.cpp:364 src/hed/libs/loader/Plugin.cpp:557
 #, c-format
 msgid "Could not find loadable module descriptor by name %s"
 msgstr "Kunde inte hitta inladdningsbar modulbeskrivning med namn %s"
 
-#: src/hed/libs/loader/Plugin.cpp:375 src/hed/libs/loader/Plugin.cpp:581
+#: src/hed/libs/loader/Plugin.cpp:372 src/hed/libs/loader/Plugin.cpp:567
 #, c-format
 msgid "Could not find loadable module by name %s (%s)"
 msgstr "Kunde inte hitta inladdningsbar modul med namn %s (%s)"
 
-#: src/hed/libs/loader/Plugin.cpp:381 src/hed/libs/loader/Plugin.cpp:492
-#: src/hed/libs/loader/Plugin.cpp:586
+#: src/hed/libs/loader/Plugin.cpp:378 src/hed/libs/loader/Plugin.cpp:480
+#: src/hed/libs/loader/Plugin.cpp:572
 #, c-format
 msgid "Module %s is not an ARC plugin (%s)"
 msgstr "Modulen %s är inte en ARC-plugin (%s)"
 
-#: src/hed/libs/loader/Plugin.cpp:398 src/hed/libs/loader/Plugin.cpp:502
-#: src/hed/libs/loader/Plugin.cpp:608
+#: src/hed/libs/loader/Plugin.cpp:395 src/hed/libs/loader/Plugin.cpp:490
+#: src/hed/libs/loader/Plugin.cpp:598
 #, c-format
 msgid "Module %s failed to reload (%s)"
 msgstr "Modul %s kunde inte laddas in igen (%s)"
 
-#: src/hed/libs/loader/Plugin.cpp:462 src/hed/libs/loader/Plugin.cpp:475
+#: src/hed/libs/loader/Plugin.cpp:417
+#, c-format
+msgid "Module %s contains no plugin %s"
+msgstr "Modul %s innehåller ingen plugin %s"
+
+#: src/hed/libs/loader/Plugin.cpp:462
+#, c-format
+msgid "Could not find loadable module descriptor by name %s or kind %s"
+msgstr ""
+"Kunde inte hitta inladdningsbar modulbeskrivning med namn %s eller typ %s"
+
+#: src/hed/libs/loader/Plugin.cpp:467
 #, c-format
 msgid "Loadable module %s contains no requested plugin %s of kind %s"
 msgstr "Inladdningsbar modul %s innehåller inte begärd plugin %s av typen %s"
 
-#: src/hed/libs/loader/Plugin.cpp:480
-#, c-format
-msgid "Could not find loadable module descriptor by names %s and %s"
-msgstr "Kunde inte hitta inladdningsbar modulbeskrivning med namn %s och %s"
-
-#: src/hed/libs/loader/Plugin.cpp:486
+#: src/hed/libs/loader/Plugin.cpp:474
 #, c-format
 msgid "Could not find loadable module by names %s and %s (%s)"
 msgstr "Kunde inte hitta inladdningsbar modul med namn %s och %s (%s)"
+
+#: src/hed/libs/loader/Plugin.cpp:503
+#, c-format
+msgid "Module %s contains no requested plugin %s of kind %s"
+msgstr "Modul %s innehåller inte begärd plugin %s av typen %s"
+
+#: src/hed/libs/loader/Plugin.cpp:588
+#, c-format
+msgid "Module %s does not contain plugin(s) of specified kind(s)"
+msgstr "Modul %s innehåller inte en plugin(er) av angiven typ"
 
 #: src/hed/libs/message/MCC.cpp:76 src/hed/libs/message/Service.cpp:25
 #, c-format
@@ -14722,13 +14738,13 @@ msgid "Delegation handler with delegatee role starts to process"
 msgstr "Delegeringshanterare med delegeringsmottagarroll börjar behandla"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:152
-#: src/services/a-rex/arex.cpp:568 src/services/candypond/CandyPond.cpp:526
+#: src/services/a-rex/arex.cpp:578 src/services/candypond/CandyPond.cpp:526
 #: src/services/data-staging/DataDeliveryService.cpp:624
 msgid "process: POST"
 msgstr "process: POST"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:159
-#: src/services/a-rex/arex.cpp:575 src/services/candypond/CandyPond.cpp:535
+#: src/services/a-rex/arex.cpp:585 src/services/candypond/CandyPond.cpp:535
 #: src/services/data-staging/DataDeliveryService.cpp:633
 #: src/services/wrappers/python/pythonwrapper.cpp:416
 msgid "input is not SOAP"
@@ -16633,147 +16649,147 @@ msgstr "Misslyckades med att skapa DTR-dumpningstråd"
 msgid "DTR %s cancelled"
 msgstr "DTR %s avbröts"
 
-#: src/services/a-rex/arex.cpp:449 src/services/candypond/CandyPond.cpp:569
+#: src/services/a-rex/arex.cpp:453 src/services/candypond/CandyPond.cpp:569
 #: src/services/data-staging/DataDeliveryService.cpp:681
 #, c-format
 msgid "SOAP operation is not supported: %s"
 msgstr "SOAP-process stöds inte: %s"
 
-#: src/services/a-rex/arex.cpp:467 src/services/a-rex/arex.cpp:495
+#: src/services/a-rex/arex.cpp:472 src/services/a-rex/arex.cpp:502
 #, c-format
 msgid "Security Handlers processing failed: %s"
 msgstr "Säkerhetshanterarprocessering misslyckades: %s"
 
-#: src/services/a-rex/arex.cpp:478
+#: src/services/a-rex/arex.cpp:483
 msgid "Can't obtain configuration"
 msgstr "Kan inte erhålla inställningar"
 
-#: src/services/a-rex/arex.cpp:507 src/services/a-rex/rest/rest.cpp:614
+#: src/services/a-rex/arex.cpp:515 src/services/a-rex/rest/rest.cpp:653
 #, c-format
 msgid "Connection from %s: %s"
 msgstr "Förbindelse från %s: %s"
 
-#: src/services/a-rex/arex.cpp:510 src/services/a-rex/rest/rest.cpp:618
+#: src/services/a-rex/arex.cpp:518 src/services/a-rex/rest/rest.cpp:657
 #, c-format
 msgid "process: method: %s"
 msgstr "process: metod: %s"
 
-#: src/services/a-rex/arex.cpp:511 src/services/a-rex/rest/rest.cpp:619
+#: src/services/a-rex/arex.cpp:519 src/services/a-rex/rest/rest.cpp:658
 #, c-format
 msgid "process: endpoint: %s"
 msgstr "process: ändpunkt: %s"
 
-#: src/services/a-rex/arex.cpp:536
+#: src/services/a-rex/arex.cpp:544
 #, c-format
 msgid "process: id: %s"
 msgstr "process: id: %s"
 
-#: src/services/a-rex/arex.cpp:537
+#: src/services/a-rex/arex.cpp:545
 #, c-format
 msgid "process: subop: %s"
 msgstr "process: subop: %s"
 
-#: src/services/a-rex/arex.cpp:544
+#: src/services/a-rex/arex.cpp:552
 #, c-format
 msgid "process: subpath: %s"
 msgstr "process: subsökväg: %s"
 
-#: src/services/a-rex/arex.cpp:581 src/services/candypond/CandyPond.cpp:543
+#: src/services/a-rex/arex.cpp:591 src/services/candypond/CandyPond.cpp:543
 #: src/services/data-staging/DataDeliveryService.cpp:641
 #: src/tests/echo/echo.cpp:98
 #, c-format
 msgid "process: request=%s"
 msgstr "process: begäran=%s"
 
-#: src/services/a-rex/arex.cpp:586 src/services/candypond/CandyPond.cpp:548
+#: src/services/a-rex/arex.cpp:596 src/services/candypond/CandyPond.cpp:548
 #: src/services/data-staging/DataDeliveryService.cpp:646
 #: src/tests/count/count.cpp:69
 msgid "input does not define operation"
 msgstr "indata definierar ej operation"
 
-#: src/services/a-rex/arex.cpp:589 src/services/candypond/CandyPond.cpp:551
+#: src/services/a-rex/arex.cpp:599 src/services/candypond/CandyPond.cpp:551
 #: src/services/data-staging/DataDeliveryService.cpp:649
 #: src/tests/count/count.cpp:72
 #, c-format
 msgid "process: operation: %s"
 msgstr "process: operation: %s"
 
-#: src/services/a-rex/arex.cpp:614
+#: src/services/a-rex/arex.cpp:625
 msgid "POST request on special path is not supported"
 msgstr "POST-begäran på specialsökväg stöds inte"
 
-#: src/services/a-rex/arex.cpp:619
+#: src/services/a-rex/arex.cpp:630
 msgid "process: factory endpoint"
 msgstr "process: factoryändpunkt"
 
-#: src/services/a-rex/arex.cpp:756 src/services/candypond/CandyPond.cpp:580
+#: src/services/a-rex/arex.cpp:767 src/services/candypond/CandyPond.cpp:580
 #: src/services/data-staging/DataDeliveryService.cpp:692
 #: src/tests/echo/echo.cpp:158
 #, c-format
 msgid "process: response=%s"
 msgstr "process: svar=%s"
 
-#: src/services/a-rex/arex.cpp:762
+#: src/services/a-rex/arex.cpp:773
 msgid "Per-job POST/SOAP requests are not supported"
 msgstr "Per-jobb POST/SOAP-begäran stöds inte"
 
-#: src/services/a-rex/arex.cpp:770
+#: src/services/a-rex/arex.cpp:782
 msgid "process: GET"
 msgstr "process: GET"
 
-#: src/services/a-rex/arex.cpp:771
+#: src/services/a-rex/arex.cpp:783
 #, c-format
 msgid "GET: id %s path %s"
 msgstr "GET: id %s sökväg %s"
 
-#: src/services/a-rex/arex.cpp:801
+#: src/services/a-rex/arex.cpp:814
 msgid "process: HEAD"
 msgstr "process: HEAD"
 
-#: src/services/a-rex/arex.cpp:802
+#: src/services/a-rex/arex.cpp:815
 #, c-format
 msgid "HEAD: id %s path %s"
 msgstr "HEAD: id %s sökväg %s"
 
-#: src/services/a-rex/arex.cpp:832
+#: src/services/a-rex/arex.cpp:846
 msgid "process: PUT"
 msgstr "process: PUT"
 
-#: src/services/a-rex/arex.cpp:862
+#: src/services/a-rex/arex.cpp:877
 msgid "process: DELETE"
 msgstr "process: DELETE"
 
-#: src/services/a-rex/arex.cpp:892
+#: src/services/a-rex/arex.cpp:908
 #, c-format
 msgid "process: method %s is not supported"
 msgstr "process: metod %s stöds inte"
 
-#: src/services/a-rex/arex.cpp:895
+#: src/services/a-rex/arex.cpp:911
 msgid "process: method is not defined"
 msgstr "process: metod är inte definierad"
 
-#: src/services/a-rex/arex.cpp:1006
+#: src/services/a-rex/arex.cpp:1022
 msgid "Failed to run Grid Manager thread"
 msgstr "Misslyckades med att köra Grid-Manager-tråd"
 
-#: src/services/a-rex/arex.cpp:1066
+#: src/services/a-rex/arex.cpp:1082
 #, c-format
 msgid "Failed to process configuration in %s"
 msgstr "Misslyckades med att processera inställningar i %s"
 
-#: src/services/a-rex/arex.cpp:1071
+#: src/services/a-rex/arex.cpp:1087
 msgid "No control directory set in configuration"
 msgstr "Ingen kontrollkatalog satt i inställningarna"
 
-#: src/services/a-rex/arex.cpp:1075
+#: src/services/a-rex/arex.cpp:1091
 msgid "No session directory set in configuration"
 msgstr "Ingen sessionskatalog satt i inställningarna"
 
-#: src/services/a-rex/arex.cpp:1079
+#: src/services/a-rex/arex.cpp:1095
 msgid "No LRMS set in configuration"
 msgstr "Inget LRMS satt i inställningarna"
 
-#: src/services/a-rex/arex.cpp:1084
+#: src/services/a-rex/arex.cpp:1100
 #, c-format
 msgid "Failed to create control directory %s"
 msgstr "Misslyckades med att skapa kontrollkatalog %s"
@@ -18030,8 +18046,16 @@ msgid "Exiting jobs processing thread"
 msgstr "Avslutar jobbprocesseringstråd"
 
 #: src/services/a-rex/grid-manager/GridManager.cpp:390
-msgid "Shutting down job processing"
-msgstr "Stänger ner jobbprocessering"
+msgid "Requesting to stop job processing"
+msgstr "Begär att avsluta jobbprocessering"
+
+#: src/services/a-rex/grid-manager/GridManager.cpp:398
+msgid "Waiting for main job processing thread to exit"
+msgstr "Väntar på att huvud-jobbprocesseringstråden avslutas"
+
+#: src/services/a-rex/grid-manager/GridManager.cpp:400
+msgid "Stopped job processing"
+msgstr "Avslutade jobbprocessering"
 
 #: src/services/a-rex/grid-manager/inputcheck.cpp:39
 #, c-format
@@ -18387,10 +18411,10 @@ msgstr "%s: Mottagen DTR tillhör inaktivt jobb"
 
 #: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:425
 #: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1067
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:450
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:473
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:586
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:818
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:459
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:517
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:626
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:836
 #, c-format
 msgid "%s: Failed reading local information"
 msgstr "%s: Misslyckades med att läsa lokal information"
@@ -18795,7 +18819,7 @@ msgstr "Felaktigt namn för executable: %s"
 msgid "Failed to start data staging threads"
 msgstr "Misslyckades med att starta datastaging-trådar"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:189
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:190
 #, c-format
 msgid ""
 "%s: Failed reading .local and changing state, job and A-REX may be left in "
@@ -18804,94 +18828,114 @@ msgstr ""
 "%s: Misslyckades med att läsa .local och att ändra tillstånd, jobb och A-REX "
 "kan lämnas i ett motsägande tillstånd"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:250
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:195
+#, c-format
+msgid "%s: unexpected failed job add request: %s"
+msgstr "%s: oväntad begäran att lägga till misslyckat jobb: %s"
+
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:206
+#, c-format
+msgid "%s: unexpected job add request: %s"
+msgstr "%s: oväntad begäran att lägga till jobb: %s"
+
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:259
 #, c-format
 msgid "%s: job for attention"
 msgstr "%s: jobb för uppmärksamhet"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:260
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:269
 msgid "all for attention"
 msgstr "alla för uppmärksamhet"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:277
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:286
 #, c-format
 msgid "%s: job found while scanning"
 msgstr "%s: Jobb hittat vid skanning"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:305
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:314
 #, c-format
 msgid "%s: job will wait for external process"
 msgstr "%s: jobb kommer att vänta på extern process"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:322
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:331
 #, c-format
 msgid "%s: job assigned for slow polling"
 msgstr "%s: jobb tilldelat för långsam utfrågning"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:340
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:349
 #, c-format
 msgid "%s: job being processed"
 msgstr "%s: jobb processeras"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:375
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:384
 #, c-format
 msgid "Current jobs in system (PREPARING to FINISHING) per-DN (%i entries)"
 msgstr ""
 "Nuvarande jobb i systemet (PREPARING till FINISHING) per-DN (%i poster)"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:377
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:386
 #, c-format
 msgid "%s: %i"
 msgstr "%s: %i"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:389
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:398
 #, c-format
 msgid "%s: Failed storing failure reason: %s"
 msgstr "%s: Misslyckades med lagra felorsak: %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:395
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:404
 #, c-format
 msgid "%s: Failed reading job description: %s"
 msgstr "%s: Misslyckades med att läsa jobbeskrivning: %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:407
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:416
 #, c-format
 msgid "%s: Failed parsing job request."
 msgstr "%s: Misslyckades med att tolka jobbegäran."
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:442
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:451
 #, c-format
 msgid "%s: Failed writing list of output files: %s"
 msgstr "%s: Misslyckades med att skriva lista med utdatafiler: %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:479
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:477
+#, c-format
+msgid "%s: Failed obtaining lrms id"
+msgstr "%s: Misslyckades med att erhålla LRMS-id"
+
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:491
+#, c-format
+msgid "%s: Failed writing local information: %s"
+msgstr "%s: Misslyckades med att skriva lokal information: %s"
+
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:523
 #, c-format
 msgid "%s: Failed creating grami file"
 msgstr "%s: Misslyckades med att skapa grami-fil"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:483
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:527
 #, c-format
 msgid "%s: Failed setting executable permissions"
 msgstr "%s: Misslyckades med att sätta körbar åtkomsträttighet"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:491
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:535
 #, c-format
 msgid "%s: state SUBMIT: starting child: %s"
 msgstr "%s: tillstånd SUBMIT: startar barnprocess: %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:497
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:541
 #, c-format
 msgid "%s: Failed running submission process"
 msgstr "%s: Misslyckades med att köra insändningsprocess"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:502
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:609
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:546
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:649
 #, c-format
 msgid "%s: LRMS scripts limit of %u is reached - suspending submit/cancel"
 msgstr ""
 "%s: LRMS-skriptets gräns på %u är nådd - suspenderar insändning/avbrytande"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:520
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:562
 #, c-format
 msgid ""
 "%s: Job submission to LRMS takes too long, but ID is already obtained. "
@@ -18900,47 +18944,47 @@ msgstr ""
 "%s: Jobbinsändning till LRMS tar för lång tid, men ID har redan erhållits. "
 "Låtsas att insändning gjorts"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:526
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:569
 #, c-format
 msgid "%s: Job submission to LRMS takes too long. Failing."
 msgstr "%s: Jobbinsändning till LRMS tar för lång tid. Misslyckas."
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:536
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:578
 #, c-format
 msgid "%s: state SUBMIT: child exited with code %i"
 msgstr "%s: tillstånd SUBMIT: barnprocess avslutades med kod %i"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:541
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:583
 #, c-format
 msgid "%s: Job submission to LRMS failed"
 msgstr "%s: Jobbinsändning till LRMS misslyckades"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:554
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:600
 #, c-format
-msgid "%s: Failed obtaining lrms id"
-msgstr "%s: Misslyckades med att erhålla LRMS-id"
+msgid "%s: state CANCELING: timeout waiting for cancellation"
+msgstr "%s: tillstånd CANCELING: timeout vid väntan på avbrytande"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:567
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:606
 #, c-format
-msgid "%s: Failed writing local information: %s"
-msgstr "%s: Misslyckades med att skriva lokal information: %s"
+msgid "%s: state CANCELING: job diagnostics collected"
+msgstr "%s: tillstånd CANCELING: jobbdiagnostik insamlad"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:594
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:634
 #, c-format
 msgid "%s: state CANCELING: starting child: %s"
 msgstr "%s: tillstånd CANCELING: startar barnprocess: %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:596
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:636
 #, c-format
 msgid "%s: Job has completed already. No action taken to cancel"
 msgstr "%s: Jobb har redan slutförts. Ingen handling tagen för att avbryta"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:604
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:644
 #, c-format
 msgid "%s: Failed running cancellation process"
 msgstr "%s: Misslyckades med att köra avbrytningsprocess"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:625
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:663
 #, c-format
 msgid ""
 "%s: Job cancellation takes too long, but diagnostic collection seems to be "
@@ -18949,276 +18993,266 @@ msgstr ""
 "%s: Avbrytande av jobb tar för lång tid, men diagnostikinsamling verkar ha "
 "gjorts. Låtsas att avbrytande lyckades."
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:630
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:669
 #, c-format
 msgid "%s: Job cancellation takes too long. Failing."
 msgstr "%s: Avbrytande av jobb tar för lång tid. Misslyckas."
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:641
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:679
 #, c-format
 msgid "%s: state CANCELING: child exited with code %i"
 msgstr "%s: tillstånd CANCELING: barnprocess avslutades med kod %i"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:647
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:685
 #, c-format
 msgid "%s: Failed to cancel running job"
 msgstr "%s: Misslyckades med att avbryta körande jobb"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:660
-#, c-format
-msgid "%s: state CANCELING: timeout waiting for cancellation"
-msgstr "%s: tillstånd CANCELING: timeout vid väntan på avbrytande"
-
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:666
-#, c-format
-msgid "%s: state CANCELING: job diagnostics collected"
-msgstr "%s: tillstånd CANCELING: jobbdiagnostik insamlad"
-
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:686
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:704
 #, c-format
 msgid "%s: State: %s: data staging finished"
 msgstr "%s: tillstånd: %s: datastaging avslutad"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:721
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:739
 #, c-format
 msgid "%s: State: %s: still in data staging"
 msgstr "%s: tillstånd: %s: fortfarande i datastaging"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:734
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:752
 #, c-format
 msgid "%s: Job is not allowed to be rerun anymore"
 msgstr "%s: Jobb har inte rätt att startas om längre"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:744
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:762
 #, c-format
 msgid "%s: Job failed in unknown state. Won't rerun."
 msgstr "%s: Jobbet misslyckades i okänt tillstånd. Kommer ej att starta om."
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:765
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:783
 #, c-format
 msgid "%s: Reprocessing job description failed"
 msgstr "%s: Omprocessering av jobbeskrivning misslyckades."
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:772
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:790
 #, c-format
 msgid "%s: Failed to read reprocessed list of output files"
 msgstr "%s: Misslyckades med att läsa omprocesserad lista med utdatafiler"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:776
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:794
 #, c-format
 msgid "%s: Failed to read reprocessed list of input files"
 msgstr "%s: Misslyckades med att läsa omprocesserad lista med indatafiler"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:860
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:878
 #, c-format
 msgid "%s: Reading status of new job failed"
 msgstr "%s: Läsandet av det nya jobbets status misslyckades"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:873
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:891
 #, c-format
 msgid "%s: State: ACCEPTED: parsing job description"
 msgstr "%s: Tillstånd: ACCEPTED: tolkar jobbeskrivning"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:875
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:893
 #, c-format
 msgid "%s: Processing job description failed"
 msgstr "%s: Processering av jobbeskrivning misslyckades"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:913
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:931
 #, c-format
 msgid "%s: new job is accepted"
 msgstr "%s: nytt jobb har accepterats"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:925
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:943
 #, c-format
 msgid "%s: %s: New job belongs to %i/%i"
 msgstr "%s: %s: Nytt jobb tillhör %i/%i"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:930
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:948
 #, c-format
 msgid "%s: old job is accepted"
 msgstr "%s: gammalt jobb har accepterats<"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:941
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:959
 #, c-format
 msgid "%s: State: ACCEPTED"
 msgstr "%s: Tillstånd: ACCEPTED"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:947
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:965
 #, c-format
 msgid "%s: State: ACCEPTED: dryrun"
 msgstr "%s: Tillstånd: ACCEPTED: dryrun"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:970
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:988
 #, c-format
 msgid "%s: State: ACCEPTED: has process time %s"
 msgstr "%s: Tillstånd: ACCEPTED: har process-tid %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:976
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:994
 #, c-format
 msgid "%s: State: ACCEPTED: moving to PREPARING"
 msgstr "%s: Tillstånd: ACCEPTED: flyttar till PREPARING"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:992
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1010
 #, c-format
 msgid "%s: State: PREPARING"
 msgstr "%s: Tillstånd: PREPARING"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:999
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1017
 #, c-format
 msgid "%s: Failed obtaining local job information."
 msgstr "%s: Misslyckades med att erhålla lokal information."
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1052
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1070
 #, c-format
 msgid "%s: State: SUBMIT"
 msgstr "%s: Tillstånd: SUBMIT"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1072
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1090
 #, c-format
 msgid "%s: State: CANCELING"
 msgstr "%s: Tillstånd: CANCELING"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1092
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1110
 #, c-format
 msgid "%s: State: INLRMS"
 msgstr "%s: Tillstånd: INLRMS"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1097
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1115
 #, c-format
 msgid "%s: State: INLRMS - checking for pending(%u) and mark"
 msgstr "%s: Tillstånd: INLRMS - letar efter pending(%u) och markerade"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1099
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1117
 #, c-format
 msgid "%s: State: INLRMS - checking for not pending"
 msgstr "%s: Tillstånd: INLRMS - letar efter inte pending"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1101
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1119
 #, c-format
 msgid "%s: Job finished"
 msgstr "%s: Jobbet avslutat"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1105
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1123
 #, c-format
 msgid "%s: State: INLRMS: exit message is %i %s"
 msgstr "%s: Tillstånd: INLRMS: avslutningsmeddelande är %i %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1118
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1136
 #, c-format
 msgid "%s: State: INLRMS - no mark found"
 msgstr "%s: Tillstånd: INLRMS - hittade ingen markering"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1130
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1148
 #, c-format
 msgid "%s: State: FINISHING"
 msgstr "%s: Tillstånd: FINISHING"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1151
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1169
 #, c-format
 msgid "%s: Job is requested to clean - deleting"
 msgstr "%s: Jobbet har fått begäran om att tas bort - tar bort"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1167
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1186
 #, c-format
 msgid "%s: restarted PREPARING job"
 msgstr "%s: startade om PREPARING jobb"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1183
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1202
 #, c-format
 msgid "%s: restarted INLRMS job"
 msgstr "%s: startade om INLRMS jobb"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1192
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1211
 #, c-format
 msgid "%s: restarted FINISHING job"
 msgstr "%s: startade om FINISHING jobb"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1197
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1216
 #, c-format
 msgid "%s: Can't rerun on request"
 msgstr "%s: Kan inte starta om på begäran"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1199
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1218
 #, c-format
 msgid "%s: Can't rerun on request - not a suitable state"
 msgstr "%s: Kan inte starta om på begäran - inte ett lämpligt tillstånd"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1210
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1229
 #, c-format
 msgid "%s: Job is too old - deleting"
 msgstr "%s: Jobbet är för gammalt - raderar"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1255
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1274
 #, c-format
 msgid "%s: Job is ancient - delete rest of information"
 msgstr "%s: Jobbet är antikt - raderar resterande information"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1272
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1292
 #, c-format
 msgid "%s: Canceling job because of user request"
 msgstr "%s: Avbryter jobb på grund av användarbegäran"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1286
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1306
 #, c-format
 msgid "%s: Failed to turn job into failed during cancel processing."
 msgstr ""
 "%s: Misslyckades med sätta jobbet som misslyckat under "
 "avbrytningsprocessering"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1318
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1326
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1338
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1346
 #, c-format
 msgid "%s: Plugin at state %s : %s"
 msgstr "%s: Plugin vid tillstånd %s : %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1332
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1352
 #, c-format
 msgid "%s: Plugin execution failed"
 msgstr "%s: Pluginexekvering misslyckades"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1439
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1459
 #, c-format
 msgid "%s: State: %s from %s"
 msgstr "%s: Tillstånd: %s från %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1488
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1510
 #, c-format
 msgid "Failed to get DN information from .local file for job %s"
 msgstr "Misslyckades med att få DN-information från .local-fil för jobb %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1512
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1537
 #, c-format
 msgid "%s: Delete request due to internal problems"
 msgstr "%s: Radera begäran på grund av interna problem"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1547
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1572
 #, c-format
 msgid "%s: Job failure detected"
 msgstr "%s: Jobbfel detekterat"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1600
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1625
 #, c-format
 msgid "Failed to move file %s to %s"
 msgstr "Misslyckades med att flytta fil %s till %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1608
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1718
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1633
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1743
 #, c-format
 msgid "Failed reading control directory: %s"
 msgstr "Misslyckades med att läsa kontrollkatalog: %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1678
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1703
 #, c-format
 msgid "Failed reading control directory: %s: %s"
 msgstr "Misslyckades med att läsa kontrollkatalog: %s: %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1994
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:2019
 #, c-format
 msgid "Helper process start failed: %s"
 msgstr "Hjälpprocesstart misslyckades: %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:2001
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:2026
 #, c-format
 msgid "Stopping helper process %s"
 msgstr "Stoppar hjälpprocess: %s"
@@ -19245,21 +19279,26 @@ msgstr ""
 "gmetric_bin_path tom i arc.conf (ska aldrig hända, det förvalda värdet ska "
 "användas)"
 
-#: src/services/a-rex/grid-manager/log/JobLog.cpp:113
+#: src/services/a-rex/grid-manager/log/JobLog.cpp:114
 msgid ": Accounting records reporter tool is not specified"
 msgstr ": Bokföringspostrapporteringsverktyg är inte angivet"
 
-#: src/services/a-rex/grid-manager/log/JobLog.cpp:129
+#: src/services/a-rex/grid-manager/log/JobLog.cpp:130
 msgid ": Failure creating slot for accounting reporter child process"
 msgstr ": Misslyckades med skapa slot för bokföringsrapporterings-barnprocess"
 
-#: src/services/a-rex/grid-manager/log/JobLog.cpp:142
+#: src/services/a-rex/grid-manager/log/JobLog.cpp:143
 msgid ": Failure starting accounting reporter child process"
 msgstr ": Misslyckande med att starta bokföringsrapporterings-barnprocess"
 
-#: src/services/a-rex/grid-manager/log/JobLog.cpp:169
+#: src/services/a-rex/grid-manager/log/JobLog.cpp:176
 msgid ": Failure creating accounting database connection"
 msgstr ": Misslyckades med att skapa bokföringsdatabasförbindelse"
+
+#: src/services/a-rex/grid-manager/log/JobLog.cpp:202
+#, c-format
+msgid ": writing accounting record took %llu ms"
+msgstr ": skrivning av bokföringspost tog %llu ms"
 
 #: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:73
 #, c-format
@@ -19638,7 +19677,7 @@ msgstr "%s: put fil %s: det finns ingen nyttolast"
 msgid "%s: put file %s: unrecognized payload"
 msgstr "%s: put fil %s: okänd nyttolast"
 
-#: src/services/a-rex/put.cpp:172 src/services/a-rex/rest/rest.cpp:1534
+#: src/services/a-rex/put.cpp:172 src/services/a-rex/rest/rest.cpp:1573
 #, c-format
 msgid "%s: put file %s: failed to create file: %s"
 msgstr "%s: put fil %s: misslyckades med att skapa fil: %s"
@@ -19658,56 +19697,56 @@ msgstr "%s: ta bort fil %s: misslyckades med att erhålla filsökväg: %s"
 msgid "%s: delete file %s: failed to open file/dir: %s"
 msgstr "%s: ta bort fil %s: misslyckades med att öppna fil/katalog: %s"
 
-#: src/services/a-rex/rest/rest.cpp:623
+#: src/services/a-rex/rest/rest.cpp:662
 #, c-format
 msgid "REST: process %s at %s"
 msgstr "REST: process %s på %s"
 
-#: src/services/a-rex/rest/rest.cpp:666 src/services/a-rex/rest/rest.cpp:682
-#: src/services/a-rex/rest/rest.cpp:737 src/services/a-rex/rest/rest.cpp:816
-#: src/services/a-rex/rest/rest.cpp:1044 src/services/a-rex/rest/rest.cpp:1635
+#: src/services/a-rex/rest/rest.cpp:705 src/services/a-rex/rest/rest.cpp:721
+#: src/services/a-rex/rest/rest.cpp:776 src/services/a-rex/rest/rest.cpp:855
+#: src/services/a-rex/rest/rest.cpp:1083 src/services/a-rex/rest/rest.cpp:1674
 #, c-format
 msgid "process: method %s is not supported for subpath %s"
 msgstr "process: metod %s stöds inte för subsökväg %s"
 
-#: src/services/a-rex/rest/rest.cpp:688
+#: src/services/a-rex/rest/rest.cpp:727
 #, c-format
 msgid "process: schema %s is not supported for subpath %s"
 msgstr "process: schema %s stöds inte för subsökväg %s"
 
-#: src/services/a-rex/rest/rest.cpp:813 src/services/a-rex/rest/rest.cpp:1041
+#: src/services/a-rex/rest/rest.cpp:852 src/services/a-rex/rest/rest.cpp:1080
 #, c-format
 msgid "process: action %s is not supported for subpath %s"
 msgstr "process: handling %s stöds inte för subsökväg %s"
 
-#: src/services/a-rex/rest/rest.cpp:1053 src/services/a-rex/rest/rest.cpp:1122
-#: src/services/a-rex/rest/rest.cpp:1481 src/services/a-rex/rest/rest.cpp:1624
+#: src/services/a-rex/rest/rest.cpp:1092 src/services/a-rex/rest/rest.cpp:1161
+#: src/services/a-rex/rest/rest.cpp:1520 src/services/a-rex/rest/rest.cpp:1663
 #, c-format
 msgid "REST:GET job %s - %s"
 msgstr "REST:GET jobb %s - %s"
 
-#: src/services/a-rex/rest/rest.cpp:1168 src/services/a-rex/rest/rest.cpp:1176
+#: src/services/a-rex/rest/rest.cpp:1207 src/services/a-rex/rest/rest.cpp:1215
 #, c-format
 msgid "REST:KILL job %s - %s"
 msgstr "REST:KILL jobb %s - %s"
 
-#: src/services/a-rex/rest/rest.cpp:1193 src/services/a-rex/rest/rest.cpp:1201
+#: src/services/a-rex/rest/rest.cpp:1232 src/services/a-rex/rest/rest.cpp:1240
 #, c-format
 msgid "REST:CLEAN job %s - %s"
 msgstr "REST:CLEAN jobb %s - %s"
 
-#: src/services/a-rex/rest/rest.cpp:1218 src/services/a-rex/rest/rest.cpp:1226
-#: src/services/a-rex/rest/rest.cpp:1243
+#: src/services/a-rex/rest/rest.cpp:1257 src/services/a-rex/rest/rest.cpp:1265
+#: src/services/a-rex/rest/rest.cpp:1282
 #, c-format
 msgid "REST:RESTART job %s - %s"
 msgstr "REST:RESTART jobb %s - %s"
 
-#: src/services/a-rex/rest/rest.cpp:1527
+#: src/services/a-rex/rest/rest.cpp:1566
 #, c-format
 msgid "REST:PUT job %s: file %s: there is no payload"
 msgstr "REST:PUT jobb %s: fil %s: det finns ingen nyttolast"
 
-#: src/services/a-rex/rest/rest.cpp:1547
+#: src/services/a-rex/rest/rest.cpp:1586
 #, c-format
 msgid "HTTP:PUT %s: put file %s: %s"
 msgstr "HTTP:PUT %s: put fil %s: %s"

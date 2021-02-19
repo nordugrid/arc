@@ -739,6 +739,7 @@ if [ $RETVAL != 0 ]; then
     exit 1
 fi
 
+<<<<<<< HEAD
 if [ -z "$CONTROLDIR" ] ;  then
     log_failure_msg "Missing controldir in A-REX configuration"
     exit 1
@@ -752,6 +753,12 @@ if [ ! -f "$CONTROLDIR/version2" ] ; then
         exit 1
     fi
     touch "$CONTROLDIR/version2"
+fi
+
+# Raise limit on number of file descriptors to max
+hlimit=`ulimit -H -n`
+if [ ! -z "$hlimit" ] ; then
+  ulimit -S -n "$hlimit" 2>/dev/null
 fi
 
 exec $CMD "$@"

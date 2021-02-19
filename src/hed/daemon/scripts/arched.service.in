@@ -4,7 +4,7 @@ After=local_fs.target remote_fs.target
 
 [Service]
 Type=forking
-PIDFile=/var/run/arched.pid
+PIDFile=/run/arched.pid
 ExecStart=/usr/share/arc/arched-start
 
 [Install]

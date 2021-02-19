@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <fstream>
+
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <arc/loader/Loader.h>
@@ -27,6 +29,13 @@ public:
 };
 
 void PluginTest::TestPlugin() {
+  {
+    std::ofstream apd(".libs/libtestplugin.apd",std::ios::trunc);
+    apd<<"name=\"testplugin\""<<std::endl;
+    apd<<"kind=\"TEST\""<<std::endl;
+    apd<<"version=\"0\""<<std::endl;
+    apd<<"priority=\"128\""<<std::endl;
+  }
   std::string config_xml("\
 <?xml version=\"1.0\"?>\n\
 <ArcConfig xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\">\n\

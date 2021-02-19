@@ -1,4 +1,7 @@
 pkglib_LTLIBRARIES = libaccJobDescriptionParser.la
+noinst_SCRIPTS = libaccJobDescriptionParser.apd
+CLEANFILES=$(noinst_SCRIPTS)
+EXTRA_DIST = libaccJobDescriptionParser.apd.in
 
 libaccJobDescriptionParser_la_SOURCES = \
 	ADLParser.cpp ADLParser.h \
@@ -15,6 +18,13 @@ libaccJobDescriptionParser_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
 libaccJobDescriptionParser_la_LDFLAGS = -no-undefined -avoid-version -module
+
+
+libaccJobDescriptionParser.apd: libaccJobDescriptionParser.apd.in libaccJobDescriptionParser.la
+	mkdir -p .libs
+	cp libaccJobDescriptionParser.apd.in .libs/libaccJobDescriptionParser.apd
+	cp libaccJobDescriptionParser.apd.in libaccJobDescriptionParser.apd
+
 
 DIST_SUBDIRS = test
 SUBDIRS = $(TEST_DIR)

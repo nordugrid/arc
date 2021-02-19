@@ -37,7 +37,7 @@ fi
 
 # Define runtime config location for infosys LDAP
 prefix=@prefix@
-runtime_config_dir=@localstatedir@/run/arc
+runtime_config_dir=/run/arc
 if [ ! -d "$runtime_config_dir" ]; then
     mkdir -p "$runtime_config_dir"
 fi
@@ -84,12 +84,12 @@ timelimit=${CONFIG_timelimit:-2400}
 
 bdii_location=${CONFIG_bdii_location:-/usr}
 
-infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/var/run/arc/infosys}
+infosys_ldap_run_dir=${CONFIG_infosys_ldap_run_dir:-/run/arc/infosys}
 mkdir -p ${infosys_ldap_run_dir}
 chown ${bdii_user}: ${infosys_ldap_run_dir}
 
 bdii_var_dir=${CONFIG_bdii_var_dir:-/var/lib/arc/bdii}
-bdii_run_dir=${CONFIG_bdii_run_dir:-/var/run/arc/bdii}
+bdii_run_dir=${CONFIG_bdii_run_dir:-/run/arc/bdii}
 
 # PIDFile location handling
 slapd_pid_file=$( readlink -m ${bdii_run_dir}/db/slapd.pid )
