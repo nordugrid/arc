@@ -6,10 +6,9 @@ Advanced Resource Connector (ARC)
 Release Notes for NorduGrid ARC  6.10.2     23.02.2021
 =======================================================
 
-The hashing of the submitter's DN to comply with GDPR has caused problems for sites served by the pilot factories.
-Since updating of the HTCondor pilot management clients will take some time, we in agreement with WLCG
-roll-back the hashing for now, and reimplement it once the pilot factory clients have been updated to handle
-the hashed information. 
+The hashing of the submitter's DN to comply with GDPR has caused problems for sites served by the HTCondor pilot factories.
+Since updating of the HTCondor pilot management clients will take some time, we in agreement with WLCG roll-back the hashing for now,
+and reimplement it once the pilot factory clients have been updated to handle the hashed information. 
 
 This release contains a simple one-line change in the infoprovider code reinserting the
 plain text DN as the globalowner variable. 
