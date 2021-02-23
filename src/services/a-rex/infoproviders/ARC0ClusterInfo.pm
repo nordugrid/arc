@@ -428,8 +428,10 @@ sub collect($) {
 
                 $j->{name} = $jobid;
                 $j->{globalid} = $c->{contactstring}."/$jobid";
-                # Starting from ARC 6.10 we out a hash here for GDPR compliance.
-                $j->{globalowner} = sha512sum($gmjob->{subject},$dnhashes) if $gmjob->{subject};
+                # Starting from ARC 6.10 we output a hash here for GDPR compliance.
+                #$j->{globalowner} = sha512sum($gmjob->{subject},$dnhashes) if $gmjob->{subject};
+                # The above is temporarily reverted to plain DN below upon WLCG request.
+                $j->{globalowner} = $gmjob->{subject} if $gmjob->{subject};
                 $j->{jobname} = $gmjob->{jobname} if $gmjob->{jobname};
                 $j->{submissiontime} = $gmjob->{starttime} if $gmjob->{starttime};
                 $j->{execcluster} = $hostname if $hostname;
