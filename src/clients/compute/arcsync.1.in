@@ -27,7 +27,7 @@ don't ask for verification
 .IP "\fB-T\fR, \fB--truncate\fR"
 shrinks the joblist before synchronizing
 .IP "\fB-C\fR, \fB--convert\fR"
-instead of pulling jobs infromation from server read it from jobs storage and write it back. This 
+instead of pulling jobs information from server read it from jobs storage and write it back. This
 option is mostly for converting format of jobs storage file.
 .IP "\fB-P\fR, \fB--listplugins\fR"
 list the available plugins

@@ -19,5 +19,5 @@ In case of operating system has APEL SSM libraries installed - these libraries w
 ARC redistributed libraries are used as a fallback option and targeted for OSes without APEL SSM packaging support.
 
 ARC also works for most modern Linux distrbutions that have Python3 as a default Python version.
-At the time of writting the only modification to redistributed SSM libraries is 'futurization' to support Python 3.
+At the time of writing the only modification to redistributed SSM libraries is 'futurization' to support Python 3.
 

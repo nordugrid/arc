@@ -36,7 +36,7 @@ show only description of requested object, do not list content of directories (l
 .IP "\fB-f\fR, \fB--forcelist\fR"
 treat requested object as directory and always try to list content
 .IP "\fB-c\fR, \fB--checkaccess\fR"
-check readability of object. Retrieving and showing information about object is supressed.
+check readability of object. Retrieving and showing information about object is suppressed.
 .IP "\fB-P\fR, \fB--listplugins\fR"
 list the available plugins (protocols supported)
 .IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"

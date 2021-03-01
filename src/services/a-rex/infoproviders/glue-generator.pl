@@ -454,7 +454,7 @@ sub write_gluece_entries(){
 	    # Get an arbitrary approximate of how long a job may
 	    # expect to wait at this site, it depends on jobs that are
 	    # currently running and jobs that are waiting. Formula
-	    # aquired from Kalle Happonen and the "NDGF BDII" for LHC
+	    # acquired from Kalle Happonen and the "NDGF BDII" for LHC
 	    # T1 services
 	    if ( $queue_attributes{'nordugrid-queue-maxrunning'} ne $DEFAULT ) {
            $estRespTime = int(600 + ($queue_attributes{'nordugrid-queue-running'} /$queue_attributes{'nordugrid-queue-maxrunning'}) *3600 + ($waitingJobs /$queue_attributes{'nordugrid-queue-maxrunning'}) * 600 );

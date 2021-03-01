@@ -55,7 +55,7 @@ namespace Arc {
      *  credential(normally, the holder is intermediate service) which would
      *  further delegate the credential (on behalf of the original EEC's holder)
      *  (for instance, the 'n' intermediate service creates a delegation credential,
-     *  then the 'n+1' intermediate service aquires this delegation credential
+     *  then the 'n+1' intermediate service acquires this delegation credential
      *  from the delegation service and also acts on behalf of the EEC's holder
      *  by using this delegation credential).
      *

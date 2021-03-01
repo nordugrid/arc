@@ -306,7 +306,7 @@ int FileRoot::config(Arc::ConfigIni &cf,std::string &pluginpath) {
             hostname=rest;
           };
         } else if(cf.SectionNum() == cfgsec_mapping_n) {
-          // Only mapping functionality left is "unixgroupmap". And it is not indicated explicitely.
+          // Only mapping functionality left is "unixgroupmap". And it is not indicated explicitly.
           if(!user.mapped()) {
             if(command.compare(0,4,"map_") == 0) {
               if(user.mapgroup(command.c_str(), rest.c_str()) == AAA_FAILURE) {

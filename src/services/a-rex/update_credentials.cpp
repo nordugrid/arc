@@ -56,7 +56,7 @@ Arc::MCC_Status ARexService::UpdateCredentials(ARexGMConfig& config,Arc::XMLNode
   }
   std::string jobid = Arc::WSAEndpointReference(refnode.Child()).ReferenceParameters()["a-rex:JobID"];
   if(jobid.empty()) {
-    // EPR is wrongly formated or not an A-REX EPR
+    // EPR is wrongly formatted or not an A-REX EPR
     logger_.msg(Arc::ERROR, "UpdateCredentials: EPR contains no JobID");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"Can't find JobID element in ActivityIdentifier");
     InvalidRequestMessageFault(fault,"arcdeleg:Reference","Wrong content");
