@@ -91,7 +91,7 @@ namespace Arc {
 
   DataStatus DataPointDelegate::EndCommand(Arc::CountedPointer<Arc::Run>& run, DataStatus::DataStatusType errCode, char tag) {
     if(tag == DataExternalComm::ErrorTag) {
-      return DataStatus(errCode, "Comunication error while waiting for data status from helper process for "+url.plainstr());
+      return DataStatus(errCode, "Communication error while waiting for data status from helper process for "+url.plainstr());
     }
     if(tag != DataExternalComm::DataStatusTag) {
       return DataStatus(errCode, "Unexpected tag while waiting for data status from helper process for "+url.plainstr());

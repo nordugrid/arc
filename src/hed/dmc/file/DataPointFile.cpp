@@ -362,7 +362,7 @@ namespace ArcDMCFile {
     int res = usercfg.GetUser().check_file_access(url.Path(), O_RDONLY);
     if (res != 0) {
       logger.msg(VERBOSE, "File is not accessible: %s", url.Path());
-      return DataStatus(DataStatus::CheckError, errno, "File is not accesible "+url.Path());
+      return DataStatus(DataStatus::CheckError, errno, "File is not accessible "+url.Path());
     }
     if (check_meta) {
       struct stat st;

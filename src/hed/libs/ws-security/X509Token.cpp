@@ -526,7 +526,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     certbio = BIO_new_file(certfile.c_str(), "r");
     cert = PEM_read_bio_X509(certbio, NULL, NULL, NULL);
 
-    //get formated issuer name from certificate
+    //get formatted issuer name from certificate
     BIO* namebio = NULL;
     namebio = BIO_new(BIO_s_mem());
     X509_NAME_print_ex(namebio, X509_get_issuer_name(cert), 0, XN_FLAG_SEP_CPLUS_SPC);

@@ -108,7 +108,7 @@ void sendRequests(){
         } else {
           //std::string xml;
           //resp->GetXML(xml);
-          //std::cout<<"reponse: "<<xml<<std::endl;
+          //std::cout<<"response: "<<xml<<std::endl;
           if (std::string((*resp)["echoResponse"]["hear"]).size()==0){
             // The response was not what it should be.
             failedRequests++;

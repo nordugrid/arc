@@ -206,7 +206,7 @@ my $cache_maxlife   = $parsedconfig{'nordugridmap'}{'cachetime'} ||
 
 # redirect log to file
 if ( $config_flags{'log_to_file'} ) {
-    open ( STDERR, ">> $logfile" ) or &Logger("Cannot open logfile '$logfile' for writting. Exiting.", FATAL);
+    open ( STDERR, ">> $logfile" ) or &Logger("Cannot open logfile '$logfile' for writing. Exiting.", FATAL);
     &Logger("Starting grid-mapfiles processing cycle", INFO);
 }
 

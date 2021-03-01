@@ -1352,7 +1352,7 @@ namespace Arc {
     }
     xmlSchemaParserCtxtPtr schemaParser = xmlSchemaNewDocParserCtxt(doc.node_->doc);
     if (!schemaParser) {
-        err_msg = "Can not aquire XML schema";
+        err_msg = "Can not acquire XML schema";
         return false;
     }
 
