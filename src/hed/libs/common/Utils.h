@@ -104,7 +104,8 @@ namespace Arc {
   // Workaround for older gcc which does not implement construction
   // of new elements in std::list according to specification.
   public: 
-    AutoPointer(AutoPointer<T> const& o) {
+    AutoPointer(AutoPointer<T> const& o)
+      : object(NULL), deleter(&DefaultDeleter) {
       operator=(const_cast<AutoPointer<T>&>(o));
     }
 #endif
