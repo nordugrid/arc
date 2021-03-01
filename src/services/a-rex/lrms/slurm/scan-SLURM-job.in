@@ -366,32 +366,32 @@ for localid in ${localids[@]}; do
 	    handle_commentfile $localid
 	    echo "-1 Job was cancelled" > "${basenames[$localid]}.lrms_done"
 	    kicklist=(${kicklist[@]} $localid)
-	    handle_exitcode_cancelled $localid "-1" "Job was cancelled"
 	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
+	    handle_exitcode_cancelled $localid "-1" "Job was cancelled"
 	    ;;
   	COMPLETED)
             done=$(($done + 1))
 	    handle_commentfile $localid
-	    handle_exitcode $localid "0" ""
 	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
+	    handle_exitcode $localid "0" ""
   	    ;;
   	FAILED)
             failed=$(($failed + 1))
 	    handle_commentfile $localid
-	    handle_exitcode $localid "-1" "Job failed"
 	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
+	    handle_exitcode $localid "-1" "Job failed"
   	    ;;
   	TIMEOUT)
             failed=$(($failed + 1))
 	    handle_commentfile $localid
-	    handle_exitcode $localid "-1" "Job timeout"
 	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
+	    handle_exitcode $localid "-1" "Job timeout"
   	    ;;
   	NODE_FAIL)
             failed=$(($failed + 1))
 	    handle_commentfile $localid
-	    handle_exitcode_cancelled $localid "-1" "Node fail"
 	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
+	    handle_exitcode_cancelled $localid "-1" "Node fail"
   	    ;;
     esac
 done
