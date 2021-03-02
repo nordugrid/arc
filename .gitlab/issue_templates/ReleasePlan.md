@@ -19,6 +19,11 @@
 * [ ] Update link to latest release: http://www.nordugrid.org/arc/ (@oxana)
 
 
+Development testing checklist
+* Backwards incompatibility 
+* Performance implications
+* ...
+
 Important bugs/changes to clear before code-freeze:
 * [ ] ...
 
