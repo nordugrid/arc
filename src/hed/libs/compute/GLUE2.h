@@ -12,7 +12,7 @@ namespace Arc {
 
   /// GLUE2 parser
   /**
-   * This class parses GLUE2 infromation rendeed in XML and transfers
+   * This class parses GLUE2 information rendeed in XML and transfers
    * information into various classes representing different types
    * of objects which GLUE2 information model can describe.
    * This parser uses GLUE Specification v. 2.0 (GFD-R-P.147).

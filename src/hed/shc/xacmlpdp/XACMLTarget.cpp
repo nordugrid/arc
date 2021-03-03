@@ -23,7 +23,7 @@ XACMLTargetMatch::XACMLTargetMatch(XMLNode& node, EvaluatorContext* ctx) : match
   fnfactory = (FnFactory*)(*ctx); 
 
   matchId = (std::string)(node.Attribute("MatchId"));
-  //get the suffix of xacml-formated matchId, like
+  //get the suffix of xacml-formatted matchId, like
   //"urn:oasis:names:tc:xacml:1.0:function:string-equal",
   //and use it as the function name
   std::size_t found = matchId.find_last_of(":");

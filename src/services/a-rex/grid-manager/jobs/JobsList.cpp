@@ -1091,7 +1091,7 @@ JobsList::ActJobResult JobsList::ActJobCanceling(GMJobRef i) {
   bool state_changed = false;
   if(state_canceling(i,state_changed)) {
     if(state_changed) {
-      SetJobState(i, JOB_STATE_FINISHING, "Job cancelation succeeded");
+      SetJobState(i, JOB_STATE_FINISHING, "Job cancellation succeeded");
       RequestReprocess(i);
       return JobSuccess;
     } else {

@@ -101,7 +101,7 @@ Arc::MCC_Status Service_Echo::process(Arc::Message& inmsg,Arc::Message& outmsg) 
   Arc::PayloadSOAP* outpayload = NULL;
 
 
-  /**Export the formated policy-decision request**/
+  /**Export the formatted policy-decision request**/
   MessageAuth* mauth = inmsg.Auth();
   MessageAuth* cauth = inmsg.AuthContext();
   if((!mauth) && (!cauth)) {

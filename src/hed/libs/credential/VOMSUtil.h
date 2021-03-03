@@ -194,7 +194,7 @@ namespace Arc {
 
   /**Parse the certificate, and output the attributes.
    * @param holder  The proxy certificate which includes the voms 
-   *          specific formated AC.
+   *          specific formatted AC.
    * @param ca_cert_dir  The trusted certificates which are used to 
    *          verify the certificate which is used to sign the AC
    * @param ca_cert_file The same as ca_cert_dir except it is a file
@@ -282,7 +282,7 @@ namespace Arc {
 
   /**Extract the needed field from the certificate.
    * @param u  The proxy certificate which includes the voms
-   *          specific formated AC.
+   *          specific formatted AC.
    * @param property The property that caller would get, 
    *          including: dn, voms:vo, voms:role, voms:group 
    * @param ca_cert_dir 

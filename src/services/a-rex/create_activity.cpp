@@ -64,7 +64,7 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
   };
   adl = in["ActivityDescription"];
   if(!adl) {
-    // Wrongly formated request
+    // Wrongly formatted request
     logger_.msg(Arc::ERROR, "EMIES:CreateActivity: no job description found");
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"ActivityDescription element is missing");
     ESInternalBaseFault(fault,"ActivityDescription element is missing");

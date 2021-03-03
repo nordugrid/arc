@@ -1699,7 +1699,7 @@
 ## or "both".
 ## APEL Sync messages are always generated.
 ## NOTE that on the heavy loaded sites with 10k+ jobs weekly "summaries" generation has
-##   a performance penalty at the time being. It is advised to use "urs" in this case.
+##   a performance penalty in ARC < 6.8. It is advised to use "urs" in this case.
 ## allowedvalues: urs summaries both
 ## default: summaries
 #apel_messages=urs

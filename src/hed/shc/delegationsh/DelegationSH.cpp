@@ -215,7 +215,7 @@ SecHandlerStatus DelegationSH::Handle(Arc::Message* msg) const {
             if((*inpayload)["DelegationID"]) ((*inpayload)["DelegationID"]).Destroy();
 
           } else {
-            logger.msg(ERROR,"The endpoint of delgation service should be configured");
+            logger.msg(ERROR,"The endpoint of delegation service should be configured");
             return false;
           }
         };
@@ -294,7 +294,7 @@ SecHandlerStatus DelegationSH::Handle(Arc::Message* msg) const {
         //Send the endpoint of delegation service and delegation ID to 
         //the peer service side, on which the delegation handler with 
         //'delegation_delegatee' role will get the endpoint of delegation
-        //service and delegation ID to aquire delegation credential.
+        //service and delegation ID to acquire delegation credential.
         //
         //The delegation service and delegation ID
         //information will be sent to the service side by the 

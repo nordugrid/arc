@@ -20,7 +20,7 @@ XACMLApply::XACMLApply(XMLNode& node, EvaluatorContext* ctx) : applynode(node), 
   fnfactory = (FnFactory*)(*ctx); 
 
   functionId = (std::string)(node.Attribute("FunctionId"));
-  //get the suffix of xacml-formated FunctionId, like
+  //get the suffix of xacml-formatted FunctionId, like
   //"urn:oasis:names:tc:xacml:1.0:function:and",
   //and use it as the function name
   std::size_t found = functionId.find_last_of(":");
