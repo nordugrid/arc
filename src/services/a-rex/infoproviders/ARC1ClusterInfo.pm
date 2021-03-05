@@ -455,7 +455,7 @@ sub getGMStatus {
 # Returns undef on error, 0 if the XML file was already up to date, 1 if it was written
 sub jobXmlFileWriter {
     my ($config, $jobid, $gmjob, $xmlGenerator) = @_;
-    $log->warning("XML writer for $jobid.");
+    $log->debug("XML writer for $jobid.");
     # If this is defined, then it's a job managed by local A-REX.
     my $gmuser = $gmjob->{gmuser};
     # Skip for now jobs managed by remote A-REX.
@@ -465,9 +465,9 @@ sub jobXmlFileWriter {
     # for the WS interface.
     return 0 unless defined $gmuser;
     my $controldir = $config->{control}{$gmuser}{controldir};
-    $log->warning("XML writer in $controldir.");
+    $log->debug("XML writer in $controldir.");
     my $xml_file = control_path($controldir, $jobid, "xml");
-    $log->warning("XML writer to $xml_file.");
+    $log->debug("XML writer to $xml_file.");
 
     # Here goes simple optimisation - do not write new
     # XML if status has not changed while in "slow" states
@@ -484,7 +484,7 @@ sub jobXmlFileWriter {
     # tempfile croaks on error
     my $jobdir = control_path($controldir, $jobid, "");
     my ($fh, $tmpnam) = File::Temp::tempfile("xml.XXXXXXX", DIR => $jobdir);
-    $log->warning("XML $tmpnam to $xml_file.");
+    $log->debug("XML $tmpnam to $xml_file.");
     binmode $fh, ':encoding(utf8)';
     print $fh $xmlstring and close $fh
         or $log->warning("Error writing to temporary file $tmpnam: $!")
