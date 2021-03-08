@@ -38,13 +38,6 @@ common_init () {
     [ -e "${pkgdatadir}/community_rtes.sh" ] && source "${pkgdatadir}/community_rtes.sh"
 }
 
-control_path () {
-    # job_id=`echo "$2" | sed 's/\(.\{9\}\)/\1\//g' | sed 's/\/$//'`
-    job_id=`echo "$2" | sed -e 's#\(.\{3\}\)#\1/#3' -e 's#\(.\{3\}\)#\1/#2' -e 's#\(.\{3\}\)#\1/#1' -e 's#$#/#'`
-    path="$1/jobs/${job_id}/$3"
-    echo "$path"
-}
-
 # defines failures_file
 define_failures_file () {
     failures_file=$(control_path "$joboption_controldir" "$joboption_gridid" "failed")
