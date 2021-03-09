@@ -410,7 +410,7 @@ if test "$enables_python" = "yes"; then
     AC_SUBST(PYTHON_LIBS)
 
     if test "${build}" = "${host}"; then
-        PYTHON_EXT_SUFFIX=`$PYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('EXT_SUFFIX'))" | sed s/None//`
+        PYTHON_EXT_SUFFIX=`$PYTHON -c "from distutils import sysconfig; v = sysconfig.get_config_vars(); print(v.get('EXT_SUFFIX', v.get('SO')))" | sed s/None//`
     else
         PYTHON_EXT_SUFFIX=""
     fi
@@ -548,7 +548,7 @@ if test "$enables_altpython" = "yes"; then
     AC_SUBST(ALTPYTHON_CFLAGS)
     AC_SUBST(ALTPYTHON_LIBS)
 
-    ALTPYTHON_EXT_SUFFIX=`$ALTPYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('EXT_SUFFIX'))" | sed s/None//`
+    ALTPYTHON_EXT_SUFFIX=`$ALTPYTHON -c "from distutils import sysconfig; v = sysconfig.get_config_vars(); print(v.get('EXT_SUFFIX', v.get('SO')))" | sed s/None//`
     AC_SUBST(ALTPYTHON_EXT_SUFFIX)
 
     AC_ARG_WITH(altpython-site-arch, AC_HELP_STRING([--with-altpython-site-arch=directory], [Direcory where Python modules will be installed - defaults is to query the Python binary]))
