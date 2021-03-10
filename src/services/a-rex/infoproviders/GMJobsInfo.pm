@@ -110,14 +110,14 @@ sub collect {
     return $gmjobs;
 }
 
+# Given the controldir path, the jobid and a suffix
+# returns a path to that job in the fragmented controldir.
 sub control_path {
     my ($controldir, $jobid, $suffix) = @_;
-
-    $jobid =~ s/(.{9})/\1\//;
-    $jobid =~ s/(.{6})/\1\//;
-    $jobid =~ s/(.{3})/\1\//;
-    $jobid =~ s/$/\//;
-    my $path = $controldir."/jobs/".$jobid.$suffix;
+    
+    my ($a,$b,$c,$d) = unpack("A3A3A3A3", $jobid);
+    my $path = "$controldir/jobs/$a/$b/$c/$d/$suffix";
+    
     return $path;
 }
 
@@ -149,16 +149,17 @@ sub get_gmjobs {
 
     foreach my $ID (@gridmanager_jobs) {
 
-        $log->warning("XML scanning job $ID");
+        $log->debug("Scanning job $ID");
 
         my $job = $gmjobs{$ID} = {};
 
-        my $gmjob_local       = control_path($controldir, $ID, "local");
         my $gmjob_status      = $controlsubdir."/".$ID.".status";
-        my $gmjob_failed      = control_path($controldir, $ID, "failed");
-        my $gmjob_description = control_path($controldir, $ID, "description");
-        my $gmjob_grami       = control_path($controldir, $ID, "grami");
-        my $gmjob_diag        = control_path($controldir, $ID, "diag");
+        my $jobpath           = control_path($controldir, $ID, "");
+        my $gmjob_local       = "$jobpath"."local";
+        my $gmjob_failed      = "$jobpath"."failed";
+        my $gmjob_description = "$jobpath"."description";
+        my $gmjob_grami       = "$jobpath"."grami";
+        my $gmjob_diag        = "$jobpath"."diag";
 
         unless ( open (GMJOB_LOCAL, "<$gmjob_local") ) {
             $log->debug( "Job $ID: Can't read jobfile $gmjob_local, skipping job" );

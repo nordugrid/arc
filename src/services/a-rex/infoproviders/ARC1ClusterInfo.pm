@@ -35,14 +35,14 @@ sub glue2bool {
     return $bool ? "true" : "false";
 }
 
+# Given the controldir path, the jobid and a suffix
+# returns a path to that job in the fragmented controldir.
 sub control_path {
     my ($controldir, $jobid, $suffix) = @_;
 
-    $jobid =~ s/(.{9})/\1\//;
-    $jobid =~ s/(.{6})/\1\//;
-    $jobid =~ s/(.{3})/\1\//;
-    $jobid =~ s/$/\//;
-    my $path = $controldir."/jobs/".$jobid.$suffix;
+    my ($a,$b,$c,$d) = unpack("A3A3A3A3", $jobid);
+    my $path = "$controldir/jobs/$a/$b/$c/$d/$suffix";
+
     return $path;
 }
 
