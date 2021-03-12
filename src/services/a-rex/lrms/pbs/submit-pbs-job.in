@@ -242,8 +242,9 @@ if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
     fi
     scratch_dir=`dirname "$joboption_directory"`
     echo "#PBS -W stagein=$RUNTIME_LOCAL_SCRATCH_DIR@$gate_host:$joboption_directory" >> $LRMS_JOB_SCRIPT
-    echo "#PBS -W stageout=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid@$gate_host:$scratch_dir" >> $LRMS_JOB_SCRIPT
-    echo "#PBS -W stageout=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid.diag@$gate_host:$joboption_directory.diag" >> $LRMS_JOB_SCRIPT
+    STAGEOUT1="$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid@$gate_host:$scratch_dir"
+    STAGEOUT2="$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid.diag@$gate_host:$joboption_directory.diag"
+    echo "#PBS -W stageout=\"${STAGEOUT1},${STAGEOUT2}\"" >> $LRMS_JOB_SCRIPT
   )
 fi
 
