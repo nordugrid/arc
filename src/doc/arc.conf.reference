@@ -2366,6 +2366,17 @@
 ## Enable this block ONLY if you want to publish a semi-fake GLUE1 site-bdii as part of
 ## the LDAP server. This block is used to configure ARC to generate a
 ## semi-fake site-bdii that can be registered in GOCDB.
+## The default will generate an object that you can reference in GOCDB GIIS field as such:
+##      ldap://archost.domain:2135/mds-vo-name=<unique-site-id>,o=grid 
+##      Example: ldap://archost.domain:2135/mds-vo-name=NDGF-T1,o=grid
+## Since the original site-bdii listens on port 2170, you may want to port forward 
+## 2170 to 2135 in your firewall, but it is not a requirement.
+## This fake site bdii is only good if you have a single ARC as a service in your organization.
+## It cannot aggregate any information like the real site-bdii does.
+## It just presents a partial rendering of a site-bdii that is good enough for top-bdii
+## to pick up the information.
+## GOCDB checks against this fake-site-bdii should be disabled as it is not fully compliant with
+## the site-bdii specification. They will fail if enabled.
 #[infosys/glue1/site-bdii]
 ## CHANGE: RENAMED block in 6.0.0. 
 
@@ -2373,10 +2384,17 @@
 ## default: undefined
 #unique_id=NDGF-T1
 
-## *url = url - The url of the resource BDII underlying the fake site bdii. It is on the format:
-## ldap://host.domain:2170/mds-vo-name=something,o=grid.
-## default: undefined
-#url=ldap://host.domain:2170/mds-vo-name=something,o=grid
+## *url = url - This url is the insertion point in the arc Glue1 ldif tree 
+## for the semi-fake site-bdii ldap object. 
+## The content of the ldap object is mainly generated from the data in the 
+## [infosys/glue1] block. 
+## The url format is ldap://host.domain:ldapport/basedn
+##          Example: ldap://host.domain:2135/o=grid
+## The generated site-bdii information will be attached under the basedn, 
+##     in the example for o=grid: mds-vo-name=unique-id,o=grid
+## In most cases you want to leave the default untouched, unless you know what you're doing.
+## default: ldap://localhost:2135/o=grid
+#url=ldap://host.domain:2135/o=grid
 ##
 ##
 ### end of the [infosys/glue1/site-bdii] block ###################################
