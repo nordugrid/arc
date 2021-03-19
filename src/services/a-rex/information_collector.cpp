@@ -364,8 +364,9 @@ void OptimizedInformationContainer::Assign(const std::string& xml, const std::st
 // ResourceInfoNotFoundFault
 // AccessControlFault
 // InternalBaseFault
-Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& /*config*/,Arc::XMLNode in,Arc::XMLNode out) {
   // WARNING. Suboptimal temporary solution.
+  // config is not used here, hence this method can be used for anonymous access
   int h = infodoc_.OpenDocument();
   if(h == -1) ESINFOFAULT("Failed to open resource information file");
   ::lseek(h,0,SEEK_SET);
@@ -441,7 +442,8 @@ Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode
 // UnknownQueryFault
 // AccessControlFault
 // InternalBaseFault
-Arc::MCC_Status ARexService::ESQueryResourceInfo(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+Arc::MCC_Status ARexService::ESQueryResourceInfo(ARexGMConfig& /*config*/,Arc::XMLNode in,Arc::XMLNode out) {
+  // config is not used here, hence this method can be used for anonymous access
   std::string dialect = (std::string)in["QueryDialect"];
   if(dialect.empty()) {
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
