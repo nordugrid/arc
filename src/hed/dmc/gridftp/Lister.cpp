@@ -731,9 +731,31 @@ namespace ArcDMCGridFTP {
                   // Apply control connection address
                   if((lsep2-lsep1) > 1) {
                     *lsep2 = '\0';
-                    if(inet_pton(AF_INET, lsep1+1, pasv_addr.host) == 1) {
+                    struct in_addr addr4;
+                    struct in6_addr addr6;
+                    if(inet_pton(AF_INET, lsep1+1, &addr4) == 1) {
+                      pasv_addr.host[3] = (addr4.s_addr >> 24) & 0xFF;
+                      pasv_addr.host[2] = (addr4.s_addr >> 16) & 0xFF;
+                      pasv_addr.host[1] = (addr4.s_addr >>  8) & 0xFF;
+                      pasv_addr.host[0] = (addr4.s_addr >>  0) & 0xFF;
                       pasv_addr.hostlen = 4;
-                    } else if(inet_pton(AF_INET6, lsep1+1, pasv_addr.host) == 1) {
+                    } else if(inet_pton(AF_INET6, lsep1+1, &addr6) == 1) {
+                      pasv_addr.host[15] = addr6.__in6_u.__u6_addr8[15];
+                      pasv_addr.host[14] = addr6.__in6_u.__u6_addr8[14];
+                      pasv_addr.host[13] = addr6.__in6_u.__u6_addr8[13];
+                      pasv_addr.host[12] = addr6.__in6_u.__u6_addr8[12];
+                      pasv_addr.host[11] = addr6.__in6_u.__u6_addr8[11];
+                      pasv_addr.host[10] = addr6.__in6_u.__u6_addr8[10];
+                      pasv_addr.host[9]  = addr6.__in6_u.__u6_addr8[9];
+                      pasv_addr.host[8]  = addr6.__in6_u.__u6_addr8[8];
+                      pasv_addr.host[7]  = addr6.__in6_u.__u6_addr8[7];
+                      pasv_addr.host[6]  = addr6.__in6_u.__u6_addr8[6];
+                      pasv_addr.host[5]  = addr6.__in6_u.__u6_addr8[5];
+                      pasv_addr.host[4]  = addr6.__in6_u.__u6_addr8[4];
+                      pasv_addr.host[3]  = addr6.__in6_u.__u6_addr8[3];
+                      pasv_addr.host[2]  = addr6.__in6_u.__u6_addr8[2];
+                      pasv_addr.host[1]  = addr6.__in6_u.__u6_addr8[1];
+                      pasv_addr.host[0]  = addr6.__in6_u.__u6_addr8[0];
                       pasv_addr.hostlen = 16;
                     }
                   } else {
@@ -764,7 +786,10 @@ namespace ArcDMCGridFTP {
     }
     if (pasv_addr.hostlen == 4) {
       logger.msg(VERBOSE, "Data channel: %d.%d.%d.%d:%d",
-                 pasv_addr.host[0], pasv_addr.host[1], pasv_addr.host[2], pasv_addr.host[3],
+                 pasv_addr.host[0],
+                 pasv_addr.host[1],
+                 pasv_addr.host[2],
+                 pasv_addr.host[3],
                  pasv_addr.port);
     } else { // hostlen = 16
       char buf[8*5];
