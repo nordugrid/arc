@@ -217,7 +217,7 @@ if [ "$joboption_exclusivenode" = "true" ]; then
 fi
 
 if [ ! -z "$memreq" ] ; then
-  echo "#PBS -l vmem=${memreq}mb" >> $LRMS_JOB_SCRIPT
+  echo "#PBS -l mem=${memreq}mb" >> $LRMS_JOB_SCRIPT
 fi
 
 gate_host=`uname -n`
