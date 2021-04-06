@@ -721,41 +721,55 @@ int JobPlugin::close(bool eof) {
     };
   };
   if(job_desc.lrms.empty()) job_desc.lrms=config.DefaultLRMS();
-  // Check for proper queue in request. 
+
+  // Handle queue in request.
+  // if (queue in xrsl) submit to that queue w/o modification; 
+  // elseif (no queue in xrsl and exists default queue in arc.conf) substitute default queue into xrsl and check authorisation; 
+  // elseif (no queue in xrsl and no default queue in arc.conf and VO is authorised in one of the arc.conf queues*) substitute
+  //        into xrsl the first; queue where VO is authorised in arc.conf;
+  // else (reject);
   if(job_desc.queue.empty()) job_desc.queue=config.DefaultQueue();
-  if(job_desc.queue.empty()) {
-    error_description="Request has no queue defined.";
-    logger.msg(Arc::ERROR, "%s", error_description);
-    delete_job_id(); 
-    return 1;
+  bool queue_authorized = false;
+  bool queue_matched = false;
+  for(std::list<std::string>::const_iterator q = avail_queues.begin(); q != avail_queues.end(); ++q) {
+    if(!job_desc.queue.empty()) {
+      if(*q != job_desc.queue) continue; // skip non-matcing queue
+    };
+    queue_matched = true;
+    // Check for allowed authorization group
+    std::list<std::pair<bool,std::string> > const & matching_groups = config.MatchingGroups(q->c_str());
+    if(matching_groups.empty()) {
+      queue_authorized = true; // No authorized groups assigned - all allowed
+    } else {
+      // here access limit defined for requested queue - check against user group(s)
+      for(std::list<std::pair<bool,std::string> >::const_iterator group = matching_groups.begin(); group != matching_groups.end(); ++group) {
+        if(user_s.user.check_group(group->second)) {
+          queue_authorized = group->first;
+          break;
+        };
+      };
+    };
+    if(queue_authorized) {
+      if(job_desc.queue.empty()) job_desc.queue = *q; // no queue requested - assign first authorized
+      break;
+    };
   };
-  if(!avail_queues.empty()) { // If no queues configured - service takes any
-    for(std::list<std::string>::iterator q = avail_queues.begin();;++q) {
-      if(q == avail_queues.end()) {
+  if(!queue_authorized) {
+    // Different error messages for different job requests
+    if(job_desc.queue.empty()) {
+      error_description="Request has no queue defined and none is allowed for this user.";
+      logger.msg(Arc::ERROR, "%s", error_description);
+    } else {
+      if(queue_matched) {
         error_description="Requested queue "+job_desc.queue+" does not match any of available queues.";
         logger.msg(Arc::ERROR, "%s", error_description);
-        delete_job_id(); 
-        return 1;
-      };
-      if(*q == job_desc.queue) break; 
-    };
-  };
-  std::list<std::pair<bool,std::string> > const& matching_groups = config.MatchingGroups(job_desc.queue.c_str());  
-  if(!matching_groups.empty()) {
-    // here access limit defined for requested queue - check against user group(s)
-    bool allowed = false;
-    for(std::list<std::pair<bool,std::string> >::const_iterator group = matching_groups.begin(); group != matching_groups.end(); ++group) {
-      if(user_s.user.check_group(group->second)) {
-        allowed = group->first;
-        break;
+      } else {
+        error_description="Requested queue "+job_desc.queue+" is not allowed for this user";
+        logger.msg(Arc::ERROR, "%s", error_description);
       };
     };
-    if(!allowed) {
-      error_description="Requested queue "+job_desc.queue+" is not allowed for this user";
-      logger.msg(Arc::ERROR, "%s", error_description);
-      delete_job_id(); 
-      return 1;
-    };
+    delete_job_id(); 
+    return 1;
   };
   /* ***********************************************
    * Collect delegation identifiers                *
