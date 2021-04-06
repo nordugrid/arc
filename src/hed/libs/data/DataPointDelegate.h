@@ -79,7 +79,6 @@ namespace Arc {
 
     virtual ~DataPointDelegate();
 
-    static Plugin* Instance(PluginArgument *arg);
     virtual DataStatus StartReading(DataBuffer& buf);
     virtual DataStatus StartWriting(DataBuffer& buf,
                                     DataCallback *space_cb = NULL);
