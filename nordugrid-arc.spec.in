@@ -513,16 +513,10 @@ Requires:	%{name}-plugins-needed = %{version}-%{release}
 Requires:	python3-dirq
 Requires:	python3-isodate
 Requires:	python3-ldap
-Requires:	python3-stomppy
 %else
 Requires:	python-dirq
 Requires:	python-isodate
 Requires:	python-ldap
-%if %{?fedora}%{!?fedora:0} >= 26 || %{?rhel}%{!?rhel:0} >= 8
-Requires:	python2-stomppy
-%else
-Requires:	stomppy
-%endif
 %endif
 Provides:	%{name}-cache-service = %{version}-%{release}
 Obsoletes:	%{name}-cache-service < 6.0.0
@@ -584,8 +578,14 @@ BuildArch:  noarch
 Requires:   %{name}-arex = %{version}-%{release}
 %if %{py3default}
 Requires:   python3-requests
+Requires:	python3-stomppy
 %else
 Requires:   python-requests
+%if %{?fedora}%{!?fedora:0} >= 26 || %{?rhel}%{!?rhel:0} >= 8
+Requires:	python2-stomppy
+%else
+Requires:	stomppy
+%endif
 %endif
 
 %description thirdparty-apel
