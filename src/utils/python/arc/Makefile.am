@@ -13,6 +13,6 @@ paths_dist.py: gen_paths_dist.sh
 
 CLEANFILES = paths_dist.py
 
-SUBDIRS = utils control thirdparty
-DIST_SUBDIRS = utils control thirdparty
+SUBDIRS = utils control thirdparty/ssm
+DIST_SUBDIRS = utils control thirdparty/ssm
 
