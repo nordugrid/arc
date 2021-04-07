@@ -1511,9 +1511,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %dir %{_localstatedir}/spool/arc
 %dir %{_localstatedir}/spool/arc/ssm
 %dir %{_localstatedir}/spool/arc/urs
-%{_libexecdir}/%{pkgdir}/ssmsend
 %if %{py3default}
-%{python3_sitearch}/%{pkgdir}/ssm
+%{python3_sitearch}/%{pkgdir}/thirdparty/ssm
 %{python3_sitearch}/%{pkgdir}/control/AccountingDB.py
 %{python3_sitearch}/%{pkgdir}/control/AccountingPublishing.py
 %{python3_sitearch}/%{pkgdir}/control/Accounting.py
@@ -1529,7 +1528,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Jobs.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/RunTimeEnvironment.*
 %else
-%{python2_sitearch}/%{pkgdir}/ssm
+%{python2_sitearch}/%{pkgdir}/thirdparty/ssm
 %{python2_sitearch}/%{pkgdir}/control/AccountingDB.py*
 %{python2_sitearch}/%{pkgdir}/control/AccountingPublishing.py*
 %{python2_sitearch}/%{pkgdir}/control/Accounting.py*

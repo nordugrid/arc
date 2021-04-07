@@ -32,19 +32,20 @@ except ImportError:
     except ImportError:
         import StringIO
 
+# import thirdparty SSM libraries
 apel_libs = None
 try:
-    # third-party SSM libraries
+    # use packaged by APEL if available
     from ssm import __version__ as ssm_version
     from ssm.ssm2 import Ssm2, Ssm2Exception
     from ssm.crypto import CryptoException
     apel_libs = 'apel'
 except ImportError:
-    # re-distributed with NorduGrid ARC
+    # use re-distributed with NorduGrid ARC
     try:
-        from arc.ssm import __version__ as ssm_version
-        from arc.ssm.ssm2 import Ssm2, Ssm2Exception
-        from arc.ssm.crypto import CryptoException
+        from arc.thirdparty.ssm import __version__ as ssm_version
+        from arc.thirdparty.ssm.ssm2 import Ssm2, Ssm2Exception
+        from arc.thirdparty.ssm.crypto import CryptoException
         apel_libs = 'arc'
     except ImportError:
         ssm_version = (0, 0, 0)
@@ -572,6 +573,9 @@ class APELSSMSender(object):
             del buf
 
     def send(self):
+        if Ssm2 is None:
+            self.logger.fatal('SSM libraries are not installed. Publishing to APEL is not possible.')
+            return False
         ssmsource = 'NorduGrid ARC redistributed' if apel_libs == 'arc' else 'system-wide installed'
         self.logger.info('Going to send records to %s APEL broker using %s SSM libraries version %s.%s.%s',
                          self.conf['targeturl'], ssmsource, *ssm_version)

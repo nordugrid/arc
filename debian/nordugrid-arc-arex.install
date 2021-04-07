@@ -7,7 +7,6 @@ debian/tmp/usr/lib/arc/inputcheck
 debian/tmp/usr/lib/arc/jura-ng
 debian/tmp/usr/lib/arc/smtp-send
 debian/tmp/usr/lib/arc/smtp-send.sh
-debian/tmp/usr/lib/arc/ssmsend
 
 debian/tmp/usr/share/arc/cancel-*-job
 debian/tmp/usr/share/arc/scan-*-job
@@ -70,7 +69,7 @@ debian/tmp/usr/share/man/man8/a-rex-backtrace-collect.8
 debian/tmp/usr/share/man/man8/arc-blahp-logger.8
 debian/tmp/usr/share/man/man8/gm-*.8
 
-debian/tmp/usr/lib/python?.*/site-packages/arc/ssm
+debian/tmp/usr/lib/python?.*/site-packages/arc/thirdparty/ssm
 
 debian/tmp/usr/lib/python?.*/site-packages/arc/control/AccountingDB.py*
 debian/tmp/usr/lib/python?.*/site-packages/arc/control/AccountingPublishing.py*

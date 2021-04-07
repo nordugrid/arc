@@ -1,0 +1,12 @@
+NorduGrid ARC distribution ships necessary thirdpatry APEL SSM python libraries to submit records to APEL.
+This is necessary thus we provides NorduGrid ARC packaging for number of platforms APEL SSM is not packaged.
+
+SSM libraries are developed by APEL team and can be found at https://github.com/apel/ssm
+
+Following files are copied from APEL SSM codebase:
+  __init__.py
+  crypto.py
+  ssm2.py
+
+In case of operating system has APEL SSM libraries installed - these libraries will be used.
+ARC redistributed libraries are used as a fallback option and targeted for OSes without APEL SSM packaging support.

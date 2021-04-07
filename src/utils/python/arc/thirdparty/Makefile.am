@@ -1,0 +1,3 @@
+SUBDIRS = ssm
+DIST_SUBDIRS = ssm
+
