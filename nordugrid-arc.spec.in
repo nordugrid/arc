@@ -580,6 +580,7 @@ supported. It is released as a technology preview.
 %package thirdparty-apel
 Summary:    Redistributed thirdparty python libraries to publish accounting data to APEL
 Group:      System Environment/Libraries
+BuildArch:  noarch
 Requires:   %{name}-arex = %{version}-%{release}
 %if %{py3default}
 Requires:   python3-requests

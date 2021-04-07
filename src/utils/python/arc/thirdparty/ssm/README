@@ -9,4 +9,8 @@ Following files are copied from APEL SSM codebase:
   ssm2.py
 
 In case of operating system has APEL SSM libraries installed - these libraries will be used.
+
 ARC redistributed libraries are used as a fallback option and targeted for OSes without APEL SSM packaging support.
+
+Import statements in the redistibuted libraries are modified to match ARC usage pattern.
+Thare can be also additional bugfixes in place compared to vanila version (depends on the exact verion).
