@@ -13,6 +13,6 @@ paths_dist.py: gen_paths_dist.sh
 
 CLEANFILES = paths_dist.py
 
-SUBDIRS = utils control thirdparty/ssm thirdparty/argo_ams_library
-DIST_SUBDIRS = utils control thirdparty/ssm thirdparty/argo_ams_library
+SUBDIRS = utils control thirdparty
+DIST_SUBDIRS = utils control thirdparty
 

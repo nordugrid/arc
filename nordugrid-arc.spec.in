@@ -1584,9 +1584,13 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %files thirdparty-apel
 %defattr(-,root,root,-)
 %if %{py3default}
+%{python3_sitearch}/%{pkgdir}/thirdparty/__init__.py
+%dir %{python3_sitearch}/%{pkgdir}/thirdparty/__pycache__
+%{python3_sitearch}/%{pkgdir}/thirdparty/__pycache__/__init__.*
 %{python3_sitearch}/%{pkgdir}/thirdparty/ssm
 %{python3_sitearch}/%{pkgdir}/thirdparty/argo_ams_library
 %else
+%{python2_sitearch}/%{pkgdir}/thirdparty/__init__.py*
 %{python2_sitearch}/%{pkgdir}/thirdparty/ssm
 %{python2_sitearch}/%{pkgdir}/thirdparty/argo_ams_library
 %endif
