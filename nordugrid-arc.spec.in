@@ -1585,8 +1585,10 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %if %{py3default}
 %{python3_sitearch}/%{pkgdir}/thirdparty/ssm
+%{python3_sitearch}/%{pkgdir}/thirdparty/argo_ams_library
 %else
 %{python2_sitearch}/%{pkgdir}/thirdparty/ssm
+%{python2_sitearch}/%{pkgdir}/thirdparty/argo_ams_library
 %endif
 
 %files community-rtes
