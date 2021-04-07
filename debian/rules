@@ -219,6 +219,8 @@ override_dh_python2:
 		>> debian/nordugrid-arc-arex.substvars
 	echo "pydeps:Depends=python-dns" \
 		>> debian/nordugrid-arc-community-rtes.substvars
+	echo "pydeps:Depends=python-requests" \
+		>> debian/nordugrid-arc-thirdparty-apel.substvars
 	echo "pydeps:Depends=python-twisted, python-openssl" \
 		>> debian/nordugrid-arc-acix-core.substvars
 	echo "pydeps:Depends=python-ldap, python-dns" \
@@ -237,6 +239,8 @@ override_dh_python3:
 		>> debian/nordugrid-arc-arex.substvars
 	echo "pydeps:Depends=python3-dns" \
 		>> debian/nordugrid-arc-community-rtes.substvars
+	echo "pydeps:Depends=python3-requests" \
+		>> debian/nordugrid-arc-thirdparty-apel.substvars
 	echo "pydeps:Depends=python3-twisted, python3-openssl" \
 		>> debian/nordugrid-arc-acix-core.substvars
 	echo "pydeps:Depends=python3-ldap, python3-dns" \

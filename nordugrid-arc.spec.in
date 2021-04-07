@@ -577,6 +577,25 @@ backend scripts written in Python. Currently only the SLURM LRMS is
 supported. It is released as a technology preview.
 %endif
 
+%package thirdparty-apel
+Summary:    Redistributed thirdparty python libraries to publish accounting data to APEL
+Group:      System Environment/Libraries
+Requires:   %{name}-arex = %{version}-%{release}
+%if %{py3default}
+Requires:   python3-requests
+%else
+Requires:   python-requests
+%endif
+
+%description thirdparty-apel
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+ARC redistribute a minimal set of thirdparty SSM/AMS libraries developed
+by APEL and ARGO teams to enable reporting of the collected accounting
+data to APEL services.
+
 %package community-rtes
 Summary:	Community-defined RTEs support
 Group:		System Environment/Libraries
@@ -1512,7 +1531,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %dir %{_localstatedir}/spool/arc/ssm
 %dir %{_localstatedir}/spool/arc/urs
 %if %{py3default}
-%{python3_sitearch}/%{pkgdir}/thirdparty/ssm
 %{python3_sitearch}/%{pkgdir}/control/AccountingDB.py
 %{python3_sitearch}/%{pkgdir}/control/AccountingPublishing.py
 %{python3_sitearch}/%{pkgdir}/control/Accounting.py
@@ -1528,7 +1546,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Jobs.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/RunTimeEnvironment.*
 %else
-%{python2_sitearch}/%{pkgdir}/thirdparty/ssm
 %{python2_sitearch}/%{pkgdir}/control/AccountingDB.py*
 %{python2_sitearch}/%{pkgdir}/control/AccountingPublishing.py*
 %{python2_sitearch}/%{pkgdir}/control/Accounting.py*
@@ -1561,6 +1578,14 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %{_datadir}/%{pkgdir}/SLURMPYmod.pm
 %{_datadir}/%{pkgdir}/job_script.stubs
+%endif
+
+%files thirdparty-apel
+%defattr(-,root,root,-)
+%if %{py3default}
+%{python3_sitearch}/%{pkgdir}/thirdparty/ssm
+%else
+%{python2_sitearch}/%{pkgdir}/thirdparty/ssm
 %endif
 
 %files community-rtes

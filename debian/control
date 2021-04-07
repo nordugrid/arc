@@ -326,6 +326,24 @@ Description: ARC Resource-coupled EXecution service - Python LRMS backends
  backend scripts written in Python. Currently only the SLURM LRMS is
  supported. It is released as a technology preview.
 
+Package: nordugrid-arc-thirdparty-apel
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${python:Depends},
+ ${python3:Depends},
+ nordugrid-arc-arex (>= ${source:Version}),
+ ${pydeps:Depends}
+XB-Python-Version: ${python:Versions}
+Description: ARC redistributed third-party libraries for APEL publishing
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ ARC redistribute a minimal set of thirdparty SSM/AMS libraries developed
+ by APEL and ARGO teams to enable reporting of the collected accounting
+ data to APEL services.
+
 Package: nordugrid-arc-community-rtes
 Architecture: all
 Depends:
@@ -336,7 +354,7 @@ Depends:
  nordugrid-arc-arcctl (= ${source:Version}),
  ${pydeps:Depends}
 XB-Python-Version: ${python:Versions}
-Description: ARC Resource-coupled EXecution service - Python LRMS backends
+Description: ARC Resource-coupled EXecution service - Community RTEs framework
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
  Connector (ARC).

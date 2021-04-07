@@ -69,8 +69,6 @@ debian/tmp/usr/share/man/man8/a-rex-backtrace-collect.8
 debian/tmp/usr/share/man/man8/arc-blahp-logger.8
 debian/tmp/usr/share/man/man8/gm-*.8
 
-debian/tmp/usr/lib/python?.*/site-packages/arc/thirdparty/ssm
-
 debian/tmp/usr/lib/python?.*/site-packages/arc/control/AccountingDB.py*
 debian/tmp/usr/lib/python?.*/site-packages/arc/control/AccountingPublishing.py*
 debian/tmp/usr/lib/python?.*/site-packages/arc/control/Accounting.py*
