@@ -143,7 +143,7 @@ class RecordsPublisher(object):
         self.adb = None
         # arc config
         if arcconfig is None:
-            self.logger.error('Failed to parse arc.conf. Accounting publihsing is not possible.')
+            self.logger.error('Failed to parse arc.conf. Accounting publishing is not possible.')
             sys.exit(1)
         self.arcconfig = arcconfig
         # get configured accounting targets and options
@@ -273,12 +273,11 @@ class RecordsPublisher(object):
             target_conf[k] = self.arcconfig.get_value(k, ['arex/jura'])
         # init SSM sender
         apelssm = APELSSMSender(target_conf)
-        if not apelssm.init_dirq():
-            self.logger.error('Failed to initialize APEL SSM message queue. Sending records to APEL will be disabled. '
-                              'Please check dirq and stomp python modules are installed on your system.')
+        if not apelssm.apel_init():
+            self.logger.error('Failed to initialize SSM, publishing to APEL is not possible.')
             return None
         # database query filters
-        self.logger.debug('Assigning filters to APEL usage records database query')
+        self.logger.debug('Assigning filters to APEL usage records database query.')
         self.__init_adb_filters(endfrom, endtill)
         # optional WLCG VO filtering
         self.__add_vo_filter(target_conf)
@@ -344,10 +343,10 @@ class RecordsPublisher(object):
         apelssm.enqueue_sync(apelsyncs)
         # publish
         if not apelssm.send():
-            self.logger.error('Failed to publish messages to APEL broker')
+            self.logger.error('Failed to publish messages to APEL target')
             return None
         # no failures on the way: return latest endtime for records published
-        self.logger.debug('Accounting records have been published to APEL broker %s', target_conf['targethost'])
+        self.logger.debug('Accounting records have been published to APEL target %s', target_conf['targethost'])
         return latest_endtime
 
     def find_configured_target(self, targetname):
@@ -511,7 +510,7 @@ class APELSSMSender(object):
         self._dirq = None
         self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 1000
         # adjust SSM and stomp logging
-        ssmlogroot = 'arc.ssm' if apel_libs == 'arc' else 'ssm'
+        ssmlogroot = 'arc.thirdparty.ssm' if apel_libs == 'arc' else 'ssm'
         self.__configure_third_party_logging(ssmlogroot)
         self.__configure_third_party_logging('stomp.py')
         self.logger.debug('Initializing APEL SSM records sender for %s', self.conf['targethost'])
@@ -529,10 +528,17 @@ class APELSSMSender(object):
             logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
         tplogger.addHandler(log_handler_stderr)
 
-    def init_dirq(self):
+    def apel_init(self):
         if apel_libs is None:
+            self.logger.error('APEL SSM libraries are not installed. '
+                              'Install "nordugrid-arc-thirdparty-apel" package with redistributes minimal set of '
+                              'libraries required for APEL publishing or proceed with APEL SSM/ARGO AMS install from '
+                              'third-party repositories.')
             return False
         if QueueSimple is None:
+            # Both APEL SSM and nordugrid-arc-thirdparty-apel packages have it as a dependency
+            # so normally when ARC installed from packages should not happened
+            self.logger.error('Python dirq module is required for APEL publishing but missing.')
             return False
         dirq_path = self.conf['dirq_dir']
         self._dirq = QueueSimple(dirq_path)

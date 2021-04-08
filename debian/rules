@@ -215,11 +215,11 @@ ifeq ($(PYVER),2)
 override_dh_python2:
 	dh_python2
 
-	echo "pydeps:Depends=python-ldap, python-isodate, python-dirq" \
+	echo "pydeps:Depends=python-ldap, python-isodate" \
 		>> debian/nordugrid-arc-arex.substvars
 	echo "pydeps:Depends=python-dns" \
 		>> debian/nordugrid-arc-community-rtes.substvars
-	echo "pydeps:Depends=python-requests, python-stompy" \
+	echo "pydeps:Depends=python-requests, python-stompy, python-dirq" \
 		>> debian/nordugrid-arc-thirdparty-apel.substvars
 	echo "pydeps:Depends=python-twisted, python-openssl" \
 		>> debian/nordugrid-arc-acix-core.substvars
@@ -235,11 +235,11 @@ ifeq ($(PYVER),3)
 override_dh_python3:
 	dh_python3
 
-	echo "pydeps:Depends=python3-ldap, python3-isodate, python3-dirq" \
+	echo "pydeps:Depends=python3-ldap, python3-isodate" \
 		>> debian/nordugrid-arc-arex.substvars
 	echo "pydeps:Depends=python3-dns" \
 		>> debian/nordugrid-arc-community-rtes.substvars
-	echo "pydeps:Depends=python3-requests, python3-stompy" \
+	echo "pydeps:Depends=python3-requests, python3-stompy, python3-dirq" \
 		>> debian/nordugrid-arc-thirdparty-apel.substvars
 	echo "pydeps:Depends=python3-twisted, python3-openssl" \
 		>> debian/nordugrid-arc-acix-core.substvars

@@ -510,11 +510,9 @@ Requires:	%{name}-arcctl = %{version}-%{release}
 Requires:	%{name}-arcctl-service = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
 %if %{py3default}
-Requires:	python3-dirq
 Requires:	python3-isodate
 Requires:	python3-ldap
 %else
-Requires:	python-dirq
 Requires:	python-isodate
 Requires:	python-ldap
 %endif
@@ -577,9 +575,11 @@ Group:      System Environment/Libraries
 BuildArch:  noarch
 Requires:   %{name}-arex = %{version}-%{release}
 %if %{py3default}
+Requires:	python3-dirq
 Requires:   python3-requests
 Requires:	python3-stomppy
 %else
+Requires:	python-dirq
 Requires:   python-requests
 %if %{?fedora}%{!?fedora:0} >= 26 || %{?rhel}%{!?rhel:0} >= 8
 Requires:	python2-stomppy
