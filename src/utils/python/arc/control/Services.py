@@ -26,6 +26,10 @@ class ServicesControl(ComponentControl):
             'package': 'arex',
             'service': 'arc-arex'
         },
+        'arex/jura/apel': {
+            'package': 'thirdparty-apel',
+            'service': None
+        },
         'gridftpd': {
             'package': 'gridftpd',
             'service': 'arc-gridftpd'
@@ -65,11 +69,11 @@ class ServicesControl(ComponentControl):
     def __get_pm_sm(self):
         if self.sm is None:
             self.pm = OSPackageManagement()
-            # check arex package that contains arcctl installed via packet manager
-            if self.pm.is_installed(self.package_base + '-' + self.__blocks_map['arex']['package']):
+            # check is arcctl-service package (that contains service control modules) installed via packet manager
+            if self.pm.is_installed(self.package_base + '-arcctl-service'):
                 self.sm = OSServiceManagement()
             # epel6 and epel7 contains 'nordugrid-arc6' base to coexist with ARC5 release
-            elif self.pm.is_installed(self.package_base + '6-' + self.__blocks_map['arex']['package']):
+            elif self.pm.is_installed(self.package_base + '6-arcctl-service'):
                 self.package_base += '6'
                 self.sm = OSServiceManagement()
             # ARC installed without known packet manager
@@ -86,7 +90,7 @@ class ServicesControl(ComponentControl):
             bservice = self.__blocks_map[block]['service']
             if bservice is not None:
                 services_all.add(bservice)
-            if self.arcconfig.check_blocks(block):
+            if self.arcconfig.check_blocks(block, ignore_names=True):
                 packages_needed.add(self.package_base + '-' + self.__blocks_map[block]['package'])
                 if bservice is not None:
                     services_needed.add(bservice)
