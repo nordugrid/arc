@@ -1679,13 +1679,15 @@
 #[arex/jura/apel:egi_prod_apel]
 
 ## *targeturl = url - The service endpoint URL of the APEL accounting server.
-## Targets can be found using "arcctl accounting apel-brokers --ssl".
+## STOMP targets (deprecated) can be found using "arcctl accounting apel-brokers --ssl".
 ## default: undefined
-#targeturl=https://mq.cro-ngi.hr:6162
+#targeturl=https://msg.argo.grnet.gr
 
 ## topic = topic_name - Sets the name of the APEL topic to which JURA will publish the
 ## accounting records.
-## default: /queue/global.accounting.cpu.central
+## APEL STOMP queues are either /queue/global.accounting.cpu.central or test.cpu.central
+## AMS destination topic for compute element is 'gLite-APEL'
+## default: gLite-APEL
 #topic=/queue/global.accounting.test.cpu.central
 
 ## *gocdb_name = name - Can be used to specify the GOCDB name of the resource.
@@ -1715,8 +1717,9 @@
 
 ## urbatchsize = number - JURA sends usage records not one-by-one, but in batches.
 ## This options sets the size of a batch. Zero value means unlimited batch size.
-## default: 1000
-#urbatchsize=1000
+## 500 is recommended to avoid too large messages when using AMS
+## default: 500
+#urbatchsize=500
 
 ## urdelivery_frequency = seconds - (introduced in 6.4.0) Add optional minimal 
 ## treshold of the interval between subsequent records publishing to this target.
