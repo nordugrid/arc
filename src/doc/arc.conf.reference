@@ -1695,6 +1695,14 @@
 ## default: undefined
 #gocdb_name=GRID_UIO_NO
 
+## apel_protocol = type -  (introduced in 6.11.0) Define what messaging protocol to use
+## for APEL publishing. EGI ARGO Messaging Service (AMS) is currently used in production.
+## EGI ActiveMQ Message Brokers (STOMP) are going to be deprecated
+## default: AMS
+## allowedvalues: AMS STOMP
+#apel_protocol=AMS
+## CHANGE: NEW in 6.11.0.
+
 ## apel_messages = type - (introduced in 6.4.0) Define what kind of records JURA 
 ## will send to APEL services during regular publishing process.
 ## Possible cases are: per-job EMI CAR records ("urs"), APEL summary records ("summaries") 
