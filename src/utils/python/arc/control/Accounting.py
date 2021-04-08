@@ -353,6 +353,11 @@ class AccountingControl(ComponentControl):
             targetconf['apel_messages'] = args.apel_messages
         elif required:
             targetconf['apel_messages'] = 'summaries'
+        # messaging protocol
+        if args.apel_protocol is not None:
+            targetconf['apel_protocol'] = args.apel_protocol
+        elif required:
+            targetconf['apel_protocol'] = 'AMS'
         # gocdb is mandatory (if not specified, check will fail in __check_target_confdict during republish)
         if args.gocdb_name is not None:
             targetconf['gocdb_name'] = args.gocdb_name
@@ -546,6 +551,9 @@ class AccountingControl(ComponentControl):
 
         apel_options = accounting_republish.add_argument_group(title='APEL',
                                   description='Options to be used when target is specified using --apel-url')
+        apel_options.add_argument('--apel-protocol', required=False,
+                                  help='APEL Messaging Protocol (default is AMS)',
+                                  choices=['AMS', 'STOMP'])
         apel_options.add_argument('--apel-topic', required=False,
                                   help='Define APEL topic (default is gLite-APEL)',
                                   choices=['gLite-APEL', '/queue/global.accounting.cpu.central',

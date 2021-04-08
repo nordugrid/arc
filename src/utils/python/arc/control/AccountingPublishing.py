@@ -508,7 +508,7 @@ class APELSSMSender(object):
         self.logger = logging.getLogger('ARC.Accounting.APELSSM')
         self.conf = targetconf
         self._dirq = None
-        self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 1000
+        self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 500
         # adjust SSM and stomp logging
         ssmlogroot = 'arc.thirdparty.ssm' if apel_libs == 'arc' else 'ssm'
         self.__configure_third_party_logging(ssmlogroot)
@@ -597,7 +597,9 @@ class APELSSMSender(object):
                           key=self.conf['x509_host_key'],
                           capath=self.conf['x509_cert_dir'],
                           dest=self.conf['topic'],
-                          use_ssl=self.conf['targetssl'])
+                          use_ssl=self.conf['targetssl'],
+                          protocol=self.conf['apel_protocol'],
+                          project='accounting')
 
             if sender.has_msgs():
                 sender.handle_connect()
