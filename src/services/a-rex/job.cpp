@@ -497,38 +497,55 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
     };
   };
   if(job_.lrms.empty()) job_.lrms=config_.GmConfig().DefaultLRMS();
-  // Check for proper queue in request.
-  if(job_.queue.empty()) job_.queue=config_.GmConfig().DefaultQueue();
-  if(job_.queue.empty()) {
-    failure_="Request has no queue defined";
-    failure_type_=ARexJobDescriptionMissingError;
+
+  // Handle queue in request.
+  // if (queue in xrsl) submit to that queue w/o modification; 
+  // elseif (no queue in xrsl and exists default queue in arc.conf) substitute default queue into xrsl and check authorisation; 
+  // elseif (no queue in xrsl and no default queue in arc.conf and VO is authorised in one of the arc.conf queues*) substitute
+  //        into xrsl the first; queue where VO is authorised in arc.conf;
+  // else (reject);
+  if(job_.queue.empty()) // queue in job description?
+    job_.queue=config_.GmConfig().DefaultQueue(); // default queue in configuration
+
+  bool queue_authorized = false;
+  bool queue_matched = false;
+  for(std::list<std::string>::const_iterator q = config_.GmConfig().Queues().begin(); q != config_.GmConfig().Queues().end(); ++q) {
+    if(!job_.queue.empty()) {
+      if(*q != job_.queue) continue; // skip non-matcing queue
+    };
+    queue_matched = true;
+    // Check for allowed authorization group
+    std::list<std::pair<bool,std::string> > const & groups = config_.GmConfig().MatchingGroups(q->c_str());
+    if(groups.empty()) {
+      queue_authorized = true; // No authorized groups assigned - all allowed
+    } else {
+      if(match_groups(groups, config_)) {
+        queue_authorized = true;
+      };
+    };
+    if(queue_authorized) {
+      if(job_.queue.empty()) job_.queue = *q; // no queue requested - assign first authorized
+        break;
+    };
+  };
+  if(!queue_authorized) {
+    // Different error messages for different job requests
+    if(job_.queue.empty()) {
+      failure_="Request has no queue defined and none is allowed for this user";
+      failure_type_=ARexJobConfigurationError;
+    } else {
+      if(queue_matched) {
+        failure_="Requested queue "+job_.queue+" does not match any of available queues";
+        failure_type_=ARexJobInternalError;
+      } else {
+        failure_="Requested queue "+job_.queue+" is not allowed for this user";
+        failure_type_=ARexJobConfigurationError;
+      };
+    };
     delete_job_id();
     return;
   };
-  if(!config_.GmConfig().Queues().empty()) { // If no queues configured - service takes any
-    for(std::list<std::string>::const_iterator q = config_.GmConfig().Queues().begin();;++q) {
-      if(q == config_.GmConfig().Queues().end()) {
-        failure_="Requested queue "+job_.queue+" does not match any of available queues";
-        //failure_type_=ARexJobDescriptionLogicalError;
-        failure_type_=ARexJobInternalError;
-        delete_job_id();
-        return;
-      };
-      if(*q == job_.queue) {
-        // Before allowing this queue check for allowed authorization group
-        std::list<std::pair<bool,std::string> > const & groups = config_.GmConfig().MatchingGroups(job_.queue.c_str());
-        if(!groups.empty()) {
-          if(!match_groups(groups, config_)) {
-            failure_="Requested queue "+job_.queue+" is not allowed for this user";
-            failure_type_=ARexJobConfigurationError;
-            delete_job_id();
-            return;
-          };
-        };
-        break;
-      };
-    };
-  };
+
   // Check for various unsupported features
   if(!job_.preexecs.empty()) {
     failure_="Pre-executables are not supported by this service";
