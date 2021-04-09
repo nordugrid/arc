@@ -709,18 +709,42 @@ int JobPlugin::close(bool eof) {
       };
     };
   };
-  // Check for proper LRMS name in request. If there is no LRMS name 
-  // in user configuration that means service is opaque frontend and
-  // accepts any LRMS in request.
-  if((!job_desc.lrms.empty()) && (!config.DefaultLRMS().empty())) {
-    if(job_desc.lrms != config.DefaultLRMS()) {
-      error_description="Request for LRMS "+job_desc.lrms+" is not allowed.";
-      logger.msg(Arc::ERROR, "%s", error_description);
-      delete_job_id(); 
-      return 1;
-    };
+  /* *****************************************************************
+   * Collect delegation identifiers                                   *
+   * Must do that before processing or else ids are replaced by paths *
+   ****************************************************************** */
+  std::list<std::string> deleg_ids;
+  for(std::list<FileData>::iterator f = job_desc.inputdata.begin();
+                                      f != job_desc.inputdata.end();++f) {
+    if(!f->cred.empty()) deleg_ids.push_back(f->cred);
   };
-  if(job_desc.lrms.empty()) job_desc.lrms=config.DefaultLRMS();
+  for(std::list<FileData>::iterator f = job_desc.outputdata.begin();
+                                      f != job_desc.outputdata.end();++f) {
+    if(!f->cred.empty()) deleg_ids.push_back(f->cred);
+  };
+  // Also pick up global delegation id if any
+  if(!job_desc.delegationid.empty()) {
+    deleg_ids.push_back(job_desc.delegationid);
+  };
+  /* ******************************************************************************
+   * Preprocess job request                                                       *
+   * This also sets default values if not already set in local or job description *
+   ****************************************************************************** */
+  std::string session_dir(config.SessionRoot(job_id) + '/' + job_id);
+  GMJob job(job_id,user,session_dir,JOB_STATE_ACCEPTED);
+  if(!job_desc_handler.process_job_req(job, job_desc)) {
+    error_description="Failed to preprocess job description.";
+    logger.msg(Arc::ERROR, "%s", error_description);
+    delete_job_id();
+    return 1;
+  };
+
+  if(job_desc.lrms.empty() || (job_desc.lrms != config.DefaultLRMS())) {
+    error_description="Request for LRMS '"+job_desc.lrms+"' is not allowed.";
+    logger.msg(Arc::ERROR, "%s", error_description);
+    delete_job_id(); 
+    return 1;
+  };
 
   // Handle queue in request.
   // if (queue in xrsl) submit to that queue w/o modification; 
@@ -728,7 +752,6 @@ int JobPlugin::close(bool eof) {
   // elseif (no queue in xrsl and no default queue in arc.conf and VO is authorised in one of the arc.conf queues*) substitute
   //        into xrsl the first; queue where VO is authorised in arc.conf;
   // else (reject);
-  if(job_desc.queue.empty()) job_desc.queue=config.DefaultQueue();
   bool queue_authorized = false;
   bool queue_matched = false;
   for(std::list<std::string>::const_iterator q = avail_queues.begin(); q != avail_queues.end(); ++q) {
@@ -770,33 +793,6 @@ int JobPlugin::close(bool eof) {
     };
     delete_job_id(); 
     return 1;
-  };
-  /* ***********************************************
-   * Collect delegation identifiers                *
-   *********************************************** */
-  std::list<std::string> deleg_ids;
-  for(std::list<FileData>::iterator f = job_desc.inputdata.begin();
-                                      f != job_desc.inputdata.end();++f) {
-    if(!f->cred.empty()) deleg_ids.push_back(f->cred);
-  };
-  for(std::list<FileData>::iterator f = job_desc.outputdata.begin();
-                                      f != job_desc.outputdata.end();++f) {
-    if(!f->cred.empty()) deleg_ids.push_back(f->cred);
-  };
-  /* ****************************************
-   * Preprocess job request                 *
-   **************************************** */
-  std::string session_dir(config.SessionRoot(job_id) + '/' + job_id);
-  GMJob job(job_id,user,session_dir,JOB_STATE_ACCEPTED);
-  if(!job_desc_handler.process_job_req(job, job_desc)) {
-    error_description="Failed to preprocess job description.";
-    logger.msg(Arc::ERROR, "%s", error_description);
-    delete_job_id(); 
-    return 1;
-  };
-  // Also pick up global delegation id if any
-  if(!job_desc.delegationid.empty()) {
-    deleg_ids.push_back(job_desc.delegationid);
   };
   /* ****************************************
    * Start local file                       *
