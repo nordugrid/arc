@@ -2,8 +2,9 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from .AccountingDB import AccountingDB, AAR
-from arc.paths import ARC_VERSION
+from arc.paths import ARC_VERSION, ARC_RUN_DIR
 
+import os
 import sys
 import logging
 import re
@@ -602,6 +603,9 @@ class APELSSMSender(object):
         try:
             # create SSM2 object for sender
             self.logger.debug('Initializing SSM2 sender to publish records into %s queue', self.conf['topic'])
+            # define openssl randfile for ssm.crypto
+            os.environ['RANDFILE'] = ARC_RUN_DIR + '/openssl.rnd'
+            # init ssm
             sender = Ssm2(brokers,
                           qpath=self.conf['dirq_dir'],
                           cert=self.conf['x509_host_cert'],
