@@ -586,7 +586,18 @@ class APELSSMSender(object):
         self.logger.info('Going to send records to %s APEL broker using %s SSM libraries version %s.%s.%s',
                          self.conf['targeturl'], ssmsource, *ssm_version)
         self.logger.debug('Processing records in the %s directory queue.', self.conf['dirq_dir'])
-        brokers = [(self.conf['targethost'], self.conf['targetport'])]
+        # handle protocol-dependent targets
+        apel_protocol = self.conf['apel_protocol']
+        if apel_protocol == 'AMS':
+            # AMS only works with single hostname, even port cannot be passed via SSM
+            brokers = [self.conf['targethost']]
+        elif apel_protocol == 'STOMP':
+            # STOMS loop over (host, port) tuples from the same argument
+            brokers = [(self.conf['targethost'], self.conf['targetport'])]
+        else:
+            self.logger.error('Protocol %s is not valid. Please review you APEL target configuration.', apel_protocol)
+            return False
+        # invoke SSM
         success = False
         try:
             # create SSM2 object for sender
@@ -598,7 +609,7 @@ class APELSSMSender(object):
                           capath=self.conf['x509_cert_dir'],
                           dest=self.conf['topic'],
                           use_ssl=self.conf['targetssl'],
-                          protocol=self.conf['apel_protocol'],
+                          protocol=apel_protocol,
                           project='accounting')
 
             if sender.has_msgs():
