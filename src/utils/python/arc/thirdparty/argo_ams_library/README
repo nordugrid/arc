@@ -1,0 +1,8 @@
+NorduGrid ARC distribution ships necessary thirdpatry ARGO AMS python library to submit records to APEL.
+This is necessary thus we provides NorduGrid ARC packaging for number of platforms APEL is not packaged.
+
+AMS libraries are developed by ARGOeu team and can be found at https://github.com/ARGOeu/argo-ams-library
+
+In case of operating system has ARGO AMS libraries installed - these libraries will be used.
+
+ARC redistributed libraries are used as a fallback option and targeted for OSes without ARGO AMS packaging support.

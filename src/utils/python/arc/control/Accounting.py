@@ -64,8 +64,10 @@ class AccountingControl(ComponentControl):
         adb_file = self.arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting/accounting.db'
         self.adb = AccountingDB(adb_file)
 
-    def get_apel_brokers(self, args):
-        """Fetch the list of APEL brokers from the Top-BDII"""
+    def get_apel_stomp_brokers(self, args):
+        """Fetch the list of APEL STOMP brokers from the Top-BDII"""
+        self.logger.error('APEL publising via STOMP is deprecated. '
+                          'Use AMS publishing to https://msg.argo.grnet.gr instead.')
         try:
             ldap_conn = ldap.initialize(args.top_bdii)
             ldap_conn.protocol_version = ldap.VERSION3
@@ -345,12 +347,17 @@ class AccountingControl(ComponentControl):
         if args.apel_topic is not None:
             targetconf['topic'] = args.apel_topic
         elif required:
-            targetconf['topic'] = '/queue/global.accounting.cpu.central'
+            targetconf['topic'] = 'gLite-APEL'
         # message type to send is mandatory and default exists
         if args.apel_messages is not None:
             targetconf['apel_messages'] = args.apel_messages
         elif required:
             targetconf['apel_messages'] = 'summaries'
+        # messaging protocol
+        if args.apel_protocol is not None:
+            targetconf['apel_protocol'] = args.apel_protocol
+        elif required:
+            targetconf['apel_protocol'] = 'AMS'
         # gocdb is mandatory (if not specified, check will fail in __check_target_confdict during republish)
         if args.gocdb_name is not None:
             targetconf['gocdb_name'] = args.gocdb_name
@@ -420,7 +427,7 @@ class AccountingControl(ComponentControl):
         elif args.action == 'job':
             self.jobcontrol(args)
         elif args.action == 'apel-brokers':
-            self.get_apel_brokers(args)
+            self.get_apel_stomp_brokers(args)
         elif args.action == 'republish':
             self.republish(args)
         else:
@@ -484,7 +491,8 @@ class AccountingControl(ComponentControl):
 
         # apel-brockers
         accounting_brokers = accounting_actions.add_parser('apel-brokers',
-                                                           help='Fetch available APEL brokers from GLUE2 Top-BDII')
+                                                           help='Fetch available APEL STOMP brokers (deprecated) '
+                                                                'from GLUE2 Top-BDII')
         accounting_brokers.add_argument('-t', '--top-bdii', default='ldap://lcg-bdii.cern.ch:2170',
                                         help='Top-BDII LDAP URI (default is %(default)s')
         accounting_brokers.add_argument('-s', '--ssl', help='Query for SSL brokers', action='store_true')
@@ -532,7 +540,7 @@ class AccountingControl(ComponentControl):
         accounting_target.add_argument('-t', '--target-name',
                                        help='Specify configured accounting target name from arc.conf (e.g. neic_sgas).')
         accounting_target.add_argument('-a', '--apel-url',
-                                       help='Specify APEL server URL (e.g. https://mq.cro-ngi.hr:6162)')
+                                       help='Specify APEL server URL (e.g. https://msg.argo.grnet.gr)')
         accounting_target.add_argument('-s', '--sgas-url',
                                        help='Specify SGAS server URL (e.g. https://grid.uio.no:8001/logger)')
 
@@ -543,9 +551,12 @@ class AccountingControl(ComponentControl):
 
         apel_options = accounting_republish.add_argument_group(title='APEL',
                                   description='Options to be used when target is specified using --apel-url')
+        apel_options.add_argument('--apel-protocol', required=False,
+                                  help='APEL Messaging Protocol (default is AMS)',
+                                  choices=['AMS', 'STOMP'])
         apel_options.add_argument('--apel-topic', required=False,
-                                  help='Define APEL topic (default is /queue/global.accounting.cpu.central)',
-                                  choices=['/queue/global.accounting.cpu.central',
+                                  help='Define APEL topic (default is gLite-APEL)',
+                                  choices=['gLite-APEL', '/queue/global.accounting.cpu.central',
                                            '/queue/global.accounting.test.cpu.central'])
         apel_options.add_argument('--apel-messages', required=False,
                                   help='Define APEL messages (default is summaries)',

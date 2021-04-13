@@ -510,19 +510,11 @@ Requires:	%{name}-arcctl = %{version}-%{release}
 Requires:	%{name}-arcctl-service = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
 %if %{py3default}
-Requires:	python3-dirq
 Requires:	python3-isodate
 Requires:	python3-ldap
-Requires:	python3-stomppy
 %else
-Requires:	python-dirq
 Requires:	python-isodate
 Requires:	python-ldap
-%if %{?fedora}%{!?fedora:0} >= 26 || %{?rhel}%{!?rhel:0} >= 8
-Requires:	python2-stomppy
-%else
-Requires:	stomppy
-%endif
 %endif
 Provides:	%{name}-cache-service = %{version}-%{release}
 Obsoletes:	%{name}-cache-service < 6.0.0
@@ -576,6 +568,34 @@ The Python LRMS backends are a new implementation of the AREX LRMS
 backend scripts written in Python. Currently only the SLURM LRMS is
 supported. It is released as a technology preview.
 %endif
+
+%package thirdparty-apel
+Summary:    Redistributed thirdparty python libraries to publish accounting data to APEL
+Group:      System Environment/Libraries
+BuildArch:  noarch
+Requires:   %{name}-arex = %{version}-%{release}
+%if %{py3default}
+Requires:	python3-dirq
+Requires:   python3-requests
+Requires:	python3-stomppy
+%else
+Requires:	python-dirq
+Requires:   python-requests
+%if %{?fedora}%{!?fedora:0} >= 26 || %{?rhel}%{!?rhel:0} >= 8
+Requires:	python2-stomppy
+%else
+Requires:	stomppy
+%endif
+%endif
+
+%description thirdparty-apel
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+ARC redistribute a minimal set of thirdparty SSM/AMS libraries developed
+by APEL and ARGO teams to enable reporting of the collected accounting
+data to APEL services.
 
 %package community-rtes
 Summary:	Community-defined RTEs support
@@ -1511,9 +1531,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %dir %{_localstatedir}/spool/arc
 %dir %{_localstatedir}/spool/arc/ssm
 %dir %{_localstatedir}/spool/arc/urs
-%{_libexecdir}/%{pkgdir}/ssmsend
 %if %{py3default}
-%{python3_sitearch}/%{pkgdir}/ssm
 %{python3_sitearch}/%{pkgdir}/control/AccountingDB.py
 %{python3_sitearch}/%{pkgdir}/control/AccountingPublishing.py
 %{python3_sitearch}/%{pkgdir}/control/Accounting.py
@@ -1529,7 +1547,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Jobs.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/RunTimeEnvironment.*
 %else
-%{python2_sitearch}/%{pkgdir}/ssm
 %{python2_sitearch}/%{pkgdir}/control/AccountingDB.py*
 %{python2_sitearch}/%{pkgdir}/control/AccountingPublishing.py*
 %{python2_sitearch}/%{pkgdir}/control/Accounting.py*
@@ -1562,6 +1579,20 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %{_datadir}/%{pkgdir}/SLURMPYmod.pm
 %{_datadir}/%{pkgdir}/job_script.stubs
+%endif
+
+%files thirdparty-apel
+%defattr(-,root,root,-)
+%if %{py3default}
+%{python3_sitearch}/%{pkgdir}/thirdparty/__init__.py
+%dir %{python3_sitearch}/%{pkgdir}/thirdparty/__pycache__
+%{python3_sitearch}/%{pkgdir}/thirdparty/__pycache__/__init__.*
+%{python3_sitearch}/%{pkgdir}/thirdparty/ssm
+%{python3_sitearch}/%{pkgdir}/thirdparty/argo_ams_library
+%else
+%{python2_sitearch}/%{pkgdir}/thirdparty/__init__.py*
+%{python2_sitearch}/%{pkgdir}/thirdparty/ssm
+%{python2_sitearch}/%{pkgdir}/thirdparty/argo_ams_library
 %endif
 
 %files community-rtes

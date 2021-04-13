@@ -2,8 +2,9 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from .AccountingDB import AccountingDB, AAR
-from arc.paths import ARC_VERSION
+from arc.paths import ARC_VERSION, ARC_RUN_DIR
 
+import os
 import sys
 import logging
 import re
@@ -32,19 +33,20 @@ except ImportError:
     except ImportError:
         import StringIO
 
+# import thirdparty SSM libraries
 apel_libs = None
 try:
-    # third-party SSM libraries
+    # use packaged by APEL if available
     from ssm import __version__ as ssm_version
     from ssm.ssm2 import Ssm2, Ssm2Exception
     from ssm.crypto import CryptoException
     apel_libs = 'apel'
 except ImportError:
-    # re-distributed with NorduGrid ARC
+    # use re-distributed with NorduGrid ARC
     try:
-        from arc.ssm import __version__ as ssm_version
-        from arc.ssm.ssm2 import Ssm2, Ssm2Exception
-        from arc.ssm.crypto import CryptoException
+        from arc.thirdparty.ssm import __version__ as ssm_version
+        from arc.thirdparty.ssm.ssm2 import Ssm2, Ssm2Exception
+        from arc.thirdparty.ssm.crypto import CryptoException
         apel_libs = 'arc'
     except ImportError:
         ssm_version = (0, 0, 0)
@@ -142,7 +144,7 @@ class RecordsPublisher(object):
         self.adb = None
         # arc config
         if arcconfig is None:
-            self.logger.error('Failed to parse arc.conf. Accounting publihsing is not possible.')
+            self.logger.error('Failed to parse arc.conf. Accounting publishing is not possible.')
             sys.exit(1)
         self.arcconfig = arcconfig
         # get configured accounting targets and options
@@ -272,12 +274,11 @@ class RecordsPublisher(object):
             target_conf[k] = self.arcconfig.get_value(k, ['arex/jura'])
         # init SSM sender
         apelssm = APELSSMSender(target_conf)
-        if not apelssm.init_dirq():
-            self.logger.error('Failed to initialize APEL SSM message queue. Sending records to APEL will be disabled. '
-                              'Please check dirq and stomp python modules are installed on your system.')
+        if not apelssm.apel_init():
+            self.logger.error('Failed to initialize SSM, publishing to APEL is not possible.')
             return None
         # database query filters
-        self.logger.debug('Assigning filters to APEL usage records database query')
+        self.logger.debug('Assigning filters to APEL usage records database query.')
         self.__init_adb_filters(endfrom, endtill)
         # optional WLCG VO filtering
         self.__add_vo_filter(target_conf)
@@ -343,10 +344,10 @@ class RecordsPublisher(object):
         apelssm.enqueue_sync(apelsyncs)
         # publish
         if not apelssm.send():
-            self.logger.error('Failed to publish messages to APEL broker')
+            self.logger.error('Failed to publish messages to APEL target')
             return None
         # no failures on the way: return latest endtime for records published
-        self.logger.debug('Accounting records have been published to APEL broker %s', target_conf['targethost'])
+        self.logger.debug('Accounting records have been published to APEL target %s', target_conf['targethost'])
         return latest_endtime
 
     def find_configured_target(self, targetname):
@@ -508,9 +509,9 @@ class APELSSMSender(object):
         self.logger = logging.getLogger('ARC.Accounting.APELSSM')
         self.conf = targetconf
         self._dirq = None
-        self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 1000
+        self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 500
         # adjust SSM and stomp logging
-        ssmlogroot = 'arc.ssm' if apel_libs == 'arc' else 'ssm'
+        ssmlogroot = 'arc.thirdparty.ssm' if apel_libs == 'arc' else 'ssm'
         self.__configure_third_party_logging(ssmlogroot)
         self.__configure_third_party_logging('stomp.py')
         self.logger.debug('Initializing APEL SSM records sender for %s', self.conf['targethost'])
@@ -528,10 +529,17 @@ class APELSSMSender(object):
             logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
         tplogger.addHandler(log_handler_stderr)
 
-    def init_dirq(self):
+    def apel_init(self):
         if apel_libs is None:
+            self.logger.error('APEL SSM libraries are not installed. '
+                              'Install "nordugrid-arc-thirdparty-apel" package with redistributes minimal set of '
+                              'libraries required for APEL publishing or proceed with APEL SSM/ARGO AMS install from '
+                              'third-party repositories.')
             return False
         if QueueSimple is None:
+            # Both APEL SSM and nordugrid-arc-thirdparty-apel packages have it as a dependency
+            # so normally when ARC installed from packages should not happened
+            self.logger.error('Python dirq module is required for APEL publishing but missing.')
             return False
         dirq_path = self.conf['dirq_dir']
         self._dirq = QueueSimple(dirq_path)
@@ -572,22 +580,41 @@ class APELSSMSender(object):
             del buf
 
     def send(self):
+        if Ssm2 is None:
+            self.logger.fatal('SSM libraries are not installed. Publishing to APEL is not possible.')
+            return False
         ssmsource = 'NorduGrid ARC redistributed' if apel_libs == 'arc' else 'system-wide installed'
         self.logger.info('Going to send records to %s APEL broker using %s SSM libraries version %s.%s.%s',
                          self.conf['targeturl'], ssmsource, *ssm_version)
         self.logger.debug('Processing records in the %s directory queue.', self.conf['dirq_dir'])
-        brokers = [(self.conf['targethost'], self.conf['targetport'])]
+        # handle protocol-dependent targets
+        apel_protocol = self.conf['apel_protocol']
+        if apel_protocol == 'AMS':
+            # AMS only works with single hostname, even port cannot be passed via SSM
+            brokers = [self.conf['targethost']]
+        elif apel_protocol == 'STOMP':
+            # STOMS loop over (host, port) tuples from the same argument
+            brokers = [(self.conf['targethost'], self.conf['targetport'])]
+        else:
+            self.logger.error('Protocol %s is not valid. Please review you APEL target configuration.', apel_protocol)
+            return False
+        # invoke SSM
         success = False
         try:
             # create SSM2 object for sender
             self.logger.debug('Initializing SSM2 sender to publish records into %s queue', self.conf['topic'])
+            # define openssl randfile for ssm.crypto
+            os.environ['RANDFILE'] = ARC_RUN_DIR + '/openssl.rnd'
+            # init ssm
             sender = Ssm2(brokers,
                           qpath=self.conf['dirq_dir'],
                           cert=self.conf['x509_host_cert'],
                           key=self.conf['x509_host_key'],
                           capath=self.conf['x509_cert_dir'],
                           dest=self.conf['topic'],
-                          use_ssl=self.conf['targetssl'])
+                          use_ssl=self.conf['targetssl'],
+                          protocol=apel_protocol,
+                          project='accounting')
 
             if sender.has_msgs():
                 sender.handle_connect()

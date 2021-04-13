@@ -283,7 +283,7 @@ def _canonicalize_blockid(block):
     # nothing to do with blocks without names
     if ':' not in block:
         return block
-    # get name wthout spaces
+    # get name without spaces
     re_match = __blockname_re.match(block)
     if re_match:
         re_dict = re_match.groupdict()
@@ -498,18 +498,25 @@ def get_config_blocks():
     return __parsed_blocks
 
 
-def check_blocks(blocks=None, and_logic=True):
+def check_blocks(blocks=None, and_logic=True, ignore_names=False):
     """
     Check specified blocks exists in configuration
     :param blocks: List of blocks to check
     :param and_logic: All blocks should be there to return True
+    :param ignore_names: Ignore name identifier in the parsed named blocks
     :return: Check status
     """
     result = and_logic
+    check_list = []
+    if ignore_names:
+        for b in __parsed_blocks:
+            check_list.append(b.split(':')[0])
+    else:
+        check_list = __parsed_blocks
     for b in _blocks_list(blocks):
         b = _canonicalize_blockid(b)
         if and_logic:
-            result = (b in __parsed_blocks) and result
+            result = (b in check_list) and result
         else:
-            result = (b in __parsed_blocks) or result
+            result = (b in check_list) or result
     return result
