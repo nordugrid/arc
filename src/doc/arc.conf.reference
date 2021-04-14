@@ -112,11 +112,14 @@
 ## they are missing (or commented out). Configuration parameters with "undefined" defaults takes 
 ## no values. Furthermore, configuration options within disabled blocks takes no values either.   
 ##
-## Configuration blocks related to authorization are ORDER-DEPENDENT! The authorization blocks 
-## [authgroup:name] MUST be defined before used in the blocks such as [mapping], [arex/ws/jobs] or 
-## [gridftp/jobs]. The same rule applies to defining legacy [userlist:name] blocks.
-## Furthermore, the order of the authorization blocks itself may have influence over 
-## authorization decisions!
+## Configuration blocks are ORDER-DEPENDENT. To be safe, please use the order as indicated in the list
+## of blocks in this reference. This is especially important for configuration blocks related to
+## authorization and mapping. The order dependency is also honoured within options inside a certain block. 
+##
+## This means for instance that configuration blocks related to authorization MUST appear before used in
+## the blocks such as [mapping], [arex/ws/jobs] or [gridftp/jobs]. Order dependency within a block is
+## for instance important when it comes to authorization decisions, as the first matching rule is used.
+## For more details see the specific block reference. 
 ##
 ## Below we give a detailed description of all the configuration options of the
 ## different configuration blocks. Every configuration option is described
