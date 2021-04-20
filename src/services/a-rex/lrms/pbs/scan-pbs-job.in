@@ -107,7 +107,7 @@ process_log_file () {
   # message may follow (or not) with full usage stats. By this time the
   # job has already been processed, so this info is ignored!
   #TODO: make log scanning more intelligent.
-  exited_killed_jobs=`egrep '^[^;]*;0010;[^;]*;Job;|^[^;]*;0008;[^;]*;Job;[^;]*;Exit_status=|^[^;]*;0008;[^;]*;Job;[^;]*;Job deleted' ${lname} | tail -n+$(( $lines_skip + 1 ))`
+  exited_killed_jobs=`egrep '^[^;]*;(0010|16);[^;]*;Job;|^[^;]*;(00)?08;[^;]*;Job;[^;]*;Exit_status=|^[^;]*;(00)?08;[^;]*;Job;[^;]*;Job deleted' ${lname} | tail -n+$(( $lines_skip + 1 ))`
 
   #TODO should we add processed lines before jobs have actually been processed? What if the last job only has half a record?
   new_lines=`echo -n "$exited_killed_jobs" | wc -l`
