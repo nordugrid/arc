@@ -3,17 +3,86 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.11.0     XX.XX.XXXX
+Release Notes for NorduGrid ARC  6.11.0     22.04.2021
 =======================================================
+
+We are happy to announce the release of ARC 6.11.0
 
 
 Highlights in this release
 --------------------------
 
+This is a release mainly to push out a handful of smaller improvements and bug fixes.
+
+There is however one longstanding "feature" which has been improved in this release.
+Namely the queue selection when there is no queue infomation from the client side.
+
+From now on, if no queue is requested/selected from the client side,
+only queues configured in arc.conf will be among the possible queues to use. 
+
+This will avoid the surprising feature that the queue selection in this case is up to the batch system,
+and not ARC for such clients. Note that this is not an issue when the ARC client is used. 
+
+The logic now implemented goes as follows:
+- if (queue in xrsl) submit to that queue w/o modification if authorized
+- elseif (no queue in xrsl and a default queue is defined in arc.conf)
+  substitute the default queue into xrsl and check authorisation
+- elseif (no queue in xrsl and no default queue in arc.conf and VO is authorised in one of the arc.conf queues*)
+  substitute into xrsl the first queue - where VO is authorised in arc.conf
+- else (reject) 
+
+* any VO is authorised in a queue that has no authorisation defined at all
+
+
+Note that this means that from now you must ensure that the authgroups you wish to allow
+submission from are authorized in the queue you intend the authgroup to submit to.
+An example of a arc.conf setup that previously could result in the LRMS selecting the queue, but
+where submission today will be rejected could be the following: 
+
+
+
+[authgroup:exp1]
+....
+
+[authgroup:exp2]
+....
+
+[mapping]
+...
+
+[queue:queue1]
+allowaccess= exp1
+
+[queue:queue2]
+allowacces= exp1
+
+
+Previously, using this arc.conf and when the client had no queue information exp2 are according arc.conf authorized.
+The queue selection would be left to the LRMS, so any other queue in the system, not defined in arc.conf could be
+selected, e.g. a queue3 defined by the LRMS, but not in arc.conf.
+
+From now on, only queue1 and queue2 will be possible queues for any authgroups. And in this case none of the queues
+are allowed for exp2.
+
+A possible rewrite of this arc.conf to allow exp2 to submit to queue2 could be:
+
+[queue:queue1]
+allowaccess= exp1
+
+[queue:queue2]
+<empty>
+
+
+
+
 
 The following Bugzilla tickets have been adressed or solved
 ------------------------------------------------------------
-
+* 4006  Select first matching queue from arc.conf when none is specified in job description
+* 4002  Error parsing IPv4 address in EPSV response
+* 3995  diag file not found
+* 3994  Jobs don't move scratch files (OpenPBS-20.0)
+* 3928  Wrong memory request for PBS back-end
 
 
 Documentation
