@@ -23,56 +23,12 @@ only queues configured in arc.conf will be among the possible queues to use.
 This will avoid the surprising feature that the queue selection in this case is up to the batch system,
 and not ARC for such clients. Note that this is not an issue when the ARC client is used. 
 
-The logic now implemented goes as follows:
-- if (queue in xrsl) submit to that queue w/o modification if authorized
-- elseif (no queue in xrsl and a default queue is defined in arc.conf)
-  substitute the default queue into xrsl and check authorisation
-- elseif (no queue in xrsl and no default queue in arc.conf and VO is authorised in one of the arc.conf queues*)
-  substitute into xrsl the first queue - where VO is authorised in arc.conf
-- else (reject) 
-
-* any VO is authorised in a queue that has no authorisation defined at all
-
-
 Note that this means that from now you must ensure that the authgroups you wish to allow
-submission from are authorized in the queue you intend the authgroup to submit to.
-An example of a arc.conf setup that previously could result in the LRMS selecting the queue, but
-where submission today will be rejected could be the following: 
+submission from, are authorized in the queue you intend the authgroup to submit to. Otherwise
+the submission will be rejected. 
 
-
-
-[authgroup:exp1]
-....
-
-[authgroup:exp2]
-....
-
-[mapping]
-...
-
-[queue:queue1]
-allowaccess= exp1
-
-[queue:queue2]
-allowacces= exp1
-
-
-Previously, using this arc.conf and when the client had no queue information exp2 are according arc.conf authorized.
-The queue selection would be left to the LRMS, so any other queue in the system, not defined in arc.conf could be
-selected, e.g. a queue3 defined by the LRMS, but not in arc.conf.
-
-From now on, only queue1 and queue2 will be possible queues for any authgroups. And in this case none of the queues
-are allowed for exp2.
-
-A possible rewrite of this arc.conf to allow exp2 to submit to queue2 could be:
-
-[queue:queue1]
-allowaccess= exp1
-
-[queue:queue2]
-<empty>
-
-
+For details, please see the documentation on the subject:
+http://nordugrid.pages.coderefinery.org/doc/admins/details/auth_and_mapping.html#queue-selection-rules-and-queue-configuration
 
 
 
