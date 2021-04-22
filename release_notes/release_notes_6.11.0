@@ -21,7 +21,7 @@ From now on, if no queue is requested/selected from the client side,
 only queues configured in arc.conf will be among the possible queues to use. 
 
 This will avoid the surprising feature that the queue selection in this case is up to the batch system,
-and not ARC for such clients. Note that this is not an issue when the ARC client is used. 
+and not ARC for such clients. This is not an issue when the ARC client is used. 
 
 Note that this means that from now you must ensure that the authgroups you wish to allow
 submission from, are authorized in the queue you intend the authgroup to submit to. Otherwise
