@@ -50,6 +50,7 @@ namespace Arc {
     valid_url_options.insert("rucioaccount");
     valid_url_options.insert("failureallowed");
     valid_url_options.insert("relativeuri");
+    valid_url_options.insert("accesslatency");
   }
 
   DataPoint::~DataPoint() {}

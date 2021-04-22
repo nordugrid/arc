@@ -406,32 +406,41 @@ namespace ArcDMCRucio {
       cJSON_Delete(root);
       return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
     }
-    cJSON *rses = cJSON_GetObjectItem(root, "rses");
-    if (!rses) {
-      logger.msg(ERROR, "No RSE information returned in Rucio response: %s", content);
+    cJSON *pfns = cJSON_GetObjectItem(root, "pfns");
+    if (!pfns) {
+      logger.msg(ERROR, "No pfns returned in Rucio response: %s", content);
       cJSON_Delete(root);
       return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
     }
-    cJSON *rse = rses->child;
-    while (rse) {
-      cJSON *replicas = rse->child;
-      while(replicas) {
-        if(replicas->type == cJSON_String || replicas->valuestring) {
-          URL loc(std::string(replicas->valuestring));
-          if(loc) {
-            // Add URL options to replicas
-            for (std::map<std::string, std::string>::const_iterator opt = url.CommonLocOptions().begin();
-                 opt != url.CommonLocOptions().end(); opt++)
-              loc.AddOption(opt->first, opt->second, false);
-            for (std::map<std::string, std::string>::const_iterator opt = url.Options().begin();
-                 opt != url.Options().end(); opt++)
-              loc.AddOption(opt->first, opt->second, false);
-            AddLocation(loc, loc.ConnectionURL());
+    cJSON *pfn = pfns->child;
+    while (pfn) {
+      if (pfn->type == cJSON_String || pfn->string) {
+        URL loc(std::string(pfn->string));
+        // Check if there is a filter on access latency
+        cJSON *replicatype = cJSON_GetObjectItem(pfn, "type");
+        if (!replicatype || replicatype->type != cJSON_String || !replicatype->valuestring) {
+          logger.msg(WARNING, "Cannot determine replica type for %s", loc.str());
+        } else {
+          logger.msg(DEBUG, "%s: replica type %s", loc.str(), std::string(replicatype->valuestring));
+          if (url.Option("accesslatency", "") != "" &&
+              Arc::lower(url.Option("accesslatency")) != Arc::lower(std::string(replicatype->valuestring))) {
+            logger.msg(INFO, "Skipping %s replica %s", std::string(replicatype->valuestring), loc.str());
+            pfn = pfn->next;
+            continue;
           }
         }
-        replicas = replicas->next;
+        if (loc) {
+          // Add URL options to replicas
+          for (std::map<std::string, std::string>::const_iterator opt = url.CommonLocOptions().begin();
+               opt != url.CommonLocOptions().end(); opt++)
+            loc.AddOption(opt->first, opt->second, false);
+          for (std::map<std::string, std::string>::const_iterator opt = url.Options().begin();
+               opt != url.Options().end(); opt++)
+            loc.AddOption(opt->first, opt->second, false);
+          AddLocation(loc, loc.ConnectionURL());
+        }
       }
-      rse = rse->next;
+      pfn = pfn->next;
     }
     cJSON *fsize = cJSON_GetObjectItem(root, "bytes");
     if (!fsize || fsize->type == cJSON_NULL) {
