@@ -86,7 +86,7 @@ namespace Arc {
      public:
       JobStateProcessor(std::list<Job*>& jobs): jobs(jobs) {}
 
-      virtual void operator()(std::string const& id, XMLNode node) {
+      virtual void operator()(std::string const& id, XMLNode node, URL const& query_url) {
         std::string job_id = node["id"];
         std::string job_state = node["state"];
         if(!job_state.empty() && !job_id.empty()) {
@@ -97,11 +97,11 @@ namespace Arc {
             if(job_id == id) {
               (*itJob)->State = JobStateARCREST(job_state);
               // (*itJob)->RestartState = ;
-              // (*itJob)->StageInDir = (std::string)aid["esainfo:StageInDirectory"];
-              // (*itJob)->StageOutDir = (std::string)aid["esainfo:StageInDirectory"];
-              // (*itJob)->SessionDir = (std::string)aid["esainfo:StageInDirectory"];
+              std::string baseUrl = query_url.ConnectionURL()+query_url.Path()+"/"+job_id;
+              (*itJob)->StageInDir = baseUrl;
+              (*itJob)->StageOutDir = baseUrl;
+              (*itJob)->SessionDir = baseUrl;
               // (*itJob)->DelegationID.push_back ;
-              // (*itJob)->JobID = ;
               break;
             }
           }
@@ -112,14 +112,42 @@ namespace Arc {
       std::list<Job*>& jobs;
     };
 
-    JobStateProcessor stateProcessor(jobs);
+    class JobInfoProcessor: public InfoNodeProcessor {
+     public:
+      JobInfoProcessor(std::list<Job*>& jobs): jobs(jobs) {}
+
+      virtual void operator()(std::string const& id, XMLNode node, URL const& query_url) {
+        std::string job_id = node["id"];
+        XMLNode job_info = node["info_document"];
+        if(job_info && !job_id.empty()) {
+          for(std::list<Job*>::iterator itJob = jobs.begin(); itJob != jobs.end(); ++itJob) {
+            std::string id = (*itJob)->JobID;
+            std::string::size_type pos = id.rfind('/');
+            if(pos != std::string::npos) id.erase(0,pos+1);
+            if(job_id == id) {
+              (*itJob)->SetFromXML(job_info["ComputingActivity"]);              
+              std::string baseUrl = query_url.ConnectionURL()+query_url.Path()+"/"+job_id;
+              (*itJob)->StageInDir = baseUrl;
+              (*itJob)->StageOutDir = baseUrl;
+              (*itJob)->SessionDir = baseUrl;
+              break;
+            }
+          }
+        }
+      }
+
+     private:
+      std::list<Job*>& jobs;
+    };
+
+    JobInfoProcessor infoProcessor(jobs);
     Arc::URL currentServiceUrl;
     std::list<std::string> IDs;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       if(!currentServiceUrl || (currentServiceUrl != GetAddressOfResource(**it))) {
         if(!IDs.empty()) {
           std::list<std::string> fakeIDs = IDs;
-          ProcessJobs(usercfg, currentServiceUrl, "status", 200, IDs, IDsProcessed, IDsNotProcessed, stateProcessor);
+          ProcessJobs(usercfg, currentServiceUrl, "info", 200, IDs, IDsProcessed, IDsNotProcessed, infoProcessor);
         }
         currentServiceUrl = GetAddressOfResource(**it);
       }
@@ -128,7 +156,7 @@ namespace Arc {
     }
     if(!IDs.empty()) {
       std::list<std::string> fakeIDs = IDs;
-      ProcessJobs(usercfg, currentServiceUrl, "status", 200, IDs, IDsProcessed, IDsNotProcessed, stateProcessor);
+      ProcessJobs(usercfg, currentServiceUrl, "info", 200, IDs, IDsProcessed, IDsNotProcessed, infoProcessor);
     }
   }
 
@@ -332,7 +360,7 @@ namespace Arc {
           } else {
             IDsProcessed.push_back(*it);
           }
-          infoNodeProcessor(*it, job_item);
+          infoNodeProcessor(*it, job_item, statusUrl);
           IDs.erase(it);
         }
       }
