@@ -78,11 +78,11 @@ namespace DataStaging {
     logger->addDestinations(get_log_destinations());
 
     // check that endpoints can be handled
-    if (!source_endpoint) {
+    if (!source_endpoint || !(*source_endpoint)) {
       logger->msg(Arc::ERROR, "Could not handle endpoint %s", source);
       return;
     }
-    if (!destination_endpoint) {
+    if (!destination_endpoint || !(*destination_endpoint)) {
       logger->msg(Arc::ERROR, "Could not handle endpoint %s", destination);
       return;
     }
