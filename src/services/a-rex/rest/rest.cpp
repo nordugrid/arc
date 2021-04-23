@@ -1030,7 +1030,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobInfo(inmsg,*config,logger_,*id,jobXml);
       }
-      return HTTPResponse(inmsg, outmsg, listXml);
+      return HTTPPOSTResponse(inmsg, outmsg, listXml);
     } else if(action == "status") {
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
