@@ -130,6 +130,13 @@ namespace Arc {
               (*itJob)->StageInDir = baseUrl;
               (*itJob)->StageOutDir = baseUrl;
               (*itJob)->SessionDir = baseUrl;
+              for(XMLNode state = job_info["ComputingActivity"]["State"]; (bool)state; ++state) {
+                std::string stateStr = state;
+                if(strncmp(stateStr.c_str(), "arcrest:", 8) == 0) {
+                  (*itJob)->State = JobStateARCREST(stateStr.substr(8));
+                  break;
+                }
+              }
               break;
             }
           }
