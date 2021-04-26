@@ -3,17 +3,42 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.X.X     XX.XX.XXXX
+Release Notes for NorduGrid ARC  6.11.0     22.04.2021
 =======================================================
+
+We are happy to announce the release of ARC 6.11.0
 
 
 Highlights in this release
 --------------------------
 
+This is a release mainly to push out a handful of smaller improvements and bug fixes.
+
+There is however one longstanding "feature" which has been improved in this release.
+Namely the queue selection when there is no queue infomation from the client side.
+
+From now on, if no queue is requested/selected from the client side,
+only queues configured in arc.conf will be among the possible queues to use. 
+
+This will avoid the surprising feature that the queue selection in this case is up to the batch system,
+and not ARC for such clients. This is not an issue when the ARC client is used. 
+
+Note that this means that from now you must ensure that the authgroups you wish to allow
+submission from, are authorized in the queue you intend the authgroup to submit to. Otherwise
+the submission will be rejected. 
+
+For details, please see the documentation on the subject:
+http://nordugrid.pages.coderefinery.org/doc/admins/details/auth_and_mapping.html#queue-selection-rules-and-queue-configuration
+
+
 
 The following Bugzilla tickets have been adressed or solved
 ------------------------------------------------------------
-
+* 4006  Select first matching queue from arc.conf when none is specified in job description
+* 4002  Error parsing IPv4 address in EPSV response
+* 3995  diag file not found
+* 3994  Jobs don't move scratch files (OpenPBS-20.0)
+* 3928  Wrong memory request for PBS back-end
 
 
 Documentation
@@ -43,22 +68,6 @@ We provide binary builds for all supported versions of
 In addition we build nightly packages for older platforms. 
 
 
-Contributing
-=============
-You can submit pull requests to our public repo at https://github.com/nordugrid/arc which mirrors
-our Gitlab repo https://github.com/nordugrid/arc.
-
-The pull requests will be automatically copied over to our Gitlab repo where they will be
-merged into the source-code if accepted.
-
-
-Getting in touch
-==================
-If you need help with the configuration file or have any other questions related to ARC 6, please contact us via
-* Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
-* Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
-
-
 Future support of ARC 5-series
 ===============================
 As of June 2020 no more security updates are provided to ARC 5.
@@ -72,6 +81,11 @@ ARC5 is available in EPEL7 and will stay there. EPEL8 will only contain ARC 6.
 To install ARC 6 from EPEL7 the package-names are of type: nordugrid-arc6-* 
 
 
+Getting in touch
+==================
+If you need help with the configuration file or have any other questions related to ARC 6, please contact us via
+* Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
+* Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
 
 
 Known issues
