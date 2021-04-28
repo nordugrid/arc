@@ -6,9 +6,7 @@ from .AccountingDB import AccountingDB
 from .AccountingPublishing import RecordsPublisher
 
 import sys
-import ldap
 import json
-from functools import reduce
 
 
 def complete_wlcgvo(prefix, parsed_args, **kwargs):
@@ -63,37 +61,6 @@ class AccountingControl(ComponentControl):
             return
         adb_file = self.arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting/accounting.db'
         self.adb = AccountingDB(adb_file)
-
-    def get_apel_brokers(self, args):
-        """Fetch the list of APEL brokers from the Top-BDII"""
-        try:
-            ldap_conn = ldap.initialize(args.top_bdii)
-            ldap_conn.protocol_version = ldap.VERSION3
-            stype = 'msg.broker.stomp'
-            if args.ssl:
-                stype += '-ssl'
-            # query GLUE2 LDAP
-            self.logger.debug('Running LDAP query over %s to find %s services', args.top_bdii, stype)
-            services_list = ldap_conn.search_st('o=glue', ldap.SCOPE_SUBTREE, attrlist=['GLUE2ServiceID'], timeout=30,
-                                                filterstr='(&(objectClass=Glue2Service)(Glue2ServiceType={0}))'.format(
-                                                    stype))
-            s_ids = []
-            for (_, s) in services_list:
-                if 'GLUE2ServiceID' in s:
-                    s_ids += s['GLUE2ServiceID']
-
-            self.logger.debug('Running LDAP query over %s to find service endpoint URLs', args.top_bdii)
-            s_filter = reduce(lambda x, y: x + '(GLUE2EndpointServiceForeignKey={0})'.format(y.decode()), s_ids, '')
-            endpoints = ldap_conn.search_st('o=glue', ldap.SCOPE_SUBTREE, attrlist=['GLUE2EndpointURL'], timeout=30,
-                                            filterstr='(&(objectClass=Glue2Endpoint)(|{0}))'.format(s_filter))
-            for (_, e) in endpoints:
-                if 'GLUE2EndpointURL' in e:
-                    for url in e['GLUE2EndpointURL']:
-                        print(url.decode().replace('stomp+ssl://', 'https://').replace('stomp://', 'http://'))
-            ldap_conn.unbind()
-        except ldap.LDAPError as err:
-            self.logger.error('Failed to query Top-BDII %s. Error: %s.', args.top_bdii, err.message['desc'])
-            sys.exit(1)
 
     def __add_adb_filters(self, args):
         """apply optional query filters in the right order"""
@@ -345,7 +312,7 @@ class AccountingControl(ComponentControl):
         if args.apel_topic is not None:
             targetconf['topic'] = args.apel_topic
         elif required:
-            targetconf['topic'] = '/queue/global.accounting.cpu.central'
+            targetconf['topic'] = 'gLite-APEL'
         # message type to send is mandatory and default exists
         if args.apel_messages is not None:
             targetconf['apel_messages'] = args.apel_messages
@@ -361,7 +328,7 @@ class AccountingControl(ComponentControl):
         if args.urbatchsize is not None:
             targetconf['urbatchsize'] = args.urbatchsize
         elif required:
-            targetconf['urbatchsize'] = 1000
+            targetconf['urbatchsize'] = 500
 
     def __add_sgas_options(self, args, targetconf, required=False):
         # localid_prefix is optional
@@ -419,8 +386,6 @@ class AccountingControl(ComponentControl):
             self.stats(args)
         elif args.action == 'job':
             self.jobcontrol(args)
-        elif args.action == 'apel-brokers':
-            self.get_apel_brokers(args)
         elif args.action == 'republish':
             self.republish(args)
         else:
@@ -482,13 +447,6 @@ class AccountingControl(ComponentControl):
                                                            metavar='ACTION', help='DESCRIPTION')
         accounting_actions.required = True
 
-        # apel-brockers
-        accounting_brokers = accounting_actions.add_parser('apel-brokers',
-                                                           help='Fetch available APEL brokers from GLUE2 Top-BDII')
-        accounting_brokers.add_argument('-t', '--top-bdii', default='ldap://lcg-bdii.cern.ch:2170',
-                                        help='Top-BDII LDAP URI (default is %(default)s')
-        accounting_brokers.add_argument('-s', '--ssl', help='Query for SSL brokers', action='store_true')
-
         # stats from accounting database
         accounting_stats = accounting_actions.add_parser('stats', help='Show A-REX AAR statistics')
         accounting_stats.add_argument('-b', '--end-from', type=valid_datetime_type,
@@ -532,7 +490,7 @@ class AccountingControl(ComponentControl):
         accounting_target.add_argument('-t', '--target-name',
                                        help='Specify configured accounting target name from arc.conf (e.g. neic_sgas).')
         accounting_target.add_argument('-a', '--apel-url',
-                                       help='Specify APEL server URL (e.g. https://mq.cro-ngi.hr:6162)')
+                                       help='Specify APEL server URL (e.g. https://msg.argo.grnet.gr)')
         accounting_target.add_argument('-s', '--sgas-url',
                                        help='Specify SGAS server URL (e.g. https://grid.uio.no:8001/logger)')
 
@@ -544,12 +502,11 @@ class AccountingControl(ComponentControl):
         apel_options = accounting_republish.add_argument_group(title='APEL',
                                   description='Options to be used when target is specified using --apel-url')
         apel_options.add_argument('--apel-topic', required=False,
-                                  help='Define APEL topic (default is /queue/global.accounting.cpu.central)',
-                                  choices=['/queue/global.accounting.cpu.central',
-                                           '/queue/global.accounting.test.cpu.central'])
+                                  help='Define APEL topic (default is gLite-APEL)',
+                                  choices=['gLite-APEL', '/queue/global.accounting.test.cpu.central'])
         apel_options.add_argument('--apel-messages', required=False,
                                   help='Define APEL messages (default is summaries)',
-                                  choices=['urs', 'summaries', 'both'])
+                                  choices=['urs', 'summaries'])
         apel_options.add_argument('--gocdb-name', required=False, help='(Re)define GOCDB site name')
 
         sgas_options = accounting_republish.add_argument_group(title='SGAS',

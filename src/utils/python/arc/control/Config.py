@@ -39,7 +39,6 @@ class ConfigControl(ComponentControl):
                 {'description': 'Scratch directory on Worker Node', 'params': ('arex', 'scratchdir')},
                 {'description': 'Cache directories', 'params': ('arex/cache', 'cachedir')},
                 {'description': 'Additional user-defined RTE directories', 'params': ('arex', 'runtimedir')},
-                {'description': 'Accounting archive directory', 'params': ('arex/jura/archiving', 'archivedir')},
                 {'description': 'Gridftpd file storage directory', 'params': ('gridftpd/filedir', 'mount')},
                 {'description': 'DataDelivery Service transfers directories',
                  'params': ('datadelivery-service', 'transfer_dir')},
