@@ -336,7 +336,7 @@ Depends:
  nordugrid-arc-arcctl (= ${source:Version}),
  ${pydeps:Depends}
 XB-Python-Version: ${python:Versions}
-Description: ARC Resource-coupled EXecution service - Python LRMS backends
+Description: ARC Resource-coupled EXecution service - Community RTEs framework
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
