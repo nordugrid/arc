@@ -13,16 +13,13 @@
 * [ ] Check that the supported platforms are up to date here: https://download.nordugrid.org/repos-6.html and here: http://www.nordugrid.org/documents/arc6/common/repos/repository.html (@waananen)
 * [ ] Add version to NorduGrid Bugzilla products (@waananen)
 * [ ] Publish release notes on web (@oxana)
+* [ ] Packages are ready to be pushed (@waananen)
 * [ ] Announce release on nordugrid-discuss, wlcg-arc-ce-discuss and urt-discuss@mailman.egi.eu email lists (@maikenp)
 * [ ] Update News about release: http://www.nordugrid.org/ (@oxana)
 * [ ] Update link to latest release: http://www.nordugrid.org/arc/ (@oxana)
 * [ ] Push packages to the repo (@waananen)
 
 
-Important checks for developer
-* Will your changes impact performance? Action: test and fix.
-* Will your changes be backwards incompatible? Action: only merge into next branch - or bring up issue in a meeting/chat with release manager.
-* ...
 
 Important bugs/changes to clear before code-freeze:
 * [ ] ...
