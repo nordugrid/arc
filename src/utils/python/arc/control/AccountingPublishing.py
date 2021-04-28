@@ -2,15 +2,16 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from .AccountingDB import AccountingDB, AAR
-from arc.paths import ARC_VERSION
+from arc.paths import ARC_VERSION, ARC_RUN_DIR
 
+import os
 import sys
 import logging
 import re
 import datetime
 import calendar
 
-# SGASSender dependencies
+# SGASSender and AMSDirectSender dependencies:
 import socket
 import ssl
 try:
@@ -18,11 +19,10 @@ try:
 except ImportError:
     import http.client as httplib
 
-# APELSSMSender dependencies:
-try:
-    from dirq.QueueSimple import QueueSimple
-except ImportError:
-    QueueSimple = None
+# AMSDirectSender dependencies
+import json
+import base64
+from subprocess import Popen, PIPE
 
 try:
     import cStringIO as StringIO
@@ -31,26 +31,6 @@ except ImportError:
         import io as StringIO
     except ImportError:
         import StringIO
-
-apel_libs = None
-try:
-    # third-party SSM libraries
-    from ssm import __version__ as ssm_version
-    from ssm.ssm2 import Ssm2, Ssm2Exception
-    from ssm.crypto import CryptoException
-    apel_libs = 'apel'
-except ImportError:
-    # re-distributed with NorduGrid ARC
-    try:
-        from arc.ssm import __version__ as ssm_version
-        from arc.ssm.ssm2 import Ssm2, Ssm2Exception
-        from arc.ssm.crypto import CryptoException
-        apel_libs = 'arc'
-    except ImportError:
-        ssm_version = (0, 0, 0)
-        Ssm2 = None
-        Ssm2Exception = None
-        CryptoException = None
 
 # module regexes init
 __voms_fqan_re = re.compile(r'(?P<group>/[-\w.]+(?:/[-\w.]+)*)(?P<role>/Role=[-\w.]+)?(?P<cap>/Capability=[-\w.]+)?')
@@ -142,7 +122,7 @@ class RecordsPublisher(object):
         self.adb = None
         # arc config
         if arcconfig is None:
-            self.logger.error('Failed to parse arc.conf. Accounting publihsing is not possible.')
+            self.logger.error('Failed to parse arc.conf. Accounting publishing is not possible.')
             sys.exit(1)
         self.arcconfig = arcconfig
         # get configured accounting targets and options
@@ -265,19 +245,15 @@ class RecordsPublisher(object):
         urldict = get_url_components(target_conf['targeturl'])
         target_conf['targethost'] = urldict['host']
         target_conf['targetport'] = urldict['port']
-        target_conf['targetssl'] = True if urldict['protocol'] == 'https' else False
-        target_conf['dirq_dir'] = self.accounting_dir + '/ssm/' + urldict['host']
         # add certificate/keys information to target config
         for k in ['x509_host_cert', 'x509_host_key', 'x509_cert_dir']:
             target_conf[k] = self.arcconfig.get_value(k, ['arex/jura'])
-        # init SSM sender
-        apelssm = APELSSMSender(target_conf)
-        if not apelssm.init_dirq():
-            self.logger.error('Failed to initialize APEL SSM message queue. Sending records to APEL will be disabled. '
-                              'Please check dirq and stomp python modules are installed on your system.')
-            return None
+        # define openssl randfile (for message signing callout)
+        os.environ['RANDFILE'] = ARC_RUN_DIR + '/openssl.rnd'
+        # init APEL AMS sender
+        apel_sender = APELAMSDirectSender(target_conf)
         # database query filters
-        self.logger.debug('Assigning filters to APEL usage records database query')
+        self.logger.debug('Assigning filters to APEL usage records database query.')
         self.__init_adb_filters(endfrom, endtill)
         # optional WLCG VO filtering
         self.__add_vo_filter(target_conf)
@@ -290,7 +266,7 @@ class RecordsPublisher(object):
             if 'apel_messages' not in target_conf:
                 self.logger.error('Cannot find APEL message type in the target configuration. Summaries will be sent.')
                 target_conf['apel_messages'] = 'summaries'
-            if target_conf['apel_messages'] == 'urs' or target_conf['apel_messages'] == 'both':
+            if target_conf['apel_messages'] == 'urs':
                 # get individual AARs from database
                 self.logger.debug('Querying AARS from accounting database')
                 aars = self.adb.get_aars(resolve_ids=True)
@@ -305,8 +281,8 @@ class RecordsPublisher(object):
                     self.logger.error('Failed to build EMI CAR v1.2 records for APEL publishing.')
                     return None
                 # enqueue CARs
-                apelssm.enqueue_cars(cars)
-            if target_conf['apel_messages'] == 'summaries' or target_conf['apel_messages'] == 'both':
+                apel_sender.publish_cars(cars)
+            if target_conf['apel_messages'] == 'summaries':
                 # define summaries time interval
                 summary_endfrom = endfrom
                 if regular:
@@ -331,7 +307,7 @@ class RecordsPublisher(object):
                     self.logger.error('Failed to build APEL summaries for publishing')
                     return None
                 # enqueue summaries
-                apelssm.enqueue_summaries(apelsummaries)
+                apel_sender.publish_summaries(apelsummaries)
         # Sync messages are always sent and contains job counts for all periods
         self.logger.debug('Assigning filters to APEL sync database query')
         self.__init_adb_filters()
@@ -340,13 +316,13 @@ class RecordsPublisher(object):
         self.logger.debug('Querying APEL Sync data from accounting database')
         apelsyncs = [APELSyncRecord(rec, target_conf['gocdb_name']) for rec in self.adb.get_apel_sync()]
         # enqueue sync messages
-        apelssm.enqueue_sync(apelsyncs)
+        apel_sender.publish_sync(apelsyncs)
         # publish
-        if not apelssm.send():
-            self.logger.error('Failed to publish messages to APEL broker')
+        if not apel_sender.send():
+            self.logger.error('Failed to publish messages to APEL target')
             return None
         # no failures on the way: return latest endtime for records published
-        self.logger.debug('Accounting records have been published to APEL broker %s', target_conf['targethost'])
+        self.logger.debug('Accounting records have been published to APEL target %s', target_conf['targethost'])
         return latest_endtime
 
     def find_configured_target(self, targetname):
@@ -411,6 +387,42 @@ class RecordsPublisher(object):
                                  datetime.datetime.utcfromtimestamp(latest), target)
 
 
+class HTTPSClientAuthConnection(httplib.HTTPSConnection):
+    """ Class to make a HTTPS connection, with support for full client-based SSL Authentication"""
+
+    def __init__(self, host, port, key_file, cert_file, cacerts_path=None, timeout=None):
+        httplib.HTTPSConnection.__init__(self, host, port, key_file=key_file, cert_file=cert_file)
+        self.key_file = key_file
+        self.cert_file = cert_file
+        self.cacerts_path = cacerts_path
+        self.timeout = timeout
+
+    def connect(self):
+        """ Connect to a host on a given (SSL) port.
+            If ca_certs_path is pointing somewhere, use it to check Server Certificate.
+            This is needed to pass ssl.CERT_REQUIRED as parameter to SSLContext for Python 2.6+
+            which forces SSL to check server certificate against CA certificates in the defined location
+        """
+        sock = socket.create_connection((self.host, self.port), self.timeout)
+        if self._tunnel_host:
+            self.sock = sock
+            self._tunnel()
+        if self.cacerts_path and hasattr(ssl, 'SSLContext'):
+            protocol = ssl.PROTOCOL_SSLv23
+            if hasattr(ssl, 'PROTOCOL_TLS'):
+                protocol = ssl.PROTOCOL_TLS
+            # create SSL context with CA certificates verification
+            ssl_ctx = ssl.SSLContext(protocol)
+            ssl_ctx.load_verify_locations(capath=self.cacerts_path)
+            ssl_ctx.verify_mode = ssl.CERT_REQUIRED
+            ssl_ctx.load_cert_chain(self.cert_file, self.key_file)
+            ssl_ctx.check_hostname = True
+            self.sock = ssl_ctx.wrap_socket(sock, server_hostname=self.host)
+        else:
+            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file,
+                                        cert_reqs=ssl.CERT_NONE)
+
+
 class SGASSender(object):
     """Send messages to SGAS server"""
     def __init__(self, targetconf):
@@ -419,44 +431,9 @@ class SGASSender(object):
         self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 50
         self.logger.debug('Initializing SGAS records sender for %s', self.conf['targethost'])
 
-    class HTTPSClientAuthConnection(httplib.HTTPSConnection):
-        """ Class to make a HTTPS connection, with support for full client-based SSL Authentication"""
-
-        def __init__(self, host, port, key_file, cert_file, cacerts_path=None, timeout=None):
-            httplib.HTTPSConnection.__init__(self, host, port, key_file=key_file, cert_file=cert_file)
-            self.key_file = key_file
-            self.cert_file = cert_file
-            self.cacerts_path = cacerts_path
-            self.timeout = timeout
-
-        def connect(self):
-            """ Connect to a host on a given (SSL) port.
-                If ca_certs_path is pointing somewhere, use it to check Server Certificate.
-                This is needed to pass ssl.CERT_REQUIRED as parameter to SSLContext for Python 2.6+
-                which forces SSL to check server certificate against CA certificates in the defined location
-            """
-            sock = socket.create_connection((self.host, self.port), self.timeout)
-            if self._tunnel_host:
-                self.sock = sock
-                self._tunnel()
-            if self.cacerts_path and hasattr(ssl, 'SSLContext'):
-                protocol = ssl.PROTOCOL_SSLv23
-                if hasattr(ssl, 'PROTOCOL_TLS'):
-                    protocol = ssl.PROTOCOL_TLS
-                # create SSL context with CA certificates verification
-                ssl_ctx = ssl.SSLContext(protocol)
-                ssl_ctx.load_verify_locations(capath=self.cacerts_path)
-                ssl_ctx.verify_mode = ssl.CERT_REQUIRED
-                ssl_ctx.load_cert_chain(self.cert_file, self.key_file)
-                ssl_ctx.check_hostname = True
-                self.sock = ssl_ctx.wrap_socket(sock, server_hostname=self.host)
-            else:
-                self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file,
-                                            cert_reqs=ssl.CERT_NONE)
-
     def __post_xml(self, xmldata):
         self.logger.debug('Initializing HTTPS connection to %s:%s', self.conf['targethost'], self.conf['targetport'])
-        conn = self.HTTPSClientAuthConnection(
+        conn = HTTPSClientAuthConnection(
             host=self.conf['targethost'],
             port=self.conf['targetport'],
             key_file=self.conf['x509_host_key'],
@@ -502,114 +479,163 @@ class SGASSender(object):
         return True
 
 
-class APELSSMSender(object):
-    """Send messages to APEL broker using SSM libraries"""
+class APELAMSDirectSender(object):
+    """Send messages to APEL via AMS REST interface direct usage"""
     def __init__(self, targetconf):
-        self.logger = logging.getLogger('ARC.Accounting.APELSSM')
+        self.logger = logging.getLogger('ARC.Accounting.AMS')
         self.conf = targetconf
-        self._dirq = None
-        self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 1000
-        # adjust SSM and stomp logging
-        ssmlogroot = 'arc.ssm' if apel_libs == 'arc' else 'ssm'
-        self.__configure_third_party_logging(ssmlogroot)
-        self.__configure_third_party_logging('stomp.py')
-        self.logger.debug('Initializing APEL SSM records sender for %s', self.conf['targethost'])
+        self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 500
+        # some hardcode matching APEL AMS publishing via SSM
+        # introducing arc.conf parameters is overkill at this point
+        self.ams_authport = 8443
+        self.ams_project = 'accounting'
+        # auth token
+        self.ams_token = None
+        # publish error flag
+        self.publish_error = False
+        self.logger.debug('Initializing APEL publishing via AMS REST for %s', self.conf['targethost'])
 
-    def __del__(self):
-        # remove unused intermediate directories
-        if self._dirq:
-            self._dirq.purge(0, 0)
+    def _obtain_ams_token(self):
+        if self.ams_token is not None:
+            return True
 
-    def __configure_third_party_logging(self, logroot):
-        tplogger = logging.getLogger(logroot)
-        tplogger.setLevel(self.logger.getEffectiveLevel())
-        log_handler_stderr = logging.StreamHandler()
-        log_handler_stderr.setFormatter(
-            logging.Formatter('[%(asctime)s] [%(name)s] [%(levelname)s] [%(process)d] [%(message)s]'))
-        tplogger.addHandler(log_handler_stderr)
+        self.logger.info('Obtaining AMS authentication token from %s:%s',
+                         self.conf['targethost'], self.ams_authport)
 
-    def init_dirq(self):
-        if apel_libs is None:
+        auth_path = '/v1/service-types/ams/hosts/{0}:authx509'.format(self.conf['targethost'])
+        headers = {'Content-Type': 'application/json; charset=UTF-8'}
+
+        conn = HTTPSClientAuthConnection(
+            host=self.conf['targethost'],
+            port=self.ams_authport,
+            key_file=self.conf['x509_host_key'],
+            cert_file=self.conf['x509_host_cert'],
+            cacerts_path=self.conf['x509_cert_dir']
+        )
+
+        data = None
+        try:
+            # conn.set_debuglevel(1)
+            conn.request('GET', auth_path, None, headers)
+            resp = conn.getresponse()
+            if resp.status != 200:
+                self.logger.error('Failed to obtain AMS authentication token. Error code %s returned: %s',
+                                  str(resp.status), resp.reason)
+                return False
+            data = json.loads(resp.read())
+        except Exception as e:
+            self.logger.error('Error connecting to AMS server %s. Error: %s', self.conf['targethost'], str(e))
+        conn.close()
+
+        if data and 'token' in data:
+            self.ams_token = str(data['token'])
+            self.logger.debug('AMS auth token received: %s', self.ams_token)
+            return True
+
+        return False
+
+    def _msg_sign(self, msg):
+        # sign message with openssl smime
+        try:
+            pipe = Popen(['openssl', 'smime', '-sign',
+                          '-inkey',  self.conf['x509_host_key'],
+                          '-signer', self.conf['x509_host_cert'], '-text'],
+                         stdin=PIPE, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+
+            signed_msg, error = pipe.communicate(msg)
+            if error:
+                self.logger.error('Error occurred during the message signing: %s', error)
+            return signed_msg
+
+        except OSError as e:
+            self.logger.error('Failed to sign message: %s. Check cert and key permissions.', str(e))
+
+    def _msg_send(self, data):
+        if not self._obtain_ams_token():
+            self.logger.error('Cannot publish data without AMS auth token.')
             return False
-        if QueueSimple is None:
-            return False
-        dirq_path = self.conf['dirq_dir']
-        self._dirq = QueueSimple(dirq_path)
-        return True
 
-    def enqueue_cars(self, carlist):
+        publish_path = '/v1/projects/{0}/topics/{1}:publish?key={2}'.format(
+            self.ams_project, self.conf['topic'], self.ams_token
+        )
+        utcnow = datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        empaid = "{0}/{1}".format(utcnow[:8], utcnow)
+        msg = {
+            'attributes': {'empaid': empaid},
+            'data': base64.encodestring(self._msg_sign(data)).decode('utf-8')
+        }
+
+        conn = HTTPSClientAuthConnection(
+            host=self.conf['targethost'],
+            port=self.conf['targetport'],
+            key_file=self.conf['x509_host_key'],
+            cert_file=self.conf['x509_host_cert'],
+            cacerts_path=self.conf['x509_cert_dir']
+        )
+        sent = False
+        try:
+            # conn.set_debuglevel(1)
+            headers = {'Content-Type': 'application/json; charset=UTF-8'}
+            self.logger.debug('Publishing data to APEL via AMS REST')
+            conn.request('POST', publish_path, json.dumps({"messages": [msg]}), headers)
+            resp = conn.getresponse()
+            if resp.status != 200:
+                self.logger.error('Failed to POST records to AMS server %s. Error code %s returned: %s',
+                                  self.conf['targethost'], str(resp.status), resp.reason)
+            else:
+                self.logger.info('Records have been sent to AMS server %s (%s)', self.conf['targethost'], empaid)
+                sent = True
+        except Exception as e:
+            self.logger.error('Error connecting to AMS server %s. Error: %s', self.conf['targethost'], str(e))
+
+        conn.close()
+        return sent
+
+    def publish_cars(self, carlist):
         for x in range(0, len(carlist), self.batchsize):
-            self.logger.debug('Enqueuing EMI CARs batch of max %s records to be sent', self.batchsize)
+            self.logger.debug('Preparing EMI CARs batch of max %s records to be sent', self.batchsize)
             buf = StringIO.StringIO()
             buf.write(ComputeAccountingRecord.batch_header())
             buf.write(ComputeAccountingRecord.join_str().join(map(lambda ur: ur.get_xml(),
                                                                   carlist[x:x + self.batchsize])))
             buf.write(ComputeAccountingRecord.batch_footer())
-            self._dirq.add(buf.getvalue())
+            if not self._msg_send(buf.getvalue()):
+                self.publish_error = True
             buf.close()
             del buf
 
-    def enqueue_summaries(self, summaries):
+    def publish_summaries(self, summaries):
         for x in range(0, len(summaries), self.batchsize):
-            self.logger.debug('Enqueuing APEL Summaries batch of max %s records to be sent', self.batchsize)
+            self.logger.debug('Preparing APEL Summaries batch of max %s records to be sent', self.batchsize)
             buf = StringIO.StringIO()
             buf.write(APELSummaryRecord.header())
             buf.write(APELSummaryRecord.join_str().join(map(lambda s: s.get_record(), summaries[x:x + self.batchsize])))
             buf.write(APELSummaryRecord.footer())
-            self._dirq.add(buf.getvalue())
+            if not self._msg_send(buf.getvalue()):
+                self.publish_error = True
             buf.close()
             del buf
 
-    def enqueue_sync(self, syncs):
+    def publish_sync(self, syncs):
         for x in range(0, len(syncs), self.batchsize):
-            self.logger.debug('Enqueuing APEL Sync messages to be sent')
+            self.logger.debug('Preparing APEL Sync messages to be sent')
             buf = StringIO.StringIO()
             buf.write(APELSyncRecord.header())
             buf.write(APELSyncRecord.join_str().join(map(lambda s: s.get_record(), syncs[x:x + self.batchsize])))
             buf.write(APELSyncRecord.footer())
-            self._dirq.add(buf.getvalue())
+            if not self._msg_send(buf.getvalue()):
+                self.publish_error = True
             buf.close()
             del buf
 
     def send(self):
-        ssmsource = 'NorduGrid ARC redistributed' if apel_libs == 'arc' else 'system-wide installed'
-        self.logger.info('Going to send records to %s APEL broker using %s SSM libraries version %s.%s.%s',
-                         self.conf['targeturl'], ssmsource, *ssm_version)
-        self.logger.debug('Processing records in the %s directory queue.', self.conf['dirq_dir'])
-        brokers = [(self.conf['targethost'], self.conf['targetport'])]
-        success = False
-        try:
-            # create SSM2 object for sender
-            self.logger.debug('Initializing SSM2 sender to publish records into %s queue', self.conf['topic'])
-            sender = Ssm2(brokers,
-                          qpath=self.conf['dirq_dir'],
-                          cert=self.conf['x509_host_cert'],
-                          key=self.conf['x509_host_key'],
-                          capath=self.conf['x509_cert_dir'],
-                          dest=self.conf['topic'],
-                          use_ssl=self.conf['targetssl'])
-
-            if sender.has_msgs():
-                sender.handle_connect()
-                sender.send_all()
-                self.logger.debug('SSM records sending to %s has finished.', self.conf['targeturl'])
-            else:
-                self.logger.info('No messages found in %s to be sent.', self.conf['dirq_dir'])
-        except (Ssm2Exception, CryptoException) as e:
-            self.logger.error('SSM failed to send messages successfully. Error: %s', e)
-        except Exception as e:
-            self.logger.error('Unexpected exception in SSM (type %s). Error: %s. ', e.__class__, e)
-        else:
-            success = True
-
-        try:
-            sender.close_connection()
-        except UnboundLocalError:
-            # SSM not set up.
-            pass
-
-        self.logger.debug('SSM has shut down.')
-        return success
+        # this method just logs reporting status, actual publishing happens directly during messages enqueue
+        if self.publish_error:
+            self.logger.error('Failed to publish records to APEL AMS %s. See previous messages for details.',
+                              self.conf['targethost'])
+            return False
+        self.logger.debug('AMS direct records sending to %s has finished.', self.conf['targeturl'])
+        return True
 
 
 #
