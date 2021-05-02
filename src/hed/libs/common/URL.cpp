@@ -391,7 +391,7 @@ namespace Arc {
     std::string::size_type pos = FindProtocolSeparator(newurl);
     if(pos != std::string::npos) {
       // Absolute URL
-      operator=(URL(newurl));
+      operator=(URL(newurl, encoded));
       return;
     }
     // Path
