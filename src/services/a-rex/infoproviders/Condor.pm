@@ -103,7 +103,7 @@ sub collect_job_data() {
     return if $alljobdata_initialized;
     $alljobdata_initialized = 1;
     $ENV{_condor_CONDOR_Q_ONLY_MY_JOBS}='false';
-    my ($out, $err, $ret) = condor_run('condor_q -constraint "NiceUser == False" -format "ClusterId = %V\n" ClusterId -format "ProcId = %V\n" ProcId -format "JobStatus = %V\n" JobStatus -format "CurrentHosts = %V\n" CurrentHosts -format "LastRemoteHost = %V\n" LastRemoteHost -format "RemoteHost = %V\n" RemoteHost -format "ImageSize = %V\n" ImageSize -format "RemoteWallClockTime = %V\n" RemoteWallClockTime -format "RemoteUserCpu = %V\n" RemoteUserCpu -format "RemoteSysCpu = %V\n" RemoteSysCpu -format "JobTimeLimit = %V\n" JobTimeLimit -format "JobCpuLimit = %V\n" JobCpuLimit -format "HoldReasonCode = %V\n\n" HoldReasonCode');
+    my ($out, $err, $ret) = condor_run('condor_q -format "ClusterId = %V\n" ClusterId -format "ProcId = %V\n" ProcId -format "JobStatus = %V\n" JobStatus -format "CurrentHosts = %V\n" CurrentHosts -format "LastRemoteHost = %V\n" LastRemoteHost -format "RemoteHost = %V\n" RemoteHost -format "ImageSize = %V\n" ImageSize -format "RemoteWallClockTime = %V\n" RemoteWallClockTime -format "RemoteUserCpu = %V\n" RemoteUserCpu -format "RemoteSysCpu = %V\n" RemoteSysCpu -format "JobTimeLimit = %V\n" JobTimeLimit -format "JobCpuLimit = %V\n" JobCpuLimit -format "HoldReasonCode = %V\n\n" HoldReasonCode');
     return if $out =~ m/All queues are empty/;
     error("Failed collecting job information.") if $ret;
     for (split /\n\n+/, $out) {
