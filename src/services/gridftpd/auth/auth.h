@@ -68,6 +68,7 @@ class AuthUser {
   AuthResult match_vo(const char* line);
   AuthResult match_lcas(const char *);
   AuthResult match_plugin(const char* line);
+  AuthResult match_authtokens(const char* line);
   AuthResult process_voms(void);
   std::vector<struct voms_t> voms_data; // VOMS information extracted from proxy
   bool voms_extracted;
