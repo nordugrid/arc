@@ -253,6 +253,11 @@ namespace ARexINTERNAL {
 
 
   bool INTERNALClient::MapLocalUser(){
+    if(!arexconfig) {
+      logger.msg(Arc::ERROR, "INTERNALClient is not initialized");
+      return false;
+    }
+
     Arc::Credential cred(usercfg);
 
     // Here we need to simulate message going though chain of plugins.
@@ -354,6 +359,11 @@ namespace ARexINTERNAL {
 
 
   bool INTERNALClient::CreateDelegation(std::string& deleg_id){
+    if(!arexconfig) {
+      logger.msg(Arc::ERROR, "INTERNALClient is not initialized");
+      return false;
+    }
+
     // Create new delegation slot in delegation store and
     // generate or apply delegation id.
 
@@ -382,6 +392,11 @@ namespace ARexINTERNAL {
 
 
   bool INTERNALClient::RenewDelegation(std::string const& deleg_id) {
+    if(!arexconfig) {
+      logger.msg(Arc::ERROR, "INTERNALClient is not initialized");
+      return false;
+    }
+
     // Create new delegation in already assigned slot 
     if(deleg_id.empty()) return false;
 
@@ -477,6 +492,11 @@ namespace ARexINTERNAL {
 
 
   bool INTERNALClient::putFiles(INTERNALJob const& localjob, std::list<std::string> const& sources, std::list<std::string> const& destinations) {
+    if(!arexconfig) {
+      logger.msg(Arc::ERROR, "INTERNALClient is not initialized");
+      return false;
+    }
+
     ARex::GMJob gmjob(localjob.id, user, localjob.sessiondir, ARex::JOB_STATE_ACCEPTED);
     //Fix-me removed cbegin and cend from sources and destination. Either fix compiler, or rewrite to be const. 
     for(std::list<std::string>::const_iterator source = sources.begin(), destination = destinations.begin();
