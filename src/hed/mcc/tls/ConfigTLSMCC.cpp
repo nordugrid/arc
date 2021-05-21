@@ -54,7 +54,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   credential_ = (std::string)(cfg["Credential"]);
   if(client) {
     // Client is using safest setup by default
-    cipher_list_ = "TLSv1:SSLv3:!eNULL:!aNULL";
+    cipher_list_ = "ALL:!SSLv2:!eNULL:!aNULL";
     hostname_ = (std::string)(cfg["Hostname"]);
     XMLNode protocol_node = cfg["Protocol"];
     while((bool)protocol_node) {
@@ -70,13 +70,13 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
     protocols_ = (std::string)(cfg["Protocols"]);
   } else {
     // Server allows client to choose. But requires authentication.
-    cipher_list_ = "TLSv1:SSLv3:eNULL:!aNULL";
+    cipher_list_ = "ALL:!SSLv2:eNULL:!aNULL";
   }
   if(cfg["Encryption"] == "required") {
   } else if(cfg["Encryption"] == "preferred") {
-    cipher_list_ = "TLSv1:SSLv3:eNULL:!aNULL";
+    cipher_list_ = "ALL:!SSLv2:eNULL:!aNULL";
   } else if(cfg["Encryption"] == "optional") {
-    cipher_list_ = "eNULL:TLSv1:SSLv3:!aNULL";
+    cipher_list_ = "eNULL:ALL:!SSLv2:!aNULL";
   } else if(cfg["Encryption"] == "off") {
     cipher_list_ = "eNULL:!aNULL";
   }
