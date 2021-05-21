@@ -36,6 +36,11 @@ AuthResult AuthUser::match_all(const char* line) {
   return AAA_FAILURE;
 }
 
+AuthResult AuthUser::match_authtokens(const char* line) {
+  // No tokens can be derived in this environment. Hence always no match.
+  return AAA_NO_MATCH;
+}
+
 AuthResult AuthUser::match_group(const char* line) {
   for(;;) {
     std::string s("");
@@ -80,6 +85,7 @@ AuthUser::source_t AuthUser::sources[] = {
   { "voms", &AuthUser::match_voms },
   { "userlist", &AuthUser::match_vo },
   { "plugin", &AuthUser::match_plugin },
+  { "authtokens", &AuthUser::match_authtokens },
   { NULL, NULL }
 };
 
