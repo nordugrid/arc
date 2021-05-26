@@ -1,9 +1,12 @@
 # description: executes the job inside singularity container
 # param:SINGULARITY_IMAGE:string:NULL:singularity image or tree per VO, key:value comma separated, key default if VO not matched
 # param:SINGULARITY_OPTIONS:string: :singularity options
+# param:BINARY_PATH:string:/usr/bin/singularity:singularity binary location
 
 SINGULARITY_OPTIONS="${SINGULARITY_OPTIONS:-}"
 SINGULARITY_IMAGE="${SINGULARITY_IMAGE:-}"
+BINARY_PATH="${BINARY_PATH:-'/usr/bin/singularity'}"
+BINARY_PATH="${4:-$BINARY_PATH}"
 
 DEFAULT_IMAGE="NULL"
 
@@ -40,7 +43,7 @@ if [ "x$1" = "x0" ]; then
     echo $joboption_args |grep -q singularity; sused=$?
 
     if [ "x$IMAGE" != "xNULL" ] && [ "x$sused" == "x1" ] ; then
-       joboption_args="/usr/bin/singularity exec $SINGULARITY_OPTIONS --home \${RUNTIME_JOB_DIR} $IMAGE $joboption_args"
+       joboption_args="$BINARY_PATH exec $SINGULARITY_OPTIONS --home \${RUNTIME_JOB_DIR} $IMAGE $joboption_args"
        # account singularity image usage
        export ACCOUNTING_WN_INSTANCE="${IMAGE}"
     fi
