@@ -11,8 +11,32 @@ Highlights in this release
 --------------------------
 This release accomodates the EGI campaign for APEL to migrate from ActiveMQ messages brokers to ARGO messaging service.
 
-Note that once APEL has turned off the ActiveMQ message brokers, ARC sites must have updated to this release (or later) for the accounting to work.
-Please keep an eye on the annoucements from EGI regarding this. 
+Please be aware that you must update in good time before 01.07 which is when the ARGO team will deactivate the ActiveMQ message brokers. 
+
+Note that you must change your arc.conf for the APEL changes to work:
+
+Alter the APEL target config as follows:
+
+[arex/jura/apel: KEEPOLDNAME]
+# change targeturl to ARGO AMS endpoint
+targeturl = https://msg.argo.grnet.gr
+# delete 'topic' to rely on default
+# keep same apel_messages type if you have it defined
+
+The resulted config should look like this:
+
+[arex/jura/apel: EGI]
+targeturl = https://msg.argo.grnet.gr
+gocdb_name = XX-NAME
+apel_messages = summaries
+What to check:
+
+
+What to check:
+- jura.log for successful publishing
+- "arcctl accounting republish" some data and check that it works
+- open a ticket on APEL to correlate the data and ensure that messages reaching ARGO AMS actually reaches the APEL database.
+
 
 
 The following Bugzilla tickets have been adressed or solved
