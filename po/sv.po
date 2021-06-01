@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: support@nordugrid.org\n"
-"POT-Creation-Date: 2021-04-10 20:03+0200\n"
-"PO-Revision-Date: 2021-03-26 06:32+0100\n"
+"POT-Creation-Date: 2021-06-01 13:10+0200\n"
+"PO-Revision-Date: 2021-05-18 11:20+0200\n"
 "Last-Translator: Mattias Ellert <mattias.ellert@physics.uu.se>\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -2753,51 +2753,51 @@ msgstr ""
 "Status för tjänsteändpunkt \"%s\" är satt till inaktiv i ARCHERY. Hoppar "
 "över."
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:194
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:229
 #: src/hed/acc/EMIES/JobControllerPluginEMIES.cpp:161
 #: src/services/a-rex/internaljobplugin/JobControllerPluginINTERNAL.cpp:149
 #, c-format
 msgid "Job %s has no delegation associated. Can't renew such job."
 msgstr "Jobb %s har ingen associerad delegering. Kan inte förnya sådana jobb."
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:206
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:241
 #: src/services/a-rex/internaljobplugin/JobControllerPluginINTERNAL.cpp:161
 #, c-format
 msgid "Job %s failed to renew delegation %s."
 msgstr "Jobb %s misslyckades med att förnya delegering %s."
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:278
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:313
 #, c-format
 msgid "Failed to process jobs - wrong response: %u"
 msgstr "Misslyckades med att behandla jobb - felaktigt svar: %u"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:279
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:288
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:314
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:323
 #, c-format
 msgid "Content: %s"
 msgstr "Innehåll: %s"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:282
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:294
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:317
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:329
 #, c-format
 msgid "Failed to process job: %s"
 msgstr "Misslyckades med att behandla jobb: %s"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:292
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:327
 msgid "Failed to process jobs - failed to parse response"
 msgstr "Misslyckades med att behandla jobb - misslyckades med att tolka svar"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:305
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:340
 #, c-format
 msgid "No response returned: %s"
 msgstr "Inget svar returnerades: %s"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:329
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:364
 #, c-format
 msgid "Failed to process job: %s - %s %s"
 msgstr "Misslyckades med att behandla jobb: %s - %s %s"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:396
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:431
 #, c-format
 msgid "Failed retrieving job description for job: %s"
 msgstr "Misslyckades med att hämta jobbeskrivning för jobb: %s"
@@ -3349,11 +3349,11 @@ msgstr "Resursbeskrivningsvalidering enligt GLUE2-schema misslyckades: "
 #: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1209
 #: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1222
 #: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:379
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:376
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:411
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:463
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:573
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:607
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:386
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:426
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:478
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:593
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:627
 #, c-format
 msgid "%s"
 msgstr "%s"
@@ -4723,7 +4723,7 @@ msgstr "Oväntat argument tillhandahållet"
 
 #: src/hed/dmc/acix/DataPointACIX.cpp:93 src/hed/dmc/acix/DataPointACIX.cpp:342
 #: src/hed/dmc/rucio/DataPointRucio.cpp:220
-#: src/hed/dmc/rucio/DataPointRucio.cpp:453
+#: src/hed/dmc/rucio/DataPointRucio.cpp:462
 #, c-format
 msgid "No locations found for %s"
 msgstr "Inga platser hittade för %s"
@@ -6325,25 +6325,40 @@ msgstr "Oväntat namn returnerat i Rucio-svar: %s"
 
 #: src/hed/dmc/rucio/DataPointRucio.cpp:411
 #, c-format
-msgid "No RSE information returned in Rucio response: %s"
-msgstr "Ingen RSE-information returnerad i Rucio-svar: %s"
+msgid "No pfns returned in Rucio response: %s"
+msgstr "Inga fysiska filnamn (PFN) returnerade i Rucio-svar: %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:438
+#: src/hed/dmc/rucio/DataPointRucio.cpp:422
+#, c-format
+msgid "Cannot determine replica type for %s"
+msgstr "Kan inte bestämma replika-typ för %s"
+
+#: src/hed/dmc/rucio/DataPointRucio.cpp:424
+#, c-format
+msgid "%s: replica type %s"
+msgstr "%s: replika-typ %s"
+
+#: src/hed/dmc/rucio/DataPointRucio.cpp:427
+#, c-format
+msgid "Skipping %s replica %s"
+msgstr "Hoppar över %s replika %s"
+
+#: src/hed/dmc/rucio/DataPointRucio.cpp:447
 #, c-format
 msgid "No filesize information returned in Rucio response for %s"
 msgstr "Ingen information om filstorlek returnerad i Rucio-svar för %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:441
+#: src/hed/dmc/rucio/DataPointRucio.cpp:450
 #, c-format
 msgid "%s: size %llu"
 msgstr "%s: storlek %llu"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:445
+#: src/hed/dmc/rucio/DataPointRucio.cpp:454
 #, c-format
 msgid "No checksum information returned in Rucio response for %s"
 msgstr "Ingen information om checksumma returnerad i Rucio-svar för %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:448
+#: src/hed/dmc/rucio/DataPointRucio.cpp:457
 #, c-format
 msgid "%s: checksum %s"
 msgstr "%s: checksumma %s"
@@ -12785,17 +12800,17 @@ msgstr "Checksumma ej beräknad"
 msgid "Failed to postregister destination %s"
 msgstr "Misslyckades med att efterregistrera destination: %s"
 
-#: src/hed/libs/data/DataPoint.cpp:83
+#: src/hed/libs/data/DataPoint.cpp:84
 #, c-format
 msgid "Invalid URL option: %s"
 msgstr "Ogiltigt URL-alternativ: %s"
 
-#: src/hed/libs/data/DataPoint.cpp:262
+#: src/hed/libs/data/DataPoint.cpp:263
 #, c-format
 msgid "Skipping invalid URL option %s"
 msgstr "Hoppar över ogiltigt URL-alternativ: %s"
 
-#: src/hed/libs/data/DataPoint.cpp:277
+#: src/hed/libs/data/DataPoint.cpp:278
 msgid ""
 "Third party transfer was requested but the corresponding plugin could\n"
 "       not be loaded. Is the GFAL plugin installed? If not, please install "
@@ -12808,7 +12823,7 @@ msgstr ""
 "      'nordugrid-arc-plugins-gfal' och 'gfal2-all'. Beroende på din typ av\n"
 "      installation kan paketnamnen variera."
 
-#: src/hed/libs/data/DataPoint.cpp:295
+#: src/hed/libs/data/DataPoint.cpp:296
 #, c-format
 msgid "Failed to load plugin for URL %s"
 msgstr "Misslyckades med att ladda in plugin för URL %s"
@@ -19572,26 +19587,30 @@ msgstr "Hittade ingen pid-fil '%s'. Troligen kör inte A-REX."
 msgid "Failed to load grid-manager config file from %s"
 msgstr "Misslyckades med att ladda in grid-managerns inställningsfil från %s"
 
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:427
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:528
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:546
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:596
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:626
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:644
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:662
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:257
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:363
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:396
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:442
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:496
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:548
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:566
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:616
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:646
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:664
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:682
 msgid "INTERNALClient is not initialized"
 msgstr "INTERNALClient är inte initierad"
 
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:432
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:447
 msgid "Submitting job "
 msgstr "Sänder in jobb "
 
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:488
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:508
 #, c-format
 msgid "Failed to copy input file: %s to path: %s"
 msgstr "Misslyckades med att kopiera indatafil: %s till sökväg: %s"
 
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:494
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:514
 #, c-format
 msgid "Failed to set permissions on: %s"
 msgstr "Misslyckades med att sätta åtkomsträttigheter på: %s"
@@ -20188,12 +20207,12 @@ msgstr "Börja vänta 10 sek..."
 msgid "Waiting ends."
 msgstr "Väntan slutar"
 
-#: src/services/gridftpd/auth/auth.cpp:322
+#: src/services/gridftpd/auth/auth.cpp:328
 #, c-format
 msgid "Unknown authorization command %s"
 msgstr "Okänt authorization-kommando %s"
 
-#: src/services/gridftpd/auth/auth.cpp:341
+#: src/services/gridftpd/auth/auth.cpp:347
 #, c-format
 msgid ""
 "The [vo] section labeled '%s' has no file associated and can't be used for "
