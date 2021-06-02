@@ -11,7 +11,7 @@ Highlights in this release
 --------------------------
 This release accomodates the EGI campaign for APEL to migrate from ActiveMQ messages brokers to ARGO messaging service.
 
-If you publish accounts to APEL, please be aware that you must update in good time before 01.07 which is when the ARGO team will deactivate the ActiveMQ message brokers. 
+If you publish accounts to APEL, please be aware that you must update in good time before July 1st which is when the ARGO team will deactivate the ActiveMQ message brokers. 
 
 
 **Note that you must change your arc.conf for the APEL changes to work**
@@ -30,8 +30,6 @@ The resulting config should look like this:
 targeturl = https://msg.argo.grnet.gr
 gocdb_name = XX-NAME
 apel_messages = summaries
-What to check:
-
 
 What to check:
 - jura.log for successful publishing
@@ -42,6 +40,7 @@ What to check:
 The following Bugzilla tickets have been adressed or solved
 ------------------------------------------------------------
 * 4016  ARGO message service support in ARC
+* 4010  Double encoding of redirected davs URLs
 * 4013  Unable to submit gridftpjob with configured authtokens
 * 4012  GGUS-ticket-ID: #152027 ARC datastaging fails to communicate with STORM webdav server
 * 4009  REST client does not return full status info
@@ -78,7 +77,7 @@ In addition we build nightly packages for older platforms.
 Contributing
 =============
 You can submit pull requests to our public repo at https://github.com/nordugrid/arc which mirrors
-our Gitlab repo https://github.com/nordugrid/arc.
+our GitLab repo https://source.coderefinery.org/nordugrid/arc.
 
 The pull requests will be automatically copied over to our Gitlab repo where they will be
 merged into the source-code if accepted.
