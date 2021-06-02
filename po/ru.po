@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: support@nordugrid.org\n"
-"POT-Creation-Date: 2021-04-13 18:48+0200\n"
-"PO-Revision-Date: 2021-04-13 18:54+0200\n"
+"POT-Creation-Date: 2021-06-02 20:44+0200\n"
+"PO-Revision-Date: 2021-06-02 20:48+0200\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -2629,7 +2629,7 @@ msgid "Status for service endpoint \"%s\" is set to inactive in ARCHERY. Skippin
 msgstr ""
 "Состояние точки доступа службы \"%s\" задано как неактивное в ARCHERY. Пропускается."
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:194
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:229
 #: src/hed/acc/EMIES/JobControllerPluginEMIES.cpp:161
 #: src/services/a-rex/internaljobplugin/JobControllerPluginINTERNAL.cpp:149
 #, c-format
@@ -2637,44 +2637,44 @@ msgid "Job %s has no delegation associated. Can't renew such job."
 msgstr ""
 "С задачей %s не ассоциировано никакого делегирования. Задача не может быть обновлена."
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:206
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:241
 #: src/services/a-rex/internaljobplugin/JobControllerPluginINTERNAL.cpp:161
 #, c-format
 msgid "Job %s failed to renew delegation %s."
 msgstr "Задача %s не смогла обновить делегирование %s."
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:278
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:313
 #, c-format
 msgid "Failed to process jobs - wrong response: %u"
 msgstr "Сбой обработки задач - неверный отклик: %u"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:279
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:288
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:314
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:323
 #, c-format
 msgid "Content: %s"
 msgstr "Содержимое: %s"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:282
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:294
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:317
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:329
 #, c-format
 msgid "Failed to process job: %s"
 msgstr "Сбой обработки задачи: %s"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:292
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:327
 msgid "Failed to process jobs - failed to parse response"
 msgstr "Сбой обработки задач - сбой разборки отклика"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:305
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:340
 #, c-format
 msgid "No response returned: %s"
 msgstr "Не получен отклик: %s"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:329
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:364
 #, c-format
 msgid "Failed to process job: %s - %s %s"
 msgstr "Сбой разборки задачи: %s - %s %s"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:396
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:431
 #, c-format
 msgid "Failed retrieving job description for job: %s"
 msgstr "Сбой извлечения описания задачи: %s"
@@ -3204,11 +3204,11 @@ msgstr "Проверка соответствия описания ресурс�
 #: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1209
 #: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1222
 #: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:379
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:376
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:411
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:463
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:573
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:607
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:386
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:426
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:478
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:593
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:627
 #, c-format
 msgid "%s"
 msgstr "%s"
@@ -4530,7 +4530,7 @@ msgid "Unexpected arguments supplied"
 msgstr "Заданы непредусмотренные аргументы"
 
 #: src/hed/dmc/acix/DataPointACIX.cpp:93 src/hed/dmc/acix/DataPointACIX.cpp:342
-#: src/hed/dmc/rucio/DataPointRucio.cpp:220 src/hed/dmc/rucio/DataPointRucio.cpp:453
+#: src/hed/dmc/rucio/DataPointRucio.cpp:220 src/hed/dmc/rucio/DataPointRucio.cpp:462
 #, c-format
 msgid "No locations found for %s"
 msgstr "Не найдено расположений для %s"
@@ -6085,25 +6085,40 @@ msgstr "Отзыв Rucio содержит недопустимое имя: %s"
 
 #: src/hed/dmc/rucio/DataPointRucio.cpp:411
 #, c-format
-msgid "No RSE information returned in Rucio response: %s"
-msgstr "В отзыве Rucio отсутствует информация RSE: %s"
+msgid "No pfns returned in Rucio response: %s"
+msgstr "В отзыве Rucio отсутствуeт pnfs: %s"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:438
+#: src/hed/dmc/rucio/DataPointRucio.cpp:422
+#, c-format
+msgid "Cannot determine replica type for %s"
+msgstr "Не удаётся определить тип копии для %s"
+
+#: src/hed/dmc/rucio/DataPointRucio.cpp:424
+#, c-format
+msgid "%s: replica type %s"
+msgstr "%s: тип копии %s"
+
+#: src/hed/dmc/rucio/DataPointRucio.cpp:427
+#, c-format
+msgid "Skipping %s replica %s"
+msgstr "Пропускается %s копия %s"
+
+#: src/hed/dmc/rucio/DataPointRucio.cpp:447
 #, c-format
 msgid "No filesize information returned in Rucio response for %s"
 msgstr "В отзыве Rucio для %s отсутствует информация о размере файла"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:441
+#: src/hed/dmc/rucio/DataPointRucio.cpp:450
 #, c-format
 msgid "%s: size %llu"
 msgstr "%s: размер %llu"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:445
+#: src/hed/dmc/rucio/DataPointRucio.cpp:454
 #, c-format
 msgid "No checksum information returned in Rucio response for %s"
 msgstr "В отзыве Rucio для %s отсутствует информация о контрольной сумме"
 
-#: src/hed/dmc/rucio/DataPointRucio.cpp:448
+#: src/hed/dmc/rucio/DataPointRucio.cpp:457
 #, c-format
 msgid "%s: checksum %s"
 msgstr "%s: контрольная сумма %s"
@@ -9234,7 +9249,7 @@ msgstr " Запрошенное процессорное время: %s"
 #: src/hed/libs/compute/Job.cpp:608
 #, c-format
 msgid " Used CPU Time: %s (%s per slot)"
-msgstr "Использованное процессорное время: %s (%s на слот)"
+msgstr " Использованное процессорное время: %s (%s на слот)"
 
 #: src/hed/libs/compute/Job.cpp:612
 #, c-format
@@ -9244,7 +9259,7 @@ msgstr " Использованное процессорное время: %s"
 #: src/hed/libs/compute/Job.cpp:618
 #, c-format
 msgid " Used Wall Time: %s (%s per slot)"
-msgstr "Использованное время: %s (%s на слот)"
+msgstr " Использованное время: %s (%s на слот)"
 
 #: src/hed/libs/compute/Job.cpp:622
 #, c-format
@@ -12343,17 +12358,17 @@ msgstr "Контрольная сумма не вычислена"
 msgid "Failed to postregister destination %s"
 msgstr "Не удалось зарегистрировать назначение: %s"
 
-#: src/hed/libs/data/DataPoint.cpp:83
+#: src/hed/libs/data/DataPoint.cpp:84
 #, c-format
 msgid "Invalid URL option: %s"
 msgstr "Недопустимая опция URL: %s"
 
-#: src/hed/libs/data/DataPoint.cpp:262
+#: src/hed/libs/data/DataPoint.cpp:263
 #, c-format
 msgid "Skipping invalid URL option %s"
 msgstr "Пропускается недопустимая опция URL %s"
 
-#: src/hed/libs/data/DataPoint.cpp:277
+#: src/hed/libs/data/DataPoint.cpp:278
 msgid ""
 "Third party transfer was requested but the corresponding plugin could\n"
 "       not be loaded. Is the GFAL plugin installed? If not, please install the\n"
@@ -12366,7 +12381,7 @@ msgstr ""
 "       'nordugrid-arc-plugins-gfal' и 'gfal2-all'. Эти названия могут зависеть\n"
 "       от типа вашего дистрибутива."
 
-#: src/hed/libs/data/DataPoint.cpp:295
+#: src/hed/libs/data/DataPoint.cpp:296
 #, c-format
 msgid "Failed to load plugin for URL %s"
 msgstr "Сбой подгрузки подключаемого модуля для URL %s"
@@ -17083,7 +17098,7 @@ msgstr "Недопустимое число в команде maxjobdesc"
 
 #: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:496
 msgid "Missing file name in [arex/jura] logfile"
-msgstr "Отсутствует имя файла в журнальном файле [arex/jura] "
+msgstr "Отсутствует имя файла в журнальном файле [arex/jura]"
 
 #: src/services/a-rex/grid-manager/conf/CoreConfig.cpp:507
 #, c-format
@@ -18663,7 +18678,7 @@ msgstr ": Сбой запуска дочернего процесса средс
 
 #: src/services/a-rex/grid-manager/log/JobLog.cpp:176
 msgid ": Failure creating accounting database connection"
-msgstr ": Сбой создания соединения к базе данных учёта задач."
+msgstr ": Сбой создания соединения к базе данных учёта задач"
 
 #: src/services/a-rex/grid-manager/log/JobLog.cpp:202
 #, c-format
@@ -18921,26 +18936,30 @@ msgstr "Не обнаружен файл pid в '%s'. Возможно, A-REX н
 msgid "Failed to load grid-manager config file from %s"
 msgstr "Не удалось подгрузить файл настроек grid-manager из %s"
 
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:427
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:528
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:546
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:596
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:626
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:644
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:662
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:257
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:363
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:396
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:442
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:496
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:548
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:566
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:616
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:646
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:664
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:682
 msgid "INTERNALClient is not initialized"
 msgstr "Клиент INTERNALClient не запущен"
 
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:432
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:447
 msgid "Submitting job "
 msgstr "Запуск задачи "
 
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:488
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:508
 #, c-format
 msgid "Failed to copy input file: %s to path: %s"
 msgstr "Сбой копирования входного файла: %s в размещение: %s"
 
-#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:494
+#: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:514
 #, c-format
 msgid "Failed to set permissions on: %s"
 msgstr "Сбой изменения прав доступа к %s"
@@ -19454,12 +19473,12 @@ msgstr "Доступ закрыт"
 msgid "Only POST is supported in DataDeliveryService"
 msgstr "DataDeliveryService поддерживает только POST"
 
-#: src/services/gridftpd/auth/auth.cpp:322
+#: src/services/gridftpd/auth/auth.cpp:328
 #, c-format
 msgid "Unknown authorization command %s"
 msgstr "Неизвестная ошибка команды допуска %s"
 
-#: src/services/gridftpd/auth/auth.cpp:341
+#: src/services/gridftpd/auth/auth.cpp:347
 #, c-format
 msgid ""
 "The [vo] section labeled '%s' has no file associated and can't be used for matching"
@@ -24707,9 +24726,6 @@ msgstr "Ожидание завершено."
 
 #~ msgid " Service name: %s"
 #~ msgstr " Имя службы: %s"
-
-#~ msgid " Service type: %s"
-#~ msgstr " Тип службы: %s"
 
 #~ msgid "Manager information:"
 #~ msgstr "Информация о системе управления ресурсом:"
