@@ -518,4 +518,4 @@ class AccountingControl(ComponentControl):
         common_options.add_argument('--vofilter', required=False, action='append',
                                     help='Republish only jobs owned by these VOs')
         common_options.add_argument('--urbatchsize', required=False, help='Size of records batch to be send '
-                                                                          '(default is 50 for SGAS, 1000 for APEL)')
+                                                                          '(default is 50 for SGAS, 500 for APEL)')
