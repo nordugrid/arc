@@ -1,4 +1,4 @@
-s#!/bin/bash
+#!/bin/bash
 #
 # Periodically check state of grid jobs in SLURM, and put mark files
 # for finished jobs.
