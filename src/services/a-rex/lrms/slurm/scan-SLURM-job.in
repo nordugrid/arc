@@ -245,30 +245,44 @@ function handle_diag_file {
 
     job_read_diag
 
-    if [ "$use_sacct" ]; then 
-      jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,NNODES,CPUTimeRAW,Start,End,ExitCode,State -P | tail -n 1)
+    handle_diag_tries=3
+    while [ "$handle_diag_tries" -gt 0 ] ; do
+	if [ "$use_sacct" ]; then 
+	    jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,NNODES,CPUTimeRAW,Start,End,ExitCode,State -P | tail -n 1)
+	    
+	    cpus=$(echo "$jobinfostring" | awk -F'|' '{print $1}')
 
-      cpus=$(echo "$jobinfostring" | awk -F'|' '{print $1}')
+	    starttime=$(echo "$jobinfostring"|awk -F'|' '{print $4}'| sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
 
-      starttime=$(echo "$jobinfostring"|awk -F'|' '{print $4}'| sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
+	    endtime=$(echo "$jobinfostring"|awk -F'|' '{print $5}'| sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
 
-      endtime=$(echo "$jobinfostring"|awk -F'|' '{print $5}'| sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
+	    cputime=$(echo "$jobinfostring" | awk -F'|' '{print $3}')
+	else
+	    jobinfostring=$("$scontrol" -o show job $localid)
 
-      cputime=$(echo "$jobinfostring" | awk -F'|' '{print $3}')
-    else
-      jobinfostring=$("$scontrol" -o show job $localid)
+	    #Slurm can report StartTime and EndTime in at least these two formats:
+	    #2010-02-15T15:30:29
+	    #02/15-15:25:15
+	    #For our code to be able to manage both, the first needs to keep its hyphens,
+	    #the second needs them removed
+	    starttime=$(echo "$jobinfostring"|sed -n 's/.*StartTime=\([^ ]*\) .*/\1/p' | \
+  			    sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
+	    endtime=$(echo "$jobinfostring"|sed -n 's/.*EndTime=\([^ ]*\) .*/\1/p' | \
+			  sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
+	    cpus=$(echo "$jobinfostring"|sed -n 's/.*NumCPUs=\([^ ]*\) .*/\1/p')
+	fi
 
-      #Slurm can report StartTime and EndTime in at least these two formats:
-      #2010-02-15T15:30:29
-      #02/15-15:25:15
-      #For our code to be able to manage both, the first needs to keep its hyphens,
-      #the second needs them removed
-      starttime=$(echo "$jobinfostring"|sed -n 's/.*StartTime=\([^ ]*\) .*/\1/p' | \
-  	sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
-      endtime=$(echo "$jobinfostring"|sed -n 's/.*EndTime=\([^ ]*\) .*/\1/p' | \
-	sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
-      cpus=$(echo "$jobinfostring"|sed -n 's/.*NumCPUs=\([^ ]*\) .*/\1/p')
-    fi
+	## Do not try again if cpus correctly filled with a number. Or if cpus filled with header of sacct, which means cpus=NCPUS. 
+	## The latter is handled already in handle_diag_file function
+	## If (not empty cpus variable, and cpus variable is a number) or cpus variable is NCPUS then we are done, so break out of the retry loop  
+	if ( [   -n "$cpus" ]  &&  [ "$cpus" -eq "$cpus" ]  2>/dev/null ) ||   [ z"$cpus" = "zNCPUS" ] ; then break ; fi
+	sleep 3
+	handle_diag_tries=$(( $handle_diag_tries - 1 ))
+	if [ "$handle_diag_tries" -lt 3 ] ; then
+	    now=$(date +"%Y-%m-%d -%H:%M:%S")
+	    echo "scan-SLURM-job: \"$now\" - handle_diag_tries: \"$handle_diag_tries\" for CANCELLED job, cpu value was \"$cpus\"" 1>&2
+	fi
+    done
 
     date_to_utc_seconds "$starttime"
     starttime_seconds="$return_date_seconds"
@@ -278,7 +292,7 @@ function handle_diag_file {
     endtime_seconds="$return_date_seconds"
     seconds_to_mds_date "$return_date_seconds"
     LRMSEndTime=$return_mds_date
-
+    
     #TODO handle cputime, exitcode etc.
     walltime=$(( $endtime_seconds - $starttime_seconds))
     #cputime=$(( $walltime * $count))
@@ -362,96 +376,35 @@ for localid in ${localids[@]}; do
             run=$(($run + 1))
   	    ;;
 	CANCELLED)
-	    handle_diag_tries=3
             failed=$(($failed + 1))
 	    handle_commentfile $localid
 	    echo "-1 Job was cancelled" > "${basenames[$localid]}.lrms_done"
 	    kicklist=(${kicklist[@]} $localid)
-	    while [ "$handle_diag_tries" -gt 0 ] ; do
-		handle_diag_file "$localid" "${basenames[$localid]}.diag"
-		## Do not try again if cpus correctly filled with a number. Or if cpus filled with header of sacct, which means cpus=NCPUS. 
-		## The latter is handled already in handle_diag_file function
-		if [[  ( -n "$cpus" &&  "$cpus" -eq "$cpus" )  ||   z"$cpus" = "zNCPUS" ]] ; then break ; fi
-		sleep 3
-		handle_diag_tries=$(( $handle_diag_tries - 1 ))
-		if [ "$handle_diag_tries" -lt 3 ] ; then
-		    now=$(date +"%Y-%m-%d -%H:%M:%S")
-		    echo "scan-SLURM-job: \"$now\" - handle_diag_tries: \"$handle_diag_tries\" for CANCELLED job, cpu value was \"$cpus\"" 1>&2
-		fi
-	    done
+	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
 	    handle_exitcode_cancelled $localid "-1" "Job was cancelled"
 	    ;;
 	COMPLETED)
-	    handle_diag_tries=3
             done=$(($done + 1))
             handle_commentfile $localid
-            while [ "$handle_diag_tries" -gt 0 ] ; do
-		handle_diag_file "$localid" "${basenames[$localid]}.diag"
-		## Do not try again if cpus correctly filled with a number. Or if cpus filled with header of sacct, which means cpus=NCPUS. 
-		## The latter is handled already in handle_diag_file function
-		if [[  ( -n "$cpus" &&  "$cpus" -eq "$cpus" )  ||   z"$cpus" = "zNCPUS" ]] ; then break ; fi
-		sleep 3
-		handle_diag_tries=$(( $handle_diag_tries - 1 ))
-		if [ "$handle_diag_tries" -lt 3 ] ; then
-		    now=$(date +"%Y-%m-%d -%H:%M:%S")
-		    echo "scan-SLURM-job: \"$now\" - handle_diag_tries: \"$handle_diag_tries\" for COMPLETED job with id: \"$localid\", cpu value was \"$cpus\"" 1>&2
-		fi
-	    done
+            handle_diag_file "$localid" "${basenames[$localid]}.diag"
 	    handle_exitcode $localid "0" ""
 	    ;;
 	FAILED)
-	    handle_diag_tries=3
-            failed=$(($failed + 1))
+	    failed=$(($failed + 1))
 	    handle_commentfile $localid
-	    while [ "$handle_diag_tries" -gt 0 ] ; do
-		handle_diag_file "$localid" "${basenames[$localid]}.diag"
-		now=$(date +"%Y-%m-%d -%H:%M:%S")
-		## Do not try again if cpus correctly filled with a number. Or if cpus filled with header of sacct, which means cpus=NCPUS. 
-		## The latter is handled already in handle_diag_file function
-		if [[  ( -n "$cpus" &&  "$cpus" -eq "$cpus" )  ||   z"$cpus" = "zNCPUS" ]] ; then break ; fi
-		sleep 3
-		handle_diag_tries=$(( $handle_diag_tries - 1 ))
-		if [ "handle_$diag_tries" -lt 3 ] ; then 
-		    echo "scan-SLURM-job: \"$now\" - handle_diag_tries: \"$handle_diag_tries\" for FAILED job with id: \"$localid\", cpu value was \"$cpus\"" 1>&2
-		fi
-	    done
+	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
 	    handle_exitcode $localid "-1" "Job failed"
 	    ;;
 	TIMEOUT)
-	    handle_diag_tries=3
-            failed=$(($failed + 1))
+	    failed=$(($failed + 1))
 	    handle_commentfile $localid
-	    while [ "$handle_diag_tries" -gt 0 ] ; do
-		handle_diag_file "$localid" "${basenames[$localid]}.diag"
-		## Do not try again if cpus correctly filled with a number. Or if cpus filled with header of sacct, which means cpus=NCPUS. 
-		## The latter is handled already in handle_diag_file function
-		if [[  ( -n "$cpus" &&  "$cpus" -eq "$cpus" )  ||   z"$cpus" = "zNCPUS" ]] ; then break ; fi
-		sleep 3
-		handle_diag_tries=$(( $handle_diag_tries - 1 ))
-		if [ "$handle_diag_tries" -lt 3 ] ; then
-		    now=$(date +"%Y-%m-%d -%H:%M:%S")
-		    echo "scan-SLURM-job: \"$now\" - handle_diag_tries: \"$handle_diag_tries\" for TIMEOUT job with id: \"$localid\", cpu value was \"$cpus\"" 1>&2
-		fi
-	    done
+	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
 	    handle_exitcode $localid "-1" "Job timeout"
 	    ;;
 	NODE_FAIL)
-	    handle_diag_tries=3
-            failed=$(($failed + 1))
+	    failed=$(($failed + 1))
 	    handle_commentfile $localid
-	    while [ "$handle_diag_tries" -gt 0 ] ; do
-		handle_diag_file "$localid" "${basenames[$localid]}.diag"
-		## Do not try again if cpus correctly filled with a number. Or if cpus filled with header of sacct, which means cpus=NCPUS. 
-		## The latter is handled already in handle_diag_file function
-		if [[  ( -n "$cpus" &&  "$cpus" -eq "$cpus" )  ||   z"$cpus" = "zNCPUS" ]] ; then break ; fi
-		sleep 3
-		handle_diag_tries=$(( $handle_diag_tries - 1 ))
-		if [ "$handle_diag_tries" -lt 3 ] ; then
-		    now=$(date +"%Y-%m-%d -%H:%M:%S")
-		    echo "scan-SLURMjob: \"$now\" - handle_diag_tries: \"$handle_diag_tries\" for NODE_FAIL job with id: \"$localid\", cpu value was \"$cpus\"" 1>&2
-		fi
-	    done
-
+	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
 	    handle_exitcode_cancelled $localid "-1" "Node fail"
 	    ;;
     esac
