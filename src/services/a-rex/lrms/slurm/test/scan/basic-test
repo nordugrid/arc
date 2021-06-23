@@ -15,11 +15,11 @@ read -r -d '' test_jobs <<'EOF'
 EOF
 
 read -r -d '' test_input_diag_list <<'EOF'
-nodename=test_basic;WallTime=1234s;UserTime=1235s;KernelTime=1236s;AverageTotalMemory=3264kB;AverageResidentMemory=6432kB;#LRMSStartTime=\([0-9][0-9]*Z\);#LRMSEndTime=\([0-9][0-9]*Z\);exitcode=0
-nodename=test_basic;WallTime=1234s;UserTime=1235s;KernelTime=1236s;AverageTotalMemory=3264kB;AverageResidentMemory=6432kB;#LRMSStartTime=\([0-9][0-9]*Z\);#LRMSEndTime=\([0-9][0-9]*Z\);exitcode=1
+nodename=test_basic;WallTime=1234s;UserTime=1235s;KernelTime=1236s;AverageTotalMemory=3264kB;AverageResidentMemory=6432kB;#LRMSStartTime=\([0-9][0-9]*Z\);#LRMSEndTime=\([0-9][0-9]*Z\);exitcode=0;Processors=1
+nodename=test_basic;WallTime=1234s;UserTime=1235s;KernelTime=1236s;AverageTotalMemory=3264kB;AverageResidentMemory=6432kB;#LRMSStartTime=\([0-9][0-9]*Z\);#LRMSEndTime=\([0-9][0-9]*Z\);exitcode=1;Processors=1
 #
 #
-nodename=test_basic;WallTime=1234s;UserTime=1235s;KernelTime=1236s;AverageTotalMemory=3264kB;AverageResidentMemory=6432kB;#LRMSStartTime=\([0-9][0-9]*Z\);#LRMSEndTime=\([0-9][0-9]*Z\);exitcode=1
+nodename=test_basic;WallTime=1234s;UserTime=1235s;KernelTime=1236s;AverageTotalMemory=3264kB;AverageResidentMemory=6432kB;#LRMSStartTime=\([0-9][0-9]*Z\);#LRMSEndTime=\([0-9][0-9]*Z\);exitcode=1;Processors=1
 EOF
 
 
