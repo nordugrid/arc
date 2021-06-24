@@ -71,16 +71,13 @@ if [ ! -z "$perflogdir" ]; then
 fi
 
 ### use sacct
-# only sacct can be used here, scontrol is for running jobs
-#-unset use_sacct
-# Force to use sacct
-use_sacct="true"
+unset use_sacct
 
-#if [ ! -z "${CONFIG_slurm_use_sacct}" ]; then
-#  if [ "${CONFIG_slurm_use_sacct}" = "no" ]; then
-#    use_sacct="true"
-#  fi
-#fi
+if [ ! -z "${CONFIG_slurm_use_sacct}" ]; then
+  if [ "${CONFIG_slurm_use_sacct}" = "no" ]; then
+    use_sacct="true"
+  fi
+fi
 
 my_id=`id -u`
 
