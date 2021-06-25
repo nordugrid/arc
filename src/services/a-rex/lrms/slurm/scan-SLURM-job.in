@@ -74,7 +74,7 @@ fi
 unset use_sacct
 
 if [ ! -z "${CONFIG_slurm_use_sacct}" ]; then
-  if [ "${CONFIG_slurm_use_sacct}" = "no" ]; then
+  if [ "${CONFIG_slurm_use_sacct}" = "yes" ]; then
     use_sacct="true"
   fi
 fi
