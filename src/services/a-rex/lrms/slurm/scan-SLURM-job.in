@@ -297,6 +297,8 @@ function handle_diag_file {
       # UserCPU,SystemCPU format is [dd-]hh:mm:ss[.uuu]
       usercputime=$(echo "$jobinfostring" | awk -F'|' '{print $6}')
       kernelcputime=$(echo "$jobinfostring" | awk -F'|' '{print $7}')
+      [ -z "$usercputime" ] && usercputime="00:00:00"
+      [ -z "$kernelcputime" ] && kernelcputime="00:00:00"
     else
       jobinfostring=$("$scontrol" -o show job $localid)
 
@@ -326,10 +328,8 @@ function handle_diag_file {
 
       #TODO handle exitcode etc.
       walltime=$(( $endtime_seconds - $starttime_seconds))
-      [ -z "$usercputime" ] && usercputime="00:00:00"
       slurm_interval_to_seconds "$usercputime"
       cputime="$return_interval_seconds"
-      [ -z "$kernelcputime" ] && kernelcputime="00:00:00"
       slurm_interval_to_seconds "$kernelcputime"
       kernel="$return_interval_seconds"
       #cputime=$(( $walltime * $count))
