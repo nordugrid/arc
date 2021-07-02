@@ -329,29 +329,32 @@ function handle_diag_file {
 	    fi
     done
 
-    date_to_utc_seconds "$starttime"
-    starttime_seconds="$return_date_seconds"
-    seconds_to_mds_date "$return_date_seconds"
-    LRMSStartTime=$return_mds_date
-    date_to_utc_seconds "$endtime"
-    endtime_seconds="$return_date_seconds"
-    seconds_to_mds_date "$return_date_seconds"
-    LRMSEndTime=$return_mds_date
+    # if "sacct -j $localid.batch" return string "NCPUS|NNodes..." only, the job has no batch stage, it was killed before start on WN
+    if [ ! z"$cpus" = "zNCPUS" ] ; then
+        date_to_utc_seconds "$starttime"
+        starttime_seconds="$return_date_seconds"
+        seconds_to_mds_date "$return_date_seconds"
+        LRMSStartTime=$return_mds_date
+        date_to_utc_seconds "$endtime"
+        endtime_seconds="$return_date_seconds"
+        seconds_to_mds_date "$return_date_seconds"
+        LRMSEndTime=$return_mds_date
     
-    #TODO handle exitcode etc.
-    walltime=$(( $endtime_seconds - $starttime_seconds))
-    slurm_interval_to_seconds "$usercputime"
-    cputime="$return_interval_seconds"
-    slurm_interval_to_seconds "$kernelcputime"
-    kernel="$return_interval_seconds"
+        #TODO handle exitcode etc.
+        walltime=$(( $endtime_seconds - $starttime_seconds))
+        slurm_interval_to_seconds "$usercputime"
+        cputime="$return_interval_seconds"
+        slurm_interval_to_seconds "$kernelcputime"
+        kernel="$return_interval_seconds"
     
-    # Values to write to diag. These will override values already written.
-    [ -n "$walltime" ] && WallTime=$walltime
-    [ -n "$cpus" ] && Processors=$cpus
-    [ -n "$cputime" ] && UserTime=$cputime
-    [ -n "$kernel" ] && KernelTime=$kernel
-
-    job_write_diag
+        # Values to write to diag. These will override values already written.
+        [ -n "$walltime" ] && WallTime=$walltime
+        [ -n "$cpus" ] && Processors=$cpus
+        [ -n "$cputime" ] && UserTime=$cputime
+        [ -n "$kernel" ] && KernelTime=$kernel
+        
+        job_write_diag
+    fi
 }
 
 if [ ! -z "$perflogdir" ]; then
