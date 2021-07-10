@@ -79,6 +79,7 @@ override_dh_auto_clean:
 	dh_auto_clean
 
 	rm -f debian/nordugrid-arc-arex.arc-arex.init
+	rm -f debian/nordugrid-arc-arex.arc-arex-ws.init
 	rm -f debian/nordugrid-arc-hed.arched.init
 	rm -f debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.init
 	rm -f debian/nordugrid-arc-gridftpd.arc-gridftpd.init
@@ -87,6 +88,7 @@ override_dh_auto_clean:
 	rm -f debian/nordugrid-arc-acix-index.arc-acix-index.init
 
 	rm -f debian/nordugrid-arc-arex.arc-arex.service
+	rm -f debian/nordugrid-arc-arex.arc-arex-ws.service
 	rm -f debian/nordugrid-arc-hed.arched.service
 	rm -f debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.service
 	rm -f debian/nordugrid-arc-gridftpd.arc-gridftpd.service
@@ -138,6 +140,8 @@ override_dh_auto_install:
 
 	mv debian/tmp/etc/init.d/arc-arex \
 	   debian/nordugrid-arc-arex.arc-arex.init
+	mv debian/tmp/etc/init.d/arc-arex-ws \
+	   debian/nordugrid-arc-arex.arc-arex-ws.init
 	mv debian/tmp/etc/init.d/arched \
 	   debian/nordugrid-arc-hed.arched.init
 	mv debian/tmp/etc/init.d/arc-datadelivery-service \
@@ -153,6 +157,8 @@ override_dh_auto_install:
 
 	mv debian/tmp/lib/systemd/system/arc-arex.service \
 	   debian/nordugrid-arc-arex.arc-arex.service
+	mv debian/tmp/lib/systemd/system/arc-arex-ws.service \
+	   debian/nordugrid-arc-arex.arc-arex-ws.service
 	mv debian/tmp/lib/systemd/system/arched.service \
 	   debian/nordugrid-arc-hed.arched.service
 	mv debian/tmp/lib/systemd/system/arc-datadelivery-service.service \
@@ -182,6 +188,7 @@ override_dh_install:
 override_dh_installinit:
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-hed --name arched
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-arex --name arc-arex
+	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-arex-ws --name arc-arex-ws
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-gridftpd --name arc-gridftpd
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
@@ -191,6 +198,7 @@ override_dh_installinit:
 override_dh_systemd_enable:
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-hed --name arched
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-arex --name arc-arex
+	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-arex-ws --name arc-arex-ws
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-gridftpd --name arc-gridftpd
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
@@ -201,6 +209,7 @@ override_dh_systemd_enable:
 override_dh_systemd_start:
 	dh_systemd_start -p nordugrid-arc-hed --name arched
 	dh_systemd_start -p nordugrid-arc-arex --name arc-arex
+	dh_systemd_start -p nordugrid-arc-arex-ws --name arc-arex-ws
 	dh_systemd_start -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
 	dh_systemd_start -p nordugrid-arc-gridftpd --name arc-gridftpd
 	dh_systemd_start -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
@@ -217,6 +226,8 @@ override_dh_python2:
 
 	echo "pydeps:Depends=python-ldap, python-isodate" \
 		>> debian/nordugrid-arc-arex.substvars
+	echo "pydeps:Depends=python-ldap, python-isodate" \
+		>> debian/nordugrid-arc-arex-ws.substvars
 	echo "pydeps:Depends=python-dns" \
 		>> debian/nordugrid-arc-community-rtes.substvars
 	echo "pydeps:Depends=python-twisted, python-openssl" \
@@ -235,6 +246,8 @@ override_dh_python3:
 
 	echo "pydeps:Depends=python3-ldap, python3-isodate" \
 		>> debian/nordugrid-arc-arex.substvars
+	echo "pydeps:Depends=python3-ldap, python3-isodate" \
+		>> debian/nordugrid-arc-arex-ws.substvars
 	echo "pydeps:Depends=python3-dns" \
 		>> debian/nordugrid-arc-community-rtes.substvars
 	echo "pydeps:Depends=python3-twisted, python3-openssl" \

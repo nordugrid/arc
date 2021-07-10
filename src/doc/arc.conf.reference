@@ -1334,6 +1334,11 @@
 #logfile=/var/log/arc/ws-interface.log
 ## CHANGE: RENAMED in 6.0.0.
 
+## pidfile = path - Specify location of file containing PID of daemon process.
+## default: /run/arched-arex-ws.pid
+#pidfile=/run/arched-arex-ws.pid
+## CHANGE: INTRODUCED in 6.13.0.
+
 ## max_job_control_requests = number - The max number of simultaneously processed job management
 ## requests over WS interface - like job submission, cancel, status check etc.
 ## default: 100
