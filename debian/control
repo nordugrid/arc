@@ -261,7 +261,7 @@ Provides:
  nordugrid-arc-cache-service,
  nordugrid-arc-candypond
 Replaces:
- nordugrid-arc-arex (<< 6.13.0~)
+ nordugrid-arc-arex (<< 6.13.0~),
  nordugrid-arc-cache-service (<< 6.0.0~),
  nordugrid-arc-candypond (<< 6.0.0~),
  nordugrid-arc-aris (<< 6.0.0~),
