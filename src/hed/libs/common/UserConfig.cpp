@@ -8,6 +8,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include <fstream>
 #include <glibmm.h>
@@ -43,20 +45,84 @@ namespace Arc {
     file_test_success
   } file_test_status;
 
+  static uid_t const root_uid = 0;
+
+  static file_test_status user_file_check_group(struct stat& st, const User& user) {
+    // Check if file's group is private group of our user or root
+    struct group grp;
+    struct group* grp_result = NULL;
+    char buffer[1024]; // should be enough for two members
+    int err = getgrgid_r(st.st_gid, &grp, buffer, sizeof(buffer), &grp_result);
+    if(err == ERANGE) {
+      // too many members - unsafe
+      return file_test_wrong_permissions;
+    } else if(err != 0) {
+      // some error - can't evaluate safety of permissions
+      return file_test_wrong_permissions;
+    } else if(grp_result == NULL) {
+      // no such group - nobody will read our file
+    } else if((grp.gr_mem == NULL) || (grp.gr_mem[0] == NULL)) {
+      // group without members - nobody will read our file
+    } else {
+      // one ore more members - check for our user and for root
+      // must check for root's name becuse it is not necessary root
+      struct passwd root_pwd;
+      char pwdbuf[2048];
+      struct passwd *pwd_p = NULL;
+      (void)getpwuid_r(root_uid, &root_pwd, pwdbuf, sizeof(pwdbuf), &pwd_p); // if it fail we still have pwd_p = NULL
+      char** member = grp.gr_mem;
+      while(*member != NULL) {
+        if((user.Name() != *member) && ((pwd_p == NULL) || (user.Name() != root_pwd.pw_name))) {
+          return file_test_wrong_permissions;
+        }
+      }
+    }
+    return file_test_success;
+  }
+
   static file_test_status user_file_test(const std::string& path, const User& user) {
+    // Check if file is protected from unexpected modifictaion. Anyone can read it
+    // but only our user can modify it with exception of root.
     struct stat st;
     if(::stat(path.c_str(),&st) != 0) return file_test_missing;
     if(!S_ISREG(st.st_mode)) return file_test_not_file;
-    if(user.get_uid() != st.st_uid) return file_test_wrong_ownership;
+
+    // Must check ownership of file irrespective of permissions because owner also can change permissions.
+    // Let root own this file too.
+    if((user.get_uid() != st.st_uid) && (root_uid != st.st_uid)) return file_test_wrong_ownership;
+    if(st.st_mode & S_IWGRP) {
+      // check who belongs to file's group
+      file_test_status r = user_file_check_group(st, user);
+      if(r != file_test_success)
+        return r;
+    }
+    if(st.st_mode & S_IWOTH) {
+      return file_test_wrong_permissions;
+    }
+
     return file_test_success;
   }
 
   static file_test_status private_file_test(const std::string& path, const User& user) {
+    // Check if access to file content is protected. It must be readable and writable by our 
+    // user only with exception of root.
     struct stat st;
     if(::stat(path.c_str(),&st) != 0) return file_test_missing;
     if(!S_ISREG(st.st_mode)) return file_test_not_file;
-    if(user.get_uid() != st.st_uid) return file_test_wrong_ownership;
-    if(st.st_mode & (S_IRWXG | S_IRWXO)) return file_test_wrong_permissions;
+
+    // Must check ownership of file irrespective of permissions because owner also can change permissions.
+    // Let root own this file too.
+    if((user.get_uid() != st.st_uid) && (root_uid != st.st_uid)) return file_test_wrong_ownership;
+    if(st.st_mode & (S_IRGRP | S_IWGRP)) {
+      // check who belongs to file's group
+      file_test_status r = user_file_check_group(st, user);
+      if(r != file_test_success)
+        return r;
+    }
+    if(st.st_mode & (S_IROTH | S_IWOTH)) {
+      return file_test_wrong_permissions;
+    }
+
     return file_test_success;
   }
 
