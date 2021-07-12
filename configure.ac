@@ -2258,6 +2258,9 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/arc-arex
                  src/services/a-rex/arc-arex.service
                  src/services/a-rex/arc-arex-start
+                 src/services/a-rex/arc-arex-ws
+                 src/services/a-rex/arc-arex-ws.service
+                 src/services/a-rex/arc-arex-ws-start
                  src/services/a-rex/a-rex-backtrace-collect
                  src/services/a-rex/a-rex-backtrace-collect.8
                  src/services/a-rex/perferator

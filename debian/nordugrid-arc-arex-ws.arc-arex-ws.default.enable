@@ -1,0 +1,4 @@
+# To enable arc-arex-ws, i.e. to indicate that a readily usable
+# configuration is in place, comment out or delete the
+# following line.
+RUN=no

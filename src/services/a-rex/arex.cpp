@@ -1046,12 +1046,10 @@ void ARexService::gm_threads_starter() {
     }
   }
   // Run grid-manager in thread
-  if ((gmrun_.empty()) || (gmrun_ == "internal")) {
-    gm_ = new GridManager(config_);
-    if (!(*gm_)) {
-      logger_.msg(Arc::ERROR, "Failed to run Grid Manager thread");
-      delete gm_; gm_=NULL; return;
-    }
+  gm_ = new GridManager(config_);
+  if (!(*gm_)) {
+    logger_.msg(Arc::ERROR, "Failed to run Grid Manager thread");
+    delete gm_; gm_=NULL; return;
   }
   // Start info collector thread
   CreateThreadFunction(&information_collector_starter, this);
@@ -1183,10 +1181,12 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
   // the log splits between WS interface operations and GM job processing.
   // Start separate thread to start GM and info collector threads so they can
   // log to GM log after we remove it in this thread
-  Arc::SimpleCounter counter;
-  if (!CreateThreadFunction(&gm_threads_starter, this, &counter)) return;
-  counter.wait();
-  if ((gmrun_.empty() || gmrun_ == "internal") && !gm_) return; // GM didn't start
+  if ((gmrun_.empty()) || (gmrun_ == "internal")) {
+    Arc::SimpleCounter counter;
+    if (!CreateThreadFunction(&gm_threads_starter, this, &counter)) return;
+    counter.wait();
+    if(!gm_) return; // GM didn't start
+  }
   // If WS is used then remove gm log destination from this thread
   if (!endpoint_.empty()) {
     // Assume that gm log is first in list - potentially dangerous
