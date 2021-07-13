@@ -16,85 +16,60 @@ static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 JobStateList::JobStateList(int _limit):limit(_limit){
   failures = 0;
-  length = 0;
-  this_node = NULL;
-  oldhead = NULL;
-  head = NULL;
-  tail = NULL;
 }
 
 JobStateList::~JobStateList(){}
 
-  JobStateList::JobNode::JobNode(JobStateList* _sl, JobNode* _prev, JobNode* _next, bool _isfailed, std::string _job_id):
-  sl(_sl),prev(_prev),next(_next),isfailed(_isfailed),job_id(_job_id){
-  //update the previously last node in the list to instead point to NULL, now point to the new node
-  if(prev)prev->next = this;
-  //this is maybe not necessary as in the current set-up the next pointer is always NULL, insce the next of the last item in the list is  NULL
-  if(next)next->prev = this;
+JobStateList::JobNode::JobNode(bool _isfailed, std::string _job_id):
+  isfailed(_isfailed),job_id(_job_id){
 }
 
 JobStateList::JobNode::~JobNode(){}
 
 
-  JobStateList::JobNode* JobStateList::NodeInList(std::string _job_id){
+JobStateList::JobNode* JobStateList::NodeInList(std::string _job_id){
   
-  JobStateList::JobNode* it = head;
-  if (head != NULL){
-    while(it->next != NULL){
+  std::list<JobNode>::iterator it = nodes.begin();
+  while(it != nodes.end()){
       
-      if(it->job_id == _job_id){
-	return it;
-      }
-      it = it->next;
+    if(it->job_id == _job_id){
+      return &(*it);
     }
+    ++it;
   }
   return NULL;
 }
 
 
 
-  void JobStateList::setFailure(bool _isfailed,std::string _job_id){
+void JobStateList::setFailure(bool _isfailed,std::string _job_id){
 
-    //check if the node is already in the list, and if it is update the failure status
-    this_node = NodeInList(_job_id);
+  //check if the node is already in the list, and if it is update the failure status
+  JobStateList::JobNode* this_node = NodeInList(_job_id);
   if(this_node){
     //existing job in the list
     if(!this_node->isfailed && _isfailed){
       //update the failure-state of the node
       //only update once (i.e. if node was not failed before)
       this_node->isfailed=_isfailed;
-      if(_isfailed)failures++;
+      failures++;
     }
   }
   else{
-    if(head==NULL){
-      //first node in list 
-      JobStateList::JobNode* node = new JobStateList::JobNode(this,NULL,NULL,_isfailed,_job_id);
-      head = tail = node;
-      length++;
-      if(_isfailed)failures++;
-    } else {
-      //put the new node at the end of the list (newest job)
-      JobStateList::JobNode* node = new JobStateList::JobNode(this,tail,NULL,_isfailed,_job_id);
-      tail = node;
-      length++;
-      if(_isfailed)failures++;
-      
-      if(length>limit){
-	//list is now 1 too long, remove the old head of the list (oldest job)
-	oldhead = head;
-	head = oldhead->next;
-	length--;
-	if (oldhead->isfailed)failures--;
-	oldhead = NULL;
-      }
+    JobStateList::JobNode node(_isfailed,_job_id);
+    nodes.push_back(node);
+    if(_isfailed)failures++;
+    if(nodes.size()>limit){
+      //list is now 1 too long, remove the old head of the list (oldest job)
+      if(nodes.front().isfailed)failures--;
+      nodes.pop_front();
     }
   }
 }
 
 
 
-JobsMetrics::JobsMetrics():enabled(false),proc(NULL) {
+JobsMetrics::JobsMetrics():enabled(false),proc(NULL),jobstatelist(100) {
   job_fail_counter = 0;
   std::memset(jobs_in_state, 0, sizeof(jobs_in_state));
   std::memset(jobs_in_state_changed, 0, sizeof(jobs_in_state_changed));
@@ -107,12 +82,9 @@ JobsMetrics::JobsMetrics():enabled(false),proc(NULL) {
 
   time_lastupdate = time(NULL);
 
-  jobstatelist = new JobStateList(100);
-
 }
 
 JobsMetrics::~JobsMetrics() {
-  delete jobstatelist;
 }
 
 void JobsMetrics::SetEnabled(bool val) {
@@ -128,7 +100,7 @@ void JobsMetrics::SetGmetricPath(const char* path) {
 }
 
 
-  void JobsMetrics::ReportJobStateChange(const GMConfig& config,  GMJobRef i, job_state_t old_state,  job_state_t new_state) {
+void JobsMetrics::ReportJobStateChange(const GMConfig& config,  GMJobRef i, job_state_t old_state,  job_state_t new_state) {
   Glib::RecMutex::Lock lock_(lock);
 
 
@@ -140,9 +112,9 @@ void JobsMetrics::SetGmetricPath(const char* path) {
   */
   
 
-  /*jobstatelist holds jobid and  1 for failed or 0 for non-failed job for 100 latest jobs */
-  jobstatelist->setFailure(i->CheckFailure(config),job_id);
-  job_fail_counter = jobstatelist->failures;
+  /*jobstatelist holds jobid and true for failed or false for non-failed job for 100 latest jobs */
+  jobstatelist.setFailure(i->CheckFailure(config),job_id);
+  job_fail_counter = jobstatelist.failures;
   fail_changed = true;
 
   //actual states (jobstates)
@@ -257,7 +229,7 @@ void JobsMetrics::SyncAsync(void* arg) {
 
 void JobsMetrics::RunMetricsKicker(void* arg) {
   // Currently it is not allowed to start new external process
-  // from inside process licker (todo: redesign).
+  // from inside process kicker (todo: redesign).
   // So do it asynchronously from another thread.
   Arc::CreateThreadFunction(&SyncAsync, arg);
 }
