@@ -38,13 +38,14 @@ namespace Arc {
      public:
       StringData();
       virtual ~StringData();
-      void Assign(std::string& str);
+      void Assign(std::string& str, int content_max_size = 0);
       virtual void Append(char const* data, unsigned int size);
       virtual void Remove(unsigned int size);
       virtual char const* Get() const;
       virtual unsigned int Size() const;
      private:
       std::string* content_;
+      int content_max_size_;
     };
 
     // working directory
@@ -164,12 +165,12 @@ namespace Arc {
     /// Associate stdout pipe of executable with string.
     /** This method must be called before Start(). str object
         must be valid as long as this object exists. */
-    void AssignStdout(std::string& str);
+    void AssignStdout(std::string& str, int max_size = 102400);
     void AssignStdout(Data& str);
     /// Associate stderr pipe of executable with string.
     /** This method must be called before Start(). str object
         must be valid as long as this object exists. */
-    void AssignStderr(std::string& str);
+    void AssignStderr(std::string& str, int max_size = 102400);
     void AssignStderr(Data& str);
     /// Associate stdin pipe of executable with string.
     /** This method must be called before Start(). str object
