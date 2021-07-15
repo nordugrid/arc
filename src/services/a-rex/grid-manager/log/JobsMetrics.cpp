@@ -42,7 +42,7 @@ JobStateList::JobNode* JobStateList::NodeInList(std::string _job_id){
 
 
 
-void JobStateList::setFailure(bool _isfailed,std::string _job_id){
+void JobStateList::SetFailure(bool _isfailed,std::string _job_id){
 
   //check if the node is already in the list, and if it is update the failure status
   JobStateList::JobNode* this_node = NodeInList(_job_id);
@@ -101,6 +101,7 @@ void JobsMetrics::SetGmetricPath(const char* path) {
 
 
 void JobsMetrics::ReportJobStateChange(const GMConfig& config,  GMJobRef i, job_state_t old_state,  job_state_t new_state) {
+  if(!enabled) return; // not configured
   Glib::RecMutex::Lock lock_(lock);
 
 
@@ -113,7 +114,7 @@ void JobsMetrics::ReportJobStateChange(const GMConfig& config,  GMJobRef i, job_
   
 
   /*jobstatelist holds jobid and true for failed or false for non-failed job for 100 latest jobs */
-  jobstatelist.setFailure(i->CheckFailure(config),job_id);
+  jobstatelist.SetFailure(i->CheckFailure(config),job_id);
   job_fail_counter = jobstatelist.failures;
   fail_changed = true;
 

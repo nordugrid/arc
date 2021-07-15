@@ -42,7 +42,7 @@ namespace ARex {
   public:
     int failures;
 
-    void setFailure(bool _isfailed, std::string _job_id);
+    void SetFailure(bool _isfailed, std::string _job_id);
 
     JobStateList(int _limit);
     ~JobStateList(void);

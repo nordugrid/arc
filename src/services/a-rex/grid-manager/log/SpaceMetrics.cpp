@@ -48,6 +48,7 @@ namespace ARex {
 
 
   void SpaceMetrics::ReportSpaceChange(const GMConfig& config) {
+    if(!enabled) return; // not configured
     Glib::RecMutex::Lock lock_(lock);
 
     /*Free sessiondir space*/
@@ -221,7 +222,7 @@ namespace ARex {
 
   void SpaceMetrics::RunMetricsKicker(void* arg) {
     // Currently it is not allowed to start new external process
-    // from inside process licker (todo: redesign).
+    // from inside process kicker (todo: redesign).
     // So do it asynchronously from another thread.
     Arc::CreateThreadFunction(&SyncAsync, arg);
   }
