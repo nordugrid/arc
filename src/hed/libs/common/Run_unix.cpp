@@ -802,9 +802,9 @@ namespace Arc {
     return (!running_);
   }
 
-  void Run::AssignStdout(std::string& str) {
+  void Run::AssignStdout(std::string& str, int max_size) {
     if (!running_) {
-      stdout_str_wrap_.Assign(str);
+      stdout_str_wrap_.Assign(str,max_size);
       stdout_str_ = &stdout_str_wrap_;
     }
   }
@@ -815,9 +815,9 @@ namespace Arc {
     }
   }
 
-  void Run::AssignStderr(std::string& str) {
+  void Run::AssignStderr(std::string& str, int max_size) {
     if (!running_) {
-      stderr_str_wrap_.Assign(str);
+      stderr_str_wrap_.Assign(str,max_size);
       stderr_str_ = &stderr_str_wrap_;
     }
   }
@@ -872,18 +872,23 @@ namespace Arc {
   }
 
 
-  Run::StringData::StringData(): content_(NULL) {
+  Run::StringData::StringData(): content_(NULL),content_max_size_(0) {
   }
 
   Run::StringData::~StringData() {
   }
 
-  void Run::StringData::Assign(std::string& str) {
+  void Run::StringData::Assign(std::string& str, int content_max_size) {
+    content_max_size_ = content_max_size;
     content_ = &str;
   }
 
   void Run::StringData::Append(char const* data, unsigned int size) {
-    if(content_) content_->append(data, size);
+    if(content_) {
+      if((content_max_size_ > 0) && (content_->length() < content_max_size_)) {
+        content_->append(data, size);
+      }
+    }
   }
 
   void Run::StringData::Remove(unsigned int size) {

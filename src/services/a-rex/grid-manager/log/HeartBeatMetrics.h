@@ -23,8 +23,6 @@ class HeartBeatMetrics {
   std::string config_filename;
   std::string tool_path;
 
-  time_t time_now;
-  time_t time_lastupdate;
   time_t time_delta;
 
 
