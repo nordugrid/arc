@@ -5,6 +5,7 @@
 #endif
 #define USE_THREAD_POOL
 #define USE_THREAD_DATA
+#define USE_SEQUENTIAL_THREAD_ID
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -279,7 +280,9 @@ namespace Arc {
 #endif
 
   void ThreadArgument::thread(void) {
+#ifdef USE_SEQUENTIAL_THREAD_ID
     ThreadId::getInstance().add();
+#endif
 #ifdef USE_THREAD_DATA
     ThreadData* tdata = ThreadData::Get();
     if(tdata) {
@@ -313,32 +316,42 @@ namespace Arc {
 #ifdef USE_THREAD_DATA
     ThreadData::Remove();
 #endif
+#ifdef USE_SEQUENTIAL_THREAD_ID
     ThreadId::getInstance().remove();
+#endif
   }
 
   ThreadId& ThreadId::getInstance() {
-    static ThreadId* id = new ThreadId();
-    return *id;
+    static ThreadId id;
+    return id;
   }
 
   ThreadId::ThreadId(): thread_no(0) {}
 
   void ThreadId::add() {
+#ifdef USE_SEQUENTIAL_THREAD_ID
     Glib::Mutex::Lock lock(mutex);
     if (thread_no == ULONG_MAX) thread_no = 0;
     thread_ids[(size_t)(void*)Glib::Thread::self()] = ++thread_no;
+#endif
   }
 
   void ThreadId::remove() {
+#ifdef USE_SEQUENTIAL_THREAD_ID
     Glib::Mutex::Lock lock(mutex);
     thread_ids.erase((size_t)(void*)Glib::Thread::self());
+#endif
   }
 
   unsigned long int ThreadId::get() {
+#ifdef USE_SEQUENTIAL_THREAD_ID
     Glib::Mutex::Lock lock(mutex);
     size_t id = (size_t)(void*)Glib::Thread::self();
     if (thread_ids.count(id) == 0) return id;
     return thread_ids[id];
+#else
+    return (unsigned long int)(void*)Glib::Thread::self();
+#endif
   }
 
   bool CreateThreadFunction(void (*func)(void*), void *arg, SimpleCounter* count

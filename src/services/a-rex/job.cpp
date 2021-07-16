@@ -880,6 +880,7 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
   deleg_ids.unique();
   deleg.LockCred(id_,deleg_ids,config_.GridName());
 
+  // Tell main loop new job has arrived
   CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return;
 }

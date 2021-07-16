@@ -8,6 +8,7 @@
 #include "delegation/DelegationStore.h"
 #include "job.h"
 #include "grid-manager/files/ControlFileHandling.h"
+#include "grid-manager/jobs/CommFIFO.h"
 
 #include "arex.h"
 
@@ -519,7 +520,7 @@ Arc::MCC_Status ARexService::ESNotifyService(ARexGMConfig& config,Arc::XMLNode i
           // TODO: Destroy job (at least try to)
         } else {
           ritem.NewChild("esmanag:Acknowledgement");
-          gm_->RequestJobAttention(job.ID()); // Tell GM to resume this job
+          CommFIFO::Signal(config.GmConfig().ControlDir(),job.ID()); // Tell GM to resume this job
         };
       } else {
         // Wrong request

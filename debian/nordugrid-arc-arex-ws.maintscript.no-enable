@@ -1,0 +1,1 @@
+rm_conffile /etc/default/arc-arex-ws 6.7.0

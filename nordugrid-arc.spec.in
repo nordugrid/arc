@@ -1107,6 +1107,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %post arex
 %enable_service arc-arex
+%enable_service arc-arex-ws
 
 # out-of-package testing host certificate
 if [ $1 -eq 1 ]; then
@@ -1116,6 +1117,7 @@ fi
 
 %preun arex
 %stop_on_removal arc-arex
+%stop_on_removal arc-arex-ws
 
 if [ $1 -eq 0 ]; then
   arcctl test-ca cleanup
@@ -1123,6 +1125,7 @@ fi
 
 %postun arex
 %condrestart_on_update arc-arex
+%condrestart_on_update arc-arex-ws
 
 %post gridftpd
 %enable_service arc-gridftpd
@@ -1429,8 +1432,10 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %if %{use_systemd}
 %{_unitdir}/arc-arex.service
+%{_unitdir}/arc-arex-ws.service
 %else
 %{_initrddir}/arc-arex
+%{_initrddir}/arc-arex-ws
 %endif
 %{_libexecdir}/%{pkgdir}/cache-clean
 %{_libexecdir}/%{pkgdir}/cache-list
@@ -1490,6 +1495,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/perferator
 %{_datadir}/%{pkgdir}/PerfData.pl
 %{_datadir}/%{pkgdir}/arc-arex-start
+%{_datadir}/%{pkgdir}/arc-arex-ws-start
 %{_datadir}/%{pkgdir}/sql-schema/arex_accounting_db_schema_v1.sql
 %doc %{_mandir}/man1/arc-config-check.1*
 %doc %{_mandir}/man1/cache-clean.1*

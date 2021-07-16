@@ -38,7 +38,7 @@ void ARexService::InformationCollector(void) {
       std::string stderr_str;
       Arc::Run run(cmd);
       run.AssignStdin(stdin_str);
-      run.AssignStdout(xml_str);
+      run.AssignStdout(xml_str, 1024*1024); // can information document become bigger than 1MB?
       run.AssignStderr(stderr_str);
       logger_.msg(Arc::DEBUG,"Resource information provider: %s",cmd);
       if(!run.Start()) {
