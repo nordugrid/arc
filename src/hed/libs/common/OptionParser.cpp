@@ -317,16 +317,19 @@ namespace Arc {
       bool options_in_group = false;
       for (std::list<std::pair<OptionBase*, std::string> >::iterator it = options.begin();
            it != options.end(); it++) {
-        if ( (*it).second == g_it->first ) {
+        if ( it->second == g_it->first ) {
           options_in_group = true;
-          (*it).first->AddEntry(*grp);
+          it->first->AddEntry(*grp);
         }
       }
 
       if ( g_it->first == ARC_OPTION_DEFAULT_GROUP ) {
         ctx.set_main_group(*grp);
       } else {
-        if ( options_in_group ) ctx.add_group(*grp);
+        if ( options_in_group )
+          ctx.add_group(*grp);
+        else
+          delete grp;
       }
     }
 
