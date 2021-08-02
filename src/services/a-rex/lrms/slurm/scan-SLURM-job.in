@@ -325,7 +325,7 @@ function handle_diag_file {
 	    handle_diag_tries=$(( $handle_diag_tries - 1 ))
 	    if [ "$handle_diag_tries" -lt 3 ] ; then
 	        now=$(date +"%Y-%m-%d -%H:%M:%S")
-	        echo "scan-SLURM-job: \"$now\" - handle_diag_tries: \"$handle_diag_tries\" for CANCELLED job, cpu value was \"$cpus\"" 1>&2
+	        echo "scan-SLURM-job: \"$now\" - handle_diag_tries: \"$handle_diag_tries\" for job \"$localid\" - got cpu value \"$cpus\"\n" 1>&2
 	    fi
     done
 
@@ -430,7 +430,6 @@ for localid in ${localids[@]}; do
 	CANCELLED)
         failed=$(($failed + 1))
 	    handle_commentfile $localid
-	    echo "-1 Job was cancelled" > "${basenames[$localid]}.lrms_done"
 	    kicklist=(${kicklist[@]} $localid)
 	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
 	    handle_exitcode_cancelled $localid "-1" "Job was cancelled"
