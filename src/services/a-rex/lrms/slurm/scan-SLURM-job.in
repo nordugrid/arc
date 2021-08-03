@@ -435,38 +435,34 @@ for localid in ${localids[@]}; do
 	    handle_commentfile $localid
 	    kicklist=(${kicklist[@]} $localid)
 	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
-	    echo "[$(date  +%Y-%m-%d\ %T)] \"$localid\" CANCELLED, but jobinfo_failed - not setting exit code, will try again in next scan" 1>&2
-	    [ -z "$jobinfo_failed" ] && handle_exitcode_cancelled $localid "-1" "Job was cancelled" || { echo "[$(date  +%Y-%m-%d\ %T)] jobinfo_failed - not setting exit code" 1>&2; }
+	    [ -z "$jobinfo_failed" ] && handle_exitcode_cancelled $localid "-1" "Job was cancelled" || { echo "[$(date  +%Y-%m-%d\ %T)] \"$localid\" CANCELLED, but jobinfo_failed - not setting exit code, will try again in next scan" 1>&2; } 
 	    ;;
 	COMPLETED)
             done=$(($done + 1))
             handle_commentfile $localid
             handle_diag_file "$localid" "${basenames[$localid]}.diag"
-	    echo "[$(date  +%Y-%m-%d\ %T)] \"$localid\" COMPLETED, but jobinfo_failed - not setting exit code, will try again in next scan" 1>&2
-	    [ -z "$jobinfo_failed" ] && handle_exitcode $localid "0" "" || { echo "[$(date  +%Y-%m-%d\ %T)] jobinfo_failed - not setting exit code" 1>&2; }
+	    [ -z "$jobinfo_failed" ] && handle_exitcode $localid "0" "" || { echo "[$(date  +%Y-%m-%d\ %T)] \"$localid\" COMPLETED, but jobinfo_failed - not setting exit code, will try again in next scan" 1>&2; }
 	    ;;
 	FAILED)
 	    failed=$(($failed + 1))
 	    handle_commentfile $localid
 	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
-	    echo "[$(date  +%Y-%m-%d\ %T)] \"$localid\" FAILED, but jobinfo_failed - not setting exit code, will try again in next scan" 1>&2
-	    [ -z "$jobinfo_failed" ] && handle_exitcode $localid "-1" "Job failed" || { echo "[$(date  +%Y-%m-%d\ %T)] jobinfo_failed - not setting exit code" 1>&2; }
+	    [ -z "$jobinfo_failed" ] && handle_exitcode $localid "-1" "Job failed" || { echo "[$(date  +%Y-%m-%d\ %T)] \"$localid\" FAILED, but jobinfo_failed - not setting exit code, will try again in next scan" 1>&2; }
 	    ;;
 	TIMEOUT)
 	    failed=$(($failed + 1))
 	    handle_commentfile $localid
 	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
-	    echo "[$(date  +%Y-%m-%d\ %T)] \"$localid\" TIMEOUT, but jobinfo_failed - not setting exit code, will try again in next scan" 1>&2
-	    [ -z "$jobinfo_failed" ] && handle_exitcode $localid "-1" "Job timeout" || { echo "[$(date  +%Y-%m-%d\ %T)] jobinfo_failed - not setting exit code" 1>&2; }
+	    [ -z "$jobinfo_failed" ] && handle_exitcode $localid "-1" "Job timeout" || { echo "[$(date  +%Y-%m-%d\ %T)] \"$localid\" TIMEOUT, but jobinfo_failed - not setting exit code, will try again in next scan" 1>&2; }
 	    ;;
 	NODE_FAIL)
 	    failed=$(($failed + 1))
 	    handle_commentfile $localid
 	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
-	    echo "[$(date  +%Y-%m-%d\ %T)] \"$localid\" NODE_FAIL, but jobinfo_failed - not setting exit code, will try again in next scan" 1>&2
-	    [ -z "$jobinfo_failed" ] && handle_exitcode_cancelled $localid "-1" "Node fail" || { echo "[$(date  +%Y-%m-%d\ %T)] jobinfo_failed - not setting exit code" 1>&2; }
+	    [ -z "$jobinfo_failed" ] && handle_exitcode_cancelled $localid "-1" "Node fail" || { 	    echo "[$(date  +%Y-%m-%d\ %T)] \"$localid\" NODE_FAIL, but jobinfo_failed - not setting exit code, will try again in next scan" 1>&2; }
 	    ;;
     esac
+    unset jobinfo_failed
 done
 
 if [ ! -z "$perflogdir" ]; then
