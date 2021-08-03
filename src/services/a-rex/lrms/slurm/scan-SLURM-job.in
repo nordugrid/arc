@@ -371,8 +371,6 @@ failed=0
 # Look at the list of jobstates and determine which jobs that have
 # finished. Write job.XXXX.lrms_done according to this
 for localid in ${localids[@]}; do
-#    state=${jobstates[$localid]}
-#     case $state in
     # Initialize jobfile variable since it's used below
     jobfile="${basenames[$localid]}.local"
     case "${jobstates[$localid]}" in
