@@ -202,6 +202,7 @@ function handle_exitcode {
     tmpexitcode="$2"
     reason="$3"
 
+    ## TO-DO: also handle if sacct or scontrol throws error - i.e. slurm connect problems
     if [ "$use_sacct" ]; then 
       jobinfostring=$("$sacct" -j $localid.batch -o ExitCode -P | tail -n 1)
       exitcode1=$(echo $jobinfostring|awk -F':' '{print $1}')
@@ -242,6 +243,8 @@ function handle_exitcode_cancelled {
     tmpexitcode="$2"
     reason="$3"
 
+
+    ## TO-DO: also handle if sacct or scontrol throws error - i.e. slurm connect problems
     if [ "$use_sacct" ]; then 
       jobinfostring=$("$sacct" -j $localid -o ExitCode,State -P | tail -n 1)
       exitcode1=$(echo $jobinfostring|awk -F':' '{print $1}')
@@ -290,9 +293,12 @@ function handle_diag_file {
     ## is not successfully fetched from slurm due to slurm connection/timeout issues
     while [ "$handle_diag_tries" -gt 0 ] ; do
 	    if [ "$use_sacct" ]; then 
-		jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,NNODES,CPUTimeRAW,Start,End,UserCPU,SystemCPU,ExitCode,State -P | tail -n 1) \
-		    || { echo "\"[$(date  +%Y-%m-%d\ %T)]\" sacct failed - could not fetch jobinfostring" 1>&2; jobinfo_collect_failed=1;}
-	    
+		jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,NNODES,CPUTimeRAW,Start,End,UserCPU,SystemCPU,ExitCode,State -P | tail -n 1) 
+		if [ -z "$jobinfostring" ]; then
+                    echo "\"[$(date  +%Y-%m-%d\ %T)]\" sacct failed - could not fetch jobinfostring" 1>&2;
+                    jobinfo_failed=1;
+                fi
+
 	        cpus=$(echo "$jobinfostring" | awk -F'|' '{print $1}')
 
 	        starttime=$(echo "$jobinfostring"|awk -F'|' '{print $4}'| sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
