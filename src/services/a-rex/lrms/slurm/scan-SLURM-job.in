@@ -292,6 +292,10 @@ function handle_diag_file {
     ## This while loop is an attempt to reduce the cases where the job info
     ## is not successfully fetched from slurm due to slurm connection/timeout issues
     while [ "$handle_diag_tries" -gt 0 ] ; do
+	    
+
+	    unset jobinfo_failed
+
 	    if [ "$use_sacct" ]; then 
 		jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,NNODES,CPUTimeRAW,Start,End,UserCPU,SystemCPU,ExitCode,State -P | tail -n 1) 
 		if [ -z "$jobinfostring" ]; then
@@ -331,12 +335,14 @@ function handle_diag_file {
 	    ## If (not empty cpus variable, and cpus variable is a number) or cpus variable is NCPUS then we are done, so break out of the retry loop  
 	    if ( [   -n "$cpus" ]  &&  [ "$cpus" -eq "$cpus" ]  2>/dev/null ) ||   [ z"$cpus" = "zNCPUS" ] ; then break ; fi
 
+	    if (( [ -z "$cpus" ] || [ -n "$cpus"] && [ z"$cpus"! = "zNCPUS"]))
 	    if [ "$handle_diag_tries" -lt 3 ] ; then
 	        echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] handle_diag_tries: $handle_diag_tries for job $localid - got cpus: $cpus" 1>&2
 		echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] jobinfo_collect_failed var is: $jobinfo_collect_failed " 1>&2
 	    fi
 
 	    handle_diag_tries=$(( $handle_diag_tries - 1 ))
+	    sleep 2
     done
 
     # if "sacct -j $localid.batch" return string "NCPUS|NNodes..." only, the job has no batch stage, it was killed before start on WN
