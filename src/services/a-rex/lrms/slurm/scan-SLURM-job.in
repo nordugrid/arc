@@ -324,12 +324,13 @@ function handle_diag_file {
 	    ## The latter is handled already in handle_diag_file function
 	    ## If (not empty cpus variable, and cpus variable is a number) or cpus variable is NCPUS then we are done, so break out of the retry loop  
 	    if ( [   -n "$cpus" ]  &&  [ "$cpus" -eq "$cpus" ]  2>/dev/null ) ||   [ z"$cpus" = "zNCPUS" ] ; then break ; fi
-	    sleep 1
-	    handle_diag_tries=$(( $handle_diag_tries - 1 ))
+
 	    if [ "$handle_diag_tries" -lt 3 ] ; then
 	        echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] handle_diag_tries: $handle_diag_tries for job $localid - got cpus: $cpus" 1>&2
 		echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] jobinfo_collect_failed var is: $jobinfo_collect_failed " 1>&2
 	    fi
+
+	    handle_diag_tries=$(( $handle_diag_tries - 1 ))
     done
 
     # if "sacct -j $localid.batch" return string "NCPUS|NNodes..." only, the job has no batch stage, it was killed before start on WN
