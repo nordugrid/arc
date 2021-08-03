@@ -296,7 +296,7 @@ function handle_diag_file {
 		jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,NNODES,CPUTimeRAW,Start,End,UserCPU,SystemCPU,ExitCode,State -P | tail -n 1) 
 		if [ -z "$jobinfostring" ]; then
                     echo "\"[$(date  +%Y-%m-%d\ %T)]\" sacct failed - could not fetch jobinfostring" 1>&2;
-                    jobinfo_failed=1;
+                    jobinfo_collect_failed=1;
                 fi
 
 	        cpus=$(echo "$jobinfostring" | awk -F'|' '{print $1}')
