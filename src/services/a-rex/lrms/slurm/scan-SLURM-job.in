@@ -294,7 +294,7 @@ function handle_diag_file {
     while [ "$handle_diag_tries" -gt 0 ] ; do
 	    
 
-	    unset jobinfo_failed
+	    unset jobinfo_collect_failed
 
 	    if [ "$use_sacct" ]; then 
 		jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,NNODES,CPUTimeRAW,Start,End,UserCPU,SystemCPU,ExitCode,State -P | tail -n 1) 
