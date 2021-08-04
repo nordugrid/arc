@@ -14,43 +14,6 @@ stages:
 #############################################################
 
 ###############
-#    CENTOS 6
-###############
-fork_packages_el6:
-  stage: build
-  image: maikenp/arc-build-centos6
-  script:
-    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
-    - yum update -y
-    - ./autogen.sh
-    - ./configure
-    - yum-builddep nordugrid-arc.spec -y
-    - echo "Preparing and running rpmbuild"
-    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
-    - make dist
-    - VERSION=`cat VERSION`
-    - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
-    - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
-  tags:
-      - build
-  except:
-    refs:
-      - master
-      - next-major
-      - dev-ARC6
-      - branches@nordugrid/arc
-      - tags@nordugrid/arc
-  artifacts:
-    when: on_success
-    expire_in: 3 days
-    paths:
-    - $CI_PROJECT_DIR/rpmbuild/SRPMS/
-    - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
-    - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
-  allow_failure: false
-
-
-###############
 #    CENTOS 7
 ###############
 fork_packages_el7:
@@ -251,39 +214,6 @@ fork_packages_ubuntu1804:
 
 
 ##################
-#    CENTOS 6
-##################
-packages_el6:
-  stage: packages
-  image: maikenp/arc-build-centos6
-  script:
-    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
-    - yum update -y
-    - ./autogen.sh
-    - ./configure
-    - yum-builddep nordugrid-arc.spec -y
-    - echo "Preparing and running rpmbuild"
-    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
-    - make dist
-    - VERSION=`cat VERSION`
-    - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
-    - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
-  tags:
-    - build
-  only:
-    - branches@nordugrid/arc
-    - tags@nordugrid/arc
-  artifacts:
-    when: on_success
-    expire_in: 30 days
-    paths:
-    - $CI_PROJECT_DIR/rpmbuild/SRPMS/
-    - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
-    - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
-  allow_failure: false
-
-
-##################
 #    CENTOS 7
 ##################
 packages_el7:
@@ -464,49 +394,6 @@ packages_ubuntu1804:
 #############################################################
 ##             MAIN REPO DEPLOY                            ## 
 #############################################################
-
-  
-##################
-#    CENTOS 6
-##################
-deploy_staging_el6:
-  stage: deploy_and_test
-  image: docker:stable
-  script:
-    - export DOCKER_API_VERSION=1.19
-    - deploy_container=el6_`date +%Y%m%dT%H%M`
-    - docker pull maikenp/arc-deploy-centos6
-    - gitlab_container=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
-    - mkdir -p /rpmbuild
-    - cp -r $CI_PROJECT_DIR/rpmbuild/* /rpmbuild
-    - ls -lhrt /rpmbuild
-    - docker run  --name=$deploy_container  --volumes-from $gitlab_container  -v "/rpmbuild:/rpmbuild:rw"  -v "/arc-testlogs:/arc-testlogs:rw" -v "/arc-logs:/arc-logs:rw" --publish  443  --publish 2811 --publish 9000-9002 --publish 9000-9002/udp --rm  maikenp/arc-deploy-centos6
-    - echo "*************>>  Done - back from inner container"
-    - rm -rf /rpmbuild/*
-    - ls -lhrt /arc-logs
-    - cp -r /arc-logs $CI_PROJECT_DIR
-    - ls -lhrt $CI_PROJECT_DIR/arc-logs
-    - rm -rf /arc-logs/*
-    - ls -lhrt /arc-logs
-    - rm -f /arc-testlogs/*
-    - ls -lhrt /arc-testlogs
-    - docker stop $deploy_container || true
-  environment:
-    name: staging
-  artifacts:
-    when: always
-    paths:
-     - $CI_PROJECT_DIR/arc-logs/
-  dependencies:
-    - packages_el6
-  tags:
-    - 158.39.74.3
-    - deploy
-  only:
-    - branches@nordugrid/arc
-    - tags@nordugrid/arc
-  allow_failure: true
-
 
 ##################
 #    CENTOS 7
