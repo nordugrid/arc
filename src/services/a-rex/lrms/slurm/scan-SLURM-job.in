@@ -226,7 +226,7 @@ function handle_exitcode {
         fi
     done
 
-    ## If all 3 retries failed hence jobinfo_exitcode_failed set, skip this step and try again at next scan
+    ## If all retries failed hence jobinfo_exitcode_failed set, skip this step and try again at next scan
     if [ -z "$jobinfo_exitcode_failed" ]; then
         if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
             exitcode=$tmpexitcode
@@ -283,7 +283,7 @@ function handle_exitcode_cancelled {
         fi
     done
 
-    ## If all 3 retries failed hence jobinfo_exitcode_failed set, skip this step and try again at next scan
+    ## If all retries failed hence jobinfo_exitcode_failed set, skip this step and try again at next scan
     if [ -z "$jobinfo_exitcode_cancelled_failed" ]; then
         if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
             exitcode=$tmpexitcode
