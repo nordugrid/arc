@@ -201,31 +201,47 @@ function handle_exitcode {
     localid="$1"
     tmpexitcode="$2"
     reason="$3"
+    exitcode_retries=3
     
-    ## TO-DO: also handle if sacct or scontrol throws error - i.e. slurm connect problems
-    if [ "$use_sacct" ]; then 
-        jobinfostring=$("$sacct" -j $localid.batch -o ExitCode -P | tail -n 1)
-        exitcode1=$(echo $jobinfostring|awk -F':' '{print $1}')
-        exitcode2=$(echo $jobinfostring|awk -F':' '{print $2}')
-    else
-        jobinfostring=$("$scontrol" -o show job $localid)
-        exitcode1=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\1/p')
-        exitcode2=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\2/p')
-    fi
+    while [ "$exitcode_retries" -gt 0 ]; do
 
+        if [ "$use_sacct" ]; then 
+            jobinfostring=$("$sacct" -j $localid.batch -o ExitCode -P | tail -n 1)
+            exitcode1=$(echo $jobinfostring|awk -F':' '{print $1}')
+            exitcode2=$(echo $jobinfostring|awk -F':' '{print $2}')
+        else
+            jobinfostring=$("$scontrol" -o show job $localid)
+            exitcode1=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\1/p')
+            exitcode2=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\2/p')
+        fi
+        
+        if [ -z "$jobinfostring" ]; then
+            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed - could not fetch jobinfostring for exit code handling, trying again" 1>&2;
+            exitcode_retries=$(( $exitcode_retries - 1 ))
+            jobinfo_exitcode_failed = 1
+        else
+            ## all ok, break out of loop
+            unset jobinfo_exitcode_failed
+            break
+        fi
+    done
 
-    if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
+    ## If all 3 retries failed hence jobinfo_exitcode_failed set, skip this step and try again at next scan
+    if [ -z "$jobinfo_exitcode_failed" ]; then
+        if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
             exitcode=$tmpexitcode
-    elif [ $exitcode2 -ne 0 ]; then
+        elif [ $exitcode2 -ne 0 ]; then
             exitcode=$(( $exitcode2 + 256 ))
-    elif [ $exitcode1 -ne 0 ]; then
+        elif [ $exitcode1 -ne 0 ]; then
             exitcode=$exitcode1
-    else
+        else
             exitcode=0
+        fi
+    
+        echo "$exitcode $reason" > "${basenames[$localid]}.lrms_done"
+        kicklist=(${kicklist[@]} $localid)
     fi
-
-    echo "$exitcode $reason" > "${basenames[$localid]}.lrms_done"
-    kicklist=(${kicklist[@]} $localid)
+        
 }
 
 # A special version of the function above, needed to force 
@@ -241,39 +257,52 @@ function handle_exitcode_cancelled {
     localid="$1"
     tmpexitcode="$2"
     reason="$3"
-    
+    exitcode_retries=3
 
-    ## TO-DO: also handle if sacct or scontrol throws error - i.e. slurm connect problems
-    if [ "$use_sacct" ]; then 
-        jobinfostring=$("$sacct" -j $localid -o ExitCode,State -P | tail -n 1)
-        exitcode1=$(echo $jobinfostring|awk -F':' '{print $1}')
-        exitcode2=$(echo $jobinfostring|awk -F':' '{print $2}')
-        reason=$(echo $jobinfostring|awk -F'|' '{print $2}')
-        [ -z "$reason" ] || exitcode2=$(echo $exitcode2|awk -F'|' '{print $1}')
-    else
-        jobinfostring=$("$scontrol" -o show job $localid)
-        exitcode1=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\1/p')
-        exitcode2=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\2/p')
-    fi
-
-
-    if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
-        exitcode=$tmpexitcode
-    elif [ ! -z "$exitcode2" ] && [ "$exitcode2" -ne 0 ]; then
-        exitcode=$(( $exitcode2 + 256 ))
-    elif [ ! -z "$exitcode1" ] && [ "$exitcode1" -ne 0 ]; then
-        exitcode=$exitcode1
-    else
-        exitcode=0
-    fi
-    if [ $exitcode -eq 0 ]; then
-        exitcode=15
-        if [ ! -z "$reason" ]; then
-            reason="Job was cancelled by SLURM"
+    while [ "$exitcode_retries" -gt 0 ]; do
+        if [ "$use_sacct" ]; then 
+            jobinfostring=$("$sacct" -j $localid -o ExitCode,State -P | tail -n 1)
+            exitcode1=$(echo $jobinfostring|awk -F':' '{print $1}')
+            exitcode2=$(echo $jobinfostring|awk -F':' '{print $2}')
+            reason=$(echo $jobinfostring|awk -F'|' '{print $2}')
+            [ -z "$reason" ] || exitcode2=$(echo $exitcode2|awk -F'|' '{print $1}')
+        else
+            jobinfostring=$("$scontrol" -o show job $localid)
+            exitcode1=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\1/p')
+            exitcode2=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\2/p')
         fi
+
+        if [ -z "$jobinfostring" ]; then
+            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed - could not fetch jobinfostring for exit code handling, trying again" 1>&2;
+            exitcode_retries=$(( $exitcode_retries - 1 ))
+            jobinfo_exitcode_cancelled_failed=1
+        else
+            ## all ok, break out of loop
+            unset jobinfo_exitcode_cancelled_failed
+            break
+        fi
+    done
+
+    ## If all 3 retries failed hence jobinfo_exitcode_failed set, skip this step and try again at next scan
+    if [ -z "$jobinfo_exitcode_cancelled_failed" ]; then
+        if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
+            exitcode=$tmpexitcode
+        elif [ ! -z "$exitcode2" ] && [ "$exitcode2" -ne 0 ]; then
+        exitcode=$(( $exitcode2 + 256 ))
+        elif [ ! -z "$exitcode1" ] && [ "$exitcode1" -ne 0 ]; then
+            exitcode=$exitcode1
+        else
+            exitcode=0
+        fi
+        if [ $exitcode -eq 0 ]; then
+            exitcode=15
+            if [ ! -z "$reason" ]; then
+                reason="Job was cancelled by SLURM"
+            fi
+        fi
+        echo "$exitcode $reason" > "${basenames[$localid]}.lrms_done"
+        kicklist=(${kicklist[@]} $localid)
     fi
-    echo "$exitcode $reason" > "${basenames[$localid]}.lrms_done"
-    kicklist=(${kicklist[@]} $localid)
 }
 
 
@@ -297,10 +326,6 @@ function handle_diag_file {
         
         if [ "$use_sacct" ]; then 
             jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,NNODES,CPUTimeRAW,Start,End,UserCPU,SystemCPU,ExitCode,State -P | tail -n 1) 
-            if [ -z "$jobinfostring" ]; then
-                echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct failed - could not fetch jobinfostring" 1>&2;
-                jobinfo_collect_failed=1;
-            fi
             
             cpus=$(echo "$jobinfostring" | awk -F'|' '{print $1}')
             
@@ -315,12 +340,6 @@ function handle_diag_file {
             [ -z "$kernelcputime" ] && kernelcputime="00:00:00"
         else
             jobinfostring=$("$scontrol" -o show job $localid) 
-            if [ -z "$jobinfostring" ]; then
-                echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] scontrol failed - could not fetch jobinfostring" 1>&2;
-                jobinfo_collect_failed=1;
-            fi
-            
-            
             
             #Slurm can report StartTime and EndTime in at least these two formats:
             #2010-02-15T15:30:29
@@ -333,6 +352,12 @@ function handle_diag_file {
                           sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
             cpus=$(echo "$jobinfostring"|sed -n 's/.*NumCPUs=\([^ ]*\) .*/\1/p')
         fi
+        
+        if [ -z "$jobinfostring" ]; then
+            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed - could not fetch jobinfostring" 1>&2;
+            jobinfo_collect_failed=1;
+        fi
+
         
         ## Do not try again if cpus correctly filled with a number. Or if cpus filled with header of sacct, which means cpus=NCPUS. 
         ## The latter is handled already in handle_diag_file function
