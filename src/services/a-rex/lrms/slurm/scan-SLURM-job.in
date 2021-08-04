@@ -298,7 +298,7 @@ function handle_diag_file {
         if [ "$use_sacct" ]; then 
             jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,NNODES,CPUTimeRAW,Start,End,UserCPU,SystemCPU,ExitCode,State -P | tail -n 1) 
             if [ -z "$jobinfostring" ]; then
-                echo "\"[$(date  +%Y-%m-%d\ %T)]\" sacct failed - could not fetch jobinfostring" 1>&2;
+                echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct failed - could not fetch jobinfostring" 1>&2;
                 jobinfo_collect_failed=1;
             fi
             
@@ -316,7 +316,7 @@ function handle_diag_file {
         else
             jobinfostring=$("$scontrol" -o show job $localid) 
             if [ -z "$jobinfostring" ]; then
-                echo "\"[$(date  +%Y-%m-%d\ %T)]\" scontrol failed - could not fetch jobinfostring" 1>&2;
+                echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] scontrol failed - could not fetch jobinfostring" 1>&2;
                 jobinfo_collect_failed=1;
             fi
             
@@ -448,31 +448,31 @@ for localid in ${localids[@]}; do
                 handle_commentfile $localid
                 kicklist=(${kicklist[@]} $localid)
                 handle_diag_file "$localid" "${basenames[$localid]}.diag"
-                [ -z "$jobinfo_collect_failed" ] && handle_exitcode_cancelled $localid "-1" "Job was cancelled" || echo "[$(date  +%Y-%m-%d\ %T)] \"$localid\" CANCELLED, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
+                [ -z "$jobinfo_collect_failed" ] && handle_exitcode_cancelled $localid "-1" "Job was cancelled" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] \"$localid\" CANCELLED, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
                 ;;
             COMPLETED)
                 completed=$(($completed + 1))
                 handle_commentfile $localid
                 handle_diag_file "$localid" "${basenames[$localid]}.diag"
-                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "0" "" || echo "[$(date  +%Y-%m-%d\ %T)] \"$localid\" COMPLETED, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
+                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "0" "" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] \"$localid\" COMPLETED, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
                 ;;
             FAILED)
                 failed=$(($failed + 1))
                 handle_commentfile $localid
                 handle_diag_file "$localid" "${basenames[$localid]}.diag"
-                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Job failed" || echo "[$(date  +%Y-%m-%d\ %T)] \"$localid\" FAILED, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
+                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Job failed" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] \"$localid\" FAILED, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
                 ;;
             TIMEOUT)
                 failed=$(($failed + 1))
                 handle_commentfile $localid
                 handle_diag_file "$localid" "${basenames[$localid]}.diag"
-                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Job timeout" || echo "[$(date  +%Y-%m-%d\ %T)] \"$localid\" TIMEOUT, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
+                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Job timeout" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] \"$localid\" TIMEOUT, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
                 ;;
             NODE_FAIL)
                 failed=$(($failed + 1))
                 handle_commentfile $localid
                 handle_diag_file "$localid" "${basenames[$localid]}.diag"
-                [ -z "$jobinfo_collect_failed" ] && handle_exitcode_cancelled $localid "-1" "Node fail" || echo "[$(date  +%Y-%m-%d\ %T)] \"$localid\" NODE_FAIL, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
+                [ -z "$jobinfo_collect_failed" ] && handle_exitcode_cancelled $localid "-1" "Node fail" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] \"$localid\" NODE_FAIL, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
                 ;;
     esac
     unset jobinfo_collect_failed
