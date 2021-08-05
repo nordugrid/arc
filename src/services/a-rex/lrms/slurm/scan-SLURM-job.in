@@ -204,7 +204,7 @@ handle_commentfile () {
 #  * tmpexitcode (hardcoded exitcode)
 #  * reason (hardcoded reason)
 #
-# The following variables are initialized and written to .lrms_done
+# The following variables are initialized and updated, then written to .lrms_done
 #  * exitcode (either hardcoded tmpexitcode or 
 #  * reason
 #
@@ -306,7 +306,6 @@ function handle_exitcode {
 #
 # The STDOUT and STDERR are redirected to the job-helper.errors file.
 #
-# TO-DO: investigate if the exitcode should be updated too, like the equivalent condor scan procedure does
 function handle_diag_file {
     localid="$1"
     ctr_diag="$2"
