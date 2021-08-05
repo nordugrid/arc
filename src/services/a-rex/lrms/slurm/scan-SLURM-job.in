@@ -211,9 +211,6 @@ handle_commentfile () {
 # In slurm the exitcode is returned as <num>:<num> where the first <num> is the exit code,
 # and the second <num> is the signal number responsible for the job termination
 #
-# TO-DO: 1) Investigate if the DerivedExitCode is useful, also, maybe the Comment output can be used for reason, or appended to reason?
-##          Example: sacct -j 409971.batch -o ExitCode,DerivedExitcode,Comment
-#        2) is $localid.batch necessary, or can just $localid be used? $localid contains DerivedExitCode while $localid.batch does not
 function handle_exitcode {
     localid="$1"
     tmpexitcode="$2"
@@ -223,7 +220,7 @@ function handle_exitcode {
     while [ "$exitcode_retries" -gt 0 ]; do
 
         if [ "$use_sacct" ]; then 
-            jobinfostring=$("$sacct" -j $localid.batch -o ExitCode -P | tail -n 1)
+            jobinfostring=$("$sacct" -j $localid -o ExitCode,State -P | tail -n 1)
             exitcode1=$(echo $jobinfostring|awk -F':' '{print $1}')
             exitcode2=$(echo $jobinfostring|awk -F':' '{print $2}')
         else
@@ -247,80 +244,23 @@ function handle_exitcode {
     if [ -z "$jobinfo_exitcode_failed" ]; then
         if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
             exitcode=$tmpexitcode
-        elif [ $exitcode2 -ne 0 ]; then
+        elif [ -n "$exitcode2" ] && [ $exitcode2 -ne 0 ]; then
             exitcode=$(( $exitcode2 + 256 ))
-        elif [ $exitcode1 -ne 0 ]; then
+        elif [ -n "$exitcode1" ] && [ $exitcode1 -ne 0 ]; then
             exitcode=$exitcode1
         else
             exitcode=0
         fi
-    
+
+        # Special handling of cancelled jobs - as SLURM can return exitcode 0:0 for cancelled jobs
+        if [ $exitcode -eq 0 ] && [[ $reason == *"cancelled"* ]] ; then
+            exitcode=15
+        fi
+
         echo "$exitcode $reason" > "${basenames[$localid]}.lrms_done"
         kicklist=(${kicklist[@]} $localid)
     fi
         
-}
-
-
-# A special version of the function above, needed to force 
-# exit code to non-zero if the job was cancelled, since
-# CANCELLED jobs in SLURM can have 0 exit code.
-# This is a temporary workaround, should later be replaced by 
-# proper fix that determines the reason of failure
-#
-# if the job was canceled in queued state there is no .batch for it
-# so, sacct -j $localid.batch does not work, but  sacct -j $localid will do
-# the fix done
-function handle_exitcode_cancelled {
-    localid="$1"
-    tmpexitcode="$2"
-    reason="$3"
-    exitcode_retries=3
-
-    while [ "$exitcode_retries" -gt 0 ]; do
-        if [ "$use_sacct" ]; then 
-            jobinfostring=$("$sacct" -j $localid -o ExitCode,State -P | tail -n 1)
-            exitcode1=$(echo $jobinfostring|awk -F':' '{print $1}')
-            exitcode2=$(echo $jobinfostring|awk -F':' '{print $2}')
-            reason=$(echo $jobinfostring|awk -F'|' '{print $2}')
-            [ -z "$reason" ] || exitcode2=$(echo $exitcode2|awk -F'|' '{print $1}')
-        else
-            jobinfostring=$("$scontrol" -o show job $localid)
-            exitcode1=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\1/p')
-            exitcode2=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\2/p')
-        fi
-
-        if [ -z "$jobinfostring" ]; then
-            exitcode_retries=$(( $exitcode_retries - 1 ))
-            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed for job: $jobid - could not fetch jobinfostring for exit code handling. Retries left: $exitcode_retries" 1>&2;
-            jobinfo_exitcode_cancelled_failed=1
-        else
-            ## all ok, break out of loop
-            unset jobinfo_exitcode_cancelled_failed
-            break
-        fi
-    done
-
-    ## If all retries failed hence jobinfo_exitcode_failed set, skip this step and try again at next scan
-    if [ -z "$jobinfo_exitcode_cancelled_failed" ]; then
-        if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
-            exitcode=$tmpexitcode
-        elif [ ! -z "$exitcode2" ] && [ "$exitcode2" -ne 0 ]; then
-        exitcode=$(( $exitcode2 + 256 ))
-        elif [ ! -z "$exitcode1" ] && [ "$exitcode1" -ne 0 ]; then
-            exitcode=$exitcode1
-        else
-            exitcode=0
-        fi
-        if [ $exitcode -eq 0 ]; then
-            exitcode=15
-            if [ ! -z "$reason" ]; then
-                reason="Job was cancelled by SLURM"
-            fi
-        fi
-        echo "$exitcode $reason" > "${basenames[$localid]}.lrms_done"
-        kicklist=(${kicklist[@]} $localid)
-    fi
 }
 
 
@@ -529,7 +469,7 @@ for localid in ${localids[@]}; do
                 handle_commentfile $localid
                 kicklist=(${kicklist[@]} $localid)
                 handle_diag_file "$localid" "${basenames[$localid]}.diag"
-                [ -z "$jobinfo_collect_failed" ] && handle_exitcode_cancelled $localid "-1" "Job was cancelled" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] \"$localid\" CANCELLED, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
+                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Job was cancelled" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] \"$localid\" CANCELLED, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
                 ;;
             COMPLETED)
                 completed=$(($completed + 1))
@@ -553,7 +493,7 @@ for localid in ${localids[@]}; do
                 failed=$(($failed + 1))
                 handle_commentfile $localid
                 handle_diag_file "$localid" "${basenames[$localid]}.diag"
-                [ -z "$jobinfo_collect_failed" ] && handle_exitcode_cancelled $localid "-1" "Node fail" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] \"$localid\" NODE_FAIL, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
+                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Node fail" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] \"$localid\" NODE_FAIL, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
                 ;;
     esac
     unset jobinfo_collect_failed
