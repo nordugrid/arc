@@ -195,8 +195,25 @@ handle_commentfile () {
     save_commentfile "$uid" "${sessiondir}.comment" "${basenames[$localid]}.errors"
 }
 
-# Call scontrol and find the exitcode of a job. Write this, together with a
-# message to the lrms_done file. This function is used in the loop below.
+# This function is called after a successfull call to handle_diag_file.
+# It fetches the exitcode from SLURM and inserts the code into the job.$localid.lrms_done file
+# The kicklist is updated to include the $localid of this job
+#
+# Input variables:
+#  * localid
+#  * tmpexitcode (hardcoded exitcode)
+#  * reason (hardcoded reason)
+#
+# The following variables are initialized and written to .lrms_done
+#  * exitcode (either hardcoded tmpexitcode or 
+#  * reason
+#
+# In slurm the exitcode is returned as <num>:<num> where the first <num> is the exit code,
+# and the second <num> is the signal number responsible for the job termination
+#
+# TO-DO: 1) Investigate if the DerivedExitCode is useful, also, maybe the Comment output can be used for reason, or appended to reason?
+##          Example: sacct -j 409971.batch -o ExitCode,DerivedExitcode,Comment
+#        2) is $localid.batch necessary, or can just $localid be used? $localid contains DerivedExitCode while $localid.batch does not
 function handle_exitcode {
     localid="$1"
     tmpexitcode="$2"
@@ -243,6 +260,7 @@ function handle_exitcode {
     fi
         
 }
+
 
 # A special version of the function above, needed to force 
 # exit code to non-zero if the job was cancelled, since
@@ -306,10 +324,49 @@ function handle_exitcode_cancelled {
 }
 
 
-#This function filters out WallTime from the .diag-file if present and
-#replaces it with output from the LRMS, it also adds StartTime and
-#EndTime for accounting.
-
+#
+# Collects accounting info from LRMS for a job by using sacct or scontrol SLURM commands
+# depending on ARC configuration. The job's LRMS id is stored in the "localid" variable.
+# It first reads the jobs diag file. The job_read_diag function initializes the following variables:
+#  * nodename
+#  * WallTime
+#  * UserTime
+#  * KernelTime
+#  * TotalMemory
+#  * ResidentMemory
+#  * LRMSStartTime
+#  * LRMSEndTime
+#  * exitcode
+#
+# Next, information from LRMS is fetched.
+# If sacct is used, the following info is fetched:
+#   * cpus (NCPUS)
+#   * starttime (Start)
+#   * endtime (End)
+#   * usercputime (UserCPU)
+#   * kernelcputime (SystemCPU)
+#
+# If scontrol is used instead of sacct, no usercputime is available, only walltime.
+# The following info is fetched from scontrol:
+#   * cpus
+#   * starttime (Start)
+#   * endtime (End)
+#
+# Once the values have been fetched, the diag file values updated are
+#   * WallTime - in seconds
+#   * Processors
+#   * UserTime - in seconds
+#   * KernelTime - in seconds 
+# Note again that in the case where scontrol is used instead of sacct UserTime=WallTime
+#
+# If for some reason sacct or scontrol fails (the former due to e.g. the slurm database being overloade)
+# a retry functionality is included. 3 retries is attempted for sacct/scontrol call. If still no 
+# success, the handle_errorcode or handle_errorcode_cancelled is not called, avoiding the lrms_done mark.
+# This results in the job being picked up in the next scan for a new attempt.
+#
+# The STDOUT and STDERR are redirected to the job-helper.errors file.
+#
+# TO-DO: investigate if the exitcode should be updated too, like the equivalent condor scan procedure does
 function handle_diag_file {
     localid="$1"
     ctr_diag="$2"
