@@ -216,8 +216,8 @@ function handle_exitcode {
         fi
         
         if [ -z "$jobinfostring" ]; then
-            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed - could not fetch jobinfostring for exit code handling, trying again" 1>&2;
             exitcode_retries=$(( $exitcode_retries - 1 ))
+            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed for job: $jobid - could not fetch jobinfostring for exit code handling. Retries left: $exitcode_retries" 1>&2;
             jobinfo_exitcode_failed = 1
         else
             ## all ok, break out of loop
@@ -273,8 +273,8 @@ function handle_exitcode_cancelled {
         fi
 
         if [ -z "$jobinfostring" ]; then
-            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed - could not fetch jobinfostring for exit code handling, trying again" 1>&2;
             exitcode_retries=$(( $exitcode_retries - 1 ))
+            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed for job: $jobid - could not fetch jobinfostring for exit code handling. Retries left: $exitcode_retries" 1>&2;
             jobinfo_exitcode_cancelled_failed=1
         else
             ## all ok, break out of loop
@@ -354,7 +354,6 @@ function handle_diag_file {
         fi
         
         if [ -z "$jobinfostring" ]; then
-            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed - could not fetch jobinfostring" 1>&2;
             jobinfo_collect_failed=1;
         fi
 
@@ -364,11 +363,11 @@ function handle_diag_file {
         ## If (not empty cpus variable, and cpus variable is a number) or cpus variable is NCPUS then we are done, so break out of the retry loop  
         if ( [   -n "$cpus" ]  &&  [ "$cpus" -eq "$cpus" ]  2>/dev/null ) ||   [ z"$cpus" = "zNCPUS" ] ; then break ; fi
 
-        if [ "$handle_diag_tries" -lt 3 ] ; then
-            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] handle_diag_tries: $handle_diag_tries for job $localid. jobinfo_collect_failed is set to: $jobinfo_collect_failed. Will try again." 1>&2;
+        handle_diag_tries=$(( $handle_diag_tries - 1 ))
+        if [ -n "$jobinfo_collect_failed"  ] ; then
+            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed for job: $localid - could not fetch jobinfostring. Retries left: $handle_diag_tries." 1>&2;
         fi
         
-        handle_diag_tries=$(( $handle_diag_tries - 1 ))
         sleep 2
     done
 
