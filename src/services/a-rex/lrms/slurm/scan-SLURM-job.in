@@ -232,7 +232,7 @@ function handle_exitcode {
         if [ -z "$jobinfostring" ]; then
             exitcode_retries=$(( $exitcode_retries - 1 ))
             echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed for job: $jobid - could not fetch jobinfostring for exit code handling. Retries left: $exitcode_retries" 1>&2;
-            jobinfo_exitcode_failed = 1
+            jobinfo_exitcode_failed=1
         else
             ## all ok, break out of loop
             unset jobinfo_exitcode_failed
