@@ -73,7 +73,7 @@ namespace Arc {
     /// Gets the period in seconds.
     time_t GetPeriod() const;
     /// Gets the number of nanoseconds after the last whole second.
-    time_t GetPeriodNanoseconds() const;
+    uint32_t GetPeriodNanoseconds() const;
 
     /// For use with IString.
     const sigc::slot<const char*>* istr() const;
