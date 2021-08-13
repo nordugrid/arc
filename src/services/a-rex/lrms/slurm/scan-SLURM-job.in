@@ -83,7 +83,6 @@ fi
 ### slurm_query_retries
 unset slurm_query_retries
 
-echo "[`date +%Y-%m-%d\ %T`] config_slurm_query_retries: $CONFIG_slurm_query_retries" 1>&2
 if [ ! -z "${CONFIG_slurm_query_retries}" ]; then
     slurm_query_retries=$( echo "$CONFIG_slurm_query_retries"|bc)
 fi
