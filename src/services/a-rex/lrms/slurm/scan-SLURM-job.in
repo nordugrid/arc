@@ -84,7 +84,7 @@ fi
 unset slurm_query_retries
 
 if [ ! -z "${CONFIG_slurm_query_retries}" ]; then
-    $retries="${CONFIG_slurm_query_retries}"
+    $retries=$(echo $CONFIG_slurm_query_retries|bc)
     slurm_query_retries=$retries
 fi
 
