@@ -84,7 +84,7 @@ fi
 unset slurm_query_retries
 
 if [ ! -z "${CONFIG_slurm_query_retries}" ]; then
-    slurm_query_retries=$( echo "$CONFIG_slurm_query_retries"|bc)
+    slurm_query_retries=${$CONFIG_slurm_query_retries}
 fi
 
 
@@ -176,13 +176,13 @@ slurm_interval_to_seconds () {
     _interval_good=`echo $_interval_dhms | grep -E '[^:0-9]'`
     _interval_size=`echo $_interval_dhms | grep -o : | wc -l`
     if [ X"$_interval_good" = "X" ] ; then
-        if [ $_interval_size -eq 0 ]; then
+        if [ "$_interval_size" -eq 0 ]; then
             return_interval_seconds=$_interval_dhms
-        elif [ $_interval_size -eq 1 ]; then
+        elif [ "$_interval_size" -eq 1 ]; then
             return_interval_seconds=`echo $_interval_dhms | tr : ' ' | awk '{print $1*60+$2;}'`
-        elif [ $_interval_size -eq 2 ]; then
+        elif [ "$_interval_size" -eq 2 ]; then
             return_interval_seconds=`echo $_interval_dhms | tr : ' ' | awk '{print $1*60*60+$2*60+$3;}'`
-        elif [ $_interval_size -eq 3 ]; then
+        elif [ "$_interval_size" -eq 3 ]; then
             return_interval_seconds=`echo $_interval_dhms | tr : ' ' | awk '{print $1*24*60*60+$2*60*60+$3*60+$4;}'`
         else
             echo "Bad formatting of time interval: $_interval_dhms" 1>&2
@@ -226,7 +226,7 @@ function handle_exitcode {
     reason="$3"
     exitcode_retries=${slurm_query_retries}
     
-    while [ $exitcode_retries -gt 0 ]; do
+    while [ "$exitcode_retries" -gt 0 ]; do
 
         if [ "$use_sacct" ]; then 
             jobinfostring=$("$sacct" -j $localid -o ExitCode -P | tail -n 1)
@@ -253,16 +253,16 @@ function handle_exitcode {
     if [ -z "$jobinfo_exitcode_failed" ]; then
         if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
             exitcode=$tmpexitcode
-        elif [ -n "$exitcode2" ] && [ $exitcode2 -ne 0 ]; then
+        elif [ -n "$exitcode2" ] && [ "$exitcode2" -ne 0 ]; then
             exitcode=$(( $exitcode2 + 256 ))
-        elif [ -n "$exitcode1" ] && [ $exitcode1 -ne 0 ]; then
+        elif [ -n "$exitcode1" ] && [ "$exitcode1" -ne 0 ]; then
             exitcode=$exitcode1
         else
             exitcode=0
         fi
 
         # Special handling of cancelled jobs - as SLURM can return exitcode 0:0 for cancelled jobs
-        if [ $exitcode -eq 0 ] && [[ $reason == *"cancelled"* ]] ; then
+        if [ "$exitcode" -eq 0 ] && [[ $reason == *"cancelled"* ]] ; then
             exitcode=15
         fi
 
@@ -325,7 +325,7 @@ function handle_diag_file {
     
     ## This while loop is an attempt to reduce the cases where the job info
     ## is not successfully fetched from slurm due to slurm connection/timeout issues
-    while [ $handle_diag_tries -gt 0 ] ; do
+    while [ "$handle_diag_tries" -gt 0 ] ; do
         
         
         unset jobinfo_collect_failed
