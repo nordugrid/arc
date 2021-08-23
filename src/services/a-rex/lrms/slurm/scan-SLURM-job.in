@@ -224,7 +224,7 @@ function handle_exitcode {
     localid="$1"
     tmpexitcode="$2"
     reason="$3"
-    exitcode_retries=${slurm_query_retries}
+    exitcode_retries=$(( ${slurm_query_retries +1 } ))
     
     while [ "$exitcode_retries" -gt 0 ]; do
 
@@ -318,8 +318,8 @@ function handle_exitcode {
 function handle_diag_file {
     localid="$1"
     ctr_diag="$2"
-    handle_diag_tries=${slurm_query_retries}
-    
+
+    handle_diag_tries=$(( ${slurm_query_retries +1 } ))
 
     job_read_diag
     
@@ -369,7 +369,7 @@ function handle_diag_file {
 
         handle_diag_tries=$(( $handle_diag_tries - 1 ))
         if [ -n "$jobinfo_collect_failed"  ] ; then
-            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed for job: $localid - could not fetch jobinfostring. Retries left: $handle_diag_tries." 1>&2;
+            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed for job: $localid - could not fetch jobinfostring. Retrie sleft: $handle_diag_tries." 1>&2;
         fi
         
         sleep 2
