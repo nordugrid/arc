@@ -4,6 +4,7 @@ function test_basic() {
 read -r -d '' arc_test_configuration <<EOF
 [lrms]
 slurm_bin_path=$(pwd)/bin
+slurm_query_retries=0
 EOF
 
 read -r -d '' test_jobs <<'EOF'

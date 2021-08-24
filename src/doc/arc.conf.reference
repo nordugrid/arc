@@ -663,6 +663,13 @@
 #slurm_requirements=memory on node >> 200
 ## CHANGE: NEW in 6.0.0.
 
+## slurm_query_retries = number - Number of sacct/scontrol retries performed in scan-SLURM-job
+## If slurm is overloaded the sacct/scontrol command call may fail. 
+## If retries > 1 sacct/scontrol is retried after some seconds for that(those) particular job(s).
+## If all retry attempts fail, the next scan-SLURM-job institiation will pick up the job(s) from last time.
+## default: 1
+#slurm_query_retries=3
+    
 ### LSF options: set these only in case of lrms=lsf
 ## lsf_bin_path = path - The PATH to LSF bin folder
 ## default: /usr/bin
