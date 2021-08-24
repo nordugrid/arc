@@ -729,7 +729,7 @@ Arc::MCC_Status ARexRest::processInfo(Arc::Message& inmsg,Arc::Message& outmsg, 
   }
 
   std::string infoStr;
-  Arc::FileRead(config_.ControlDir()+G_DIR_SEPARATOR_S+"info.xml", infoStr);
+  Arc::FileRead(config_.InformationFile(), infoStr);
   XMLNode infoXml(infoStr);
   return HTTPResponse(inmsg, outmsg, infoXml);
 }
