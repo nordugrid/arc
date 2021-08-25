@@ -157,7 +157,7 @@ namespace Arc {
     /// Gets the time in seconds.
     time_t GetTime() const;
     /// Gets the nanoseconds fraction of the time.
-    time_t GetTimeNanoseconds() const;
+    uint32_t GetTimeNanoseconds() const;
 
     /// Returns a string representation of the time, using the default format.
     operator std::string() const;
