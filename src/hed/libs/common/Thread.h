@@ -373,6 +373,32 @@ namespace Arc {
     };
   };
 
+  /// Shared lock for SharedMutex.
+  class SharedMutexSharedLock {
+   private:
+    SharedMutex& mutex_; 
+   public:
+    SharedMutexSharedLock(SharedMutex& mutex):mutex_(mutex) {
+      mutex_.lockShared();
+    };
+    ~SharedMutexSharedLock() {
+      mutex_.unlockShared();
+    };
+  };
+
+  /// Exclusive lock for SharedMutex.
+  class SharedMutexExclusiveLock {
+   private:
+    SharedMutex& mutex_; 
+   public:
+    SharedMutexExclusiveLock(SharedMutex& mutex):mutex_(mutex) {
+      mutex_.lockExclusive();
+    };
+    ~SharedMutexExclusiveLock() {
+      mutex_.unlockExclusive();
+    };
+  };
+
   /** \cond Helper class for ThreadedPointer.
      \headerfile Thread.h arc/Thread.h */
   class ThreadedPointerBase {

@@ -411,6 +411,9 @@ namespace Arc {
     int maxsize;
     int backups;
     bool reopen;
+    std::list<std::string*> cache;
+    int maxcachesize;
+    Glib::Mutex file_mutex;
   };
 
   class LoggerContextRef;
@@ -725,7 +728,9 @@ namespace Arc {
 
     LoggerContext& getContext(void);
 
-    Glib::Mutex mutex;
+    /// Shared lock is used for processing log messages.
+    /// Exclusive lock is for managing configuration, adding/removing destinations, etc.
+    SharedMutex mutex;
 
 #define rootLoggerMagic (0xF6569201)
     static Logger *rootLogger;

@@ -46,7 +46,6 @@ class OptimizedInformationContainer: public Arc::InformationContainer {
   OptimizedInformationContainer(bool parse_xml = true);
   ~OptimizedInformationContainer(void);
   int OpenDocument(void);
-  void AssignFile(const std::string& filename);
   void Assign(const std::string& xml,const std::string filename = "");
 };
 
@@ -195,8 +194,8 @@ class ARexService: public Arc::Service {
   static Arc::MCC_Status make_soap_fault(Arc::Message& outmsg,const char* resp = NULL);
   static Arc::MCC_Status extract_content(Arc::Message& inmsg, std::string& content,uint32_t size_limit = 0);
 
+  int OpenInfoDocument(void);
   void InformationCollector(void);
-  virtual bool RegistrationCollector(Arc::XMLNode &doc);
   virtual std::string getID();
   void StopChildThreads(void);
 };

@@ -116,8 +116,10 @@ class StaticPropertyWrapper(object):
 }
 %typemap(typecheck) uint32_t = int;
 
-// It seems there is no need for an out typemap for uint32_t...
-// Methods returning an uint32_t type will in python return a long.
+%typemap(out) uint32_t
+{
+  $result = PyInt_FromLong((int)$1);
+}
 #endif
 
 %define %wraplist(X, Y...)
