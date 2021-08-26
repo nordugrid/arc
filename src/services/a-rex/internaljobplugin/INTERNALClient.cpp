@@ -618,7 +618,7 @@ namespace ARexINTERNAL {
     }
 
     //TO-DO Need to lock info.xml during reading?
-    std::string fname = config->ControlDir() + "/" + "info.xml";
+    std::string fname = config->InformationFile();
     std::string xmlstring;
     
     (void)Arc::FileRead(fname, xmlstring);

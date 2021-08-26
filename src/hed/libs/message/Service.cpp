@@ -42,10 +42,4 @@ MCC_Status Service::ProcessSecHandlers(Message& message,const std::string& label
     return MCC_Status(STATUS_OK);
 }
 
-bool Service::RegistrationCollector(XMLNode& /* doc */)
-{
-    logger.msg(WARNING, "Empty registration collector");
-    return true;
-}
-
 } // namespace Arc
