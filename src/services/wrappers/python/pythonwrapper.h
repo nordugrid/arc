@@ -20,7 +20,6 @@ class Service_PythonWrapper: public Arc::Service {
         virtual ~Service_PythonWrapper(void);
         /** Service request processing routine */
         virtual Arc::MCC_Status process(Arc::Message&, Arc::Message&);
-        bool RegistrationCollector(Arc::XMLNode&);
 };
 
 } // namespace Arc

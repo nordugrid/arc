@@ -60,13 +60,6 @@ class Service: public MCCInterface
           For more information please see description of MCC::AddSecHandler */
         virtual void AddSecHandler(Config *cfg,ArcSec::SecHandler* sechandler,const std::string& label = "");
 
-        /** Service specific registration collector,
-            used for generate service registrations.
-           In implemented service this method should generate GLUE2 document
-           with part of service description which service wishes to advertise
-           to Information Services. */
-        virtual bool RegistrationCollector(XMLNode &doc);
-
         /** Service may implement own service identifier gathering method.
            This method return identifier of service which is used for registering
            it Information Services. */

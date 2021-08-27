@@ -309,7 +309,7 @@ namespace Arc {
   }
 
 
-  time_t Time::GetTimeNanoseconds() const {
+  uint32_t Time::GetTimeNanoseconds() const {
     return gnano;
   }
 
@@ -831,7 +831,7 @@ namespace Arc {
     return seconds;
   }
 
-  time_t Period::GetPeriodNanoseconds() const {
+  uint32_t Period::GetPeriodNanoseconds() const {
     return nanoseconds;
   }
 
