@@ -38,18 +38,12 @@ common_init () {
     [ -e "${pkgdatadir}/community_rtes.sh" ] && source "${pkgdatadir}/community_rtes.sh"
 }
 
-# defines failures_file
-define_failures_file () {
-    failures_file="$joboption_controldir/job.$joboption_gridid.failed"
-}
-
-
 # checks any scratch is defined (shared or local)
 check_any_scratch () {
     if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
         if [ -z "${RUNTIME_LOCAL_SCRATCH_DIR}" ] ; then
             echo "Need to know at which directory to run job: RUNTIME_LOCAL_SCRATCH_DIR must be set if RUNTIME_NODE_SEES_FRONTEND is empty" 1>&2
-            echo "Submission: Configuration error.">>"$failures_file"
+            echo "Submission: Configuration error."
             exit 1
         fi
     fi

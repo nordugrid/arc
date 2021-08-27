@@ -63,26 +63,26 @@ void JobRefInList::kicker(void* arg) {
   };
 }
 
-bool RunParallel::run(const GMConfig& config,const GMJob& job, JobsList& list,
+bool RunParallel::run(const GMConfig& config,const GMJob& job, JobsList& list, std::string* errstr,
                       const std::string& args,Arc::Run** ere,bool su) {
   job_subst_t subs; subs.config=&config; subs.job=&job; subs.reason="external";
   std::string errlog = config.ControlDir()+"/job."+job.get_id()+".errors";
   std::string proxy = config.ControlDir() + "/job." + job.get_id() + ".proxy";
   JobRefInList* ref = new JobRefInList(job, list);
-  bool result = run(config, job.get_user(), job.get_id().c_str(), errlog.c_str(),
+  bool result = run(config, job.get_user(), job.get_id().c_str(), errlog.c_str(), errstr,
              args, ere, proxy.c_str(), su, NULL, &job_subst, &subs, &JobRefInList::kicker, ref);
   if(!result) delete ref;
   return result;
 }
 
-bool RunParallel::run(const GMConfig& config,const GMJob& job,
+bool RunParallel::run(const GMConfig& config,const GMJob& job, std::string* errstr,
                       const std::string& args,Arc::Run** ere,bool su) {
   RunPlugin* cred = NULL;
   job_subst_t subs; subs.config=&config; subs.job=&job; subs.reason="external";
   if((!cred) || (!(*cred))) { cred=NULL; };
   std::string errlog = config.ControlDir()+"/job."+job.get_id()+".errors";
   std::string proxy = config.ControlDir() + "/job." + job.get_id() + ".proxy";
-  bool result = run(config, job.get_user(), job.get_id().c_str(), errlog.c_str(),
+  bool result = run(config, job.get_user(), job.get_id().c_str(), errlog.c_str(), errstr,
              args, ere, proxy.c_str(), su, NULL, &job_subst, &subs);
   return result;
 }
@@ -90,7 +90,7 @@ bool RunParallel::run(const GMConfig& config,const GMJob& job,
 /* fork & execute child process with stderr redirected 
    to job.ID.errors, stdin and stdout to /dev/null */
 bool RunParallel::run(const GMConfig& config, const Arc::User& user,
-                      const char* procid, const char* errlog,
+                      const char* procid, const char* errlog, std::string* errstr,
                       const std::string& args, Arc::Run** ere,
                       const char* jobproxy, bool su,
                       RunPlugin* cred,
@@ -146,7 +146,12 @@ bool RunParallel::run(const GMConfig& config, const Arc::User& user,
     };
   };
   re->KeepStdin(true);
-  re->KeepStdout(true);
+  if(errstr) {
+    re->KeepStdout(false);
+    re->AssignStdout(*errstr, 1024); // Expecting short failure reason here. Rest goes into .errors file.
+  } else {
+    re->KeepStdout(true);
+  };
   re->KeepStderr(true);
   if(!re->Start()) {
     delete re;

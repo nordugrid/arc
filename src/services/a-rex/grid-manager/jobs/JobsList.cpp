@@ -536,7 +536,8 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
     std::string grami = config.ControlDir()+"/job."+(*i).job_id+".grami";
     cmd += " --config " + config.ConfigFile() + " " + grami;
     job_errors_mark_put(*i,config);
-    if(!RunParallel::run(config,*i,*this,cmd,&(i->child))) {
+    i->child_output.clear();
+    if(!RunParallel::run(config,*i,*this,&(i->child_output),cmd,&(i->child))) {
       i->AddFailure("Failed initiating job submission to LRMS");
       logger.msg(Arc::ERROR,"%s: Failed running submission process",i->job_id);
       return false;
@@ -583,7 +584,11 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
     logger.msg(Arc::ERROR,"%s: Job submission to LRMS failed",i->job_id);
     JobFailStateRemember(i,JOB_STATE_SUBMITTING);
     CleanChildProcess(i);
-    i->AddFailure("Job submission to LRMS failed");
+    if(i->child_output.empty()) {
+      i->AddFailure("Job submission to LRMS failed");
+    } else {
+      i->AddFailure(i->child_output);
+    }
     return false;
   }
   // success code - process LRMS job id
@@ -640,7 +645,7 @@ bool JobsList::state_canceling(GMJobRef i,bool &state_changed) {
     std::string grami = config.ControlDir()+"/job."+(*i).job_id+".grami";
     cmd += " --config " + config.ConfigFile() + " " + grami;
     job_errors_mark_put(*i,config);
-    if(!RunParallel::run(config,*i,*this,cmd,&(i->child))) {
+    if(!RunParallel::run(config,*i,*this,nullptr,cmd,&(i->child))) {
       logger.msg(Arc::ERROR,"%s: Failed running cancellation process",i->job_id);
       return false;
     }
