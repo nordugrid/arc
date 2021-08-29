@@ -4,7 +4,6 @@
 /var/log/arc/arex.log
 /var/log/arc/arex-jobs.log
 /var/log/arc/job.helper.errors
-/var/log/arc/ws-interface.log
 /var/log/arc/datastaging.log
 {
   missingok
