@@ -245,9 +245,6 @@ prepare() {
         WSLOGFILE=`readconfigvar "$ARC_RUNTIME_CONFIG" logfile arex/ws`
         arex_mount_point=`readconfigvar "$ARC_RUNTIME_CONFIG" wsurl arex/ws`
         arex_endpoint="<arex:endpoint>$arex_mount_point</arex:endpoint>"
-
-        mkdir_for_user `dirname "$WSLOGFILE"` "$USERNAME" "$GROUPNAME"
-        mkfile_for_user "$WSLOGFILE" "$USERNAME" "$GROUPNAME"
     fi
 
     service_mail=""

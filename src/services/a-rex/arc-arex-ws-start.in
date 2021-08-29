@@ -428,9 +428,6 @@ prepare() {
         *) LOGLEVEL="INFO" ;;
     esac
 
-    mkdir_for_user `dirname "$LOGFILE"` "$USERNAME" "$GROUPNAME"
-    mkfile_for_user "$LOGFILE" "$USERNAME" "$GROUPNAME"
-
     if [ "$WATCHDOG" = "yes" ] ; then
         WATCHDOG="true"
     else
@@ -491,7 +488,6 @@ prepare() {
   <Server>
     <PidFile>$PID_FILE</PidFile>
     <Logger>
-      <File>$LOGFILE</File>
       <File>$WSLOGFILE</File>
       <Level>$LOGLEVEL</Level>
     </Logger>
@@ -556,7 +552,6 @@ prepare() {
   <Server>
     <PidFile>$PID_FILE</PidFile>
     <Logger>
-      <File>$LOGFILE</File>
       <File>$WSLOGFILE</File>
       <Level>$LOGLEVEL</Level>
     </Logger>
@@ -662,8 +657,8 @@ fi
 
 prepare
 
-echo "Validating A-REX setup..." >> "$LOGFILE"
-validate >> "$LOGFILE" 2>&1
+echo "Validating A-REX setup..." >> "$WSLOGFILE"
+validate >> "$WSLOGFILE" 2>&1
 RETVAL=$?
 if [ $RETVAL != 0 ]; then
     # Run validator again to print errors to stdout
