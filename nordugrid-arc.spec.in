@@ -88,8 +88,7 @@
 %global with_xmlsec1 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} == 6 || %{?rhel}%{!?rhel:0} == 7
-# Dependency missing in EPEL 8
+%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 6
 %global with_pythonlrms 1
 %else
 %global with_pythonlrms 0
