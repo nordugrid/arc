@@ -324,7 +324,7 @@ packages_deb10:
   image: maikenp/arc-build-debian10
   script:
     - echo "6.8.1" > VERSION
-    - apt-get update -y
+    - apt-get update --allow-releaseinfo-change  -y
     - ./autogen.sh
     - ./configure
     - make dist
