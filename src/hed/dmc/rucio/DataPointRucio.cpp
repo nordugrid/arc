@@ -291,9 +291,9 @@ namespace ArcDMCRucio {
 
     HTTPClientInfo transfer_info;
     PayloadRaw request;
-    PayloadRawInterface *response = NULL;
+    AutoPointer<PayloadRawInterface> response;
 
-    MCC_Status r = client.process(attrs, &request, &transfer_info, &response);
+    MCC_Status r = client.process(attrs, &request, &transfer_info, response.ForAssign());
 
     if (!r) {
       return DataStatus(DataStatus::ReadResolveError, "Failed to contact auth server: " + r.getExplanation());
@@ -334,12 +334,11 @@ namespace ArcDMCRucio {
 
     HTTPClientInfo transfer_info;
     PayloadRaw request;
-    PayloadRawInterface *response = NULL;
+    AutoPointer<PayloadStreamInterface> response;
 
-    MCC_Status r = client.process(attrs, &request, &transfer_info, &response);
+    MCC_Status r = client.process(attrs, &request, &transfer_info, response.ForAssign());
 
     if (!r) {
-      delete response; response = NULL;
       return DataStatus(DataStatus::ReadResolveError, "Failed to contact server: " + r.getExplanation());
     }
     if (transfer_info.code != 200) {
@@ -350,22 +349,13 @@ namespace ArcDMCRucio {
       }
       return DataStatus(DataStatus::ReadResolveError, http2errno(transfer_info.code), "HTTP error when contacting server: " + errormsg);
     }
-    PayloadStreamInterface* instream = NULL;
-    try {
-      instream = dynamic_cast<PayloadStreamInterface*>(dynamic_cast<MessagePayload*>(response));
-    } catch(std::exception& e) {
-      delete response; response = NULL;
-      return DataStatus(DataStatus::ReadResolveError, "Unexpected response from server");
-    }
-    if (!instream) {
-      delete response; response = NULL;
+    if (!response) {
       return DataStatus(DataStatus::ReadResolveError, "Unexpected response from server");
     }
 
     std::string buf;
-    while (instream->Get(buf)) content += buf;
+    while (response->Get(buf)) content += buf;
     logger.msg(DEBUG, "Rucio returned %s", content);
-    delete response; response = NULL;
     return DataStatus::Success;
   }
 
