@@ -189,7 +189,7 @@ override_dh_install:
 override_dh_installinit:
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-hed --name arched
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-arex --name arc-arex
-	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-arex-ws --name arc-arex-ws
+	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-arex --name arc-arex-ws
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-gridftpd --name arc-gridftpd
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
@@ -199,7 +199,7 @@ override_dh_installinit:
 override_dh_systemd_enable:
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-hed --name arched
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-arex --name arc-arex
-	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-arex-ws --name arc-arex-ws
+	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-arex --name arc-arex-ws
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-gridftpd --name arc-gridftpd
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
@@ -210,7 +210,7 @@ override_dh_systemd_enable:
 override_dh_systemd_start:
 	dh_systemd_start -p nordugrid-arc-hed --name arched
 	dh_systemd_start -p nordugrid-arc-arex --name arc-arex
-	dh_systemd_start -p nordugrid-arc-arex-ws --name arc-arex-ws
+	dh_systemd_start -p nordugrid-arc-arex --name arc-arex-ws
 	dh_systemd_start -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
 	dh_systemd_start -p nordugrid-arc-gridftpd --name arc-gridftpd
 	dh_systemd_start -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
@@ -227,8 +227,6 @@ override_dh_python2:
 
 	echo "pydeps:Depends=python-ldap, python-isodate" \
 		>> debian/nordugrid-arc-arex.substvars
-	echo "pydeps:Depends=python-ldap, python-isodate" \
-		>> debian/nordugrid-arc-arex-ws.substvars
 	echo "pydeps:Depends=python-dns" \
 		>> debian/nordugrid-arc-community-rtes.substvars
 	echo "pydeps:Depends=python-twisted, python-openssl" \
@@ -247,8 +245,6 @@ override_dh_python3:
 
 	echo "pydeps:Depends=python3-ldap, python3-isodate" \
 		>> debian/nordugrid-arc-arex.substvars
-	echo "pydeps:Depends=python3-ldap, python3-isodate" \
-		>> debian/nordugrid-arc-arex-ws.substvars
 	echo "pydeps:Depends=python3-dns" \
 		>> debian/nordugrid-arc-community-rtes.substvars
 	echo "pydeps:Depends=python3-twisted, python3-openssl" \

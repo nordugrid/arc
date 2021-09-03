@@ -1037,8 +1037,6 @@ make install DESTDIR=$RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
 install -p -m 644 debian/%{name}-arex.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-arex
-install -p -m 644 debian/%{name}-arex-ws.logrotate \
-    $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-arex-ws
 install -p -m 644 debian/%{name}-gridftpd.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-gridftpd
 %if %{with_ldap_service}
@@ -1504,7 +1502,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man8/arc-blahp-logger.8*
 %doc %{_mandir}/man8/a-rex-backtrace-collect.8*
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-arex
-%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-arex-ws
 %dir %{_localstatedir}/log/arc
 %dir %{_localstatedir}/spool/arc
 %dir %{_localstatedir}/spool/arc/ssm

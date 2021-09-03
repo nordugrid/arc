@@ -256,48 +256,10 @@ Description: ARC Control Tool - service control modules
  This package contains the service control modules for ARC Contol Tool
  that allow working with server-side config and manage ARC services.
 
-Package: nordugrid-arc-arex-ws
+Package: nordugrid-arc-arex
 Provides:
  nordugrid-arc-cache-service,
  nordugrid-arc-candypond
-Replaces:
- nordugrid-arc-arex (<< 6.13.0~),
- nordugrid-arc-cache-service (<< 6.0.0~),
- nordugrid-arc-candypond (<< 6.0.0~),
- nordugrid-arc-aris (<< 6.0.0~),
- nordugrid-arc-infosys-ldap (<< 6.3.0~),
- libarccommon3 (<< 6.5.0~)
-Conflicts:
- nordugrid-arc-arex (<< 6.13.0~),
- nordugrid-arc-cache-service (<< 6.0.0~),
- nordugrid-arc-candypond (<< 6.0.0~)
-Breaks:
- nordugrid-arc-aris (<< 6.0.0~),
- nordugrid-arc-infosys-ldap (<< 6.3.0~),
- libarccommon3 (<< 6.5.0~)
-Architecture: any
-Depends:
- ${shlibs:Depends},
- ${misc:Depends},
- ${perl:Depends},
- ${python:Depends},
- ${python3:Depends},
- libarccommon3 (= ${binary:Version}),
- nordugrid-arc-hed (= ${binary:Version}),
- nordugrid-arc-arex (= ${binary:Version}),
- nordugrid-arc-arcctl (= ${source:Version}),
- nordugrid-arc-arcctl-service (= ${source:Version}),
- nordugrid-arc-plugins-needed (= ${binary:Version}),
- libjson-xs-perl,
- libxml-simple-perl,
- ${pydeps:Depends},
- lsb-base (>= 3.0-6)
-XB-Python-Version: ${python:Versions}
-Description: A-REX WS interface provides HTTP based job submission
- and control interfaces for ARC Resource-coupled EXecution service.
-
-Package: nordugrid-arc-arex
-Provides:
 Replaces:
  nordugrid-arc-cache-service (<< 6.0.0~),
  nordugrid-arc-candypond (<< 6.0.0~),
