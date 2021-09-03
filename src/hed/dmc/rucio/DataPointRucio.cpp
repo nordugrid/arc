@@ -378,28 +378,24 @@ namespace ArcDMCRucio {
       return DataStatus(DataStatus::ReadResolveError, ENOENT);
     }
 
-    cJSON *root = cJSON_Parse(content.c_str());
+    AutoPointer<cJSON> root(cJSON_Parse(content.c_str()), &cJSON_Delete);
     if (!root) {
       logger.msg(ERROR, "Failed to parse Rucio response: %s", content);
-      cJSON_Delete(root);
       return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
     }
-    cJSON *name = cJSON_GetObjectItem(root, "name");
+    cJSON *name = cJSON_GetObjectItem(root.Ptr(), "name");
     if (!name || name->type != cJSON_String || !name->valuestring) {
       logger.msg(ERROR, "Filename not returned in Rucio response: %s", content);
-      cJSON_Delete(root);
       return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
     }
     std::string filename(name->valuestring);
     if (filename != url.Path().substr(url.Path().rfind('/')+1)) {
       logger.msg(ERROR, "Unexpected name returned in Rucio response: %s", content);
-      cJSON_Delete(root);
       return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
     }
-    cJSON *pfns = cJSON_GetObjectItem(root, "pfns");
+    cJSON *pfns = cJSON_GetObjectItem(root.Ptr(), "pfns");
     if (!pfns) {
       logger.msg(ERROR, "No pfns returned in Rucio response: %s", content);
-      cJSON_Delete(root);
       return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
     }
     cJSON *pfn = pfns->child;
@@ -432,21 +428,20 @@ namespace ArcDMCRucio {
       }
       pfn = pfn->next;
     }
-    cJSON *fsize = cJSON_GetObjectItem(root, "bytes");
+    cJSON *fsize = cJSON_GetObjectItem(root.Ptr(), "bytes");
     if (!fsize || fsize->type == cJSON_NULL) {
       logger.msg(WARNING, "No filesize information returned in Rucio response for %s", filename);
     } else {
       SetSize((unsigned long long int)fsize->valuedouble);
       logger.msg(DEBUG, "%s: size %llu", filename, GetSize());
     }
-    cJSON *csum = cJSON_GetObjectItem(root, "adler32");
+    cJSON *csum = cJSON_GetObjectItem(root.Ptr(), "adler32");
     if (!csum || csum->type != cJSON_String || !csum->valuestring) {
       logger.msg(WARNING, "No checksum information returned in Rucio response for %s", filename);
     } else {
       SetCheckSum(std::string("adler32:") + std::string(csum->valuestring));
       logger.msg(DEBUG, "%s: checksum %s", filename, GetCheckSum());
     }
-    cJSON_Delete(root);
 
     if (!HaveLocations()) {
       logger.msg(ERROR, "No locations found for %s", url.str());
