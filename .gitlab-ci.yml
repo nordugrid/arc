@@ -324,7 +324,7 @@ packages_deb10:
   image: maikenp/arc-build-debian10
   script:
     - echo "6.8.1" > VERSION
-    - apt-get update -y
+    - apt-get update --allow-releaseinfo-change  -y
     - ./autogen.sh
     - ./configure
     - make dist
@@ -417,6 +417,9 @@ deploy_staging_el7:
     - ls -lhrt $CI_PROJECT_DIR/arc-logs
     - rm -rf /arc-logs/*
     - ls -lhrt /arc-logs
+    - ls -lhrt /arc-testlogs
+    - cp -r /arc-testlogs $CI_PROJECT_DIR
+    - ls -lhrt $CI_PROJECT_DIR/arc-testlogs
     - rm -f /arc-testlogs/*
     - ls -lhrt /arc-testlogs
     - docker stop $deploy_container || true
@@ -426,6 +429,7 @@ deploy_staging_el7:
     when: always
     paths:
      - $CI_PROJECT_DIR/arc-logs/
+     - $CI_PROJECT_DIR/arc-testlogs/
   dependencies:
     - packages_el7
   tags:
@@ -459,6 +463,10 @@ deploy_staging_el8:
     - ls -lhrt $CI_PROJECT_DIR/arc-logs
     - rm -rf /arc-logs/*
     - ls -lhrt /arc-logs
+    - ls -lhrt /arc-testlogs
+    - cp -r /arc-testlogs $CI_PROJECT_DIR
+    - ls -lhrt $CI_PROJECT_DIR/arc-testlogs
+    - rm -rf /arc-testlogs/*  
     - rm -f /arc-testlogs/*
     - ls -lhrt /arc-testlogs
     - docker stop $deploy_container || true
@@ -468,6 +476,7 @@ deploy_staging_el8:
     when: always
     paths:
      - $CI_PROJECT_DIR/arc-logs/
+     - $CI_PROJECT_DIR/arc-testlogs/
   dependencies:
     - packages_el8
   tags:
