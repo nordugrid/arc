@@ -34,21 +34,21 @@ namespace Arc {
     return new XRSLParser(arg);
   }
 
-  static Software::ComparisonOperator convertOperator(const RSLRelOp& op) {
-    if (op == RSLNotEqual) return &Software::operator!=;
-    if (op == RSLLess) return &Software::operator<;
-    if (op == RSLGreater) return &Software::operator>;
-    if (op == RSLLessOrEqual) return &Software::operator <=;
-    if (op == RSLGreaterOrEqual) return &Software::operator>=;
-    return &Software::operator==;
+  static Software::ComparisonOperatorEnum convertOperator(const RSLRelOp& op) {
+    if (op == RSLNotEqual) return Software::NOTEQUAL;
+    if (op == RSLLess) return Software::LESSTHAN;
+    if (op == RSLGreater) return Software::GREATERTHAN;
+    if (op == RSLLessOrEqual) return Software::LESSTHANOREQUAL;
+    if (op == RSLGreaterOrEqual) return Software::GREATERTHANOREQUAL;
+    return Software::EQUAL;
   }
 
-  static RSLRelOp convertOperator(const Software::ComparisonOperator& op) {
-    if (op == &Software::operator==) return RSLEqual;
-    if (op == &Software::operator<)  return RSLLess;
-    if (op == &Software::operator>)  return RSLGreater;
-    if (op == &Software::operator<=) return RSLLessOrEqual;
-    if (op == &Software::operator>=) return RSLGreaterOrEqual;
+  static RSLRelOp convertOperator(const Software::ComparisonOperatorEnum& op) {
+    if (op == Software::EQUAL) return RSLEqual;
+    if (op == Software::LESSTHAN)  return RSLLess;
+    if (op == Software::GREATERTHAN)  return RSLGreater;
+    if (op == Software::LESSTHANOREQUAL) return RSLLessOrEqual;
+    if (op == Software::GREATERTHANOREQUAL) return RSLGreaterOrEqual;
     return RSLNotEqual;
   }
 
@@ -1641,7 +1641,7 @@ namespace Arc {
     /// \mapattr runtimeenvironment <- RunTimeEnvironment
     if (!j.Resources.RunTimeEnvironment.empty()) {
       std::list<Software>::const_iterator itSW = j.Resources.RunTimeEnvironment.getSoftwareList().begin();
-      std::list<Software::ComparisonOperator>::const_iterator itCO = j.Resources.RunTimeEnvironment.getComparisonOperatorList().begin();
+      std::list<Software::ComparisonOperatorEnum>::const_iterator itCO = j.Resources.RunTimeEnvironment.getComparisonOperatorList().begin();
       for (; itSW != j.Resources.RunTimeEnvironment.getSoftwareList().end(); itSW++, itCO++) {
         RSLList *l = new RSLList;
         l->Add(new RSLLiteral(*itSW));
@@ -1655,7 +1655,7 @@ namespace Arc {
     /// \mapattr middleware <- CEType
     if (!j.Resources.CEType.empty()) {
       std::list<Software>::const_iterator itSW = j.Resources.CEType.getSoftwareList().begin();
-      std::list<Software::ComparisonOperator>::const_iterator itCO = j.Resources.CEType.getComparisonOperatorList().begin();
+      std::list<Software::ComparisonOperatorEnum>::const_iterator itCO = j.Resources.CEType.getComparisonOperatorList().begin();
       for (; itSW != j.Resources.CEType.getSoftwareList().end(); itSW++, itCO++) {
         RSLList *l = new RSLList;
         l->Add(new RSLLiteral(*itSW));
@@ -1666,7 +1666,7 @@ namespace Arc {
     /// \mapattr opsys <- OperatingSystem
     if (!j.Resources.OperatingSystem.empty()) {
       std::list<Software>::const_iterator itSW = j.Resources.OperatingSystem.getSoftwareList().begin();
-      std::list<Software::ComparisonOperator>::const_iterator itCO = j.Resources.OperatingSystem.getComparisonOperatorList().begin();
+      std::list<Software::ComparisonOperatorEnum>::const_iterator itCO = j.Resources.OperatingSystem.getComparisonOperatorList().begin();
       for (; itSW != j.Resources.OperatingSystem.getSoftwareList().end(); itSW++, itCO++) {
         RSLList *l = new RSLList;
         l->Add(new RSLLiteral((std::string)*itSW));
