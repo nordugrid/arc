@@ -104,7 +104,7 @@ build_el8:
 build_deb9:
     extends: .template_build_deb
     variables:
-        BUILD_IMAGE: maikenp/arc-build-deb9
+        BUILD_IMAGE: maikenp/arc-build-debian9
 
 ###############
 #    DEBIAN 10
@@ -112,7 +112,7 @@ build_deb9:
 build_deb10:
     extends: .template_build_deb
     variables:
-        BUILD_IMAGE: maikenp/arc-build-deb10
+        BUILD_IMAGE: maikenp/arc-build-debian10
     
 ##################
 #    UBUNTU 18.04
