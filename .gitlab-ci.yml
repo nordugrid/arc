@@ -130,7 +130,7 @@ build_deb10:
 #    UBUNTU 18.04
 ##################
 build_ubuntu1804:
-    extends: .teamplate_build_deb
+    extends: .template_build_deb
     variables:
         BUILD_IMAGE: maikenp/arc-build-ubuntu1804
 
