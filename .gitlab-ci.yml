@@ -47,12 +47,6 @@ variables:
   allow_failure: false
   tags:
       - build
-  except:
-    refs:
-      - master
-      - next
-      - branches@nordugrid/arc
-      - tags@nordugrid/arc
   allow_failure: false
 
     
@@ -76,12 +70,6 @@ variables:
     - rm -f ../*-dbgsym_*.deb
   tags:
       - build
-  except:
-    refs:
-      - master
-      - next
-      - branches@nordugrid/arc
-      - tags@nordugrid/arc
   artifacts:
     when: on_success
     expire_in: 3 days
