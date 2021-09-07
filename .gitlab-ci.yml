@@ -140,7 +140,7 @@ build_ubuntu1804:
 #############################################################
 
 .deploy: &deploy
-  stage: deploy_and_test
+  stage: deploy
   image: docker:stable
   before_script: 
     - export DOCKER_API_VERSION=1.19
