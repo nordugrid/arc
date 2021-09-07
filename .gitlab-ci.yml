@@ -199,7 +199,8 @@ deploy_el7:
   tags:
     - 158.39.201.67
     - deploy
-  needs: ["build_el7"]
+  dependencies:
+    - build_el7
 
 ##################
 #    CENTOS 8
@@ -213,7 +214,8 @@ deploy_el8:
   tags:
     - 158.39.201.179
     - deploy
-  needs: ["build_el8"]
+  dependencies:
+    - build_el8
 
 ##################
 #    DEBIAN 9
@@ -227,7 +229,8 @@ deploy_deb9:
   tags:
     - 158.37.63.83
     - deploy
-  needs: ["build_deb9"]
+  dependencies:
+    - build_deb9
 
 
 ##################
@@ -242,7 +245,8 @@ deploy_deb10:
   tags:
     - 158.39.75.5
     - deploy
-  needs: ["build_deb10"]
+  dependencies:
+    - build_deb10
   
 
 ##################
@@ -257,7 +261,8 @@ deploy_ubuntu1804:
   tags:
     - 158.39.74.3
     - deploy
-  needs: ["build_ubuntu1804"]
+  dependencies:
+    - build_ubuntu1804
 
 
 
