@@ -258,7 +258,7 @@ deploy_ubuntu1804:
 ##             CHECK DEPLOY                                ## 
 #############################################################
 .job_template_assert:
-  image: python:3.7.6-alpine
+  image: maikenp/arc-deploy-check
   variables:
     TESTTYPE: ''
   script:
