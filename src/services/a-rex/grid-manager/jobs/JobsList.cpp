@@ -645,7 +645,7 @@ bool JobsList::state_canceling(GMJobRef i,bool &state_changed) {
     std::string grami = config.ControlDir()+"/job."+(*i).job_id+".grami";
     cmd += " --config " + config.ConfigFile() + " " + grami;
     job_errors_mark_put(*i,config);
-    if(!RunParallel::run(config,*i,*this,nullptr,cmd,&(i->child))) {
+    if(!RunParallel::run(config,*i,*this,NULL,cmd,&(i->child))) {
       logger.msg(Arc::ERROR,"%s: Failed running cancellation process",i->job_id);
       return false;
     }

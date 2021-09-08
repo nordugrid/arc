@@ -77,7 +77,7 @@ bool send_mail(GMJob &job,const GMConfig& config) {
     cmd += " " + mails[mail_n];
   };
   logger.msg(Arc::DEBUG, "Running mailer command (%s)", cmd);
-  if(!RunParallel::run(config,job,nullptr,cmd,&child)) {
+  if(!RunParallel::run(config,job,NULL,cmd,&child)) {
     logger.msg(Arc::ERROR,"Failed running mailer");
     return false;
   };
