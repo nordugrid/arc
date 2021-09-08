@@ -277,29 +277,37 @@ gridftp_el7_deploytest:
   variables:
     TESTTYPE: 'gridftp'
   stage:  check_deploy_centos
-  needs: ["deploy_el7"]
+  needs:
+    - job: deploy_el7
+      artifacts: true
 
 emies_el7_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'emies'
   stage:  check_deploy_centos
-  needs: ["deploy_el7"]
+  needs:
+    - job: deploy_el7
+      artifacts: true
 
 arcrest_el7_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcrest'
   stage:  check_deploy_centos
-  needs: ["deploy_el7"]
+  needs:
+    - job: deploy_el7
+      artifacts: true
 
 arcconf_el7_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcconf'
   stage:  check_deploy_centos
-  needs: ["deploy_el7"]
-
+  needs:
+    - job: deploy_el7
+      artifacts: true
+    
 ############################
 ##### EL8 DEPLOY CHECK
 ############################
@@ -308,29 +316,37 @@ gridftp_el8_deploytest:
   variables:
     TESTTYPE: 'gridftp'
   stage:  check_deploy_centos
-  needs: ["deploy_el8"]
+  needs:
+    - job: deploy_el8
+      artifacts: true    
 
 emies_el8_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'emies'
   stage:  check_deploy_centos
-  needs: ["deploy_el8"]
-
+  needs:
+    - job: deploy_el8
+      artifacts: true
+    
 arcrest_el8_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcrest'
   stage:  check_deploy_centos
-  needs: ["deploy_el8"]
+  needs:
+    - job: deploy_el8
+      artifacts: true    
 
 arcconf_el8_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcconf'
   stage:  check_deploy_centos
-  needs: ["deploy_el8"]
-
+  needs:
+    - job: deploy_el8
+      artifacts: true
+    
 ############################
 ##### DEB9 DEPLOY CHECK
 ############################
@@ -339,29 +355,37 @@ gridftp_deb9_deploytest:
   variables:
     TESTTYPE: 'gridftp'
   stage:  check_deploy_debian
-  needs: ["deploy_deb9"]
+  needs:
+     - job: deploy_deb9
+      artifacts: true    
 
 emies_deb9_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'emies'
   stage:  check_deploy_debian
-  needs: ["deploy_deb9"]
-
+  needs:
+    - job: deploy_deb9
+      artifacts: true
+    
 arcrest_deb9_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcrest'
   stage:  check_deploy_debian
-  needs: ["deploy_deb9"]
+  needs:
+    - job: deploy_deb9
+      artifacts: true    
 
 arcconf_deb9_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcconf'
   stage:  check_deploy_debian
-  needs: ["deploy_deb9"]
-
+  needs:
+    - job: deploy_deb9
+      artifacts: true
+    
 
 ############################
 ##### DEB10 DEPLOY CHECK
@@ -371,29 +395,36 @@ gridftp_deb10_deploytest:
   variables:
     TESTTYPE: 'gridftp'
   stage:  check_deploy_debian
-  needs: ["deploy_deb10"]
+  needs:
+    - job: deploy_deb10
+      artifacts: true    
 
 emies_deb10_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'emies'
   stage:  check_deploy_debian
-  needs: ["deploy_deb10"]
-
+  needs:
+    - job: deploy_deb10
+      artifacts: true
+    
 arcrest_deb10_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcrest'
   stage:  check_deploy_debian
-  needs: ["deploy_deb10"]
+  needs:
+    - job: deploy_deb10
+      artifacts: true    
 
 arcconf_deb10_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcconf'
   stage:  check_deploy_debian
-  needs: ["deploy_deb10"]
-
+  needs:
+    - job: deploy_deb10
+      artifacts: true
 
 ############################
 ##### UBUNTU DEPLOY CHECK
@@ -403,31 +434,34 @@ gridftp_ubuntu1804_deploytest:
   variables:
     TESTTYPE: 'gridftp'
   stage:  check_deploy_ubuntu
-  needs: ["deploy_ubuntu1804"]
+  needs:
+    - job: deploy_ubuntu1804
+      artifacts: true    
 
 emies_ubuntu1804_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'emies'
   stage:  check_deploy_ubuntu
-  needs: ["deploy_ubuntu1804"]
-
+  needs:
+    - job: deploy_ubuntu1804
+      artifacts: true
+    
 arcrest_ubuntu1804_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcrest'
   stage:  check_deploy_ubuntu
-  needs: ["deploy_ubuntu1804"]
+  needs:
+    - job: deploy_ubuntu1804
+      artifacts: true    
 
 arcconf_ubuntu1804_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcconf'
   stage:  check_deploy_ubuntu
-  needs: ["deploy_ubuntu1804"]
+  needs:
+    - job: deploy_ubuntu1804
+      artifacts: true
 
-
-
-    
-## note-to-self: can also download the rpms from latest job with (example for el7):
-## wget 'https://source.coderefinery.org/nordugrid/arc/-/jobs/artifacts/master/download?job=packages_el7' -O artifacts.zip
