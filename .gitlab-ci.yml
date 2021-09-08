@@ -270,7 +270,7 @@ deploy_ubuntu1804:
     - ls $CI_PROJECT_DIR/arc-testlogs/
     - cp $CI_PROJECT_DIR/arc-testlogs/testresults.txt /
     - cat /testresults.txt
-    - python3 asserttest.py $TESTTYPE
+    - python3 /asserttest.py $TESTTYPE
   tags:
     - generic
 
