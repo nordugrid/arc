@@ -357,7 +357,7 @@ gridftp_deb9_deploytest:
   stage:  check_deploy_debian
   needs:
      - job: deploy_deb9
-      artifacts: true    
+       artifacts: true    
 
 emies_deb9_deploytest:
   extends: .job_template_assert
