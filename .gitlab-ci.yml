@@ -187,8 +187,10 @@ deploy_el7:
   tags:
     - 158.39.201.67
     - deploy
-  dependencies:
-    - build_el7
+  needs:
+    - job: build_el7
+      artifacts: true
+
 
 ##################
 #    CENTOS 8
@@ -202,8 +204,10 @@ deploy_el8:
   tags:
     - 158.39.201.179
     - deploy
-  dependencies:
-    - build_el8
+  needs:
+    - job: build_el8
+      artifacts: true
+
 
 ##################
 #    DEBIAN 9
@@ -217,9 +221,9 @@ deploy_deb9:
   tags:
     - 158.37.63.83
     - deploy
-  dependencies:
-    - build_deb9
-
+  needs:
+    - job: build_deb9
+      artifacts: true
 
 ##################
 #    DEBIAN 10
@@ -233,8 +237,9 @@ deploy_deb10:
   tags:
     - 158.39.75.5
     - deploy
-  dependencies:
-    - build_deb10
+  needs:
+    - job: build_deb10
+      artifacts: true
   
 
 ##################
@@ -249,9 +254,9 @@ deploy_ubuntu1804:
   tags:
     - 158.39.74.3
     - deploy
-  dependencies:
-    - build_ubuntu1804
-
+  needs:
+    - job: build_ubuntu1804
+      artifacts: true
 
 
 #############################################################
