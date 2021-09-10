@@ -282,6 +282,10 @@ deploy_ubuntu1804:
     - python3 /asserttest.py $TESTTYPE
   tags:
     - generic
+  only:
+    - branches@nordugrid/arc
+    - tags@nordugrid/arc
+
 
 ############################
 ##### EL7 DEPLOY CHECK
