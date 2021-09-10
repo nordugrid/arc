@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: support@nordugrid.org\n"
-"POT-Creation-Date: 2021-06-02 20:44+0200\n"
-"PO-Revision-Date: 2021-06-02 20:48+0200\n"
+"POT-Creation-Date: 2021-09-08 22:25+0200\n"
+"PO-Revision-Date: 2021-09-08 22:26+0200\n"
 "Last-Translator: Oxana Smirnova <oxana.smirnova@hep.lu.se>\n"
 "Language-Team: Russian\n"
 "Language: ru\n"
@@ -3159,8 +3159,8 @@ msgstr "Проверка соответствия описания ресурс�
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1248
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1430
 #: src/hed/identitymap/ArgusPDPClient.cpp:444 src/hed/identitymap/ArgusPEPClient.cpp:98
-#: src/hed/identitymap/ArgusPEPClient.cpp:345 src/hed/libs/common/Thread.cpp:241
-#: src/hed/libs/common/Thread.cpp:244 src/hed/libs/common/Thread.cpp:247
+#: src/hed/identitymap/ArgusPEPClient.cpp:345 src/hed/libs/common/Thread.cpp:242
+#: src/hed/libs/common/Thread.cpp:245 src/hed/libs/common/Thread.cpp:248
 #: src/hed/libs/credential/Credential.cpp:1042 src/hed/libs/data/DataPointDelegate.cpp:628
 #: src/hed/mcc/tcp/PayloadTCPSocket.cpp:68 src/hed/mcc/tcp/PayloadTCPSocket.cpp:84
 #: src/hed/mcc/tcp/PayloadTCPSocket.cpp:100 src/hed/mcc/tcp/PayloadTCPSocket.cpp:119
@@ -4280,7 +4280,6 @@ msgstr "Не удалось импортировать модуль ARC"
 #: src/hed/acc/PythonBroker/PythonBrokerPlugin.cpp:149
 #: src/services/wrappers/python/pythonwrapper.cpp:196
 #: src/services/wrappers/python/pythonwrapper.cpp:429
-#: src/services/wrappers/python/pythonwrapper.cpp:529
 msgid "Cannot get dictionary of ARC module"
 msgstr "Ошибка доступа к словарю модуля ARC"
 
@@ -7197,12 +7196,12 @@ msgstr "(пусто)"
 msgid "(null)"
 msgstr "(нулевой)"
 
-#: src/hed/libs/common/Logger.cpp:59
+#: src/hed/libs/common/Logger.cpp:58
 #, c-format
 msgid "Invalid log level. Using default %s."
 msgstr "Неверный уровень отладки. Используется уровень по умолчанию %s."
 
-#: src/hed/libs/common/Logger.cpp:124
+#: src/hed/libs/common/Logger.cpp:123
 #, c-format
 msgid "Invalid old log level. Using default %s."
 msgstr "Неверный старый уровень отладки. Используется значение по умолчанию %s."
@@ -7212,12 +7211,12 @@ msgstr "Неверный старый уровень отладки. Испол�
 msgid "Cannot parse integer value '%s' for -%c"
 msgstr "Не удаётся разобрать целое значение '%s' для -%c"
 
-#: src/hed/libs/common/OptionParser.cpp:309 src/hed/libs/common/OptionParser.cpp:443
+#: src/hed/libs/common/OptionParser.cpp:309 src/hed/libs/common/OptionParser.cpp:446
 #, c-format
 msgid "Options Group %s:"
 msgstr "Группа опций %s:"
 
-#: src/hed/libs/common/OptionParser.cpp:311 src/hed/libs/common/OptionParser.cpp:446
+#: src/hed/libs/common/OptionParser.cpp:311 src/hed/libs/common/OptionParser.cpp:449
 #, c-format
 msgid "%s:"
 msgstr "%s:"
@@ -7227,27 +7226,27 @@ msgstr "%s:"
 msgid "Show %s help options"
 msgstr "Показать %s параметров справки"
 
-#: src/hed/libs/common/OptionParser.cpp:339
+#: src/hed/libs/common/OptionParser.cpp:342
 msgid "Failed to parse command line options"
 msgstr "Не удалось разобрать параметры командной строки"
 
-#: src/hed/libs/common/OptionParser.cpp:349
+#: src/hed/libs/common/OptionParser.cpp:352
 msgid "Use -? to get usage description"
 msgstr "Для получения справки используйте \"-?\""
 
-#: src/hed/libs/common/OptionParser.cpp:426
+#: src/hed/libs/common/OptionParser.cpp:429
 msgid "Usage:"
 msgstr "Использование:"
 
-#: src/hed/libs/common/OptionParser.cpp:429
+#: src/hed/libs/common/OptionParser.cpp:432
 msgid "OPTION..."
 msgstr "ПАРАМЕТР..."
 
-#: src/hed/libs/common/OptionParser.cpp:435
+#: src/hed/libs/common/OptionParser.cpp:438
 msgid "Help Options:"
 msgstr "Параметры справки:"
 
-#: src/hed/libs/common/OptionParser.cpp:436
+#: src/hed/libs/common/OptionParser.cpp:439
 msgid "Show help options"
 msgstr "Показать параметры справки"
 
@@ -7351,21 +7350,21 @@ msgstr "Преобразование не удалось: %s"
 msgid "Full string not used: %s"
 msgstr "Строка использована неполностью: %s"
 
-#: src/hed/libs/common/Thread.cpp:260
+#: src/hed/libs/common/Thread.cpp:261
 msgid "Maximum number of threads running - putting new request into queue"
 msgstr "Запущено максимальное количество потоков - новый запрос помещён в очередь"
 
-#: src/hed/libs/common/Thread.cpp:306
+#: src/hed/libs/common/Thread.cpp:309
 #, c-format
 msgid "Thread exited with Glib error: %s"
 msgstr "Поток завершился с ошибкой Glib: %s"
 
-#: src/hed/libs/common/Thread.cpp:308
+#: src/hed/libs/common/Thread.cpp:311
 #, c-format
 msgid "Thread exited with Glib exception: %s"
 msgstr "Поток завершился прерыванием в Glib: %s"
 
-#: src/hed/libs/common/Thread.cpp:310
+#: src/hed/libs/common/Thread.cpp:313
 #, c-format
 msgid "Thread exited with generic exception: %s"
 msgstr "Поток завершился общим прерыванием: %s"
@@ -7431,105 +7430,105 @@ msgstr "urllist %s содержит недопустимый URL: %s"
 msgid "URL protocol is not urllist: %s"
 msgstr "Протокол URL не является urllist: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:30 src/hed/libs/common/UserConfig.cpp:715
-#: src/hed/libs/common/UserConfig.cpp:724 src/hed/libs/common/UserConfig.cpp:730
-#: src/hed/libs/common/UserConfig.cpp:756 src/hed/libs/common/UserConfig.cpp:766
-#: src/hed/libs/common/UserConfig.cpp:778 src/hed/libs/common/UserConfig.cpp:798
+#: src/hed/libs/common/UserConfig.cpp:32 src/hed/libs/common/UserConfig.cpp:781
+#: src/hed/libs/common/UserConfig.cpp:790 src/hed/libs/common/UserConfig.cpp:796
+#: src/hed/libs/common/UserConfig.cpp:822 src/hed/libs/common/UserConfig.cpp:832
+#: src/hed/libs/common/UserConfig.cpp:844 src/hed/libs/common/UserConfig.cpp:864
 #, c-format
 msgid "Multiple %s attributes in configuration file (%s)"
 msgstr "Множественные атрибуты %s в файле настроек (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:66
+#: src/hed/libs/common/UserConfig.cpp:132
 #, c-format
 msgid "Wrong ownership of certificate file: %s"
 msgstr "Неправильная принадлежность файла открытого ключа: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:68
+#: src/hed/libs/common/UserConfig.cpp:134
 #, c-format
 msgid "Wrong permissions of certificate file: %s"
 msgstr "Неправильные права доступа к файлу открытого ключа: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:70
+#: src/hed/libs/common/UserConfig.cpp:136
 #, c-format
 msgid "Can not access certificate file: %s"
 msgstr "Нет доступа к файлу сертификата: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:77
+#: src/hed/libs/common/UserConfig.cpp:143
 #, c-format
 msgid "Wrong ownership of key file: %s"
 msgstr "Неправильная принадлежность файла личного ключа: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:79
+#: src/hed/libs/common/UserConfig.cpp:145
 #, c-format
 msgid "Wrong permissions of key file: %s"
 msgstr "Неправильные права доступа к файлу личного ключа: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:81
+#: src/hed/libs/common/UserConfig.cpp:147
 #, c-format
 msgid "Can not access key file: %s"
 msgstr "Нет доступа к файлу личного ключа: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:88
+#: src/hed/libs/common/UserConfig.cpp:154
 #, c-format
 msgid "Wrong ownership of proxy file: %s"
 msgstr "Неправильная принадлежность файла доверенности: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:90
+#: src/hed/libs/common/UserConfig.cpp:156
 #, c-format
 msgid "Wrong permissions of proxy file: %s"
 msgstr "Неправильные права доступа к файлу доверенности: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:92
+#: src/hed/libs/common/UserConfig.cpp:158
 #, c-format
 msgid "Can not access proxy file: %s"
 msgstr "Нет доступа к файлу доверенности: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:103
+#: src/hed/libs/common/UserConfig.cpp:169
 msgid "computing"
 msgstr "computing"
 
-#: src/hed/libs/common/UserConfig.cpp:105
+#: src/hed/libs/common/UserConfig.cpp:171
 msgid "index"
 msgstr "index"
 
-#: src/hed/libs/common/UserConfig.cpp:204 src/hed/libs/common/UserConfig.cpp:208
-#: src/hed/libs/common/UserConfig.cpp:255 src/hed/libs/common/UserConfig.cpp:259
+#: src/hed/libs/common/UserConfig.cpp:270 src/hed/libs/common/UserConfig.cpp:274
+#: src/hed/libs/common/UserConfig.cpp:321 src/hed/libs/common/UserConfig.cpp:325
 #, c-format
 msgid "System configuration file (%s) contains errors."
 msgstr "Файл системных настроек (%s) содержит ошибки."
 
-#: src/hed/libs/common/UserConfig.cpp:212 src/hed/libs/common/UserConfig.cpp:263
+#: src/hed/libs/common/UserConfig.cpp:278 src/hed/libs/common/UserConfig.cpp:329
 #, c-format
 msgid "System configuration file (%s or %s) does not exist."
 msgstr "Файл системных настроек (%s or %s) не существует."
 
-#: src/hed/libs/common/UserConfig.cpp:214 src/hed/libs/common/UserConfig.cpp:265
+#: src/hed/libs/common/UserConfig.cpp:280 src/hed/libs/common/UserConfig.cpp:331
 #, c-format
 msgid "System configuration file (%s) does not exist."
 msgstr "Файл системных настроек (%s) не существует."
 
-#: src/hed/libs/common/UserConfig.cpp:220 src/hed/libs/common/UserConfig.cpp:232
-#: src/hed/libs/common/UserConfig.cpp:271 src/hed/libs/common/UserConfig.cpp:283
+#: src/hed/libs/common/UserConfig.cpp:286 src/hed/libs/common/UserConfig.cpp:298
+#: src/hed/libs/common/UserConfig.cpp:337 src/hed/libs/common/UserConfig.cpp:349
 #, c-format
 msgid "User configuration file (%s) contains errors."
 msgstr "Файл настроек пользователя (%s) содержит ошибки."
 
-#: src/hed/libs/common/UserConfig.cpp:225 src/hed/libs/common/UserConfig.cpp:276
+#: src/hed/libs/common/UserConfig.cpp:291 src/hed/libs/common/UserConfig.cpp:342
 msgid "No configuration file could be loaded."
 msgstr "Файл настроек не может быть подгружен."
 
-#: src/hed/libs/common/UserConfig.cpp:228 src/hed/libs/common/UserConfig.cpp:279
+#: src/hed/libs/common/UserConfig.cpp:294 src/hed/libs/common/UserConfig.cpp:345
 #, c-format
 msgid "User configuration file (%s) does not exist or cannot be loaded."
 msgstr "Файл настроек пользователя (%s) не существует или не может быть подгружен."
 
-#: src/hed/libs/common/UserConfig.cpp:340
+#: src/hed/libs/common/UserConfig.cpp:406
 #, c-format
 msgid "Unable to parse the specified verbosity (%s) to one of the allowed levels"
 msgstr ""
 "Невозможно сопоставить запрашиваемый уровень отладки (%s) ни с одним из допустимых"
 
-#: src/hed/libs/common/UserConfig.cpp:352
+#: src/hed/libs/common/UserConfig.cpp:418
 #, c-format
 msgid ""
 "Unsupported job list type '%s', using 'BDB'. Supported types are: BDB, SQLITE, XML."
@@ -7537,16 +7536,16 @@ msgstr ""
 "Тип списка задач '%s' не поддерживается, будет использоваться 'BDB'. Поддерживаются "
 "следующие типы: BDB, SQLITE, XML."
 
-#: src/hed/libs/common/UserConfig.cpp:397
+#: src/hed/libs/common/UserConfig.cpp:463
 msgid "Loading OToken failed - ignoring its presence"
 msgstr "Сбой загрузки OToken  - токен игнорируется"
 
-#: src/hed/libs/common/UserConfig.cpp:538
+#: src/hed/libs/common/UserConfig.cpp:604
 #, c-format
 msgid "Certificate and key ('%s' and '%s') not found in any of the paths: %s"
 msgstr "Сертификат и ключ ('%s' и '%s') не обнаружены ни в одном из расположений: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:540
+#: src/hed/libs/common/UserConfig.cpp:606
 #, c-format
 msgid ""
 "If the proxy or certificate/key does exist, you can manually specify the locations via "
@@ -7557,13 +7556,13 @@ msgstr ""
 "вручную указать их расположение с помощью переменных среды '%s'/'%s' или '%s', или с "
 "помощью атрибутов '%s'/'%s' или '%s' в файле настроек клиента (например, '%s')"
 
-#: src/hed/libs/common/UserConfig.cpp:557 src/hed/libs/common/UserConfig.cpp:567
+#: src/hed/libs/common/UserConfig.cpp:623 src/hed/libs/common/UserConfig.cpp:633
 #, c-format
 msgid ""
 "Can not access CA certificate directory: %s. The certificates will not be verified."
 msgstr "Не удалось открыть каталог сертификатов CA: %s. Сертификаты ."
 
-#: src/hed/libs/common/UserConfig.cpp:593
+#: src/hed/libs/common/UserConfig.cpp:659
 #, c-format
 msgid ""
 "Can not find CA certificates directory in default locations:\n"
@@ -7584,41 +7583,41 @@ msgstr ""
 "его расположения  с помощью переменной X509_CERT_DIR, или задайте\n"
 "cacertificatesdirectory в файле настроек клиента client.conf\n"
 
-#: src/hed/libs/common/UserConfig.cpp:614
+#: src/hed/libs/common/UserConfig.cpp:680
 #, c-format
 msgid "Using proxy file: %s"
 msgstr "Используется файл доверенности: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:617
+#: src/hed/libs/common/UserConfig.cpp:683
 #, c-format
 msgid "Using certificate file: %s"
 msgstr "Используется файл сертификата: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:618
+#: src/hed/libs/common/UserConfig.cpp:684
 #, c-format
 msgid "Using key file: %s"
 msgstr "Используется файл личного ключа: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:622
+#: src/hed/libs/common/UserConfig.cpp:688
 #, c-format
 msgid "Using CA certificate directory: %s"
 msgstr "Используется каталог доверенных сертификатов CA: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:626
+#: src/hed/libs/common/UserConfig.cpp:692
 msgid "Using OToken"
 msgstr "Используется OToken"
 
-#: src/hed/libs/common/UserConfig.cpp:639 src/hed/libs/common/UserConfig.cpp:645
+#: src/hed/libs/common/UserConfig.cpp:705 src/hed/libs/common/UserConfig.cpp:711
 #, c-format
 msgid "Can not access VOMSES file/directory: %s."
 msgstr "Невозможно открыть каталог или файл VOMSES: %s."
 
-#: src/hed/libs/common/UserConfig.cpp:651
+#: src/hed/libs/common/UserConfig.cpp:717
 #, c-format
 msgid "Can not access VOMS file/directory: %s."
 msgstr "Невозможно открыть каталог или файл VOMS: %s."
 
-#: src/hed/libs/common/UserConfig.cpp:665
+#: src/hed/libs/common/UserConfig.cpp:731
 msgid ""
 "Can not find voms service configuration file (vomses) in default locations: ~/.arc/"
 "vomses, ~/.voms/vomses, $ARC_LOCATION/etc/vomses, $ARC_LOCATION/etc/grid-security/"
@@ -7628,105 +7627,105 @@ msgstr ""
 "vomses, ~/.voms/vomses, $ARC_LOCATION/etc/vomses, $ARC_LOCATION/etc/grid-security/"
 "vomses, $PWD/vomses, /etc/vomses, /etc/grid-security/vomses"
 
-#: src/hed/libs/common/UserConfig.cpp:678
+#: src/hed/libs/common/UserConfig.cpp:744
 #, c-format
 msgid "Loading configuration (%s)"
 msgstr "Чтение файла настроек (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:712
+#: src/hed/libs/common/UserConfig.cpp:778
 #, c-format
 msgid ""
 "The value of the timeout attribute in the configuration file (%s) was only partially "
 "parsed"
 msgstr "Значение атрибута timeout (%s) в файле настроек разобрано неполностью"
 
-#: src/hed/libs/common/UserConfig.cpp:737
+#: src/hed/libs/common/UserConfig.cpp:803
 msgid ""
 "The brokerarguments attribute can only be used in conjunction with the brokername "
 "attribute"
 msgstr ""
 "Атрибут brokerarguments может быть использован только в связи с атрибутом brokername"
 
-#: src/hed/libs/common/UserConfig.cpp:753
+#: src/hed/libs/common/UserConfig.cpp:819
 #, c-format
 msgid ""
 "The value of the keysize attribute in the configuration file (%s) was only partially "
 "parsed"
 msgstr "Значение атрибута keysize (%s) в файле настроек разобрано неполностью"
 
-#: src/hed/libs/common/UserConfig.cpp:773
+#: src/hed/libs/common/UserConfig.cpp:839
 #, c-format
 msgid ""
 "Could not convert the slcs attribute value (%s) to an URL instance in configuration "
 "file (%s)"
 msgstr "Не удалось преобразовать значение атрибута slcs (%s) в файле настроек в URL (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:819
+#: src/hed/libs/common/UserConfig.cpp:885
 #, c-format
 msgid "Specified overlay file (%s) does not exist."
 msgstr "Указанный файл с трафаретом (%s) не существует."
 
-#: src/hed/libs/common/UserConfig.cpp:823
+#: src/hed/libs/common/UserConfig.cpp:889
 #, c-format
 msgid "Unknown attribute %s in common section of configuration file (%s), ignoring it"
 msgstr "Игнорируется неизвестный атрибут %s в разделе common файла настроек (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:864
+#: src/hed/libs/common/UserConfig.cpp:930
 #, c-format
 msgid "Unknown section %s, ignoring it"
 msgstr "Игнорируется неизвестный раздел %s"
 
-#: src/hed/libs/common/UserConfig.cpp:868
+#: src/hed/libs/common/UserConfig.cpp:934
 #, c-format
 msgid "Configuration (%s) loaded"
 msgstr "Настройки (%s) подгружены"
 
-#: src/hed/libs/common/UserConfig.cpp:871
+#: src/hed/libs/common/UserConfig.cpp:937
 #, c-format
 msgid "Could not load configuration (%s)"
 msgstr "Не удалось подгрузить настройки (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:966
+#: src/hed/libs/common/UserConfig.cpp:1032
 #, c-format
 msgid "UserConfiguration saved to file (%s)"
 msgstr "UserConfiguration сохранены в файле (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:979
+#: src/hed/libs/common/UserConfig.cpp:1045
 #, c-format
 msgid "Unable to create %s directory."
 msgstr "Не удалось создать каталог %s."
 
-#: src/hed/libs/common/UserConfig.cpp:988
+#: src/hed/libs/common/UserConfig.cpp:1054
 #, c-format
 msgid "Configuration example file created (%s)"
 msgstr "Создан шаблонный файл настроек (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:990
+#: src/hed/libs/common/UserConfig.cpp:1056
 #, c-format
 msgid "Unable to copy example configuration from existing configuration (%s)"
 msgstr "Не удалось скопировать шаблон настроек из существующих настроек (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:995
+#: src/hed/libs/common/UserConfig.cpp:1061
 #, c-format
 msgid "Cannot copy example configuration (%s), it is not a regular file"
 msgstr "Не удалось скопировать шаблон настроек (%s), т.к. это нестандартный файл"
 
-#: src/hed/libs/common/UserConfig.cpp:1000
+#: src/hed/libs/common/UserConfig.cpp:1066
 #, c-format
 msgid "Example configuration (%s) not created."
 msgstr "Шаблон настроек (%s) не создан."
 
-#: src/hed/libs/common/UserConfig.cpp:1005
+#: src/hed/libs/common/UserConfig.cpp:1071
 #, c-format
 msgid "The default configuration file (%s) is not a regular file."
 msgstr "Файл настроек по умолчанию (%s) не является обычным файлом."
 
-#: src/hed/libs/common/UserConfig.cpp:1023
+#: src/hed/libs/common/UserConfig.cpp:1089
 #, c-format
 msgid "%s directory created"
 msgstr "создан каталог %s"
 
-#: src/hed/libs/common/UserConfig.cpp:1025 src/hed/libs/common/UserConfig.cpp:1064
+#: src/hed/libs/common/UserConfig.cpp:1091 src/hed/libs/common/UserConfig.cpp:1130
 #: src/hed/libs/data/DataMover.cpp:679
 #, c-format
 msgid "Failed to create directory %s"
@@ -10045,22 +10044,22 @@ msgstr "%s > %s => верно"
 msgid "%s > %s => false: %s contains non numbers in the version part."
 msgstr "%s > %s => неверно: %s содержит нецифровые символы в номере версии."
 
-#: src/hed/libs/compute/Software.cpp:206 src/hed/libs/compute/Software.cpp:217
+#: src/hed/libs/compute/Software.cpp:199 src/hed/libs/compute/Software.cpp:210
 #, c-format
 msgid "Requirement \"%s %s\" NOT satisfied."
 msgstr "Требование \"%s %s\" НЕ удовлетворено."
 
-#: src/hed/libs/compute/Software.cpp:212
+#: src/hed/libs/compute/Software.cpp:205
 #, c-format
 msgid "Requirement \"%s %s\" satisfied."
 msgstr "Требование \"%s %s\" удовлетворено."
 
-#: src/hed/libs/compute/Software.cpp:221
+#: src/hed/libs/compute/Software.cpp:214
 #, c-format
 msgid "Requirement \"%s %s\" satisfied by \"%s\"."
 msgstr "Требование \"%s %s\" удовлетворено \"%s\"."
 
-#: src/hed/libs/compute/Software.cpp:226
+#: src/hed/libs/compute/Software.cpp:219
 msgid "All requirements satisfied."
 msgstr "Все требования удовлетворены."
 
@@ -12387,7 +12386,7 @@ msgid "Failed to load plugin for URL %s"
 msgstr "Сбой подгрузки подключаемого модуля для URL %s"
 
 #: src/hed/libs/data/DataPointDelegate.cpp:75 src/hed/libs/data/DataPointDelegate.cpp:76
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:2008
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:2013
 #, c-format
 msgid "Starting helper process: %s"
 msgstr "Запускается вспомогательный процесс: %s"
@@ -13004,14 +13003,14 @@ msgid "Using cache %s"
 msgstr "Используется кэш %s"
 
 #: src/hed/libs/data/FileCache.cpp:844
-#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:78
-#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:111
+#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:79
+#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:112
 #, c-format
 msgid "Error getting info from statvfs for the path %s: %s"
 msgstr "Ошибка получения информации от statvfs для пути %s: %s"
 
 #: src/hed/libs/data/FileCache.cpp:850
-#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:117
+#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:118
 #, c-format
 msgid "Cache %s: Free space %f GB"
 msgstr "Кэш %s: Свободное пространство %f GB"
@@ -13065,52 +13064,52 @@ msgstr "Не удалось преобразовать параметры дос
 msgid "Failed to release GSS credential (major: %d, minor: %d):%s:%s"
 msgstr "Не удалось освободить параметры доступа GSS (major: %d, minor: %d):%s:%s"
 
-#: src/hed/libs/loader/ModuleManager.cpp:25
+#: src/hed/libs/loader/ModuleManager.cpp:28
 msgid "Module Manager Init"
 msgstr "Запуск управления модулями"
 
-#: src/hed/libs/loader/ModuleManager.cpp:68
+#: src/hed/libs/loader/ModuleManager.cpp:71
 msgid ""
 "Busy plugins found while unloading Module Manager. Waiting for them to be released."
 msgstr ""
 "В процессе отключения менеджера модулей обнаружены занятые подключаемые модули. "
 "Ожидается их завершение."
 
-#: src/hed/libs/loader/ModuleManager.cpp:202
+#: src/hed/libs/loader/ModuleManager.cpp:205
 #, c-format
 msgid "Found %s in cache"
 msgstr "%s обнаружен в кэше"
 
-#: src/hed/libs/loader/ModuleManager.cpp:209
+#: src/hed/libs/loader/ModuleManager.cpp:212
 #, c-format
 msgid "Could not locate module %s in following paths:"
 msgstr "Невозможно найти модуль %s в следующих местах:"
 
-#: src/hed/libs/loader/ModuleManager.cpp:213
+#: src/hed/libs/loader/ModuleManager.cpp:216
 #, c-format
 msgid "\t%s"
 msgstr "\t%s"
 
-#: src/hed/libs/loader/ModuleManager.cpp:227
+#: src/hed/libs/loader/ModuleManager.cpp:230
 #, c-format
 msgid "Loaded %s"
 msgstr "Подгружен модуль %s"
 
-#: src/hed/libs/loader/ModuleManager.cpp:271
+#: src/hed/libs/loader/ModuleManager.cpp:274
 msgid "Module Manager Init by ModuleManager::setCfg"
 msgstr "Инициализация менеджера модулей в ModuleManager::setCfg"
 
-#: src/hed/libs/loader/ModuleManager.cpp:307 src/hed/libs/loader/ModuleManager.cpp:320
+#: src/hed/libs/loader/ModuleManager.cpp:310 src/hed/libs/loader/ModuleManager.cpp:323
 #, c-format
 msgid "%s made persistent"
 msgstr "Модуль %s сброшен на диск"
 
-#: src/hed/libs/loader/ModuleManager.cpp:311
+#: src/hed/libs/loader/ModuleManager.cpp:314
 #, c-format
 msgid "Not found %s in cache"
 msgstr "Модуль %s не найден в кэше"
 
-#: src/hed/libs/loader/ModuleManager.cpp:325
+#: src/hed/libs/loader/ModuleManager.cpp:328
 msgid "Specified module not found in cache"
 msgstr "Указанные модули не найдены в кэше"
 
@@ -13321,10 +13320,6 @@ msgstr "Сбой обработки/проверки безопасности д
 #, c-format
 msgid "Security processing/check for '%s' passed"
 msgstr "Обработка/проверка параметров доступа '%s' завершилась успехом"
-
-#: src/hed/libs/message/Service.cpp:47
-msgid "Empty registration collector"
-msgstr "Пустой сборщик регистраций"
 
 #: src/hed/libs/otokens/jwse.cpp:55
 #, c-format
@@ -16211,28 +16206,28 @@ msgstr "процесс: метод %s не поддерживается"
 msgid "process: method is not defined"
 msgstr "процесс: неопределённый метод"
 
-#: src/services/a-rex/arex.cpp:1052
+#: src/services/a-rex/arex.cpp:1051
 msgid "Failed to run Grid Manager thread"
 msgstr "Сбой запуска потока Grid Manager"
 
-#: src/services/a-rex/arex.cpp:1112
+#: src/services/a-rex/arex.cpp:1110
 #, c-format
 msgid "Failed to process configuration in %s"
 msgstr "Не удалось обработать настройки в %s"
 
-#: src/services/a-rex/arex.cpp:1117
+#: src/services/a-rex/arex.cpp:1115
 msgid "No control directory set in configuration"
 msgstr "Не найден контрольный каталог в файле настроек"
 
-#: src/services/a-rex/arex.cpp:1121
+#: src/services/a-rex/arex.cpp:1119
 msgid "No session directory set in configuration"
 msgstr "Не найден каталог сессии в файле настроек"
 
-#: src/services/a-rex/arex.cpp:1125
+#: src/services/a-rex/arex.cpp:1123
 msgid "No LRMS set in configuration"
 msgstr "Не найдена СУПО в файле настроек"
 
-#: src/services/a-rex/arex.cpp:1130
+#: src/services/a-rex/arex.cpp:1128
 #, c-format
 msgid "Failed to create control directory %s"
 msgstr "Ошибка создания контрольного каталога %s"
@@ -16513,20 +16508,20 @@ msgstr "Получение из кэша: не удалось получить �
 msgid "Get from cache: Cached file is locked"
 msgstr "Получение из кэша: Кэшированный файл забклокирован"
 
-#: src/services/a-rex/get_activity_statuses.cpp:213
-#: src/services/a-rex/get_activity_statuses.cpp:319
+#: src/services/a-rex/get_activity_statuses.cpp:214
+#: src/services/a-rex/get_activity_statuses.cpp:320
 #, c-format
 msgid "EMIES:GetActivityStatus: job %s - %s"
 msgstr "EMIES:GetActivityStatus: задача %s - %s"
 
-#: src/services/a-rex/get_activity_statuses.cpp:454
+#: src/services/a-rex/get_activity_statuses.cpp:455
 #, c-format
 msgid "EMIES:GetActivityInfo: job %s - failed to retrieve GLUE2 information"
 msgstr ""
 "EMIES:GetActivityInfo: задача %s - не удалось получить информацию по формату GLUE2"
 
-#: src/services/a-rex/get_activity_statuses.cpp:506
-#: src/services/a-rex/get_activity_statuses.cpp:513
+#: src/services/a-rex/get_activity_statuses.cpp:507
+#: src/services/a-rex/get_activity_statuses.cpp:514
 #, c-format
 msgid "EMIES:NotifyService: job %s - %s"
 msgstr "EMIES:NotifyService: задача %s - %s"
@@ -16641,36 +16636,36 @@ msgstr ""
 "Точка монтирования SSHFS каталога кэша (%s) недоступна - ожидается повторное "
 "соединение ..."
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:348
+#: src/services/a-rex/grid-manager/GridManager.cpp:350
 #, c-format
 msgid "Orphan delegation lock detected (%s) - cleaning"
 msgstr "Обнаружен неиспользуемый блок делегирования (%s) - очистка"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:353
+#: src/services/a-rex/grid-manager/GridManager.cpp:355
 msgid "Failed to obtain delegation locks for cleaning orphaned locks"
 msgstr "Не удалось получить блоки делегирования для очистки неиспользуемых блоков"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:367
+#: src/services/a-rex/grid-manager/GridManager.cpp:369
 msgid "Waking up"
 msgstr "Активизация"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:370
+#: src/services/a-rex/grid-manager/GridManager.cpp:372
 msgid "Stopping jobs processing thread"
 msgstr "Останавливается поток обработки задачи"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:372
+#: src/services/a-rex/grid-manager/GridManager.cpp:374
 msgid "Exiting jobs processing thread"
 msgstr "Останавливается поток обработки задачи"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:390
+#: src/services/a-rex/grid-manager/GridManager.cpp:392
 msgid "Requesting to stop job processing"
 msgstr "Запрашивается прекращение обработки задачи"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:398
+#: src/services/a-rex/grid-manager/GridManager.cpp:400
 msgid "Waiting for main job processing thread to exit"
 msgstr "Ожидание завершения основного потока обработки задачи"
 
-#: src/services/a-rex/grid-manager/GridManager.cpp:400
+#: src/services/a-rex/grid-manager/GridManager.cpp:402
 msgid "Stopped job processing"
 msgstr "Обработка задачи завершена"
 
@@ -17656,7 +17651,7 @@ msgid "ID contains forbidden characters"
 msgstr "ID содержит недопустимые символы"
 
 #: src/services/a-rex/grid-manager/jobplugin/jobplugin.cpp:1384
-#: src/services/a-rex/job.cpp:1023
+#: src/services/a-rex/job.cpp:1024
 #, c-format
 msgid "Failed to create file in %s"
 msgstr "Не удалось создать файл в %s"
@@ -17808,8 +17803,8 @@ msgstr "%s: Полученный DTR принадлежит неактивной
 #: src/services/a-rex/grid-manager/jobs/DTRGenerator.cpp:1067
 #: src/services/a-rex/grid-manager/jobs/JobsList.cpp:459
 #: src/services/a-rex/grid-manager/jobs/JobsList.cpp:517
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:626
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:836
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:631
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:841
 #, c-format
 msgid "%s: Failed reading local information"
 msgstr "%s: Не удалось прочесть локальную информацию"
@@ -18311,18 +18306,18 @@ msgstr "%s: Не удалось установить права на испол�
 msgid "%s: state SUBMIT: starting child: %s"
 msgstr "%s: состояние SUBMIT: запуск дочернего процесса: %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:541
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:542
 #, c-format
 msgid "%s: Failed running submission process"
 msgstr "%s: Не удалось выполнить процедуру запуска"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:546
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:649
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:547
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:654
 #, c-format
 msgid "%s: LRMS scripts limit of %u is reached - suspending submit/cancel"
 msgstr "%s: достигнут предел скрипта СУПО  %u  - приостанавливается запуск/снятие"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:562
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:563
 #, c-format
 msgid ""
 "%s: Job submission to LRMS takes too long, but ID is already obtained. Pretending "
@@ -18331,47 +18326,47 @@ msgstr ""
 "%s: Засылка задачи в СУПО происходит слишком медленно, но идентификатор уже доступен. "
 "Будем считать, что засылка произведена."
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:569
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:570
 #, c-format
 msgid "%s: Job submission to LRMS takes too long. Failing."
 msgstr "%s: Засылка задачи в СУПО происходит слишком долго. Сбой."
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:578
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:579
 #, c-format
 msgid "%s: state SUBMIT: child exited with code %i"
 msgstr "%s: состояние: SUBMIT: дочерний процесс завершился с кодом выхода: %i"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:583
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:584
 #, c-format
 msgid "%s: Job submission to LRMS failed"
 msgstr "%s: Не удалось направить задачу в СУПО"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:600
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:605
 #, c-format
 msgid "%s: state CANCELING: timeout waiting for cancellation"
 msgstr "%s: состояние CANCELING: срок ожидания прерывания истёк"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:606
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:611
 #, c-format
 msgid "%s: state CANCELING: job diagnostics collected"
 msgstr "%s: состояние CANCELING: собирается диагностика задачи"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:634
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:639
 #, c-format
 msgid "%s: state CANCELING: starting child: %s"
 msgstr "%s: состояние CANCELING: запуск дочернего процесса: %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:636
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:641
 #, c-format
 msgid "%s: Job has completed already. No action taken to cancel"
 msgstr "%s:Задача уже завершилась. Действия по прерыванию не применяются"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:644
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:649
 #, c-format
 msgid "%s: Failed running cancellation process"
 msgstr "%s: Не удалось выполнить процедуру прерывания"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:663
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:668
 #, c-format
 msgid ""
 "%s: Job cancellation takes too long, but diagnostic collection seems to be done. "
@@ -18380,283 +18375,283 @@ msgstr ""
 "%s: Прерывание задачи происходит слишком медленно, но диагностика уже доступна. Будем "
 "считать, что прерывание произошло."
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:669
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:674
 #, c-format
 msgid "%s: Job cancellation takes too long. Failing."
 msgstr "%s: Прерывание задачи происходит слишком долго. Сбой."
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:679
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:684
 #, c-format
 msgid "%s: state CANCELING: child exited with code %i"
 msgstr "%s: состояние CANCELING: дочерний процесс завершился с кодом выхода %i"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:685
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:690
 #, c-format
 msgid "%s: Failed to cancel running job"
 msgstr "%s: Не удалось оборвать исполняющуюся задачу"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:704
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:709
 #, c-format
 msgid "%s: State: %s: data staging finished"
 msgstr "%s: Состояние: %s: размещение данных завершено"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:739
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:744
 #, c-format
 msgid "%s: State: %s: still in data staging"
 msgstr "%s: Состояние: %s: всё ещё в процессе переноса данных"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:752
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:757
 #, c-format
 msgid "%s: Job is not allowed to be rerun anymore"
 msgstr "%s: Задачу нельзя больше перезапускать"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:762
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:767
 #, c-format
 msgid "%s: Job failed in unknown state. Won't rerun."
 msgstr "%s: Сбой исполнения задачи в неизвестном состоянии. Перезапуска не будет."
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:783
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:788
 #, c-format
 msgid "%s: Reprocessing job description failed"
 msgstr "%s: Сбой повторной обработки описания задачи"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:790
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:795
 #, c-format
 msgid "%s: Failed to read reprocessed list of output files"
 msgstr "%s: Не удалось прочесть переработанный список выходных файлов"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:794
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:799
 #, c-format
 msgid "%s: Failed to read reprocessed list of input files"
 msgstr "%s: Не удалось прочесть переработанный список входных файлов"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:878
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:883
 #, c-format
 msgid "%s: Reading status of new job failed"
 msgstr "%s: Не удалось прочесть состояние новой задачи"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:891
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:896
 #, c-format
 msgid "%s: State: ACCEPTED: parsing job description"
 msgstr "%s: Состояние: ACCEPTED: обрабатывается описание задачи"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:893
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:898
 #, c-format
 msgid "%s: Processing job description failed"
 msgstr "%s: Не удалось обработать описание задачи"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:931
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:936
 #, c-format
 msgid "%s: new job is accepted"
 msgstr "%s: новая задача принята"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:943
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:948
 #, c-format
 msgid "%s: %s: New job belongs to %i/%i"
 msgstr "%s: %s: Новая задача принадлежит %i/%i"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:948
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:953
 #, c-format
 msgid "%s: old job is accepted"
 msgstr "%s: старая задача принята"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:959
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:964
 #, c-format
 msgid "%s: State: ACCEPTED"
 msgstr "%s: Состояние: ACCEPTED"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:965
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:970
 #, c-format
 msgid "%s: State: ACCEPTED: dryrun"
 msgstr "%s: Состояние: ACCEPTED: dryrun"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:988
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:993
 #, c-format
 msgid "%s: State: ACCEPTED: has process time %s"
 msgstr "%s: Состояние: ACCEPTED: время на исполнение %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:994
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:999
 #, c-format
 msgid "%s: State: ACCEPTED: moving to PREPARING"
 msgstr "%s: состояние ACCEPTED: переход в PREPARING"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1010
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1015
 #, c-format
 msgid "%s: State: PREPARING"
 msgstr "%s: Состояние: PREPARING"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1017
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1022
 #, c-format
 msgid "%s: Failed obtaining local job information."
 msgstr "%s: Не удалось извлечь информацию о локальном состоянии задачи."
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1070
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1075
 #, c-format
 msgid "%s: State: SUBMIT"
 msgstr "%s: Состояние: SUBMIT"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1090
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1095
 #, c-format
 msgid "%s: State: CANCELING"
 msgstr "%s: Состояние: CANCELING"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1110
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1115
 #, c-format
 msgid "%s: State: INLRMS"
 msgstr "%s: Состояние: INLRMS"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1115
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1120
 #, c-format
 msgid "%s: State: INLRMS - checking for pending(%u) and mark"
 msgstr "%s: Состояние: INLRMS - проверка приостановки(%u) и метка"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1117
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1122
 #, c-format
 msgid "%s: State: INLRMS - checking for not pending"
 msgstr "%s: Состояние: INLRMS - проверка отсутствия приостановки"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1119
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1124
 #, c-format
 msgid "%s: Job finished"
 msgstr "%s: Задача завершена"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1123
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1128
 #, c-format
 msgid "%s: State: INLRMS: exit message is %i %s"
 msgstr "%s: состояние INLRMS: сообщение на выходе %i %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1136
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1141
 #, c-format
 msgid "%s: State: INLRMS - no mark found"
 msgstr "%s: Состояние: INLRMS - метки не найдены"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1148
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1153
 #, c-format
 msgid "%s: State: FINISHING"
 msgstr "%s: Состояние: FINISHING"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1169
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1174
 #, c-format
 msgid "%s: Job is requested to clean - deleting"
 msgstr "%s: Поступил запрос на удаление задачи - удаляется"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1186
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1191
 #, c-format
 msgid "%s: restarted PREPARING job"
 msgstr "%s: перезапущена задача из PREPARING"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1202
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1207
 #, c-format
 msgid "%s: restarted INLRMS job"
 msgstr "%s: перезапущена задача из INLRMS"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1211
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1216
 #, c-format
 msgid "%s: restarted FINISHING job"
 msgstr "%s: перезапущена задача из FINISHING"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1216
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1221
 #, c-format
 msgid "%s: Can't rerun on request"
 msgstr "%s: Перезапуск по требованию невозможен"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1218
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1223
 #, c-format
 msgid "%s: Can't rerun on request - not a suitable state"
 msgstr "%s: Перезапуск по запросу невозможен - неподходящее состояние"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1229
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1234
 #, c-format
 msgid "%s: Job is too old - deleting"
 msgstr "%s: Задача слишком старая - удаляется"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1274
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1279
 #, c-format
 msgid "%s: Job is ancient - delete rest of information"
 msgstr "%s: Задача устарела - удаляется оставшаяся информация"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1292
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1297
 #, c-format
 msgid "%s: Canceling job because of user request"
 msgstr "%s: Прерывание задачи по запросу пользователя"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1306
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1311
 #, c-format
 msgid "%s: Failed to turn job into failed during cancel processing."
 msgstr "%s: Сбой присвоения задаче состояния сбоя при обрыве исполнения."
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1338
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1346
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1343
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1351
 #, c-format
 msgid "%s: Plugin at state %s : %s"
 msgstr "%s: Подключаемый модуль в состоянии %s : %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1352
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1357
 #, c-format
 msgid "%s: Plugin execution failed"
 msgstr "%s: Сбой при исполнении подключаемого модуля"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1459
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1464
 #, c-format
 msgid "%s: State: %s from %s"
 msgstr "%s: Состояние: %s после %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1510
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1515
 #, c-format
 msgid "Failed to get DN information from .local file for job %s"
 msgstr "Не удалось извлечь информацию о DN из файла .local задачи %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1537
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1542
 #, c-format
 msgid "%s: Delete request due to internal problems"
 msgstr "%s: Удаление запроса в связи с внутренними неполадками"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1572
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1577
 #, c-format
 msgid "%s: Job failure detected"
 msgstr "%s: Обнаружен сбой задачи"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1625
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1630
 #, c-format
 msgid "Failed to move file %s to %s"
 msgstr "Не удалось переместить файл %s в %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1633
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1743
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1638
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1748
 #, c-format
 msgid "Failed reading control directory: %s"
 msgstr "Сбой при чтении управляющего каталога: %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1703
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:1708
 #, c-format
 msgid "Failed reading control directory: %s: %s"
 msgstr "Сбой при чтении управляющего каталога: %s: %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:2019
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:2024
 #, c-format
 msgid "Helper process start failed: %s"
 msgstr "Сбой при запуске вспомогательного процесса: %s"
 
-#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:2026
+#: src/services/a-rex/grid-manager/jobs/JobsList.cpp:2031
 #, c-format
 msgid "Stopping helper process %s"
 msgstr "Останавливается вспомогательный процесс %s"
 
-#: src/services/a-rex/grid-manager/log/HeartBeatMetrics.cpp:60
+#: src/services/a-rex/grid-manager/log/HeartBeatMetrics.cpp:61
 #, c-format
 msgid "Error with hearbeatfile: %s"
 msgstr "Ошибка в файле такта: %s"
 
-#: src/services/a-rex/grid-manager/log/HeartBeatMetrics.cpp:72
-#: src/services/a-rex/grid-manager/log/JobsMetrics.cpp:166
-#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:135
+#: src/services/a-rex/grid-manager/log/HeartBeatMetrics.cpp:73
+#: src/services/a-rex/grid-manager/log/JobsMetrics.cpp:139
+#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:136
 #, c-format
 msgid ": Metrics tool returned error code %i: %s"
 msgstr ": Средство измерения характеристик выдало ошибку %i: %s"
 
-#: src/services/a-rex/grid-manager/log/HeartBeatMetrics.cpp:106
-#: src/services/a-rex/grid-manager/log/JobsMetrics.cpp:213
-#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:177
+#: src/services/a-rex/grid-manager/log/HeartBeatMetrics.cpp:107
+#: src/services/a-rex/grid-manager/log/JobsMetrics.cpp:186
+#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:178
 msgid ""
 "gmetric_bin_path empty in arc.conf (should never happen the default value should be "
 "used)"
@@ -18685,21 +18680,21 @@ msgstr ": Сбой создания соединения к базе данны�
 msgid ": writing accounting record took %llu ms"
 msgstr ": запись учётной записи заняла %llu mс"
 
-#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:73
+#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:74
 #, c-format
 msgid "Session dir '%s' contains user specific substitutions - skipping it"
 msgstr "Каталог сессии '%s' содержит пользовательские замены - пропускается"
 
-#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:85
+#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:86
 #, c-format
 msgid "Sessiondir %s: Free space %f GB"
 msgstr "Рабочий каталог %s: Свободное пространство %f ГБ"
 
-#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:93
+#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:94
 msgid "No session directories found in configuration."
 msgstr "Не найдены каталоги сессий в файле настроек."
 
-#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:124
+#: src/services/a-rex/grid-manager/log/SpaceMetrics.cpp:125
 msgid "No cachedirs found/configured for calculation of free space."
 msgstr "Каталоги кэша не найдены или не настроены при вычислении свободного пространства."
 
@@ -18735,19 +18730,19 @@ msgstr "%s: Сбой создания области памяти для доч�
 msgid "%s: Failure creating data storage for child process"
 msgstr "%s: Сбой создания хранилища данных для дочернего процесса"
 
-#: src/services/a-rex/grid-manager/run/RunParallel.cpp:153
+#: src/services/a-rex/grid-manager/run/RunParallel.cpp:158
 #: src/services/a-rex/grid-manager/run/RunRedirected.cpp:41
 #: src/services/a-rex/grid-manager/run/RunRedirected.cpp:73
 #, c-format
 msgid "%s: Failure starting child process"
 msgstr "%s: Сбой при запуске дочернего процесса"
 
-#: src/services/a-rex/grid-manager/run/RunParallel.cpp:166
+#: src/services/a-rex/grid-manager/run/RunParallel.cpp:171
 #, c-format
 msgid "%s: Failed to run plugin"
 msgstr "%s: Сбой при запуске подключаемого модуля"
 
-#: src/services/a-rex/grid-manager/run/RunParallel.cpp:169
+#: src/services/a-rex/grid-manager/run/RunParallel.cpp:174
 #, c-format
 msgid "%s: Plugin failed"
 msgstr "%s: Сбой подключаемого модуля"
@@ -18809,20 +18804,20 @@ msgstr "Не удалось записать файл grami: %s"
 msgid "Unable to write 'output' file: %s"
 msgstr "Не удалось записать файл 'output': %s"
 
-#: src/services/a-rex/information_collector.cpp:43
+#: src/services/a-rex/information_collector.cpp:53
 #, c-format
 msgid "Resource information provider: %s"
 msgstr "Сборщик информации о ресурсе: %s"
 
-#: src/services/a-rex/information_collector.cpp:46
+#: src/services/a-rex/information_collector.cpp:56
 msgid "Resource information provider failed to start"
 msgstr "Сбой запуска сборщика информации о ресурсе"
 
-#: src/services/a-rex/information_collector.cpp:49
+#: src/services/a-rex/information_collector.cpp:59
 msgid "Resource information provider failed to run"
 msgstr "Сбой работы сборщика информации о ресурсе"
 
-#: src/services/a-rex/information_collector.cpp:53
+#: src/services/a-rex/information_collector.cpp:63
 #, c-format
 msgid ""
 "Resource information provider failed with exit status: %i\n"
@@ -18831,7 +18826,7 @@ msgstr ""
 "Сбой сборщика информации о ресурсе с выходным статусом: %i\n"
 "%s"
 
-#: src/services/a-rex/information_collector.cpp:55
+#: src/services/a-rex/information_collector.cpp:65
 #, c-format
 msgid ""
 "Resource information provider log:\n"
@@ -18840,59 +18835,37 @@ msgstr ""
 "Журнал сборщика информации о ресурсе:\n"
 "%s"
 
-#: src/services/a-rex/information_collector.cpp:61
+#: src/services/a-rex/information_collector.cpp:71
 msgid "No new informational document assigned"
 msgstr "Не присвоено новых информационных документов"
 
-#: src/services/a-rex/information_collector.cpp:63
+#: src/services/a-rex/information_collector.cpp:73
 #, c-format
 msgid "Obtained XML: %s"
 msgstr "Полученный XML: %s"
 
-#: src/services/a-rex/information_collector.cpp:77
+#: src/services/a-rex/information_collector.cpp:87
 msgid "Informational document is empty"
 msgstr "Пустой информационный документ"
 
-#: src/services/a-rex/information_collector.cpp:88
-msgid "Passing service's information from collector to registrator"
-msgstr "Идёт передача информации о службе от сборщика к регистратору"
-
-#: src/services/a-rex/information_collector.cpp:144
-#, c-format
-msgid ""
-"Registered static information: \n"
-" doc: %s"
-msgstr ""
-"Зарегистрирована статическая информация: \n"
-" документ: %s"
-
-#: src/services/a-rex/information_collector.cpp:147
-#, c-format
-msgid ""
-"Information registered without static attributes: \n"
-" doc: %s"
-msgstr ""
-"Информация зарегистрирована без статических аттрибутов: \n"
-" документ: %s"
-
-#: src/services/a-rex/information_collector.cpp:293
+#: src/services/a-rex/information_collector.cpp:212
 msgid "OptimizedInformationContainer failed to create temporary file"
 msgstr "OptimizedInformationContainer не смог создать временный файл"
 
-#: src/services/a-rex/information_collector.cpp:296
+#: src/services/a-rex/information_collector.cpp:215
 #, c-format
 msgid "OptimizedInformationContainer created temporary file: %s"
 msgstr "OptimizedInformationContainer создал временный файл: %s"
 
-#: src/services/a-rex/information_collector.cpp:302
+#: src/services/a-rex/information_collector.cpp:221
 msgid "OptimizedInformationContainer failed to store XML document to temporary file"
 msgstr "OptimizedInformationContainer не смог записать документ XML во временный файл"
 
-#: src/services/a-rex/information_collector.cpp:311
+#: src/services/a-rex/information_collector.cpp:230
 msgid "OptimizedInformationContainer failed to parse XML"
 msgstr "OptimizedInformationContainer не смог разобрать XML"
 
-#: src/services/a-rex/information_collector.cpp:322
+#: src/services/a-rex/information_collector.cpp:242
 msgid "OptimizedInformationContainer failed to rename temprary file"
 msgstr "OptimizedInformationContainer не смог переименовать временный файл"
 
@@ -19042,12 +19015,12 @@ msgstr "Срок действия параметров доступа истек
 msgid "Credential handling exception: %s"
 msgstr "Прерывание при обработке параметров доступа: %s"
 
-#: src/services/a-rex/job.cpp:1031
+#: src/services/a-rex/job.cpp:1032
 #, c-format
 msgid "Out of tries while allocating new job ID in %s"
 msgstr "Закончились попытки присвоения нового ярлыка задачи в %s"
 
-#: src/services/a-rex/job.cpp:1270
+#: src/services/a-rex/job.cpp:1271
 msgid "No non-draining session dirs available"
 msgstr "Нет каталогов сессий не в состоянии разгрузки"
 
@@ -20653,22 +20626,6 @@ msgstr "Не удалось создать аргумент outmsg"
 msgid "Cannot convert outmsg to Python object"
 msgstr "Не удалось преобразовать outmsg в объект Python"
 
-#: src/services/wrappers/python/pythonwrapper.cpp:519
-msgid "Failed to create XMLNode container"
-msgstr "Не удалось создать контейнер XMLNode"
-
-#: src/services/wrappers/python/pythonwrapper.cpp:536
-msgid "Cannot find ARC XMLNode class"
-msgstr "Класс ARC XMLNode не найден"
-
-#: src/services/wrappers/python/pythonwrapper.cpp:542
-msgid "Cannot create doc argument"
-msgstr "Не удалось создать аргумент документации"
-
-#: src/services/wrappers/python/pythonwrapper.cpp:548
-msgid "Cannot convert doc to Python object"
-msgstr "Не удалось преобразовать doc в объект Python"
-
 #: src/tests/client/test_ClientInterface.cpp:36
 #: src/tests/client/test_ClientSAML2SSO.cpp:68
 #: src/tests/delegation/test_client_with_delegation_sechandler.cpp:78
@@ -20832,61 +20789,93 @@ msgid "EchoService (python) thread test, iteration %(iteration)s %(status)s"
 msgstr ""
 "Запуск теста потоков службы EchoService (python), итерация %(iteration)s %(status)s"
 
-#: src/services/examples/echo_python/EchoService.py:91
+#: src/services/examples/echo_python/EchoService.py:82
 msgid "EchoService (python) 'Process' called"
 msgstr "Вызван 'Process' EchoService (Python)"
 
-#: src/services/examples/echo_python/EchoService.py:95
+#: src/services/examples/echo_python/EchoService.py:86
 #, python-format
 msgid "inmsg.Auth().Export(arc.SecAttr.ARCAuth) = %s"
 msgstr "inmsg.Auth().Export(arc.SecAttr.ARCAuth) = %s"
 
-#: src/services/examples/echo_python/EchoService.py:96
+#: src/services/examples/echo_python/EchoService.py:87
 #, python-format
 msgid "inmsg.Attributes().getAll() = %s "
 msgstr "inmsg.Attributes().getAll() = %s "
 
-#: src/services/examples/echo_python/EchoService.py:97
+#: src/services/examples/echo_python/EchoService.py:88
 #, python-format
 msgid "EchoService (python) got: %s "
 msgstr "EchoService (python) получил: %s "
 
-#: src/services/examples/echo_python/EchoService.py:102
+#: src/services/examples/echo_python/EchoService.py:93
 #, python-format
 msgid "EchoService (python) request_namespace: %s"
 msgstr "EchoService (python) request_namespace: %s"
 
-#: src/services/examples/echo_python/EchoService.py:108
-#: src/services/examples/echo_python/EchoService.py:180
+#: src/services/examples/echo_python/EchoService.py:99
+#: src/services/examples/echo_python/EchoService.py:171
 #, python-format
 msgid "outpayload %s"
 msgstr "outpayload %s"
 
-#: src/services/examples/echo_python/EchoService.py:137
+#: src/services/examples/echo_python/EchoService.py:128
 msgid "Calling https://localhost:60000/Echo using ClientSOAP"
 msgstr "Вызывается https://localhost:60000/Echo используя ClientSOAP"
 
-#: src/services/examples/echo_python/EchoService.py:140
+#: src/services/examples/echo_python/EchoService.py:131
 msgid "Calling http://localhost:60000/Echo using ClientSOAP"
 msgstr "Вызывается http://localhost:60000/Echo используя ClientSOAP"
 
-#: src/services/examples/echo_python/EchoService.py:146
-#: src/services/examples/echo_python/EchoService.py:164
+#: src/services/examples/echo_python/EchoService.py:137
+#: src/services/examples/echo_python/EchoService.py:155
 #, python-format
 msgid "new_payload %s"
 msgstr "new_payload %s"
 
-#: src/services/examples/echo_python/EchoService.py:158
+#: src/services/examples/echo_python/EchoService.py:149
 msgid "Calling http://localhost:60000/Echo using httplib"
 msgstr "Вызывается http://localhost:60000/Echo используя httplib"
 
-#: src/services/examples/echo_python/EchoService.py:174
+#: src/services/examples/echo_python/EchoService.py:165
 msgid "Start waiting 10 sec..."
 msgstr "Ждём 10 секунд..."
 
-#: src/services/examples/echo_python/EchoService.py:176
+#: src/services/examples/echo_python/EchoService.py:167
 msgid "Waiting ends."
 msgstr "Ожидание завершено."
+
+#~ msgid "Empty registration collector"
+#~ msgstr "Пустой сборщик регистраций"
+
+#~ msgid "Passing service's information from collector to registrator"
+#~ msgstr "Идёт передача информации о службе от сборщика к регистратору"
+
+#~ msgid ""
+#~ "Registered static information: \n"
+#~ " doc: %s"
+#~ msgstr ""
+#~ "Зарегистрирована статическая информация: \n"
+#~ " документ: %s"
+
+#~ msgid ""
+#~ "Information registered without static attributes: \n"
+#~ " doc: %s"
+#~ msgstr ""
+#~ "Информация зарегистрирована без статических аттрибутов: \n"
+#~ " документ: %s"
+
+#~ msgid "Failed to create XMLNode container"
+#~ msgstr "Не удалось создать контейнер XMLNode"
+
+#~ msgid "Cannot find ARC XMLNode class"
+#~ msgstr "Класс ARC XMLNode не найден"
+
+#~ msgid "Cannot create doc argument"
+#~ msgstr "Не удалось создать аргумент документации"
+
+#~ msgid "Cannot convert doc to Python object"
+#~ msgstr "Не удалось преобразовать doc в объект Python"
 
 #~ msgid "Can't obtain configuration"
 #~ msgstr "Не удалось получить настройки"
