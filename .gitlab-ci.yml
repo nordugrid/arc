@@ -16,10 +16,11 @@ variables:
   BUILD_VOL: ''
   BROWSER: ''
   BUILD_IMAGE: ''
+  BUILD_DIR: ''
 
 
 #############################################################
-##                  FORK BUILDS                            ## 
+##    BUILDS (BOTH FORKS AND MAIN REPO)                    ## 
 #############################################################
 
 .template_build_rhel: &template_build_rhel
@@ -124,7 +125,7 @@ build_ubuntu1804:
 
 
 #############################################################
-##             MAIN REPO DEPLOY                            ## 
+##             DEPLOY (ONLY MAIN REPO)                     ## 
 #############################################################
 
 .deploy: &deploy
@@ -135,6 +136,9 @@ build_ubuntu1804:
     - DEPLOY_CONTAINER=$OS_V_`date +%Y%m%dT%H%M`
     - docker pull $ARC_IMAGE
     - GITLAB_CONTAINER=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
+    - mkdir -p $BUILD_VOL
+    - cp -r $CI_PROJECT_DIR/$BUILD_DIR  $BUILD_VOL
+    - ls -lhrt $BUILD_VOL
     - echo '***************  Should be nothing at this point in /arc-logs - ls shows:'
     - ls -lhrt /arc-logs
     - echo 'Just removing files just in case'
@@ -184,6 +188,7 @@ deploy_el7:
     OS_V: el7
     ARC_IMAGE: maikenp/arc-deploy-centos7
     BUILD_VOL: /rpmbuild
+    BUILD_DIR: $CI_PROJECT_DIR/$BUILD_VOL/*
   tags:
     - 158.39.201.67
     - deploy
@@ -201,6 +206,7 @@ deploy_el8:
     OS_V: el8
     ARC_IMAGE: maikenp/arc-deploy-centos8
     BUILD_VOL: /rpmbuild
+    BUILD_DIR: $CI_PROJECT_DIR/$BUILD_VOL/* 
   tags:
     - 158.39.201.179
     - deploy
@@ -218,6 +224,7 @@ deploy_deb9:
     OS_V: deb9
     ARC_IMAGE: maikenp/arc-deploy-debian9
     BUILD_VOL: /build
+    BUILD_DIR: $CI_PROJECT_DIR/*.deb
   tags:
     - 158.37.63.83
     - deploy
@@ -233,7 +240,8 @@ deploy_deb10:
   variables:
     OS_V: deb10
     ARC_IMAGE: maikenp/arc-deploy-debian10
-    BUILD_VOL: /build 
+    BUILD_VOL: /build
+    BUILD_DIR: $CI_PROJECT_DIR/*.deb    
   tags:
     - 158.39.75.5
     - deploy
@@ -251,6 +259,7 @@ deploy_ubuntu1804:
     OS_V: ubuntu1804
     ARC_IMAGE: maikenp/arc-deploy-ubuntu1804
     BUILD_VOL: /build
+    BUILD_DIR: $CI_PROJECT_DIR/*.deb
   tags:
     - 158.39.74.3
     - deploy
