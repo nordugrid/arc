@@ -137,7 +137,7 @@ build_ubuntu1804:
     - docker pull $ARC_IMAGE
     - GITLAB_CONTAINER=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
     - mkdir -p $BUILD_VOL
-    - cp -r $CI_PROJECT_DIR/$BUILD_DIR  $BUILD_VOL
+    - cp -r $BUILD_DIR  $BUILD_VOL
     - ls -lhrt $BUILD_VOL
     - echo '***************  Should be nothing at this point in /arc-logs - ls shows:'
     - ls -lhrt /arc-logs
