@@ -3,22 +3,59 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.X.X     XX.XX.XXXX
+Release Notes for NorduGrid ARC  6.13.0    13.09.2021
 =======================================================
 
+We are happy to announce the release of ARC 6.13.0.
 
+You can read about the most important change related to A-REX's web service interface below.
+In addition, as usual, this release comes with a few other improvements and bugfixes listed below. 
+
+
+[To-be-added C+11 platforms only... for next release?]    
+    
+    
 Highlights in this release
 --------------------------
-* A-REX slowdown issue...
-* SLURM sacct walltime and usertime errors ...
 
-The following Bugzilla tickets have been adressed or solved
-------------------------------------------------------------
+The most important change in this release is the extraction of a separate arc-arex-ws service from the arc-arex service. 
+This is in order to address a memory usage issue occurring when a large number of input files are handled
+and is related to https://bugzilla.nordugrid.org/show_bug.cgi?id=4020. 
+
+Therefore, if (and only if) you have enabled A-REX's web service interface through the [arex/ws] configuration block,
+you now need to start it as a separate service arc-arex-ws. 
+
+You can easily do this by issuing the command
+
+  arcctl service start -a 
+
+This will start all services configured in arc.conf.
+You should also make sure to enable the new service, again this can be done  via arcctl with
+
+    arcctl service enable -a 
+    
+
+Note further that the startup scripts for arc-arex and arc-arex-ws now have MALLOC_ARENA_MAX=2 set.
+This prevents memory fragmentation which has been seen to seriously degrade the system.
+See ddetails in https://bugzilla.nordugrid.org/show_bug.cgi?id=4020#c23.
+
+    
+For further improvements should if your system suffer from the symptoms described in the bug,
+you could furthermore edit the arc-arex-start script to use tcmalloc instead of glic mallow by adding: 
+    LD_PRELOAD=/usr/lib64/libtcmalloc.so.4
+    
+
+**If you have not configured ARC with the [arex/ws] block you can ignore the above instructions, as this does not apply to you. **
+    
+
+The following Bugzilla tickets have been adressed or solved: 
+------------------------------------------------------------- 
+* 4030  logrotate needs fix with arex/ws split
+* 4021  When job fails to be submitted to LRMS - .failed file gets Permission denied
 * 4020  arex slowdown with many input files
 * 4015  GGUS-ticket-ID: #152002 arcproxy complains if root owns proxy file
 * 3973  arc usertime bug in scan-SLURM-job
 * 3966  scan-SLURM-job walltime error
-
 
 
 Documentation
