@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export MALLOC_ARENA_MAX=2
+
 add_library_path() {
     location="$1"
     if [ ! "x$location" = "x" ] ; then
