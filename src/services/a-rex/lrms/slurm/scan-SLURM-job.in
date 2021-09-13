@@ -369,7 +369,7 @@ function handle_diag_file {
 
         handle_diag_tries=$(( $handle_diag_tries - 1 ))
         if [ -n "$jobinfo_collect_failed"  ] ; then
-            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed for job: $localid - could not fetch jobinfostring. Retrie sleft: $handle_diag_tries." 1>&2;
+            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed for job: $localid - could not fetch jobinfostring to update the diag file. Retries left: $handle_diag_tries." 1>&2;
         fi
         
         sleep 2
