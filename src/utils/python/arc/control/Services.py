@@ -168,6 +168,8 @@ class ServicesControl(ComponentControl):
         pm, sm = self.__get_pm_sm()
         services = {}
         for s in self.__blocks_map.values():
+            """ N/A for services that do not have their own package, i.e. s['package'] is None. """
+            installed_str = 'N/A'
             sname = s['service']
             if sname is None:
                 continue
