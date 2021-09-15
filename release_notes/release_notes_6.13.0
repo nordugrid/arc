@@ -9,15 +9,15 @@ Release Notes for NorduGrid ARC  6.13.0    15.09.2021
 We are happy to announce the release of ARC 6.13.0.
 
 You can read about the most important change related to A-REX's web service interface below.
-In addition, as usual, this release comes with a few other improvements and bugfixes listed below. 
+In addition, as usual, this release comes with a few other improvements and bugfixes. 
     
     
 Highlights in this release
 --------------------------
 
-The most important change in this release is the extraction of a separate arc-arex-ws service from the arc-arex service. 
-This is in order to address a memory usage issue occurring when a large number of input files are handled
-and is related to https://bugzilla.nordugrid.org/show_bug.cgi?id=4020. 
+The most important change in this release is the extraction of a separate arc-arex-ws service previously integrated into the arc-arex service. 
+This addresses a memory usage issue occurring when a large number of input files are handled,
+see https://bugzilla.nordugrid.org/show_bug.cgi?id=4020 for details. 
 
 Therefore, if (and only if) you have enabled A-REX's web service interface through the [arex/ws] configuration block,
 you now need to start it as a separate service arc-arex-ws. 
@@ -25,24 +25,22 @@ you now need to start it as a separate service arc-arex-ws.
 You can easily do this by issuing the command
 
   arcctl service start -a 
-
-This will start all services configured in arc.conf.
-You should also make sure to enable the new service, again this can be done  via arcctl with
-
-    arcctl service enable -a 
+  arcctl service enable -a
     
+This will start and enable all services as configured (-a) in arc.conf.
 
-Note further that the startup scripts for arc-arex and arc-arex-ws now have MALLOC_ARENA_MAX=2 set.
+Note further that the startup scripts for arc-arex and arc-arex-ws now set MALLOC_ARENA_MAX=2.
 This prevents memory fragmentation which has been seen to seriously degrade the system.
-See ddetails in https://bugzilla.nordugrid.org/show_bug.cgi?id=4020#c23.
+See details in https://bugzilla.nordugrid.org/show_bug.cgi?id=4020#c23.
 
     
-For further improvements should if your system suffer from the symptoms described in the bug,
-you could furthermore edit the arc-arex-start script to use tcmalloc instead of glic mallow by adding: 
+For further improvements, should your system suffer from the symptoms described in the bug,
+you could edit the arc-arex-start script to use tcmalloc instead of glibc malloc by adding:
+    
     LD_PRELOAD=/usr/lib64/libtcmalloc.so.4
     
 
-**If you have not configured ARC with the [arex/ws] block you can ignore the above instructions, as this does not apply to you. **
+*If you have not configured ARC with the [arex/ws] block you can ignore the above instructions, as the problem does not affect you. *
     
 
 The following Bugzilla tickets have been adressed or solved: 
