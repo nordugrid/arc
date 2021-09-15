@@ -1,0 +1,118 @@
+=================================
+Advanced Resource Connector (ARC)
+=================================
+
+
+Release Notes for NorduGrid ARC  6.13.0    15.09.2021
+=======================================================
+
+We are happy to announce the release of ARC 6.13.0.
+
+You can read about the most important change related to A-REX's web service interface below.
+In addition, as usual, this release comes with a few other improvements and bugfixes. 
+    
+    
+Highlights in this release
+--------------------------
+
+The most important change in this release is the extraction of a separate arc-arex-ws service previously integrated into the arc-arex service.
+*If you have not configured ARC with the [arex/ws] block you can ignore the instructions below as the problem does not affect you.*
+
+The split up of the two services addresses a memory usage issue occurring when a large number of input files are handled,
+see https://bugzilla.nordugrid.org/show_bug.cgi?id=4020 for details. 
+
+Therefore, if (and only if) you have enabled A-REX's web service interface through the [arex/ws] configuration block,
+you now need to start it as a separate service arc-arex-ws. 
+
+You can easily do this by issuing the command
+
+  arcctl service start -a 
+  arcctl service enable -a
+    
+This will start and enable all services as configured (-a) in arc.conf.
+
+Note further that the startup scripts for arc-arex and arc-arex-ws now set MALLOC_ARENA_MAX=2.
+This prevents memory fragmentation which has been seen to seriously degrade the system.
+See details in https://bugzilla.nordugrid.org/show_bug.cgi?id=4020#c23.
+
+    
+For further improvements, should your system suffer from the symptoms described in the bug,
+you could edit the arc-arex-start and arc-arex-ws-start scripts to use tcmalloc instead of glibc malloc by adding:
+    
+    LD_PRELOAD=/usr/lib64/libtcmalloc.so.4
+    
+
+The following Bugzilla tickets have been adressed or solved: 
+-------------------------------------------------------------
+* 4030  logrotate needs fix with arex/ws split
+* 4024  gsiftp submission fails with runtimeenviroment not resolved
+* 4021  When job fails to be submitted to LRMS - .failed file gets Permission denied
+* 4020  arex slowdown with many input files
+* 4015  GGUS-ticket-ID: #152002 arcproxy complains if root owns proxy file
+* 3973  arc usertime bug in scan-SLURM-job
+* 3966  scan-SLURM-job walltime error
+
+
+Documentation
+==============
+The ARC 6 documentation can be found at http://www.nordugrid.org/arc/arc6
+
+If you miss something or have questions, please contact us!
+
+
+Installing ARC 6 
+=================
+We recommend to install ARC release using the Nordugrid repository.
+* Start with the basics: http://www.nordugrid.org/arc/arc6/admins/try_arc6.html
+* Get production ready: http://www.nordugrid.org/arc/arc6/admins/arc6_install_guide.html 
+
+Note that if you instead install from EPEL for RHEL 7 compatible systems,
+the ARC 6 packages can be found as nordugrid-arc6-* and not nordugrid-arc-*
+This was needed in order to supply both ARC 5 already available for RHEL7 and the new ARC 6.
+
+
+We provide binary builds for all supported versions of
+  * Debian (i386 and amd64)
+  * Fedora (x86_64)
+  * Centos/RHEL (x86_64)
+  * Ubuntu (i386 and amd64, both LTS and interim releases) - from Ubuntu 20.04 no i386 support
+
+In addition we build nightly packages for older platforms. 
+
+
+Contributing
+=============
+You can submit pull requests to our public repo at https://github.com/nordugrid/arc which mirrors
+our Gitlab repo https://source.coderefinery.org/nordugrid/arc.
+
+The pull requests will be automatically copied over to our Gitlab repo where they will be
+merged into the source-code if accepted.
+
+
+Getting in touch
+==================
+If you need help with the configuration file or have any other questions related to ARC 6, please contact us via
+* Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
+* Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
+
+
+ARC 5-series
+===============================
+ARC 5 is no longer supported. 
+
+To install ARC 6 from EPEL7 the package-names are of type: nordugrid-arc6-* 
+
+
+Known issues
+==============
+* The arcctl deploy -e option is currently out of function due to an EGI server change. 
+* In Centos8 the openldap server is not installable because slapd is not available in the RHEL8 release (Bugzilla 3944).
+  As a consequence, the LDAP-based server-side information system interface of the ARC-CE will not be available either.
+  If interaction with the ARC-CE relies on LDAP-based information schemas (glue1.3 or nordugrid schema),
+  then we recommend that you stay with Centos7 for the time being.
+* Related to the new accounting system introduded in release 6.4.0: 
+  * Accounting records created by ARC 6.4.0 are affected by a bug causing missing benchmark values:
+   https://bugzilla.nordugrid.org./show_bug.cgi?id=3921#c3
+   Recommendations are to update to a newer version of ARC.
+   The bugreport gives instructions on how to manually fix the wrong benchmark values.
+
