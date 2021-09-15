@@ -35,7 +35,7 @@ See details in https://bugzilla.nordugrid.org/show_bug.cgi?id=4020#c23.
 
     
 For further improvements, should your system suffer from the symptoms described in the bug,
-you could edit the arc-arex-start script to use tcmalloc instead of glibc malloc by adding:
+you could edit the arc-arex-start and arc-arex-ws-start scripts to use tcmalloc instead of glibc malloc by adding:
     
     LD_PRELOAD=/usr/lib64/libtcmalloc.so.4
     
