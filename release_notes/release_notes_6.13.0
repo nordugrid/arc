@@ -15,8 +15,10 @@ In addition, as usual, this release comes with a few other improvements and bugf
 Highlights in this release
 --------------------------
 
-The most important change in this release is the extraction of a separate arc-arex-ws service previously integrated into the arc-arex service. 
-This addresses a memory usage issue occurring when a large number of input files are handled,
+The most important change in this release is the extraction of a separate arc-arex-ws service previously integrated into the arc-arex service.
+*If you have not configured ARC with the [arex/ws] block you can ignore the instructions below as the problem does not affect you.*
+
+The split up of the two services addresses a memory usage issue occurring when a large number of input files are handled,
 see https://bugzilla.nordugrid.org/show_bug.cgi?id=4020 for details. 
 
 Therefore, if (and only if) you have enabled A-REX's web service interface through the [arex/ws] configuration block,
@@ -38,9 +40,6 @@ For further improvements, should your system suffer from the symptoms described 
 you could edit the arc-arex-start and arc-arex-ws-start scripts to use tcmalloc instead of glibc malloc by adding:
     
     LD_PRELOAD=/usr/lib64/libtcmalloc.so.4
-    
-
-*If you have not configured ARC with the [arex/ws] block you can ignore the above instructions, as the problem does not affect you. *
     
 
 The following Bugzilla tickets have been adressed or solved: 
@@ -97,19 +96,11 @@ If you need help with the configuration file or have any other questions related
 * Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
 
 
-Future support of ARC 5-series
+ARC 5-series
 ===============================
-As of June 2020 no more security updates are provided to ARC 5.
-Also since the release of ARC 6 in June 2019, no more development on the ARC 5 code base has been provided.
+ARC 5 is no longer supported. 
 
-Production Sites already running ARC 5 will still get operational site support in form of
-deployment and configuration troubleshooting help via GGUS until end June 2021.
-However, we may recommend upgrading to ARC 6 depending on the issues the site is facing. 
-
-ARC5 is available in EPEL7 and will stay there. EPEL8 will only contain ARC 6.
 To install ARC 6 from EPEL7 the package-names are of type: nordugrid-arc6-* 
-
-
 
 
 Known issues
