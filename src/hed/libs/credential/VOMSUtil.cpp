@@ -75,6 +75,12 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 }
 #endif
 
+#if (OPENSSL_VERSION_NUMBER < 0x30000000L)
+#define OPENSSL_CONST
+#else
+#define OPENSSL_CONST const
+#endif
+
   void VOMSTrustList::AddElement(const std::vector<std::string>& encoded_list) {
     VOMSTrustChain chain;
     for(std::vector<std::string>::const_iterator i = encoded_list.begin();
@@ -563,7 +569,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       a->sig_alg = alg2; alg2 = NULL;
     }
 
-    ASN1_sign((int (*)(void*, unsigned char**))i2d_AC_INFO, a->acinfo->alg, a->sig_alg, a->signature,
+    ASN1_sign((int (*)(OPENSSL_CONST void*, unsigned char**))i2d_AC_INFO, a->acinfo->alg, a->sig_alg, a->signature,
             (char *)a->acinfo, pkey, EVP_md5());
 
     return 0;
@@ -767,7 +773,7 @@ err:
     if (!key) return false;
 
     int res = 0;
-    res = ASN1_verify((int (*)(void*, unsigned char**))i2d_AC_INFO, ac->sig_alg, ac->signature,
+    res = ASN1_verify((int (*)(OPENSSL_CONST void*, unsigned char**))i2d_AC_INFO, ac->sig_alg, ac->signature,
                         (char *)ac->acinfo, key);
 
     if (!res) CredentialLogger.msg(ERROR,"VOMS: failed to verify AC signature");
