@@ -3,12 +3,11 @@
 # Filter out -Wl,-Bsymbolic-functions from default Ubuntu LDFLAGS
 export DEB_LDFLAGS_MAINT_STRIP=-Wl,-Bsymbolic-functions
 
-# Enable C++11 when gcc < 6
-ifeq ($(shell echo __GNUC__ | gcc -E - | tail -1),4)
-export DEB_CXXFLAGS_MAINT_APPEND=-std=c++0x
-endif
+ifeq ($(shell pkg-config --atleast-version 2.6 sigc++-2.0 && echo 1),1)
 ifeq ($(shell echo __GNUC__ | gcc -E - | tail -1),5)
-export DEB_CXXFLAGS_MAINT_APPEND=-std=c++0x
+# Workaround for too new libsigc++/glibmm, too old gcc combination
+export DEB_CXXFLAGS_MAINT_APPEND=-std=c++11
+endif
 endif
 
 ifeq ($(shell perl -mInline::Python < /dev/null 2>/dev/null && echo 1),1)

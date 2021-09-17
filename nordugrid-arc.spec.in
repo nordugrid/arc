@@ -977,9 +977,11 @@ management features on the worker nodes (WN).
 %setup @fedorasetupopts@
 
 %build
-# Enable C++11 when gcc < 6
-if [ `echo __GNUC__ | gcc -E - | tail -1` -lt 6 ] ; then
-  export CXXFLAGS="%{optflags} -std=c++0x"
+if pkg-config --atleast-version 2.6 sigc++-2.0 ; then
+  if [ `echo __GNUC__ | gcc -E - | tail -1` -lt 6 ] ; then
+    # Workaround for too new libsigc++/glibmm, too old gcc combination
+    export CXXFLAGS="%{optflags} -std=c++11"
+  fi
 fi
 
 %configure --disable-static \
