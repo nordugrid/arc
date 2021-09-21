@@ -1177,6 +1177,7 @@ static bool processJobStatus(Arc::Message& inmsg,ARexConfigContext& config, Arc:
           std::string state_str = snode;
           if(state_str.compare(0, 8, "arcrest:") == 0) {
             rest_state = state_str.substr(8);
+            break;
           }
         }
       }
