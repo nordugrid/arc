@@ -445,7 +445,7 @@ static Arc::MCC_Status HTTPPOSTResponse(Arc::Message& inmsg, Arc::Message& outms
 static ResponseFormat ProcessAcceptedFormat(Arc::Message& inmsg, Arc::Message& outmsg) {
   // text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8
   std::list<std::string> accepts;
-  tokenize(inmsg.Attributes()->get("HTTP:accept"), accepts, ",");
+  for(Arc::AttributeIterator attrIt = inmsg.Attributes()->getAll("HTTP:accept"); attrIt.hasMore(); ++attrIt) tokenize(*attrIt, accepts, ",");
   for(std::list<std::string>::iterator acc = accepts.begin(); acc != accepts.end(); ++acc) {
     *acc = Arc::trim(*acc, " ");
     std::string::size_type pos = acc->find_first_of(';');
