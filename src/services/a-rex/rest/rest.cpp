@@ -1175,8 +1175,9 @@ static bool processJobStatus(Arc::Message& inmsg,ARexConfigContext& config, Arc:
       if((bool)glue_xml) {
         for(Arc::XMLNode snode = glue_xml["State"]; (bool)snode ; ++snode) {
           std::string state_str = snode;
-          if(state_str.compare(0, 7, "arcrest:") == 0) {
-            rest_state = state_str.substr(7);
+          if(state_str.compare(0, 8, "arcrest:") == 0) {
+            rest_state = state_str.substr(8);
+            break;
           }
         }
       }
