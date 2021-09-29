@@ -27,7 +27,7 @@ class ServicesControl(ComponentControl):
             'service': 'arc-arex'
         },
         'arex/ws': {
-            'package': None,
+            'package': 'arex',
             'service': 'arc-arex-ws'
         },
         'gridftpd': {
