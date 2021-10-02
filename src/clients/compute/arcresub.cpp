@@ -65,8 +65,11 @@ int RUNMAIN(arcresub)(int argc, char **argv) {
     return 0;
   }
 
-  if (!checkproxy(usercfg)) {
-    return 1;
+  // TODO: proper check for each job must be implemented
+  if(usercfg.OToken().empty()) {
+    if (!checkproxy(usercfg)) {
+      return 1;
+    }
   }
 
   if (opt.debug.empty() && !usercfg.Verbosity().empty())

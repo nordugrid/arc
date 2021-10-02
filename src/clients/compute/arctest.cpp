@@ -178,10 +178,6 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     return EXIT_SUCCESS;
   }
 
-  if (!checkproxy(usercfg)) {
-    return 1;
-  }
-
   if (opt.timeout > 0)
     usercfg.Timeout(opt.timeout);
 
@@ -192,6 +188,12 @@ int RUNMAIN(arctest)(int argc, char **argv) {
   if (!Arc::JobDescription::GetTestJob(opt.testjobid, testJob)) {
     std::cout << Arc::IString("No test-job, with ID \"%d\"", opt.testjobid) << std::endl;
     return 1;
+  }
+
+  if(usercfg.OToken().empty() || jobneedsproxy(testJob)) {
+    if (!checkproxy(usercfg)) {
+      return 1;
+    }
   }
 
   // Set user input variables into job description

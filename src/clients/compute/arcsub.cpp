@@ -78,10 +78,6 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     return 0;
   }
 
-  if (!checkproxy(usercfg)) {
-    return 1;
-  }
-
   if (opt.debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(usercfg.Verbosity()));
 
@@ -167,6 +163,20 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
       logger.msg(Arc::ERROR, "Invalid JobDescription:");
       std::cout << *it << std::endl;
       std::cerr << parseres.str() << std::endl;
+      return 1;
+    }
+  }
+
+  // Check if X.509 credentials are needed for data staging
+  bool need_proxy = false;
+  for (std::list<Arc::JobDescription>::iterator jobIt = jobdescriptionlist.begin(); jobIt != jobdescriptionlist.end(); ++jobIt) {
+    if(jobneedsproxy(*jobIt)) {
+      need_proxy = true;
+      break;
+    }
+  }
+  if(need_proxy || usercfg.OToken().empty()) {
+    if (!checkproxy(usercfg)) {
       return 1;
     }
   }
