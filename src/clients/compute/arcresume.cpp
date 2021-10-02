@@ -51,8 +51,10 @@ int RUNMAIN(arcresume)(int argc, char **argv) {
     return 1;
   }
 
-  if (!checkproxy(usercfg)) {
-    return 1;
+  if(usercfg.OToken().empty()) {
+    if (!checkproxy(usercfg)) {
+      return 1;
+    }
   }
 
   if (opt.debug.empty() && !usercfg.Verbosity().empty())
