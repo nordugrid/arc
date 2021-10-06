@@ -172,6 +172,32 @@ bool checkproxy(const Arc::UserConfig& uc)
   return true;
 }
 
+static bool urlisinsecure(Arc::URL const & url) {
+  std::string protocol = url.Protocol();
+  return protocol.empty() || (protocol == "http") || (protocol == "ftp") || (protocol == "ldap");
+}
+
+bool jobneedsproxy(const Arc::JobDescription& job) {
+  // Check if X.509 credentials are needed for data staging
+  std::list<Arc::InputFileType> inputFiles = job.DataStaging.InputFiles;
+  for(std::list<Arc::InputFileType>::iterator fileIt = inputFiles.begin(); fileIt != inputFiles.end(); ++fileIt) {
+    for(std::list<Arc::SourceType>::iterator sourceIt = fileIt->Sources.begin(); sourceIt != fileIt->Sources.end(); ++sourceIt) {
+      if(!urlisinsecure(*sourceIt)) {
+        return true;
+      }
+    }
+  }
+  std::list<Arc::OutputFileType> outputFiles = job.DataStaging.OutputFiles;
+  for(std::list<Arc::OutputFileType>::iterator fileIt = outputFiles.begin(); fileIt != outputFiles.end(); ++fileIt) {
+    for(std::list<Arc::TargetType>::iterator targetIt = fileIt->Targets.begin(); targetIt != fileIt->Targets.end(); ++targetIt) {
+      if(!urlisinsecure(*targetIt)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 void splitendpoints(std::list<std::string>& selected, std::list<std::string>& rejected)
 {
   // Removes slashes from end of endpoint strings, and put strings with leading '-' into rejected list.

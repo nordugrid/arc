@@ -201,8 +201,10 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
   if (opt.timeout > 0)
     usercfg.Timeout(opt.timeout);
 
-  if (!checkproxy(usercfg)) {
-    return 1;
+  if(usercfg.OToken().empty()) {
+    if (!checkproxy(usercfg)) {
+      return 1;
+    }
   }
 
   if (opt.debug.empty() && !usercfg.Verbosity().empty())
