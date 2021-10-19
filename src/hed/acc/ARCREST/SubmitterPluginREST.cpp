@@ -142,11 +142,11 @@ namespace Arc {
     // Inserting delegation id into job desription - ADL specific
     XMLNodeList sources = job.Path("DataStaging/InputFile/Source");
     for(XMLNodeList::iterator item = sources.begin();item!=sources.end();++item) {
-      item->NewChild("esadl:DelegationID") = delegationId;
+      item->NewChild("adl:DelegationID") = delegationId;
     };
     XMLNodeList targets = job.Path("DataStaging/OutputFile/Target");
     for(XMLNodeList::iterator item = targets.begin();item!=targets.end();++item) {
-      item->NewChild("esadl:DelegationID") = delegationId;
+      item->NewChild("adl:DelegationID") = delegationId;
     };
     job["DataStaging"].NewChild("nordugrid-adl:DelegationID") = delegationId;
     job.GetXML(product);
