@@ -135,7 +135,7 @@ bool JobLog::RunReporter(const GMConfig &config) {
   if(joblog) {
     if(!joblog->reporter_logfile.empty()) errlog = joblog->reporter_logfile;
   };
-  reporter_proc->AssignInitializer(&initializer,errlog.empty()?NULL:(void*)errlog.c_str(),true);
+  reporter_proc->AssignInitializer(&initializer,errlog.empty()?NULL:(void*)errlog.c_str(),false);
   logger.msg(Arc::DEBUG, "Running command: %s", argv.front());
   if(!reporter_proc->Start()) {
     delete reporter_proc;
