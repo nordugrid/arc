@@ -71,13 +71,7 @@ bool RunParallel::run(const GMConfig& config, const Arc::User& user,
     return false;
   };
   if(kicker_func) re->AssignKicker(kicker_func,kicker_arg);
-  RunParallel rp(procid,errlog);
-  if(!rp) {
-    delete re;
-    logger.msg(Arc::ERROR,"%s: Failure creating data storage for child process",procid?procid:"");
-    return false;
-  };
-  re->AssignInitializer(&initializer,&rp);
+  re->AssignInitializer(&initializer,(void*)errlog,false);
   if(su) {
     // change user
     re->AssignUserId(user.get_uid());
@@ -131,20 +125,19 @@ bool RunParallel::run(const GMConfig& config, const Arc::User& user,
 
 void RunParallel::initializer(void* arg) {
   // child
-  RunParallel* it = (RunParallel*)arg;
+  char const * errlog = (char const *)arg;
   int h;
   // set up stdin,stdout and stderr
   h=::open("/dev/null",O_RDONLY); 
-  if(h != 0) { if(dup2(h,0) != 0) { sleep(10); _exit(1); }; close(h); };
+  if(h != 0) { if(dup2(h,0) != 0) { /*sleep(10);*/ _exit(1); }; close(h); };
   h=::open("/dev/null",O_WRONLY);
-  if(h != 1) { if(dup2(h,1) != 1) { sleep(10); _exit(1); }; close(h); };
-  std::string errlog;
-  if(!(it->errlog_.empty())) { 
-    h=::open(it->errlog_.c_str(),O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
+  if(h != 1) { if(dup2(h,1) != 1) { /*sleep(10);*/ _exit(1); }; close(h); };
+  if(errlog) { 
+    h=::open(errlog,O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
     if(h==-1) { h=::open("/dev/null",O_WRONLY); };
   }
   else { h=::open("/dev/null",O_WRONLY); };
-  if(h != 2) { if(dup2(h,2) != 2) { sleep(10); _exit(1); }; close(h); };
+  if(h != 2) { if(dup2(h,2) != 2) { /*sleep(10);*/ _exit(1); }; close(h); };
 }
 
 } // namespace ARex

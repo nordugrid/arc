@@ -1977,8 +1977,6 @@ JobsList::ExternalHelper::~ExternalHelper() {
 
 static void ExternalHelperInitializer(void* arg) {
   const char* logpath = reinterpret_cast<const char*>(arg);
-  // just set good umask
-  umask(0077);
   // set up stdin,stdout and stderr
   int h;
   h = ::open("/dev/null",O_RDONLY);
@@ -2016,7 +2014,7 @@ bool JobsList::ExternalHelper::run(JobsList const& jobs) {
   proc->KeepStdin(true);
   proc->KeepStdout(true);
   proc->KeepStderr(true);
-  proc->AssignInitializer(&ExternalHelperInitializer, const_cast<char*>(jobs.config.HelperLog().c_str()));
+  proc->AssignInitializer(&ExternalHelperInitializer, const_cast<char*>(jobs.config.HelperLog().c_str()), false);
   proc->AssignKicker(&ExternalHelperKicker, const_cast<void*>(reinterpret_cast<void const*>(&jobs)));
   if (proc->Start()) return true;
   delete proc;

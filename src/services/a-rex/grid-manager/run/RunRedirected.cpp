@@ -24,13 +24,13 @@ int RunRedirected::run(const Arc::User& user,const char* cmdname,int in,int out,
     logger.msg(Arc::ERROR,"%s: Failure creating slot for child process",cmdname?cmdname:"");
     return -1;
   };
-  RunRedirected* rr = new RunRedirected(cmdname,in,out,err);
+  RunRedirected* rr = new RunRedirected(in,out,err);
   if((!rr) || (!(*rr))) {
     if(rr) delete rr;
     logger.msg(Arc::ERROR,"%s: Failure creating data storage for child process",cmdname?cmdname:"");
     return -1;
   };
-  re.AssignInitializer(&initializer,rr);
+  re.AssignInitializer(&initializer,rr,false);
   re.AssignUserId(user.get_uid());
   re.AssignGroupId(user.get_gid());
   re.KeepStdin(true);
@@ -62,7 +62,7 @@ int RunRedirected::run(const Arc::User& user,const char* cmdname,int in,int out,
     logger.msg(Arc::ERROR,"%s: Failure creating data storage for child process",cmdname?cmdname:"");
     return -1;
   };
-  re.AssignInitializer(&initializer,rr);
+  re.AssignInitializer(&initializer,rr,false);
   re.AssignUserId(user.get_uid());
   re.AssignGroupId(user.get_gid());
   re.KeepStdin(true);

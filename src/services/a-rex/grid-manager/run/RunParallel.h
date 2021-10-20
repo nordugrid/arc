@@ -10,11 +10,8 @@ namespace ARex {
 /// Run child process in parallel with stderr redirected to job.jobid.errors
 class RunParallel {
  private:
-  RunParallel(const char* procid, const char* errlog)
-    :procid_(procid?procid:""), errlog_(errlog?errlog:"") { };
+  RunParallel() { };
   ~RunParallel(void) { };
-  std::string procid_;
-  std::string errlog_;
   static void initializer(void* arg);
   operator bool(void) { return true; };
   bool operator!(void) { return false; };

@@ -135,7 +135,7 @@ bool JobLog::RunReporter(const GMConfig &config) {
   if(joblog) {
     if(!joblog->reporter_logfile.empty()) errlog = joblog->reporter_logfile;
   };
-  reporter_proc->AssignInitializer(&initializer,errlog.empty()?NULL:(void*)errlog.c_str());
+  reporter_proc->AssignInitializer(&initializer,errlog.empty()?NULL:(void*)errlog.c_str(),true);
   logger.msg(Arc::DEBUG, "Running command: %s", argv.front());
   if(!reporter_proc->Start()) {
     delete reporter_proc;
@@ -227,12 +227,12 @@ void JobLog::initializer(void* arg) {
   int h;
   // set up stdin,stdout and stderr
   h=::open("/dev/null",O_RDONLY);
-  if(h != 0) { if(dup2(h,0) != 0) { sleep(10); exit(1); }; close(h); };
+  if(h != 0) { if(dup2(h,0) != 0) { exit(1); }; close(h); };
   h=::open("/dev/null",O_WRONLY);
-  if(h != 1) { if(dup2(h,1) != 1) { sleep(10); exit(1); }; close(h); };
+  if(h != 1) { if(dup2(h,1) != 1) { exit(1); }; close(h); };
   h=errlog ? ::open(errlog,O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR) : -1;
   if(h==-1) { h=::open("/dev/null",O_WRONLY); };
-  if(h != 2) { if(dup2(h,2) != 2) { sleep(10); exit(1); }; close(h); };
+  if(h != 2) { if(dup2(h,2) != 2) { exit(1); }; close(h); };
 }
 
 
