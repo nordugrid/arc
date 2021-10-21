@@ -73,6 +73,7 @@ namespace Arc {
     std::list<std::string> envx_;
     void (*initializer_func_)(void*);
     void *initializer_arg_;
+    bool initializer_is_complex_;
     void (*kicker_func_)(void*);
     void *kicker_arg_;
     // IO handlers are called when data can be sent/received
@@ -190,7 +191,7 @@ namespace Arc {
     /// Closes pipe associated with stdin handle.
     void CloseStdin(void);
     /// Assign a function to be called just after process is forked but before execution starts.
-    void AssignInitializer(void (*initializer_func)(void*), void *initializer_arg);
+    void AssignInitializer(void (*initializer_func)(void*), void *initializer_arg, bool is_complex);
     /// Assign a function to be called just after execution ends. It is executed asynchronously.
     void AssignKicker(void (*kicker_func)(void*), void *kicker_arg);
     /// Assign working directory of the process to run.

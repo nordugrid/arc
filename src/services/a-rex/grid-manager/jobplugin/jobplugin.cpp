@@ -36,7 +36,6 @@
 #include "../files/ControlFileHandling.h"
 #include "../jobs/JobDescriptionHandler.h"
 #include "../misc/proxy.h"
-#include "../run/RunParallel.h"
 #include "../../../gridftpd/userspec.h"
 #include "../../../gridftpd/names.h"
 #include "../../../gridftpd/misc.h"

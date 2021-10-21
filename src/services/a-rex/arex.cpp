@@ -26,7 +26,6 @@
 #include "grid-manager/log/JobsMetrics.h"
 #include "grid-manager/log/HeartBeatMetrics.h"
 #include "grid-manager/log/SpaceMetrics.h"
-#include "grid-manager/run/RunPlugin.h"
 #include "grid-manager/jobs/ContinuationPlugins.h"
 #include "grid-manager/files/ControlFileHandling.h"
 #include "arex.h"
