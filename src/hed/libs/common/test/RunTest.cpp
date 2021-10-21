@@ -56,7 +56,7 @@ void RunTest::TestRun0() {
   Arc::Run run(srcdir + "/rcode 0");
   run.AssignStdout(outstr);
   run.AssignStderr(errstr);
-  run.AssignInitializer(&initializer_func,(void*)1);
+  run.AssignInitializer(&initializer_func,(void*)1,false);
   CPPUNIT_ASSERT((bool)run);
   CPPUNIT_ASSERT(run.Start());
   CPPUNIT_ASSERT(run.Wait(10));
