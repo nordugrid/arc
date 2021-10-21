@@ -12,7 +12,6 @@
 #include <arc/Utils.h>
 #include <arc/ArcConfigIni.h>
 #include "../jobs/ContinuationPlugins.h"
-#include "../run/RunPlugin.h"
 #include "../log/JobLog.h"
 #include "../log/JobsMetrics.h"
 #include "../log/HeartBeatMetrics.h"

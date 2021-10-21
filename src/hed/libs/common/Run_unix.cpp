@@ -386,6 +386,7 @@ namespace Arc {
       argv_(Glib::shell_parse_argv(cmdline)),
       initializer_func_(NULL),
       initializer_arg_(NULL),
+      initializer_is_complex_(false),
       kicker_func_(NULL),
       kicker_arg_(NULL),
       started_(false),
@@ -413,6 +414,7 @@ namespace Arc {
       argv_(argv),
       initializer_func_(NULL),
       initializer_arg_(NULL),
+      initializer_is_complex_(false),
       kicker_func_(NULL),
       kicker_arg_(NULL),
       started_(false),
@@ -522,8 +524,14 @@ namespace Arc {
         sigset_t oldsig; sigemptyset(&oldsig);
         bool oldsig_set = (pthread_sigmask(SIG_BLOCK,&newsig,&oldsig) == 0);
 
-        if (oldsig_set)
-          pid = ::fork();
+        if (oldsig_set) {
+          // If initilizer is not defined or is simple enough use vfork for
+          // better performance, otherwise fork is safer option.
+          if (initializer_is_complex_)
+            pid = ::fork();
+          else
+            pid = ::vfork();
+        };
         if(pid == 0) {
           // child - set std* and do exec
           if(pipe_stdin[0] != -1) {
@@ -853,10 +861,11 @@ namespace Arc {
     if (!running_) stdin_keep_ = keep;
   }
 
-  void Run::AssignInitializer(void (*initializer_func)(void *arg), void *initializer_arg) {
+  void Run::AssignInitializer(void (*initializer_func)(void *arg), void *initializer_arg, bool initializer_is_complex) {
     if (!running_) {
       initializer_arg_ = initializer_arg;
       initializer_func_ = initializer_func;
+      initializer_is_complex_ = initializer_func?initializer_is_complex:false;
     }
   }
 

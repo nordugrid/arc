@@ -18,7 +18,6 @@ class JobsMetrics;
 class HeartBeatMetrics;
 class SpaceMetrics;
 class ContinuationPlugins;
-class RunPlugin;
 class DelegationStores;
 
 /// Configuration information related to the grid manager part of A-REX.

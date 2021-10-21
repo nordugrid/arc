@@ -1977,28 +1977,26 @@ JobsList::ExternalHelper::~ExternalHelper() {
 
 static void ExternalHelperInitializer(void* arg) {
   const char* logpath = reinterpret_cast<const char*>(arg);
-  // just set good umask
-  umask(0077);
   // set up stdin,stdout and stderr
   int h;
   h = ::open("/dev/null",O_RDONLY);
-  if(h != 0) { if(dup2(h,0) != 0) { sleep(10); _exit(1); }; close(h); };
+  if(h != 0) { if(dup2(h,0) != 0) { _exit(1); }; close(h); };
   h = ::open("/dev/null",O_WRONLY);
-  if(h != 1) { if(dup2(h,1) != 1) { sleep(10); _exit(1); }; close(h); };
+  if(h != 1) { if(dup2(h,1) != 1) { _exit(1); }; close(h); };
   if(logpath && logpath[0]) {
     h = ::open(logpath,O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
     if(h==-1) { h = ::open("/dev/null",O_WRONLY); };
   }
   else { h = ::open("/dev/null",O_WRONLY); };
-  if(h != 2) { if(dup2(h,2) != 2) { sleep(10); exit(1); }; close(h); };
+  if(h != 2) { if(dup2(h,2) != 2) { exit(1); }; close(h); };
 }
 
-static void ExternalHelperKicker(void* arg) {
-  // Uncomment following if we must support helpers
-  // which can't run gm-kick.
-  // JobsList* jobs = reinterpret_cast<JobsList*>(arg);
-  // if(jobs) jobs->RequestAttention();
-}
+// Uncomment following if we must support helpers
+// which can't run gm-kick.
+// static void ExternalHelperKicker(void* arg) {
+//   JobsList* jobs = reinterpret_cast<JobsList*>(arg);
+//   if(jobs) jobs->RequestAttention();
+// }
 
 bool JobsList::ExternalHelper::run(JobsList const& jobs) {
   if (proc != NULL) {
@@ -2016,8 +2014,8 @@ bool JobsList::ExternalHelper::run(JobsList const& jobs) {
   proc->KeepStdin(true);
   proc->KeepStdout(true);
   proc->KeepStderr(true);
-  proc->AssignInitializer(&ExternalHelperInitializer, const_cast<char*>(jobs.config.HelperLog().c_str()));
-  proc->AssignKicker(&ExternalHelperKicker, const_cast<void*>(reinterpret_cast<void const*>(&jobs)));
+  proc->AssignInitializer(&ExternalHelperInitializer, const_cast<char*>(jobs.config.HelperLog().c_str()), false);
+  //proc->AssignKicker(&ExternalHelperKicker, const_cast<void*>(reinterpret_cast<void const*>(&jobs)));
   if (proc->Start()) return true;
   delete proc;
   proc = NULL;
