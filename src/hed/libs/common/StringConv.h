@@ -201,15 +201,19 @@ namespace Arc {
   /// This method unencodes the %-encoded URI str.
   std::string uri_unencode(const std::string& str);
 
+  std::string json_encode(const std::string& str);
+
+  std::string json_unencode(const std::string& str);
+
   ///Convert dn to rdn: /O=Grid/OU=Knowarc/CN=abc ---> CN=abc,OU=Knowarc,O=Grid.
   std::string convert_to_rdn(const std::string& dn);
 
   /// Type of escaping or encoding to use.
   typedef enum {
-    escape_char,     ///< place the escape character before the character being escaped
-    escape_octal,    ///< octal encoding of the character
-    escape_hex,      ///< hex encoding of the character (lower case)
-    escape_hex_upper ///< hex encoding of the character (upper case)
+    escape_char,      ///< place the escape character before the character being escaped
+    escape_octal,     ///< octal encoding of the character
+    escape_hex,       ///< hex encoding of the character (lower case)
+    escape_hex_upper  ///< hex encoding of the character (upper case)
   } escape_type;
 
   /// Escape or encode the given chars in str using the escape character esc.

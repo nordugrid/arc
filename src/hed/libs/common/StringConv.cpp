@@ -325,6 +325,7 @@ namespace Arc {
       out.erase(p,1);
       switch(type) {
         case escape_hex:
+        case escape_hex_upper:
           out.replace(p,2,1,hex_to_char(out.substr(p,2)));
           ++p;
         break;
@@ -489,6 +490,65 @@ namespace Arc {
     if(s.empty()) s="0";
     while(s.length() < width) s.insert(0,1,'0');
     return s;
+  }
+
+  std::string json_encode(const std::string& str) {
+    std::string out = str;
+    std::string::size_type p = 0;
+    while(p < out.length()) {
+      char c = out[p];
+      if((c < ' ') || (c == 0x7f) || (c == '\\')) {
+        // control character - simplified not fully UTF compatible detection
+        if(c == '\b') out.replace(p,1,"\\b");
+        else if(c == '\t') out.replace(p,1,"\\t");
+        else if(c == '\n') out.replace(p,1,"\\n");
+        else if(c == '\f') out.replace(p,1,"\\f");
+        else if(c == '\r') out.replace(p,1,"\\r");
+        else {
+          std::string ec("\\u00");
+          ec += char_to_hex(c, true);
+          out.replace(p,1,ec);
+          p += 4;
+        }
+        p += 1;
+      } else if((c == '\\') ||  (c == '"')) {
+        out.insert(p,"\\");
+        p += 1;
+      }
+      p += 1;
+    }
+    return out;
+  }
+
+  std::string json_unencode(const std::string& str) {
+    std::string out = str;
+    std::string::size_type p = 0;
+    while(p < out.length()) {
+      char c = out[p];
+      if(c == '\\') {
+        if((p+1) >= out.length()) break;
+        switch(out[p+1]) {
+          case 'b': out.replace(p,2,"\b"); break;
+          case 't': out.replace(p,2,"\t"); break;
+          case 'n': out.replace(p,2,"\n"); break;
+          case 'f': out.replace(p,2,"\f"); break;
+          case 'r': out.replace(p,2,"\r"); break;
+          case 'u': {
+            if((p+5) < out.length()) {
+              out.replace(p,6,1,hex_to_char(out.substr(p+4,2)));
+            } else {
+              p += 5;
+            }
+            break;
+          }
+          default:
+            out.erase(p,1);
+            break;
+        }
+      }
+      p += 1;
+    }
+    return out;
   }
 
 } // namespace Arc
