@@ -5,7 +5,7 @@ community_software_prepare () {
   # skip if this is not a community-defined RTE
   [ -e "${rte_params_path}.community" ] || return
   # source community deploy-time parameters
-  source "${rte_params_path}.community" 1>&2
+  ". ${rte_params_path}.community" 1>&2
   # check software directotry is defined
   if [ -z "${SOFTWARE_DIR}" ]; then
     echo "ERROR: SOFTWARE_DIR is not defined for ${rte_name} community RTE. Failed to prepare software files." 1>&2
