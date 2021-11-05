@@ -40,7 +40,7 @@ enum ResponseFormat {
 
 static void RenderToJson(Arc::XMLNode xml, std::string& output, int depth = 0) {
     if(xml.Size() == 0) {
-        std::string val = (std::string)xml;
+        std::string val = json_encode((std::string)xml);
         if((depth != 0) || (!val.empty())) {
             output += "\"";
             output += val;
@@ -96,7 +96,7 @@ static void RenderToJson(Arc::XMLNode xml, std::string& output, int depth = 0) {
             XMLNode child = xml.Attribute(n);
             if (!child) break;
             if(n != 0) output += ",";
-            std::string val = (std::string)xml;
+            std::string val = json_encode((std::string)xml);
             output += "\"";
             output += child.Name();
             output += "\":\"";
@@ -159,6 +159,19 @@ static char const * SkipTo(char const * input, char tag) {
     return input;
 }
 
+static char const * SkipToEscaped(char const * input, char tag) {
+    while(*input) {
+        if(*input == '\\') {
+            ++input;
+            if(!*input) break;
+        } else if(*input == tag) {
+            break;
+        }
+        ++input;
+    }
+    return input;
+}
+
 static char const * ParseFromJson(Arc::XMLNode& xml, char const * input, int depth = 0) {
     input = SkipWS(input);
     if(!*input) return input;
@@ -169,11 +182,11 @@ static char const * ParseFromJson(Arc::XMLNode& xml, char const * input, int dep
         if(*nameStart != '}') while(true) {
             if(*nameStart != '"') return NULL;
             ++nameStart;
-            char const * nameEnd = SkipTo(nameStart, '"');
+            char const * nameEnd = SkipToEscaped(nameStart, '"');
             if(*nameEnd != '"') return NULL;
             char const * sep = SkipWS(nameEnd+1);
             if(*sep != ':') return NULL;
-            XMLNode item = xml.NewChild(std::string(nameStart, nameEnd-nameStart));
+            XMLNode item = xml.NewChild(json_unencode(std::string(nameStart, nameEnd-nameStart)));
             input = sep+1;
             input = ParseFromJson(item,input,depth+1);
             if(!input) return NULL;
@@ -216,9 +229,9 @@ static char const * ParseFromJson(Arc::XMLNode& xml, char const * input, int dep
         ++input;
         // string
         char const * strStart = input;
-        input = SkipTo(strStart, '"');
+        input = SkipToEscaped(strStart, '"');
         if(*input != '"') return NULL;
-        xml = std::string(strStart, input-strStart);
+        xml = json_unencode(std::string(strStart, input-strStart));
         ++input;
     // } else if((*input >= '0') && (*input <= '9')) {
     // } else if(*input == 't') {
