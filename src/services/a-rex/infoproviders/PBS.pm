@@ -851,14 +851,21 @@ sub jobs_info ($$@) {
     };
 
     my ( %hoh_qstatf ) = read_qstat_f($path);
-    foreach my $pbsjid (keys %hoh_qstatf) {
+
+    # make two sorted indices
+    my @qstatkeys = sort keys %hoh_qstatf;
+    my @sjids = sort (@$jids);
+    my $jidindex = 0;
+
+    foreach my $pbsjid (@qstatkeys) {
         # only jobids known by A-REX are processed
         my $jid = undef;
-        foreach my $j (@$jids) {
-             if ( $pbsjid =~ /^$j$/ ) {
-                 $jid = $j;
-                 last;
-             }
+        while ($sjids[$jidindex] lt $pbsjid) {
+            last if ($jidindex == $#sjids);
+            $jidindex++;
+        }
+        if ( $pbsjid =~ /^$sjids[$jidindex]$/ ) {
+            $jid = $sjids[$jidindex];
         }
         next unless defined $jid;
         # handle qstat attributes of the jobs
