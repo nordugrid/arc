@@ -35,7 +35,7 @@ common_init () {
     # init common LRMS environmental variables
     init_lrms_env
     # optionally enable support for community RTEs
-    [ -e "${pkgdatadir}/community_rtes.sh" ] &&  ". ${pkgdatadir}/community_rtes.sh"
+    [ -e "${pkgdatadir}/community_rtes.sh" ] && . " ${pkgdatadir}/community_rtes.sh"
 }
 
 # checks any scratch is defined (shared or local)
@@ -427,7 +427,7 @@ RTE_stage0 () {
             # run RTE stage 0
             # WARNING!!! IN SOME CASES DUE TO DIRECT SOURCING OF RTE SCRIPT WITHOUT ANY SAFETY CHECKS 
             #            SPECIALLY CRAFTED RTES CAN BROKE CORRECT SUBMISSION (e.g. RTE redefine 'rte_idx' variable)
-            [ -e "${rte_params_path}" ] &&  ". ${rte_params_path}" 1>&2
+            [ -e "${rte_params_path}" ] && . " ${rte_params_path}" 1>&2
             # prepare RUNTIME_JOB_SWDIR for community-defined RTE software
             [ -n "${COMMUNITY_RTES}" ] && community_software_prepare
             # execute RTE script stage 0
