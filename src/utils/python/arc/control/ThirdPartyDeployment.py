@@ -371,7 +371,11 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         if installrepo:
             self.install_cacerts_repo(pm, installrepo)
             pm.update_cache()
-        exitcode = pm.install(list(['ca_policy_igtf-' + p for p in bundle]))
+        exitcode = None
+        if pm.is_yum():
+            exitcode = pm.install(list(['ca_policy_igtf-' + p for p in bundle]))
+        elif pm.is_apt():
+            exitcode = pm.install(list(['igtf-policy-' + p for p in bundle]))
         if exitcode:
             self.logger.error('Can not install IGTF CA Certificate packages. '
                               'Make sure you have repositories installed (see --help for options).')
