@@ -94,6 +94,7 @@ class DataStagingControl(ComponentControl):
         Last filter here, to ensure that only jobs that actually were in preparing in the timewindow are counted, in the case where a timewindow is used. 
         """
 
+        has_udef_input = None
         ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':False}
         has_udef_input = self._has_userdefined_inputfiles(jobid)
 
