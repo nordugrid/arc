@@ -332,12 +332,20 @@ static bool GetPathToken(std::string& subpath, std::string& token) {
   return true;
 }
 
+static std::string StripNewLine(char const * str) {
+  std::string res(str);
+  for(std::string::size_type pos = res.find_first_of("\r\n"); pos != std::string::npos; pos = res.find_first_of("\r\n",pos)) {
+    res[pos] = ' ';
+  }
+  return res;
+}
+
 // Insert generic (error) HTTP response into outmsg.
 static Arc::MCC_Status HTTPFault(Arc::Message& inmsg, Arc::Message& outmsg,int code,const char* resp) {
   Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
   delete outmsg.Payload(outpayload);
   outmsg.Attributes()->set("HTTP:CODE",Arc::tostring(code));
-  if(resp) outmsg.Attributes()->set("HTTP:REASON",resp);
+  if(resp) outmsg.Attributes()->set("HTTP:REASON",StripNewLine(resp));
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
@@ -1002,7 +1010,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
                 jobXml.NewChild("status-code") = "500";
                 jobXml.NewChild("reason") = result.str();
               } else {
-                ARexJob job(desc_str,*config,"",clientid,logger_,idgenerator);
+                ARexJob job(jobdesc_str,*config,"",clientid,logger_,idgenerator);
                 if(!job) {
                   jobXml.NewChild("status-code") = "500";
                   jobXml.NewChild("reason") = job.Failure();
@@ -1011,7 +1019,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
                   jobXml.NewChild("reason") = "Created";
                   jobXml.NewChild("id") = job.ID();
                   jobXml.NewChild("state") = "ACCEPTING";
-               } 
+                } 
               }
             }
           }
