@@ -312,7 +312,7 @@ class DataStagingControl(ComponentControl):
                     print('\t{0:<25}{1:<20}{2:>6}'.format(state,host,val))
 
             """  Print out other states """
-            for key, val in state_counter.iteritems():
+            for key, val in state_counter.items():
                 if 'TRANSFERRING' in key or key in print_order or 'local' in key or key in 'ARC_STAGING_TOTAL': continue
                 print('\t{0:<25}{1:<20}{2:>6}'.format(key,'N/A',val))
                     
@@ -544,7 +544,7 @@ class DataStagingControl(ComponentControl):
 
 
             """ Collecting information for files that are done in stage-in for this job """
-            for key, val in job_files_done.iteritems():
+            for key, val in job_files_done.items():
                 """  Only files in active download during the timewindow are added """
                 end = datetime.datetime.strptime(val['end'], '%Y-%m-%dT%H:%M:%SZ')
                 if end < twindow_start:
@@ -678,7 +678,7 @@ class DataStagingControl(ComponentControl):
         ongoing_dict={}
         failed_dict={}
         noinput_list=[]
-        for key,val in datastaging_jobs.iteritems():
+        for key,val in datastaging_jobs.items():
             if not val['failed']:
                 if val['noinput']:
                     noinput_list.append(key)
