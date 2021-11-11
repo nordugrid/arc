@@ -288,17 +288,7 @@ namespace Arc {
       return result;
     }
 
-    if(dialect == "GRIDMANAGER") {
-      if (parsed_descriptions.size() > 1) {
-        result.AddError(IString("Multi-request job description not allowed in GRIDMANAGER dialect"));
-      }
-
-      std::string action = "request";
-      if (parsed_descriptions.front().OtherAttributes.find("nordugrid:xrsl;action") != parsed_descriptions.front().OtherAttributes.end()) {
-        action = parsed_descriptions.front().OtherAttributes["nordugrid:xrsl;action"];
-      }
-    }
-    else {
+    if(dialect != "GRIDMANAGER") {
       // action is not expected in client side job request
       for (std::list<JobDescription>::iterator it = parsed_descriptions.begin(); it != parsed_descriptions.end(); it++) {
         if (it->OtherAttributes.find("nordugrid:xrsl;action") != it->OtherAttributes.end()) {
