@@ -37,15 +37,15 @@ perflog_common () {
    # gather gridftp info
    gftp_pid=`cat /run/gridftpd.pid`
    gsiftp=`top -b -n 1 -p ${gftp_pid} | grep -w ${gftp_pid} | sed -e 's/[[:space:]]*$//'`
-   echo -e "[`date +%Y-%m-%d\ %T`] Gridftpd: $gsiftp" >> $perflog_fname;
+   printf "[`date +%Y-%m-%d\ %T`] Gridftpd: $gsiftp\n" >> $perflog_fname;
    # gather slapd info
    slapd_pid=`cat /run/arc/bdii/db/slapd.pid`
    slapd=`top -b -n 1 -p ${slapd_pid} | grep -w ${slapd_pid} | sed -e 's/[[:space:]]*$//'`
-   echo -e "[`date +%Y-%m-%d\ %T`] Slapd: ${slapd}" >> $perflog_fname;
+   printf "[`date +%Y-%m-%d\ %T`] Slapd: ${slapd}\n" >> $perflog_fname;
    # gather a-rex information
    arex_pid=`cat /run/arched-arex.pid`
    arex=`top -b -n 1 -p ${arex_pid} | grep -w ${arex_pid} | sed -e 's/[[:space:]]*$//'`
-   echo -e "[`date +%Y-%m-%d\ %T`] A-Rex: ${arex}" >> $perflog_fname;
+   prinft "[`date +%Y-%m-%d\ %T`] A-Rex: ${arex}\n" >> $perflog_fname;
  
    unset perflog_dname
    unset perflog_fname

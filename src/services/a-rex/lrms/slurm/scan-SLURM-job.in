@@ -262,7 +262,7 @@ function handle_exitcode {
         fi
 
         # Special handling of cancelled jobs - as SLURM can return exitcode 0:0 for cancelled jobs
-        if [ "$exitcode" -eq 0 ] && [[ $reason == *"cancelled"* ]] ; then
+        if [ "$exitcode" -eq 0 ] && [ "${reason}" != "${reason/cancelled/}" ]; then
             exitcode=15
         fi
 
