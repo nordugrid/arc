@@ -5,9 +5,7 @@
 stages:
   - build
   - deploy
-  - check_deploy_centos
-  - check_deploy_debian
-  - check_deploy_ubuntu
+  - check_deploy
 
 
 variables:
@@ -294,33 +292,39 @@ gridftp_el7_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'gridftp'
-  stage:  check_deploy_centos
-  dependencies:
-    - deploy_el7
+  stage:  check_deploy
+  needs:
+    - job: deploy_el7
+      artifacts: true
+
 
 emies_el7_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'emies'
-  stage:  check_deploy_centos
-  dependencies:
-    - deploy_el7
+  stage:  check_deploy
+  needs:
+    - job: deploy_el7
+      artifacts: true
 
 arcrest_el7_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcrest'
-  stage:  check_deploy_centos
-  dependencies:
+  stage:  check_deploy
+  needs:
+    - job: deploy_el7
+      artifacts: true
     - deploy_el7
 
 arcconf_el7_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcconf'
-  stage:  check_deploy_centos
-  dependencies:
-    - deploy_el7
+  stage:  check_deploy
+  needs:
+    - job: deploy_el7
+      artifacts: true
     
 ############################
 ##### EL8 DEPLOY CHECK
@@ -329,7 +333,7 @@ gridftp_el8_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'gridftp'
-  stage:  check_deploy_centos
+  stage:  check_deploy
   dependencies:
     - deploy_el8
 
@@ -337,7 +341,7 @@ emies_el8_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'emies'
-  stage:  check_deploy_centos
+  stage:  check_deploy
   dependencies:
     - deploy_el8
     
@@ -345,7 +349,7 @@ arcrest_el8_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcrest'
-  stage:  check_deploy_centos
+  stage:  check_deploy
   dependencies:
     - deploy_el8
 
@@ -353,7 +357,7 @@ arcconf_el8_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcconf'
-  stage:  check_deploy_centos
+  stage:  check_deploy
   dependencies:
     - deploy_el8
     
@@ -364,7 +368,7 @@ gridftp_deb9_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'gridftp'
-  stage:  check_deploy_debian
+  stage:  check_deploy
   dependencies:
      - deploy_deb9
 
@@ -372,7 +376,7 @@ emies_deb9_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'emies'
-  stage:  check_deploy_debian
+  stage:  check_deploy
   dependencies:
     - deploy_deb9
     
@@ -380,7 +384,7 @@ arcrest_deb9_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcrest'
-  stage:  check_deploy_debian
+  stage:  check_deploy
   dependencies:
     - deploy_deb9
 
@@ -388,7 +392,7 @@ arcconf_deb9_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcconf'
-  stage:  check_deploy_debian
+  stage:  check_deploy
   dependencies:
     - deploy_deb9
     
@@ -400,7 +404,7 @@ gridftp_deb10_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'gridftp'
-  stage:  check_deploy_debian
+  stage:  check_deploy
   dependencies:
     - deploy_deb10
 
@@ -408,7 +412,7 @@ emies_deb10_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'emies'
-  stage:  check_deploy_debian
+  stage:  check_deploy
   dependencies:
     - deploy_deb10
     
@@ -416,7 +420,7 @@ arcrest_deb10_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcrest'
-  stage:  check_deploy_debian
+  stage:  check_deploy
   dependencies:
     - deploy_deb10
 
@@ -424,7 +428,7 @@ arcconf_deb10_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcconf'
-  stage:  check_deploy_debian
+  stage:  check_deploy
   dependencies:
     - deploy_deb10
 
@@ -435,7 +439,7 @@ gridftp_ubuntu1804_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'gridftp'
-  stage:  check_deploy_ubuntu
+  stage:  check_deploy
   dependencies:
     - deploy_ubuntu1804
 
@@ -443,7 +447,7 @@ emies_ubuntu1804_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'emies'
-  stage:  check_deploy_ubuntu
+  stage:  check_deploy
   dependencies:
     - deploy_ubuntu1804
     
@@ -451,7 +455,7 @@ arcrest_ubuntu1804_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcrest'
-  stage:  check_deploy_ubuntu
+  stage:  check_deploy
   dependencies:
     - deploy_ubuntu1804
 
@@ -459,7 +463,7 @@ arcconf_ubuntu1804_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcconf'
-  stage:  check_deploy_ubuntu
+  stage:  check_deploy
   dependencies:
     - deploy_ubuntu1804
 
