@@ -37,14 +37,20 @@ namespace DataStaging {
 
   DataDeliveryLocalComm::DataDeliveryLocalComm(DTR_ptr dtr, const TransferParameters& params)
     : DataDeliveryComm(dtr, params),child_(NULL),last_comm(Arc::Time()) {
-    if(!dtr->get_source()) return;
-    if(!dtr->get_destination()) return;
+    // Initial empty status
+    memset(&status_,0,sizeof(status_));
+    status_.commstatus = CommInit;
+    status_pos_ = 0;
+    if(!dtr->get_source()) {
+      logger_->msg(Arc::ERROR, "No source defined");
+      return;
+    }
+    if(!dtr->get_destination()) {
+      logger_->msg(Arc::ERROR, "No destination defined");
+      return;
+    }
     {
       Glib::Mutex::Lock lock(lock_);
-      // Initial empty status
-      memset(&status_,0,sizeof(status_));
-      status_.commstatus = CommInit;
-      status_pos_ = 0;
       // Generate options for child
       std::list<std::string> args;
       std::string execpath = Arc::ArcLocation::GetLibDir()+G_DIR_SEPARATOR_S+"DataStagingDelivery";
@@ -169,6 +175,7 @@ namespace DataStaging {
       if(!child_->Start()) {
         delete child_;
         child_=NULL;
+        logger_->msg(Arc::ERROR, "Failed to run command: %s", cmd);
         return;
       }
     }
