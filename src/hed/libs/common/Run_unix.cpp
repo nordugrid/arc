@@ -28,6 +28,7 @@
 #include <arc/Logger.h>
 #include <arc/User.h>
 #include <arc/Utils.h>
+#include <arc/StringConv.h>
 
 #include "Run.h"
 
@@ -478,8 +479,14 @@ namespace Arc {
   }
 
   bool Run::Start(void) {
-    if (started_) return false;
-    if (argv_.size() < 1) return false;
+    if (started_) {
+      logger.msg(ERROR, "Child was already started");
+      return false;
+    }
+    if (argv_.size() < 1) {
+      logger.msg(ERROR, "No arguments are assigned for external process");
+      return false;
+    }
     RunPump& pump = RunPump::Instance();
     AutoPointer<UserSwitch> usw;
     AutoPointer<RunInitializerArgument> arg;
@@ -497,6 +504,7 @@ namespace Arc {
       int pipe_stdin[2] = { -1, -1 };
       int pipe_stdout[2] = { -1, -1 };
       int pipe_stderr[2] = { -1, -1 };
+      std::string strerr;
       if((stdin_keep_  || (::pipe(pipe_stdin) == 0)) && 
          (stdout_keep_ || (::pipe(pipe_stdout) == 0)) &&
          (stderr_keep_ || (::pipe(pipe_stderr) == 0))) {
@@ -573,12 +581,18 @@ namespace Arc {
             close(pipe_stderr[1]); pipe_stderr[1] = -1;
             stderr_ = pipe_stderr[0]; pipe_stderr[0] = -1;
           };
-        };
+        } else {
+          int err_num = errno;
+          strerr = std::string("fork()/vfork() faled: ") + Arc::tostring(err_num);
+        }
         if(oldsig_set)
           pthread_sigmask(SIG_SETMASK,&oldsig,NULL);
 
         delete[] argv;
         delete[] envp;
+      } else {
+        int err_num = errno;
+        strerr = std::string("pipe() faled: ") + Arc::tostring(err_num);
       };
       if(pid == -1) {
         // child was not spawned
@@ -588,7 +602,7 @@ namespace Arc {
         if(pipe_stdout[1] != -1) close(pipe_stdout[1]);
         if(pipe_stderr[0] != -1) close(pipe_stderr[0]);
         if(pipe_stderr[1] != -1) close(pipe_stderr[1]);
-        throw Glib::SpawnError(Glib::SpawnError::FORK, "Generic error");
+        throw Glib::SpawnError(Glib::SpawnError::FORK, strerr.empty()?"Generic error":strerr.c_str());
       };
       pid_ = pid;
       if (!stdin_keep_) {
@@ -603,10 +617,12 @@ namespace Arc {
       run_time_ = Time();
       started_ = true;
     } catch (Glib::Exception& e) {
+      logger.msg(ERROR, "Excepton while trying to start external process: %s", e.what().c_str());
       running_ = false;
       // TODO: report error
       return false;
     } catch (std::exception& e) {
+      logger.msg(ERROR, "Excepton while trying to start external process: %s", e.what());
       running_ = false;
       return false;
     };
