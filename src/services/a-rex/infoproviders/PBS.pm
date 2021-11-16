@@ -776,6 +776,9 @@ sub jobs_info ($$@) {
 
     my (%lrms_jobs);
 
+    # edge case if @$jids is empty, return now
+    return %lrms_jobs if ($#$jids < 0);
+
     # Fill %lrms_jobs here (da implementation)
 
     # rank is treated separately as it does not have an entry in
