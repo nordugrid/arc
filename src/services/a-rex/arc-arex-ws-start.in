@@ -222,6 +222,7 @@ prepare() {
     VOMS_PROCESSING=`readconfigvar "$ARC_RUNTIME_CONFIG" voms_processing common`
     mapping_present=`testconfigblock "$ARC_RUNTIME_CONFIG" mapping`
     authtokens_present=`testconfigblock "$ARC_RUNTIME_CONFIG" authtokens`
+    CIPHERS_STRING=`readconfigvar "$ARC_RUNTIME_CONFIG" ciphers arex/ws`
     USERMAP_BLOCK=''
     if [ "$mapping_present" = 'true' ] ; then
       USERMAP_BLOCK='mapping'
@@ -479,6 +480,11 @@ prepare() {
 <SecHandler name=\"otokens.handler\" event=\"incoming\"/>"
     fi
 
+    ciphers_xml=""
+    if [ ! -z "$CIPHERS_STRING" ] ; then
+      ciphers_xml="<Ciphers>$CIPHERS_STRING</Ciphers>"
+    fi
+
     # A-Rex with WS interface over HTTP
     AREXCFGWS="\
 <?xml version=\"1.0\"?>
@@ -584,11 +590,14 @@ prepare() {
       <CACertificatesDir PolicyGlobus=\"true\">$X509_CERT_DIR</CACertificatesDir>
       <VOMSProcessing>$VOMS_PROCESSING</VOMSProcessing>
       <ClientAuthn>false</ClientAuthn>
+      $ciphers_xml
     </Component>
     <Component name=\"http.service\" id=\"http\">
       <next id=\"soap\">POST</next>
       <next id=\"plexer\"/>
       $authtokens_handler
+      <!-- Make dumb security probes happy -->
+      <Header>Strict-Transport-Security: max-age=86400; includeSubDomains</Header>
       <!-- Match client to legacy authorization groups -->
       <SecHandler name=\"arclegacy.handler\" event=\"incoming\">
         <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
