@@ -131,7 +131,7 @@ class OSPackageManagement(object):
         self.logger.info('Saving repository configuration to %s', fpath)
         try:
             with open(fpath, 'wb') as f:
-                f.write(fcontent)
+                f.write(fcontent.encode())
         except (IOError, OSError) as e:
             self.logger.error('Failed to save repository configuration to %s. Error: %s', fpath, e.strerror)
             sys.exit(1)
