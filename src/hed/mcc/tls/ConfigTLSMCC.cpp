@@ -15,6 +15,8 @@ namespace ArcMCCTLS {
 
 using namespace Arc;
 
+Arc::Logger ConfigTLSMCC::logger(Arc::Logger::getRootLogger(), "MCC.TLS.Config");
+
 static void config_VOMS_add(XMLNode cfg,std::vector<std::string>& vomscert_trust_dn) {
   XMLNode nd = cfg["VOMSCertTrustDNChain"];
   for(;(bool)nd;++nd) {
@@ -52,9 +54,35 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   handshake_ = (cfg["Handshake"] == "SSLv3")?ssl3_handshake:tls_handshake;
   proxy_file_ = (std::string)(cfg["ProxyPath"]);
   credential_ = (std::string)(cfg["Credential"]);
+  cipher_list_ = (std::string)(cfg["Ciphers"]);
+  if(cipher_list_.empty()) {
+    // Safest setup by default
+    if(client) {
+      cipher_list_ = "HIGH:!eNULL:!aNULL";
+      if(cfg["Encryption"] == "required") {
+      } else if(cfg["Encryption"] == "preferred") {
+        cipher_list_ = "HIGH:eNULL:!aNULL";
+      } else if(cfg["Encryption"] == "optional") {
+        cipher_list_ = "eNULL:HIGH:!aNULL";
+      } else if(cfg["Encryption"] == "off") {
+        cipher_list_ = "eNULL:!aNULL";
+      }
+    } else {
+      // For server disable DES and 3DES (https://www.openssl.org/blog/blog/2016/08/24/sweet32/)
+      // Do not use encryption in CBC mode (https://cve.mitre.org/cgi-bin/cvename.cgi?name=cve-2011-3389)
+      // Specific ! in this list is just in case we compile with older OpenSSL. Otherwise HIGH should be enough.
+      cipher_list_ = "HIGH:!3DES:!DES:!CBC:!RC4:!eNULL:!aNULL";
+      if(cfg["Encryption"] == "required") {
+      } else if(cfg["Encryption"] == "preferred") {
+        cipher_list_ = "HIGH:!3DES:!DES:!CBC:!RC4:eNULL:!aNULL";
+      } else if(cfg["Encryption"] == "optional") {
+        cipher_list_ = "eNULL:HIGH:!3DES:!CBC:!DES:!RC4:!aNULL";
+      } else if(cfg["Encryption"] == "off") {
+        cipher_list_ = "eNULL:!aNULL";
+      }
+    }
+  }
   if(client) {
-    // Client is using safest setup by default
-    cipher_list_ = "ALL:!SSLv2:!eNULL:!aNULL";
     hostname_ = (std::string)(cfg["Hostname"]);
     XMLNode protocol_node = cfg["Protocol"];
     while((bool)protocol_node) {
@@ -68,19 +96,8 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
     }
     // protocols must be converted into special format
     protocols_ = (std::string)(cfg["Protocols"]);
-  } else {
-    // Server allows client to choose. But requires authentication.
-    cipher_list_ = "ALL:!SSLv2:eNULL:!aNULL";
   }
-  if(cfg["Encryption"] == "required") {
-  } else if(cfg["Encryption"] == "preferred") {
-    cipher_list_ = "ALL:!SSLv2:eNULL:!aNULL";
-  } else if(cfg["Encryption"] == "optional") {
-    cipher_list_ = "eNULL:ALL:!SSLv2:!aNULL";
-  } else if(cfg["Encryption"] == "off") {
-    cipher_list_ = "eNULL:!aNULL";
-  }
-  
+
   std::vector<std::string> gridSecDir (2);
   gridSecDir[0] = G_DIR_SEPARATOR_S + std::string("etc");
   gridSecDir[1] = "grid-security";
@@ -212,6 +229,7 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
     };
   };
   if(!cipher_list_.empty()) {
+    logger.msg(VERBOSE, "Using cipher list: %s",cipher_list_);
     if(!SSL_CTX_set_cipher_list(sslctx,cipher_list_.c_str())) {
       failure_ = "No ciphers found to satisfy requested encryption level. "
                  "Check if OpenSSL supports ciphers '"+cipher_list_+"'\n";
