@@ -184,6 +184,13 @@ class Validator(object):
                            (value, option, block, ','.join(allowed_values)))
 
         # Extra checks for certain options
+        if option == 'benchmark':
+            # Benchmark values have different syntax in different blocks
+            if block == 'lrms' and not re.match('\w+:\d+(\.\d*)?|\.\d+', value):
+                self.error("benchmark option '%s' in [lrms] has incorrect syntax" % value)
+            if block == 'queue' and not re.match('\w+ \d+(\.\d*)?|\.\d+', value):
+                self.error("benchmark option '%s' in [queue] has incorrect syntax" % value)
+
         if block == 'arex/cache' and option == 'cachedir':
             if not os.path.exists(value.split()[0]):
                 self.warning("cachedir doesn't exist at %s" % value.split()[0])
