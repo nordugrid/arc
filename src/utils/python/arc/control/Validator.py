@@ -110,10 +110,11 @@ class Validator(object):
         """Check everything in the configuration file is ok"""
         config_dict = self.arcconf.get_config_dict()
         config_defaults = self.arcconf.get_default_config_dict()
-        self._check_config_blocks(config_dict, config_defaults)
+        config_blocks = self.arcconf.get_config_blocks()
+        self._check_config_blocks(config_dict, config_defaults, config_blocks)
         self._extra_config_checks(config_dict)
 
-    def _check_config_blocks(self, config_dict, config_defaults):
+    def _check_config_blocks(self, config_dict, config_defaults, config_blocks):
 
         for block, options in config_dict.items():
             # Spaces are not allowed in block names except after :
@@ -158,6 +159,21 @@ class Validator(object):
                                    (option, val, block))
 
                     self._check_config_option(block, option, val, config_defaults)
+
+        # Check block order
+        if self.arcconfref:
+            block_order = reference.blocks_ordered(self.arcconfref)
+            # Make a unique set of blocks excluding unknown and stripping dynamic blocks
+            config_blocks = [b.split(':')[0] for b in config_blocks if b.split(':')[0] in block_order]
+            # Remove duplicates preserving order (OrderedDict not available in python2.6)
+            config_blocks_uniq = []
+            for c in config_blocks:
+                if c not in config_blocks_uniq:
+                    config_blocks_uniq.append(c)
+            # Sort the conf blocks according to the reference order and then compare
+            config_blocks_sorted = sorted(config_blocks_uniq, key=lambda x: block_order.index(x))
+            if config_blocks_sorted != config_blocks_uniq:
+                self.error("Configuration blocks are not in the correct order. Should be: %s" % config_blocks_sorted)
 
 
     def _check_config_option(self, block, option, value, config_defaults):
