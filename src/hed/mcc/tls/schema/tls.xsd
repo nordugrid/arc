@@ -195,4 +195,12 @@
     </xsd:simpleType>
 </xsd:element>
 
+<xsd:element name="Ciphers" type="xsd:string" default="">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        OpenSSL ciphers list. Overrides Encryption element.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
 </xsd:schema>
