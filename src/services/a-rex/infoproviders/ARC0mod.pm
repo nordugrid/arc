@@ -160,8 +160,8 @@ sub get_lrms_info($) {
         $job->{reqwalltime} = int 60*$job->{reqwalltime} if $job->{reqwalltime};
         $job->{cputime}     = int 60*$job->{cputime}     if $job->{cputime};
         $job->{walltime}    = int 60*$job->{walltime}    if $job->{walltime};
-        delete $job->{nodes} unless @{$job->{nodes}};
-        delete $job->{comment} unless @{$job->{comment}};
+        delete $job->{nodes} unless ( defined $job->{nodes} && @{$job->{nodes}} ) ;
+        delete $job->{comment} unless (defined $job->{comment} && @{$job->{comment}} );
     }
 
     return $lrms_info;
