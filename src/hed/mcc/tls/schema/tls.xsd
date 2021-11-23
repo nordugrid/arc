@@ -203,6 +203,22 @@
     </xsd:annotation>
 </xsd:element>
 
+<xsd:element name="Protocol" type="xsd:string" default="">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        OpenSSL protocol(s).
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
+<xsd:element name="Curve" type="xsd:string" default="">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        OpenSSL ECDH curve.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
 <xsd:element name="DHParamFile" type="xsd:string" default="">
     <xsd:annotation>
         <xsd:documentation xml:lang="en">

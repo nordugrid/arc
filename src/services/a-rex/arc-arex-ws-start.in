@@ -223,7 +223,8 @@ prepare() {
     mapping_present=`testconfigblock "$ARC_RUNTIME_CONFIG" mapping`
     authtokens_present=`testconfigblock "$ARC_RUNTIME_CONFIG" authtokens`
     CIPHERS_STRING=`readconfigvar "$ARC_RUNTIME_CONFIG" ciphers arex/ws`
-    PROTOCOLS_STRING=`readconfigvar "$ARC_RUNTIME_CONFIG" protocols arex/ws`
+    PROTOCOLS_STRING=`readconfigvar "$ARC_RUNTIME_CONFIG" tlsprotocols arex/ws`
+    CURVE_STRING=`readconfigvar "$ARC_RUNTIME_CONFIG" tlscurve arex/ws`
     USERMAP_BLOCK=''
     if [ "$mapping_present" = 'true' ] ; then
       USERMAP_BLOCK='mapping'
@@ -503,6 +504,10 @@ prepare() {
     if [ ! -z "$PROTOCOLS_STRING" ] ; then
       protocols_xml="<Protocol>$PROTOCOLS_STRING</Protocol>"
     fi
+    curve_xml=""
+    if [ ! -z "$CURVE_STRING" ] ; then
+      curve_xml="<Curve>$CURVE_STRING</Curve>"
+    fi
     dhparam_xml=""
     if [ ! -z "$DHPARAM_PATH" ] ; then
       dhparam_xml="<DHParamFile>$DHPARAM_PATH</DHParamFile>"
@@ -615,6 +620,7 @@ prepare() {
       <ClientAuthn>false</ClientAuthn>
       $ciphers_xml
       $protocols_xml
+      $curve_xml
       $dhparam_xml
     </Component>
     <Component name=\"http.service\" id=\"http\">

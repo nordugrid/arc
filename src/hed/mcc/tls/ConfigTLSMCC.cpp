@@ -43,6 +43,7 @@ static void config_VOMS_add(XMLNode cfg,std::vector<std::string>& vomscert_trust
 
 ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   protocol_options_ = 0;
+  curve_nid_ = NID_sect571k1;
   client_authn_ = true;
   cert_file_ = (std::string)(cfg["CertificatePath"]);
   key_file_ = (std::string)(cfg["KeyPath"]);
@@ -131,6 +132,14 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
         ++protocol_node;
       };
     };
+
+    XMLNode curve_node = cfg["Curve"];
+    if((bool)curve_node) {
+      int nid = OBJ_sn2nid(((std::string)curve_node).c_str());
+      if (nid != NID_undef) {
+        curve_nid_ = nid;
+      }
+    }
   }
 
   std::vector<std::string> gridSecDir (2);
@@ -289,18 +298,21 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
   } else {
     logger.msg(DEBUG, "ECDH groups applied");
   };
-  EC_KEY* ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
-  if (ecdh == NULL) {
-    logger.msg(ERROR, "Failed to generate EC key");
-  } else {
-    if(SSL_CTX_set_tmp_ecdh(sslctx, ecdh) != 1) {
-      logger.msg(ERROR, "Failed to apply ECDH parameters");
-    } else {
-      logger.msg(DEBUG, "ECDH parameters applied");
-    };
-    EC_KEY_free(ecdh);
-  };
   */
+  if(curve_nid_ != NID_undef) {
+    logger.msg(VERBOSE, "Using curve with NID: %u",curve_nid_);
+    EC_KEY* ecdh = EC_KEY_new_by_curve_name(curve_nid_);
+    if (ecdh == NULL) {
+      logger.msg(ERROR, "Failed to generate EC key");
+    } else {
+      if(SSL_CTX_set_tmp_ecdh(sslctx, ecdh) != 1) {
+        logger.msg(ERROR, "Failed to apply ECDH parameters");
+      } else {
+        logger.msg(DEBUG, "ECDH parameters applied");
+      };
+      EC_KEY_free(ecdh);
+    };
+  };
   if(!cipher_list_.empty()) {
     logger.msg(VERBOSE, "Using cipher list: %s",cipher_list_);
     if(!SSL_CTX_set_cipher_list(sslctx,cipher_list_.c_str())) {

@@ -48,6 +48,7 @@ class ConfigTLSMCC {
   std::string hostname_;
   std::string protocols_;
   long protocol_options_;
+  int curve_nid_;
   std::string failure_;
   ConfigTLSMCC(void);
  public:
