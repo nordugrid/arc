@@ -203,4 +203,12 @@
     </xsd:annotation>
 </xsd:element>
 
+<xsd:element name="DHParamFile" type="xsd:string" default="">
+    <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Path to OpenSSL dhparam file.
+        </xsd:documentation>
+    </xsd:annotation>
+</xsd:element>
+
 </xsd:schema>

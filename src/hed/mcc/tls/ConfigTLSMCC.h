@@ -44,9 +44,10 @@ class ConfigTLSMCC {
   } voms_processing_;
   std::vector<std::string> vomscert_trust_dn_;
   std::string cipher_list_;
+  std::string dhparam_file_;
   std::string hostname_;
   std::string protocols_;
-  std::string protocol_;
+  long protocol_options_;
   std::string failure_;
   ConfigTLSMCC(void);
  public:

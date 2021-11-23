@@ -1365,6 +1365,11 @@
 ## default: undefined
 #ciphers=HIGH
 ## CHANGE: INTRODUCED in 6.14.0.
+
+## protocols = SSL/TLS protocols - Specify which protocols to enable
+## This is space separated list of values - SSLv2 SSLv3 TLSv1.0 TLSv1.1 TLSv1.2 TLSv1.3
+## default: undefined
+#protocols=TLSv1.2 TLSv1.3
 ##
 ##
 ### end of the [arex/ws] block ##############################

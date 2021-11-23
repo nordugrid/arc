@@ -246,7 +246,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
      sslctx_=SSL_CTX_new(DTLS_client_method());
      ctx_options |= SSL_OP_NO_DTLSv1;
 #endif
-   } else {
+   } else { // default
 #if defined HAVE_TLS_METHOD
      sslctx_=SSL_CTX_new(TLS_client_method());
 #else
@@ -274,9 +274,9 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
    };
    StoreInstance();
 #ifdef SSL_OP_NO_TICKET
-   ctx_options |= SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_ALL | SSL_OP_NO_TICKET;
+   ctx_options |= SSL_OP_SINGLE_DH_USE | SSL_OP_ALL | SSL_OP_NO_TICKET;
 #else
-   ctx_options |= SSL_OP_SINGLE_DH_USE | SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_ALL;
+   ctx_options |= SSL_OP_SINGLE_DH_USE | SSL_OP_ALL;
 #endif
    SSL_CTX_set_options(sslctx_, ctx_options);
 
