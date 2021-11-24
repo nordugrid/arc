@@ -4,6 +4,7 @@
 
 #include <glibmm/miscutils.h>
 #include <openssl/err.h>
+#include <openssl/dh.h> // For DH_* in newer OpenSSL
 
 #include <arc/credential/Credential.h>
 
@@ -101,7 +102,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
     protocol_options_ = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1; // default
     XMLNode protocol_node = cfg["Protocol"];
     if((bool)protocol_node) {
-      // start from all disallowed
+      // start from all disallowed (all we know about)
 #ifdef SSL_OP_NO_TLSv1_3
       protocol_options_ = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2 | SSL_OP_NO_TLSv1_3;
 #else
