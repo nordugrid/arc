@@ -44,7 +44,7 @@ static void config_VOMS_add(XMLNode cfg,std::vector<std::string>& vomscert_trust
 
 ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   protocol_options_ = 0;
-  curve_nid_ = NID_sect571k1;
+  curve_nid_ = NID_secp521r1;
   client_authn_ = true;
   cert_file_ = (std::string)(cfg["CertificatePath"]);
   key_file_ = (std::string)(cfg["KeyPath"]);

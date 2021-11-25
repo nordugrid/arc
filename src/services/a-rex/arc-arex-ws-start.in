@@ -222,7 +222,7 @@ prepare() {
     VOMS_PROCESSING=`readconfigvar "$ARC_RUNTIME_CONFIG" voms_processing common`
     mapping_present=`testconfigblock "$ARC_RUNTIME_CONFIG" mapping`
     authtokens_present=`testconfigblock "$ARC_RUNTIME_CONFIG" authtokens`
-    CIPHERS_STRING=`readconfigvar "$ARC_RUNTIME_CONFIG" ciphers arex/ws`
+    CIPHERS_STRING=`readconfigvar "$ARC_RUNTIME_CONFIG" tlsciphers arex/ws`
     PROTOCOLS_STRING=`readconfigvar "$ARC_RUNTIME_CONFIG" tlsprotocols arex/ws`
     CURVE_STRING=`readconfigvar "$ARC_RUNTIME_CONFIG" tlscurve arex/ws`
     USERMAP_BLOCK=''
@@ -627,7 +627,7 @@ prepare() {
       <next id=\"plexer\"/>
       $authtokens_handler
       <!-- Make dumb security probes happy -->
-      <Header>Strict-Transport-Security: max-age=86400; includeSubDomains</Header>
+      <Header>Strict-Transport-Security: max-age=31536000; includeSubDomains</Header>
       <!-- Match client to legacy authorization groups -->
       <SecHandler name=\"arclegacy.handler\" event=\"incoming\">
         <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
