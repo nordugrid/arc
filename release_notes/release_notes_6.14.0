@@ -3,7 +3,7 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.14.0    17.11.2021
+Release Notes for NorduGrid ARC  6.14.0    26.11.2021
 =======================================================
 
 We are happy to announce the release of ARC 6.14.0.
@@ -20,11 +20,12 @@ Highlights in this release
 
 The following Bugzilla tickets have been adressed or solved: 
 -------------------------------------------------------------
-* 4040  Posix compliance fixes
-* 4039  arcctl deploy igtf-ca debian package names
-* 4038  arcctl datastaging bugs
-* 4037  arc-arex-ws-start script bug
-
+* 4042 Bug Access Denied
+* 4041 Torque event type
+* 4040 Posix compliance fixes
+* 4039 arcctl deploy igtf-ca debian package names
+* 4038 arcctl datastaging bugs
+* 4037 arc-arex-ws-start script bug
 
 Documentation
 ==============
