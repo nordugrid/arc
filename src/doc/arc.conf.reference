@@ -1361,7 +1361,7 @@
 ## default: 100
 #max_data_transfer_requests=100
 
-## ciphers = ciphers_list - Override OpenSSL ciphers list enabled on server
+## tlsciphers = ciphers_list - Override OpenSSL ciphers list enabled on server
 ## default: undefined
 #tlsciphers=HIGH:!eNULL:!aNULL
 ## CHANGE: INTRODUCED in 6.14.0.
