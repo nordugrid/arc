@@ -12,6 +12,12 @@
 
 #include "ConfigTLSMCC.h"
 
+
+// For early OpenSSL 1.0.0
+#ifndef SSL_OP_NO_TLSv1_1
+#define SSL_OP_NO_TLSv1_1 SSL_OP_NO_TLSv1
+#endif
+
 namespace ArcMCCTLS {
 
 using namespace Arc;
@@ -106,7 +112,11 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
 #ifdef SSL_OP_NO_TLSv1_3
       protocol_options_ = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2 | SSL_OP_NO_TLSv1_3;
 #else
+#ifdef SSL_OP_NO_TLSv1_2
       protocol_options_ = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2;
+#else
+      protocol_options_ = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1;
+#endif
 #endif
       while((bool)protocol_node) {
         std::string protocol = (std::string)protocol_node;
@@ -122,11 +132,13 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
             protocol_options_ &= ~SSL_OP_NO_TLSv1;
           } else if(str == "TLSv1.1") {
             protocol_options_ &= ~SSL_OP_NO_TLSv1_1;
+#ifdef SSL_OP_NO_TLSv1_2
           } else if(str == "TLSv1.2") {
             protocol_options_ &= ~SSL_OP_NO_TLSv1_2;
 #ifdef SSL_OP_NO_TLSv1_3
           } else if(str == "TLSv1.3") {
             protocol_options_ &= ~SSL_OP_NO_TLSv1_3;
+#endif
 #endif
           };
         };
