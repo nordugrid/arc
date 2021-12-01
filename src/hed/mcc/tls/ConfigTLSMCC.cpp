@@ -50,7 +50,9 @@ static void config_VOMS_add(XMLNode cfg,std::vector<std::string>& vomscert_trust
 
 ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   protocol_options_ = 0;
+#if (OPENSSL_VERSION_NUMBER >= 0x10001000L)
   curve_nid_ = NID_secp521r1;
+#endif
   client_authn_ = true;
   cert_file_ = (std::string)(cfg["CertificatePath"]);
   key_file_ = (std::string)(cfg["KeyPath"]);
@@ -146,6 +148,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
       };
     };
 
+#if (OPENSSL_VERSION_NUMBER >= 0x10001000L)
     XMLNode curve_node = cfg["Curve"];
     if((bool)curve_node) {
       int nid = OBJ_sn2nid(((std::string)curve_node).c_str());
@@ -153,6 +156,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
         curve_nid_ = nid;
       }
     }
+#endif
   }
 
   std::vector<std::string> gridSecDir (2);
@@ -305,6 +309,7 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
       };
     };
   };
+#if (OPENSSL_VERSION_NUMBER >= 0x10001000L)
   /*
   if(SSL_CTX_set1_curves_list(sslctx,"P-256:P-384:P-521")) {
     logger.msg(ERROR, "Failed to apply ECDH groups");
@@ -326,6 +331,7 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
       EC_KEY_free(ecdh);
     };
   };
+#endif
   if(!cipher_list_.empty()) {
     logger.msg(VERBOSE, "Using cipher list: %s",cipher_list_);
     if(!SSL_CTX_set_cipher_list(sslctx,cipher_list_.c_str())) {
