@@ -8,7 +8,16 @@ Release Notes for NorduGrid ARC  6.14.0    26.11.2021
 
 We are happy to announce the release of ARC 6.14.0.
 
+To increase the level of security one can now configure TLS protocols and ciphers in arc.conf. The default
+values are in addition improved to strengthen security.
 
+The new configuration options can be found in the [arex/ws] block. The options together with defaults
+  (which will be used when not explisitly included in arc.conf) are:
+
+    tlsciphers=HIGH:!eNULL:!aNULL
+    tlsprotocols=TLSv1.2 TLSv1.3
+    tlscurve=secp521r1
+    
 This release contains smaller bug fixes and improvements, where the most interesting is an improvement of the process control.
 This has been tested and reported to improve job processing and transfers considerably. 
 
