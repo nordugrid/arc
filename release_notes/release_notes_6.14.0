@@ -3,13 +3,16 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.14.0    26.11.2021
+Release Notes for NorduGrid ARC  6.14.0    02.12.2021
 =======================================================
 
 We are happy to announce the release of ARC 6.14.0.
 
-To increase the level of security one can now configure TLS protocols and ciphers in arc.conf. The default
-values are in addition improved to strengthen security.
+Highlights in this release
+--------------------------
+
+To increase the web interface security level, one can now configure TLS protocols and ciphers in arc.conf.
+The default values are in addition improved to strengthen security.
 
 The new configuration options can be found in the [arex/ws] block. The options together with defaults
   (which will be used when not explisitly included in arc.conf) are:
@@ -17,13 +20,13 @@ The new configuration options can be found in the [arex/ws] block. The options t
     tlsciphers=HIGH:!eNULL:!aNULL
     tlsprotocols=TLSv1.2 TLSv1.3
     tlscurve=secp521r1
-    
-This release contains smaller bug fixes and improvements, where the most interesting is an improvement of the process control.
-This has been tested and reported to improve job processing and transfers considerably. 
 
+Please check the documentation for more details: http://www.nordugrid.org/documents/arc6/admins/reference.html#tlsciphers
     
-Highlights in this release
---------------------------
+Another highlight is an improvement of the process control which has been tested and reported to
+    improve job processing and transfers considerably, especially noticeable at high load.
+    
+Finally, as usual, the release contains a handful of smaller bug fixes and other improvements.
 
     
 
@@ -60,7 +63,7 @@ We provide binary builds for all supported versions of
   * Centos/RHEL (x86_64)
   * Ubuntu (i386 and amd64, both LTS and interim releases) - from Ubuntu 20.04 no i386 support
 
-In addition we build nightly packages for older platforms. 
+In addition we build nightly packages for some older platforms. 
 
 
 Contributing
