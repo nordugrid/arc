@@ -15,13 +15,16 @@ To increase the web interface security level, one can now configure TLS protocol
 The default values are in addition improved to strengthen security.
 
 The new configuration options can be found in the [arex/ws] block. The options together with defaults
-  (which will be used when not explisitly included in arc.conf) are:
+  (which will be used when not explicitly included in arc.conf) are:
 
     tlsciphers=HIGH:!eNULL:!aNULL
     tlsprotocols=TLSv1.2 TLSv1.3
     tlscurve=secp521r1
 
 Please check the documentation for more details: http://www.nordugrid.org/documents/arc6/admins/reference.html#tlsciphers
+
+Note that in ARC 7, the default values of the TLS settings will be tightened further.
+
     
 Another highlight is an improvement of the process control which has been tested and reported to
     improve job processing and transfers considerably, especially noticeable at high load.
