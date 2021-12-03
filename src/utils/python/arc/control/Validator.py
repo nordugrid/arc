@@ -8,6 +8,7 @@ import struct
 import subprocess
 import time
 from arc.paths import ARC_DATA_DIR
+from arc.utils import reference
 
 class Validator(object):
     """Class for validating host setup and arc configuration"""
@@ -44,12 +45,17 @@ class Validator(object):
                                                "legacy_fallback"]
                            }
 
-    def __init__(self, arcconf, arcconffile):
+    def __init__(self, arcconfref, arcconf, arcconffile):
         self.logger = logging.getLogger('ARCCTL.Validator')
         self.arcconf = arcconf
         conffile = arcconffile or os.environ.get('ARC_CONFIG') or '/etc/arc.conf'
         # Force re-parsing of arc.conf to set defaults
         self.arcconf.parse_arc_conf(conffile)
+        self.arcconfref = arcconfref
+        # Check arc.conf.reference exists
+        if not os.path.isfile(self.arcconfref):
+            self.logger.warning("arc.conf.reference not found at %s" % self.arcconfref)
+            self.arcconfref = None
         self.errors = 0
         self.warnings = 0
 
@@ -170,7 +176,21 @@ class Validator(object):
             except ValueError:
                 return None
 
+        # Check allowed values
+        if self.arcconfref:
+            allowed_values = reference.allowed_values(self.arcconfref, block, option)
+            if allowed_values and value not in allowed_values:
+                self.error("Value '%s' for option '%s' in [%s] is not in allowed values (%s)" %
+                           (value, option, block, ','.join(allowed_values)))
+
         # Extra checks for certain options
+        if option == 'benchmark':
+            # Benchmark values have different syntax in different blocks
+            if block == 'lrms' and not re.match('\w+:\d+(\.\d*)?|\.\d+', value):
+                self.error("benchmark option '%s' in [lrms] has incorrect syntax" % value)
+            if block == 'queue' and not re.match('\w+ \d+(\.\d*)?|\.\d+', value):
+                self.error("benchmark option '%s' in [queue] has incorrect syntax" % value)
+
         if block == 'arex/cache' and option == 'cachedir':
             if not os.path.exists(value.split()[0]):
                 self.warning("cachedir doesn't exist at %s" % value.split()[0])
