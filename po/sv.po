@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: support@nordugrid.org\n"
-"POT-Creation-Date: 2021-11-15 05:16+0100\n"
-"PO-Revision-Date: 2021-11-15 05:31+0100\n"
+"POT-Creation-Date: 2021-11-25 16:37+0100\n"
+"PO-Revision-Date: 2021-11-26 10:49+0100\n"
 "Last-Translator: Mattias Ellert <mattias.ellert@physics.uu.se>\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -568,7 +568,8 @@ msgid ""
 "For the 1st test job you also have to specify a runtime value with -r (--"
 "runtime) option."
 msgstr ""
-"För det första test-jobbet måste du också ange en körtid med -r (--runtime)."
+"För det första test-jobbet måste du också ange en körtid med alternativet -r "
+"(--runtime)."
 
 #: src/clients/compute/arctest.cpp:111
 msgid "Certificate information:"
@@ -968,7 +969,7 @@ msgstr "Val av ARC6-insändningsändpunkt"
 
 #: src/clients/compute/utils.cpp:439
 msgid "Legacy options set for defining targets"
-msgstr "Äldre flaggor för att definiera target"
+msgstr "Legacy-alternativ för att definiera target"
 
 #: src/clients/compute/utils.cpp:443
 msgid "specify computing element hostname or a complete endpoint URL"
@@ -1615,7 +1616,7 @@ msgstr ""
 "kommando2).\n"
 "              :kommando är valfritt, och används för att begära specifika\n"
 "              attribut (t.ex. roller)\n"
-"              vanliga alternativ är:\n"
+"              kommandoalternativ är:\n"
 "              all --- lägg till detta DNs alla attribut i AC;\n"
 "              list --- lista detta DNs alla attribut, skapar inte AC-"
 "tillägg;\n"
@@ -2495,9 +2496,9 @@ msgid ""
 msgstr ""
 "om destinationen är en indexeringstjänst och inte densamma som källan och "
 "destinationen redan är registrerad, så skapas kopian normalt inte. Men, om "
-"denna flagga anges antas källan varar en kopia av destinationen som skapats "
-"på ett okontrollerat sätt och kopian skapas på samma sätt som vid "
-"replikering. Användning av denna flagga hoppar också över validering av "
+"detta alternativ anges antas källan vara en kopia av destinationen som "
+"skapats på ett okontrollerat sätt och kopian skapas på samma sätt som vid "
+"replikering. Användning av detta alternativ hoppar också över validering av "
 "slutförda överföringar."
 
 #: src/clients/data/arccp.cpp:567
@@ -2580,7 +2581,7 @@ msgstr "Fel antal parametrar angivna"
 
 #: src/clients/data/arccp.cpp:686
 msgid "Options 'p' and 'n' can't be used simultaneously"
-msgstr "Flaggorna 'p' och 'n' kan inte användas samtidigt"
+msgstr "Alternativen 'p' och 'n' kan inte användas samtidigt"
 
 #: src/clients/data/arcls.cpp:129 src/clients/data/arcmkdir.cpp:34
 #: src/clients/data/arcrm.cpp:43
@@ -2640,7 +2641,7 @@ msgstr "kontrollera objektets läsbarhet, visar ingen information om objektet"
 
 #: src/clients/data/arcls.cpp:393
 msgid "Incompatible options --nolist and --forcelist requested"
-msgstr "Inkompatibla flaggor --nolist och --forcelist har begärts"
+msgstr "Inkompatibla alternativ --nolist och --forcelist har begärts"
 
 #: src/clients/data/arcls.cpp:398
 msgid "Requesting recursion and --nolist has no sense"
@@ -4218,7 +4219,7 @@ msgstr "Ogiltig URL '%s' för indatafil '%s'"
 #: src/hed/acc/JobDescriptionParser/XRSLParser.cpp:596
 #, c-format
 msgid "Invalid URL option syntax in option '%s' for input file '%s'"
-msgstr "Ogiltig URL-option-syntax i option '%s' för indatafil '%s'"
+msgstr "Ogiltig URL-alternativ-syntax i alternativ '%s' för indatafil '%s'"
 
 #: src/hed/acc/JobDescriptionParser/XRSLParser.cpp:606
 #, c-format
@@ -4241,7 +4242,7 @@ msgstr "Ogiltig URL '%s' för utdatafil '%s'"
 #: src/hed/acc/JobDescriptionParser/XRSLParser.cpp:704
 #, c-format
 msgid "Invalid URL option syntax in option '%s' for output file '%s'"
-msgstr "Ogiltig URL-option-syntax i option '%s' för utdatafil '%s'"
+msgstr "Ogiltig URL-alternativ-syntax i alternativ '%s' för utdatafil '%s'"
 
 #: src/hed/acc/JobDescriptionParser/XRSLParser.cpp:714
 #, c-format
@@ -7505,7 +7506,7 @@ msgstr "%s:"
 #: src/hed/libs/common/OptionParser.cpp:313
 #, c-format
 msgid "Show %s help options"
-msgstr "Visa %s hjälpflaggor"
+msgstr "Visa %s hjälpalternativ"
 
 #: src/hed/libs/common/OptionParser.cpp:342
 msgid "Failed to parse command line options"
@@ -13914,33 +13915,33 @@ msgstr "Kan inte ladda in begäranobjekt"
 msgid "Can not generate policy object"
 msgstr "Kan inte generera policyobjekt"
 
-#: src/hed/mcc/http/MCCHTTP.cpp:157
+#: src/hed/mcc/http/MCCHTTP.cpp:168
 #, c-format
 msgid "HTTP Error: %d %s"
 msgstr "HTTP-fel: %d %s"
 
-#: src/hed/mcc/http/MCCHTTP.cpp:226
+#: src/hed/mcc/http/MCCHTTP.cpp:241
 msgid "Cannot create http payload"
 msgstr "Kan inte skapa http-nyttolast"
 
-#: src/hed/mcc/http/MCCHTTP.cpp:296
+#: src/hed/mcc/http/MCCHTTP.cpp:311
 msgid "No next element in the chain"
 msgstr "Inget nästa element i kedjan"
 
-#: src/hed/mcc/http/MCCHTTP.cpp:305
+#: src/hed/mcc/http/MCCHTTP.cpp:320
 #: src/hed/mcc/msgvalidator/MCCMsgValidator.cpp:253
 msgid "next element of the chain returned error status"
 msgstr "nästa element i kedjan returnerade felstatus"
 
-#: src/hed/mcc/http/MCCHTTP.cpp:314
+#: src/hed/mcc/http/MCCHTTP.cpp:329
 msgid "next element of the chain returned no payload"
 msgstr "nästa element i kedjan returnerade ingen nyttolast"
 
-#: src/hed/mcc/http/MCCHTTP.cpp:326
+#: src/hed/mcc/http/MCCHTTP.cpp:341
 msgid "next element of the chain returned invalid/unsupported payload"
 msgstr "nästa element i kedjan returnerade ogiltig/ej stödd nyttolast"
 
-#: src/hed/mcc/http/MCCHTTP.cpp:404
+#: src/hed/mcc/http/MCCHTTP.cpp:423
 msgid "Error to flush output payload"
 msgstr "Fel vid utmatning av utdatanyttolast"
 
@@ -14309,6 +14310,54 @@ msgid ""
 msgstr ""
 "Mottog meddelande out-of-band (inte kritiskt, ERROR-nivå är bara för "
 "debuggningsändamål)"
+
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:277
+#, c-format
+msgid "Using DH parameters from file: %s"
+msgstr "Använder DH-parametrar från fil: %s"
+
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:280
+msgid "Failed to open file with DH parameters for reading"
+msgstr "Misslyckades med att öppna fil med DH-parametrar för läsning"
+
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:285
+msgid "Failed to read file with DH parameters"
+msgstr "Misslyckades med att läsa fil med DH-parametrar"
+
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:288
+msgid "Failed to apply DH parameters"
+msgstr "Misslyckades med att tillämpa DH-parametrar"
+
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:290
+msgid "DH parameters applied"
+msgstr "DH-parametrar tillämpade"
+
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:304
+#, c-format
+msgid "Using curve with NID: %u"
+msgstr "Använder kurva med NID: %u"
+
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:307
+msgid "Failed to generate EC key"
+msgstr "Misslyckades med att generera EC-nyckel"
+
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:310
+msgid "Failed to apply ECDH parameters"
+msgstr "Misslyckades med att tillämpa ECDH-parametrar"
+
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:312
+msgid "ECDH parameters applied"
+msgstr "ECDH-parametrar tillämpade"
+
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:318
+#, c-format
+msgid "Using cipher list: %s"
+msgstr "Använder chifferlista: %s"
+
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:334
+#, c-format
+msgid "Using protocol options: 0x%x"
+msgstr "Använder protokollalternativ: 0x%x"
 
 #: src/hed/mcc/tls/DelegationCollector.cpp:39
 msgid "Independent proxy - no rights granted"
