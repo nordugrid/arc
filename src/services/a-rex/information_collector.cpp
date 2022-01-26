@@ -25,6 +25,16 @@
 
 namespace ARex {
 
+
+int ARexService::OpenInfoDocument() {
+  int h = infodoc_.OpenDocument();
+  if (h == -1) {
+    // If information collector has no file assigned (not yet or collector is not running) open it directly
+    h = open(config_.InformationFile().c_str(), O_RDONLY);
+  }
+  return h;
+}
+
 void ARexService::InformationCollector(void) {
   thread_count_.RegisterThread();
   for(;;) {
@@ -38,7 +48,7 @@ void ARexService::InformationCollector(void) {
       std::string stderr_str;
       Arc::Run run(cmd);
       run.AssignStdin(stdin_str);
-      run.AssignStdout(xml_str);
+      run.AssignStdout(xml_str, 1024*1024); // can information document become bigger than 1MB?
       run.AssignStderr(stderr_str);
       logger_.msg(Arc::DEBUG,"Resource information provider: %s",cmd);
       if(!run.Start()) {
@@ -65,7 +75,7 @@ void ARexService::InformationCollector(void) {
       // and functionality to be moved to information providers.
       if(!xml_str.empty()) {
         // Currently glue states are lost. Counter of all jobs is lost too.
-        infodoc_.Assign(xml_str,config_.ControlDir()+G_DIR_SEPARATOR_S+"info.xml");
+        infodoc_.Assign(xml_str, config_.InformationFile());
         Arc::XMLNode root = infodoc_.Acquire();
         Arc::XMLNode all_jobs_count = root["Domains"]["AdminDomain"]["Services"]["ComputingService"]["AllJobs"];
         if((bool)all_jobs_count) {
@@ -80,79 +90,6 @@ void ARexService::InformationCollector(void) {
     if(thread_count_.WaitOrCancel(infoprovider_wakeup_period_*100)) break;
   };
   thread_count_.UnregisterThread();
-}
-
-bool ARexService::RegistrationCollector(Arc::XMLNode &doc) {
-
-  
-  logger_.msg(Arc::VERBOSE,"Passing service's information from collector to registrator");
-  Arc::XMLNode empty(ns_, "RegEntry");
-  empty.New(doc);
-
-  doc.NewChild("SrcAdv");
-  doc.NewChild("MetaSrcAdv");
-  doc["SrcAdv"].NewChild("Type") = "org.nordugrid.execution.arex";
-  doc["SrcAdv"].NewChild("EPR").NewChild("Address") = endpoint_;
-  if(publishstaticinfo_){
-    /** 
-    This section uses SSPair to send Static
-    Information of Arex to the ISIS.  
-    **/
-    Arc::XMLNode root = infodoc_.Acquire();
-    Arc::XMLNode staticInfo = doc["SrcAdv"].NewChild("SSPair");
-    staticInfo.NewChild("Name") = "HealthState";
-    staticInfo.NewChild("Value") = (std::string)root["Domains"]["AdminDomain"]["Services"]
-                                   ["ComputingService"]["ComputingEndpoint"]["HealthState"];
-    staticInfo = doc["SrcAdv"].NewChild("SSPair");
-    staticInfo.NewChild("Name") = "Capability";
-    staticInfo.NewChild("Value") = (std::string)root["Domains"]["AdminDomain"]["Services"]
-                                   ["ComputingService"]["ComputingEndpoint"]["Capability"];
-    staticInfo = doc["SrcAdv"].NewChild("SSPair");
-    staticInfo.NewChild("Name") = "OSFamily";
-    staticInfo.NewChild("Value") = (std::string)root["Domains"]["AdminDomain"]["Services"]
-                                   ["ComputingService"]["ComputingManager"]
-                                   ["ExecutionEnvironments"]["ExecutionEnvironment"]["OSFamily"];
-    staticInfo = doc["SrcAdv"].NewChild("SSPair");
-    staticInfo.NewChild("Name") = "Platform";
-    staticInfo.NewChild("Value") = (std::string)root["Domains"]["AdminDomain"]["Services"]
-                                   ["ComputingService"]["ComputingManager"]
-                                   ["ExecutionEnvironments"]["ExecutionEnvironment"]["Platform"];
-    staticInfo = doc["SrcAdv"].NewChild("SSPair");
-    staticInfo.NewChild("Name") = "PhysicalCPUs";
-    staticInfo.NewChild("Value") = (std::string)root["Domains"]["AdminDomain"]["Services"]
-                                   ["ComputingService"]["ComputingManager"]
-                                   ["ExecutionEnvironments"]["ExecutionEnvironment"]["PhysicalCPUs"];
-    staticInfo = doc["SrcAdv"].NewChild("SSPair");
-    staticInfo.NewChild("Name") = "CPUMultiplicity";
-    staticInfo.NewChild("Value") = (std::string)root["Domains"]["AdminDomain"]["Services"]
-                                   ["ComputingService"]["ComputingManager"]
-                                   ["ExecutionEnvironments"]["ExecutionEnvironment"]["CPUMultiplicity"];
-    staticInfo = doc["SrcAdv"].NewChild("SSPair");
-    staticInfo.NewChild("Name") = "CPUModel";
-    staticInfo.NewChild("Value") = (std::string)root["Domains"]["AdminDomain"]["Services"]
-                                   ["ComputingService"]["ComputingManager"]
-                                   ["ExecutionEnvironments"]["ExecutionEnvironment"]["CPUModel"];
-
-    std::string path = "Domains/AdminDomain/Services/ComputingService/ComputingManager/ApplicationEnvironments/ApplicationEnvironment";
-    Arc::XMLNodeList AEs = root.Path(path);
-    for(Arc::XMLNodeList::iterator AE = AEs.begin(); AE!=AEs.end(); AE++){
-
-      staticInfo = doc["SrcAdv"].NewChild("SSPair");
-      staticInfo.NewChild("Name") = (std::string)((*AE)["AppName"])+"-"+(std::string)((*AE)["AppVersion"]);
-      staticInfo.NewChild("Value") = (std::string)((*AE)["ID"]);
-    }
-    logger.msg(Arc::VERBOSE, "Registered static information: \n doc: %s",(std::string)doc);
-    infodoc_.Release();
-  } else
-    logger.msg(Arc::VERBOSE, "Information registered without static attributes: \n doc: %s",(std::string)doc);
-return true;
-  //
-  // TODO: filter information here.
-  //Arc::XMLNode regdoc("<Service/>");
-  //regdoc.New(doc);
-  //doc.NewChild(root);
-  //infodoc_.Release();
-
 }
 
 std::string ARexService::getID() {
@@ -261,24 +198,6 @@ int OptimizedInformationContainer::OpenDocument(void) {
   return h;
 }
 
-void OptimizedInformationContainer::AssignFile(const std::string& filename) {
-  olock_.lock();
-  if(!filename_.empty()) ::unlink(filename_.c_str());
-  if(handle_ != -1) ::close(handle_);
-  filename_ = filename;
-  handle_ = -1;
-  if(!filename_.empty()) {
-    handle_ = ::open(filename_.c_str(),O_RDONLY);
-    if(parse_xml_) {
-      lock_.lock();
-      doc_.ReadFromFile(filename_);
-      lock_.unlock();
-      Arc::InformationContainer::Assign(doc_,false);
-    };
-  };
-  olock_.unlock();
-}
-
 void OptimizedInformationContainer::Assign(const std::string& xml, const std::string filename) {
   std::string tmpfilename;
   int h = -1;
@@ -319,6 +238,7 @@ void OptimizedInformationContainer::Assign(const std::string& xml, const std::st
     filename_ = tmpfilename;
   } else {
     if(::rename(tmpfilename.c_str(), filename.c_str()) != 0) {
+      olock_.unlock();
       Arc::Logger::getRootLogger().msg(Arc::ERROR,"OptimizedInformationContainer failed to rename temprary file");
       return;
     };
@@ -364,9 +284,10 @@ void OptimizedInformationContainer::Assign(const std::string& xml, const std::st
 // ResourceInfoNotFoundFault
 // AccessControlFault
 // InternalBaseFault
-Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& /*config*/,Arc::XMLNode in,Arc::XMLNode out) {
   // WARNING. Suboptimal temporary solution.
-  int h = infodoc_.OpenDocument();
+  // config is not used here, hence this method can be used for anonymous access
+  int h = OpenInfoDocument();
   if(h == -1) ESINFOFAULT("Failed to open resource information file");
   ::lseek(h,0,SEEK_SET);
   struct stat st;
@@ -441,7 +362,8 @@ Arc::MCC_Status ARexService::ESGetResourceInfo(ARexGMConfig& config,Arc::XMLNode
 // UnknownQueryFault
 // AccessControlFault
 // InternalBaseFault
-Arc::MCC_Status ARexService::ESQueryResourceInfo(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out) {
+Arc::MCC_Status ARexService::ESQueryResourceInfo(ARexGMConfig& /*config*/,Arc::XMLNode in,Arc::XMLNode out) {
+  // config is not used here, hence this method can be used for anonymous access
   std::string dialect = (std::string)in["QueryDialect"];
   if(dialect.empty()) {
     Arc::SOAPFault fault(out.Parent(),Arc::SOAPFault::Sender,"");
@@ -466,7 +388,7 @@ Arc::MCC_Status ARexService::ESQueryResourceInfo(ARexGMConfig& config,Arc::XMLNo
     return Arc::MCC_Status(Arc::STATUS_OK);
   }
   // WARNING. Suboptimal temporary solution.
-  int h = infodoc_.OpenDocument();
+  int h = OpenInfoDocument();
   if(h == -1) ESFAULT("Failed to open resource information file");
   ::lseek(h,0,SEEK_SET);
   struct stat st;

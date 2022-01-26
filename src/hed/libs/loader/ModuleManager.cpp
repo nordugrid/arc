@@ -2,6 +2,9 @@
 #include <config.h>
 #endif
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 #include <arc/ArcLocation.h>
@@ -102,11 +105,11 @@ std::string ModuleManager::findLocation(const std::string& name)
   for (; i != plugin_dir.end(); i++) {
     path = Glib::Module::build_path(*i, name);
     // Loader::logger.msg(VERBOSE, "Try load %s", path);
-    FILE *file = fopen(path.c_str(), "r");
-    if (file == NULL) {
+    int file = open(path.c_str(), O_RDONLY);
+    if (file == -1) {
       continue;
     } else {
-      fclose(file);
+      close(file);
       break;
     }
   }

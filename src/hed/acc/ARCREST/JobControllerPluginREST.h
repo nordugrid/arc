@@ -31,6 +31,9 @@ namespace Arc {
 
     class InfoNodeProcessor {
      public:
+      virtual void operator()(std::string const& job_id, XMLNode info_node, URL const& query_url) {
+        return operator()(job_id, info_node);
+      };
       virtual void operator()(std::string const& job_id, XMLNode info_node) {};
     };
 

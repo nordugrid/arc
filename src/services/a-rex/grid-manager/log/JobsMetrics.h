@@ -18,19 +18,15 @@ namespace ARex {
   class JobStateList {
     /*Holds sucess or fail of last 100 jobs */
 
-
+  private:
     class JobNode {
 
     public:
 
       std::string job_id;
-      int isfailed;
+      bool isfailed;
 
-      JobStateList* sl;
-      JobStateList::JobNode* next;
-      JobStateList::JobNode* prev;
-
-      JobNode(JobStateList* _sl, JobNode* _prev=NULL, JobNode* _next=NULL, bool _isfailed=false, std::string _job_id="");
+      JobNode(bool _isfailed=false, std::string _job_id="");
       ~JobNode(void);
 
     };
@@ -39,19 +35,14 @@ namespace ARex {
   private:
     const int limit;
 
-  public:
-
-    int failures;
-    int length;
-
-    JobStateList::JobNode* this_node;
-    JobStateList::JobNode* oldhead;
-    JobStateList::JobNode* tail;
-    JobStateList::JobNode* head;
-
-    void setFailure(bool _isfailed, std::string _job_id);
+    std::list<JobNode> nodes;
 
     JobStateList::JobNode* NodeInList(std::string _job_id);
+
+  public:
+    int failures;
+
+    void SetFailure(bool _isfailed, std::string _job_id);
 
     JobStateList(int _limit);
     ~JobStateList(void);
@@ -95,7 +86,7 @@ class JobsMetrics {
   static void RunMetricsKicker(void* arg);
   static void SyncAsync(void* arg);
 
-  JobStateList* jobstatelist;
+  JobStateList jobstatelist;
  public:
   JobsMetrics(void);
   ~JobsMetrics(void);

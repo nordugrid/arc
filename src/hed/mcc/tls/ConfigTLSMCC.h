@@ -14,6 +14,7 @@ using namespace Arc;
 
 class ConfigTLSMCC {
  private:  
+  static Logger logger;
   std::string ca_dir_;
   std::string ca_file_;
   std::string voms_dir_;
@@ -43,9 +44,11 @@ class ConfigTLSMCC {
   } voms_processing_;
   std::vector<std::string> vomscert_trust_dn_;
   std::string cipher_list_;
+  std::string dhparam_file_;
   std::string hostname_;
   std::string protocols_;
-  std::string protocol_;
+  long protocol_options_;
+  int curve_nid_;
   std::string failure_;
   ConfigTLSMCC(void);
  public:

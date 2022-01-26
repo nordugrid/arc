@@ -776,6 +776,9 @@ sub jobs_info ($$@) {
 
     my (%lrms_jobs);
 
+    # edge case if @$jids is empty, return now
+    return %lrms_jobs if ($#$jids < 0);
+
     # Fill %lrms_jobs here (da implementation)
 
     # rank is treated separately as it does not have an entry in
@@ -851,14 +854,21 @@ sub jobs_info ($$@) {
     };
 
     my ( %hoh_qstatf ) = read_qstat_f($path);
-    foreach my $pbsjid (keys %hoh_qstatf) {
+
+    # make two sorted indices
+    my @qstatkeys = sort keys %hoh_qstatf;
+    my @sjids = sort (@$jids);
+    my $jidindex = 0;
+
+    foreach my $pbsjid (@qstatkeys) {
         # only jobids known by A-REX are processed
         my $jid = undef;
-        foreach my $j (@$jids) {
-             if ( $pbsjid =~ /^$j$/ ) {
-                 $jid = $j;
-                 last;
-             }
+        while ($sjids[$jidindex] lt $pbsjid) {
+            last if ($jidindex == $#sjids);
+            $jidindex++;
+        }
+        if ( $pbsjid =~ /^$sjids[$jidindex]$/ ) {
+            $jid = $sjids[$jidindex];
         }
         next unless defined $jid;
         # handle qstat attributes of the jobs
@@ -939,7 +949,7 @@ sub users_info($$@) {
             if ($k eq "route_destinations" ) {
                 @dqueues=split (',',$v);
                 $singledqueue=shift(@dqueues);
-                warning('Routing queue did not have acl information. Local user acl taken from destination queue: '.$singledqueue);
+                info('Routing queue did not have acl information. Local user acl taken from destination queue: '.$singledqueue);
                 $isrouting = 1;
             }
        }

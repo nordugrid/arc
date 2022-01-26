@@ -105,6 +105,7 @@ class GMJob {
   // external utility being run to perform tasks like stage-in/out,
   //   submit/cancel. (todo - move to private)
   Arc::Run* child;
+  std::string child_output;
   // Constructors and destructor.
   //  Accepts:
   //    job_id - identifier

@@ -24,7 +24,7 @@ HeartBeatMetrics::HeartBeatMetrics():enabled(false),proc(NULL) {
   free = 0;
   totalfree = 0;
 
-  time_lastupdate = (time_delta = (time_now = time(NULL)));
+  time_delta = 0;
 
   time_update = false;
 }
@@ -45,21 +45,22 @@ void HeartBeatMetrics::SetGmetricPath(const char* path) {
 }
 
 
-  void HeartBeatMetrics::ReportHeartBeatChange(const GMConfig& config) {
+void HeartBeatMetrics::ReportHeartBeatChange(const GMConfig& config) {
+  if(!enabled) return; // not configured
   Glib::RecMutex::Lock lock_(lock);
 
-    struct stat st;
-    std::string heartbeat_file(config.ControlDir()  + "/gm-heartbeat");
-    if(Arc::FileStat(heartbeat_file, &st, true)){
-      time_lastupdate = st.st_mtime;
-      time_now = time(NULL);
-      time_delta = time_now - time_lastupdate;
-      time_update = true;
-    }
-    else{
-      logger.msg(Arc::ERROR,"Error with hearbeatfile: %s",heartbeat_file.c_str());
-      time_update = false;
-    }
+  struct stat st;
+  std::string heartbeat_file(config.ControlDir()  + "/gm-heartbeat");
+  if(Arc::FileStat(heartbeat_file, &st, true)){
+    time_t time_lastupdate = st.st_mtime;
+    time_t time_now = time(NULL);
+    time_delta = time_now - time_lastupdate;
+    time_update = true;
+  }
+  else{
+    logger.msg(Arc::ERROR,"Error with hearbeatfile: %s",heartbeat_file.c_str());
+    time_update = false;
+  }
     
   Sync();
 }
@@ -150,7 +151,7 @@ void HeartBeatMetrics::SyncAsync(void* arg) {
 
 void HeartBeatMetrics::RunMetricsKicker(void* arg) {
   // Currently it is not allowed to start new external process
-  // from inside process licker (todo: redesign).
+  // from inside process kicker (todo: redesign).
   // So do it asynchronously from another thread.
   Arc::CreateThreadFunction(&SyncAsync, arg);
 }

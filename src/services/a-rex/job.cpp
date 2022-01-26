@@ -35,7 +35,6 @@
 #include "grid-manager/jobs/JobDescriptionHandler.h"
 #include "grid-manager/jobs/CommFIFO.h"
 #include "grid-manager/jobs/JobsList.h"
-#include "grid-manager/run/RunPlugin.h"
 #include "grid-manager/files/ControlFileHandling.h"
 #include "delegation/DelegationStores.h"
 #include "delegation/DelegationStore.h"
@@ -106,11 +105,52 @@ ARexConfigContext* ARexConfigContext::GetRutimeConfiguration(Arc::Message& inmsg
   };
   logger.msg(Arc::DEBUG,"Using local account '%s'",uname);
   std::string grid_name = inmsg.Attributes()->get("TLS:IDENTITYDN");
+  if(grid_name.empty()) {
+    // Try tokens if TLS has no information about user identity
+    logger.msg(Arc::ERROR, "TLS provides no identity, going for OTokens");
+    grid_name = inmsg.Attributes()->get("OTOKENS:IDENTITYDN");
+    /*
+    Below is an example on how obtained token can be exchanged.
+
+    Arc::SecAttr* sattr = inmsg.Auth()->get("OTOKENS");
+    if(!sattr) sattr = inmsg.AuthContext()->get("OTOKENS");
+    if(sattr) {
+      std::string token = sattr->get("");
+      if(!token.empty()) {
+        Arc::OpenIDMetadata tokenMetadata;
+        Arc::OpenIDMetadataFetcher metaFetcher(sattr->get("iss").c_str());
+        if(metaFetcher.Fetch(tokenMetadata)) {
+          char const * tokenEndpointUrl = tokenMetadata.TokenEndpoint();
+          if(tokenEndpointUrl) {
+            Arc::OpenIDTokenFetcher tokenFetcher(tokenEndpointUrl,
+                  "c85e84e8-c9ea-4ecc-8123-070df2c10e0e",
+                  "dRnakcoaT-9YA6T1LzeLAqeEu7jLBxeTWFyQMbJ6BWZonjEcE060-dn8EWAfpZmPq3x7oTjUnu6mamYylBaNhw");
+
+            std::list<std::string> scopes;
+            scopes.push_back("storage.read:/");
+            scopes.push_back("storage.create:/");
+            std::list<std::string> audiences;
+            audiences.push_back("se1.example");
+            audiences.push_back("se2.example");
+
+            Arc::OpenIDTokenFetcher::TokenList tokens;
+            if(tokenFetcher.Fetch("urn:ietf:params:oauth:grant-type:token-exchange", token, scopes, audiences, tokens)) {
+              for(auto const & token : tokens) {
+                logger_.msg(Arc::ERROR, "Token response: %s : %s", token.first, token.second);
+              };
+            } else logger_.msg(Arc::ERROR, "Failed to fetch token");
+          } else logger_.msg(Arc::ERROR, "Token metadata contains no token endpoint");;
+        } else logger_.msg(Arc::ERROR, "Failed to fetch token metadata");
+      } else logger_.msg(Arc::ERROR, "There is no token in sec attr");
+    } else logger_.msg(Arc::ERROR, "There is no otoken sec attr");
+    */
+  };
   std::string endpoint = default_endpoint;
   if(endpoint.empty()) {
     std::string http_endpoint = inmsg.Attributes()->get("HTTP:ENDPOINT");
     std::string tcp_endpoint = inmsg.Attributes()->get("TCP:ENDPOINT");
-    bool https_proto = !grid_name.empty();
+    bool https_proto = ((inmsg.Auth() && (inmsg.Auth()->get("TLS"))) ||
+                        (inmsg.AuthContext() && (inmsg.AuthContext()->get("TLS"))));
     endpoint = tcp_endpoint;
     if(https_proto) {
       endpoint="https"+endpoint;
@@ -469,38 +509,55 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
     };
   };
   if(job_.lrms.empty()) job_.lrms=config_.GmConfig().DefaultLRMS();
-  // Check for proper queue in request.
-  if(job_.queue.empty()) job_.queue=config_.GmConfig().DefaultQueue();
-  if(job_.queue.empty()) {
-    failure_="Request has no queue defined";
-    failure_type_=ARexJobDescriptionMissingError;
+
+  // Handle queue in request.
+  // if (queue in xrsl) submit to that queue w/o modification; 
+  // elseif (no queue in xrsl and exists default queue in arc.conf) substitute default queue into xrsl and check authorisation; 
+  // elseif (no queue in xrsl and no default queue in arc.conf and VO is authorised in one of the arc.conf queues*) substitute
+  //        into xrsl the first; queue where VO is authorised in arc.conf;
+  // else (reject);
+  if(job_.queue.empty()) // queue in job description?
+    job_.queue=config_.GmConfig().DefaultQueue(); // default queue in configuration
+
+  bool queue_authorized = false;
+  bool queue_matched = false;
+  for(std::list<std::string>::const_iterator q = config_.GmConfig().Queues().begin(); q != config_.GmConfig().Queues().end(); ++q) {
+    if(!job_.queue.empty()) {
+      if(*q != job_.queue) continue; // skip non-matcing queue
+    };
+    queue_matched = true;
+    // Check for allowed authorization group
+    std::list<std::pair<bool,std::string> > const & groups = config_.GmConfig().MatchingGroups(q->c_str());
+    if(groups.empty()) {
+      queue_authorized = true; // No authorized groups assigned - all allowed
+    } else {
+      if(match_groups(groups, config_)) {
+        queue_authorized = true;
+      };
+    };
+    if(queue_authorized) {
+      if(job_.queue.empty()) job_.queue = *q; // no queue requested - assign first authorized
+        break;
+    };
+  };
+  if(!queue_authorized) {
+    // Different error messages for different job requests
+    if(job_.queue.empty()) {
+      failure_="Request has no queue defined and none is allowed for this user";
+      failure_type_=ARexJobConfigurationError;
+    } else {
+      if(queue_matched) {
+        failure_="Requested queue "+job_.queue+" does not match any of available queues";
+        failure_type_=ARexJobInternalError;
+      } else {
+        failure_="Requested queue "+job_.queue+" is not allowed for this user";
+        failure_type_=ARexJobConfigurationError;
+      };
+    };
     delete_job_id();
     return;
   };
-  if(!config_.GmConfig().Queues().empty()) { // If no queues configured - service takes any
-    for(std::list<std::string>::const_iterator q = config_.GmConfig().Queues().begin();;++q) {
-      if(q == config_.GmConfig().Queues().end()) {
-        failure_="Requested queue "+job_.queue+" does not match any of available queues";
-        //failure_type_=ARexJobDescriptionLogicalError;
-        failure_type_=ARexJobInternalError;
-        delete_job_id();
-        return;
-      };
-      if(*q == job_.queue) {
-        // Before allowing this queue check for allowed authorization group
-        std::list<std::pair<bool,std::string> > const & groups = config_.GmConfig().MatchingGroups(job_.queue.c_str());
-        if(!groups.empty()) {
-          if(!match_groups(groups, config_)) {
-            failure_="Requested queue "+job_.queue+" is not allowed for this user";
-            failure_type_=ARexJobConfigurationError;
-            delete_job_id();
-            return;
-          };
-        };
-        break;
-      };
-    };
-  };
+
   // Check for various unsupported features
   if(!job_.preexecs.empty()) {
     failure_="Pre-executables are not supported by this service";
@@ -835,6 +892,7 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
   deleg_ids.unique();
   deleg.LockCred(id_,deleg_ids,config_.GridName());
 
+  // Tell main loop new job has arrived
   CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
   return;
 }

@@ -26,7 +26,6 @@
 #include "grid-manager/log/JobsMetrics.h"
 #include "grid-manager/log/HeartBeatMetrics.h"
 #include "grid-manager/log/SpaceMetrics.h"
-#include "grid-manager/run/RunPlugin.h"
 #include "grid-manager/jobs/ContinuationPlugins.h"
 #include "grid-manager/files/ControlFileHandling.h"
 #include "arex.h"
@@ -480,16 +479,32 @@ Arc::MCC_Status ARexService::preProcessSecurity(Arc::Message& inmsg,Arc::Message
   // Process grid-manager configuration if not done yet
   config = ARexConfigContext::GetRutimeConfiguration(inmsg, config_, uname_, endpoint_);
   if(!config) {
-    logger_.msg(Arc::ERROR, "Can't obtain configuration");
-    // Service is not operational
-    char const* fault = "User can't be assigned configuration";
-    return is_soap ?
-      make_soap_fault(outmsg, fault) :
-      make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, fault);
-  };
-  config->ClearAuths();
-  config->AddAuth(inmsg.Auth());
-  config->AddAuth(inmsg.AuthContext());
+    // Service is not operational except public information.
+    // But public information also has own authorization rules
+    if(!config_.PublicInformationEnabled()) {
+      logger_.msg(Arc::VERBOSE, "Can't obtain configuration. Public information is disabled.");
+      char const* fault = "User can't be assigned configuration";
+      return is_soap ?
+        make_soap_fault(outmsg, fault) :
+        make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, fault);
+    };
+    // Check additional authorization rules
+    std::list<std::pair<bool,std::string> > const & groups = config_.MatchingGroupsPublicInformation();
+    if(!groups.empty()) {
+      if(!match_groups(groups, inmsg)) {
+        logger_.msg(Arc::VERBOSE, "Can't obtain configuration. Public information is disallowed for this user.");
+        char const* fault = "User can't be assigned configuration";
+        return is_soap ?
+          make_soap_fault(outmsg, fault) :
+          make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, fault);
+      };
+    };
+    logger_.msg(Arc::VERBOSE, "Can't obtain configuration. Only public information is provided.");
+  } else {
+    config->ClearAuths();
+    config->AddAuth(inmsg.Auth());
+    config->AddAuth(inmsg.AuthContext());
+  }
 
   passed = true;
   return Arc::MCC_Status(Arc::STATUS_OK);
@@ -559,9 +574,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     bool passed = false;
     Arc::MCC_Status sret = preProcessSecurity(inmsg,outmsg,sattr,false,config,passed);
     if(!passed) return sret;
-
+    // config may be null here, but REST handles user configuration separately.
     sret = rest_.process(inmsg, outmsg);
-
     if(sret) {
       bool passed = false;
       sret = postProcessSecurity(outmsg,passed);
@@ -613,6 +627,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   bool passed = false;
   Arc::MCC_Status sret = preProcessSecurity(inmsg,outmsg,sattr,method=="POST",config,passed);
   if(!passed) return sret;
+  // config may be null for anonymous requests
 
   // Identify which of served endpoints request is for.
   // Using simplified algorithm - POST for SOAP messages,
@@ -633,7 +648,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
       // Preparing known namespaces
       outpayload->Namespaces(ns_);
       if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
-        // Aplying known namespaces
+        if(!config) return make_soap_fault(outmsg, "User can't be assigned configuration");
+        // Applying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"CreateActivity")) {
           CountedResourceLock cl_lock(beslimit_);
@@ -643,6 +659,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         }
       } else if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_RINFO_NAMESPACE)) {
         // Aplying known namespaces
+        // Resource information is available for anonymous requests - null config is handled properly
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"GetResourceInfo")) {
           CountedResourceLock cl_lock(infolimit_);
@@ -654,6 +671,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           SOAP_NOT_SUPPORTED;
         }
       } else if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_MANAG_NAMESPACE)) {
+        if(!config) return make_soap_fault(outmsg, "User can't be assigned configuration");
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"PauseActivity")) {
@@ -684,6 +702,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           SOAP_NOT_SUPPORTED;
         }
       } else if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_AINFO_NAMESPACE)) {
+        if(!config) return make_soap_fault(outmsg, "User can't be assigned configuration");
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"ListActivities")) {
@@ -699,6 +718,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           SOAP_NOT_SUPPORTED;
         }
       } else if(config_.ARCInterfaceEnabled() && MatchXMLNamespace(op,BES_ARC_NAMESPACE)) {
+        if(!config) return make_soap_fault(outmsg, "User can't be assigned configuration");
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"CacheCheck")) {
@@ -707,6 +727,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
           SOAP_NOT_SUPPORTED;
         }
       } else if(delegation_stores_.MatchNamespace(*inpayload)) {
+        if(!config) return make_soap_fault(outmsg, "User can't be assigned configuration");
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         CountedResourceLock cl_lock(beslimit_);
@@ -781,6 +802,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     // HTTP plugin either provides buffer or stream
     logger_.msg(Arc::VERBOSE, "process: GET");
     logger_.msg(Arc::INFO, "GET: id %s path %s", id, subpath);
+    if(!config && (sub_op != SubOpInfo))
+        return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User can't be assigned configuration");
     Arc::MCC_Status ret;
     CountedResourceLock cl_lock(datalimit_);
     switch(sub_op) {
@@ -813,6 +836,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   } else if(method == "HEAD") {
     logger_.msg(Arc::VERBOSE, "process: HEAD");
     logger_.msg(Arc::INFO, "HEAD: id %s path %s", id, subpath);
+    if(!config && (sub_op != SubOpInfo))
+        return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User can't be assigned configuration");
     Arc::MCC_Status ret;
     CountedResourceLock cl_lock(datalimit_);
     switch(sub_op) {
@@ -844,6 +869,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     return ret;
   } else if(method == "PUT") {
     logger_.msg(Arc::VERBOSE, "process: PUT");
+    if(!config)
+        return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User can't be assigned configuration");
     Arc::MCC_Status ret;
     CountedResourceLock cl_lock(datalimit_);
     switch(sub_op) {
@@ -875,6 +902,8 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     return ret;
   } else if(method == "DELETE") {
     logger_.msg(Arc::VERBOSE, "process: DELETE");
+    if(!config)
+        return make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, "User can't be assigned configuration");
     Arc::MCC_Status ret;
     CountedResourceLock cl_lock(datalimit_);
     switch(sub_op) {
@@ -1016,12 +1045,10 @@ void ARexService::gm_threads_starter() {
     }
   }
   // Run grid-manager in thread
-  if ((gmrun_.empty()) || (gmrun_ == "internal")) {
-    gm_ = new GridManager(config_);
-    if (!(*gm_)) {
-      logger_.msg(Arc::ERROR, "Failed to run Grid Manager thread");
-      delete gm_; gm_=NULL; return;
-    }
+  gm_ = new GridManager(config_);
+  if (!(*gm_)) {
+    logger_.msg(Arc::ERROR, "Failed to run Grid Manager thread");
+    delete gm_; gm_=NULL; return;
   }
   // Start info collector thread
   CreateThreadFunction(&information_collector_starter, this);
@@ -1153,10 +1180,12 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
   // the log splits between WS interface operations and GM job processing.
   // Start separate thread to start GM and info collector threads so they can
   // log to GM log after we remove it in this thread
-  Arc::SimpleCounter counter;
-  if (!CreateThreadFunction(&gm_threads_starter, this, &counter)) return;
-  counter.wait();
-  if ((gmrun_.empty() || gmrun_ == "internal") && !gm_) return; // GM didn't start
+  if ((gmrun_.empty()) || (gmrun_ == "internal")) {
+    Arc::SimpleCounter counter;
+    if (!CreateThreadFunction(&gm_threads_starter, this, &counter)) return;
+    counter.wait();
+    if(!gm_) return; // GM didn't start
+  }
   // If WS is used then remove gm log destination from this thread
   if (!endpoint_.empty()) {
     // Assume that gm log is first in list - potentially dangerous

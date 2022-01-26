@@ -604,6 +604,9 @@ static int runmain(int argc, char *argv[]) {
   }
 
   if (info) {
+    if(!usercfg.OToken().empty()) {
+      std::cout << Arc::IString("Bearer token is available. It is preferred for job submission.") << std::endl;
+    }
     std::vector<Arc::VOMSACInfo> voms_attributes;
     bool res = false;
 

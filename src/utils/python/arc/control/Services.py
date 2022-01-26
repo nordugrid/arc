@@ -26,6 +26,10 @@ class ServicesControl(ComponentControl):
             'package': 'arex',
             'service': 'arc-arex'
         },
+        'arex/ws': {
+            'package': 'arex',
+            'service': 'arc-arex-ws'
+        },
         'gridftpd': {
             'package': 'gridftpd',
             'service': 'arc-gridftpd'
@@ -65,11 +69,11 @@ class ServicesControl(ComponentControl):
     def __get_pm_sm(self):
         if self.sm is None:
             self.pm = OSPackageManagement()
-            # check arex package that contains arcctl installed via packet manager
-            if self.pm.is_installed(self.package_base + '-' + self.__blocks_map['arex']['package']):
+            # check is arcctl-service package (that contains service control modules) installed via packet manager
+            if self.pm.is_installed(self.package_base + '-arcctl-service'):
                 self.sm = OSServiceManagement()
             # epel6 and epel7 contains 'nordugrid-arc6' base to coexist with ARC5 release
-            elif self.pm.is_installed(self.package_base + '6-' + self.__blocks_map['arex']['package']):
+            elif self.pm.is_installed(self.package_base + '6-arcctl-service'):
                 self.package_base += '6'
                 self.sm = OSServiceManagement()
             # ARC installed without known packet manager
@@ -87,7 +91,8 @@ class ServicesControl(ComponentControl):
             if bservice is not None:
                 services_all.add(bservice)
             if self.arcconfig.check_blocks(block):
-                packages_needed.add(self.package_base + '-' + self.__blocks_map[block]['package'])
+                if self.__blocks_map[block]['package'] is not None:
+                    packages_needed.add(self.package_base + '-' + self.__blocks_map[block]['package'])
                 if bservice is not None:
                     services_needed.add(bservice)
         return packages_needed, services_all, services_needed
@@ -163,6 +168,8 @@ class ServicesControl(ComponentControl):
         pm, sm = self.__get_pm_sm()
         services = {}
         for s in self.__blocks_map.values():
+            """ N/A for services that do not have their own package, i.e. s['package'] is None. """
+            installed_str = 'N/A'
             sname = s['service']
             if sname is None:
                 continue
@@ -172,8 +179,9 @@ class ServicesControl(ComponentControl):
                 installed = sm.is_installed(s['service'])
                 installed_str = 'Built from source' if installed else 'Not built'
             else:
-                installed = pm.is_installed(self.package_base + '-' + s['package'])
-                installed_str = 'Installed' if installed else 'Not installed'
+                if s['package'] is not None:
+                    installed = pm.is_installed(self.package_base + '-' + s['package'])
+                    installed_str = 'Installed' if installed else 'Not installed'
             active = sm.is_active(s['service'])
             enabled = sm.is_enabled(s['service'])
             services[sname] = {

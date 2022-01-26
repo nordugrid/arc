@@ -410,11 +410,11 @@ if test "$enables_python" = "yes"; then
     AC_SUBST(PYTHON_LIBS)
 
     if test "${build}" = "${host}"; then
-        PYTHON_SOABI=`$PYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('SOABI'))" | sed s/None//`
+        PYTHON_EXT_SUFFIX=`$PYTHON -c "from distutils import sysconfig; v = sysconfig.get_config_vars(); print(v.get('EXT_SUFFIX', v.get('SO')))" | sed s/None//`
     else
-        PYTHON_SOABI=""
+        PYTHON_EXT_SUFFIX=""
     fi
-    AC_SUBST(PYTHON_SOABI)
+    AC_SUBST(PYTHON_EXT_SUFFIX)
 
     AC_ARG_WITH(python-site-arch, AC_HELP_STRING([--with-python-site-arch=directory], [Direcory where Python modules will be installed - defaults is to query the Python binary]))
     if test "X$PYTHON_SITE_ARCH" = "X"; then
@@ -548,8 +548,8 @@ if test "$enables_altpython" = "yes"; then
     AC_SUBST(ALTPYTHON_CFLAGS)
     AC_SUBST(ALTPYTHON_LIBS)
 
-    ALTPYTHON_SOABI=`$ALTPYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('SOABI'))" | sed s/None//`
-    AC_SUBST(ALTPYTHON_SOABI)
+    ALTPYTHON_EXT_SUFFIX=`$ALTPYTHON -c "from distutils import sysconfig; v = sysconfig.get_config_vars(); print(v.get('EXT_SUFFIX', v.get('SO')))" | sed s/None//`
+    AC_SUBST(ALTPYTHON_EXT_SUFFIX)
 
     AC_ARG_WITH(altpython-site-arch, AC_HELP_STRING([--with-altpython-site-arch=directory], [Direcory where Python modules will be installed - defaults is to query the Python binary]))
     if test "X$ALTPYTHON_SITE_ARCH" = "X"; then
@@ -2258,6 +2258,9 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/arc-arex
                  src/services/a-rex/arc-arex.service
                  src/services/a-rex/arc-arex-start
+                 src/services/a-rex/arc-arex-ws
+                 src/services/a-rex/arc-arex-ws.service
+                 src/services/a-rex/arc-arex-ws-start
                  src/services/a-rex/a-rex-backtrace-collect
                  src/services/a-rex/a-rex-backtrace-collect.8
                  src/services/a-rex/perferator
@@ -2433,8 +2436,6 @@ AC_CONFIG_FILES([Makefile
                  src/utils/python/arc/gen_paths_dist.sh
                  src/utils/python/arc/utils/Makefile
                  src/utils/python/arc/control/Makefile
-                 src/utils/python/arc/ssm/Makefile
-                 src/utils/python/arc/ssm/ssmsend
                  src/utils/hed/wsdl2hed.1
                  src/utils/hed/arcplugin.1
                  src/utils/hed/Makefile

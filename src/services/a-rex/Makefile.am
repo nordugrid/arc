@@ -18,20 +18,20 @@ endif
 pkglibexec_SCRIPTS = $(PYTHON_LRMS_PKGLIBEXEC_FILES)
 
 if SYSV_SCRIPTS_ENABLED
-AREX_SCRIPT = arc-arex
+AREX_SCRIPT = arc-arex arc-arex-ws
 else
 AREX_SCRIPT =
 endif
 initd_SCRIPTS = $(AREX_SCRIPT)
 
 if SYSTEMD_UNITS_ENABLED
-AREX_UNIT = arc-arex.service
+AREX_UNIT = arc-arex.service arc-arex-ws.service
 else
 AREX_UNIT =
 endif
 units_DATA = $(AREX_UNIT)
 
-pkgdata_SCRIPTS = arc-arex-start perferator
+pkgdata_SCRIPTS = arc-arex-start arc-arex-ws-start perferator
 
 sbin_SCRIPTS = a-rex-backtrace-collect
 

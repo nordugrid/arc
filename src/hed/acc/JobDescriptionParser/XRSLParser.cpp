@@ -34,21 +34,21 @@ namespace Arc {
     return new XRSLParser(arg);
   }
 
-  static Software::ComparisonOperator convertOperator(const RSLRelOp& op) {
-    if (op == RSLNotEqual) return &Software::operator!=;
-    if (op == RSLLess) return &Software::operator<;
-    if (op == RSLGreater) return &Software::operator>;
-    if (op == RSLLessOrEqual) return &Software::operator <=;
-    if (op == RSLGreaterOrEqual) return &Software::operator>=;
-    return &Software::operator==;
+  static Software::ComparisonOperatorEnum convertOperator(const RSLRelOp& op) {
+    if (op == RSLNotEqual) return Software::NOTEQUAL;
+    if (op == RSLLess) return Software::LESSTHAN;
+    if (op == RSLGreater) return Software::GREATERTHAN;
+    if (op == RSLLessOrEqual) return Software::LESSTHANOREQUAL;
+    if (op == RSLGreaterOrEqual) return Software::GREATERTHANOREQUAL;
+    return Software::EQUAL;
   }
 
-  static RSLRelOp convertOperator(const Software::ComparisonOperator& op) {
-    if (op == &Software::operator==) return RSLEqual;
-    if (op == &Software::operator<)  return RSLLess;
-    if (op == &Software::operator>)  return RSLGreater;
-    if (op == &Software::operator<=) return RSLLessOrEqual;
-    if (op == &Software::operator>=) return RSLGreaterOrEqual;
+  static RSLRelOp convertOperator(const Software::ComparisonOperatorEnum& op) {
+    if (op == Software::EQUAL) return RSLEqual;
+    if (op == Software::LESSTHAN)  return RSLLess;
+    if (op == Software::GREATERTHAN)  return RSLGreater;
+    if (op == Software::LESSTHANOREQUAL) return RSLLessOrEqual;
+    if (op == Software::GREATERTHANOREQUAL) return RSLGreaterOrEqual;
     return RSLNotEqual;
   }
 
@@ -288,17 +288,7 @@ namespace Arc {
       return result;
     }
 
-    if(dialect == "GRIDMANAGER") {
-      if (parsed_descriptions.size() > 1) {
-        result.AddError(IString("Multi-request job description not allowed in GRIDMANAGER dialect"));
-      }
-
-      std::string action = "request";
-      if (parsed_descriptions.front().OtherAttributes.find("nordugrid:xrsl;action") != parsed_descriptions.front().OtherAttributes.end()) {
-        action = parsed_descriptions.front().OtherAttributes["nordugrid:xrsl;action"];
-      }
-    }
-    else {
+    if(dialect != "GRIDMANAGER") {
       // action is not expected in client side job request
       for (std::list<JobDescription>::iterator it = parsed_descriptions.begin(); it != parsed_descriptions.end(); it++) {
         if (it->OtherAttributes.find("nordugrid:xrsl;action") != it->OtherAttributes.end()) {
@@ -592,7 +582,7 @@ namespace Arc {
             }
           }
           if (!itValues->empty() && !is_size_and_checksum) {
-            URL turl(*itValues);
+            SourceType turl(*itValues);
             if (!turl) {
               result.AddError(IString("Invalid URL '%s' for input file '%s'", *itValues, file.Name));
               continue;
@@ -616,6 +606,8 @@ namespace Arc {
                   result.AddError(IString("Invalid URL: '%s' in input file '%s'", attr_value, file.Name));
                   continue;
                 }
+              } else if (attr_name == "delegationid") {
+                turl.DelegationID = attr_value;
               } else if (location) {
                 location.AddOption(attr_name, attr_value, true);
               } else {
@@ -695,13 +687,14 @@ namespace Arc {
           file.Name = it->front();
 
           std::list<std::string>::iterator itValues = ++(it->begin());
-          URL turl(*itValues);
+          TargetType turl(*itValues);
           // The second string in the list (it2) might be a URL or empty
           if (!itValues->empty() && turl.Protocol() != "file") {
             if (!turl) {
               result.AddError(IString("Invalid URL '%s' for output file '%s'", *itValues, file.Name));
               continue;
             }
+            // Scan additional options
             URLLocation location;
             for (++itValues; itValues != it->end(); ++itValues) {
               // add any options and locations
@@ -721,6 +714,8 @@ namespace Arc {
                   result.AddError(IString("Invalid URL: '%s' in output file '%s'", attr_value, file.Name));
                   return; // ???
                 }
+              } else if (attr_name == "delegationid") {
+                turl.DelegationID = attr_value;
               } else if (location) {
                 location.AddOption(attr_name, attr_value, true);
               } else {
@@ -739,6 +734,23 @@ namespace Arc {
           }
         }
         return;
+      }
+
+      /// TODO \mapattr delegationid -> DataStagingType::DelegationID
+      if (c->Attr() == "delegationid") {
+        std::string delegationId;
+        SingleValue(c, delegationId, result);
+        if (c->Op() != RSLEqual) {
+          std::ostringstream sOp;
+          sOp << c->Op();
+          result.AddError(IString("Invalid comparison operator '%s' used at 'delegationid' attribute, only \"=\" is allowed.", sOp.str()));
+          return;
+        }
+        j.DataStaging.DelegationID = delegationId;
+        for (std::list<JobDescription>::iterator it = j.GetAlternatives().begin();
+             it != j.GetAlternatives().end(); it++) {
+          it->DataStaging.DelegationID = delegationId;
+        }
       }
 
       /// \mapattr queue -> QueueName
@@ -1477,6 +1489,8 @@ namespace Arc {
           s->Add(new RSLLiteral(fsizechecksum));
         } else {
           s->Add(new RSLLiteral(it->Sources.front().fullstr()));
+          if(!it->Sources.front().DelegationID.empty())
+            s->Add(new RSLLiteral("delegationid=" + it->Sources.front().DelegationID));
         }
         if (!l) l = new RSLList;
         l->Add(new RSLSequence(s));
@@ -1514,6 +1528,8 @@ namespace Arc {
           RSLList *s = new RSLList;
           s->Add(new RSLLiteral(it->Name));
           s->Add(new RSLLiteral(it->Targets.front().fullstr()));
+          if(!it->Targets.front().DelegationID.empty())
+            s->Add(new RSLLiteral("delegationid=" + it->Targets.front().DelegationID));
           if (!l) l = new RSLList;
           l->Add(new RSLSequence(s));
         }
@@ -1536,6 +1552,8 @@ namespace Arc {
           }
           else {
             s->Add(new RSLLiteral(it->Sources.front().fullstr()));
+            if(!it->Sources.front().DelegationID.empty())
+              s->Add(new RSLLiteral("delegationid=" + it->Sources.front().DelegationID));
           }
           if (!l) {
             l = new RSLList;
@@ -1574,6 +1592,8 @@ namespace Arc {
             else {
               URL url(it->Targets.front());
               s->Add(new RSLLiteral(url.fullstr()));
+              if(!it->Targets.front().DelegationID.empty())
+                s->Add(new RSLLiteral("delegationid=" + it->Targets.front().DelegationID));
             }
             if (!l) {
               l = new RSLList;
@@ -1595,6 +1615,14 @@ namespace Arc {
         }
       }
     } // (dialect == "GRIDMANAGER")
+
+
+    /// \mapattr delegationid <- DataStaging.DelegationID
+    if(!j.DataStaging.DelegationID.empty()) {
+      RSLList *l = new RSLList;
+      l->Add(new RSLLiteral(j.DataStaging.DelegationID));
+      r.Add(new RSLCondition("delegationid", RSLEqual, l));
+    }
 
     /// \mapattr queue <- QueueName
     if (!j.Resources.QueueName.empty()) {
@@ -1641,7 +1669,7 @@ namespace Arc {
     /// \mapattr runtimeenvironment <- RunTimeEnvironment
     if (!j.Resources.RunTimeEnvironment.empty()) {
       std::list<Software>::const_iterator itSW = j.Resources.RunTimeEnvironment.getSoftwareList().begin();
-      std::list<Software::ComparisonOperator>::const_iterator itCO = j.Resources.RunTimeEnvironment.getComparisonOperatorList().begin();
+      std::list<Software::ComparisonOperatorEnum>::const_iterator itCO = j.Resources.RunTimeEnvironment.getComparisonOperatorList().begin();
       for (; itSW != j.Resources.RunTimeEnvironment.getSoftwareList().end(); itSW++, itCO++) {
         RSLList *l = new RSLList;
         l->Add(new RSLLiteral(*itSW));
@@ -1655,7 +1683,7 @@ namespace Arc {
     /// \mapattr middleware <- CEType
     if (!j.Resources.CEType.empty()) {
       std::list<Software>::const_iterator itSW = j.Resources.CEType.getSoftwareList().begin();
-      std::list<Software::ComparisonOperator>::const_iterator itCO = j.Resources.CEType.getComparisonOperatorList().begin();
+      std::list<Software::ComparisonOperatorEnum>::const_iterator itCO = j.Resources.CEType.getComparisonOperatorList().begin();
       for (; itSW != j.Resources.CEType.getSoftwareList().end(); itSW++, itCO++) {
         RSLList *l = new RSLList;
         l->Add(new RSLLiteral(*itSW));
@@ -1666,7 +1694,7 @@ namespace Arc {
     /// \mapattr opsys <- OperatingSystem
     if (!j.Resources.OperatingSystem.empty()) {
       std::list<Software>::const_iterator itSW = j.Resources.OperatingSystem.getSoftwareList().begin();
-      std::list<Software::ComparisonOperator>::const_iterator itCO = j.Resources.OperatingSystem.getComparisonOperatorList().begin();
+      std::list<Software::ComparisonOperatorEnum>::const_iterator itCO = j.Resources.OperatingSystem.getComparisonOperatorList().begin();
       for (; itSW != j.Resources.OperatingSystem.getSoftwareList().end(); itSW++, itCO++) {
         RSLList *l = new RSLList;
         l->Add(new RSLLiteral((std::string)*itSW));

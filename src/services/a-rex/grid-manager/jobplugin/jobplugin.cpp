@@ -36,7 +36,6 @@
 #include "../files/ControlFileHandling.h"
 #include "../jobs/JobDescriptionHandler.h"
 #include "../misc/proxy.h"
-#include "../run/RunParallel.h"
 #include "../../../gridftpd/userspec.h"
 #include "../../../gridftpd/names.h"
 #include "../../../gridftpd/misc.h"
@@ -744,57 +743,10 @@ int JobPlugin::close(bool eof) {
       };
     };
   };
-  // Check for proper LRMS name in request. If there is no LRMS name 
-  // in user configuration that means service is opaque frontend and
-  // accepts any LRMS in request.
-  if((!job_desc.lrms.empty()) && (!config.DefaultLRMS().empty())) {
-    if(job_desc.lrms != config.DefaultLRMS()) {
-      error_description="Request for LRMS "+job_desc.lrms+" is not allowed.";
-      logger.msg(Arc::ERROR, "%s", error_description);
-      delete_job_id(); 
-      return 1;
-    };
-  };
-  if(job_desc.lrms.empty()) job_desc.lrms=config.DefaultLRMS();
-  // Check for proper queue in request. 
-  if(job_desc.queue.empty()) job_desc.queue=config.DefaultQueue();
-  if(job_desc.queue.empty()) {
-    error_description="Request has no queue defined.";
-    logger.msg(Arc::ERROR, "%s", error_description);
-    delete_job_id(); 
-    return 1;
-  };
-  if(!avail_queues.empty()) { // If no queues configured - service takes any
-    for(std::list<std::string>::iterator q = avail_queues.begin();;++q) {
-      if(q == avail_queues.end()) {
-        error_description="Requested queue "+job_desc.queue+" does not match any of available queues.";
-        logger.msg(Arc::ERROR, "%s", error_description);
-        delete_job_id(); 
-        return 1;
-      };
-      if(*q == job_desc.queue) break; 
-    };
-  };
-  std::list<std::pair<bool,std::string> > const& matching_groups = config.MatchingGroups(job_desc.queue.c_str());  
-  if(!matching_groups.empty()) {
-    // here access limit defined for requested queue - check against user group(s)
-    bool allowed = false;
-    for(std::list<std::pair<bool,std::string> >::const_iterator group = matching_groups.begin(); group != matching_groups.end(); ++group) {
-      if(user_s.user.check_group(group->second)) {
-        allowed = group->first;
-        break;
-      };
-    };
-    if(!allowed) {
-      error_description="Requested queue "+job_desc.queue+" is not allowed for this user";
-      logger.msg(Arc::ERROR, "%s", error_description);
-      delete_job_id(); 
-      return 1;
-    };
-  };
-  /* ***********************************************
-   * Collect delegation identifiers                *
-   *********************************************** */
+  /* *****************************************************************
+   * Collect delegation identifiers                                   *
+   * Must do that before processing or else ids are replaced by paths *
+   ****************************************************************** */
   std::list<std::string> deleg_ids;
   for(std::list<FileData>::iterator f = job_desc.inputdata.begin();
                                       f != job_desc.inputdata.end();++f) {
@@ -804,20 +756,77 @@ int JobPlugin::close(bool eof) {
                                       f != job_desc.outputdata.end();++f) {
     if(!f->cred.empty()) deleg_ids.push_back(f->cred);
   };
-  /* ****************************************
-   * Preprocess job request                 *
-   **************************************** */
+  // Also pick up global delegation id if any
+  if(!job_desc.delegationid.empty()) {
+    deleg_ids.push_back(job_desc.delegationid);
+  };
+  /* ******************************************************************************
+   * Preprocess job request                                                       *
+   * This also sets default values if not already set in local or job description *
+   ****************************************************************************** */
   std::string session_dir(config.SessionRoot(job_id) + '/' + job_id);
   GMJob job(job_id,user,session_dir,JOB_STATE_ACCEPTED);
   if(!job_desc_handler.process_job_req(job, job_desc)) {
     error_description="Failed to preprocess job description.";
     logger.msg(Arc::ERROR, "%s", error_description);
+    delete_job_id();
+    return 1;
+  };
+
+  if(job_desc.lrms.empty() || (job_desc.lrms != config.DefaultLRMS())) {
+    error_description="Request for LRMS '"+job_desc.lrms+"' is not allowed.";
+    logger.msg(Arc::ERROR, "%s", error_description);
     delete_job_id(); 
     return 1;
   };
-  // Also pick up global delegation id if any
-  if(!job_desc.delegationid.empty()) {
-    deleg_ids.push_back(job_desc.delegationid);
+
+  // Handle queue in request.
+  // if (queue in xrsl) submit to that queue w/o modification; 
+  // elseif (no queue in xrsl and exists default queue in arc.conf) substitute default queue into xrsl and check authorisation; 
+  // elseif (no queue in xrsl and no default queue in arc.conf and VO is authorised in one of the arc.conf queues*) substitute
+  //        into xrsl the first; queue where VO is authorised in arc.conf;
+  // else (reject);
+  bool queue_authorized = false;
+  bool queue_matched = false;
+  for(std::list<std::string>::const_iterator q = avail_queues.begin(); q != avail_queues.end(); ++q) {
+    if(!job_desc.queue.empty()) {
+      if(*q != job_desc.queue) continue; // skip non-matcing queue
+    };
+    queue_matched = true;
+    // Check for allowed authorization group
+    std::list<std::pair<bool,std::string> > const & matching_groups = config.MatchingGroups(q->c_str());
+    if(matching_groups.empty()) {
+      queue_authorized = true; // No authorized groups assigned - all allowed
+    } else {
+      // here access limit defined for requested queue - check against user group(s)
+      for(std::list<std::pair<bool,std::string> >::const_iterator group = matching_groups.begin(); group != matching_groups.end(); ++group) {
+        if(user_s.user.check_group(group->second)) {
+          queue_authorized = group->first;
+          break;
+        };
+      };
+    };
+    if(queue_authorized) {
+      if(job_desc.queue.empty()) job_desc.queue = *q; // no queue requested - assign first authorized
+      break;
+    };
+  };
+  if(!queue_authorized) {
+    // Different error messages for different job requests
+    if(job_desc.queue.empty()) {
+      error_description="Request has no queue defined and none is allowed for this user.";
+      logger.msg(Arc::ERROR, "%s", error_description);
+    } else {
+      if(queue_matched) {
+        error_description="Requested queue "+job_desc.queue+" does not match any of available queues.";
+        logger.msg(Arc::ERROR, "%s", error_description);
+      } else {
+        error_description="Requested queue "+job_desc.queue+" is not allowed for this user";
+        logger.msg(Arc::ERROR, "%s", error_description);
+      };
+    };
+    delete_job_id(); 
+    return 1;
   };
   /* ****************************************
    * Start local file                       *

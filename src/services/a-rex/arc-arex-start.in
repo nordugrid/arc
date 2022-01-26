@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export MALLOC_ARENA_MAX=2
+
 add_library_path() {
     location="$1"
     if [ ! "x$location" = "x" ] ; then
@@ -253,13 +255,6 @@ prepare() {
     X509_CERT_DIR=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_cert_dir common`
     GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_tcp_port_range arex/data-staging`
     GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_udp_port_range arex/data-staging`
-    VOMS_PROCESSING=`readconfigvar "$ARC_RUNTIME_CONFIG" voms_processing common`
-    mapping_present=`testconfigblock "$ARC_RUNTIME_CONFIG" mapping`
-    authtokens_present=`testconfigblock "$ARC_RUNTIME_CONFIG" authtokens`
-    USERMAP_BLOCK=''
-    if [ "$mapping_present" = 'true' ] ; then
-      USERMAP_BLOCK='mapping'
-    fi
     HOSTNAME=`readconfigvar "$ARC_RUNTIME_CONFIG" hostname common`
     SERVICEMAIL=`readconfigvar "$ARC_RUNTIME_CONFIG" mail arex`
     CONTROLDIR=`readconfigvar "$ARC_RUNTIME_CONFIG" controldir arex`
@@ -283,167 +278,14 @@ prepare() {
     # Web Service configuration
     arex_endpoint=""
     arex_mount_point=""
-    arex_proto=""
-    arex_host=""
-    arex_port=""
-    arex_path=""
-    arex_service_plexer=""
     ws_present=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws`
     arex_present=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws/jobs`
     if [ "$ws_present" = 'true' ] ; then
         WSLOGFILE=`readconfigvar "$ARC_RUNTIME_CONFIG" logfile arex/ws`
-        MAX_JOB_CONTROL_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_job_control_requests arex/ws`
-        MAX_INFOSYS_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_infosys_requests arex/ws`
-        MAX_DATA_TRANSFER_REQUESTS=`readconfigvar "$ARC_RUNTIME_CONFIG" max_data_transfer_requests arex/ws`
-        USERAUTH_BLOCK='arex/ws/jobs'
         arex_mount_point=`readconfigvar "$ARC_RUNTIME_CONFIG" wsurl arex/ws`
-        arex_proto=`echo "$arex_mount_point" | sed 's/^\([^:]*\):\/\/.*/\1/;t;s/.*//'`
-        arex_host=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/\([^:\/]*\).*/\1/;t;s/.*//'`
-        arex_port=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^:]*:\([^\/]*\)\(.*\)/\1/;t;s/.*//'`
-        arex_path=`echo "$arex_mount_point" | sed 's/^[^:]*:\/\/[^\/]*\/\(.*\)/\1/;t;s/.*//'`
-        if [ "$arex_proto" = "https" ] ; then
-            if [ -z "$arex_port" ] ; then
-                arex_port="443"
-            fi
-        elif [ "$arex_proto" = "http" ] ; then
-            if [ -z "$arex_port" ] ; then
-                arex_port="80"
-            fi
-        else
-            log_failure_msg "Unsupported protocol '$arex_proto' for WS interface URL"
-            exit 1
-        fi
         arex_endpoint="<arex:endpoint>$arex_mount_point</arex:endpoint>"
-        arex_path="/$arex_path"
-
-        mkdir_for_user `dirname "$WSLOGFILE"` "$USERNAME" "$GROUPNAME"
-        mkfile_for_user "$WSLOGFILE" "$USERNAME" "$GROUPNAME"
-    fi
-    if [ "$arex_present" = 'true' ] ; then
-        if [ "$ws_present" != 'true' ] ; then
-            log_failure_msg  "WS interface must be turned on to use A-REX/EMIES WS service"
-            exit 1
-        else
-            if [ "$mapping_present" != 'true' ] ; then
-                log_failure_msg "For A-REX/EMIES WS interface to work mapping must be enabled"
-                exit 1
-            fi
-        fi
-        arex_service_plexer="<next id=\"a-rex\">^$arex_path</next>"
     fi
 
-    argus_shc=""
-    argus_plugin=""
-
-    arguspep_endpoint=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspep_endpoint arex/ws/argus`
-    if [ ! -z "$arguspep_endpoint" ]; then
-      argus_plugin="${argus_plugin}<Plugins><Name>arguspepclient</Name></Plugins>"
-      if [ ! -f "$ARC_LOCATION/lib/arc/libarguspepclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/libarguspepclient.so" ]; then
-        log_failure_msg "Plugin arguspepclient(libarguspepclient.so) not found. You may need to install corresponding package"
-        exit 1
-      fi
-      arguspep_profile=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspep_profile arex/ws/argus`
-      if [ -z "$arguspep_profile" ]; then arguspep_profile="emi"; fi
-      arguspep_usermap=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspep_usermap arex/ws/argus`
-      if [ -z "$arguspep_usermap" ]; then arguspep_usermap="false"; fi
-      if [ "$arguspep_usermap" = "yes" ]; then arguspep_usermap="true"; fi
-      if [ "$arguspep_usermap" = "no" ]; then arguspep_usermap="false"; fi
-      if [ "$mapping_present" != 'true' ]; then
-        if [ "$arguspep_usermap" = 'true' ]; then
-          log_failure_msg "Can't map user identity through Argus PEP because mapping is disabled for the service."
-          exit 1
-        fi
-      fi
-      argus_shc="${argus_shc}
-<!-- Perform client authorization and mapping according to Argus through PEP service -->
-<SecHandler name=\"arguspepclient.map\" id=\"arguspep\" event=\"incoming\">
-  <PEPD>$arguspep_endpoint</PEPD>
-  <Conversion>$arguspep_profile</Conversion>
-  <KeyPath>$X509_USER_KEY</KeyPath>
-  <CertificatePath>$X509_USER_CERT</CertificatePath>
-  <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>
-  <AcceptMapping>$arguspep_usermap</AcceptMapping>
-</SecHandler>"
-    fi
-
-    arguspdp_endpoint=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspdp_endpoint arex/ws/argus`
-    if [ ! -z "$arguspdp_endpoint" ]; then
-      argus_plugin="${argus_plugin}<Plugins><Name>arguspdpclient</Name></Plugins>"
-      if [ ! -f "$ARC_LOCATION/lib/arc/libarguspdpclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/libarguspdpclient.so" ]; then
-        log_failure_msg "Plugin arguspdpclient(libarguspdpclient.so) not found. You may need to install corresponding package"
-        exit 1
-      fi
-      arguspdp_profile=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspdp_profile arex/ws/argus`
-      if [ -z "$arguspdp_profile" ]; then arguspdp_profile="emi"; fi
-      arguspdp_usermap=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspdp_usermap arex/ws/argus`
-      if [ -z "$arguspdp_usermap" ]; then arguspdp_usermap="false"; fi
-      if [ "$arguspdp_usermap" = "yes" ]; then arguspdp_usermap="true"; fi
-      if [ "$arguspdp_usermap" = "no" ]; then arguspdp_usermap="false"; fi
-      if [ "$mapping_present" != 'true' ]; then
-        if [ "$arguspdp_usermap" = 'true' ]; then
-          log_failure_msg "Can't map user identity through Argus PDP because mapping is disabled for the service."
-          exit 1
-        fi
-      fi
-      arguspdp_acceptnotapplicable=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspdp_acceptnotapplicable arex/ws/argus`
-      if [ -z "$arguspdp_acceptnotapplicable" ]; then arguspdp_acceptnotapplicable="false"; fi
-      if [ "$arguspdp_acceptnotapplicable" = "yes" ]; then arguspdp_acceptnotapplicable="true"; fi
-      if [ "$arguspdp_acceptnotapplicable" = "no" ]; then arguspdp_acceptnotapplicable="false"; fi
-      argus_shc="${argus_shc}
-<!-- Perform echoclient authorization and mapping according to Argus through PDP service -->
-<SecHandler name=\"arguspdpclient.map\" id=\"arguspdp\" event=\"incoming\">
-  <PDPD>$arguspdp_endpoint</PDPD>
-  <Conversion>$arguspdp_profile</Conversion>
-  <KeyPath>$X509_USER_KEY</KeyPath>
-  <CertificatePath>$X509_USER_CERT</CertificatePath>
-  <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>
-  <AcceptMapping>$arguspdp_usermap</AcceptMapping>
-  <AcceptNotApplicable>$arguspdp_acceptnotapplicable</AcceptNotApplicable>
-</SecHandler>"
-    fi
-
-    # candypond
-    candypond_plexer=""
-    candypond=""
-    use_candypond=`testconfigblock "$ARC_RUNTIME_CONFIG" arex/ws/candypond`
-    if [ "$use_candypond" = "true" ]; then
-        if [ "$ws_present" != 'true' ] ; then
-            log_failure_msg "WS interface must be turned on to use candypond"
-            exit 1
-        fi
-        candypond_plexer="<next id=\"candypond\">^$arex_path/candypond</next>"
-        candypond_shc="
-              <!-- Beware of hardcoded block name -->
-              <SecHandler name=\"arc.authz\" event=\"incoming\">
-                <PDP name=\"arclegacy.pdp\">
-                  <ConfigBlock>
-                    <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
-                    <BlockName>arex/ws/candypond</BlockName>
-                  </ConfigBlock>
-                </PDP>
-              </SecHandler>
-            "
-        if [ "$mapping_present" = 'true' ]; then
-            candypond_shc="$candypond_shc
-              <!-- Perform client mapping -->
-              <SecHandler name=\"arclegacy.map\" event=\"incoming\">
-                <ConfigBlock>
-                  <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
-                  <BlockName>$USERMAP_BLOCK</BlockName>
-                </ConfigBlock>
-              </SecHandler>
-              <candypond:service>
-                <candypond:config>$ARC_RUNTIME_CONFIG</candypond:config>
-                <candypond:witharex>true</candypond:witharex>
-              </candypond:service>
-            "
-        fi
-        candypond="
-            <Service name=\"candypond\" id=\"candypond\">
-            $candypond_shc
-            </Service>"
-    fi
-    
     service_mail=""
     if [ ! -z "$SERVICEMAIL" ] ; then
         service_mail="<serviceMail>$SERVICEMAIL</serviceMail>"
@@ -475,7 +317,6 @@ prepare() {
     else
         WATCHDOG="false"
     fi
-    VOMS_PROCESSING=${VOMS_PROCESSING:-standard}
     if [ ! -z "$USERNAME" ] ; then
         CMD="$CMD -u $USERNAME"
     fi
@@ -483,43 +324,6 @@ prepare() {
         CMD="$CMD -g $GROUPNAME"
     fi
 
-    # Authorization and user mapping for A-REX/EMIES
-    emies_legacy_shc=""
-#    emies_legacy_shc="
-#<!-- Do authorization in same way as jobs plugin of gridftpd does -->
-#<!-- Beware of hardcoded block name -->
-#<SecHandler name=\"arc.authz\" event=\"incoming\">
-#  <PDP name=\"arclegacy.pdp\">
-#    <ConfigBlock>
-#      <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
-#      <BlockName>$USERAUTH_BLOCK</BlockName>
-#    </ConfigBlock>
-#  </PDP>
-#</SecHandler>
-#"
-    if [ "$mapping_present" = 'true' ]; then
-      emies_legacy_shc="$emies_legacy_shc
-<!-- Perform client mapping according to rules of gridftpd -->
-<SecHandler name=\"arclegacy.map\" event=\"incoming\">
-  <ConfigBlock>
-    <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
-    <BlockName>$USERMAP_BLOCK</BlockName>
-  </ConfigBlock>
-</SecHandler>"
-    fi
-
-
-  
-    authtokens_plugin=""
-    authtokens_handler=""
-    if [ "$authtokens_present" = 'true' ]; then
-      authtokens_plugin="<Plugins><Name>arcshcotokens</Name></Plugins>"
-      authtokens_handler="
-<!-- Collect OTokens information -->
-<SecHandler name=\"otokens.handler\" event=\"incoming\"/>"
-    fi
-
-    # A-Rex without WS interface
     AREXCFG="\
 <?xml version=\"1.0\"?>
 <ArcConfig
@@ -540,159 +344,14 @@ prepare() {
   <Chain>
     <Service name=\"a-rex\" id=\"a-rex\">
       $service_mail
+      $arex_endpoint
       <arex:gmconfig>$ARC_RUNTIME_CONFIG</arex:gmconfig>
     </Service>
   </Chain>
 </ArcConfig>
 "
 
-    # A-Rex with WS interface over HTTP
-    AREXCFGWS="\
-<?xml version=\"1.0\"?>
-<ArcConfig
-  xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"
-  xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\"
-  xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\"
-  xmlns:candypond=\"urn:candypond_config\">
-  <Server>
-    <PidFile>$PID_FILE</PidFile>
-    <Logger>
-      <File>$LOGFILE</File>
-      <File>$WSLOGFILE</File>
-      <Level>$LOGLEVEL</Level>
-    </Logger>
-    <Watchdog>$WATCHDOG</Watchdog>
-  </Server>
-  <ModuleManager>
-    <Path>$ARC_LOCATION/@pkglibsubdir@/</Path>
-  </ModuleManager>
-  <Plugins><Name>mcctcp</Name></Plugins>
-  <Plugins><Name>mcctls</Name></Plugins>
-  <Plugins><Name>mcchttp</Name></Plugins>
-  <Plugins><Name>mccsoap</Name></Plugins>
-  <Plugins><Name>arex</Name></Plugins>
-  <Plugins><Name>identitymap</Name></Plugins>
-  <Plugins><Name>arcshc</Name></Plugins>
-  <Plugins><Name>arcshclegacy</Name></Plugins>
-  $authtokens_plugin
-  $argus_plugin
-  <Chain>
-    <Component name=\"tcp.service\" id=\"tcp\">
-      <next id=\"http\"/>
-      <tcp:Listen><tcp:Port>$arex_port</tcp:Port></tcp:Listen>
-    </Component>
-    <Component name=\"http.service\" id=\"http\">
-      <next id=\"soap\">POST</next>
-      <next id=\"plexer\"/>
-      $authtokens_handler
-    </Component>
-    <Component name=\"soap.service\" id=\"soap\">
-      <next id=\"plexer\"/>
-      <ContinueNonSOAP>true</ContinueNonSOAP>
-    </Component>
-    <Plexer name=\"plexer.service\" id=\"plexer\">
-      $candypond_plexer
-      $arex_service_plexer
-    </Plexer>
-    <Service name=\"a-rex\" id=\"a-rex\">
-      $emies_legacy_shc
-      $argus_shc
-      $arex_endpoint
-      $service_mail
-      <arex:gmconfig>$ARC_RUNTIME_CONFIG</arex:gmconfig>
-      <arex:InfosysInterfaceMaxClients>$MAX_INFOSYS_REQUESTS</arex:InfosysInterfaceMaxClients>
-      <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>
-      <arex:DataTransferInterfaceMaxClients>$MAX_DATA_TRANSFER_REQUESTS</arex:DataTransferInterfaceMaxClients>
-    </Service>
-    $candypond
-  </Chain>
-</ArcConfig>
-"
- 
-    # A-Rex with WS interface over HTTPS
-    AREXCFGWSS="\
-<?xml version=\"1.0\"?>
-<ArcConfig
-  xmlns=\"http://www.nordugrid.org/schemas/ArcConfig/2007\"
-  xmlns:tcp=\"http://www.nordugrid.org/schemas/ArcMCCTCP/2007\"
-  xmlns:arex=\"http://www.nordugrid.org/schemas/a-rex/Config\"
-  xmlns:candypond=\"urn:candypond_config\">
-  <Server>
-    <PidFile>$PID_FILE</PidFile>
-    <Logger>
-      <File>$LOGFILE</File>
-      <File>$WSLOGFILE</File>
-      <Level>$LOGLEVEL</Level>
-    </Logger>
-    <Watchdog>$WATCHDOG</Watchdog>
-  </Server>
-  <ModuleManager>
-    <Path>$ARC_LOCATION/@pkglibsubdir@/</Path>
-  </ModuleManager>
-  <Plugins><Name>mcctcp</Name></Plugins>
-  <Plugins><Name>mcctls</Name></Plugins>
-  <Plugins><Name>mcchttp</Name></Plugins>
-  <Plugins><Name>mccsoap</Name></Plugins>
-  <Plugins><Name>arex</Name></Plugins>
-  <Plugins><Name>identitymap</Name></Plugins>
-  <Plugins><Name>arcshc</Name></Plugins>
-  <Plugins><Name>arcshclegacy</Name></Plugins>
-  $authtokens_plugin
-  $argus_plugin
-  <Chain>
-    <Component name=\"tcp.service\" id=\"tcp\">
-      <next id=\"tls\"/>
-      <tcp:Listen><tcp:Port>$arex_port</tcp:Port></tcp:Listen>
-    </Component>
-    <Component name=\"tls.service\" id=\"tls\">
-      <next id=\"http\"/>
-      <KeyPath>$X509_USER_KEY</KeyPath>
-      <CertificatePath>$X509_USER_CERT</CertificatePath>
-      <CACertificatesDir PolicyGlobus=\"true\">$X509_CERT_DIR</CACertificatesDir>
-      <VOMSProcessing>$VOMS_PROCESSING</VOMSProcessing>
-      <ClientAuthn>false</ClientAuthn>
-    </Component>
-    <Component name=\"http.service\" id=\"http\">
-      <next id=\"soap\">POST</next>
-      <next id=\"plexer\"/>
-      $authtokens_handler
-      <!-- Match client to legacy authorization groups -->
-      <SecHandler name=\"arclegacy.handler\" event=\"incoming\">
-        <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>
-      </SecHandler>
-    </Component>
-    <Component name=\"soap.service\" id=\"soap\">
-      <next id=\"plexer\"/>
-      <ContinueNonSOAP>true</ContinueNonSOAP>
-    </Component>
-    <Plexer name=\"plexer.service\" id=\"plexer\">
-      $candypond_plexer
-      $arex_service_plexer
-    </Plexer>
-    <Service name=\"a-rex\" id=\"a-rex\">
-      $service_mail
-      $emies_legacy_shc
-      $argus_shc
-      $arex_endpoint
-      <arex:gmconfig>$ARC_RUNTIME_CONFIG</arex:gmconfig>
-      <arex:InfosysInterfaceMaxClients>$MAX_INFOSYS_REQUESTS</arex:InfosysInterfaceMaxClients>
-      <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>
-      <arex:DataTransferInterfaceMaxClients>$MAX_DATA_TRANSFER_REQUESTS</arex:DataTransferInterfaceMaxClients>
-    </Service>
-    $candypond
-  </Chain>
-</ArcConfig>
-"
-
-    if [ "$ws_present" != 'true' ] ; then
-        echo "$AREXCFG" > "$AREX_CONFIG"
-    else
-        if [ "$arex_proto" = 'http' ] ; then
-            echo "$AREXCFGWS" > "$AREX_CONFIG"
-        else
-            echo "$AREXCFGWSS" > "$AREX_CONFIG"
-        fi
-    fi
+    echo "$AREXCFG" > "$AREX_CONFIG"
 
     # setup logfile in case it is not there yet
     if [ ! -z "$USERNAME" ] ; then

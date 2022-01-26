@@ -39,7 +39,6 @@ class ConfigControl(ComponentControl):
                 {'description': 'Scratch directory on Worker Node', 'params': ('arex', 'scratchdir')},
                 {'description': 'Cache directories', 'params': ('arex/cache', 'cachedir')},
                 {'description': 'Additional user-defined RTE directories', 'params': ('arex', 'runtimedir')},
-                {'description': 'Accounting archive directory', 'params': ('arex/jura/archiving', 'archivedir')},
                 {'description': 'Gridftpd file storage directory', 'params': ('gridftpd/filedir', 'mount')},
                 {'description': 'DataDelivery Service transfers directories',
                  'params': ('datadelivery-service', 'transfer_dir')},
@@ -109,7 +108,7 @@ class ConfigControl(ComponentControl):
             sys.stdout.write(line)
 
     def verify(self, args):
-        validator = Validator(self.arcconfig, args.config)
+        validator = Validator(args.reference, self.arcconfig, args.config)
         validator.validate()
         if validator.errors:
             self.logger.error("Validation returned %d error(s) and %d warning(s)", validator.errors, validator.warnings)
@@ -158,3 +157,5 @@ class ConfigControl(ComponentControl):
                                   choices=ConfigControl.__brief_list.keys())
 
         config_verify = config_actions.add_parser('verify', help='Verify ARC CE configuration syntax')
+        config_verify.add_argument('-r', '--reference', default=ARC_DOC_DIR+'/arc.conf.reference',
+                                   help='Redefine arc.conf.reference location (default is %(default)s)')

@@ -40,9 +40,6 @@ if [ ! -z "$perflogdir" ]; then
    start_ts=`date +%s.%N`
 fi
 
-# define path to wrote failures
-define_failures_file
-
 if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
    RUNTIME_LOCAL_SCRATCH_DIR="\${_CONDOR_SCRATCH_DIR}"
 fi
@@ -237,7 +234,7 @@ if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
     if [ $? -ne '0' ] ; then
       echo "Can't change to session directory: $joboption_directory" 1>&2
       rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_DESCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
-      echo "Submission: Configuration error.">>"$failures_file"
+      echo "Submission: Configuration error."
       exit 1
     fi
     # transfer all session directory if not shared between ARC CE and worknodes
@@ -281,7 +278,7 @@ add_user_env
 if [ -z "${joboption_arg_0}" ] ; then
   echo 'Executable is not specified' 1>&2
   rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_DESCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
-  echo "Submission: Job description error.">>"$failures_file"
+  echo "Submission: Job description error."
   exit 1
 fi
 
@@ -431,11 +428,11 @@ if [ $CONDOR_RESULT -eq '0' ] ; then
    if [ "${job_out}" = "" ]; then
       echo "job *NOT* submitted successfully!" 1>&2
       echo "failed getting the condor jobid for the job!" 1>&2
-      echo "Submission: Local submission client behaved unexpectedly.">>"$failures_file"
+      echo "Submission: Local submission client behaved unexpectedly."
    elif [ `echo "${job_out}" | grep -Ec "submitted to cluster\s[0-9]+"` != "1" ]; then
       echo "job *NOT* submitted successfully!" 1>&2
       echo "badly formatted condor jobid for the job !" 1>&2
-      echo "Submission: Local submission client behaved unexpectedly.">>"$failures_file"
+      echo "Submission: Local submission client behaved unexpectedly."
    else
       job_id=`echo $job_out | grep cluster | awk '{print $8}' | sed 's/[\.]//g'`
       hostname=`hostname -f`
@@ -452,7 +449,7 @@ if [ $CONDOR_RESULT -eq '0' ] ; then
 else
   echo "job *NOT* submitted successfully!" 1>&2
   echo "got error code from condor_submit: $CONDOR_RESULT !" 1>&2
-  echo "Submission: Local submission client failed.">>"$failures_file"
+  echo "Submission: Local submission client failed."
 fi
 echo "Output is:" 1>&2
 cat $LRMS_JOB_OUT 1>&2

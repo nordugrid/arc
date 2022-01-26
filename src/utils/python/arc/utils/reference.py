@@ -15,6 +15,8 @@ logger.addHandler(log_handler_stderr)
 
 _reference_config = {}
 _reference_default_lines = {}
+# An ordered list of blocks. With python3-only the keys of _reference_config can be used instead
+_reference_blocks = []
 __default_config = {}
 __default_blocks = []
 
@@ -51,6 +53,7 @@ def process_reference(reference_f, print_defaults=False, print_reference=False):
                 if ':' in block_id:
                     block_id = block_id.split(':')[0].strip()
                 _reference_config[block_id] = {}
+                _reference_blocks.append(block_id)
                 logger.info('Found [%s] configuration block definition', block_id)
                 if print_defaults:
                     sys.stdout.write('\n[{0}]\n'.format(block_id))
@@ -145,6 +148,11 @@ def allowed_values(reference_f, reqblock, reqoption):
         if line.startswith('## allowedvalues:'):
             return line[17:].split()
     return None
+
+def blocks_ordered(reference_f):
+    if not _reference_blocks:
+        process_reference(reference_f)
+    return _reference_blocks
 
 #
 # reStrucutredText conversion code

@@ -8,6 +8,7 @@ import struct
 import subprocess
 import time
 from arc.paths import ARC_DATA_DIR
+from arc.utils import reference
 
 class Validator(object):
     """Class for validating host setup and arc configuration"""
@@ -44,12 +45,17 @@ class Validator(object):
                                                "legacy_fallback"]
                            }
 
-    def __init__(self, arcconf, arcconffile):
+    def __init__(self, arcconfref, arcconf, arcconffile):
         self.logger = logging.getLogger('ARCCTL.Validator')
         self.arcconf = arcconf
         conffile = arcconffile or os.environ.get('ARC_CONFIG') or '/etc/arc.conf'
         # Force re-parsing of arc.conf to set defaults
         self.arcconf.parse_arc_conf(conffile)
+        self.arcconfref = arcconfref
+        # Check arc.conf.reference exists
+        if not os.path.isfile(self.arcconfref):
+            self.logger.warning("arc.conf.reference not found at %s" % self.arcconfref)
+            self.arcconfref = None
         self.errors = 0
         self.warnings = 0
 
@@ -110,10 +116,11 @@ class Validator(object):
         """Check everything in the configuration file is ok"""
         config_dict = self.arcconf.get_config_dict()
         config_defaults = self.arcconf.get_default_config_dict()
-        self._check_config_blocks(config_dict, config_defaults)
+        config_blocks = self.arcconf.get_config_blocks()
+        self._check_config_blocks(config_dict, config_defaults, config_blocks)
         self._extra_config_checks(config_dict)
 
-    def _check_config_blocks(self, config_dict, config_defaults):
+    def _check_config_blocks(self, config_dict, config_defaults, config_blocks):
 
         for block, options in config_dict.items():
             # Spaces are not allowed in block names except after :
@@ -159,6 +166,21 @@ class Validator(object):
 
                     self._check_config_option(block, option, val, config_defaults)
 
+        # Check block order
+        if self.arcconfref:
+            block_order = reference.blocks_ordered(self.arcconfref)
+            # Make a unique set of blocks excluding unknown and stripping dynamic blocks
+            config_blocks = [b.split(':')[0] for b in config_blocks if b.split(':')[0] in block_order]
+            # Remove duplicates preserving order (OrderedDict not available in python2.6)
+            config_blocks_uniq = []
+            for c in config_blocks:
+                if c not in config_blocks_uniq:
+                    config_blocks_uniq.append(c)
+            # Sort the conf blocks according to the reference order and then compare
+            config_blocks_sorted = sorted(config_blocks_uniq, key=lambda x: block_order.index(x))
+            if config_blocks_sorted != config_blocks_uniq:
+                self.error("Configuration blocks are not in the correct order. Should be: %s" % config_blocks_sorted)
+
 
     def _check_config_option(self, block, option, value, config_defaults):
 
@@ -170,7 +192,21 @@ class Validator(object):
             except ValueError:
                 return None
 
+        # Check allowed values
+        if self.arcconfref:
+            allowed_values = reference.allowed_values(self.arcconfref, block, option)
+            if allowed_values and value not in allowed_values:
+                self.error("Value '%s' for option '%s' in [%s] is not in allowed values (%s)" %
+                           (value, option, block, ','.join(allowed_values)))
+
         # Extra checks for certain options
+        if option == 'benchmark':
+            # Benchmark values have different syntax in different blocks
+            if block == 'lrms' and not re.match('\w+:\d+(\.\d*)?|\.\d+', value):
+                self.error("benchmark option '%s' in [lrms] has incorrect syntax" % value)
+            if block == 'queue' and not re.match('\w+ \d+(\.\d*)?|\.\d+', value):
+                self.error("benchmark option '%s' in [queue] has incorrect syntax" % value)
+
         if block == 'arex/cache' and option == 'cachedir':
             if not os.path.exists(value.split()[0]):
                 self.warning("cachedir doesn't exist at %s" % value.split()[0])

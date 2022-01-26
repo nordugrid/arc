@@ -260,9 +260,9 @@ namespace Arc {
       if (!Resources.OperatingSystem.empty()) {
         out << IString(" Operating system requirements:") << std::endl;
         std::list<Software>::const_iterator itOS = Resources.OperatingSystem.getSoftwareList().begin();
-        std::list<Software::ComparisonOperator>::const_iterator itCO = Resources.OperatingSystem.getComparisonOperatorList().begin();
+        std::list<Software::ComparisonOperatorEnum>::const_iterator itCO = Resources.OperatingSystem.getComparisonOperatorList().begin();
         for (; itOS != Resources.OperatingSystem.getSoftwareList().end(); itOS++, itCO++) {
-          if (*itCO != &Software::operator==) out << Software::toString(*itCO) << " ";
+          if (*itCO != Software::EQUAL) out << Software::toString(*itCO) << " ";
           out << *itOS << std::endl;
         }
       }
@@ -278,9 +278,9 @@ namespace Arc {
       if (!Resources.CEType.empty()) {
         out << IString(" Computing endpoint requirements:") << std::endl;
         std::list<Software>::const_iterator itCE = Resources.CEType.getSoftwareList().begin();
-        std::list<Software::ComparisonOperator>::const_iterator itCO = Resources.CEType.getComparisonOperatorList().begin();
+        std::list<Software::ComparisonOperatorEnum>::const_iterator itCO = Resources.CEType.getComparisonOperatorList().begin();
         for (; itCE != Resources.CEType.getSoftwareList().end(); itCE++, itCO++) {
-          if (*itCO != &Software::operator==) out << Software::toString(*itCO) << " ";
+          if (*itCO != Software::EQUAL) out << Software::toString(*itCO) << " ";
           out << *itCE << std::endl;
         }
       }
@@ -315,9 +315,9 @@ namespace Arc {
       if (!Resources.RunTimeEnvironment.empty()) {
         out << IString(" Run time environment requirements:") << std::endl;
         std::list<Software>::const_iterator itSW = Resources.RunTimeEnvironment.getSoftwareList().begin();
-        std::list<Software::ComparisonOperator>::const_iterator itCO = Resources.RunTimeEnvironment.getComparisonOperatorList().begin();
+        std::list<Software::ComparisonOperatorEnum>::const_iterator itCO = Resources.RunTimeEnvironment.getComparisonOperatorList().begin();
         for (; itSW != Resources.RunTimeEnvironment.getSoftwareList().end(); itSW++, itCO++) {
-          if (*itCO != &Software::operator==) out << Software::toString(*itCO) << " ";
+          if (*itCO != Software::EQUAL) out << Software::toString(*itCO) << " ";
           out << *itSW << std::endl;
         }
       }

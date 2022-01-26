@@ -863,7 +863,7 @@ sub users_info($$@) {
             if ($k eq "route_destinations" ) {
                 @dqueues=split (',',$v);
                 $singledqueue=shift(@dqueues);
-                warning('Routing queue did not have acl information. Local user acl taken from destination queue: '.$singledqueue);
+                info('Routing queue did not have acl information. Local user acl taken from destination queue: '.$singledqueue);
                 $isrouting = 1;
             }
        }

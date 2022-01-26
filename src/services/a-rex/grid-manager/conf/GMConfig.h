@@ -18,7 +18,6 @@ class JobsMetrics;
 class HeartBeatMetrics;
 class SpaceMetrics;
 class ContinuationPlugins;
-class RunPlugin;
 class DelegationStores;
 
 /// Configuration information related to the grid manager part of A-REX.
@@ -178,6 +177,8 @@ public:
   const std::string & ScratchDir() const { return scratch_dir; }
   /// Whether access to session dir must be performed under mapped uid
   bool StrictSession() const { return strict_session; }
+  /// Path to information file in control dir
+  std::string InformationFile(void) const { return ControlDir()+G_DIR_SEPARATOR_S+"info.xml"; }
 
   /// Cache configuration
   const CacheConfig & CacheParams() const { return cache_params; }

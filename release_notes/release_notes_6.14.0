@@ -3,18 +3,43 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.X.X     XX.XX.XXXX
+Release Notes for NorduGrid ARC  6.14.0    02.12.2021
 =======================================================
 
+We are happy to announce the release of ARC 6.14.0.
 
 Highlights in this release
 --------------------------
 
+To increase the web interface security level, one can now configure TLS protocols and ciphers in arc.conf.
+The default values are in addition improved to strengthen security.
 
-The following Bugzilla tickets have been adressed or solved
-------------------------------------------------------------
+The new configuration options can be found in the [arex/ws] block. The options together with defaults (which will be used when not explicitly included in arc.conf) are:
 
+    tlsciphers=HIGH:!eNULL:!aNULL
+    tlsprotocols=TLSv1.2 TLSv1.3
+    tlscurve=secp521r1
 
+Please check the documentation for more details: http://www.nordugrid.org/documents/arc6/admins/reference.html#tlsciphers
+
+Note that in ARC 7, the default values of the TLS settings will be tightened further.
+
+    
+Another highlight is an improvement of the process control which has been tested and reported to improve job processing and transfers considerably, especially noticeable at high load.
+    
+Finally, as usual, the release contains a handful of smaller bug fixes and other improvements.
+
+    
+
+The following Bugzilla tickets have been adressed or solved: 
+-------------------------------------------------------------
+* 4047  fork to vfork for process speedup
+* 4042 Bug Access Denied
+* 4041 Torque event type
+* 4040 Posix compliance fixes
+* 4039 arcctl deploy igtf-ca debian package names
+* 4038 arcctl datastaging bugs
+* 4037 arc-arex-ws-start script bug
 
 Documentation
 ==============
@@ -40,7 +65,7 @@ We provide binary builds for all supported versions of
   * Centos/RHEL (x86_64)
   * Ubuntu (i386 and amd64, both LTS and interim releases) - from Ubuntu 20.04 no i386 support
 
-In addition we build nightly packages for older platforms. 
+In addition we build nightly packages for some older platforms. 
 
 
 Contributing
@@ -59,23 +84,16 @@ If you need help with the configuration file or have any other questions related
 * Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
 
 
-Future support of ARC 5-series
+ARC 5-series
 ===============================
-As of June 2020 no more security updates are provided to ARC 5.
-Also since the release of ARC 6 in June 2019, no more development on the ARC 5 code base has been provided.
+ARC 5 is no longer supported. 
 
-Production Sites already running ARC 5 will still get operational site support in form of
-deployment and configuration troubleshooting help via GGUS until end June 2021.
-However, we may recommend upgrading to ARC 6 depending on the issues the site is facing. 
-
-ARC5 is available in EPEL7 and will stay there. EPEL8 will only contain ARC 6.
 To install ARC 6 from EPEL7 the package-names are of type: nordugrid-arc6-* 
-
-
 
 
 Known issues
 ==============
+* The arcctl deploy -e option is currently out of function due to an EGI server change. 
 * In Centos8 the openldap server is not installable because slapd is not available in the RHEL8 release (Bugzilla 3944).
   As a consequence, the LDAP-based server-side information system interface of the ARC-CE will not be available either.
   If interaction with the ARC-CE relies on LDAP-based information schemas (glue1.3 or nordugrid schema),

@@ -17,7 +17,6 @@
 #include "log/HeartBeatMetrics.h"
 #include "log/SpaceMetrics.h"
 #include "run/RunRedirected.h"
-#include "run/RunParallel.h"
 #include "files/ControlFileHandling.h"
 #include "../delegation/DelegationStore.h"
 #include "../delegation/DelegationStores.h"
@@ -310,6 +309,8 @@ bool GridManager::thread() {
         joblog->RunReporter(config_);
       }
     }
+
+    // TODO: review metrics calls to reduce frequency of calling gmetrics tool.
     JobsMetrics* metrics = config_.GetJobsMetrics();
     if(metrics) metrics->Sync();
     // Process jobs which need attention ASAP

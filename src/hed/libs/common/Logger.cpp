@@ -5,7 +5,6 @@
 #endif
 
 #include <sstream>
-#include <fstream>
 
 #include <unistd.h>
 
@@ -250,6 +249,25 @@ namespace Arc {
     return tmp;
   }
 
+  class StringBuf: public std::streambuf {
+   public:
+    StringBuf(std::string& str):str_(str) {};
+
+   protected:
+    virtual std::streamsize xsputn (const char* s, std::streamsize n) {
+      if(s && (n > 0))
+        str_.append(s, n);
+      return n;
+    }
+
+    virtual int overflow (int c) {
+      return EOF;
+    }
+
+   private:
+    std::string& str_;
+  };
+
   LogStream::LogStream(std::ostream& destination)
     : destination(destination) {}
 
@@ -266,7 +284,8 @@ namespace Arc {
       destination(),
       maxsize(-1),
       backups(-1),
-      reopen(false) {
+      reopen(false),
+      maxcachesize(100) {
     if(path.empty()) {
       //logger.msg(Arc::ERROR,"Log file path is not specified");
       return;
@@ -281,8 +300,17 @@ namespace Arc {
   }
 
   LogFile::~LogFile() {
-    Glib::Mutex::Lock lock(allfilesmutex);
-    allfiles.remove(this);
+    {
+      Glib::Mutex::Lock lock(allfilesmutex);
+      allfiles.remove(this);
+    }
+    {
+      Glib::Mutex::Lock lock(mutex);
+      while(cache.size() > 0) {
+        delete cache.front();
+        cache.pop_front();
+      }
+    }
   }
 
   void LogFile::ReopenAll() {
@@ -301,7 +329,7 @@ namespace Arc {
   }
 
   void LogFile::setReopen(bool newreopen) {
-    Glib::Mutex::Lock lock(mutex);
+    Glib::Mutex::Lock lock(file_mutex);
     reopen = newreopen;
     if(reopen) {
       destination.close();
@@ -313,7 +341,7 @@ namespace Arc {
   }
 
   void LogFile::Reopen() {
-    Glib::Mutex::Lock lock(mutex);
+    Glib::Mutex::Lock lock(file_mutex);
     if(!reopen && destination.is_open()) {
       destination.close();
       destination.open(path.c_str(), std::fstream::out | std::fstream::app);
@@ -321,25 +349,56 @@ namespace Arc {
   }
 
   LogFile::operator bool(void) {
-    Glib::Mutex::Lock lock(mutex);
+    Glib::Mutex::Lock lock(file_mutex);
     return (reopen)?(!path.empty()):destination.is_open();
   }
 
   bool LogFile::operator!(void) {
-    Glib::Mutex::Lock lock(mutex);
+    Glib::Mutex::Lock lock(file_mutex);
     return (reopen)?path.empty():(!destination.is_open());
   }
 
   void LogFile::log(const LogMessage& message) {
-    Glib::Mutex::Lock lock(mutex);
+    // To avoid blocking high performance threads do as many outside lock as possible.
+    // Hence prepare whole message before acquiring file mutex.
+    int cache_size = 0;
+    { 
+    std::string* str = new std::string;
+    StringBuf buf(*str);
+    std::ostream stream(&buf);;
+    Glib::Mutex::Lock lock(mutex); // protects access to members of LogDestination and cache below
+    EnvLockWrap(false); // Protecting getenv inside gettext()
+    stream << *this << message;
+    EnvLockUnwrap(false);
+    cache.push_back(str);
+    cache_size = cache.size();
+    }
+
+    // Perform operations on file under main lock
+    Glib::Mutex::Lock file_lock(file_mutex,Glib::TryLock());
+    if(!file_lock.locked()) {
+      if(cache_size < maxcachesize) return; // mutex is busy, leave generated message in cache
+      file_lock.acquire(); // if cache is too big, wait till file is available for writing
+    }
+
     // If requested to reopen on every write or if was closed because of error
     if (reopen || !destination.is_open()) {
       destination.open(path.c_str(), std::fstream::out | std::fstream::app);
     }
     if(!destination.is_open()) return;
-    EnvLockWrap(false); // Protecting getenv inside gettext()
-    destination << *this << message << std::endl;
-    EnvLockUnwrap(false);
+
+    // Consume messages stored in cache with quick locking of cache
+    while(true) {
+      Glib::Mutex::Lock cache_lock(mutex);
+      if(cache.size() <= 0) break;
+      std::string* str = cache.front();
+      cache.pop_front();
+      cache_lock.release();
+      if(str) {
+        destination << *str << std::endl;
+        delete str;
+      }
+    }
     // Check if unrecoverable error occurred. Close if error
     // and reopen on next write.
     if(destination.bad()) destination.close();
@@ -456,45 +515,50 @@ namespace Arc {
   }
 
   void Logger::addDestination(LogDestination& destination) {
-    Glib::Mutex::Lock lock(mutex);
-    Glib::Mutex::Lock dlock(getContext().mutex);
-    getContext().destinations.push_back(&destination);
+    SharedMutexExclusiveLock lock(mutex);
+    LoggerContext& ctx(getContext());
+    Glib::Mutex::Lock dlock(ctx.mutex);
+    ctx.destinations.push_back(&destination);
   }
 
   void Logger::addDestinations(const std::list<LogDestination*>& destinations) {
-    Glib::Mutex::Lock lock(mutex);
-    Glib::Mutex::Lock dlock(getContext().mutex);
+    SharedMutexExclusiveLock lock(mutex);
+    LoggerContext& ctx(getContext());
+    Glib::Mutex::Lock dlock(ctx.mutex);
     for(std::list<LogDestination*>::const_iterator dest = destinations.begin();
                             dest != destinations.end();++dest) {
-      getContext().destinations.push_back(*dest);
+      ctx.destinations.push_back(*dest);
     }
   }
 
   void Logger::setDestinations(const std::list<LogDestination*>& destinations) {
-    Glib::Mutex::Lock lock(mutex);
-    Glib::Mutex::Lock dlock(getContext().mutex);
-    getContext().destinations.clear();
+    SharedMutexExclusiveLock lock(mutex);
+    LoggerContext& ctx(getContext());
+    Glib::Mutex::Lock dlock(ctx.mutex);
+    ctx.destinations.clear();
     for(std::list<LogDestination*>::const_iterator dest = destinations.begin();
                             dest != destinations.end();++dest) {
-      getContext().destinations.push_back(*dest);
+      ctx.destinations.push_back(*dest);
     }
   }
 
   const std::list<LogDestination*>& Logger::getDestinations(void) const {
-    Glib::Mutex::Lock lock((Glib::Mutex&)mutex);
+    SharedMutexExclusiveLock lock((SharedMutex&)mutex);
     return ((Logger*)this)->getContext().destinations;
   }
 
   void Logger::removeDestinations(void) {
-    Glib::Mutex::Lock lock(mutex);
-    Glib::Mutex::Lock dlock(getContext().mutex);
-    getContext().destinations.clear();
+    SharedMutexExclusiveLock lock(mutex);
+    LoggerContext& ctx(getContext());
+    Glib::Mutex::Lock dlock(ctx.mutex);
+    ctx.destinations.clear();
   }
 
   void Logger::deleteDestinations(LogDestination* exclude) {
-    Glib::Mutex::Lock lock(mutex);
-    Glib::Mutex::Lock dlock(getContext().mutex);
-    std::list<LogDestination*>& destinations = getContext().destinations;
+    SharedMutexExclusiveLock lock(mutex);
+    LoggerContext& ctx(getContext());
+    Glib::Mutex::Lock dlock(ctx.mutex);
+    std::list<LogDestination*>& destinations = ctx.destinations;
     for(std::list<LogDestination*>::iterator dest = destinations.begin();
                             dest != destinations.end();) {
       if (*dest != exclude) {
@@ -508,7 +572,7 @@ namespace Arc {
   }
 
   void Logger::setThreshold(LogLevel threshold) {
-    Glib::Mutex::Lock lock(mutex);
+    SharedMutexExclusiveLock lock(mutex);
     this->getContext().threshold = threshold;
   }
 
@@ -528,7 +592,7 @@ namespace Arc {
   }
 
   LogLevel Logger::getThreshold() const {
-    Glib::Mutex::Lock lock((Glib::Mutex&)mutex);
+    SharedMutexSharedLock lock((SharedMutex&)mutex);
     const LoggerContext& ctx = ((Logger*)this)->getContext();
     if(ctx.threshold != (LogLevel)0) return ctx.threshold;
     if(parent) return parent->getThreshold();
@@ -536,7 +600,7 @@ namespace Arc {
   }
 
   void Logger::setThreadContext(void) {
-    Glib::Mutex::Lock lock(mutex);
+    SharedMutexExclusiveLock lock(mutex);
     LoggerContext* nctx = new LoggerContext(getContext());
     new LoggerContextRef(*nctx,context_id);
   }
@@ -552,7 +616,6 @@ namespace Arc {
     } catch(std::exception&) {
     };
     return context;
-    
   }
 
   void Logger::msg(LogMessage message) {
@@ -574,7 +637,7 @@ namespace Arc {
   }
 
   void Logger::log(const LogMessage& message) {
-    Glib::Mutex::Lock lock(mutex);
+    SharedMutexSharedLock lock(mutex);
     LoggerContext& ctx = getContext();
     {
       Glib::Mutex::Lock dlock(ctx.mutex);

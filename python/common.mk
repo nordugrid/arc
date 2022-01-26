@@ -128,9 +128,9 @@ $(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i $(top_srcdir)/swig/Arc.i $(PY
         done
 
 install-data-hook:
-	if test -n "$(PYTHON_SOABI)" ; then \
+	if [ "$(PYTHON_EXT_SUFFIX)" != ".so" ]; then \
 	  mv $(DESTDIR)$(pyexecdir)/_arc.so \
-	  $(DESTDIR)$(pyexecdir)/_arc.$(PYTHON_SOABI).so ; \
+	  $(DESTDIR)$(pyexecdir)/_arc$(PYTHON_EXT_SUFFIX) ; \
 	fi
 
 .NOTPARALLEL: %.lo %.o

@@ -68,15 +68,6 @@ class EchoService(object):
                 import traceback
                 logger.msg(arc.DEBUG, traceback.format_exc())
 
-    def RegistrationCollector(self, doc):
-        regentry = arc.XMLNode('<RegEntry />')
-        SrcAdv = regentry.NewChild('SrcAdv')
-        SrcAdv.NewChild('Type').Set('org.nordugrid.tests.echo_python')
-
-        #Place the document into the doc attribute
-        doc.Replace(regentry)
-        return True
-
     def GetLocalInformation(self):
         ns = arc.NS({'':'http://schemas.ogf.org/glue/2008/05/spec_2.0_d41_r01'})
         info = arc.XMLNode(ns,'Domains')

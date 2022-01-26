@@ -276,7 +276,7 @@ Arc::MCC_Status ARexService::GetInfo(Arc::Message& inmsg,Arc::Message& outmsg,AR
 }
 
 Arc::MCC_Status ARexService::GetInfo(Arc::Message& inmsg,Arc::Message& outmsg) {
-  int h = infodoc_.OpenDocument();
+  int h = OpenInfoDocument();
   if(h == -1) return Arc::MCC_Status();
   Arc::MessagePayload* payload = newFileRead(h);
   if(!payload) { ::close(h); return Arc::MCC_Status(); };
@@ -343,7 +343,7 @@ Arc::MCC_Status ARexService::HeadInfo(Arc::Message& inmsg,Arc::Message& outmsg,A
 }
 
 Arc::MCC_Status ARexService::HeadInfo(Arc::Message& inmsg,Arc::Message& outmsg) {
-  int h = infodoc_.OpenDocument();
+  int h = OpenInfoDocument();
   if(h == -1) return Arc::MCC_Status();
   outmsg.Payload(newFileInfo(h));
   outmsg.Attributes()->set("HTTP:content-type","text/xml");

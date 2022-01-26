@@ -112,11 +112,14 @@
 ## they are missing (or commented out). Configuration parameters with "undefined" defaults takes 
 ## no values. Furthermore, configuration options within disabled blocks takes no values either.   
 ##
-## Configuration blocks related to authorization are ORDER-DEPENDENT! The authorization blocks 
-## [authgroup:name] MUST be defined before used in the blocks such as [mapping], [arex/ws/jobs] or 
-## [gridftp/jobs]. The same rule applies to defining legacy [userlist:name] blocks.
-## Furthermore, the order of the authorization blocks itself may have influence over 
-## authorization decisions!
+## Configuration blocks are ORDER-DEPENDENT. To be safe, please use the order as indicated in the list
+## of blocks in this reference. This is especially important for configuration blocks related to
+## authorization and mapping. The order dependency is also honoured within options inside a certain block. 
+##
+## This means for instance that configuration blocks related to authorization MUST appear before used in
+## the blocks such as [mapping], [arex/ws/jobs] or [gridftp/jobs]. Order dependency within a block is
+## for instance important when it comes to authorization decisions, as the first matching rule is used.
+## For more details see the specific block reference. 
 ##
 ## Below we give a detailed description of all the configuration options of the
 ## different configuration blocks. Every configuration option is described
@@ -660,6 +663,13 @@
 #slurm_requirements=memory on node >> 200
 ## CHANGE: NEW in 6.0.0.
 
+## slurm_query_retries = number - Number of sacct/scontrol retries performed in scan-SLURM-job
+## If slurm is overloaded the sacct/scontrol command call may fail. 
+## If retries > 1 sacct/scontrol is retried after some seconds for that(those) particular job(s).
+## If all retry attempts fail, the next scan-SLURM-job institiation will pick up the job(s) from last time.
+## default: 1
+#slurm_query_retries=3
+    
 ### LSF options: set these only in case of lrms=lsf
 ## lsf_bin_path = path - The PATH to LSF bin folder
 ## default: /usr/bin
@@ -1331,6 +1341,11 @@
 #logfile=/var/log/arc/ws-interface.log
 ## CHANGE: RENAMED in 6.0.0.
 
+## pidfile = path - Specify location of file containing PID of daemon process.
+## default: /run/arched-arex-ws.pid
+#pidfile=/run/arched-arex-ws.pid
+## CHANGE: INTRODUCED in 6.13.0.
+
 ## max_job_control_requests = number - The max number of simultaneously processed job management
 ## requests over WS interface - like job submission, cancel, status check etc.
 ## default: 100
@@ -1345,6 +1360,22 @@
 ## requests over WS interface - like data staging.
 ## default: 100
 #max_data_transfer_requests=100
+
+## tlsciphers = ciphers_list - Override OpenSSL ciphers list enabled on server
+## default: HIGH:!eNULL:!aNULL
+#tlsciphers=HIGH:!eNULL:!aNULL
+## CHANGE: INTRODUCED in 6.14.0.
+
+## tlsprotocols = SSL/TLS protocols - Specify which protocols to enable
+## This is space separated list of values - SSLv2 SSLv3 TLSv1.0 TLSv1.1 TLSv1.2 TLSv1.3
+## default: TLSv1.2 TLSv1.3
+#tlsprotocols=TLSv1.2 TLSv1.3
+## CHANGE: INTRODUCED in 6.14.0.
+
+## tlscurve = curve - Specify SSL/TLS ECDH curve name (SN)
+## default: secp521r1
+#tlscurve=secp521r1
+## CHANGE: INTRODUCED in 6.14.0.
 ##
 ##
 ### end of the [arex/ws] block ##############################
@@ -1679,13 +1710,13 @@
 #[arex/jura/apel:egi_prod_apel]
 
 ## *targeturl = url - The service endpoint URL of the APEL accounting server.
-## Targets can be found using "arcctl accounting apel-brokers --ssl".
 ## default: undefined
-#targeturl=https://mq.cro-ngi.hr:6162
+#targeturl=https://msg.argo.grnet.gr
 
 ## topic = topic_name - Sets the name of the APEL topic to which JURA will publish the
 ## accounting records.
-## default: /queue/global.accounting.cpu.central
+## AMS destination topic for compute element is 'gLite-APEL'
+## default: gLite-APEL
 #topic=/queue/global.accounting.test.cpu.central
 
 ## *gocdb_name = name - Can be used to specify the GOCDB name of the resource.
@@ -1695,12 +1726,11 @@
 
 ## apel_messages = type - (introduced in 6.4.0) Define what kind of records JURA 
 ## will send to APEL services during regular publishing process.
-## Possible cases are: per-job EMI CAR records ("urs"), APEL summary records ("summaries") 
-## or "both".
+## Possible cases are: per-job EMI CAR records ("urs"), APEL summary records ("summaries"). 
 ## APEL Sync messages are always generated.
 ## NOTE that on the heavy loaded sites with 10k+ jobs weekly "summaries" generation has
 ##   a performance penalty in ARC < 6.8. It is advised to use "urs" in this case.
-## allowedvalues: urs summaries both
+## allowedvalues: urs summaries
 ## default: summaries
 #apel_messages=urs
 ## CHANGE: NEW in 6.4.0.
@@ -1715,8 +1745,9 @@
 
 ## urbatchsize = number - JURA sends usage records not one-by-one, but in batches.
 ## This options sets the size of a batch. Zero value means unlimited batch size.
-## default: 1000
-#urbatchsize=1000
+## 500 is recommended to avoid too large messages using AMS
+## default: 500
+#urbatchsize=500
 
 ## urdelivery_frequency = seconds - (introduced in 6.4.0) Add optional minimal 
 ## treshold of the interval between subsequent records publishing to this target.
@@ -2366,6 +2397,17 @@
 ## Enable this block ONLY if you want to publish a semi-fake GLUE1 site-bdii as part of
 ## the LDAP server. This block is used to configure ARC to generate a
 ## semi-fake site-bdii that can be registered in GOCDB.
+## The default will generate an object that you can reference in GOCDB GIIS field as such:
+##      ldap://archost.domain:2135/mds-vo-name=<unique-site-id>,o=grid 
+##      Example: ldap://archost.domain:2135/mds-vo-name=NDGF-T1,o=grid
+## Since the original site-bdii listens on port 2170, you may want to port forward 
+## 2170 to 2135 in your firewall, but it is not a requirement.
+## This fake site bdii is only good if you have a single ARC as a service in your organization.
+## It cannot aggregate any information like the real site-bdii does.
+## It just presents a partial rendering of a site-bdii that is good enough for top-bdii
+## to pick up the information.
+## GOCDB checks against this fake-site-bdii should be disabled as it is not fully compliant with
+## the site-bdii specification. They will fail if enabled.
 #[infosys/glue1/site-bdii]
 ## CHANGE: RENAMED block in 6.0.0. 
 
@@ -2373,10 +2415,17 @@
 ## default: undefined
 #unique_id=NDGF-T1
 
-## *url = url - The url of the resource BDII underlying the fake site bdii. It is on the format:
-## ldap://host.domain:2170/mds-vo-name=something,o=grid.
-## default: undefined
-#url=ldap://host.domain:2170/mds-vo-name=something,o=grid
+## *url = url - This url is the insertion point in the arc Glue1 ldif tree 
+## for the semi-fake site-bdii ldap object. 
+## The content of the ldap object is mainly generated from the data in the 
+## [infosys/glue1] block. 
+## The url format is ldap://host.domain:ldapport/basedn
+##          Example: ldap://host.domain:2135/o=grid
+## The generated site-bdii information will be attached under the basedn, 
+##     in the example for o=grid: mds-vo-name=unique-id,o=grid
+## In most cases you want to leave the default untouched, unless you know what you're doing.
+## default: ldap://localhost:2135/o=grid
+#url=ldap://host.domain:2135/o=grid
 ##
 ##
 ### end of the [infosys/glue1/site-bdii] block ###################################

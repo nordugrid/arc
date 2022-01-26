@@ -10,6 +10,7 @@
 #include <arc/compute/Endpoint.h>
 #include <arc/compute/Job.h>
 #include <arc/compute/JobInformationStorage.h>
+#include <arc/compute/JobDescription.h>
 
 struct termios;
 
@@ -110,6 +111,8 @@ std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig
 void showplugins(const std::string& program, const std::list<std::string>& types, Arc::Logger& logger, const std::string& chosenBroker = "");
 
 bool checkproxy(const Arc::UserConfig& uc);
+
+bool jobneedsproxy(const Arc::JobDescription& job);
 
 void splitendpoints(std::list<std::string>& selected, std::list<std::string>& rejected);
 

@@ -33,9 +33,10 @@ bool JobDescriptionHandler::process_job_req(const GMJob &job,JobLocalDescription
   /* read local first to get some additional info pushed here by script */
   job_local_read_file(job.get_id(),config,job_desc);
   /* some default values */
-  job_desc.lrms=config.DefaultLRMS();
-  job_desc.queue=config.DefaultQueue();
-  job_desc.lifetime=Arc::tostring(config.KeepFinished());
+  if(job_desc.lrms.empty()) job_desc.lrms=config.DefaultLRMS();
+  if(job_desc.queue.empty()) job_desc.queue=config.DefaultQueue();
+  if(job_desc.lifetime.empty()) job_desc.lifetime=Arc::tostring(config.KeepFinished());
+
   if(parse_job_req(job.get_id(),job_desc) != JobReqSuccess) return false;
   if(job_desc.reruns>config.Reruns()) job_desc.reruns=config.Reruns();
   if(!job_local_write_file(job,config,job_desc)) return false;

@@ -4,7 +4,6 @@
 /var/log/arc/arex.log
 /var/log/arc/arex-jobs.log
 /var/log/arc/job.helper.errors
-/var/log/arc/ws-interface.log
 /var/log/arc/datastaging.log
 {
   missingok
@@ -16,6 +15,23 @@
   sharedscripts
   postrotate
 	kill -HUP `cat /run/arched-arex.pid 2> /dev/null` 2> /dev/null || true
+  endscript
+}
+
+#
+# Logs written by A-REX WS interface
+#
+/var/log/arc/ws-interface.log
+{
+  missingok
+  compress
+  delaycompress
+  daily
+  rotate 14
+  create
+  sharedscripts
+  postrotate
+	kill -HUP `cat /run/arched-arex-ws.pid 2> /dev/null` 2> /dev/null || true
   endscript
 }
 

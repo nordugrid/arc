@@ -17,34 +17,7 @@
 
 namespace ARex {
 
-typedef struct {
-  const GMConfig* config;
-  const GMJob* job;
-  const char* reason;
-} job_subst_t;
-
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
-
-static void job_subst(std::string& str,void* arg) {
-  job_subst_t* subs = (job_subst_t*)arg;
-  for(std::string::size_type p = 0;;) {
-    p=str.find('%',p);
-    if(p==std::string::npos) break;
-    if(str[p+1]=='I') {
-      str.replace(p,2,subs->job->get_id().c_str());
-      p+=subs->job->get_id().length();
-    } else if(str[p+1]=='S') {
-      str.replace(p,2,subs->job->get_state_name());
-      p+=strlen(subs->job->get_state_name());
-    } else if(str[p+1]=='O') {
-      str.replace(p,2,subs->reason);
-      p+=strlen(subs->reason);
-    } else {
-      p+=2;
-    };
-  };
-  subs->config->Substitute(str, subs->job->get_user());
-}
 
 class JobRefInList {
  private:
@@ -64,38 +37,32 @@ void JobRefInList::kicker(void* arg) {
   };
 }
 
-bool RunParallel::run(const GMConfig& config,const GMJob& job, JobsList& list,
+bool RunParallel::run(const GMConfig& config,const GMJob& job, JobsList& list, std::string* errstr,
                       const std::string& args,Arc::Run** ere,bool su) {
-  job_subst_t subs; subs.config=&config; subs.job=&job; subs.reason="external";
   std::string errlog = job_control_path(config.ControlDir(),job.get_id(),sfx_errors);
   std::string proxy = job_control_path(config.ControlDir(),job.get_id(),sfx_proxy);
   JobRefInList* ref = new JobRefInList(job, list);
-  bool result = run(config, job.get_user(), job.get_id().c_str(), errlog.c_str(),
-             args, ere, proxy.c_str(), su, NULL, &job_subst, &subs, &JobRefInList::kicker, ref);
+  bool result = run(config, job.get_user(), job.get_id().c_str(), errlog.c_str(), errstr,
+             args, ere, proxy.c_str(), su, &JobRefInList::kicker, ref);
   if(!result) delete ref;
   return result;
 }
 
-bool RunParallel::run(const GMConfig& config,const GMJob& job,
+bool RunParallel::run(const GMConfig& config,const GMJob& job, std::string* errstr,
                       const std::string& args,Arc::Run** ere,bool su) {
-  RunPlugin* cred = NULL;
-  job_subst_t subs; subs.config=&config; subs.job=&job; subs.reason="external";
-  if((!cred) || (!(*cred))) { cred=NULL; };
   std::string errlog = job_control_path(config.ControlDir(),job.get_id(),sfx_errors);
   std::string proxy = job_control_path(config.ControlDir(),job.get_id(),sfx_proxy);
-  bool result = run(config, job.get_user(), job.get_id().c_str(), errlog.c_str(),
-             args, ere, proxy.c_str(), su, NULL, &job_subst, &subs);
+  bool result = run(config, job.get_user(), job.get_id().c_str(), errlog.c_str(), errstr,
+             args, ere, proxy.c_str(), su);
   return result;
 }
 
 /* fork & execute child process with stderr redirected 
    to job.ID.errors, stdin and stdout to /dev/null */
 bool RunParallel::run(const GMConfig& config, const Arc::User& user,
-                      const char* procid, const char* errlog,
+                      const char* procid, const char* errlog, std::string* errstr,
                       const std::string& args, Arc::Run** ere,
                       const char* jobproxy, bool su,
-                      RunPlugin* cred,
-                      RunPlugin::substitute_t subst, void* subst_arg,
                       void (*kicker_func)(void*), void* kicker_arg) {
   *ere=NULL;
   Arc::Run* re = new Arc::Run(args);
@@ -105,14 +72,7 @@ bool RunParallel::run(const GMConfig& config, const Arc::User& user,
     return false;
   };
   if(kicker_func) re->AssignKicker(kicker_func,kicker_arg);
-  RunParallel* rp = new RunParallel(procid,errlog,cred,subst,subst_arg);
-  if((!rp) || (!(*rp))) {
-    if(rp) delete rp;
-    delete re;
-    logger.msg(Arc::ERROR,"%s: Failure creating data storage for child process",procid?procid:"");
-    return false;
-  };
-  re->AssignInitializer(&initializer,rp);
+  re->AssignInitializer(&initializer,(void*)errlog,false);
   if(su) {
     // change user
     re->AssignUserId(user.get_uid());
@@ -148,44 +108,37 @@ bool RunParallel::run(const GMConfig& config, const Arc::User& user,
     };
   };
   re->KeepStdin(true);
-  re->KeepStdout(true);
+  if(errstr) {
+    re->KeepStdout(false);
+    re->AssignStdout(*errstr, 1024); // Expecting short failure reason here. Rest goes into .errors file.
+  } else {
+    re->KeepStdout(true);
+  };
   re->KeepStderr(true);
   if(!re->Start()) {
-    delete rp;
     delete re;
     logger.msg(Arc::ERROR,"%s: Failure starting child process",procid?procid:"");
     return false;
   };
-  delete rp;
   *ere=re;
   return true;
 }
 
 void RunParallel::initializer(void* arg) {
   // child
-  RunParallel* it = (RunParallel*)arg;
-  if(it->cred_) {
-    // run external plugin to acquire non-unix local credentials
-    if(!it->cred_->run(it->subst_,it->subst_arg_)) {
-      logger.msg(Arc::ERROR,"%s: Failed to run plugin",it->procid_); sleep(10); _exit(1);
-    };
-    if(it->cred_->result() != 0) {
-      logger.msg(Arc::ERROR,"%s: Plugin failed",it->procid_); sleep(10); _exit(1);
-    };
-  };
+  char const * errlog = (char const *)arg;
   int h;
   // set up stdin,stdout and stderr
   h=::open("/dev/null",O_RDONLY); 
-  if(h != 0) { if(dup2(h,0) != 0) { sleep(10); exit(1); }; close(h); };
+  if(h != 0) { if(dup2(h,0) != 0) { _exit(1); }; close(h); };
   h=::open("/dev/null",O_WRONLY);
-  if(h != 1) { if(dup2(h,1) != 1) { sleep(10); exit(1); }; close(h); };
-  std::string errlog;
-  if(!(it->errlog_.empty())) { 
-    h=::open(it->errlog_.c_str(),O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
+  if(h != 1) { if(dup2(h,1) != 1) { _exit(1); }; close(h); };
+  if(errlog) { 
+    h=::open(errlog,O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
     if(h==-1) { h=::open("/dev/null",O_WRONLY); };
   }
   else { h=::open("/dev/null",O_WRONLY); };
-  if(h != 2) { if(dup2(h,2) != 2) { sleep(10); exit(1); }; close(h); };
+  if(h != 2) { if(dup2(h,2) != 2) { _exit(1); }; close(h); };
 }
 
 } // namespace ARex

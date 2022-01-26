@@ -88,8 +88,7 @@
 %global with_xmlsec1 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} == 6 || %{?rhel}%{!?rhel:0} == 7
-# Dependency missing in EPEL 8
+%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 6
 %global with_pythonlrms 1
 %else
 %global with_pythonlrms 0
@@ -510,19 +509,11 @@ Requires:	%{name}-arcctl = %{version}-%{release}
 Requires:	%{name}-arcctl-service = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
 %if %{py3default}
-Requires:	python3-dirq
 Requires:	python3-isodate
 Requires:	python3-ldap
-Requires:	python3-stomppy
 %else
-Requires:	python-dirq
 Requires:	python-isodate
 Requires:	python-ldap
-%if %{?fedora}%{!?fedora:0} >= 26 || %{?rhel}%{!?rhel:0} >= 8
-Requires:	python2-stomppy
-%else
-Requires:	stomppy
-%endif
 %endif
 Provides:	%{name}-cache-service = %{version}-%{release}
 Obsoletes:	%{name}-cache-service < 6.0.0
@@ -1115,6 +1106,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %post arex
 %enable_service arc-arex
+%enable_service arc-arex-ws
 
 # out-of-package testing host certificate
 if [ $1 -eq 1 ]; then
@@ -1124,6 +1116,7 @@ fi
 
 %preun arex
 %stop_on_removal arc-arex
+%stop_on_removal arc-arex-ws
 
 if [ $1 -eq 0 ]; then
   arcctl test-ca cleanup
@@ -1131,6 +1124,7 @@ fi
 
 %postun arex
 %condrestart_on_update arc-arex
+%condrestart_on_update arc-arex-ws
 
 %post gridftpd
 %enable_service arc-gridftpd
@@ -1437,8 +1431,10 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %if %{use_systemd}
 %{_unitdir}/arc-arex.service
+%{_unitdir}/arc-arex-ws.service
 %else
 %{_initrddir}/arc-arex
+%{_initrddir}/arc-arex-ws
 %endif
 %{_libexecdir}/%{pkgdir}/cache-clean
 %{_libexecdir}/%{pkgdir}/cache-list
@@ -1498,6 +1494,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/perferator
 %{_datadir}/%{pkgdir}/PerfData.pl
 %{_datadir}/%{pkgdir}/arc-arex-start
+%{_datadir}/%{pkgdir}/arc-arex-ws-start
 %{_datadir}/%{pkgdir}/sql-schema/arex_accounting_db_schema_v1.sql
 %doc %{_mandir}/man1/arc-config-check.1*
 %doc %{_mandir}/man1/cache-clean.1*
@@ -1511,9 +1508,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %dir %{_localstatedir}/spool/arc
 %dir %{_localstatedir}/spool/arc/ssm
 %dir %{_localstatedir}/spool/arc/urs
-%{_libexecdir}/%{pkgdir}/ssmsend
 %if %{py3default}
-%{python3_sitearch}/%{pkgdir}/ssm
 %{python3_sitearch}/%{pkgdir}/control/AccountingDB.py
 %{python3_sitearch}/%{pkgdir}/control/AccountingPublishing.py
 %{python3_sitearch}/%{pkgdir}/control/Accounting.py
@@ -1529,7 +1524,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Jobs.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/RunTimeEnvironment.*
 %else
-%{python2_sitearch}/%{pkgdir}/ssm
 %{python2_sitearch}/%{pkgdir}/control/AccountingDB.py*
 %{python2_sitearch}/%{pkgdir}/control/AccountingPublishing.py*
 %{python2_sitearch}/%{pkgdir}/control/Accounting.py*

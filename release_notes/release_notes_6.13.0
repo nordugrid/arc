@@ -3,17 +3,54 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.X.X     XX.XX.XXXX
+Release Notes for NorduGrid ARC  6.13.0    15.09.2021
 =======================================================
 
+We are happy to announce the release of ARC 6.13.0.
 
+You can read about the most important change related to A-REX's web service interface below.
+In addition, as usual, this release comes with a few other improvements and bugfixes. 
+    
+    
 Highlights in this release
 --------------------------
 
+The most important change in this release is the extraction of a separate arc-arex-ws service previously integrated into the arc-arex service.
+*If you have not configured ARC with the [arex/ws] block you can ignore the instructions below as the problem does not affect you.*
 
-The following Bugzilla tickets have been adressed or solved
-------------------------------------------------------------
+The split up of the two services addresses a memory usage issue occurring when a large number of input files are handled,
+see https://bugzilla.nordugrid.org/show_bug.cgi?id=4020 for details. 
 
+Therefore, if (and only if) you have enabled A-REX's web service interface through the [arex/ws] configuration block,
+you now need to start it as a separate service arc-arex-ws. 
+
+You can easily do this by issuing the command
+
+  arcctl service start -a 
+  arcctl service enable -a
+    
+This will start and enable all services as configured (-a) in arc.conf.
+
+Note further that the startup scripts for arc-arex and arc-arex-ws now set MALLOC_ARENA_MAX=2.
+This prevents memory fragmentation which has been seen to seriously degrade the system.
+See details in https://bugzilla.nordugrid.org/show_bug.cgi?id=4020#c23.
+
+    
+For further improvements, should your system suffer from the symptoms described in the bug,
+you could edit the arc-arex-start and arc-arex-ws-start scripts to use tcmalloc instead of glibc malloc by adding:
+    
+    LD_PRELOAD=/usr/lib64/libtcmalloc.so.4
+    
+
+The following Bugzilla tickets have been adressed or solved: 
+-------------------------------------------------------------
+* 4030  logrotate needs fix with arex/ws split
+* 4024  gsiftp submission fails with runtimeenviroment not resolved
+* 4021  When job fails to be submitted to LRMS - .failed file gets Permission denied
+* 4020  arex slowdown with many input files
+* 4015  GGUS-ticket-ID: #152002 arcproxy complains if root owns proxy file
+* 3973  arc usertime bug in scan-SLURM-job
+* 3966  scan-SLURM-job walltime error
 
 
 Documentation
@@ -59,23 +96,16 @@ If you need help with the configuration file or have any other questions related
 * Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
 
 
-Future support of ARC 5-series
+ARC 5-series
 ===============================
-As of June 2020 no more security updates are provided to ARC 5.
-Also since the release of ARC 6 in June 2019, no more development on the ARC 5 code base has been provided.
+ARC 5 is no longer supported. 
 
-Production Sites already running ARC 5 will still get operational site support in form of
-deployment and configuration troubleshooting help via GGUS until end June 2021.
-However, we may recommend upgrading to ARC 6 depending on the issues the site is facing. 
-
-ARC5 is available in EPEL7 and will stay there. EPEL8 will only contain ARC 6.
 To install ARC 6 from EPEL7 the package-names are of type: nordugrid-arc6-* 
-
-
 
 
 Known issues
 ==============
+* The arcctl deploy -e option is currently out of function due to an EGI server change. 
 * In Centos8 the openldap server is not installable because slapd is not available in the RHEL8 release (Bugzilla 3944).
   As a consequence, the LDAP-based server-side information system interface of the ARC-CE will not be available either.
   If interaction with the ARC-CE relies on LDAP-based information schemas (glue1.3 or nordugrid schema),

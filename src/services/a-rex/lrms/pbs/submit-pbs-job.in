@@ -39,9 +39,6 @@ if [ ! -z "$perflogdir" ]; then
    start_ts=`date +%s.%N`
 fi
 
-# define path to wrote failures
-define_failures_file
-
 # check remote or local scratch is configured
 check_any_scratch
 
@@ -217,14 +214,14 @@ if [ "$joboption_exclusivenode" = "true" ]; then
 fi
 
 if [ ! -z "$memreq" ] ; then
-  echo "#PBS -l vmem=${memreq}mb" >> $LRMS_JOB_SCRIPT
+  echo "#PBS -l mem=${memreq}mb" >> $LRMS_JOB_SCRIPT
 fi
 
 gate_host=`uname -n`
 if [ -z "$gate_host" ] ; then 
   echo "Can't get own hostname" 1>&2
   rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
-  echo "Submission: Configuration error.">>"$failures_file"
+  echo "Submission: Configuration error."
   exit 1
 fi
 
@@ -237,13 +234,14 @@ if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
     if [ $? -ne '0' ] ; then 
       echo "Can't change to session directory: $joboption_directory" 1>&2
       rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
-      echo "Submission: Configuration error.">>"$failures_file"
+      echo "Submission: Configuration error."
       exit 1
     fi
     scratch_dir=`dirname "$joboption_directory"`
     echo "#PBS -W stagein=$RUNTIME_LOCAL_SCRATCH_DIR@$gate_host:$joboption_directory" >> $LRMS_JOB_SCRIPT
-    echo "#PBS -W stageout=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid@$gate_host:$scratch_dir" >> $LRMS_JOB_SCRIPT
-    echo "#PBS -W stageout=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid.diag@$gate_host:$joboption_directory.diag" >> $LRMS_JOB_SCRIPT
+    STAGEOUT1="$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid@$gate_host:$scratch_dir"
+    STAGEOUT2="$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid.diag@$gate_host:$joboption_directory.diag"
+    echo "#PBS -W stageout=\"${STAGEOUT1},${STAGEOUT2}\"" >> $LRMS_JOB_SCRIPT
   )
 fi
 
@@ -272,7 +270,7 @@ add_user_env
 if [ -z "${joboption_arg_0}" ] ; then
   echo 'Executable is not specified' 1>&2
   rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
-  echo "Submission: Job description error.">>"$failures_file"
+  echo "Submission: Job description error."
   exit 1
 fi
 
@@ -453,11 +451,11 @@ if [ $PBS_RESULT -eq '0' ] ; then
    if [ "${job_id}" = "" ]; then
       echo "job *NOT* submitted successfully!" 1>&2
       echo "failed getting the pbs jobid for the job!" 1>&2
-      echo "Submission: Local submission client behaved unexpectedly.">>"$failures_file"
+      echo "Submission: Local submission client behaved unexpectedly."
    elif [ `echo "${job_id}" | grep -Ec "^[0-9]+"` != "1" ]; then
       echo "job *NOT* submitted successfully!" 1>&2
       echo "badly formatted pbs jobid for the job: $job_id !" 1>&2
-      echo "Submission: Local submission client behaved unexpectedly.">>"$failures_file"
+      echo "Submission: Local submission client behaved unexpectedly."
    else
       echo "joboption_jobid=$job_id" >> $GRAMI_FILE
       echo "job submitted successfully!" 1>&2
@@ -471,7 +469,7 @@ if [ $PBS_RESULT -eq '0' ] ; then
 else
   echo "job *NOT* submitted successfully!" 1>&2
   echo "got error code from qsub: $PBS_RESULT !" 1>&2
-  echo "Submission: Local submission client failed.">>"$failures_file"
+  echo "Submission: Local submission client failed."
 fi
 echo "Output is:" 1>&2
 cat $LRMS_JOB_OUT 1>&2
