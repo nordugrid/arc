@@ -52,7 +52,7 @@
 %filter_setup
 %endif
 
-%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
+%if %{?fedora}%{!?fedora:0} || ( %{?rhel}%{!?rhel:0} >= 7 && %{?rhel}%{!?rhel:0} <= 8 ) || %{?suse_version:1}%{!?suse_version:0}
 %global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
 %else
 %global with_pylint 0
@@ -64,7 +64,7 @@
 %global py3default 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 7 || %{?rhel}%{!?rhel:0} >= 5 || %{?suse_version}%{!?suse_version:0} >= 1110
+%if %{?fedora}%{!?fedora:0} >= 7 || ( %{?rhel}%{!?rhel:0} >= 5 && %{?rhel}%{!?rhel:0} <= 8 ) || %{?suse_version}%{!?suse_version:0} >= 1110
 %global with_acix 1
 %else
 %global with_acix 0
@@ -76,7 +76,7 @@
 %global with_s3 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 5
+%if %{?fedora}%{!?fedora:0} >= 21 || ( %{?rhel}%{!?rhel:0} >= 5 && %{?rhel}%{!?rhel:0} <= 8 )
 %global with_gfal 1
 %else
 %global with_gfal 0
@@ -88,14 +88,14 @@
 %global with_xmlsec1 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 6
+%if %{?fedora}%{!?fedora:0} >= 21 || ( %{?rhel}%{!?rhel:0} >= 6 && %{?rhel}%{!?rhel:0} <= 8 )
 %global with_pythonlrms 1
 %else
 %global with_pythonlrms 0
 %endif
 
 # LDNS
-%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 5
+%if %{?fedora}%{!?fedora:0} >= 13 || ( %{?rhel}%{!?rhel:0} >= 5 && %{?rhel}%{!?rhel:0} <= 8 )
 %global with_ldns 1
 %else
 %global with_ldns 0
