@@ -451,7 +451,7 @@ class SGASSender(object):
                 self.logger.error('Failed to POST records to SGAS server %s. Error code %s returned: %s',
                                   self.conf['targethost'], str(resp.status), resp.reason)
                 # parse error from SGAS Traceback in returned HTML
-                for line in resp.read().split('\n'):
+                for line in (base64.b64encode(bytes(resp.read()),'utf-8').decode('utf-8')).split('\n'):
                     if line.startswith('<p class="error"'):
                         errstr = line.replace('<p class="error">&lt;class', '').replace('&gt;', '').replace('</p>', '')
                         self.logger.error('SGAS returned the following error description:%s', errstr)
@@ -562,7 +562,7 @@ class APELAMSDirectSender(object):
         empaid = "{0}/{1}".format(utcnow[:8], utcnow)
         msg = {
             'attributes': {'empaid': empaid},
-            'data': base64.encodestring(self._msg_sign(data)).decode('utf-8')
+            'data': base64.b64encode(bytes(self._msg_sign(data),'utf-8')).decode('utf-8')
         }
 
         conn = HTTPSClientAuthConnection(
