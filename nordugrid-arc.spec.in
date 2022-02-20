@@ -95,7 +95,7 @@
 %endif
 
 # LDNS
-%if %{?fedora}%{!?fedora:0} >= 13 || ( %{?rhel}%{!?rhel:0} >= 5 && %{?rhel}%{!?rhel:0} <= 8 )
+%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 5
 %global with_ldns 1
 %else
 %global with_ldns 0
