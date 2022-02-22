@@ -224,7 +224,7 @@ deploy_deb9:
     BUILD_VOL: /build
     BUILD_DIR: $CI_PROJECT_DIR/*.deb
   tags:
-    - 158.37.63.83
+    - 158.39.77.243
     - deploy
   needs:
     - job: build_deb9
