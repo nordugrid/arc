@@ -569,7 +569,7 @@ supported. It is released as a technology preview.
 %endif
 
 %package community-rtes
-Summary:	Community-defined RTEs support
+Summary:	ARC Community defined RTEs support
 Group:		System Environment/Libraries
 Requires:	%{name}-arex = %{version}-%{release}
 Requires:	%{name}-arcctl = %{version}-%{release}
