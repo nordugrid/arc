@@ -190,7 +190,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     return 1;
   }
 
-  if(usercfg.OToken().empty() || jobneedsproxy(testJob)) {
+  if(!opt.no_delegation || usercfg.OToken().empty()) {
     if (!checkproxy(usercfg)) {
       return 1;
     }
@@ -237,7 +237,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     }
 
     // default action: start submission cycle
-    return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist);
+    return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist, opt.no_delegation);
   // legacy code that implements submission logic in arctest
   } else {
     Arc::Broker broker(usercfg, testJob, usercfg.Broker().first);
