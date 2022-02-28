@@ -215,6 +215,8 @@ class Credential {
 
     static std::string NoPassword(void) { return std::string("\0",1); };
 
+    static void GetLifetime(STACK_OF(X509) const * certchain, X509 const * cert, Time& start, Period& period);
+
   private:
 
     /** Credential object so far is not supposed to be copied */

@@ -7,6 +7,7 @@
 #include <arc/StringConv.h>
 #include <arc/external/cJSON/cJSON.h>
 #include <arc/message/MCC.h>
+#include <arc/credential/Credential.h>
 #include <openssl/evp.h>
 #include <openssl/x509.h>
 #include <openssl/pem.h>
@@ -16,7 +17,6 @@
 #include "otokens.h"
 #include "jwse_private.h"
 #include "openid_metadata.h"
-
 
 static EVP_PKEY* X509_get_privkey(X509*) {
   return NULL;
@@ -71,6 +71,22 @@ void RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e, const BIGNUM
 
 namespace Arc {
  
+  class IssuerInfo {
+   private:
+    time_t const DefaultValidTime = 3600;
+   public:
+    IssuerInfo() {
+      validTill = time(nullptr) + DefaultValidTime;
+    }
+
+    time_t validTill;
+    bool   isSafe;
+    Arc::AutoPointer<OpenIDMetadata> metadata;
+    Arc::AutoPointer<JWSEKeyHolderList> keys;
+  };
+
+  static std::map<std::string, IssuerInfo> issuersInfo;
+  static Glib::Mutex issuersInfoLock;
 
   char const * const JWSE::HeaderNameX509CertChain = "x5c";
   char const * const JWSE::HeaderNameJSONWebKey = "jwk";
@@ -293,25 +309,70 @@ namespace Arc {
       bool keyProtocolSafe = true;
       if(strncasecmp("https:", issuerObj->valuestring, 6) != 0) keyProtocolSafe = false;
 
-      OpenIDMetadata serviceMetadata;
+      {
+	Time now;
+        Arc::AutoLock lock(issuersInfoLock);
+        for(std::map<std::string, IssuerInfo>::iterator infoIt = issuersInfo.begin(); infoIt != issuersInfo.end();) {
+          std::map<std::string, IssuerInfo>::iterator nextIt = infoIt;
+	  ++nextIt;
+          if(now > infoIt->second.validTill)
+	    issuersInfo.erase(infoIt);
+	  infoIt = nextIt;
+	}
+        std::map<std::string, IssuerInfo>::iterator infoIt = issuersInfo.find(issuerObj->valuestring);
+	if(infoIt != issuersInfo.end()) {
+          for(JWSEKeyHolderList::iterator keyIt = infoIt->second.keys->begin(); keyIt != infoIt->second.keys->end(); ++keyIt) {
+            if(strcmp(kidObject->valuestring, (*keyIt)->Id()) == 0) {
+              keyOrigin_ = infoIt->second.isSafe ? ExternalSafeKey : ExternalUnsafeKey;
+              key_ = new JWSEKeyHolder(**keyIt);
+              return true;
+            }
+          }
+        }
+      }
+
+      Arc::AutoPointer<OpenIDMetadata> serviceMetadata(new OpenIDMetadata);
       OpenIDMetadataFetcher metadataFetcher(issuerObj->valuestring);
-      if(!metadataFetcher.Fetch(serviceMetadata))
+      if(!metadataFetcher.Fetch(*serviceMetadata))
         return false;
-      char const * jwksUri = serviceMetadata.JWKSURI();
+      char const * jwksUri = serviceMetadata->JWKSURI();
       if(strncasecmp("https:", jwksUri, 6) != 0) keyProtocolSafe = false;
 
       logger_.msg(DEBUG, "JWSE::ExtractPublicKey: fetching jwl key from %s", jwksUri);
       JWSEKeyFetcher keyFetcher(jwksUri);
-      JWSEKeyHolderList keys;
-      if(!keyFetcher.Fetch(keys))
+      Arc::AutoPointer<JWSEKeyHolderList> keys(new JWSEKeyHolderList);
+      if(!keyFetcher.Fetch(*keys))
         return false;
-      for(JWSEKeyHolderList::iterator keyIt = keys.begin(); keyIt != keys.end(); ++keyIt) {
-        if(strcmp(kidObject->valuestring, (*keyIt)->Id()) == 0) {
-          keyOrigin_ = keyProtocolSafe ? ExternalSafeKey : ExternalUnsafeKey;
-          key_ = *keyIt;
-          return true;
-        }
+      bool keyFound = false;
+      Time validTill;
+      for(JWSEKeyHolderList::iterator keyIt = keys->begin(); keyIt != keys->end(); ++keyIt) {
+	Time certValid = (*keyIt)->ValidTill();
+	if(keyIt == keys->begin())
+	  validTill = certValid;
+	else if(certValid < validTill)
+	  validTill = certValid;
+
+        if(!keyFound) {
+          if(strcmp(kidObject->valuestring, (*keyIt)->Id()) == 0) {
+	    if(certValid >= Time()) {
+              keyOrigin_ = keyProtocolSafe ? ExternalSafeKey : ExternalUnsafeKey;
+              key_ = new JWSEKeyHolder(**keyIt);
+              keyFound = true;
+	    }
+          }
+	}
       }
+      {
+        Arc::AutoLock lock(issuersInfoLock);
+        IssuerInfo& info(issuersInfo[issuerObj->valuestring]);
+        info.isSafe = keyProtocolSafe;
+        info.metadata = serviceMetadata;
+        info.keys = keys;
+	if(validTill < info.validTill)
+          info.validTill = validTill.GetTime();
+      }
+      if(keyFound)
+        return true;
     } else {
       logger_.msg(ERROR, "JWSE::ExtractPublicKey: no supported key");
       return true; // No key - no processing
@@ -381,9 +442,28 @@ namespace Arc {
     }
   }
 
+  JWSEKeyHolder::JWSEKeyHolder(JWSEKeyHolder const & other): certificate_(NULL), certificateChain_(NULL), publicKey_(NULL), privateKey_(NULL) {
+    if(other.certificate_) {
+      certificate_ = X509_dup(other.certificate_);
+      publicKey_ = X509_get_pubkey(certificate_);
+      privateKey_ = X509_get_privkey(certificate_);
+    }
+    if(other.publicKey_ && !publicKey_) {
+      EVP_PKEY_up_ref(publicKey_ = other.publicKey_);
+    }
+    if(other.privateKey_ && !privateKey_) {
+      EVP_PKEY_up_ref(privateKey_ = other.privateKey_);
+    }
+    if(other.certificateChain_) {
+      certificateChain_ = X509_chain_up_ref(other.certificateChain_);
+    }
+  }
+
   JWSEKeyHolder::~JWSEKeyHolder() {
     if(publicKey_) EVP_PKEY_free(publicKey_);
     publicKey_ = NULL;
+    if(privateKey_) EVP_PKEY_free(privateKey_);
+    privateKey_ = NULL;
     if(certificate_) X509_free(certificate_);
     certificate_ = NULL;
     if(certificateChain_) sk_x509_deallocate(certificateChain_);
@@ -444,8 +524,30 @@ namespace Arc {
     certificateChain_ = certificateChain;
   }
 
+  Time JWSEKeyHolder::ValidTill() const {
+    if(certificate_) {
+      Time certValid;
+      Period period;
+      Credential::GetLifetime(certificateChain_, certificate_, certValid, period);
+      certValid = certValid + period;
+      return certValid;
+    }
+    if(publicKey_) {
+      Time keyValid = Time() + Period(DefaultValidTime);
+      return keyValid;
+    }
+    return Time();
+  }
 
-  JWSEKeyFetcher::JWSEKeyFetcher(char const * endpoint_url) : url_(endpoint_url), client_(Arc::MCCConfig(), url_) {
+
+  static URL url_no_cred(char const * url_str) {
+    URL url(url_str);
+    url.AddOption("tlscred=none");
+    return url;
+  }
+
+  JWSEKeyFetcher::JWSEKeyFetcher(char const * endpoint_url):
+       url_(endpoint_url?url_no_cred(endpoint_url):URL()), client_(Arc::MCCConfig(), url_) {
   }
 
   bool JWSEKeyFetcher::Fetch(JWSEKeyHolderList& keys) {
