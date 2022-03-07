@@ -48,6 +48,33 @@ variables:
       - build
   allow_failure: false
 
+.template_build_rhel9: &template_build_rhel9
+  stage: build
+  image: $BUILD_IMAGE
+  script:
+    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
+    - dnf update -y
+    - ./autogen.sh
+    - ./configure
+    - dnf builddep nordugrid-arc.spec -y
+    - echo "Preparing and running rpmbuild"
+    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
+    - make dist
+    - VERSION=`cat VERSION`
+    - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
+    - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
+  artifacts:
+    when: on_success
+    expire_in: 3 days
+    paths:
+    - $CI_PROJECT_DIR/rpmbuild/SRPMS/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
+    - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
+  allow_failure: false
+  tags:
+      - build
+  allow_failure: false
+
     
 .template_build_deb: &template_build_deb
   stage: build
@@ -100,7 +127,7 @@ build_el8:
 #    CENTOS STREAM 9
 ####################
 build_el9:
-    extends: .template_build_rhel
+    extends: .template_build_rhel9
     variables:
         BUILD_IMAGE: maikenp/arc-build-cs9
 
