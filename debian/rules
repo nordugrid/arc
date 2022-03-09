@@ -239,6 +239,9 @@ override_dh_systemd_start:
 override_dh_fixperms:
 	dh_fixperms -X /usr/bin/arc-job-cgroup
 
+override_dh_compress:
+	dh_compress -X arc.conf.reference -X arc.conf.DELETED
+
 ifeq ($(PYVER),2)
 override_dh_python2:
 	dh_python2
