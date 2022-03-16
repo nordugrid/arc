@@ -3,13 +3,13 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.15.0     17.03.2022
+Release Notes for NorduGrid ARC  6.15.0     16.03.2022
 =======================================================
 
 
 Highlights in this release
 --------------------------
-In addition to a handful of smaller bugfixes and improvements, this release is mainly to distribute python3 related fixes in the arcctl (Bugzilla 4018 and 4026).
+In addition to a handful of smaller bugfixes and improvements, this release is mainly to distribute python3 related fixes in arcctl (Bugzilla 4018 and 4026).
 
 In Centos8 the openldap server is now installable from the  RHEL/CentOS 8 powertools repository (Bugzilla 3944).
 
