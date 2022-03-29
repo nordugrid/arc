@@ -1313,6 +1313,23 @@ using namespace Arc;
         expect100 = false;
         continue;
       }
+      // Non-existing parent directories should be reported as 409 but
+      // sometimes 404 is returned
+      if ((transfer_info.code == 404) ||
+          (transfer_info.code == 409)) {
+        logger.msg(VERBOSE, "Failed to create %s, trying to create parent directories", client_url.plainstr());
+        std::string original_path(client_url.Path());
+        point.url.ChangePath(std::string(Glib::path_get_dirname(client_url.Path())+"/"));
+        DataStatus r = point.CreateDirectory(true);
+        point.url.ChangePath(original_path);
+        point.release_client(client_url,client.Release());
+        if (!r) {
+          point.failure_code = DataStatus(DataStatus::WriteError, "Failed to write or create parent dirs for "+client_url.fullstr());
+          return false;
+        }
+        client = point.acquire_client(client_url);
+        continue;
+      }
       // RFC2616 says "Many older HTTP/1.0 and HTTP/1.1 applications do not
       // understand the Expect header". But this is not currently treated very well.
       if ((transfer_info.code != 201) &&
@@ -1466,6 +1483,59 @@ using namespace Arc;
     point.release_client(client_url,client.Release());
     delete &info;
     point.transfer_lock.unlock();
+  }
+
+  DataStatus DataPointHTTP::makedir(const URL& dir) {
+    AutoPointer<ClientHTTP> client(acquire_client(dir));
+    if (!client) return DataStatus::CreateDirectoryError;
+    PayloadMemConst request(NULL, 0, 0, 0);
+    PayloadRawInterface *response = NULL;
+    HTTPClientInfo info;
+    MCC_Status r = client->process("MKCOL", dir.Path(), &request, &info, &response);
+    if (response) delete response;
+    response = NULL;
+    if (!r) {
+      return DataStatus(DataStatus::CreateDirectoryError, r.getExplanation());
+    }
+    if ((info.code != 201) &&
+        (info.code != 200) &&
+        (info.code != 204)) {
+      logger.msg(VERBOSE, "Error creating directory: %s", info.reason);
+      return DataStatus(DataStatus::CreateDirectoryError, http2errno(info.code), info.reason);
+    }
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointHTTP::CreateDirectory(bool with_parents) {
+
+    if (!with_parents) {
+      logger.msg(VERBOSE, "Creating directory %s", url.plainstr());
+      return makedir(url);
+    }
+
+    std::string::size_type slashpos = url.Path().find("/", 1); // don't create root dir
+    URL dir(url);
+
+    while (slashpos != std::string::npos) {
+      dir.ChangePath(url.Path().substr(0, slashpos));
+      // stat dir to see if it exists
+      FileInfo finfo;
+      DataStatus r = do_stat_http(dir, finfo);
+      if (r) {
+        slashpos = url.Path().find("/", slashpos + 1);
+        continue;
+      }
+
+      // Assume failure means dir doesn't exist, so try to create it
+      logger.msg(VERBOSE, "Creating directory %s", dir.plainstr());
+      r = makedir(dir);
+      slashpos = url.Path().find("/", slashpos + 1);
+      if (!r && slashpos == std::string::npos) {
+        // Only return error if failing to create the final dir
+        return r;
+      }
+    }
+    return DataStatus::Success;
   }
 
   bool DataPointHTTP::SetURL(const URL& url) {
