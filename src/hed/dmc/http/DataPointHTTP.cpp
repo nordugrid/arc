@@ -442,10 +442,21 @@ using namespace Arc;
         XMLNode displayname = prop["displayname"];
         XMLNode getcontentlength = prop["getcontentlength"];
         XMLNode resourcetype = prop["resourcetype"];
+        XMLNode iscollection = prop["iscollection"];
         XMLNode getlastmodified = prop["getlastmodified"];
+        XMLNode Checksums = prop["Checksums"];
+        XMLNode sumtype = prop["sumtype"];
+        XMLNode sumvalue = prop["sumvalue"];
         // Fetch known metadata
         if((bool)resourcetype) {
           if((bool)resourcetype["collection"]) {
+            file.SetType(FileInfo::file_type_dir);
+          } else {
+            file.SetType(FileInfo::file_type_file);
+          }
+        } else if ((bool)iscollection) {
+          if ((std::string)iscollection == "TRUE" ||
+              (std::string)iscollection == "1") {
             file.SetType(FileInfo::file_type_dir);
           } else {
             file.SetType(FileInfo::file_type_file);
@@ -463,6 +474,18 @@ using namespace Arc;
             file.SetModified(tm);
           }
         }
+        if((bool)Checksums) {
+          std::string csum = (std::string)Checksums;
+          csum.replace(csum.find('='), 1, ":");
+          file.SetCheckSum(csum);
+        } else if ((bool)sumtype && !((std::string)sumtype).empty() &&
+                   (bool)sumvalue && !((std::string)sumvalue).empty()) {
+          if ((std::string)sumtype == "AD") {
+            file.SetCheckSum("adler32:"+(std::string)sumvalue);
+          } else {
+            file.SetCheckSum((std::string)sumtype+":"+(std::string)sumvalue);
+          }
+        }
         found = true;
       }
     }
@@ -475,14 +498,22 @@ using namespace Arc;
   DataStatus DataPointHTTP::do_stat_webdav(URL& rurl, FileInfo& file) {
     PayloadRaw request;
     {
-      NS webdav_ns("d","DAV:");
+      std::map<std::string, std::string> ns;
+      ns.insert(std::pair<std::string, std::string>("d", "DAV:"));
+      ns.insert(std::pair<std::string, std::string>("ns1", "http://www.dcache.org/2013/webdav"));
+      ns.insert(std::pair<std::string, std::string>("lp3", "LCGDM:"));
+      NS webdav_ns(ns);
       XMLNode propfind(webdav_ns,"d:propfind");
       XMLNode props = propfind.NewChild("d:prop");
       props.NewChild("d:creationdate");
       props.NewChild("d:displayname");
       props.NewChild("d:getcontentlength");
       props.NewChild("d:resourcetype");
+      props.NewChild("d:iscollection");
       props.NewChild("d:getlastmodified");
+      props.NewChild("ns1:Checksums");
+      props.NewChild("lp3:sumtype");
+      props.NewChild("lp3:sumvalue");
       std::string s; propfind.GetDoc(s);
       request.Insert(s.c_str(),0,s.length());
     }
@@ -555,7 +586,11 @@ using namespace Arc;
   DataStatus DataPointHTTP::do_list_webdav(URL& rurl, std::list<FileInfo>& files, DataPointInfoType verb) {
     PayloadRaw request;
     {
-      NS webdav_ns("d","DAV:");
+      std::map<std::string, std::string> ns;
+      ns.insert(std::pair<std::string, std::string>("d", "DAV:"));
+      ns.insert(std::pair<std::string, std::string>("ns1", "http://www.dcache.org/2013/webdav"));
+      ns.insert(std::pair<std::string, std::string>("lp3", "LCGDM:"));
+      NS webdav_ns(ns);
       XMLNode propfind(webdav_ns,"d:propfind");
       XMLNode props = propfind.NewChild("d:prop");
       // TODO: verb
@@ -563,7 +598,11 @@ using namespace Arc;
       props.NewChild("d:displayname");
       props.NewChild("d:getcontentlength");
       props.NewChild("d:resourcetype");
+      props.NewChild("d:iscollection");
       props.NewChild("d:getlastmodified");
+      props.NewChild("ns1:Checksums");
+      props.NewChild("lp3:sumtype");
+      props.NewChild("lp3:sumvalue");
       std::string s; propfind.GetDoc(s);
       request.Insert(s.c_str(),0,s.length());
     }
