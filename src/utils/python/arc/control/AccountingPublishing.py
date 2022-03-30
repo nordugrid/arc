@@ -560,10 +560,18 @@ class APELAMSDirectSender(object):
         )
         utcnow = datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")
         empaid = "{0}/{1}".format(utcnow[:8], utcnow)
-        msg = {
-            'attributes': {'empaid': empaid},
-            'data': base64.b64encode(bytes(self._msg_sign(data),'utf-8')).decode('utf-8')
-        }
+        try:
+            """ python3 """
+            msg = {
+                'attributes': {'empaid': empaid},
+                'data': base64.b64encode(bytes(self._msg_sign(data),'utf-8')).decode('utf-8')
+            }
+        except:
+            """ python2.7 """
+            msg = {
+                'attributes': {'empaid': empaid},
+                'data': base64.encodestring(self._msg_sign(data)).decode('utf-8')
+            }
 
         conn = HTTPSClientAuthConnection(
             host=self.conf['targethost'],
