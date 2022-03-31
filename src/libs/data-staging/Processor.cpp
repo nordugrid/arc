@@ -429,9 +429,10 @@ namespace DataStaging {
   }
 
   void Processor::DTRPreClean(void *arg) {
-    // for physical files call Remove()
+    // If overwrite is requested, for physical files call Remove()
     // for index services delete entry and all existing replicas
-    // only if the entry already exists
+    // only if the entry already exists. Otherwise check if a remote
+    // destination exists and fail if it does
     ThreadArgument* targ = (ThreadArgument*)arg;
     DTR_ptr request = targ->dtr;
     delete targ;
@@ -439,60 +440,75 @@ namespace DataStaging {
 
     Arc::DataStatus res = Arc::DataStatus::Success;
 
-    if (!request->get_destination()->IsIndex()) {
-      request->get_logger()->msg(Arc::INFO, "Removing %s", request->get_destination()->CurrentLocation().str());
-      res = request->get_destination()->Remove();
-    }
-    else {
-      // get existing locations
-      Arc::DataHandle dest(request->get_destination()->GetURL(), request->get_destination()->GetUserConfig());
-      request->get_logger()->msg(Arc::VERBOSE, "Finding existing destination replicas");
-      res = dest->Resolve(true);
-      if (!res.Passed()) {
-        request->get_logger()->msg(Arc::ERROR, std::string(res));
+    if (!request->is_replication() &&
+        (request->get_destination()->GetURL().Option("overwrite") == "yes" ||
+         request->get_destination()->CurrentLocation().Option("overwrite") == "yes")) {
+      request->get_logger()->msg(Arc::VERBOSE, "Overwrite requested - will pre-clean destination");
+
+      if (!request->get_destination()->IsIndex()) {
+        request->get_logger()->msg(Arc::INFO, "Removing %s", request->get_destination()->CurrentLocation().str());
+        res = request->get_destination()->Remove();
       }
       else {
-        if (dest->HaveLocations()) {
-          while (dest->LocationValid()) {
-            request->get_logger()->msg(Arc::INFO, "Removing %s", dest->CurrentLocation().str());
-            res = dest->Remove();
-            if (!res.Passed()) {
-              // if we fail to delete one replica then bail out
-              request->get_logger()->msg(Arc::ERROR, "Failed to delete replica %s: %s",
-                                         dest->CurrentLocation().str(),
-                                         std::string(res));
-              break;
-            }
-            // unregister this replica from the index
-            // not critical if this fails as will be removed in the next step
-            dest->Unregister(false);
-            // next replica
-            dest->RemoveLocation();
-          }
-        }
-        if (!dest->HaveLocations()) {
-          // all replicas were deleted successfully, now unregister the LFN
-          request->get_logger()->msg(Arc::INFO, "Unregistering %s", dest->str());
-          res = dest->Unregister(true);
-        }
-      }
-      // if deletion was successful resolve destination and pre-register
-      if (!dest->HaveLocations()) {
-        request->get_logger()->msg(Arc::VERBOSE, "Resolving destination replicas");
-        res = request->get_destination()->Resolve(false);
+        // get existing locations
+        Arc::DataHandle dest(request->get_destination()->GetURL(), request->get_destination()->GetUserConfig());
+        request->get_logger()->msg(Arc::VERBOSE, "Finding existing destination replicas");
+        res = dest->Resolve(true);
         if (!res.Passed()) {
           request->get_logger()->msg(Arc::ERROR, std::string(res));
-        } else {
-          request->get_logger()->msg(Arc::VERBOSE, "Pre-registering destination");
-          res = request->get_destination()->PreRegister(false, request->is_force_registration());
+        }
+        else {
+          if (dest->HaveLocations()) {
+            while (dest->LocationValid()) {
+              request->get_logger()->msg(Arc::INFO, "Removing %s", dest->CurrentLocation().str());
+              res = dest->Remove();
+              if (!res.Passed()) {
+                // if we fail to delete one replica then bail out
+                request->get_logger()->msg(Arc::ERROR, "Failed to delete replica %s: %s",
+                                          dest->CurrentLocation().str(),
+                                          std::string(res));
+                break;
+              }
+              // unregister this replica from the index
+              // not critical if this fails as will be removed in the next step
+              dest->Unregister(false);
+              // next replica
+              dest->RemoveLocation();
+            }
+          }
+          if (!dest->HaveLocations()) {
+            // all replicas were deleted successfully, now unregister the LFN
+            request->get_logger()->msg(Arc::INFO, "Unregistering %s", dest->str());
+            res = dest->Unregister(true);
+          }
+        }
+        // if deletion was successful resolve destination and pre-register
+        if (!dest->HaveLocations()) {
+          request->get_logger()->msg(Arc::VERBOSE, "Resolving destination replicas");
+          res = request->get_destination()->Resolve(false);
+          if (!res.Passed()) {
+            request->get_logger()->msg(Arc::ERROR, std::string(res));
+          } else {
+            request->get_logger()->msg(Arc::VERBOSE, "Pre-registering destination");
+            res = request->get_destination()->PreRegister(false, request->is_force_registration());
+          }
         }
       }
-    }
-    if (!res.Passed()) {
-      request->get_logger()->msg(Arc::ERROR, "Failed to pre-clean destination: %s", std::string(res));
-      request->set_error_status(res.Retryable() ? DTRErrorStatus::TEMPORARY_REMOTE_ERROR : DTRErrorStatus::PERMANENT_REMOTE_ERROR,
-                                DTRErrorStatus::ERROR_DESTINATION,
-                                "Failed to pre-clean destination " + request->get_destination()->str() + ": " + std::string(res));
+      if (!res.Passed()) {
+        request->get_logger()->msg(Arc::ERROR, "Failed to pre-clean destination: %s", std::string(res));
+        request->set_error_status(DTRErrorStatus::TEMPORARY_REMOTE_ERROR,
+                                  DTRErrorStatus::ERROR_DESTINATION,
+                                  "Failed to pre-clean destination " + request->get_destination()->str() + ": " + std::string(res));
+      }
+    } else if (!request->get_destination()->Local() && !request->get_destination()->IsIndex()) {
+      Arc::FileInfo file;
+      res = request->get_destination()->Stat(file, Arc::DataPoint::INFO_TYPE_MINIMAL);
+      if (res.Passed()) {
+        request->get_logger()->msg(Arc::ERROR, "Destination already exists");
+        request->set_error_status(DTRErrorStatus::PERMANENT_REMOTE_ERROR,
+                                  DTRErrorStatus::ERROR_DESTINATION,
+                                  "Destination " + request->get_destination()->str() + " already exists");
+      } // We should check the error was no such file but just report all errors as ok
     }
     request->set_status(DTRStatus::PRE_CLEANED);
     DTR::push(request, SCHEDULER);

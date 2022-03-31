@@ -1302,6 +1302,10 @@ using namespace Arc;
     bool expect100 = true;
     for (;;) {
       std::multimap<std::string, std::string> attrs;
+      // Disallow overwrite unless requested
+      if (client_url.Option("overwrite") != "yes") {
+        attrs.insert(std::pair<std::string, std::string>("If-None-Match", "*"));
+      }
       if(expect100) {
         attrs.insert(std::pair<std::string, std::string>("EXPECT", "100-continue"));
         // Note: there will be no 100 in response because it will be processed
@@ -1368,6 +1372,12 @@ using namespace Arc;
         }
         client = point.acquire_client(client_url);
         continue;
+      }
+      if (transfer_info.code == 412) {
+        // File already exists
+        point.release_client(client_url,client.Release());
+        point.failure_code = DataStatus(DataStatus::WriteError, EEXIST, "File exists");
+        return false;
       }
       // RFC2616 says "Many older HTTP/1.0 and HTTP/1.1 applications do not
       // understand the Expect header". But this is not currently treated very well.
