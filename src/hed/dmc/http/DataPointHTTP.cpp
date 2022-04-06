@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <map>
 
+#include <arc/CheckSum.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
@@ -715,6 +716,10 @@ using namespace Arc;
       modified = file.GetModified();
       logger.msg(VERBOSE, "Stat: obtained modification time %s", modified.str());
     }
+    if(file.CheckCheckSum()) {
+      checksum = file.GetCheckSum();
+      logger.msg(VERBOSE, "Stat: obtained checksum %s", checksum);
+    }
     return DataStatus::Success;
   }
 
@@ -911,6 +916,37 @@ using namespace Arc;
     if (buffer->error_write()) {
       buffer = NULL;
       return DataStatus::WriteError;
+    }
+    // checksum verification
+    const CheckSum * calc_sum = buffer->checksum_object();
+    if (!buffer->error() && calc_sum && *calc_sum && buffer->checksum_valid()) {
+      char buf[100];
+      calc_sum->print(buf,100);
+      std::string csum(buf);
+      if (csum.find(':') != std::string::npos && csum.substr(0, csum.find(':')) == DefaultCheckSum()) {
+        logger.msg(VERBOSE, "StopWriting: Calculated checksum %s", csum);
+        if (additional_checks) {
+          // list checksum and compare
+          // note: not all implementations support checksum
+          logger.msg(DEBUG, "StopWriting: "
+                            "looking for checksum of %s", url.plainstr());
+          FileInfo file;
+          DataStatus r = Stat(file, DataPoint::INFO_TYPE_CKSUM);
+          if (!r) {
+            logger.msg(INFO, "Could not find checksum: %s", std::string(r));
+          } else if (!CheckCheckSum()) {
+            logger.msg(INFO, "Checksum of %s is not available", url.plainstr());
+          } else if (csum.substr(csum.find(':')) != checksum.substr(checksum.find(':'))) {
+            logger.msg(INFO, "Checksum type returned by server is different to requested type, cannot compare");
+          } else if (csum == checksum) {
+            logger.msg(INFO, "Calculated checksum %s matches checksum reported by server", csum);
+          } else {
+            logger.msg(ERROR, "Checksum mismatch between calculated checksum %s and checksum reported by server %s",
+                       csum, checksum);
+            return DataStatus(DataStatus::TransferError, EARCCHECKSUM, "Checksum mismatch between calculated and reported checksums");
+          }
+        }
+      }
     }
     buffer = NULL;
     return DataStatus::Success;
@@ -1594,6 +1630,14 @@ using namespace Arc;
     this->url = url;
     if(triesleft < 1) triesleft = 1;
     ResetMeta();
+    return true;
+  }
+
+  const std::string DataPointHTTP::DefaultCheckSum() const {
+    return std::string("adler32");
+  }
+
+  bool DataPointHTTP::ProvidesMeta() const {
     return true;
   }
 

@@ -37,6 +37,8 @@ using namespace Arc;
     virtual DataStatus StartWriting(DataBuffer& buffer, DataCallback *space_cb = NULL);
     virtual DataStatus StopReading();
     virtual DataStatus StopWriting();
+    virtual const std::string DefaultCheckSum() const;
+    virtual bool ProvidesMeta() const;
     virtual bool RequiresCredentials() const { return url.Protocol() != "http"; };
     virtual bool WriteOutOfOrder() const { return partial_write_allowed; };
   private:
