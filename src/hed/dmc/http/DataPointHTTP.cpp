@@ -1069,7 +1069,8 @@ using namespace Arc;
       if((transfer_info.code == 301) || // permanent redirection
          (transfer_info.code == 302) || // temporary redirection
          (transfer_info.code == 303) || // POST to GET redirection
-         (transfer_info.code == 304)) { // redirection to cache
+         (transfer_info.code == 304) || // redirection to cache
+         (transfer_info.code == 307)) { // temporary redirection
         // 305 - redirection to proxy - unhandled
         if (instream) delete instream;
         // Recreate connection now to new URL
