@@ -21,7 +21,7 @@ shift
 . $script
 }
 # Record job start timestamp
-ACCOUNTING_STARTTIME=1649713080
+ACCOUNTING_STARTTIME=`date +"%s"`
 # Select accounting method
 echo "Detecting resource accounting method available for the job." 1>&2
 JOB_ACCOUNTING=""
