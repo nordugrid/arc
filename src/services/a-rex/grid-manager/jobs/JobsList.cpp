@@ -917,6 +917,7 @@ JobsList::ActJobResult JobsList::ActJobUndefined(GMJobRef i) {
     "<IDFromEndpoint></IDFromEndpoint>"
     "<State>nordugrid:ACCEPTED</State>"
     "<State>emies:accepted</State>"
+    "<State>arcrest:ACCEPTED</State>"
     "<State>emiesattr:client-stagein-possible</State>"
     "<Owner></Owner>"
   "</ComputingActivity>";
