@@ -369,9 +369,10 @@ namespace Arc {
     bool destination_meta_initially_stored = destination.Registered();
     bool destination_overwrite = false;
     if (!replication) { // overwriting has no sense in case of replication
-      std::string value = destination.GetURL().Option("overwrite", "no");
-      if (strcasecmp(value.c_str(), "no") != 0)
+      std::string value = destination.GetURL().Option("overwrite");
+      if (lower(value) == "yes" || force_registration) {
         destination_overwrite = true;
+      }
     }
     // sort source replicas according to the expression supplied
     source.SortLocations(preferred_pattern, map);
@@ -390,7 +391,9 @@ namespace Arc {
             break;
           if (!destination.IsIndex()) {
             // pfn has chance to be overwritten directly
-            logger.msg(WARNING, "Failed to delete %s but will still try to copy", del_url.str());
+            if (res.GetErrno() != ENOENT) {
+              logger.msg(WARNING, "Failed to delete %s but will still try to copy", del_url.str());
+            }
             break;
           }
           logger.msg(INFO, "Failed to delete %s", del_url.str());
