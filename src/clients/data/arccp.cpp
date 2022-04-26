@@ -551,16 +551,7 @@ static int runmain(int argc, char **argv) {
 
   bool force = false;
   options.AddOption('f', "force",
-                    istring("if the destination is an indexing service "
-                            "and not the same as the source and the "
-                            "destination is already registered, then "
-                            "the copy is normally not done. However, if "
-                            "this option is specified the source is "
-                            "assumed to be a replica of the destination "
-                            "created in an uncontrolled way and the "
-                            "copy is done like in case of replication. "
-                            "Using this option also skips validation of "
-                            "completed transfers."),
+                    istring("force overwrite of existing destination"),
                     force);
 
   bool verbose = false;
