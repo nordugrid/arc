@@ -110,6 +110,9 @@ mktempscript () {
 
 accounting_init () {
     cat >> $LRMS_JOB_SCRIPT <<EOSCR
+# Record job start timestamp
+ACCOUNTING_STARTTIME=\`date +"%s"\`
+# Select accounting method
 echo "Detecting resource accounting method available for the job." 1>&2
 JOB_ACCOUNTING=""
 # Try to use cgroups first
@@ -209,6 +212,13 @@ fi
 [ -n "${ACCOUNTING_BENCHMARK}" ] && echo "benchmark=${ACCOUNTING_BENCHMARK}" >> "$RUNTIME_JOB_DIAG"
 # Record WN instance tag if defined
 [ -n "${ACCOUNTING_WN_INSTANCE}" ] && echo "wninstance=${ACCOUNTING_WN_INSTANCE}" >> "$RUNTIME_JOB_DIAG"
+
+# Record execution clock times
+ACCOUNTING_ENDTIME=`date +"%s"`
+# Mds date format (YYYYMMDDHHMMSSZ)
+echo "LRMSStartTime=`date -d "1970-01-01 UTC ${ACCOUNTING_STARTTIME} seconds" +"%Y%m%d%H%M%SZ"`" >> "$RUNTIME_JOB_DIAG"
+echo "LRMSEndTime=`date -d "1970-01-01 UTC ${ACCOUNTING_ENDTIME} seconds" +"%Y%m%d%H%M%SZ"`" >> "$RUNTIME_JOB_DIAG"
+echo "walltime=$(( ACCOUNTING_ENDTIME - ACCOUNTING_STARTTIME ))" >> "$RUNTIME_JOB_DIAG"
 
 # Add exit code to the accounting information and exit the job script
 echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"
