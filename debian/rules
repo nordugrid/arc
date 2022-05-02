@@ -248,13 +248,13 @@ override_dh_python2:
 
 	echo "pydeps:Depends=python-ldap, python-isodate" \
 		>> debian/nordugrid-arc-arex.substvars
-	echo "pydeps:Depends=python-dns" \
+	echo "pydeps:Depends=python-dnspython" \
 		>> debian/nordugrid-arc-community-rtes.substvars
 	if [ $(ACIX) = "yes" ] ; then \
 	echo "pydeps:Depends=python-twisted, python-openssl" \
 		>> debian/nordugrid-arc-acix-core.substvars ; \
 	fi
-	echo "pydeps:Depends=python-ldap, python-dns" \
+	echo "pydeps:Depends=python-ldap, python-dnspython" \
 		>> debian/nordugrid-arc-archery-manage.substvars
 	echo "pydeps:Depends=python-nordugrid-arc (= \$${binary:Version})" \
 		>> debian/nordugrid-arc-plugins-python.substvars
