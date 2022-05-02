@@ -54,6 +54,7 @@ variables:
   script:
     - echo "$(date +%Y%m%d%H%M%S)" > VERSION
     - dnf update -y
+    - dnf builddep nordugrid-arc -y
     - ./autogen.sh
     - ./configure
     - dnf builddep nordugrid-arc.spec -y
