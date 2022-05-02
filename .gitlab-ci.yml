@@ -53,6 +53,8 @@ variables:
   image: $BUILD_IMAGE
   script:
     - echo "$(date +%Y%m%d%H%M%S)" > VERSION
+    - dnf remove dyninst
+    - dnf install dyninst
     - dnf builddep nordugrid-arc -y
     - ./autogen.sh
     - ./configure
