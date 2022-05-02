@@ -179,7 +179,8 @@ class Validator(object):
             # Sort the conf blocks according to the reference order and then compare
             config_blocks_sorted = sorted(config_blocks_uniq, key=lambda x: block_order.index(x))
             if config_blocks_sorted != config_blocks_uniq:
-                self.error("Configuration blocks are not in the correct order. Should be: %s" % config_blocks_sorted)
+                self.warning("Configuration blocks are not in the correct order. This will be an error in ARC 7. Should be: %s" % config_blocks_sorted)
+                self.warning("Note though that authgroup and mapping must be in correct order in ARC 6.")
 
 
     def _check_config_option(self, block, option, value, config_defaults):

@@ -1,0 +1,88 @@
+=================================
+Advanced Resource Connector (ARC)
+=================================
+
+
+Release Notes for NorduGrid ARC  6.15.0     16.03.2022
+=======================================================
+
+
+Highlights in this release
+--------------------------
+In addition to a handful of smaller bugfixes and improvements, this release is mainly to distribute python3 related fixes in arcctl (Bugzilla 4018 and 4026).
+
+In Centos8 the openldap server is now installable from the  RHEL/CentOS 8 powertools repository (Bugzilla 3944).
+
+
+The following Bugzilla tickets have been adressed or solved
+------------------------------------------------------------
+* 4035  Validator to check syntax of benchmark option
+* 4026  arcctl python3 error in deploy igtf-ca
+* 4018  python3 bug with 6.12 accounting
+* 3996  Validation of configuration blocks order
+* 3974  cache info is not published
+* 3944  Can't install ldap infosys in CentOS8
+
+
+Documentation
+==============
+The ARC 6 documentation can be found at http://www.nordugrid.org/arc/arc6
+
+If you miss something or have questions, please contact us!
+
+
+Installing ARC 6 
+=================
+We recommend to install ARC release using the Nordugrid repository.
+* Start with the basics: http://www.nordugrid.org/arc/arc6/admins/try_arc6.html
+* Get production ready: http://www.nordugrid.org/arc/arc6/admins/arc6_install_guide.html 
+
+Note that if you instead install from EPEL for RHEL 7 compatible systems,
+the ARC 6 packages can be found as nordugrid-arc6-* and not nordugrid-arc-*
+This was needed in order to supply both ARC 5 already available for RHEL7 and the new ARC 6.
+
+
+We provide binary builds for all supported versions of
+  * Debian (i386 and amd64)
+  * Fedora (x86_64)
+  * Centos/RHEL (x86_64)
+  * Ubuntu (i386 and amd64, both LTS and interim releases) - from Ubuntu 20.04 no i386 support
+
+In addition we build nightly packages for older platforms. 
+
+
+Contributing
+=============
+You can submit pull requests to our public repo at https://github.com/nordugrid/arc which mirrors
+our Gitlab repo https://source.coderefinery.org/nordugrid/arc.
+
+The pull requests will be automatically copied over to our Gitlab repo where they will be
+merged into the source-code if accepted.
+
+
+Getting in touch
+==================
+If you need help with the configuration file or have any other questions related to ARC 6, please contact us via
+* Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
+* Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
+
+
+Future support of ARC 5-series
+===============================
+As of June 2020 no more security updates are provided to ARC 5.
+Also since the release of ARC 6 in June 2019, no more development on the ARC 5 code base has been provided.
+
+ARC5 is available in EPEL7 and will stay there. EPEL8 will only contain ARC 6.
+To install ARC 6 from EPEL7 the package-names are of type: nordugrid-arc6-* 
+
+
+Known issues
+==============
+* The arcctl deploy -e option is currently out of function due to an EGI server change.
+* 
+* Related to the new accounting system introduded in release 6.4.0: 
+  * Accounting records created by ARC 6.4.0 are affected by a bug causing missing benchmark values:
+   https://bugzilla.nordugrid.org./show_bug.cgi?id=3921#c3
+   Recommendations are to update to a newer version of ARC.
+   The bugreport gives instructions on how to manually fix the wrong benchmark values.
+

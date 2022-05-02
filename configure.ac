@@ -376,7 +376,7 @@ if test "$enables_python" = "yes"; then
     PYTHON_VERSION=`$PKG_CONFIG --modversion $PYNAME`
     PYTHON_MAJOR=`echo $PYTHON_VERSION|cut -f1 -d.`
     ],[
-    PYNAME=python-`$PYTHON -c 'import sys; print(sys.version[[:3]])'`
+    PYNAME=python-`$PYTHON -c 'import sys; print(".".join(sys.version.split(" ")[[0]].split(".")[[:2]]))'`
     PKG_CHECK_MODULES(PYTHON, $PYNAME-embed, [
     PYTHON_VERSION=`$PKG_CONFIG --modversion $PYNAME-embed`
     PYTHON_MAJOR=`echo $PYTHON_VERSION|cut -f1 -d.`
@@ -385,7 +385,7 @@ if test "$enables_python" = "yes"; then
     PYTHON_VERSION=`$PKG_CONFIG --modversion $PYNAME`
     PYTHON_MAJOR=`echo $PYTHON_VERSION|cut -f1 -d.`
     ],[
-    PYTHON_VERSION=`$PYTHON -c 'import sys; print(sys.version[[:3]])'`
+    PYTHON_VERSION=`$PYTHON -c 'import sys; print(".".join(sys.version.split(" ")[[0]].split(".")[[:2]]))'`
     PYTHON_MAJOR=`$PYTHON -c 'import sys; print(sys.version_info[[0]])'`
     PYTHON_CFLAGS=-I`$PYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_inc())'`
     PY_LIBS=`$PYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('LIBS'))" | sed s/None//`
@@ -515,7 +515,7 @@ if test "$enables_altpython" = "yes"; then
     ALTPYTHON_VERSION=`$PKG_CONFIG --modversion $ALTPYNAME`
     ALTPYTHON_MAJOR=`echo $ALTPYTHON_VERSION|cut -f1 -d.`
     ],[
-    ALTPYNAME=python-`$ALTPYTHON -c 'import sys; print(sys.version[[:3]])'`
+    ALTPYNAME=python-`$ALTPYTHON -c 'import sys; print(".".join(sys.version.split(" ")[[0]].split(".")[[:2]]))'`
     PKG_CHECK_MODULES(ALTPYTHON, $ALTPYNAME-embed, [
     ALTPYTHON_VERSION=`$PKG_CONFIG --modversion $ALTPYNAME-embed`
     ALTPYTHON_MAJOR=`echo $ALTPYTHON_VERSION|cut -f1 -d.`
@@ -524,7 +524,7 @@ if test "$enables_altpython" = "yes"; then
     ALTPYTHON_VERSION=`$PKG_CONFIG --modversion $ALTPYNAME`
     ALTPYTHON_MAJOR=`echo $ALTPYTHON_VERSION|cut -f1 -d.`
     ],[
-    ALTPYTHON_VERSION=`$ALTPYTHON -c 'import sys; print(sys.version[[:3]])'`
+    ALTPYTHON_VERSION=`$ALTPYTHON -c 'import sys; print(".".join(sys.version.split(" ")[[0]].split(".")[[:2]]))'`
     ALTPYTHON_MAJOR=`$ALTPYTHON -c 'import sys; print(sys.version_info[[0]])'`
     ALTPYTHON_CFLAGS=-I`$ALTPYTHON -c 'from distutils import sysconfig; print(sysconfig.get_python_inc())'`
     ALTPY_LIBS=`$ALTPYTHON -c "from distutils import sysconfig; print(sysconfig.get_config_vars().get('LIBS'))" | sed s/None//`
