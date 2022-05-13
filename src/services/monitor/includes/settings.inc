@@ -197,12 +197,16 @@ if ( !defined("GCLU_OWNR") ) define("GCLU_OWNR",IS_PREFXG."AdminDomainOwner");
 if ( !defined("GQUE_NAME") ) define("GQUE_NAME",IS_PREFXG."EntityName");
 if ( !defined("GQUE_MAPQ") ) define("GQUE_MAPQ",IS_PREFXG."ComputingShareMappingQueue");
 if ( !defined("GQUE_STAT") ) define("GQUE_STAT",IS_PREFXG."ComputingShareServingState");
-if ( !defined("GQUE_RUNG") ) define("GQUE_RUNG",IS_PREFXG."ComputingShareLocalRunningJobs");
-if ( !defined("GQUE_GRUN") ) define("GQUE_GRUN",IS_PREFXG."ComputingShareRunningJobs");
+// RUNG is all the running jobs in the queue, NG queue-running, maps to GLUE2 RunningJobs
+if ( !defined("GQUE_RUNG") ) define("GQUE_RUNG",IS_PREFXG."ComputingShareRunningJobs");
+// GRUN is the grid jobs only in the queue, NG queue-gridrunning, there is no equivalent for this in GLUE2. Must be calculated from total-local jobs in the queue
+//if ( !defined("GQUE_GRUN") ) define("GQUE_GRUN",IS_PREFXG."");
 if ( !defined("GQUE_MAXR") ) define("GQUE_MAXR",IS_PREFXG."ComputingShareMaxRunningJobs");
 // Not used
 //if ( !defined("GQUE_QUED") ) define("GQUE_QUED",IS_PREFXG."-queue-queued"); /* deprecated since 0.5.38 */
 if ( !defined("GQUE_LQUE") ) define("GQUE_LQUE",IS_PREFXG."ComputingShareLocalWaitingJobs"); /* new since 0.5.38 */
+// LRUN is non-grid jobs running in the queue
+if ( !defined("GQUE_LRUN") ) define("GQUE_LRUN",IS_PREFXG."ComputingShareLocalRunningJobs"); 
 if ( !defined("GQUE_PQUE") ) define("GQUE_PQUE",IS_PREFXG."ComputingSharePreLRMSWaitingJobs"); /* new since 0.5.38 */
 if ( !defined("GQUE_GQUE") ) define("GQUE_GQUE",IS_PREFXG."ComputingShareWaitingJobs");
 if ( !defined("GQUE_MAXQ") ) define("GQUE_MAXQ",IS_PREFXG."ComputingShareMaxTotalJobs");

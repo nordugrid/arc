@@ -302,7 +302,7 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
         $allbasedn  = strtolower(substr($curdn,$preflength-17));
 
         if ($basedn == DN_GLUE) {
-	  // check if it is a site or a job; count
+	  // extract objectclass name from DN -- shouldn't this be easier?
           $preflength = strpos($curdn,":");
           $preflength = strpos($curdn,":",$preflength+1);
 	  $object  = substr($curdn,$preflength+1,strpos($curdn,":",$preflength+1)-$preflength-1);
@@ -319,18 +319,20 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
 	    // Manipulate alias: replace the string if necessary and cut off at 22 characters; strip HTML tags
 	    if (file_exists("cnvalias.inc")) include('cnvalias.inc');
 	    $curalias = strip_tags($curalias);
+            //TODO: if alias empty, use endpoint FQDN (from endpointArray maybe?)
 	    if ( strlen($curalias) > 22 ) $curalias = substr($curalias,0,21) . ">";
-	  
-	    $totqueued  = @($entries[$i][GCLU_QJOB][0]) ? $entries[$i][GCLU_QJOB][0] : 0; /* deprecated since 0.5.38 */
+	    
+            // TODO: probably remove QJOB, GLUE2 does not support it
+            //$totqueued  = @($entries[$i][GCLU_QJOB][0]) ? $entries[$i][GCLU_QJOB][0] : 0; /* deprecated since 0.5.38 */
 	    $gmqueued   = @($entries[$i][GCLU_PQUE][0]) ? $entries[$i][GCLU_PQUE][0] : 0; /* new since 0.5.38 */
-      $clstring   = popup("clusdes.php?host=$curname&port=$curport&schema=$schema",700,620,1,$lang,$debug);
+            $curtotjobs = @($entries[$i][GCLU_TJOB][0]) ? $entries[$i][GCLU_TJOB][0] : 0;
+            $clstring   = popup("clusdes.php?host=$curname&port=$curport&schema=$schema",700,620,1,$lang,$debug);
 	  
 	    $nclu++;
 	  
 	  } elseif ($object=="ComputingManager") {
             $curtotcpu = @($entries[$i][GCLU_TCPU][0]) ? $entries[$i][GCLU_TCPU][0] : 0;
             if ( !$curtotcpu && $debug ) dbgmsg("<font color=\"red\"><b>$curname</b>".$errors["113"]."</font><br>");
-            $curtotjobs = @($entries[$i][GCLU_TJOB][0]) ? $entries[$i][GCLU_TJOB][0] : 0;
             $curusedcpu = @($entries[$i][GCLU_UCPU][0]) ? $entries[$i][GCLU_UCPU][0] : -1; 
 
           } elseif ($object=="ComputingShare") {
@@ -338,9 +340,14 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
 	    $qstatus     = $entries[$i][GQUE_STAT][0];
 	    if ( $qstatus != "production" )  $stopflag = TRUE;
 	    $allqrun    += @($entries[$i][GQUE_RUNG][0]) ? ($entries[$i][GQUE_RUNG][0]) : 0;
-	    $gridjobs   += @($entries[$i][GQUE_GRUN][0]) ? ($entries[$i][GQUE_GRUN][0]) : 0;
+            // TODO: there is no gridjobs in GLUE2. Must be calculated as $allqrun-$lrmsrun (and adjusted against negative numbers), the latter has been added in settings.php. Test!
+	    //$gridjobs   += @($entries[$i][GQUE_GRUN][0]) ? ($entries[$i][GQUE_GRUN][0]) : 0;
+            $lrmsrun += @($entries[$i][GQUE_LRUN][0]) ? ($entries[$i][GQUE_LRUN][0]) : 0;
+            $gridjobs = $allqrun - $lrmsrun;
+            if ( $gridjobs < 0 )  $gridjobs = 0;
 	    $gridqueued += @($entries[$i][GQUE_GQUE][0]) ? ($entries[$i][GQUE_GQUE][0]) : 0;
-	    $allqueued  += @($entries[$i][GQUE_QUED][0]) ? ($entries[$i][GQUE_QUED][0]) : 0; /* deprecated since 0.5.38 */
+            // this below was deprecated in NG and I am not sure we want it back in GLUE2
+	    //$allqueued  += @($entries[$i][GQUE_QUED][0]) ? ($entries[$i][GQUE_QUED][0]) : 0; /* deprecated since 0.5.38 */
 	    $lrmsqueued += @($entries[$i][GQUE_LQUE][0]) ? ($entries[$i][GQUE_LQUE][0]) : 0; /* new since 0.5.38 */
 	    $prequeued  += @($entries[$i][GQUE_PQUE][0]) ? ($entries[$i][GQUE_PQUE][0]) : 0; /* new since 0.5.38 */
 	  
@@ -366,6 +373,7 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
                 $rowcont[] = $country_content;
             }
           }
+        // TODO: I think this below should be basedn otherwise this chunk is run even for GLUE2 overriding all the changes made above... the if tree must be revised. I think there is a lot of overdoing here.
 	} elseif ($allbasedn == DN_LOCAL) {
 	  // check if it is a site or a job; count
 	  $preflength = strpos($curdn,"-");
@@ -413,7 +421,7 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
 	    $qstatus     = $entries[$i][QUE_STAT][0];
 	    if ( $qstatus != "active" )  $stopflag = TRUE;
 	    $allqrun    += @($entries[$i][QUE_RUNG][0]) ? ($entries[$i][QUE_RUNG][0]) : 0;
-	    $gridjobs   += @($entries[$i][QUE_GRUN][0]) ? ($entries[$i][QUE_GRUN][0]) : 0;
+            $gridjobs   += @($entries[$i][QUE_GRUN][0]) ? ($entries[$i][QUE_GRUN][0]) : 0;
 	    $gridqueued += @($entries[$i][QUE_GQUE][0]) ? ($entries[$i][QUE_GQUE][0]) : 0;
 	    $allqueued  += @($entries[$i][QUE_QUED][0]) ? ($entries[$i][QUE_QUED][0]) : 0; /* deprecated since 0.5.38 */
 	    $lrmsqueued += @($entries[$i][QUE_LQUE][0]) ? ($entries[$i][QUE_LQUE][0]) : 0; /* new since 0.5.38 */
