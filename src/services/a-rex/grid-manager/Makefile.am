@@ -6,12 +6,20 @@ endif
 
 SUBDIRS = accounting jobs run conf misc log mail files $(JOBPLUGIN_DIR)
 
+if DBCXX_ENABLED
+GM_DELEGATIONS_CONVERTER = gm-delegations-converter
+GM_DELEGATIONS_CONVERTER_MAN = gm-delegations-converter.8
+else
+GM_DELEGATIONS_CONVERTER =
+GM_DELEGATIONS_CONVERTER_MAN =
+endif
+
 noinst_LTLIBRARIES = libgridmanager.la
-pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck arc-blahp-logger gm-delegations-converter
+pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck arc-blahp-logger $(GM_DELEGATIONS_CONVERTER)
 noinst_PROGRAMS = test_write_grami_file
 dist_pkglibexec_SCRIPTS = arc-config-check
 
-man_MANS = arc-config-check.1 arc-blahp-logger.8 gm-jobs.8 gm-delegations-converter.8
+man_MANS = arc-config-check.1 arc-blahp-logger.8 gm-jobs.8 $(GM_DELEGATIONS_CONVERTER_MAN)
 
 libgridmanager_la_SOURCES = GridManager.cpp GridManager.h
 libgridmanager_la_CXXFLAGS = -I$(top_srcdir)/include \
