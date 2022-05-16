@@ -311,7 +311,7 @@ namespace Arc {
 
       {
 	Time now;
-        Arc::AutoLock lock(issuersInfoLock);
+        Arc::AutoLock<Glib::Mutex> lock(issuersInfoLock);
         for(std::map<std::string, IssuerInfo>::iterator infoIt = issuersInfo.begin(); infoIt != issuersInfo.end();) {
           std::map<std::string, IssuerInfo>::iterator nextIt = infoIt;
 	  ++nextIt;
@@ -363,7 +363,7 @@ namespace Arc {
 	}
       }
       {
-        Arc::AutoLock lock(issuersInfoLock);
+        Arc::AutoLock<Glib::Mutex> lock(issuersInfoLock);
         IssuerInfo& info(issuersInfo[issuerObj->valuestring]);
         info.isSafe = keyProtocolSafe;
         info.metadata = serviceMetadata;
