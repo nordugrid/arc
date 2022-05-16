@@ -738,19 +738,7 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
       };
     };
   };
-  // Collect authorized VOMS/VO - so far only source is ARCLEGACYPDP
-  for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
-    if(*a) {
-      Arc::SecAttr* sattr = (*a)->get("ARCLEGACYPDP");
-      if(sattr) {
-        std::list<std::string> voms = sattr->getAll("VOMS");
-        job_.voms.insert(job_.voms.end(),voms.begin(),voms.end());
-        std::list<std::string> vo = sattr->getAll("VO");
-        job_.localvo.insert(job_.localvo.end(),vo.begin(),vo.end());
-      };
-    };
-  };
-  // If no authorized VOMS was identified just report those from credentials (TLS source)
+  // Report VOMS information from credentials (TLS source)
   if(job_.voms.empty()) {
     for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
       if(*a) {

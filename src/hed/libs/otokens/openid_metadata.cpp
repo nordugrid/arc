@@ -316,8 +316,14 @@ namespace Arc {
     return false;
   }
 
+  static URL url_no_cred(char const * url_str) {
+    URL url(url_str);
+    url.AddOption("tlscred=none");
+    return url;
+  }
+
   OpenIDMetadataFetcher::OpenIDMetadataFetcher(char const * issuer_url):
-       url_(issuer_url?URL(issuer_url):URL()), client_(Arc::MCCConfig(), url_) {
+       url_(issuer_url?url_no_cred(issuer_url):URL()), client_(Arc::MCCConfig(), url_) {
   }
 
   bool OpenIDMetadataFetcher::Fetch(OpenIDMetadata& metadata) {
@@ -340,7 +346,7 @@ namespace Arc {
 
 
   OpenIDTokenFetcher::OpenIDTokenFetcher(char const * token_endpoint, char const * id, char const * secret):
-       url_(token_endpoint?URL(token_endpoint):URL()), client_(Arc::MCCConfig(), url_),
+       url_(token_endpoint?url_no_cred(token_endpoint):URL()), client_(Arc::MCCConfig(), url_),
        client_id_(id?id:""), client_secret_(secret?secret:"") {
   }
 
