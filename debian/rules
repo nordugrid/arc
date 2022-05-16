@@ -54,8 +54,22 @@ else
 SYSDNOENBL =
 endif
 
+ifeq ($(PYVER),3)
+TWISTVER = $(shell dpkg-query -W -f '$${Version}' python3-twisted)
+else
+TWISTVER = $(shell dpkg-query -W -f '$${Version}' python-twisted)
+endif
+
+ifeq ($(shell dpkg --compare-versions $(TWISTVER) ge 22 && echo 1),1)
+ACIX = no
+NA = -Nnordugrid-arc-acix-core -Nnordugrid-arc-acix-scanner -Nnordugrid-arc-acix-index
+else
+ACIX = yes
+NA =
+endif
+
 %:
-	dh $@ --with autoreconf $(WSD) --with python$(PYVER) $(P) $(N)
+	dh $@ --with autoreconf $(WSD) --with python$(PYVER) $(P) $(N) $(NA)
 
 override_dh_auto_configure:
 	if [ ! -f po/POTFILES.in.save ] ; then \
@@ -68,6 +82,7 @@ override_dh_auto_configure:
 		    --libdir=/usr/lib \
 		    --libexecdir=/usr/lib \
 		    --docdir=/usr/share/doc/nordugrid-arc \
+		    --enable-acix=$(ACIX) \
 		    --enable-internal \
 		    --enable-systemd=$(SYSTEMD) \
 		    --with-systemd-units-location=/lib/systemd/system \
@@ -150,10 +165,12 @@ override_dh_auto_install:
 	   debian/nordugrid-arc-gridftpd.arc-gridftpd.init
 	mv debian/tmp/etc/init.d/arc-infosys-ldap \
 	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.init
+	if [ $(ACIX) = "yes" ] ; then \
 	mv debian/tmp/etc/init.d/arc-acix-scanner \
-	   debian/nordugrid-arc-acix-scanner.arc-acix-scanner.init
+	   debian/nordugrid-arc-acix-scanner.arc-acix-scanner.init ; \
 	mv debian/tmp/etc/init.d/arc-acix-index \
-	   debian/nordugrid-arc-acix-index.arc-acix-index.init
+	   debian/nordugrid-arc-acix-index.arc-acix-index.init ; \
+	fi
 
 	mv debian/tmp/lib/systemd/system/arc-arex.service \
 	   debian/nordugrid-arc-arex.arc-arex.service
@@ -169,10 +186,12 @@ override_dh_auto_install:
 	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.service
 	mv debian/tmp/lib/systemd/system/arc-infosys-ldap-slapd.service \
 	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap-slapd.service
+	if [ $(ACIX) = "yes" ] ; then \
 	mv debian/tmp/lib/systemd/system/arc-acix-scanner.service \
-	   debian/nordugrid-arc-acix-scanner.arc-acix-scanner.service
+	   debian/nordugrid-arc-acix-scanner.arc-acix-scanner.service ; \
 	mv debian/tmp/lib/systemd/system/arc-acix-index.service \
-	   debian/nordugrid-arc-acix-index.arc-acix-index.service
+	   debian/nordugrid-arc-acix-index.arc-acix-index.service ; \
+	fi
 
 	chmod 4755 debian/tmp/usr/bin/arc-job-cgroup
 
@@ -220,17 +239,22 @@ override_dh_systemd_start:
 override_dh_fixperms:
 	dh_fixperms -X /usr/bin/arc-job-cgroup
 
+override_dh_compress:
+	dh_compress -X arc.conf.reference -X arc.conf.DELETED
+
 ifeq ($(PYVER),2)
 override_dh_python2:
 	dh_python2
 
 	echo "pydeps:Depends=python-ldap, python-isodate" \
 		>> debian/nordugrid-arc-arex.substvars
-	echo "pydeps:Depends=python-dns" \
+	echo "pydeps:Depends=python-dnspython" \
 		>> debian/nordugrid-arc-community-rtes.substvars
+	if [ $(ACIX) = "yes" ] ; then \
 	echo "pydeps:Depends=python-twisted, python-openssl" \
-		>> debian/nordugrid-arc-acix-core.substvars
-	echo "pydeps:Depends=python-ldap, python-dns" \
+		>> debian/nordugrid-arc-acix-core.substvars ; \
+	fi
+	echo "pydeps:Depends=python-ldap, python-dnspython" \
 		>> debian/nordugrid-arc-archery-manage.substvars
 	echo "pydeps:Depends=python-nordugrid-arc (= \$${binary:Version})" \
 		>> debian/nordugrid-arc-plugins-python.substvars
@@ -244,11 +268,13 @@ override_dh_python3:
 
 	echo "pydeps:Depends=python3-ldap, python3-isodate" \
 		>> debian/nordugrid-arc-arex.substvars
-	echo "pydeps:Depends=python3-dns" \
+	echo "pydeps:Depends=python3-dnspython" \
 		>> debian/nordugrid-arc-community-rtes.substvars
+	if [ $(ACIX) = "yes" ] ; then \
 	echo "pydeps:Depends=python3-twisted, python3-openssl" \
-		>> debian/nordugrid-arc-acix-core.substvars
-	echo "pydeps:Depends=python3-ldap, python3-dns" \
+		>> debian/nordugrid-arc-acix-core.substvars ; \
+	fi
+	echo "pydeps:Depends=python3-ldap, python3-dnspython" \
 		>> debian/nordugrid-arc-archery-manage.substvars
 	echo "pydeps:Depends=python3-nordugrid-arc (= \$${binary:Version})" \
 		>> debian/nordugrid-arc-plugins-python.substvars

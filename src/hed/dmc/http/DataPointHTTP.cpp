@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <map>
 
+#include <arc/CheckSum.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>
@@ -442,10 +443,21 @@ using namespace Arc;
         XMLNode displayname = prop["displayname"];
         XMLNode getcontentlength = prop["getcontentlength"];
         XMLNode resourcetype = prop["resourcetype"];
+        XMLNode iscollection = prop["iscollection"];
         XMLNode getlastmodified = prop["getlastmodified"];
+        XMLNode Checksums = prop["Checksums"];
+        XMLNode sumtype = prop["sumtype"];
+        XMLNode sumvalue = prop["sumvalue"];
         // Fetch known metadata
         if((bool)resourcetype) {
           if((bool)resourcetype["collection"]) {
+            file.SetType(FileInfo::file_type_dir);
+          } else {
+            file.SetType(FileInfo::file_type_file);
+          }
+        } else if ((bool)iscollection) {
+          if ((std::string)iscollection == "TRUE" ||
+              (std::string)iscollection == "1") {
             file.SetType(FileInfo::file_type_dir);
           } else {
             file.SetType(FileInfo::file_type_file);
@@ -463,6 +475,18 @@ using namespace Arc;
             file.SetModified(tm);
           }
         }
+        if((bool)Checksums) {
+          std::string csum = (std::string)Checksums;
+          csum.replace(csum.find('='), 1, ":");
+          file.SetCheckSum(csum);
+        } else if ((bool)sumtype && !((std::string)sumtype).empty() &&
+                   (bool)sumvalue && !((std::string)sumvalue).empty()) {
+          if ((std::string)sumtype == "AD") {
+            file.SetCheckSum("adler32:"+(std::string)sumvalue);
+          } else {
+            file.SetCheckSum((std::string)sumtype+":"+(std::string)sumvalue);
+          }
+        }
         found = true;
       }
     }
@@ -475,14 +499,22 @@ using namespace Arc;
   DataStatus DataPointHTTP::do_stat_webdav(URL& rurl, FileInfo& file) {
     PayloadRaw request;
     {
-      NS webdav_ns("d","DAV:");
+      std::map<std::string, std::string> ns;
+      ns.insert(std::pair<std::string, std::string>("d", "DAV:"));
+      ns.insert(std::pair<std::string, std::string>("ns1", "http://www.dcache.org/2013/webdav"));
+      ns.insert(std::pair<std::string, std::string>("lp3", "LCGDM:"));
+      NS webdav_ns(ns);
       XMLNode propfind(webdav_ns,"d:propfind");
       XMLNode props = propfind.NewChild("d:prop");
       props.NewChild("d:creationdate");
       props.NewChild("d:displayname");
       props.NewChild("d:getcontentlength");
       props.NewChild("d:resourcetype");
+      props.NewChild("d:iscollection");
       props.NewChild("d:getlastmodified");
+      props.NewChild("ns1:Checksums");
+      props.NewChild("lp3:sumtype");
+      props.NewChild("lp3:sumvalue");
       std::string s; propfind.GetDoc(s);
       request.Insert(s.c_str(),0,s.length());
     }
@@ -555,7 +587,11 @@ using namespace Arc;
   DataStatus DataPointHTTP::do_list_webdav(URL& rurl, std::list<FileInfo>& files, DataPointInfoType verb) {
     PayloadRaw request;
     {
-      NS webdav_ns("d","DAV:");
+      std::map<std::string, std::string> ns;
+      ns.insert(std::pair<std::string, std::string>("d", "DAV:"));
+      ns.insert(std::pair<std::string, std::string>("ns1", "http://www.dcache.org/2013/webdav"));
+      ns.insert(std::pair<std::string, std::string>("lp3", "LCGDM:"));
+      NS webdav_ns(ns);
       XMLNode propfind(webdav_ns,"d:propfind");
       XMLNode props = propfind.NewChild("d:prop");
       // TODO: verb
@@ -563,7 +599,11 @@ using namespace Arc;
       props.NewChild("d:displayname");
       props.NewChild("d:getcontentlength");
       props.NewChild("d:resourcetype");
+      props.NewChild("d:iscollection");
       props.NewChild("d:getlastmodified");
+      props.NewChild("ns1:Checksums");
+      props.NewChild("lp3:sumtype");
+      props.NewChild("lp3:sumvalue");
       std::string s; propfind.GetDoc(s);
       request.Insert(s.c_str(),0,s.length());
     }
@@ -675,6 +715,10 @@ using namespace Arc;
     if(file.CheckModified()) {
       modified = file.GetModified();
       logger.msg(VERBOSE, "Stat: obtained modification time %s", modified.str());
+    }
+    if(file.CheckCheckSum()) {
+      checksum = file.GetCheckSum();
+      logger.msg(VERBOSE, "Stat: obtained checksum %s", checksum);
     }
     return DataStatus::Success;
   }
@@ -873,6 +917,37 @@ using namespace Arc;
       buffer = NULL;
       return DataStatus::WriteError;
     }
+    // checksum verification
+    const CheckSum * calc_sum = buffer->checksum_object();
+    if (!buffer->error() && calc_sum && *calc_sum && buffer->checksum_valid()) {
+      char buf[100];
+      calc_sum->print(buf,100);
+      std::string csum(buf);
+      if (csum.find(':') != std::string::npos && csum.substr(0, csum.find(':')) == DefaultCheckSum()) {
+        logger.msg(VERBOSE, "StopWriting: Calculated checksum %s", csum);
+        if (additional_checks) {
+          // list checksum and compare
+          // note: not all implementations support checksum
+          logger.msg(DEBUG, "StopWriting: "
+                            "looking for checksum of %s", url.plainstr());
+          FileInfo file;
+          DataStatus r = Stat(file, DataPoint::INFO_TYPE_CKSUM);
+          if (!r) {
+            logger.msg(INFO, "Could not find checksum: %s", std::string(r));
+          } else if (!CheckCheckSum()) {
+            logger.msg(INFO, "Checksum of %s is not available", url.plainstr());
+          } else if (csum.substr(csum.find(':')) != checksum.substr(checksum.find(':'))) {
+            logger.msg(INFO, "Checksum type returned by server is different to requested type, cannot compare");
+          } else if (csum == checksum) {
+            logger.msg(INFO, "Calculated checksum %s matches checksum reported by server", csum);
+          } else {
+            logger.msg(ERROR, "Checksum mismatch between calculated checksum %s and checksum reported by server %s",
+                       csum, checksum);
+            return DataStatus(DataStatus::TransferError, EARCCHECKSUM, "Checksum mismatch between calculated and reported checksums");
+          }
+        }
+      }
+    }
     buffer = NULL;
     return DataStatus::Success;
   }
@@ -994,7 +1069,8 @@ using namespace Arc;
       if((transfer_info.code == 301) || // permanent redirection
          (transfer_info.code == 302) || // temporary redirection
          (transfer_info.code == 303) || // POST to GET redirection
-         (transfer_info.code == 304)) { // redirection to cache
+         (transfer_info.code == 304) || // redirection to cache
+         (transfer_info.code == 307)) { // temporary redirection
         // 305 - redirection to proxy - unhandled
         if (instream) delete instream;
         // Recreate connection now to new URL
@@ -1263,6 +1339,10 @@ using namespace Arc;
     bool expect100 = true;
     for (;;) {
       std::multimap<std::string, std::string> attrs;
+      // Disallow overwrite unless requested
+      if (client_url.Option("overwrite") != "yes") {
+        attrs.insert(std::pair<std::string, std::string>("If-None-Match", "*"));
+      }
       if(expect100) {
         attrs.insert(std::pair<std::string, std::string>("EXPECT", "100-continue"));
         // Note: there will be no 100 in response because it will be processed
@@ -1312,6 +1392,29 @@ using namespace Arc;
         // Retry without expect: 100 - probably old server
         expect100 = false;
         continue;
+      }
+      // Non-existing parent directories should be reported as 409 but
+      // sometimes 404 is returned
+      if ((transfer_info.code == 404) ||
+          (transfer_info.code == 409)) {
+        logger.msg(VERBOSE, "Failed to create %s, trying to create parent directories", client_url.plainstr());
+        std::string original_path(client_url.Path());
+        point.url.ChangePath(std::string(Glib::path_get_dirname(client_url.Path())+"/"));
+        DataStatus r = point.CreateDirectory(true);
+        point.url.ChangePath(original_path);
+        point.release_client(client_url,client.Release());
+        if (!r) {
+          point.failure_code = DataStatus(DataStatus::WriteError, "Failed to write or create parent dirs for "+client_url.fullstr());
+          return false;
+        }
+        client = point.acquire_client(client_url);
+        continue;
+      }
+      if (transfer_info.code == 412) {
+        // File already exists
+        point.release_client(client_url,client.Release());
+        point.failure_code = DataStatus(DataStatus::WriteError, EEXIST, "File exists");
+        return false;
       }
       // RFC2616 says "Many older HTTP/1.0 and HTTP/1.1 applications do not
       // understand the Expect header". But this is not currently treated very well.
@@ -1468,6 +1571,59 @@ using namespace Arc;
     point.transfer_lock.unlock();
   }
 
+  DataStatus DataPointHTTP::makedir(const URL& dir) {
+    AutoPointer<ClientHTTP> client(acquire_client(dir));
+    if (!client) return DataStatus::CreateDirectoryError;
+    PayloadMemConst request(NULL, 0, 0, 0);
+    PayloadRawInterface *response = NULL;
+    HTTPClientInfo info;
+    MCC_Status r = client->process("MKCOL", dir.Path(), &request, &info, &response);
+    if (response) delete response;
+    response = NULL;
+    if (!r) {
+      return DataStatus(DataStatus::CreateDirectoryError, r.getExplanation());
+    }
+    if ((info.code != 201) &&
+        (info.code != 200) &&
+        (info.code != 204)) {
+      logger.msg(VERBOSE, "Error creating directory: %s", info.reason);
+      return DataStatus(DataStatus::CreateDirectoryError, http2errno(info.code), info.reason);
+    }
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointHTTP::CreateDirectory(bool with_parents) {
+
+    if (!with_parents) {
+      logger.msg(VERBOSE, "Creating directory %s", url.plainstr());
+      return makedir(url);
+    }
+
+    std::string::size_type slashpos = url.Path().find("/", 1); // don't create root dir
+    URL dir(url);
+
+    while (slashpos != std::string::npos) {
+      dir.ChangePath(url.Path().substr(0, slashpos));
+      // stat dir to see if it exists
+      FileInfo finfo;
+      DataStatus r = do_stat_http(dir, finfo);
+      if (r) {
+        slashpos = url.Path().find("/", slashpos + 1);
+        continue;
+      }
+
+      // Assume failure means dir doesn't exist, so try to create it
+      logger.msg(VERBOSE, "Creating directory %s", dir.plainstr());
+      r = makedir(dir);
+      slashpos = url.Path().find("/", slashpos + 1);
+      if (!r && slashpos == std::string::npos) {
+        // Only return error if failing to create the final dir
+        return r;
+      }
+    }
+    return DataStatus::Success;
+  }
+
   bool DataPointHTTP::SetURL(const URL& url) {
     if(url.Protocol() != this->url.Protocol()) return false;
     if(url.Host() != this->url.Host()) return false;
@@ -1475,6 +1631,14 @@ using namespace Arc;
     this->url = url;
     if(triesleft < 1) triesleft = 1;
     ResetMeta();
+    return true;
+  }
+
+  const std::string DataPointHTTP::DefaultCheckSum() const {
+    return std::string("adler32");
+  }
+
+  bool DataPointHTTP::ProvidesMeta() const {
     return true;
   }
 

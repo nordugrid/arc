@@ -383,22 +383,19 @@ namespace DataStaging {
       }
     }
     // Normal workflow is PRE_CLEAN state
-    // Delete destination if requested in URL options and not replication
-    if (!request->is_replication() &&
-        (request->get_destination()->GetURL().Option("overwrite") == "yes" ||
-         request->get_destination()->CurrentLocation().Option("overwrite") == "yes")) {
-      request->get_logger()->msg(Arc::VERBOSE, "Overwrite requested - will pre-clean destination");
-      request->set_status(DTRStatus::PRE_CLEAN);
-    } else {
-      request->get_logger()->msg(Arc::VERBOSE, "No overwrite requested or allowed, skipping pre-cleaning");
-      request->set_status(DTRStatus::PRE_CLEANED);
-    }
+    request->set_status(DTRStatus::PRE_CLEAN);
   }
 
   void Scheduler::ProcessDTRPRE_CLEANED(DTR_ptr request){
-    // If an error occurred in pre-cleaning, try to copy anyway
-    if (request->error())
+    if (request->error()) {
+      if (request->get_error_status() == DTRErrorStatus::PERMANENT_REMOTE_ERROR) {
+        request->get_logger()->msg(Arc::INFO, "Pre-clean failed");
+        request->set_status(DTRStatus::CACHE_PROCESSED); // Remote destinations can't be cached
+        return;
+      }
+      // If an error occurred cleaning a local file, try to copy anyway
       request->get_logger()->msg(Arc::INFO, "Pre-clean failed, will still try to copy");
+    }
     request->reset_error_status();
     if (request->get_source()->IsStageable() || request->get_destination()->IsStageable()) {
       // Normal workflow is STAGE_PREPARE
