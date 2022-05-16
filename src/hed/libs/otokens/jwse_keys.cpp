@@ -66,6 +66,11 @@ void RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e, const BIGNUM
   if(d) *d = r->d;
 }
 
+int EVP_PKEY_up_ref(EVP_PKEY *r) {
+    int i = CRYPTO_add(&r->references, 1, CRYPTO_LOCK_EVP_PKEY);
+    return ((i > 1) ? 1 : 0);
+}
+
 #endif
 
 
