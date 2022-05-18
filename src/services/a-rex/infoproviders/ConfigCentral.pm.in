@@ -744,16 +744,19 @@ sub build_config_from_json {
         move_keys $cluster, $config->{lrms}, [keys %$lrms_options, keys %$lrms_share_options];
     }
 
-    ## use hostname as cluster name if not defined
+    ## use hostname as cluster alias if not defined
     my $hostname = $config->{hostname};
-    {  
-        my @dns = split /\./, $hostname;
-        my $shorthost = shift @dns;
-        my $dnsdomain = join ".", @dns;
+     
+    my @dns = split /\./, $hostname;
+    my $shorthost = shift @dns;
+    my $dnsdomain = join ".", @dns;
         
-        $log->info("[infosys/cluster] alias= in arc.conf missing. Defaulting to $shorthost") unless $config->{service}{ClusterAlias};
+    unless (defined $config->{service}{ClusterAlias}) {
+        $log->info("[infosys/cluster] alias= in arc.conf missing. Defaulting to $shorthost");
         chomp ($config->{service}{ClusterAlias} ||= $shorthost);
     }
+    ## use cluster alias as cluster name. Currently we have no way to specify cluster name directly.
+    $config->{service}{ClusterName} = $config->{service}{ClusterAlias};
 
     # remove useless objects if not set
     delete $config->{location} unless $config->{location} and %{$config->{location}};
