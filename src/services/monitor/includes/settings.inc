@@ -108,6 +108,7 @@ if ( !defined("GOBJ_AJOB") ) define("GOBJ_AJOB",IS_PREFXG."ComputingActivity");
 if ( !defined("GOBJ_LOC") ) define("GOBJ_LOC",IS_PREFXG."Location");
 if ( !defined("GOBJ_MAN") ) define("GOBJ_MAN",IS_PREFXG."Manager");
 if ( !defined("GOBJ_CON") ) define("GOBJ_CON",IS_PREFXG."Contact");
+if ( !defined("GOBJ_CON") ) define("GOBJ_ADMD",IS_PREFXG."AdminDomain");
 
 if ( !defined("OBJ_PERS") ) define("OBJ_PERS","organizationalPerson");
 if ( !defined("OBJ_RCOL") ) define("OBJ_RCOL","GlobusReplicaLogicalCollection");  /* RC Logical Collection object */

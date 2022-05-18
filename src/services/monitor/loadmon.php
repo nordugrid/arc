@@ -134,12 +134,12 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
   if($debug) dbgmsg("<div align=\"left\"><i>:::&gt; ".$errors["101"].$tlim.$errors["102"].$tout.$errors["103"]." &lt;:::</i></div>");
   
   // ldapsearch filter string for clusters and queues
-  $filter="(|(objectClass=".OBJ_CLUS.")(objectClass=".OBJ_QUEU.")(objectclass=".GOBJ_CLUS.")(objectclass=".GOBJ_QUEU.")(objectClass=".GOBJ_MAN.")(objectClass=".GOBJ_LOC."))";
+  $filter="(|(objectClass=".OBJ_CLUS.")(objectClass=".OBJ_QUEU.")(objectclass=".GOBJ_CLUS.")(objectclass=".GOBJ_QUEU.")(objectClass=".GOBJ_MAN.")(objectClass=".GOBJ_LOC.")(objectClass=".GOBJ_CON.")(objectClass=".GOBJ_ADMD."))";
 
   // Array defining the attributes to be returned
   $lim  = array( "dn",
-                 GCLU_ANAM, GCLU_ZIPC, GCLU_TCPU, GCLU_UCPU, GCLU_TJOB, GCLU_QJOB, GCLU_PQUE,
-                 GQUE_STAT, GQUE_GQUE, GQUE_QUED, GQUE_LQUE, GQUE_PQUE, GQUE_RUNG, GQUE_GRUN,
+                 GCLU_ANAM, GCLU_ZIPC, GCLU_TCPU, GCLU_UCPU, GCLU_TJOB, GCLU_PQUE, GCLU_SUPP, GCLU_OWNR
+                 GQUE_STAT, GQUE_GQUE, GQUE_LQUE, GQUE_PQUE, GQUE_RUNG, GQUE_LRUN,
 		 CLU_ANAM, CLU_ZIPC, CLU_TCPU, CLU_UCPU, CLU_TJOB, CLU_QJOB, CLU_PQUE,
 		 QUE_STAT, QUE_GQUE, QUE_QUED, QUE_LQUE, QUE_PQUE, QUE_RUNG, QUE_GRUN );
   
@@ -320,6 +320,9 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
 	    if (file_exists("cnvalias.inc")) include('cnvalias.inc');
 	    $curalias = strip_tags($curalias);
             //TODO: if alias empty, use endpoint FQDN (from endpointArray maybe?)
+            if ( empty($curalias) ) {
+                $curalias = "Undefined. FQDN is ".$curname;
+            }
 	    if ( strlen($curalias) > 22 ) $curalias = substr($curalias,0,21) . ">";
 	    
             // TODO: probably remove QJOB, GLUE2 does not support it
@@ -372,7 +375,7 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
             if (!in_array($country_content,$rowcont)){
                 $rowcont[] = $country_content;
             }
-          }
+          } //TODO: Add Contact and AdminDomain objects
         // TODO: I think this below should be basedn otherwise this chunk is run even for GLUE2 overriding all the changes made above... the if tree must be revised. I think there is a lot of overdoing here.
 	} elseif ($allbasedn == DN_LOCAL) {
 	  // check if it is a site or a job; count
