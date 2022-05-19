@@ -130,7 +130,7 @@ public:
     CO_SYNC,
     CO_INFO,
     CO_ACL
- };
+  };
 
   ClientOptions(Client_t c,
                 const std::string& arguments = "",
@@ -168,6 +168,7 @@ public:
   bool list_configured_services;
   bool direct_submission;
   bool show_unavailable;
+  bool no_delegation;
 
   int testjobid;
   int runtime;

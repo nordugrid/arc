@@ -153,6 +153,11 @@ namespace Arc {
     return true;
   }
 
+  static bool urlisinsecure(Arc::URL const & url) {
+    std::string protocol = url.Protocol();
+    return protocol.empty() || (protocol == "http") || (protocol == "ftp") || (protocol == "ldap");
+  }
+
   SubmissionStatus SubmitterPluginREST::SubmitInternal(const std::list<JobDescription>& jobdescs,
                                            const ExecutionTarget* et, const std::string& endpoint,
                          EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
@@ -172,15 +177,6 @@ namespace Arc {
     std::string delegationId;
     if(jobdescs.empty()) 
       return retval;
-
-    if(!GetDelegation(*usercfg, delegationUrl, delegationId)) {
-      logger.msg(INFO, "Unable to submit jobs. Failed to delegate credentials.");
-      for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
-        notSubmitted.push_back(&*it);
-      }
-      retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-      return retval;
-    };
 
     std::string fullProduct;
     if(jobdescs.size() > 1) fullProduct = "<ActivityDescriptions>";
@@ -204,12 +200,26 @@ namespace Arc {
         continue;
       }
 
-      if(!AddDelegation(product, delegationId)) {
-        logger.msg(INFO, "Unable to submit job. Failed to assign delegation to job description.");
-        notSubmitted.push_back(&*it);
-        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-        continue;
+      if(delegationId.empty()) {
+        if(!preparedjobdesc.NoDelegation) {
+          if(!GetDelegation(*usercfg, delegationUrl, delegationId)) {
+            logger.msg(INFO, "Unable to submit jobs. Failed to delegate credentials.");
+            notSubmitted.push_back(&*it);
+            retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+            continue;
+          }
+        }
+      }
+
+      if(!delegationId.empty()) {
+        if(!AddDelegation(product, delegationId)) {
+          logger.msg(INFO, "Unable to submit job. Failed to assign delegation to job description.");
+          notSubmitted.push_back(&*it);
+          retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+          continue;
+        };
       };
+
       fullProduct += product;
       preparedjobdescs.push_back(std::make_pair(preparedjobdesc,it));
     };
