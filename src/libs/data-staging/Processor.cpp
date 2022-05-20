@@ -846,6 +846,11 @@ namespace DataStaging {
         Arc::CreateThreadFunction(&DTRReleaseRequest, (void*)arg, &thread_count);
       }; break;
 
+      case DTRStatus::FINALISE_REPLICA: {
+        request->set_status(DTRStatus::FINALISING_REPLICA);
+        Arc::CreateThreadFunction(&DTRFinaliseReplica, (void*)arg, &thread_count);
+      }; break;
+
       case DTRStatus::REGISTER_REPLICA: {
         request->set_status(DTRStatus::REGISTERING_REPLICA);
         Arc::CreateThreadFunction(&DTRRegisterReplica, (void*)arg, &thread_count);
