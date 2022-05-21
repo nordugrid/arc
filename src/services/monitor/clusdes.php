@@ -43,7 +43,10 @@ $errors   = &$toppage->errors;
 // Header table
 
 $toppage->tabletop("","<b>".$toptitle." <i>$host</i></b>");
-  
+
+//TODO add translation string here
+echo "<p><a href=\"#qstable\">[Scroll down to queues/shares table]</a></p>";
+
 // Array defining the attributes to be returned
   
 $qlim = array( QUE_NAME, QUE_QUED, QUE_GQUE, QUE_PQUE, QUE_LQUE, QUE_RUNG, QUE_GRUN, 
@@ -55,11 +58,13 @@ $qfilter = "(objectclass=".OBJ_QUEU.")";
 $dn      = DN_LOCAL;
 if ($schema == "GLUE2") {
     $qlim = array( GQUE_NAME, GQUE_MAPQ, GQUE_STAT, GQUE_RUNG, GQUE_MAXR, GQUE_LQUE, GQUE_LRUN,
-                   GQUE_PQUE, GQUE_QUED, GQUE_MAXQ, GQUE_MINT, GQUE_MAXT );
+                   GQUE_PQUE, GQUE_QUED, GQUE_MAXQ, GQUE_MINT, GQUE_MAXT, GQUE_ENVK );
+    
+    $elim = array( EENV_ID, EENV_LCPU, EENV_PCPU, EENV_TINS );
 
-    // ldapsearch filter strings for cluster and queues
-
+    // ldapsearch filter strings for Shares and ExecutionEnvironments
     $qfilter = "(objectclass=".GOBJ_QUEU.")";
+    $efilter = "(objectclass=".GOBJ_EENV.")";
     $dn      = DN_GLUE;
 }
 
