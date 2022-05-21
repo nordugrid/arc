@@ -219,10 +219,12 @@ if ( !defined("GQUE_PQUE") ) define("GQUE_PQUE",IS_PREFXG."computingshareprelrms
 //This is equivalent to the deprecated -queue-queued, /* deprecated since 0.5.38 */, but exists in GLUE2
 if ( !defined("GQUE_QUED") ) define("GQUE_QUED",IS_PREFXG."computingsharewaitingjobs");
 if ( !defined("GQUE_MAXQ") ) define("GQUE_MAXQ",IS_PREFXG."computingsharemaxtotaljobs");
-// No such thing in GLUE2, maybe maxtotaljobs*maxslotsperjob=1 can be used TODO
+// No such thing in GLUE2, when possible, the related execution environment data should be used.
+// using maxtotaljobs is not correct, clusters have weird stuff in their setup.
 //if ( !defined("GQUE_ASCP") ) define("GQUE_ASCP",IS_PREFXG."-queue-totalcpus");
 if ( !defined("GQUE_MINT") ) define("GQUE_MINT",IS_PREFXG."computingsharemincputime");
 if ( !defined("GQUE_MAXT") ) define("GQUE_MAXT",IS_PREFXG."computingsharemaxcputime");
+if ( !defined("GQUE_ENVK") ) define("GQUE_ENVK",IS_PREFXG."computingshareexecutionenvironmentforeignkey");
 // in ComputingActivity -- these are disabled by default in GLUE2 LDAP.
 if ( !defined("GJOB_GLID") ) define("GJOB_GLID",IS_PREFXG."computingactivityidfromendpoint");
 if ( !defined("GJOB_NAME") ) define("GJOB_NAME",IS_PREFXG."name");
@@ -237,6 +239,11 @@ if ( !defined("GJOB_SUBM") ) define("GJOB_SUBM",IS_PREFXG."computingactivitysubm
 if ( !defined("GJOB_COMP") ) define("GJOB_COMP",IS_PREFXG."computingactivityendtime");
 if ( !defined("GJOB_ERRS") ) define("GJOB_ERRS",IS_PREFXG."computingactivityerror");
 if ( !defined("GJOB_CPUS") ) define("GJOB_CPUS",IS_PREFXG."computingactivityrequestedslots");
+// in ExecutionEnvironment
+if ( !defined("EENV_ID") ) define("EENV_ID",IS_PREFXG."resourceid");
+if ( !defined("EENV_LCPU") ) define("EENV_LCPU",IS_PREFXG."executionenvironmentlogicalcpus");
+if ( !defined("EENV_PCPU") ) define("EENV_PCPU",IS_PREFXG."executionenvironmentphysicalcpus");
+if ( !defined("EENV_TINS") ) define("EENV_TINS",IS_PREFXG."executionenvironmenttotalinstances");
 // UserInfo is not implemented in our GLUE2 and never will. Most likely all this below and the
 // relative code can be removed
 //if ( !defined("GUSR_NAME") ) define("GUSR_NAME",IS_PREFXG."-authuser-name");

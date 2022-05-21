@@ -111,10 +111,35 @@ if ($ds) {
   if ($thisdn != 1 && !$isse) {
     $ts1 = time();
     $qsr = @ldap_search($ds,$dn,$qfilter,$qlim,0,0,$tlim,LDAP_DEREF_NEVER);
+    // Only for GLUE2, search ExecutionEnvironments
+    if ( $dn == DN_GLUE ) $esr = @ldap_search($ds,$dn,$efilter,$elim,0,0,$tlim,LDAP_DEREF_NEVER);
     $ts2 = time(); if($debug) dbgmsg("<br><b>".$errors["110"]." (".($ts2-$ts1).$errors["104"].")</b><br>");
     // Fall back to conventional LDAP
     //      if (!$qsr) $qsr = @ldap_search($ds,$dn,$qfilter,$qlim,0,0,$tlim,LDAP_DEREF_NEVER);
   }
+  
+  // only for GLUE2, store executionenvironments in $envs for later use
+  if (($dn == DN_GLUE ) && ($esr) ) {
+    $nematch = @ldap_count_entries($ds,$esr);
+    if ($nematch > 0) {
+       $envs = array();  
+      // TODO: If there are valid entries, save them in an array for later use, reorder with ID as primary key
+      $eentries = @ldap_get_entries($ds,$esr);
+      $nenvs  = $eentries["count"];
+      for ($k=0; $k<$nenvs+1; $k++) {
+          $envs[$eentries[$k][EENV_ID][0]] = array(
+            EENV_LCPU => $eentries[$k][EENV_LCPU][0],
+            EENV_PCPU => $eentries[$k][EENV_PCPU][0],
+            EENV_TINS => $eentries[$k][EENV_TINS][0]
+          );
+      }
+    } else {
+        // TODO: add error strings to errors file, for translation
+        //if($debug) dbgmsg("<br><b>".$errors["TODO-ERR1"]."</b><br>");
+        if($debug) dbgmsg("<br><b> No ExecutionEnvironments found</b><br>");
+    }
+  }
+   
   if ($qsr) {
        
     // If search returned, check that there are valid entries
@@ -126,15 +151,27 @@ if ($ds) {
          
       $qentries = @ldap_get_entries($ds,$qsr);
       $nqueues  = $qentries["count"];
-        
+      
+      
       // HTML table initialisation
-         
+      echo "<a id=\"qstable\"></a>";
       $qtable = new LmTableSp($module,$toppage->$module,$schema);
         
       // loop on the rest of attributes
 
-      define("CMPKEY",QUE_MAXT);
-      usort($qentries,"quetcmp");
+      // some sorting, diversified depending on schema
+      if ($dn == DN_LOCAL) {
+          define("CMPKEY",QUE_MAXT);
+          usort($qentries,"quetcmp");
+      } elseif ($dn == DN_GLUE) {
+          // suprisingly, sorting buy dn did the trick for queues...
+          usort($qentries,"dncmp");
+      } else {
+        // TODO: add error strings to errors file, for translation
+        //if($debug) dbgmsg("<br><b>".$errors["TODO-ERR2"]."</b><br>");
+        if($debug) dbgmsg("<br><b>Sorting of queues/shares failed</b><br>");
+      }
+      
       for ($k=1; $k<$nqueues+1; $k++) {
         if ( $dn == DN_LOCAL ) {
 	    $qname   =  $qentries[$k][QUE_NAME][0];
@@ -169,8 +206,15 @@ if ($ds) {
             // Limits
             $cpumin  = @($qentries[$k][GQUE_MINT][0]) ? $qentries[$k][GQUE_MINT][0] : "0";
             $cpumax  = @($qentries[$k][GQUE_MAXT][0]) ? $qentries[$k][GQUE_MAXT][0] : "&gt;";
-            $cpu     = @($qentries[$k][GQUE_MAXR][0]) ? $qentries[$k][GQUE_MAXR][0] : "N/A";
-            
+            // related execenv
+            $qenvkey = @($qentries[$k][GQUE_ENVK][0]) ? $qentries[$k][GQUE_ENVK][0] : "";
+
+            // use ExecutionEnvironment TotalInstances, LogicalCPUs when available to calculate cpus
+            // use mapping between queues and execenvs
+            $env = $envs[$qenvkey];
+            $cpu = $env[EENV_LCPU] * $env[EENV_TINS];
+            if (!$cpu) $cpu = "N/A";
+                
             // This below TODO
             $quewin  = popup("quelist.php?host=$host&port=$port&qname=$qname&schema=$schema",750,430,6,$lang,$debug);
         }
