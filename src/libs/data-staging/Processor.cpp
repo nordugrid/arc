@@ -650,7 +650,8 @@ namespace DataStaging {
 
     if (request->get_source()->IsIndex()) {
       request->get_logger()->msg(Arc::VERBOSE, "Finalising current replica %s", request->get_source()->CurrentLocation().str());
-      //request->get_source()->Finalise(request->get_error_status().GetDesc());
+      request->get_source()->Finalise(request->get_error_status().GetDesc(),
+                                      request->get_credential_info().getDN());
     }
     request->set_status(DTRStatus::REPLICA_FINALISED);
     DTR::push(request, SCHEDULER);

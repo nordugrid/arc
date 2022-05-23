@@ -1,3 +1,5 @@
+#include <arc/ArcVersion.h>
+#include <arc/GUID.h>
 #include <arc/communication/ClientInterface.h>
 #include <arc/message/MCC.h>
 #include <arc/message/PayloadRaw.h>
@@ -111,6 +113,16 @@ namespace ArcDMCRucio {
       rucio_auth_url = "https://voatlasrucio-auth-prod.cern.ch/auth/x509_proxy";
     }
     auth_url = URL(rucio_auth_url);
+
+    // Hostname (for traces)
+    char host[256];
+    if (gethostname(host, sizeof(host)) != 0) {
+      logger.msg(WARNING, "Cannot determine hostname from gethostname()");
+    } else {
+      host[sizeof(host)-1] = 0;
+      hostname = host;
+    }
+
   }
 
   DataPointRucio::~DataPointRucio() {}
@@ -258,6 +270,10 @@ namespace ArcDMCRucio {
     return DataStatus(DataStatus::UnregisterError, ENOTSUP, "Deleting from Rucio is not supported");
   }
 
+  DataStatus DataPointRucio::Finalise(const std::string& error_msg, const std::string& dn) {
+    return sendTrace(error_msg, dn);
+  }
+
   DataStatus DataPointRucio::List(std::list<FileInfo>& files, DataPoint::DataPointInfoType verb) {
     return DataStatus(DataStatus::ListError, ENOTSUP, "Listing in Rucio is not supported");
   }
@@ -369,18 +385,60 @@ namespace ArcDMCRucio {
     return DataStatus::Success;
   }
 
+  DataStatus DataPointRucio::postTraces(const char* data) const {
+
+    MCCConfig cfg;
+    cfg.AddCredential(usercfg.CredentialString());
+    cfg.AddCADir(usercfg.CACertificatesDirectory());
+    // Switch to correct URL
+    URL rucio_url(url);
+    rucio_url.ChangeProtocol(url.Port() == 80 ? "http" : "https");
+    if (rucio_url.Port() == -1) {
+      rucio_url.ChangePort(url.Protocol() == "http" ? 80 : 443);
+    }
+    rucio_url.ChangePath("/traces/");
+    ClientHTTP client(cfg, rucio_url, usercfg.Timeout());
+
+    std::multimap<std::string, std::string> attrmap;
+    std::string method("POST");
+    attrmap.insert(std::pair<std::string, std::string>("Content-type", "application/json"));
+    ClientHTTPAttributes attrs(method, rucio_url.Path(), attrmap);
+
+    HTTPClientInfo transfer_info;
+    PayloadRaw request;
+    request.Insert(data);
+    PayloadRawInterface *response = NULL;
+
+    MCC_Status r = client.process(attrs, &request, &transfer_info, &response);
+
+    delete response; response = NULL;
+    if (!r) {
+      return DataStatus(DataStatus::GenericError, "Failed to contact server: " + r.getExplanation());
+    }
+    if (transfer_info.code != 200 && transfer_info.code != 201) {
+      return DataStatus(DataStatus::GenericError,
+                        http2errno(transfer_info.code),
+                        "HTTP error when contacting server: " + transfer_info.reason);
+    }
+    return DataStatus::Success;
+  }
+
   DataStatus DataPointRucio::parseLocations(const std::string& content) {
 
     // parse JSON:
-    // {"adler32": "ffa2c799",
-    //  "name": "EVNT.545023._000082.pool.root.1",
-    //  "replicas": [],
-    //  "rses": {"LRZ-LMU_DATADISK": ["srm://lcg-lrz-srm.grid.lrz.de:8443/srm/managerv2?SFN=/pnfs/lrz-muenchen.de/data/atlas/dq2/atlasdatadisk/rucio/mc11_7TeV/6c/13/EVNT.545023._000082.pool.root.1"],
-    //           "INFN-FRASCATI_DATADISK": ["srm://atlasse.lnf.infn.it:8446/srm/managerv2?SFN=/dpm/lnf.infn.it/home/atlas/atlasdatadisk/rucio/mc11_7TeV/6c/13/EVNT.545023._000082.pool.root.1"],
-    //           "TAIWAN-LCG2_DATADISK": ["srm://f-dpm001.grid.sinica.edu.tw:8446/srm/managerv2?SFN=/dpm/grid.sinica.edu.tw/home/atlas/atlasdatadisk/rucio/mc11_7TeV/6c/13/EVNT.545023._000082.pool.root.1"]},
-    //  "bytes": 69234676,
-    //  "space_token": "ATLASDATADISK",
-    //  "scope": "mc11_7TeV",
+    // {"adler32": "e2e05678",
+    //  "name": "TXT.11804243._000002.tar.gz.1",
+    //  "pfns": {"root://lapp-se01.in2p3.fr:1094//dpm/in2p3.fr/home/atlas/atlasdatadisk/rucio/mc15_13TeV/33/ce/TXT.11804243._000002.tar.gz.1":
+    //            {"rse_id": "8ccb5ac1405f4ce1b9449b7dc686b544",
+    //             "rse": "IN2P3-LAPP_DATADISK",
+    //             "type": "DISK",
+    //             "volatile": false,
+    //             "domain": "wan",
+    //             "priority": 1,
+    //             "client_extract": false},
+    //            ... },
+    //  "bytes": 162088,
+    //  "scope": "mc15_13TeV",
     //  "md5": null}
 
     if (content.empty()) {
@@ -438,6 +496,12 @@ namespace ArcDMCRucio {
                opt != url.Options().end(); opt++)
             loc.AddOption(opt->first, opt->second, false);
           AddLocation(loc, loc.ConnectionURL());
+          cJSON *rse = cJSON_GetObjectItem(pfn, "rse");
+          if (!rse || rse->type != cJSON_String || !rse->valuestring) {
+            logger.msg(WARNING, "Error extracting RSE for %s", loc.str());
+          } else {
+            rse_map.insert(std::pair<std::string, std::string>(loc.str(), rse->valuestring));
+          }
         }
       }
       pfn = pfn->next;
@@ -462,6 +526,86 @@ namespace ArcDMCRucio {
       logger.msg(ERROR, "No locations found for %s", url.str());
       return DataStatus(DataStatus::ReadResolveError, ENOENT);
     }
+    return DataStatus::Success;
+  }
+
+  DataStatus DataPointRucio::sendTrace(const std::string& error_msg, const std::string& dn) {
+    // Construct info
+    // UUID
+    std::string uuid = UUID();
+
+    // scope and filename
+    std::list<std::string> scopename;
+    tokenize(url.Path(), scopename, "/");
+    if (scopename.size() < 3) {
+      logger.msg(WARNING, "Strange path in Rucio URL: %s", url.str());
+      return DataStatus(DataStatus::GenericError, "Strange path in Rucio URL");
+    }
+    std::string filename = scopename.back();
+    scopename.pop_back();
+    std::string scope = scopename.back();
+
+    // Filesize
+    unsigned long long filesize(size);
+
+    // Timestamp
+    time_t timeStart(Time().GetTime());
+
+    // User DN
+    std::string usrdn(dn);
+
+    // RSE
+    std::string rse = rse_map[CurrentLocation().str()];
+    if (rse.empty()) {
+      logger.msg(WARNING, "Could not find matching RSE to %s", CurrentLocation().str());
+      return DataStatus(DataStatus::GenericError, "Could not find matching RSE to current location");
+    }
+
+    // Protocol
+    std::string protocol(CurrentLocation().Protocol());
+
+    // Event type - no easy way to split production/analysis
+    std::string eventType("get_sm");
+
+    // Event sender
+    std::string eventVersion(std::string("ARC-") + std::string(ARC_VERSION));
+
+    // State and error message
+    std::string clientState("DONE");
+    std::string stateReason("OK");
+    if (!error_msg.empty()) {
+      clientState = "ServiceUnavailable";
+      stateReason = error_msg;
+    }
+
+    // Construct json
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddStringToObject(root, "type", "rucio-trace");
+    cJSON_AddStringToObject(root, "uuid", uuid.c_str());
+    cJSON_AddStringToObject(root, "scope", scope.c_str());
+    cJSON_AddStringToObject(root, "filename", filename.c_str());
+    cJSON_AddNumberToObject(root, "filesize", filesize);
+    cJSON_AddNumberToObject(root, "timeStart", timeStart);
+    cJSON_AddStringToObject(root, "usrdn", usrdn.c_str());
+    cJSON_AddStringToObject(root, "localSite", rse.c_str());
+    cJSON_AddStringToObject(root, "remoteSite", rse.c_str());
+    cJSON_AddStringToObject(root, "hostname", hostname.c_str());
+    cJSON_AddStringToObject(root, "protocol", protocol.c_str());
+    cJSON_AddStringToObject(root, "eventType", eventType.c_str());
+    cJSON_AddStringToObject(root, "eventVersion", eventVersion.c_str());
+    cJSON_AddStringToObject(root, "clientState", clientState.c_str());
+    cJSON_AddStringToObject(root, "stateReason", stateReason.c_str());
+    char *traces = cJSON_Print(root);
+
+    // Send the trace
+    logger.msg(DEBUG, "Sending Rucio trace: %s", traces);
+    DataStatus res = postTraces(traces);
+    if (!res.Passed()) {
+      logger.msg(WARNING, "Failed to send traces to Rucio: %s", std::string(res));
+    }
+
+    free(traces);
+    cJSON_Delete(root);
     return DataStatus::Success;
   }
 

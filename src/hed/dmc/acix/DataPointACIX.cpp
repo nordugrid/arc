@@ -226,6 +226,10 @@ namespace ArcDMCACIX {
     return DataStatus(DataStatus::UnregisterError, ENOTSUP, "Deleting from ACIX is not supported");
   }
 
+  DataStatus DataPointACIX::Finalise(const std::string& error_msg, const std::string& dn) {
+    return DataStatus::Success;
+  }
+
   DataStatus DataPointACIX::List(std::list<FileInfo>& files, DataPoint::DataPointInfoType verb) {
     return DataStatus(DataStatus::ListError, ENOTSUP, "Listing in ACIX is not supported");
   }

@@ -128,6 +128,11 @@ namespace Arc {
     return DataStatus(DataStatus::NotSupportedForDirectDataPointsError, EOPNOTSUPP);
   }
 
+  DataStatus DataPointDirect::Finalise(const std::string& error_msg,
+                                       const std::string& dn) {
+    return DataStatus(DataStatus::NotSupportedForDirectDataPointsError, EOPNOTSUPP);
+  }
+
   bool DataPointDirect::AcceptsMeta() const {
     return false;
   }
