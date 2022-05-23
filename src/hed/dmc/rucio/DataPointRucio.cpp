@@ -612,6 +612,6 @@ namespace ArcDMCRucio {
 } // namespace ArcDMCRucio
 
 extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {
-  { "rucio", "HED:DMC", "ATLAS Data Management System", 0, &ArcDMCRucio::DataPointRucio::Instance },
+  { "rucio", "HED:DMC", "Rucio Data Management System", 0, &ArcDMCRucio::DataPointRucio::Instance },
   { NULL, NULL, NULL, 0, NULL }
 };

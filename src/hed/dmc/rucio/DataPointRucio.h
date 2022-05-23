@@ -29,7 +29,7 @@ namespace ArcDMCRucio {
   };
 
   /**
-   * Rucio is the ATLAS Data Management System. A file in Rucio is represented
+   * Rucio is a Distributed Data Management System. A file in Rucio is represented
    * by a URL like rucio://rucio.cern.ch/replicas/scope/lfn. Calling GET/POST on
    * this URL with content-type metalink gives a list of physical locations
    * along with some metadata. Only reading from Rucio is currently supported.
