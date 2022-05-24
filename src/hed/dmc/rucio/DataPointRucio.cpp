@@ -1,3 +1,5 @@
+#include <unistd.h>
+
 #include <arc/ArcVersion.h>
 #include <arc/GUID.h>
 #include <arc/communication/ClientInterface.h>
