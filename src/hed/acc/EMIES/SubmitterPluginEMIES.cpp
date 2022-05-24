@@ -67,6 +67,7 @@ namespace Arc {
     URL url((endpoint.find("://") == std::string::npos ? "https://" : "") + endpoint, false, 443, "/arex");
 
     SubmissionStatus retval;
+    bool need_delegation = true; // false - Force delegation always for jobs which use during execution
     std::string delegation_id;
     std::list<bool> have_uploads;
     XMLNodeList products;
@@ -102,11 +103,17 @@ namespace Arc {
 
       have_uploads.push_back(false);
       for(std::list<InputFileType>::const_iterator itIF = itJ->DataStaging.InputFiles.begin();
-          itIF != itJ->DataStaging.InputFiles.end() && (!have_uploads.back()); ++itIF) {
+          itIF != itJ->DataStaging.InputFiles.end() && (!need_delegation || !have_uploads.back()); ++itIF) {
         have_uploads.back() = have_uploads.back() || (!itIF->Sources.empty() && (itIF->Sources.front().Protocol() == "file"));
+        need_delegation     = need_delegation     || (!itIF->Sources.empty() && (itIF->Sources.front().Protocol() != "file"));
+      }
+      for(std::list<OutputFileType>::const_iterator itOF = itJ->DataStaging.OutputFiles.begin();
+          itOF != itJ->DataStaging.OutputFiles.end() && !need_delegation; ++itOF) {
+        need_delegation = !itOF->Targets.empty();
+        need_delegation |= (itOF->Name[0] == '@'); // ARC specific - dynamic list of output files
       }
 
-      if (!preparedjobdesc.NoDelegation && delegation_id.empty()) {
+      if (need_delegation && delegation_id.empty()) {
         // Assume that delegation interface is on same machine as submission interface.
         if (!getDelegationID(url, delegation_id)) {
           notSubmitted.push_back(&*itJ);
@@ -381,10 +388,6 @@ namespace Arc {
     return retval;
   }
 
-  static bool urlisinsecure(Arc::URL const & url) {
-    std::string protocol = url.Protocol();
-    return protocol.empty() || (protocol == "http") || (protocol == "ftp") || (protocol == "ldap");
-  }
 
   bool SubmitterPluginEMIES::submit(const JobDescription& preparedjobdesc, const URL& url, const URL& iurl, URL durl, EMIESJob& jobid) {
 
@@ -406,14 +409,28 @@ namespace Arc {
     }
 
     bool have_uploads = false;
+    bool need_delegation = true; // false - Force delegation always for jobs which use during execution
     for(std::list<InputFileType>::const_iterator itIF =
           preparedjobdesc.DataStaging.InputFiles.begin();
           itIF != preparedjobdesc.DataStaging.InputFiles.end(); ++itIF) {
-      if(have_uploads)  break;
+      if(need_delegation && have_uploads)  break;
       if(!itIF->Sources.empty()) {
         if(itIF->Sources.front().Protocol() == "file") {
           have_uploads = true;
+        } else {
+          need_delegation = true;
         }
+      }
+    }
+    for(std::list<OutputFileType>::const_iterator itOF =
+          preparedjobdesc.DataStaging.OutputFiles.begin();
+          itOF != preparedjobdesc.DataStaging.OutputFiles.end(); ++itOF) {
+      if(need_delegation)  break;
+      if(!itOF->Targets.empty()) {
+        need_delegation = true;
+      } else if(itOF->Name[0] == '@') {
+        // ARC specific - dynamic list of output files
+        need_delegation = true;
       }
     }
 
@@ -428,7 +445,7 @@ namespace Arc {
       flag = "true";
     }
 
-    if(iurl && !durl && !preparedjobdesc.NoDelegation) {
+    if(iurl && !durl && need_delegation) {
       AutoPointer<EMIESClient> ac(clients.acquire(iurl));
       std::list<URL> activitycreation;
       std::list<URL> activitymanagememt;
@@ -447,7 +464,7 @@ namespace Arc {
     }
 
     std::string delegation_id;
-    if(!preparedjobdesc.NoDelegation) {
+    if(need_delegation) {
       if(!getDelegationID(durl, delegation_id)) return false;
     }
 

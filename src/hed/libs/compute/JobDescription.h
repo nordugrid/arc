@@ -846,7 +846,7 @@ namespace Arc {
   class JobDescription {
   public:
     friend class JobDescriptionParserPlugin;
-    JobDescription() : alternatives(), current(alternatives.begin()), NoDelegation(false) {};
+    JobDescription() : alternatives(), current(alternatives.begin()) {};
 
     JobDescription(const JobDescription& j, bool withAlternatives = true);
 
@@ -1040,9 +1040,6 @@ namespace Arc {
      * \mapdefattr OtherAttributes Arc::JobDescription
      **/
     std::map<std::string, std::string> OtherAttributes;
-
-    /// Special purpose attribute. If set to true no delegation should be performed for job.
-    bool NoDelegation;
 
   private:
     bool Prepare(const ExecutionTarget* et);

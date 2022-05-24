@@ -381,7 +381,6 @@ namespace Arc {
     size = other.size;
     eof = other.eof;
     other.data_allocated = false;
-    return *this;
   }
 
   DataExternalComm::DataChunkClient::~DataChunkClient() {

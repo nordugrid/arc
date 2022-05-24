@@ -14,7 +14,6 @@ libarcotokens_la_LIBADD = \
         $(top_builddir)/src/external/cJSON/libcjson.la \
         $(top_builddir)/src/hed/libs/common/libarccommon.la \
         $(top_builddir)/src/hed/libs/message/libarcmessage.la \
-        $(top_builddir)/src/hed/libs/credential/libarccredential.la \
         $(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
         $(top_builddir)/src/hed/libs/communication/libarccommunication.la \
         $(OPENSSL_LIBS) $(GLIBMM_LIBS) $(LIBINTL)
