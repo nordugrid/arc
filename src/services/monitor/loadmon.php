@@ -133,13 +133,17 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
   $tout = 11;
   if($debug) dbgmsg("<div align=\"left\"><i>:::&gt; ".$errors["101"].$tlim.$errors["102"].$tout.$errors["103"]." &lt;:::</i></div>");
   
-  // ldapsearch filter string for clusters and queues
-  $filter="(|(objectClass=".OBJ_CLUS.")(objectClass=".OBJ_QUEU.")(objectclass=".GOBJ_CLUS.")(objectclass=".GOBJ_QUEU.")(objectClass=".GOBJ_MAN.")(objectClass=".GOBJ_LOC.")(objectClass=".GOBJ_CON.")(objectClass=".GOBJ_ADMD."))";
+  // ldapsearch filter different for NG and GLUE2
+  if ( $schema == "NG" ) {
+       $filter="(|(objectClass=".OBJ_CLUS.")(objectClass=".OBJ_QUEU."))";
+  } else {
+       $filter="(|(objectclass=".GOBJ_CLUS.")(objectclass=".GOBJ_QUEU.")(objectClass=".GOBJ_MAN.")(objectClass=".GOBJ_LOC.")(objectClass=".GOBJ_CON.")(objectClass=".GOBJ_ADMD."))";
+  }
 
   // Array defining the attributes to be returned
   $lim  = array( "dn",
                 GCLU_ANAM, GCLU_ZIPC, GCLU_TCPU, GCLU_UCPU, GCLU_TJOB, GCLU_PQUE, GCLU_SUPP, GCLU_OWNR,
-                GQUE_STAT, GQUE_GQUE, GQUE_LQUE, GQUE_PQUE, GQUE_RUNG, GQUE_LRUN,
+                GQUE_NAME, GQUE_MAPQ, GQUE_STAT, GQUE_QUED, GQUE_LQUE, GQUE_PQUE, GQUE_RUNG, GQUE_LRUN,
                 CLU_ANAM, CLU_ZIPC, CLU_TCPU, CLU_UCPU, CLU_TJOB, CLU_QJOB, CLU_PQUE,
                 QUE_STAT, QUE_GQUE, QUE_QUED, QUE_LQUE, QUE_PQUE, QUE_RUNG, QUE_GRUN );
   
@@ -273,11 +277,11 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
     if ($ds && $sr) {
       
       $entries   = @ldap_get_entries($ds,$sr);
-      $nclusters = $entries["count"];      /* Actually, cluster and queue blocks, 2+ */
+      $nobjects = $entries["count"];      /* Number of LDAP objects retrieved for a given cluster */
 
-      if ( !$nclusters ) {
-    if ( $debug ) dbgmsg("<b>$hn</b>:".$errors["3"]."<br>");
-    continue;
+      if ( !$nobjects ) {
+         if ( $debug ) dbgmsg("<b>$hn</b>:".$errors["3"]."<br>");
+         continue;
       }
       
       $nclu = 0;
@@ -295,152 +299,175 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
       
       $stopflag = FALSE;
       
-      for ($i=0; $i<$nclusters; $i++) {
-    $curdn   = $entries[$i]["dn"];
+      for ($i=0; $i<$nobjects; $i++) {
+        
+        $curdn   = $entries[$i]["dn"];
 
         $preflength = strrpos($curdn,","); 
         $basedn  = substr($curdn,$preflength+1);
         $allbasedn  = strtolower(substr($curdn,$preflength-17));
 
-        if ($basedn == DN_GLUE) {
-      // extract objectclass name from DN -- shouldn't this be easier?
+        if ( ($schema == "GLUE2") && ($basedn == DN_GLUE ) ) {
+          // extract objectclass name from DN -- shouldn't this be easier?
           $preflength = strpos($curdn,":");
           $preflength = strpos($curdn,":",$preflength+1);
-      $object  = substr($curdn,$preflength+1,strpos($curdn,":",$preflength+1)-$preflength-1);
-      if ($object=="ComputingService") {
- 
-        $dnparts = ldap_explode_dn($curdn,0);
+          $object  = substr($curdn,$preflength+1,strpos($curdn,":",$preflength+1)-$preflength-1);
+
+          if ($object=="ComputingService") {
+  
+            $dnparts = ldap_explode_dn($curdn,0);
             $endpointArray=explode(":",$dnparts[0]);
 
             $curname = $endpointArray[3];
-        $curport = $pn;
+            $curport = $pn;
       
-        $curalias   = $entries[$i][GCLU_ANAM][0];
+            $curalias   = $entries[$i][GCLU_ANAM][0];
       
-        // Manipulate alias: replace the string if necessary and cut off at 22 characters; strip HTML tags
-        if (file_exists("cnvalias.inc")) include('cnvalias.inc');
-        $curalias = strip_tags($curalias);
-            //TODO: if alias empty, use endpoint FQDN (from endpointArray maybe?)
+            // Manipulate alias: replace the string if necessary and cut off at 22 characters; strip HTML tags
+            if (file_exists("cnvalias.inc")) include('cnvalias.inc');
+            $curalias = strip_tags($curalias);
+            //if alias empty (common in GLUE2 due to no real place for it in the schema), use endpoint FQDN
             if ( empty($curalias) ) {
-                $curalias = "Undefined. FQDN is ".$curname;
+                $curalias = $curname." Undefined)";
             }
-        if ( strlen($curalias) > 22 ) $curalias = substr($curalias,0,21) . ">";
+            if ( strlen($curalias) > 22 ) $curalias = substr($curalias,0,21) . ">";
         
-            // TODO: probably remove QJOB, GLUE2 does not support it
+            // TODO: this must be the sum of all queues allqueued, initializing it here
+            $totqueued = 0;
             //$totqueued  = @($entries[$i][GCLU_QJOB][0]) ? $entries[$i][GCLU_QJOB][0] : 0; /* deprecated since 0.5.38 */
-        $gmqueued   = @($entries[$i][GCLU_PQUE][0]) ? $entries[$i][GCLU_PQUE][0] : 0; /* new since 0.5.38 */
+            $gmqueued   = @($entries[$i][GCLU_PQUE][0]) ? $entries[$i][GCLU_PQUE][0] : 0; /* new since 0.5.38 */
             $curtotjobs = @($entries[$i][GCLU_TJOB][0]) ? $entries[$i][GCLU_TJOB][0] : 0;
             $clstring   = popup("clusdes.php?host=$curname&port=$curport&schema=$schema",700,620,1,$lang,$debug);
-      
-        $nclu++;
-      
-      } elseif ($object=="ComputingManager") {
+
+            $nclu++;
+
+          } elseif ($object=="ComputingManager") {
             $curtotcpu = @($entries[$i][GCLU_TCPU][0]) ? $entries[$i][GCLU_TCPU][0] : 0;
             if ( !$curtotcpu && $debug ) dbgmsg("<font color=\"red\"><b>$curname</b>".$errors["113"]."</font><br>");
             $curusedcpu = @($entries[$i][GCLU_UCPU][0]) ? $entries[$i][GCLU_UCPU][0] : -1; 
 
           } elseif ($object=="ComputingShare") {
+             $shname = $entries[$i][GQUE_NAME][0];
+             $shmapq = $entries[$i][GQUE_MAPQ][0];
+             if ( $shname == $shmapq) {
+               $qstatus     = $entries[$i][GQUE_STAT][0];
+               if ( $qstatus != "production" )  $stopflag = TRUE;
+               $allqrun    += @($entries[$i][GQUE_RUNG][0]) ? ($entries[$i][GQUE_RUNG][0]) : 0;
+               // TODO: there is no gridjobs in GLUE2. Must be calculated as $allqrun-$lrmsrun (and adjusted against negative numbers), the latter has been added in settings.php. Test!
+               //$gridjobs   += @($entries[$i][GQUE_GRUN][0]) ? ($entries[$i][GQUE_GRUN][0]) : 0;
+               $lrmsrun += @($entries[$i][GQUE_LRUN][0]) ? ($entries[$i][GQUE_LRUN][0]) : 0;
+               $gridjobs = $allqrun - $lrmsrun;
+               if ( $gridjobs < 0 )  $gridjobs = 0;
+               $gridqueued += @($entries[$i][GQUE_GQUE][0]) ? ($entries[$i][GQUE_GQUE][0]) : 0;
+               // this below was deprecated in NG but it exists in GLUE2, all queued jobs (grid + local)
+               $allqueued  += @($entries[$i][GQUE_QUED][0]) ? ($entries[$i][GQUE_QUED][0]) : 0; 
+               $lrmsqueued += @($entries[$i][GQUE_LQUE][0]) ? ($entries[$i][GQUE_LQUE][0]) : 0; 
+               $prequeued  += @($entries[$i][GQUE_PQUE][0]) ? ($entries[$i][GQUE_PQUE][0]) : 0; 
       
-        $qstatus     = $entries[$i][GQUE_STAT][0];
-        if ( $qstatus != "production" )  $stopflag = TRUE;
-        $allqrun    += @($entries[$i][GQUE_RUNG][0]) ? ($entries[$i][GQUE_RUNG][0]) : 0;
-            // TODO: there is no gridjobs in GLUE2. Must be calculated as $allqrun-$lrmsrun (and adjusted against negative numbers), the latter has been added in settings.php. Test!
-        //$gridjobs   += @($entries[$i][GQUE_GRUN][0]) ? ($entries[$i][GQUE_GRUN][0]) : 0;
-            $lrmsrun += @($entries[$i][GQUE_LRUN][0]) ? ($entries[$i][GQUE_LRUN][0]) : 0;
-            $gridjobs = $allqrun - $lrmsrun;
-            if ( $gridjobs < 0 )  $gridjobs = 0;
-        $gridqueued += @($entries[$i][GQUE_GQUE][0]) ? ($entries[$i][GQUE_GQUE][0]) : 0;
-            // this below was deprecated in NG and I am not sure we want it back in GLUE2
-        //$allqueued  += @($entries[$i][GQUE_QUED][0]) ? ($entries[$i][GQUE_QUED][0]) : 0; /* deprecated since 0.5.38 */
-        $lrmsqueued += @($entries[$i][GQUE_LQUE][0]) ? ($entries[$i][GQUE_LQUE][0]) : 0; /* new since 0.5.38 */
-        $prequeued  += @($entries[$i][GQUE_PQUE][0]) ? ($entries[$i][GQUE_PQUE][0]) : 0; /* new since 0.5.38 */
-      
-        $nqueues++;
-      
-      } elseif ($object=="Location") {
+              // updating the cluster total queued. This may need cross check as there might be double count!
+               $totqueued += $allqueued;
+
+               $nqueues++;
+
+             };
+     
+          } elseif ($object=="Location") {
+              if ( !empty($entries[$i][GCLU_ZIPC][0]) ) $curzip = $entries[$i][GCLU_ZIPC][0]; 
+          } elseif ( $object == "AdminDomain" ) {
+          } elseif ( $object == "Contact" ) {
+          }; 
+          
+          // This part of the code is for aggregating values from all the above GLUE2 objects
+          if ( ($schema == "GLUE2") && ($basedn == DN_GLUE ) && ($i == ($nclusters-1))) {
+            // Calculate country based on gathered data
+            echo "<p>Entering last bit, curdn: $curdn</p>";
+
             $dnparts = ldap_explode_dn($curdn,0);
             $endpointArray=explode(":",$dnparts[0]);
 
             $curname = $endpointArray[3];
             $curport = $pn;
 
-            // Country name massaging
-            $vo = guess_country($curname,$entries[$i][GCLU_ZIPC][0]);
+            if (!isset($$curzip)) $curzip="";
+
+            $vo = guess_country($curname,$curzip);
             if ($debug==2) dbgmsg("<i>$ids: <b>$curname</b>".$errors["112"]."$vo</i><br>");
             $vostring = $_SERVER['PHP_SELF']."?display=vo=$vo";
-      if ( $lang != "default") $vostring .= "&lang=".$lang;
-      if ( $debug ) $vostring .= "&debug=".$debug;
+            if ( $lang != "default") $vostring .= "&lang=".$lang;
+            if ( $debug ) $vostring .= "&debug=".$debug;
             $country  = $vo;
             if ( $yazyk !== "en" ) $country = $strings["tlconvert"][$vo];
             $country_content = "<a href=\"$vostring\"><img src=\"./mon-icons/$vo.png\" title=\"".$errors["312"]."$country \" alt=\"".$errors["312"]."\" height=\"10\" width=\"16\" border=\"0\">&nbsp;<i><b>".$country."</b></i></a>&nbsp;";
-            if (!in_array($country_content,$rowcont)){
-                $rowcont[] = $country_content;
+            if (!in_array($country_content,$rowcont)) {
+              $rowcont[] = $country_content;
             }
-          } //TODO: Add Contact and AdminDomain objects
-        // TODO: I think this below should be basedn otherwise this chunk is run even for GLUE2 overriding all the changes made above... the if tree must be revised. I think there is a lot of overdoing here.
-    } elseif ($allbasedn == DN_LOCAL) {
-      // check if it is a site or a job; count
-      $preflength = strpos($curdn,"-");
-      $object  = substr($curdn,$preflength+1,strpos($curdn,"-",$preflength+1)-$preflength-1);
-      if ($object=="cluster") {
+            //blank $curzip for the next cluster
+            $curzip="";
+          };
+          
+        } elseif ( ($schema == "NG") && ( $allbasedn == DN_LOCAL) ) {
+          // check if it is a site or a job; count
+          $preflength = strpos($curdn,"-");
+          $object  = substr($curdn,$preflength+1,strpos($curdn,"-",$preflength+1)-$preflength-1);
+          if ($object=="cluster") {
       
-        $dnparts = ldap_explode_dn($curdn,0);
-        $curname = substr(strstr($dnparts[0],"="),1);
-        $curport = $pn;
+            $dnparts = ldap_explode_dn($curdn,0);
+            $curname = substr(strstr($dnparts[0],"="),1);
+            $curport = $pn;
       
-        // Country name massaging
+            // Country name massaging
       
-      $zip = "";
-        if ( !empty($entries[$i][CLU_ZIPC][0]) ) $zip = $entries[$i][CLU_ZIPC][0];
-      $vo = guess_country($curname,$zip);
-        if ($debug==2) dbgmsg("<i>$ids: <b>$curname</b>".$errors["112"]."$vo</i><br>");
-        $vostring = $_SERVER['PHP_SELF']."?display=vo=$vo";
-      if ( $lang != "default") $vostring .= "&lang=".$lang;
-      if ( $debug ) $vostring .= "&debug=".$debug;
-        $country  = $vo;
-        if ( $yazyk !== "en" ) $country = $strings["tlconvert"][$vo];
+            $zip = "";
+            if ( !empty($entries[$i][CLU_ZIPC][0]) ) $zip = $entries[$i][CLU_ZIPC][0];
+            $vo = guess_country($curname,$zip);
+            if ($debug==2) dbgmsg("<i>$ids: <b>$curname</b>".$errors["112"]."$vo</i><br>");
+            $vostring = $_SERVER['PHP_SELF']."?display=vo=$vo";
+            if ( $lang != "default") $vostring .= "&lang=".$lang;
+            if ( $debug ) $vostring .= "&debug=".$debug;
+            $country  = $vo;
+            if ( $yazyk !== "en" ) $country = $strings["tlconvert"][$vo];
       
-        $rowcont[] = "<a href=\"$vostring\"><img src=\"./mon-icons/$vo.png\" title=\"".$errors["312"]."$country \" alt=\"".$errors["312"]."\" height=\"10\" width=\"16\" border=\"0\">&nbsp;<i><b>".$country."</b></i></a>&nbsp;";
+            $rowcont[] = "<a href=\"$vostring\"><img src=\"./mon-icons/$vo.png\" title=\"".$errors["312"]."$country \" alt=\"".$errors["312"]."\" height=\"10\" width=\"16\" border=\"0\">&nbsp;<i><b>".$country."</b></i></a>&nbsp;";
       
-        $curtotcpu = @($entries[$i][CLU_TCPU][0]) ? $entries[$i][CLU_TCPU][0] : 0;
-        if ( !$curtotcpu && $debug ) dbgmsg("<font color=\"red\"><b>$curname</b>".$errors["113"]."</font><br>");
+            $curtotcpu = @($entries[$i][CLU_TCPU][0]) ? $entries[$i][CLU_TCPU][0] : 0;
+            if ( !$curtotcpu && $debug ) dbgmsg("<font color=\"red\"><b>$curname</b>".$errors["113"]."</font><br>");
       
-        $curalias   = $entries[$i][CLU_ANAM][0];
+            $curalias   = $entries[$i][CLU_ANAM][0];
       
-        // Manipulate alias: replace the string if necessary and cut off at 22 characters; strip HTML tags
-        if (file_exists("cnvalias.inc")) include('cnvalias.inc');
-        $curalias = strip_tags($curalias);
-        if ( strlen($curalias) > 22 ) $curalias = substr($curalias,0,21) . ">";
+            // Manipulate alias: replace the string if necessary and cut off at 22 characters; strip HTML tags
+            if (file_exists("cnvalias.inc")) include('cnvalias.inc');
+            $curalias = strip_tags($curalias);
+            if ( strlen($curalias) > 22 ) $curalias = substr($curalias,0,21) . ">";
       
-        $curtotjobs = @($entries[$i][CLU_TJOB][0]) ? $entries[$i][CLU_TJOB][0] : 0;
-        $curusedcpu = @($entries[$i][CLU_UCPU][0]) ? $entries[$i][CLU_UCPU][0] : -1;
-        $totqueued  = @($entries[$i][CLU_QJOB][0]) ? $entries[$i][CLU_QJOB][0] : 0; /* deprecated since 0.5.38 */
-        $gmqueued   = @($entries[$i][CLU_PQUE][0]) ? $entries[$i][CLU_PQUE][0] : 0; /* new since 0.5.38 */
-      $clstring   = popup("clusdes.php?host=$curname&port=$curport",700,620,1,$lang,$debug);
+            $curtotjobs = @($entries[$i][CLU_TJOB][0]) ? $entries[$i][CLU_TJOB][0] : 0;
+            $curusedcpu = @($entries[$i][CLU_UCPU][0]) ? $entries[$i][CLU_UCPU][0] : -1;
+            $totqueued  = @($entries[$i][CLU_QJOB][0]) ? $entries[$i][CLU_QJOB][0] : 0; /* deprecated since 0.5.38 */
+            $gmqueued   = @($entries[$i][CLU_PQUE][0]) ? $entries[$i][CLU_PQUE][0] : 0; /* new since 0.5.38 */
+            $clstring   = popup("clusdes.php?host=$curname&port=$curport",700,620,1,$lang,$debug);
       
-        $nclu++;
+            $nclu++;
       
-      } elseif ($object=="queue") {
+          } elseif ($object=="queue") {
       
-        $qstatus     = $entries[$i][QUE_STAT][0];
-        if ( $qstatus != "active" )  $stopflag = TRUE;
-        $allqrun    += @($entries[$i][QUE_RUNG][0]) ? ($entries[$i][QUE_RUNG][0]) : 0;
+            $qstatus     = $entries[$i][QUE_STAT][0];
+            if ( $qstatus != "active" )  $stopflag = TRUE;
+            $allqrun    += @($entries[$i][QUE_RUNG][0]) ? ($entries[$i][QUE_RUNG][0]) : 0;
             $gridjobs   += @($entries[$i][QUE_GRUN][0]) ? ($entries[$i][QUE_GRUN][0]) : 0;
-        $gridqueued += @($entries[$i][QUE_GQUE][0]) ? ($entries[$i][QUE_GQUE][0]) : 0;
-        $allqueued  += @($entries[$i][QUE_QUED][0]) ? ($entries[$i][QUE_QUED][0]) : 0; /* deprecated since 0.5.38 */
-        $lrmsqueued += @($entries[$i][QUE_LQUE][0]) ? ($entries[$i][QUE_LQUE][0]) : 0; /* new since 0.5.38 */
-        $prequeued  += @($entries[$i][QUE_PQUE][0]) ? ($entries[$i][QUE_PQUE][0]) : 0; /* new since 0.5.38 */
+            $gridqueued += @($entries[$i][QUE_GQUE][0]) ? ($entries[$i][QUE_GQUE][0]) : 0;
+            $allqueued  += @($entries[$i][QUE_QUED][0]) ? ($entries[$i][QUE_QUED][0]) : 0; /* deprecated since 0.5.38 */
+            $lrmsqueued += @($entries[$i][QUE_LQUE][0]) ? ($entries[$i][QUE_LQUE][0]) : 0; /* new since 0.5.38 */
+            $prequeued  += @($entries[$i][QUE_PQUE][0]) ? ($entries[$i][QUE_PQUE][0]) : 0; /* new since 0.5.38 */
       
-        $nqueues++;
+            $nqueues++;
       
-      }
+          }
 
         }
       }
 
       if ( !$nclu && $nqueues ) {
-    if ( $debug ) dbgmsg("<b>$hn</b>:".$errors["3"].": ".$errors["111"].$errors["410"]."<br>");
-    continue;
+        if ( $debug ) dbgmsg("<b>$hn</b>:".$errors["3"].": ".$errors["111"].$errors["410"]."<br>");
+        continue;
       }
 
       if ( $nclu > 1 && $debug ) dbgmsg("<b><font color=\"blue\">$hn</font></b>:".$errors["3"].": $nclu ".$errors["406"]."<br>");
@@ -478,9 +505,9 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
       }
       
       if ( $toflag2 ) {
-    $tstring .= " (no queue info)"; // not sure if this is localizeable at all
+        $tstring .= " (no queue info)"; // not sure if this is localizeable at all
       } elseif ( $stopflag ) {
-    $tstring .= " (queue inactive)"; // not sure if this is localizeable at all
+        $tstring .= " (queue inactive)"; // not sure if this is localizeable at all
       }
 
       // Add a cluster row
@@ -488,9 +515,9 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
       $rowcont[] = "<a href=\"$clstring\">&nbsp;<b>$curalias</b></a>";
       $rowcont[] = "$curtotcpu";
       if ( $curtotcpu ) {
-    $rowcont[] = "<a href=\"$jrstring\"><img src=\"./mon-icons/icon_bar.php?x=".$clusload."&xg=".$gridload."&y=13&text=".$tstring."\" vspace=\"2\" hspace=\"3\" border=\"0\" title=\"$gridjobs".$errors["313"]."$localrun".$errors["314"]."\" alt=\"$gridjobs+$localrun\" width=\"200\" height=\"13\"></a>";
+        $rowcont[] = "<a href=\"$jrstring\"><img src=\"./mon-icons/icon_bar.php?x=".$clusload."&xg=".$gridload."&y=13&text=".$tstring."\" vspace=\"2\" hspace=\"3\" border=\"0\" title=\"$gridjobs".$errors["313"]."$localrun".$errors["314"]."\" alt=\"$gridjobs+$localrun\" width=\"200\" height=\"13\"></a>";
       } else {
-    $rowcont[] = "<a href=\"$jrstring\"><img src=\"./mon-icons/spacer.gif\" vspace=\"2\" hspace=\"3\" border=\"0\" title=\"$gridjobs".$errors["313"]."$localrun".$errors["314"]."\"  alt=\"$gridjobs+$localrun\" width=\"200\" height=\"13\"></a>";
+        $rowcont[] = "<a href=\"$jrstring\"><img src=\"./mon-icons/spacer.gif\" vspace=\"2\" hspace=\"3\" border=\"0\" title=\"$gridjobs".$errors["313"]."$localrun".$errors["314"]."\"  alt=\"$gridjobs+$localrun\" width=\"200\" height=\"13\"></a>";
       }
       //      $rowcont[] = "<a href=\"$jqstring\">$totqueued</a>";
       

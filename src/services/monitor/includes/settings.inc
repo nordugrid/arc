@@ -110,7 +110,7 @@ if ( !defined("GOBJ_AJOB") ) define("GOBJ_AJOB",IS_PREFXG."ComputingActivity");
 if ( !defined("GOBJ_LOC") ) define("GOBJ_LOC",IS_PREFXG."location");
 if ( !defined("GOBJ_MAN") ) define("GOBJ_MAN",IS_PREFXG."manager");
 if ( !defined("GOBJ_CON") ) define("GOBJ_CON",IS_PREFXG."contact");
-if ( !defined("GOBJ_ADMD") ) define("GOBJ_ADMD",IS_PREFXG."adminaomain");
+if ( !defined("GOBJ_ADMD") ) define("GOBJ_ADMD",IS_PREFXG."admindomain");
 
 if ( !defined("OBJ_PERS") ) define("OBJ_PERS","organizationalPerson");
 if ( !defined("OBJ_RCOL") ) define("OBJ_RCOL","GlobusReplicaLogicalCollection");  /* RC Logical Collection object */
@@ -180,7 +180,9 @@ if ( !defined("GCLU_PQUE") ) define("GCLU_PQUE",IS_PREFXG."computingserviceprelr
 // in Location
 if ( !defined("GCLU_ZIPC") ) define("GCLU_ZIPC",IS_PREFXG."locationpostcode");
 // in ComputingManager
-if ( !defined("GCLU_TCPU") ) define("GCLU_TCPU",IS_PREFXG."computingmanagertotallogicalcpus");
+// TODO: There are discrepancies on how LogicalCPUs are reported.Maybe TotalSlots is better. This needs to be fixed in the infosys.
+//if ( !defined("GCLU_TCPU") ) define("GCLU_TCPU",IS_PREFXG."computingmanagertotallogicalcpus");
+if ( !defined("GCLU_TCPU") ) define("GCLU_TCPU",IS_PREFXG."computingmanagertotalslots");
 // usedcpus is not available in GLUE2 as such. SlotsUsedByGridJobs should be ok
 if ( !defined("GCLU_UCPU") ) define("GCLU_UCPU",IS_PREFXG."computingmanagerslotsusedbygridjobs");
 // in Contact
@@ -205,15 +207,14 @@ if ( !defined("GQUE_RUNG") ) define("GQUE_RUNG",IS_PREFXG."computingsharerunning
 // GRUN is the grid jobs only in the queue, NG queue-gridrunning, there is no equivalent for this in GLUE2. Must be calculated from total-local jobs in the queue
 //if ( !defined("GQUE_GRUN") ) define("GQUE_GRUN",IS_PREFXG."");
 if ( !defined("GQUE_MAXR") ) define("GQUE_MAXR",IS_PREFXG."computingsharemaxrunningjobs");
-// Not used
-//if ( !defined("GQUE_QUED") ) define("GQUE_QUED",IS_PREFXG."-queue-queued"); /* deprecated since 0.5.38 */
 if ( !defined("GQUE_LQUE") ) define("GQUE_LQUE",IS_PREFXG."computingsharelocalwaitingjobs"); /* new since 0.5.38 */
 // LRUN is non-grid jobs running in the queue
 if ( !defined("GQUE_LRUN") ) define("GQUE_LRUN",IS_PREFXG."computingsharelocalrunningjobs"); 
 if ( !defined("GQUE_PQUE") ) define("GQUE_PQUE",IS_PREFXG."computingshareprelrmswaitingjobs"); /* new since 0.5.38 */
-if ( !defined("GQUE_GQUE") ) define("GQUE_GQUE",IS_PREFXG."computingsharewaitingjobs");
+//This is equivalent to the deprecated -queue-queued, /* deprecated since 0.5.38 */, but exists in GLUE2
+if ( !defined("GQUE_QUED") ) define("GQUE_QUED",IS_PREFXG."computingsharewaitingjobs");
 if ( !defined("GQUE_MAXQ") ) define("GQUE_MAXQ",IS_PREFXG."computingsharemaxtotaljobs");
-// No such thing in GLUE2
+// No such thing in GLUE2, maybe maxtotaljobs*maxslotsperjob=1 can be used TODO
 //if ( !defined("GQUE_ASCP") ) define("GQUE_ASCP",IS_PREFXG."-queue-totalcpus");
 if ( !defined("GQUE_MINT") ) define("GQUE_MINT",IS_PREFXG."computingsharemincputime");
 if ( !defined("GQUE_MAXT") ) define("GQUE_MAXT",IS_PREFXG."computingsharemaxcputime");
