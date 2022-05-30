@@ -277,7 +277,11 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
     if ($ds && $sr) {
       
       $entries   = @ldap_get_entries($ds,$sr);
-      $nobjects = $entries["count"];      /* Number of LDAP objects retrieved for a given cluster */
+      
+      // Number of LDAP objects retrieved for a given cluster
+      // NG: nordugrid-cluster and nordugrid-queue(s)
+      // GLUE2: Service,Manager,Shares,Location,Contact,AdminDomain
+      $nobjects = $entries["count"];      
 
       if ( !$nobjects ) {
          if ( $debug ) dbgmsg("<b>$hn</b>:".$errors["3"]."<br>");
@@ -378,16 +382,16 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
           }; 
           
           // This part of the code is for aggregating values from all the above GLUE2 objects
-          if ( ($schema == "GLUE2") && ($basedn == DN_GLUE ) && ($i == ($nclusters-1))) {
+          if ( ($schema == "GLUE2") && ($basedn == DN_GLUE ) && ($i == ($nobjects-1))) {
+            
             // Calculate country based on gathered data
-            echo "<p>Entering last bit, curdn: $curdn</p>";
-
             $dnparts = ldap_explode_dn($curdn,0);
             $endpointArray=explode(":",$dnparts[0]);
 
             $curname = $endpointArray[3];
             $curport = $pn;
 
+            // This could be set by the Location object parsing.
             if (!isset($$curzip)) $curzip="";
 
             $vo = guess_country($curname,$curzip);
