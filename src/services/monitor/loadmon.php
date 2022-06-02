@@ -328,49 +328,50 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
                 $curalias = $curname." Undefined)";
             }
             if ( strlen($curalias) > 22 ) $curalias = substr($curalias,0,21) . ">";
-        
-            // TODO: this must be the sum of all queues allqueued, initializing it here
-            $totqueued = 0;
-            //$totqueued  = @($entries[$i][GCLU_QJOB][0]) ? $entries[$i][GCLU_QJOB][0] : 0; /* deprecated since 0.5.38 */
+            
             $gmqueued   = @($entries[$i][GCLU_PQUE][0]) ? $entries[$i][GCLU_PQUE][0] : 0; /* new since 0.5.38 */
-            // use coputingmanager info instead, For some reason this number is incorrect in the rendeing. Needs to be checked on infosys side.
+            // use computingmanager info instead, For some reason this number is incorrect in the rendering. Needs to be checked on infosys side.
             //$curtotjobs = @($entries[$i][GCLU_TJOB][0]) ? $entries[$i][GCLU_TJOB][0] : 0;
             $clstring   = popup("clusdes.php?host=$curname&port=$curport&schema=$schema",700,620,1,$lang,$debug);
 
             $nclu++;
 
           } elseif ($object=="ComputingManager") {
+            // All the numbers here are actually "JobSlots" and not CPUs or cores. 
+            // But I am keeping the variable names for consistency with NG.
+            // Assumption: 1 core - 1 job slot
             $curtotcpu = @($entries[$i][GCLU_TCPU][0]) ? $entries[$i][GCLU_TCPU][0] : 0;
             if ( !$curtotcpu && $debug ) dbgmsg("<font color=\"red\"><b>$curname</b>".$errors["113"]."</font><br>");
-            $curgusedcpu = @($entries[$i][GCLU_GCPU][0]) ? $entries[$i][GCLU_GCPU][0] : 0; 
-            $curlusedcpu = @($entries[$i][GCLU_LCPU][0]) ? $entries[$i][GCLU_LCPU][0] : 0; 
-            $curusedcpu = $curgusedcpu + $curlusedcpu;
+            $gridjobs = @($entries[$i][GCLU_GCPU][0]) ? $entries[$i][GCLU_GCPU][0] : 0; 
+            $lrmsrun = @($entries[$i][GCLU_LCPU][0]) ? $entries[$i][GCLU_LCPU][0] : 0; 
+            $curusedcpu = $gridjobs + $lrmsrun;
             if ( $curusedcpu < 0 ) $curusedcpu = -1; 
+            // I think this is not actually used anywhere, even in NG. Probably can be removed.
             $curtotjobs = $curusedcpu;
 
           } elseif ($object=="ComputingShare") {
+             // GLUE2 publishes a Share for the bare queue, and as many shares as the VOs.
+             // So here we only take the Share that holds the bare info, which is what we publish in the monitor.
+             // TODO: find a better solution for this. Unfortunately some sites 
+             // seem to have hacked the queue EntityName or the LRMS returns a longer name that
+             // is not being shortened by infosys.
              $shname = $entries[$i][GQUE_NAME][0];
              $shmapq = $entries[$i][GQUE_MAPQ][0];
-             if ( $shname == $shmapq) {
-               $qstatus     = $entries[$i][GQUE_STAT][0];
+             if ( $shname == $shmapq ) {
+               $qstatus = $entries[$i][GQUE_STAT][0];
                if ( $qstatus != "production" )  $stopflag = TRUE;
-               $allqrun    += @($entries[$i][GQUE_RUNG][0]) ? ($entries[$i][GQUE_RUNG][0]) : 0;
-               // TODO: there is no gridjobs in GLUE2. Must be calculated as $allqrun-$lrmsrun (and adjusted against negative numbers), the latter has been added in settings.php. Test!
-               //$gridjobs   += @($entries[$i][GQUE_GRUN][0]) ? ($entries[$i][GQUE_GRUN][0]) : 0;
-               $lrmsrun += @($entries[$i][GQUE_LRUN][0]) ? ($entries[$i][GQUE_LRUN][0]) : 0;
-               $gridjobs = $allqrun - $lrmsrun;
-               if ( $gridjobs < 0 )  $gridjobs = 0;
-               //TODO: GQUE does not exist in glue2, must be calculated as in gridjobs above as allqueued - lrmsqueued
-               $gridqueued += @($entries[$i][GQUE_GQUE][0]) ? ($entries[$i][GQUE_GQUE][0]) : 0;
-               // this below was deprecated in NG but it exists in GLUE2, all queued jobs (grid + local)
-               $allqueued  += @($entries[$i][GQUE_QUED][0]) ? ($entries[$i][GQUE_QUED][0]) : 0; 
-               $lrmsqueued += @($entries[$i][GQUE_LQUE][0]) ? ($entries[$i][GQUE_LQUE][0]) : 0; 
+               // curallqueued: all queued jobs in the queue (grid + local)
+               $curallqueued  = @($entries[$i][GQUE_QUED][0]) ? ($entries[$i][GQUE_QUED][0]) : 0; 
+               $curlrmsqueued = @($entries[$i][GQUE_LQUE][0]) ? ($entries[$i][GQUE_LQUE][0]) : 0; 
+               // There is no info in GLUE2 Shares about Grid jobs, must be extracted
+               $curgridqueued = $curallqueued - $curlrmsqueued;
+               if ($curgridqueued < 0) $curgridqueued = 0;
+               $gridqueued += $curgridqueued;
+               $lrmsqueued += $curlrmsqueued;
                $prequeued  += @($entries[$i][GQUE_PQUE][0]) ? ($entries[$i][GQUE_PQUE][0]) : 0; 
-      
-              // updating the cluster total queued. This below double counts across the shares, 
-              // it is best to sum in all gridqueued and then later add only the latest lrmsqueued once, 
-              // or we can just use stuff from ComputingManager GLUE2ComputingManagerSlotsUsedByLocalJobs + GLUE2ComputingManagerSlotsUsedByGridJobs
-               $totqueued += $allqueued;
+               
+               // Updating the total number of queued jobs
+               $allqueued += $curallqueued;
 
                $nqueues++;
 
@@ -379,7 +380,9 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
           } elseif ($object=="Location") {
               if ( !empty($entries[$i][GCLU_ZIPC][0]) ) $curzip = $entries[$i][GCLU_ZIPC][0]; 
           } elseif ( $object == "AdminDomain" ) {
+            // here we may extract the site name and add it to the cluster line as in NG but funkyer
           } elseif ( $object == "Contact" ) {
+            // here we may extract the support string (usually an email)
           }; 
           
           // This part of the code is for aggregating values from all the above GLUE2 objects
@@ -392,7 +395,7 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
             $curname = $endpointArray[3];
             $curport = $pn;
 
-            // This could be set by the Location object parsing.
+            // This could have been set by the Location object parsing, so we check it first
             if (!isset($$curzip)) $curzip="";
 
             $vo = guess_country($curname,$curzip);
