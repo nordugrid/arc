@@ -23,6 +23,13 @@ while [ $# -gt 0 ] ; do
   shift
 done
 
+control_path () {
+    # job_id=`echo "$2" | sed 's/\(.\{9\}\)/\1\//g' | sed 's/\/$//'`
+    job_id=`echo "$2" | sed -e 's#\(.\{3\}\)#\1/#3' -e 's#\(.\{3\}\)#\1/#2' -e 's#\(.\{3\}\)#\1/#1' -e 's#$#/#'`
+    path="$1/jobs/${job_id}/$3"
+    echo "$path"
+}
+
 joboption_lrms="lsf"
 lrms_options="lsf_architecture lsf_bin_path"
 
@@ -85,10 +92,9 @@ for ctr_dir in $control_dir ; do
     fi
 
 
-  # Obtain ids stored in job.*.local
-    ids=`find ${ctr_dir}/processing -name 'job.*.status' -print0 \
-         | sed 's/processing\/job\.\([^\.]*\)\.status/job.\1.local/g' \
-         | xargs -0 grep -h "^localid=" 2>/dev/null | sed 's/^localid=\([0-9]*\).*/\1/'`
+    # Obtain ids stored in job.*.local
+    gridids=`find ${ctr_dir}/processing -name '*.status' -print | sed 's/.*\/\([^\.\/]*\)\.status$/\1/'`
+    ids=`for gridid in $gridids; do grep -h "^localid=" $(control_path "${ctr_dir}" "$gridid" "local") 2>/dev/null | sed 's/^localid=\([0-9]*\).*/\1/' ; done`
 
     if [ ! -z "$perflogdir" ]; then
       stop_ts=`date +%s.%N`
@@ -115,17 +121,22 @@ for ctr_dir in $control_dir ; do
     for id in $bids ; do
 
 	# find grid job corresponding to curent local id
-        jobfile=`find ${ctr_dir}/processing -name 'job.*.status' -print0 \
-                 | sed 's/processing\/job\.\([^\.]*\)\.status/job.\1.local/g' \
-                 | xargs -0 grep -F -l "localid=$id" 2>/dev/null`
-	if [ -z "$jobfile" ] ; then continue ; fi
+        gridid=""
+        for gid in $gridids; do
+            grep "^localid=$id" $(control_path "${ctr_dir}" "$gid" "local") 2>/dev/null 1>/dev/null
+            if [ $? -eq '1' ] ; do
+                gridid="$gid"
+                break
+            fi
+        done
+	if [ -z "$gridid" ] ; then continue ; fi
         total_count=$(( total_count + 1 ))
-	# extract grid id
-	gridid=`basename "$jobfile" '.local' | sed 's/^job\.//'`
-	donefile="${ctr_dir}/job.${gridid}.lrms_done"
+	donefile=$(control_path "${ctr_dir}" "${gridid}" "lrms_done")
+	jobfile=$(control_path "${ctr_dir}" "${gridid}" "local")
+
 	if [ -f "$donefile" ] ; then continue ; fi
 
-	statusfile="${ctr_dir}/processing/job.${gridid}.status"
+	statusfile="${ctr_dir}/processing/${gridid}.status"
 	if [ ! -f "$statusfile" ] ; then continue ; fi
 
 	status=`cat "$statusfile"`
@@ -184,16 +195,16 @@ for ctr_dir in $control_dir ; do
 
 	    if [ -n "$exitcode" ] ; then
 		# job finished and exit code is known
-                save_commentfile "$uid" "${sessiondir}.comment" "${ctr_dir}/job.${gridid}.errors"
+                save_commentfile "$uid" "${sessiondir}.comment" $(control_path "${ctr_dir}" "${gridid}" "errors")
 		echo "$exitcode Executable finished with exit code $exitcode" > "$donefile"
-		${GMKICK} -j "${gridid}" "$jobfile"
+		${GMKICK} -j "${gridid}" "${ctr_dir}"
 		continue
 	    fi
 	fi
 
 	# job has probaly finished and exit code is not known
 	exitcode='-1'
-	countfile="${ctr_dir}/job.${gridid}.lrms_job"
+	countfile=$(control_path "${ctr_dir}" "${gridid}" "lrms_job")
 	counter=0
 	if [ -f "$countfile" ] ; then
 	    counter=`cat "$countfile"`
@@ -202,9 +213,9 @@ for ctr_dir in $control_dir ; do
 
 	if [ "$counter" -gt 5 ] ; then
 	    rm -f "$countfile"
-            save_commentfile "$uid" "${sessiondir}.comment" "${ctr_dir}/job.${gridid}.errors"
+            save_commentfile "$uid" "${sessiondir}.comment" $(control_path "${ctr_dir}" "${gridid}" "errors")
 	    echo "$exitcode Job was lost with unknown exit code" > "$donefile"
-	    ${GMKICK} -j "${gridid}" "$jobfile"
+	    ${GMKICK} -j "${gridid}" "${ctr_dir}"
 	else
 	    echo "$counter" > "$countfile"
 	fi
@@ -219,10 +230,10 @@ for ctr_dir in $control_dir ; do
     # go through existing ids
     for id in $pids ; do
 	# find grid job corresponding to curent local id
-	jobfile=`find ${ctr_dir} -name 'job.*.local' -print0 | xargs -0 grep -F -l "localid=$id." 2>/dev/null`
+	jobfile=`find ${ctr_dir} -name '*.local' -print0 | xargs -0 grep -F -l "localid=$id." 2>/dev/null`
 	if [ -z "$jobfile" ] ; then continue ; fi
-	gridid=`basename "$jobfile" '.local' | sed 's/^job\.//'`
-	countfile="${ctr_dir}/job.${gridid}.lrms_job"
+	gridid=`grep -h '^globalid=' "$jobfile" | sed 's/^globalid=//'`
+	countfile=$(control_path "${ctr_dir}" "${gridid}" "lrms_job")
 	# reset failure counter
 	rm -f "$countfile"
     done

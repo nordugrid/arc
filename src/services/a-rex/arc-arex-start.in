@@ -40,6 +40,42 @@ log_failure_msg() {
     echo $@
 }
 
+control_path () {
+    # job_id=`echo "$2" | sed 's/\(.\{9\}\)/\1\//g' | sed 's/\/$//'`
+    job_id=`echo "$2" | sed -e 's#\(.\{3\}\)#\1/#3' -e 's#\(.\{3\}\)#\1/#2' -e 's#\(.\{3\}\)#\1/#1' -e 's#$#/#'`
+    path="$1/jobs/${job_id}/$3"
+    echo "$path"
+}
+
+update_control_dir() {
+    controldir="$1"
+    # convert files stored directly in control dir
+    find "$controldir" -regex '.*/job\.[0-9a-zA-Z]*\.[^.]*' -maxdepth 1 -printf '%f\n' | \
+    while true; do
+        read file
+        if [ $? -ne 0 ]; then break; fi
+        id=`echo "$file" | sed -e 's/^job\.//' -e 's/\.[^.]*$//'`
+        suffix=`echo "$file" | sed -e 's/^job\.//' -e 's/^[^.]*\.//'`
+        newfile=$(control_path "$controldir" "$id" "$suffix")
+        newpath=`dirname "$newfile"`
+        mkdir -p "$newpath"
+        if [ $? -ne 0 ]; then return 1; fi
+        mv "$controldir/$file" "$newfile"
+        if [ $? -ne 0 ]; then return 1; fi
+    done
+    # convert status files
+    for subdir in accepting finished processing restarting; do
+        find "$controldir/$subdir" -regex '.*/job\.[0-9a-zA-Z]*\.[^.]*' -maxdepth 1 -printf '%f\n' | \
+        while true; do
+            read file
+            if [ $? -ne 0 ]; then break; fi
+            newfile=`echo "$file" | sed -e 's/^job\.//'`
+            mv "$controldir/$subdir/$file" "$controldir/$subdir/$newfile"
+            if [ $? -ne 0 ]; then return 1; fi
+        done
+    done
+}
+
 # sysconfig files
 if [ -r /etc/sysconfig/nordugrid ]; then
     . /etc/sysconfig/nordugrid
@@ -221,6 +257,7 @@ prepare() {
     GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_udp_port_range arex/data-staging`
     HOSTNAME=`readconfigvar "$ARC_RUNTIME_CONFIG" hostname common`
     SERVICEMAIL=`readconfigvar "$ARC_RUNTIME_CONFIG" mail arex`
+    CONTROLDIR=`readconfigvar "$ARC_RUNTIME_CONFIG" controldir arex`
     # It is easier to handle root user through empty value.
     if [ "$USERNAME" = "root" ] ; then
         USERNAME=""
@@ -359,6 +396,21 @@ if [ $RETVAL != 0 ]; then
     validate --skip-warnings
     log_failure_msg "Configuration validation failed"
     exit 1
+fi
+
+if [ -z "$CONTROLDIR" ] ;  then
+    log_failure_msg "Missing controldir in A-REX configuration"
+    exit 1
+fi
+# check special mark indicating  new version of control dir
+if [ ! -f "$CONTROLDIR/version2" ] ; then
+    echo "Updating A-REX control dir..." >> "$LOGFILE"
+    update_control_dir "$CONTROLDIR"
+    if [ $? -ne 0 ]; then
+        log_failure_msg "Failed to update A-REX control dir"
+        exit 1
+    fi
+    touch "$CONTROLDIR/version2"
 fi
 
 # Raise limit on number of file descriptors to max

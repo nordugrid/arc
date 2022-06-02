@@ -10,6 +10,7 @@
 #include <arc/OptionParser.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>
+#include <arc/FileUtils.h>
 #include <arc/compute/JobDescription.h>
 
 #include "conf/GMConfig.h"
@@ -102,18 +103,23 @@ int main(int argc, char **argv) {
   gmjob.SetLocalDescription(jobdescs.front());
 
   ARex::JobDescriptionHandler jdh(gmc);
+
+  Arc::DirCreate(ARex::job_control_path(gmc.ControlDir(),gmjob.get_id(),NULL), S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH, true);
   
   if (!jdh.write_grami(jobdescs.front(), gmjob, NULL)) {
-    logger.msg(Arc::ERROR, "Unable to write grami file: %s", "job." + gmjob.get_id() + ".grami");
+    const std::string fgrami = ARex::job_control_path(gmc.ControlDir(),gmjob.get_id(),ARex::sfx_grami);
+    logger.msg(Arc::ERROR, "Unable to write grami file: %s", fgrami);
     return 1;
   }
   
   if (!job_output_write_file(gmjob, gmc, gmjob.GetOutputdata())) {
-    logger.msg(Arc::ERROR, "Unable to write 'output' file: %s", "job." + gmjob.get_id() + ".output");
+    const std::string foutput = ARex::job_control_path(gmc.ControlDir(),gmjob.get_id(),ARex::sfx_output);
+    logger.msg(Arc::ERROR, "Unable to write 'output' file: %s", foutput);
     return 1;
   }
 
-  std::cout << "grami file written to " << ("job." + gmjob.get_id() + ".grami") << std::endl;
+  const std::string fgrami = ARex::job_control_path(gmc.ControlDir(),gmjob.get_id(),ARex::sfx_grami);
+  std::cout << "grami file written to " << fgrami << std::endl;
 
   return 0;
 }

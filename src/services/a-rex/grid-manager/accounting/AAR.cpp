@@ -18,8 +18,6 @@
 #include "AAR.h"
 
 namespace ARex {
-    const char * const sfx_diag        = ".diag";
-    const char * const sfx_statistics  = ".statistics";
 
     Arc::Logger AAR::logger(Arc::Logger::getRootLogger(), "AAR");
 
@@ -149,7 +147,7 @@ namespace ARex {
         /* 
          * analyze job.ID.diag and store relevant information 
          */
-        std::string fname_src = config.ControlDir() + G_DIR_SEPARATOR_S + "job." + job.get_id() + sfx_diag;
+        std::string fname_src = job_control_path(config.ControlDir(), job.get_id(), sfx_diag);
         std::list<std::string> diag_data;
         // nodenames used for node/cpus couting as well as extra info
         std::list<std::string> nodenames;
@@ -266,7 +264,7 @@ namespace ARex {
         /* 
          * analyze job.ID.statistics and store relevant DTR information 
          */
-        fname_src = config.ControlDir() + G_DIR_SEPARATOR_S + "job." + job.get_id() + sfx_statistics;
+        fname_src = job_control_path(config.ControlDir(), job.get_id(), sfx_statistics);
         std::list<std::string> statistics_data;
         // DTR events
         Arc::Time dtr_in_start(-1);

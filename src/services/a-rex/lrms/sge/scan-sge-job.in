@@ -39,6 +39,13 @@ GMKICK=${pkglibexecdir}/gm-kick
 
 olog () { echo "[`date +%Y-%m-%d\ %T`] scan-sge-job: $*" 1>&2; }
 
+control_path () {
+  # job_id=`echo "$2" | sed 's/\(.\{9\}\)/\1\//g' | sed 's/\/$//'`
+  job_id=`echo "$2" | sed -e 's#\(.\{3\}\)#\1/#3' -e 's#\(.\{3\}\)#\1/#2' -e 's#\(.\{3\}\)#\1/#1' -e 's#$#/#'`
+  path="$1/jobs/${job_id}/$3"
+  echo "$path"
+}
+
 umask 022
 
 my_id=`id -u`
@@ -219,11 +226,11 @@ add_accounting_to_diag () {
   commentfile=$6
   ctr_dir=$7
   
-  gramifile="${ctr_dir}/job.${gridid}.grami"
-  donefile="${ctr_dir}/job.${gridid}.lrms_done"
-  countfile="${ctr_dir}/job.${gridid}.lrms_job"
-  errorsfile="${ctr_dir}/job.${gridid}.errors"
-  localfile="${ctr_dir}/job.${gridid}.local" 
+  gramifile=$(control_path "${ctr_dir}" "${gridid}" "grami")
+  donefile=$(control_path "${ctr_dir}" "${gridid}" "lrms_done")
+  countfile=$(control_path "${ctr_dir}" "${gridid}" "lrms_job")
+  errorsfile=$(control_path "${ctr_dir}" "${gridid}" "errors")
+  localfile=$(control_path "${ctr_dir}" "${gridid}" "local")
   
   used_walltime=`sed -n 's/^WallTime=\(.*\).0s/\1/p' "$diagfile_acct" | tail -n 1`
   used_cputime=`sed -n 's/^CPUTime=\(.*\).0s/\1/p' "$diagfile_acct" | tail -n 1`
@@ -264,7 +271,7 @@ add_accounting_to_diag () {
     handle_failedcode "$failedcode" "$donefile" "$exitcode" "$sgeexitcode" "$overlimit"
 	
     # wake up GM
-    $GMKICK -j "${gridid}" "$localfile" >> "$errorsfile"
+    $GMKICK -j "${gridid}" "${ctr_dir}" >> "$errorsfile"
 
     rm -f "$countfile"
     rm -f "$diagfile_tmp" "$diagfile_acct"
@@ -286,7 +293,7 @@ handle_missing_accounting () {
   errorsfile=$4
   donefile=$5
   exitcode=$6
-  localfile=$7
+  ctr_dir=$7
   GMKICK=$8
   SGE_BIN_PATH=$9
   id=$10
@@ -305,7 +312,7 @@ handle_missing_accounting () {
       echo "$exitcode Job failed with exit code $exitcode" > "$donefile"
     fi
 
-    $GMKICK -j "${gridid}" "$localfile" >> "$errorsfile"
+    $GMKICK -j "${gridid}" "${ctr_dir}" >> "$errorsfile"
 
     return
   fi
@@ -340,7 +347,7 @@ handle_missing_accounting () {
     rm -f "$countfile"
 
     # wake up GM
-    $GMKICK -j "${gridid}" "$localfile" >> "$errorsfile"
+    $GMKICK -j "${gridid}" "${ctr_dir}" >> "$errorsfile"
 
   else
     # test again for job existence, only count if not known
@@ -380,8 +387,12 @@ for ctr_dir in $control_dirs ; do
   if [ ! -z "$perflogdir" ]; then
      start_ts=`date +%s.%N`
   fi
-  rjobs=`find "$ctr_dir/processing" -name 'job.*.status' 2>/dev/null \
-         | sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1.local/'`
+
+  rjobs=''
+  for gid in `find "$ctr_dir/processing" -name '*.status' 2>/dev/null | sed 's/.*\/\([^\.\/]*\)\.status$/\1/'` ; do
+    localfile=$(control_path "$ctr_dir" "$gid" "local")
+    rjobs="$rjobs $localfile"
+  done
   if [ ! -z "$perflogdir" ]; then
      stop_ts=`date +%s.%N`
      t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
@@ -402,9 +413,16 @@ for ctr_dir in $control_dirs ; do
   # go through missing ids
   for id in $bids ; do
     # find grid job corresponding to current local id
-    jobfile=`find "$ctr_dir/processing" -name 'job.*.status' 2>/dev/null \
-             | sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1.local/' \
-             | xargs grep -l "localid=$id\$" 2>/dev/null`
+    jobfile=''
+    gridid=''
+    for gid in `find "$ctr_dir/processing" -name '*.status' 2>/dev/null | sed 's/.*\/\([^\.\/]*\)\.status$/\1/'` ; do
+      localfile=$(control_path "$ctr_dir" "$gid" "local")
+      grep -h "localid=$id\$" 2>/dev/null 1>/dev/null
+      if [ $? -eq 0 ] ; then
+        gridid="$gid"
+        jobfile="$localfile"
+      fi
+    done
     if [ -z "$jobfile" ] ; then continue ; fi
     # unless running as superuser, skip jobs not belonging to the current user
     if [ "$my_id" != '0' ] ; then
@@ -414,15 +432,14 @@ for ctr_dir in $control_dirs ; do
     uid=$(get_owner_uid "$jobfile")
     [ -z "$uid" ] && { log "Failed to stat $jobfile"; continue; }
     # extract grid id
-    gridid=`basename "$jobfile" '.local' | sed 's/^job\.//'`
-    donefile="${ctr_dir}/job.${gridid}.lrms_done"
-    countfile="${ctr_dir}/job.${gridid}.lrms_job"
-    failedfile="${ctr_dir}/job.${gridid}.failed"
-    errorsfile="${ctr_dir}/job.${gridid}.errors"
-    localfile="${ctr_dir}/job.${gridid}.local"
-    xmlfile="${ctr_dir}/job.${gridid}.xml"
+    donefile=$(control_path "${ctr_dir}" "${gridid}" "lrms_done")
+    countfile=$(control_path "${ctr_dir}" "${gridid}" "lrms_job")
+    failedfile=$(control_path "${ctr_dir}" "${gridid}" "failed")
+    errorsfile=$(control_path "${ctr_dir}" "${gridid}" "errors")
+    localfile="$(control_path ${ctr_dir}" "${gridid}" "local")
+    xmlfile=$(control_path "${ctr_dir}" "${gridid}" "xml")
     if [ -f "$donefile" ] ; then continue ; fi
-    statusfile="${ctr_dir}/processing/job.${gridid}.status"
+    statusfile="${ctr_dir}/processing/${gridid}.status"
     if [ ! -f "$statusfile" ] ; then continue ; fi
     status=`cat "$statusfile"`
     if [ "$status" != "INLRMS" ] && [ "$status" != "CANCELING" ] ; then continue ; fi
@@ -481,15 +498,15 @@ for ctr_dir in $control_dirs ; do
 
     # This section is only reached when accounting info is not present
 
-    handle_missing_accounting "$countfile" "$uid" "$commentfile" "$errorsfile" "$donefile" "$exitcode" "$localfile" "$GMKICK" "$SGE_BIN_PATH" "$id"
+    handle_missing_accounting "$countfile" "$uid" "$commentfile" "$errorsfile" "$donefile" "$exitcode" "$ctr_dir" "$GMKICK" "$SGE_BIN_PATH" "$id"
 
   done # loop over bids
 
   # Detect the unlikely situation when a job reappears in the qstat listing
   # after being absent in the previous run of the scan-*-job (which updated
   # the counter file)
-  for countfile in `find $ctr_dir -name 'job.*.lrms_job'`; do
-    localfile=${countfile%.lrms_job}.local
+  for countfile in `find $ctr_dir -name 'lrms_job'`; do
+    localfile=${countfile%lrms_job}local
     pid=`sed -n 's/^localid=\([^ ]*\)/\1/p' "$localfile" 2>/dev/null`
     if [ -z "$pid" ]; then continue; fi
     if echo "$pids" | grep "^$pid\$" >/dev/null; then
