@@ -333,16 +333,20 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
             $totqueued = 0;
             //$totqueued  = @($entries[$i][GCLU_QJOB][0]) ? $entries[$i][GCLU_QJOB][0] : 0; /* deprecated since 0.5.38 */
             $gmqueued   = @($entries[$i][GCLU_PQUE][0]) ? $entries[$i][GCLU_PQUE][0] : 0; /* new since 0.5.38 */
-            $curtotjobs = @($entries[$i][GCLU_TJOB][0]) ? $entries[$i][GCLU_TJOB][0] : 0;
+            // use coputingmanager info instead, For some reason this number is incorrect in the rendeing. Needs to be checked on infosys side.
+            //$curtotjobs = @($entries[$i][GCLU_TJOB][0]) ? $entries[$i][GCLU_TJOB][0] : 0;
             $clstring   = popup("clusdes.php?host=$curname&port=$curport&schema=$schema",700,620,1,$lang,$debug);
 
             $nclu++;
 
           } elseif ($object=="ComputingManager") {
-            // TODO: use  GLUE2ComputingManagerSlotsUsedByLocalJobs, GLUE2ComputingManagerSlotsUsedByGridJobs for the stuff above instead. matches NG
             $curtotcpu = @($entries[$i][GCLU_TCPU][0]) ? $entries[$i][GCLU_TCPU][0] : 0;
             if ( !$curtotcpu && $debug ) dbgmsg("<font color=\"red\"><b>$curname</b>".$errors["113"]."</font><br>");
-            $curusedcpu = @($entries[$i][GCLU_UCPU][0]) ? $entries[$i][GCLU_UCPU][0] : -1; 
+            $curgusedcpu = @($entries[$i][GCLU_GCPU][0]) ? $entries[$i][GCLU_GCPU][0] : 0; 
+            $curlusedcpu = @($entries[$i][GCLU_LCPU][0]) ? $entries[$i][GCLU_LCPU][0] : 0; 
+            $curusedcpu = $curgusedcpu + $curlusedcpu;
+            if ( $curusedcpu < 0 ) $curusedcpu = -1; 
+            $curtotjobs = $curusedcpu;
 
           } elseif ($object=="ComputingShare") {
              $shname = $entries[$i][GQUE_NAME][0];

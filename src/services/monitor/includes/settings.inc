@@ -173,6 +173,7 @@ if ( !defined("USR_DISK") ) define("USR_DISK",IS_PREFX."-authuser-diskspace");
 // in ComputingService
 if ( !defined("GCLU_NAME") ) define("GCLU_NAME",IS_PREFXG."entityname");
 if ( !defined("GCLU_ANAM") ) define("GCLU_ANAM",IS_PREFXG."entityname");
+// this number seems to be incorrect, check infosys code
 if ( !defined("GCLU_TJOB") ) define("GCLU_TJOB",IS_PREFXG."computingservicetotaljobs");
 // queuedjobs has no equivalent in GLUE2. Must be calculated with some maths. Since it's deprecated, who cares
 //if ( !defined("GCLU_QJOB") ) define("GCLU_QJOB",IS_PREFXG."-cluster-queuedjobs"); /* deprecated since 0.5.38 */
@@ -183,8 +184,9 @@ if ( !defined("GCLU_ZIPC") ) define("GCLU_ZIPC",IS_PREFXG."locationpostcode");
 // TODO: There are discrepancies on how LogicalCPUs are reported.Maybe TotalSlots is better. This needs to be fixed in the infosys.
 //if ( !defined("GCLU_TCPU") ) define("GCLU_TCPU",IS_PREFXG."computingmanagertotallogicalcpus");
 if ( !defined("GCLU_TCPU") ) define("GCLU_TCPU",IS_PREFXG."computingmanagertotalslots");
-// usedcpus is not available in GLUE2 as such. SlotsUsedByGridJobs should be ok
-if ( !defined("GCLU_UCPU") ) define("GCLU_UCPU",IS_PREFXG."computingmanagerslotsusedbygridjobs");
+// usedcpus is not available in GLUE2 as such. SlotsUsedByGridJobs should be ok, renaming to GCLU_GCPU
+if ( !defined("GCLU_GCPU") ) define("GCLU_GCPU",IS_PREFXG."computingmanagerslotsusedbygridjobs");
+if ( !defined("GCLU_LCPU") ) define("GCLU_LCPU",IS_PREFXG."computingmanagerslotsusedbylocaljobs");
 // in Contact
 if ( !defined("GCLU_SUPP") ) define("GCLU_SUPP",IS_PREFXG."contactdetail");
 // in AdminDomain 
