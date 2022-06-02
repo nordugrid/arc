@@ -142,7 +142,7 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
 
   // Array defining the attributes to be returned
   $lim  = array( "dn",
-                GCLU_ANAM, GCLU_ZIPC, GCLU_TCPU, GCLU_UCPU, GCLU_TJOB, GCLU_PQUE, GCLU_SUPP, GCLU_OWNR,
+                GCLU_ANAM, GCLU_ZIPC, GCLU_TCPU, GCLU_GCPU, GCLU_LCPU, GCLU_TJOB, GCLU_PQUE, GCLU_SUPP, GCLU_OWNR,
                 GQUE_NAME, GQUE_MAPQ, GQUE_STAT, GQUE_QUED, GQUE_LQUE, GQUE_PQUE, GQUE_RUNG, GQUE_LRUN,
                 CLU_ANAM, CLU_ZIPC, CLU_TCPU, CLU_UCPU, CLU_TJOB, CLU_QJOB, CLU_PQUE,
                 QUE_STAT, QUE_GQUE, QUE_QUED, QUE_LQUE, QUE_PQUE, QUE_RUNG, QUE_GRUN );
