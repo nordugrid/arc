@@ -198,7 +198,13 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
   for ( $k = 0; $k < $nc; $k++ ) {
     $clhost = $gentries[$k]["host"];
     $clport = $gentries[$k]["port"];
-    $basedn = $gentries[$k]["base"];
+    //$basedn = $gentries[$k]["base"];
+    // Force basedn to the selected schema
+    if ( $schema == "GLUE2" ) {
+        $basedn = DN_GLUE;
+    } else {
+        $basedn = DN_LOCAL;
+    }
     $fp = @fsockopen($clhost, $clport, $errno, $errstr, 2);
     $ldapuri = "ldap://".$clhost.":".$clport;
     $clconn = ldap_connect($ldapuri);
@@ -210,23 +216,10 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
       array_push($dnarray,$basedn);
       @ldap_set_option($clconn, LDAP_OPT_NETWORK_TIMEOUT, $tout);
       $sitetag[$clhost] = 1; /* filtering tag */
-      if ($debug==2) dbgmsg("$k - <i>$clhost:$clport </i>");
+      if ($debug==2) dbgmsg("Adding $k - <i>$clhost:$clport $basedn</i></br>");
     } elseif ( $fp && $clconn && @$sitetag[$clhost] ) {
+      if ($debug==2) dbgmsg("Skipping duplicate host entry $k - <i>$clhost:$clport $basedn</i></br>");
       fclose($fp);
-      if ( $schema == "GLUE2"){
-          // Add only the base option
-          $index = array_keys($hnarray, $clhost);
-          $dnarray[$index[0]] = DN_GLUE;
-      } elseif ( $schema == "NG"){
-          // Add only the base option
-          $index = array_keys($hnarray, $clhost);
-          $dnarray[$index[0]] = DN_LOCAL;
-      } else {
-          array_push($dsarray,$clconn);
-          array_push($hnarray,$clhost);
-          array_push($pnarray,$clport);
-          array_push($dnarray,$basedn);
-      }
     }
   }
   
@@ -279,8 +272,8 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
       $entries   = @ldap_get_entries($ds,$sr);
       
       // Number of LDAP objects retrieved for a given cluster
-      // NG: nordugrid-cluster and nordugrid-queue(s)
-      // GLUE2: Service,Manager,Shares,Location,Contact,AdminDomain
+      // NG: nordugrid-cluster and nordugrid-queue(s) , 2+
+      // GLUE2: Service,Manager,Shares,Location,Contact,AdminDomain, 6+
       $nobjects = $entries["count"];      
 
       if ( !$nobjects ) {
@@ -346,6 +339,7 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
             $nclu++;
 
           } elseif ($object=="ComputingManager") {
+            // TODO: use  GLUE2ComputingManagerSlotsUsedByLocalJobs, GLUE2ComputingManagerSlotsUsedByGridJobs for the stuff above instead. matches NG
             $curtotcpu = @($entries[$i][GCLU_TCPU][0]) ? $entries[$i][GCLU_TCPU][0] : 0;
             if ( !$curtotcpu && $debug ) dbgmsg("<font color=\"red\"><b>$curname</b>".$errors["113"]."</font><br>");
             $curusedcpu = @($entries[$i][GCLU_UCPU][0]) ? $entries[$i][GCLU_UCPU][0] : -1; 
@@ -362,13 +356,16 @@ if ( !$tcont || $debug || $display != "all" ) { // Do LDAP search
                $lrmsrun += @($entries[$i][GQUE_LRUN][0]) ? ($entries[$i][GQUE_LRUN][0]) : 0;
                $gridjobs = $allqrun - $lrmsrun;
                if ( $gridjobs < 0 )  $gridjobs = 0;
+               //TODO: GQUE does not exist in glue2, must be calculated as in gridjobs above as allqueued - lrmsqueued
                $gridqueued += @($entries[$i][GQUE_GQUE][0]) ? ($entries[$i][GQUE_GQUE][0]) : 0;
                // this below was deprecated in NG but it exists in GLUE2, all queued jobs (grid + local)
                $allqueued  += @($entries[$i][GQUE_QUED][0]) ? ($entries[$i][GQUE_QUED][0]) : 0; 
                $lrmsqueued += @($entries[$i][GQUE_LQUE][0]) ? ($entries[$i][GQUE_LQUE][0]) : 0; 
                $prequeued  += @($entries[$i][GQUE_PQUE][0]) ? ($entries[$i][GQUE_PQUE][0]) : 0; 
       
-              // updating the cluster total queued. This may need cross check as there might be double count!
+              // updating the cluster total queued. This below double counts across the shares, 
+              // it is best to sum in all gridqueued and then later add only the latest lrmsqueued once, 
+              // or we can just use stuff from ComputingManager GLUE2ComputingManagerSlotsUsedByLocalJobs + GLUE2ComputingManagerSlotsUsedByGridJobs
                $totqueued += $allqueued;
 
                $nqueues++;
