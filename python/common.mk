@@ -48,6 +48,12 @@ else
 SWIG_IS_DBJSTORE_ENABLED =
 endif
 
+if SQLITEJSTORE_ENABLED
+SWIG_IS_SQLITEJSTORE_ENABLED = -DSQLITEJSTORE_ENABLED
+else
+SWIG_IS_SQLITEJSTORE_ENABLED =
+endif
+
 ARCLIBS = \
 	$(top_builddir)/src/hed/libs/credentialstore/libarccredentialstore.la \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
@@ -65,10 +71,10 @@ nodist__arc_la_SOURCES = $(ARCSWIGINIT) $(ARCWRAPPERS)
 
 _arc_la_CXXFLAGS = -include $(top_builddir)/config.h \
         -I$(top_srcdir)/include -I$(top_builddir)/include \
-        $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(PYTHON_CFLAGS) $(ZLIB_CFLAGS) $(DBCXX_CPPFLAGS) \
+        $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(PYTHON_CFLAGS) $(ZLIB_CFLAGS) $(DBCXX_CPPFLAGS) $(SQLITE_CFLAGS) \
         -fno-strict-aliasing -DSWIG_COBJECT_TYPES -DPY_SSIZE_T_CLEAN $(AM_CXXFLAGS)
 _arc_la_LIBADD = \
-        $(ARCLIBS) $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(PYTHON_LIBS) $(ZLIB_LIBS) $(DBCXX_LIBS)
+        $(ARCLIBS) $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(PYTHON_LIBS) $(ZLIB_LIBS) $(DBCXX_LIBS) $(SQLITE_LIBS)
 _arc_la_LDFLAGS = -no-undefined -avoid-version -module
 
 CLEANFILES = $(ARCWRAPPERS) $(ARCWRAPHDRS) $(ARCPYLIBS) $(BUILT_SOURCES) pydoxygen.i $(ARCPYLIBS:.py=.pyc)
@@ -86,7 +92,7 @@ $(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i $(top_srcdir)/swig/Arc.i $(PY
 	$(CXXCOMPILE) $(_arc_la_CXXFLAGS) -M -MT $*_wrap.cpp -MT arc_$*.py -MP -MF "$(DEPDIR)/$*_wrap.deps" -x c++ -
 	$(SWIG) -v -c++ -python $(SWIG_PY3) -threads -o $*_wrap.cpp \
 		-I/usr/include -I$(top_srcdir)/include -I$(top_builddir)/include \
-		$(PYDOXFLAGS) $(SWIG_IS_DBJSTORE_ENABLED) \
+		$(PYDOXFLAGS) $(SWIG_IS_DBJSTORE_ENABLED) $(SWIG_IS_SQLITEJSTORE_ENABLED) \
 		$(AM_CPPFLAGS) $(OPENSSL_CFLAGS) $(top_srcdir)/swig/$*.i
 # Workaround for RHEL5 swig + EPEL5 python26
 	sed 's/\(^\s*char \*.*\) = \(.*ml_doc\)/\1 = (char *)\2/' $*_wrap.cpp > $*_wrap.cpp.new

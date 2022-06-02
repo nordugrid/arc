@@ -230,8 +230,8 @@ enables_cppunit=$enableval
 enables_doc=$enableval
 enables_acix=$enableval
 enables_dbjstore=$enableval
-enables_ldns=$enableval
 enables_sqlitejstore=$enableval
+enables_ldns=$enableval
 ],
 [])
 
@@ -865,7 +865,6 @@ SQLITE_INSTALLED=no
 PKG_CHECK_MODULES(SQLITE, [sqlite3 >= 3.6], [SQLITE_INSTALLED=yes] , [
   AC_MSG_WARN([Cannot locate SQLite newer than 3.6])
   SQLITE_INSTALLED=no
-  enables_sqlite=no
 ])
 if test "x$SQLITE_INSTALLED" = "xyes" ; then
   AC_DEFINE(HAVE_SQLITE, 1, [define if SQLite is available])
@@ -1290,11 +1289,12 @@ then
   CXXFLAGS=$SAVE_CXXFLAGS
 fi
 AC_LANG_RESTORE
+AM_CONDITIONAL([DBCXX_ENABLED], test ! "x$DBCXX_LIBS" = "x")
 
 fi
 
-# DBJSTORE (storing jobs information in BDB)
-AC_ARG_ENABLE(dbjstore, AC_HELP_STRING([--disable-dbjstore], [disable storing local jobs information in BDB]),
+# DBJSTORE (storing job information in BDB)
+AC_ARG_ENABLE(dbjstore, AC_HELP_STRING([--disable-dbjstore], [disable storing local job information in BDB]),
   [enables_dbjstore=$enableval],[])
 if test "$enables_dbjstore" = "yes"; then
   if test "x$DBCXX_LIBS" = "x" ; then
@@ -1306,23 +1306,23 @@ AC_MSG_NOTICE([Storing jobs in BDB enabled: $enables_dbjstore])
 AM_CONDITIONAL([DBJSTORE_ENABLED],[test "x$enables_dbjstore" = "xyes"])
 if test "x$enables_dbjstore" = "xyes"; then
   AC_DEFINE(DBJSTORE_ENABLED, 1,
-    [define if to build job information in BDB storage])
+    [define to build job information in BDB storage])
 fi
 
-# SQLITEJSTORE (storing jobs information in SQLite)
-AC_ARG_ENABLE(sqlitejstore, AC_HELP_STRING([--disable-sqlitejstore], [disable storing local jobs information in SQLite]),
+# SQLITEJSTORE (storing job information in SQLite)
+AC_ARG_ENABLE(sqlitejstore, AC_HELP_STRING([--disable-sqlitejstore], [disable storing local job information in SQLite]),
   [enables_sqlitejstore=$enableval],[])
 if test "$enables_sqlitejstore" = "yes"; then
   if test "x$SQLITE_INSTALLED" != "xyes" ; then
     AC_MSG_NOTICE([For storing jobs in SQLite install SQLite 3.6 or newer - disabling])
-    enables_dbjstore="no"
+    enables_sqlitejstore="no"
   fi
 fi
 AC_MSG_NOTICE([Storing jobs in SQLite enabled: $enables_sqlitejstore])
 AM_CONDITIONAL([SQLITEJSTORE_ENABLED],[test "x$enables_sqlitejstore" = "xyes"])
 if test "x$enables_sqlitejstore" = "xyes"; then
   AC_DEFINE(SQLITEJSTORE_ENABLED, 1,
-    [define if to build job information in SQLite storage])
+    [define to build job information in SQLite storage])
 fi
 
 # globus/gpt packages
@@ -1947,9 +1947,6 @@ AC_ARG_ENABLE(a_rex_service, AC_HELP_STRING([--disable-a-rex-service], [disable 
 if test "$enables_a_rex_service" = "yes"; then
   if test "x$SQLITE_INSTALLED" != "xyes" ; then
     AC_MSG_NOTICE([A-Rex can't be built without SQLite - disabling])
-    enables_a_rex_service="no"
-  elif test "x$DBCXX_LIBS" = "x" ; then
-    AC_MSG_NOTICE([A-Rex can't be built without C++ API for DB4.x - disabling])
     enables_a_rex_service="no"
   fi
 fi

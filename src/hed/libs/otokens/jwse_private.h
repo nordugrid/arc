@@ -10,6 +10,7 @@ namespace Arc {
    public:
     JWSEKeyHolder();
     JWSEKeyHolder(char const* certificate);
+    JWSEKeyHolder(JWSEKeyHolder const &);
     ~JWSEKeyHolder();
 
     operator bool() const;
@@ -29,23 +30,34 @@ namespace Arc {
 
     STACK_OF(X509) const* CertificateChain() const;
     void CertificateChain(STACK_OF(X509)* certificateChain);
+    
+    Time ValidTill() const;
 
    private:
+    time_t const DefaultValidTime = 3600;
     std::string id_;
     X509* certificate_;
     STACK_OF(X509)* certificateChain_;
     EVP_PKEY* publicKey_;
     EVP_PKEY* privateKey_;
+
+    JWSEKeyHolder& operator=(JWSEKeyHolder const &);
   };
 
   class JWSEKeyHolderList: public std::list<Arc::AutoPointer<JWSEKeyHolder> > {
    public:
     typedef std::list<Arc::AutoPointer<JWSEKeyHolder> >::iterator iterator;
 
+    JWSEKeyHolderList() {};
+
     void add(Arc::AutoPointer<JWSEKeyHolder>& key) {
       resize(size()+1);
       back() = key;
     };
+
+   private:
+    JWSEKeyHolderList(JWSEKeyHolderList const &);
+    JWSEKeyHolderList& operator=(JWSEKeyHolderList const &);
   };
 
   class JWSEKeyFetcher {
