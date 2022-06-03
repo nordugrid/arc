@@ -573,7 +573,7 @@ namespace Arc {
     }
 
     info->reason = repmsg.Attributes()->get("HTTP:REASON");
-    stringto(repmsg.Attributes()->get("HTTP:content-length"),info->size);
+    if (!stringto(repmsg.Attributes()->get("HTTP:content-length"), info->size)) info->size = (uint64_t)(-1);
     std::string lm;
     lm = repmsg.Attributes()->get("HTTP:last-modified");
     if (lm.size() > 11) info->lastModified = lm;
