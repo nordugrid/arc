@@ -36,6 +36,7 @@ namespace ArcDMCACIX {
     virtual Arc::DataStatus PostRegister(bool replication);
     virtual Arc::DataStatus PreUnregister(bool replication);
     virtual Arc::DataStatus Unregister(bool all);
+    virtual Arc::DataStatus Finalise(const std::string& error_msg, const std::string& dn);
     virtual Arc::DataStatus Stat(Arc::FileInfo& file, Arc::DataPoint::DataPointInfoType verb = INFO_TYPE_ALL);
     virtual Arc::DataStatus Stat(std::list<Arc::FileInfo>& files,
                                  const std::list<Arc::DataPoint*>& urls,

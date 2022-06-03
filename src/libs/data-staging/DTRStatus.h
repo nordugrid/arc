@@ -97,6 +97,15 @@ namespace DataStaging {
       /// Release of staging/preparing request completed
       REQUEST_RELEASED,
     
+      /// Finalise replica (close catalog, send traces, etc)
+      FINALISE_REPLICA,
+
+      /// Finalising replica
+      FINALISING_REPLICA,
+
+      /// Replica finalised
+      REPLICA_FINALISED,
+
       /// Register a new replica of the destination
       REGISTER_REPLICA,
 

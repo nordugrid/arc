@@ -148,6 +148,8 @@ class Scheduler: public DTRCallback {
     void ProcessDTRTRANSFERRED(DTR_ptr request);
     /// Process a DTR in the REQUEST_RELEASED state
     void ProcessDTRREQUEST_RELEASED(DTR_ptr request);
+    /// Process a DTR in the REPLICA_FINALISED state
+    void ProcessDTRREPLICA_FINALISED(DTR_ptr request);
     /// Process a DTR in the REPLICA_REGISTERED state
     void ProcessDTRREPLICA_REGISTERED(DTR_ptr request);
     /// Process a DTR in the CACHE_PROCESSED state
