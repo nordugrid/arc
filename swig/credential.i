@@ -39,7 +39,6 @@
 %{
 #include <arc/credential/Credential.h>
 %}
-%ignore Arc::Credential::GetLifetime;
 %include "../src/hed/libs/credential/Credential.h"
 
 

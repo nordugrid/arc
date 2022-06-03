@@ -476,14 +476,8 @@ Arc::MCC_Status ARexService::preProcessSecurity(Arc::Message& inmsg,Arc::Message
     };
   };
 
-  // Check main authorization rules
-  std::list<std::pair<bool,std::string> > const & groups = config_.MatchingGroups();
-  if(!groups.empty()) {
-    if(match_groups(groups, inmsg)) {
-      // Process grid-manager configuration if not done yet
-      config = ARexConfigContext::GetRutimeConfiguration(inmsg, config_, uname_, endpoint_);
-    };
-  };
+  // Process grid-manager configuration if not done yet
+  config = ARexConfigContext::GetRutimeConfiguration(inmsg, config_, uname_, endpoint_);
   if(!config) {
     // Service is not operational except public information.
     // But public information also has own authorization rules

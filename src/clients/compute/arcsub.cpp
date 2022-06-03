@@ -167,7 +167,15 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     }
   }
 
-  if(!opt.no_delegation || usercfg.OToken().empty()) {
+  // Check if X.509 credentials are needed for data staging
+  bool need_proxy = false;
+  for (std::list<Arc::JobDescription>::iterator jobIt = jobdescriptionlist.begin(); jobIt != jobdescriptionlist.end(); ++jobIt) {
+    if(jobneedsproxy(*jobIt)) {
+      need_proxy = true;
+      break;
+    }
+  }
+  if(need_proxy || usercfg.OToken().empty()) {
     if (!checkproxy(usercfg)) {
       return 1;
     }
@@ -198,7 +206,7 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     }
 
     // default action: start submission cycle
-    return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist, opt.no_delegation);
+    return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist);
   } else {
     // Legacy target selection submission logic
     std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
@@ -211,6 +219,6 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
       return dumpjobdescription(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName);
     }
 
-    return legacy_submit(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName, opt.jobidoutfile, opt.direct_submission, opt.no_delegation);
+    return legacy_submit(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName, opt.jobidoutfile, opt.direct_submission);
   }
 }

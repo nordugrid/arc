@@ -36,12 +36,10 @@ with 'oidc-add NAME_YOU_CHOOSE' command.
 Obtain token and store it into BEARER_TOKEN variable. 
   export BEARER_TOKEN=`oidc-token NAME_YOU_CHOOSE`
 
-Now submit job to ARC CE with arcsub through EMIES or REST interface.
-For that use option '-S org.ogf.glue.emies.activitycreation' or 
-'-S org.nordugrid.arcrest' respectively. You may also use -n to skip
-X.509 delegation The token stored in BEARER_TOKEN environment variable
-will be used instead of X.509 certificate for authenticating user to
-ARC CE server. f -n i snot used the datastaging on serer side will
+Now submit job to ARC CE with arcsub through EMIES interface. For that
+use option '-S org.ogf.glue.emies.activitycreation'. The token stored
+in BEARER_TOKEN variable will be used instead of X.509 certificate for
+authenticating user to ARC CE server. The datastaging currently will
 still use X.509 proxy credentials.
 
 Note: You can use any other method for obtaining WLCG compliant OIDC

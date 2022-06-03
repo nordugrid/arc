@@ -158,7 +158,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
   };
 
   //Get the life time of the credential
-  void Credential::GetLifetime(STACK_OF(X509) const * certchain, X509 const * cert, Time& start, Period &lifetime) {
+  static void getLifetime(STACK_OF(X509)* certchain, X509* cert, Time& start, Period &lifetime) {
     Time start_time(-1), end_time(-1);
     ASN1_UTCTIME* atime = NULL;
 
@@ -1050,7 +1050,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     }
 
     //Get the lifetime of the credential
-    GetLifetime(cert_chain_, cert_, start_, lifetime_);
+    getLifetime(cert_chain_, cert_, start_, lifetime_);
 
     if(cert_) {
       for (int i=0; i<X509_get_ext_count(cert_); i++) {
