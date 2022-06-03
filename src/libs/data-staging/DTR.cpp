@@ -128,7 +128,7 @@ namespace DataStaging {
          dest != log_destinations.end(); ++dest) {
       (*dest)->setPrefix("DTR " + get_short_id() + ": ");
     }
-  }	
+  }
 
   std::list<Arc::LogDestination*> DTR::get_log_destinations() const {
     std::list<Arc::LogDestination*> log_dest;
@@ -270,10 +270,10 @@ namespace DataStaging {
 
   void DTR::set_cancel_request()
   {
-  	cancel_request = true;
-  	// set process time to now so it is picked up straight away
-  	set_process_time(0);
-  	mark_modification();
+    cancel_request = true;
+    // set process time to now so it is picked up straight away
+    set_process_time(0);
+    mark_modification();
   }
   
   void DTR::set_process_time(const Arc::Period& process_time) {
@@ -307,10 +307,10 @@ namespace DataStaging {
 
   void DTR::push(DTR_ptr dtr, StagingProcesses new_owner)
   {
-  	/* This function contains necessary operations
-  	 * to pass the pointer to this DTR to another
-  	 * process and make sure that the process accepted it
-  	 */
+    /* This function contains necessary operations
+     * to pass the pointer to this DTR to another
+     * process and make sure that the process accepted it
+     */
     dtr->lock.lock();
     dtr->current_owner = new_owner;
     dtr->lock.unlock();
@@ -352,54 +352,55 @@ namespace DataStaging {
   }
   
   bool DTR::is_destined_for_pre_processor() const {
-  	return (status == DTRStatus::PRE_CLEAN || status == DTRStatus::CHECK_CACHE ||
-  	   status == DTRStatus::RESOLVE || status == DTRStatus::QUERY_REPLICA ||
-  	   status == DTRStatus::STAGE_PREPARE);
+    return (status == DTRStatus::PRE_CLEAN || status == DTRStatus::CHECK_CACHE ||
+            status == DTRStatus::RESOLVE || status == DTRStatus::QUERY_REPLICA ||
+            status == DTRStatus::STAGE_PREPARE);
   }
   
   bool DTR::is_destined_for_post_processor() const {
-  	return (status == DTRStatus::RELEASE_REQUEST || status == DTRStatus::REGISTER_REPLICA ||
-  	   status == DTRStatus::PROCESS_CACHE);
+    return (status == DTRStatus::RELEASE_REQUEST || status == DTRStatus::FINALISE_REPLICA ||
+            status == DTRStatus::REGISTER_REPLICA || status == DTRStatus::PROCESS_CACHE);
   }
   
   bool DTR::is_destined_for_delivery() const {
-  	return (status == DTRStatus::TRANSFER);
+    return (status == DTRStatus::TRANSFER);
   }
   
   bool DTR::came_from_pre_processor() const {
-  	return (status == DTRStatus::PRE_CLEANED || status == DTRStatus::CACHE_WAIT ||
-   	   status == DTRStatus::CACHE_CHECKED || status == DTRStatus::RESOLVED ||
-   	   status == DTRStatus::REPLICA_QUERIED || 
-   	   status == DTRStatus::STAGING_PREPARING_WAIT || 
-   	   status == DTRStatus::STAGED_PREPARED);
+    return (status == DTRStatus::PRE_CLEANED || status == DTRStatus::CACHE_WAIT ||
+            status == DTRStatus::CACHE_CHECKED || status == DTRStatus::RESOLVED ||
+            status == DTRStatus::REPLICA_QUERIED ||
+            status == DTRStatus::STAGING_PREPARING_WAIT ||
+            status == DTRStatus::STAGED_PREPARED);
   }
   
   bool DTR::came_from_post_processor() const {
-  	return (status == DTRStatus::REQUEST_RELEASED || 
-  	   status == DTRStatus::REPLICA_REGISTERED ||
-   	   status == DTRStatus::CACHE_PROCESSED);
+    return (status == DTRStatus::REQUEST_RELEASED ||
+            status == DTRStatus::REPLICA_FINALISED ||
+            status == DTRStatus::REPLICA_REGISTERED ||
+            status == DTRStatus::CACHE_PROCESSED);
   }
   
   bool DTR::came_from_delivery() const {
-  	return (status == DTRStatus::TRANSFERRED);
+    return (status == DTRStatus::TRANSFERRED);
   }
   
   bool DTR::came_from_generator() const {
-  	return (status == DTRStatus::NEW);
+    return (status == DTRStatus::NEW);
   }
   
   bool DTR::is_in_final_state() const {
-  	return (status == DTRStatus::DONE || 
-  	   status == DTRStatus::CANCELLED ||
-   	   status == DTRStatus::ERROR);
+    return (status == DTRStatus::DONE ||
+            status == DTRStatus::CANCELLED ||
+            status == DTRStatus::ERROR);
   }
   
   void DTR::set_transfer_share(const std::string& share_name) {
-  	lock.lock(); 
-  	transfershare = share_name;
-  	if (!sub_share.empty())
-  	  transfershare += "-" + sub_share;
-  	lock.unlock();
+    lock.lock();
+    transfershare = share_name;
+    if (!sub_share.empty())
+      transfershare += "-" + sub_share;
+    lock.unlock();
   }
 
   DTRCacheParameters::DTRCacheParameters(std::vector<std::string> caches,
