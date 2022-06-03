@@ -349,9 +349,9 @@ namespace DataStaging {
   
   void Scheduler::ProcessDTRREPLICA_QUERIED(DTR_ptr request){
     if(request->error()){
-      // go to next replica or exit with error
+      // go to finalising replica
       request->get_logger()->msg(Arc::ERROR, "Error with source file, moving to next replica");
-      next_replica(request);
+      request->set_status(DTRStatus::FINALISE_REPLICA);
       return;
     }
     if (request->get_source()->CheckSize()) {
@@ -498,8 +498,17 @@ namespace DataStaging {
       request->set_status(DTRStatus::REQUEST_RELEASED);
     }
   }
-  
+
   void Scheduler::ProcessDTRREQUEST_RELEASED(DTR_ptr request){
+    // Source index post-processing
+    if (request->get_source()->IsIndex()) {
+      request->set_status(DTRStatus::FINALISE_REPLICA);
+    } else {
+      request->set_status(DTRStatus::REPLICA_FINALISED);
+    }
+  }
+
+  void Scheduler::ProcessDTRREPLICA_FINALISED(DTR_ptr request){
     // if the post-processor had troubles releasing the request, continue
     // normal workflow and the DTR will be cleaned up. If the error
     // originates from before (like Transfer errors, staging errors)
@@ -518,7 +527,7 @@ namespace DataStaging {
       request->set_status(DTRStatus::REPLICA_REGISTERED);
     }
   }
-  
+
   void Scheduler::ProcessDTRREPLICA_REGISTERED(DTR_ptr request){
     // If there was a problem registering the destination file,
     // using a different source replica won't help, so pass to final step
@@ -677,6 +686,7 @@ namespace DataStaging {
         case DTRStatus::STAGED_PREPARED: ProcessDTRSTAGED_PREPARED(request); continue;
         case DTRStatus::TRANSFERRED: ProcessDTRTRANSFERRED(request); continue;
         case DTRStatus::REQUEST_RELEASED: ProcessDTRREQUEST_RELEASED(request); continue;
+        case DTRStatus::REPLICA_FINALISED: ProcessDTRREPLICA_FINALISED(request); continue;
         case DTRStatus::REPLICA_REGISTERED: ProcessDTRREPLICA_REGISTERED(request); continue;
         case DTRStatus::CACHE_PROCESSED: ProcessDTRCACHE_PROCESSED(request); continue;
         default: break; //DoNothing
@@ -730,6 +740,8 @@ namespace DataStaging {
       case DTRStatus::TRANSFERRED:
       case DTRStatus::RELEASE_REQUEST:
       case DTRStatus::REQUEST_RELEASED:
+      case DTRStatus::FINALISE_REPLICA:
+      case DTRStatus::REPLICA_FINALISED:
       case DTRStatus::REGISTER_REPLICA:
       case DTRStatus::REPLICA_REGISTERED:
       case DTRStatus::PROCESS_CACHE:
@@ -780,6 +792,11 @@ namespace DataStaging {
       case DTRStatus::RELEASING_REQUEST:
         {
           request->set_status(DTRStatus::REQUEST_RELEASED);
+        }
+        break;
+      case DTRStatus::FINALISING_REPLICA:
+        {
+          request->set_status(DTRStatus::REPLICA_FINALISED);
         }
         break;
       case DTRStatus::REGISTERING_REPLICA:

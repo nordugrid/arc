@@ -641,6 +641,22 @@ namespace DataStaging {
     DTR::push(request, SCHEDULER);
   }
 
+  void Processor::DTRFinaliseReplica(void* arg) {
+    // Call the source index service to tidy up connections, send traces etc
+    ThreadArgument* targ = (ThreadArgument*)arg;
+    DTR_ptr request = targ->dtr;
+    delete targ;
+    setUpLogger(request);
+
+    if (request->get_source()->IsIndex()) {
+      request->get_logger()->msg(Arc::VERBOSE, "Finalising current replica %s", request->get_source()->CurrentLocation().str());
+      request->get_source()->Finalise(request->get_error_status().GetDesc(),
+                                      request->get_credential_info().getDN());
+    }
+    request->set_status(DTRStatus::REPLICA_FINALISED);
+    DTR::push(request, SCHEDULER);
+  }
+
   void Processor::DTRRegisterReplica(void* arg) {
     // call request->destination.Register() to add new replica and metadata for normal workflow
     // call request->destination.PreUnregister() to delete LFN placed during
@@ -829,6 +845,11 @@ namespace DataStaging {
       case DTRStatus::RELEASE_REQUEST: {
         request->set_status(DTRStatus::RELEASING_REQUEST);
         Arc::CreateThreadFunction(&DTRReleaseRequest, (void*)arg, &thread_count);
+      }; break;
+
+      case DTRStatus::FINALISE_REPLICA: {
+        request->set_status(DTRStatus::FINALISING_REPLICA);
+        Arc::CreateThreadFunction(&DTRFinaliseReplica, (void*)arg, &thread_count);
       }; break;
 
       case DTRStatus::REGISTER_REPLICA: {

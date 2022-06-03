@@ -29,7 +29,7 @@ namespace ArcDMCRucio {
   };
 
   /**
-   * Rucio is the ATLAS Data Management System. A file in Rucio is represented
+   * Rucio is a Distributed Data Management System. A file in Rucio is represented
    * by a URL like rucio://rucio.cern.ch/replicas/scope/lfn. Calling GET/POST on
    * this URL with content-type metalink gives a list of physical locations
    * along with some metadata. Only reading from Rucio is currently supported.
@@ -51,6 +51,7 @@ namespace ArcDMCRucio {
     virtual Arc::DataStatus PostRegister(bool replication);
     virtual Arc::DataStatus PreUnregister(bool replication);
     virtual Arc::DataStatus Unregister(bool all);
+    virtual Arc::DataStatus Finalise(const std::string& error_msg, const std::string& dn);
     virtual Arc::DataStatus Stat(Arc::FileInfo& file, Arc::DataPoint::DataPointInfoType verb = INFO_TYPE_ALL);
     virtual Arc::DataStatus Stat(std::list<Arc::FileInfo>& files,
                                  const std::list<Arc::DataPoint*>& urls,
@@ -71,14 +72,22 @@ namespace ArcDMCRucio {
     static Glib::Mutex lock;
     /// Rucio auth url
     Arc::URL auth_url;
+    /// Our hostname
+    std::string hostname;
     /// Length of time for which a token is valid
     const static Arc::Period token_validity;
+    /// Map of url to Rucio RSE
+    std::map<std::string, std::string> rse_map;
     /// Check if a valid auth token exists in the cache and if not get a new one
     Arc::DataStatus checkToken(std::string& token);
     /// Call Rucio to obtain json of replica info
     Arc::DataStatus queryRucio(std::string& content, const std::string& token) const;
+    /// Post traces to Rucio
+    Arc::DataStatus postTraces(const char* data) const;
     /// Parse replica json
     Arc::DataStatus parseLocations(const std::string& content);
+    /// Send Rucio traces
+    Arc::DataStatus sendTrace(const std::string& error_msg, const std::string& dn);
 
   };
 
