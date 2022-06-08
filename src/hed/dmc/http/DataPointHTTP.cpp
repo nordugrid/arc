@@ -367,6 +367,7 @@ using namespace Arc;
       PayloadRaw request;
       std::string path = rurl.FullPathURIEncoded();
       info.lastModified = (time_t)(-1);
+      info.size = (uint64_t)(-1);
       AutoPointer<ClientHTTP> client(acquire_client(rurl));
       if (!client) return DataStatus::StatError;
       // Do HEAD to obtain some metadata
@@ -567,6 +568,10 @@ using namespace Arc;
         XMLNode multistatus(ContentFromPayload(*inbuf));
         delete inbuf; inbuf = NULL;
         release_client(rurl,client.Release());
+        if (!multistatus) { // Empty doc, return ENOSYS to fall back to HTTP
+          logger.msg(VERBOSE, "No information returned by PROPFIND");
+          return DataStatus(DataStatus::StatError, ENOSYS, "No information returned");
+        }
         if(multistatus.Name() == "multistatus") {
           XMLNode response = multistatus["response"];
           if((bool)response) {
@@ -656,6 +661,10 @@ using namespace Arc;
         XMLNode multistatus(ContentFromPayload(*inbuf));
         delete inbuf; inbuf = NULL;
         release_client(rurl,client.Release());
+        if (!multistatus) { // Empty doc, return ENOSYS to fall back to HTTP
+          logger.msg(VERBOSE, "No information returned by PROPFIND");
+          return DataStatus(DataStatus::StatError, ENOSYS, "No information returned");
+        }
         if(multistatus.Name() == "multistatus") {
           XMLNode response = multistatus["response"];
           for(;(bool)response;++response) {

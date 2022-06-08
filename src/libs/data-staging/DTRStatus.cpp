@@ -15,6 +15,7 @@ namespace DataStaging {
       DTRStatus::STAGE_PREPARE,
       DTRStatus::TRANSFER,
       DTRStatus::RELEASE_REQUEST,
+      DTRStatus::FINALISE_REPLICA,
       DTRStatus::REGISTER_REPLICA,
       DTRStatus::PROCESS_CACHE
   };
@@ -28,6 +29,7 @@ namespace DataStaging {
       DTRStatus::STAGING_PREPARING,
       DTRStatus::TRANSFERRING,
       DTRStatus::RELEASING_REQUEST,
+      DTRStatus::FINALISING_REPLICA,
       DTRStatus::REGISTERING_REPLICA,
       DTRStatus::PROCESSING_CACHE
   };
@@ -77,6 +79,9 @@ namespace DataStaging {
     "RELEASE_REQUEST",
     "RELEASING_REQUEST",
     "REQUEST_RELEASED",
+    "FINALISE_REPLICA",
+    "FINALISING_REPLICA",
+    "REPLICA_FINALISED",
     "REGISTER_REPLICA",
     "REGISTERING_REPLICA",
     "REPLICA_REGISTERED",

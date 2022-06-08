@@ -22,7 +22,7 @@ our @EXPORT_OK = ('cluster_info',
       'users_info',
       'nodes_info');
 
-use LogUtils ( 'start_logging', 'error', 'warning', 'debug' );
+use LogUtils ( 'start_logging', 'error', 'warning', 'info', 'debug' );
 
 ##########################################
 # Saved private variables

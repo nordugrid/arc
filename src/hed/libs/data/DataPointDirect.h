@@ -67,6 +67,7 @@ namespace Arc {
     virtual DataStatus PostRegister(bool replication);
     virtual DataStatus PreUnregister(bool replication);
     virtual DataStatus Unregister(bool all);
+    virtual DataStatus Finalise(const std::string& error_msg, const std::string& dn);
     virtual bool AcceptsMeta() const;
     virtual bool ProvidesMeta() const;
     virtual const URL& CurrentLocation() const;
