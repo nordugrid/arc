@@ -54,8 +54,8 @@ $qlim = array( QUE_NAME, QUE_QUED, QUE_GQUE, QUE_PQUE, QUE_LQUE, QUE_RUNG, QUE_G
 $qfilter = "(objectclass=".OBJ_QUEU.")";
 $dn      = DN_LOCAL;
 if ($schema == "GLUE2") {
-    $qlim = array( GQUE_NAME, GQUE_MAPQ, GQUE_QUED, GQUE_GQUE, GQUE_PQUE, GQUE_LQUE, GQUE_RUNG, GQUE_GRUN,
-               GQUE_ASCP, GQUE_MAXT, GQUE_MINT, GQUE_STAT );
+    $qlim = array( GQUE_NAME, GQUE_MAPQ, GQUE_STAT, GQUE_RUNG, GQUE_MAXR, GQUE_LQUE, GQUE_LRUN,
+                   GQUE_PQUE, GQUE_QUED, GQUE_MAXQ, GQUE_MINT, GQUE_MAXT );
 
     // ldapsearch filter strings for cluster and queues
 
@@ -87,10 +87,14 @@ if ($ds) {
   if ( $isse ) {
     $exclude = array(SEL_USER);
     if ( $dn == DN_LOCAL ) $thisdn = ldap_nice_dump($strings,$ds,SEL_NAME."=".$host.",".$dn,$exclude);
-    if ( $dn == DN_GLUE ) {
-        $querydn = SEL_NAME."=".$host.":arex,GLUE2GroupID=services,".DN_GLUE;//TODO: change SEL_NAME
-        $thisdn = ldap_nice_dump($strings,$ds,$querydn,$exclude);
-    }
+ /**
+  *  Storage not supported in GLUE2
+  * if ( $dn == DN_GLUE ) {
+  *         $querydn = SEL_NAME."=".$host.":arex,GLUE2GroupID=services,".DN_GLUE;//TODO: change SEL_NAME
+  *         $thisdn = ldap_nice_dump($strings,$ds,$querydn,$exclude);
+  * }
+  */
+  // if it is a cluster
   } else {
     if ( $dn == DN_LOCAL ) $thisdn = ldap_nice_dump($strings,$ds,CLU_NAME."=".$host.",".$dn);
     if ( $dn == DN_GLUE  ) {
@@ -102,7 +106,7 @@ if ($ds) {
   if ( strlen($thisdn) < 4 && $debug ) dbgmsg("<div align=\"left\"><i>".$errors["129"].$thisdn."</i></div><br>");
   echo "<br>";
     
-  // Loop on queues (if everything works)
+  // Loop on queues/shares (if everything works)
 
   if ($thisdn != 1 && !$isse) {
     $ts1 = time();
@@ -151,16 +155,25 @@ if ($ds) {
             $qname   =  $qentries[$k][GQUE_NAME][0];
             $mapque  =  $qentries[$k][GQUE_MAPQ][0];
             $qstatus =  $qentries[$k][GQUE_STAT][0];
-            //  $queued  =  @$qentries[$k][GQUE_QUED][0];
+            // Queued
             $queued  = @($qentries[$k][GQUE_QUED][0]) ? ($entries[$k][GQUE_QUED][0]) : 0; /* deprecated since 0.5.38 */
             $locque  = @($qentries[$k][GQUE_LQUE][0]) ? ($qentries[$k][GQUE_LQUE][0]) : 0; /* new since 0.5.38 */
+            $gridque = $queued - $locque;
+            if ( $gridrque < 0 ) $gridque = 0;
+            $gmque   = @($qentries[$k][GQUE_PQUE][0]) ? ($qentries[$k][GQUE_PQUE][0]) : 0; /* new since 0.5.38 */
+            // Running
             $run     = @($qentries[$k][GQUE_RUNG][0]) ? ($qentries[$k][GQUE_RUNG][0]) : 0;
+            $locrun  = @($qentries[$k][GQUE_LRUN][0]) ? ($qentries[$k][GQUE_LRUN][0]) : 0;
+            $gridrun = $run - $locrun;
+            if ( $gridrun < 0 ) $gridrun = 0;
+            // Limits
             $cpumin  = @($qentries[$k][GQUE_MINT][0]) ? $qentries[$k][GQUE_MINT][0] : "0";
             $cpumax  = @($qentries[$k][GQUE_MAXT][0]) ? $qentries[$k][GQUE_MAXT][0] : "&gt;";
-            $cpu     = @($qentries[$k][GQUE_ASCP][0]) ? $qentries[$k][GQUE_ASCP][0] : "N/A";
-            $gridque = @($qentries[$k][GQUE_GQUE][0]) ? $qentries[$k][GQUE_GQUE][0] : "0";
-            $gmque   = @($qentries[$k][GQUE_PQUE][0]) ? ($qentries[$k][GQUE_PQUE][0]) : 0; /* new since 0.5.38 */
-            $gridrun = @($qentries[$k][GQUE_GRUN][0]) ? $qentries[$k][GQUE_GRUN][0] : "0";
+            // this does not exist in GLUE2. maybe maxtotaljobs*(maxslotsperjob=1) can be used?
+            $cpu = @($qentries[$k][GQUE_MAXQ][0]) ? $qentries[$k][GQUE_MAXQ][0] : "N/A";
+            //$cpu     = @($qentries[$k][GQUE_ASCP][0]) ? $qentries[$k][GQUE_ASCP][0] : "N/A";
+            
+            // This below TODO
             $quewin  = popup("quelist.php?host=$host&port=$port&qname=$qname&schema=$schema",750,430,6,$lang,$debug);
         }
 	$gridque = $gridque + $gmque;
