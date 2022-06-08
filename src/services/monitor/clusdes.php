@@ -140,7 +140,7 @@ if ($ds) {
 	    $qname   =  $qentries[$k][QUE_NAME][0];
 	    $qstatus =  $qentries[$k][QUE_STAT][0];
 	    //	$queued  =  @$qentries[$k][QUE_QUED][0];
-       	    $queued  = @($qentries[$k][QUE_QUED][0]) ? ($entries[$k][QUE_QUED][0]) : 0; /* deprecated since 0.5.38 */
+       	$queued  = @($qentries[$k][QUE_QUED][0]) ? ($entries[$k][QUE_QUED][0]) : 0; /* deprecated since 0.5.38 */
 	    $locque  = @($qentries[$k][QUE_LQUE][0]) ? ($qentries[$k][QUE_LQUE][0]) : 0; /* new since 0.5.38 */
 	    $run     = @($qentries[$k][QUE_RUNG][0]) ? ($qentries[$k][QUE_RUNG][0]) : 0;
 	    $cpumin  = @($qentries[$k][QUE_MINT][0]) ? $qentries[$k][QUE_MINT][0] : "0";
@@ -156,11 +156,11 @@ if ($ds) {
             $mapque  =  $qentries[$k][GQUE_MAPQ][0];
             $qstatus =  $qentries[$k][GQUE_STAT][0];
             // Queued
-            $queued  = @($qentries[$k][GQUE_QUED][0]) ? ($entries[$k][GQUE_QUED][0]) : 0; /* deprecated since 0.5.38 */
-            $locque  = @($qentries[$k][GQUE_LQUE][0]) ? ($qentries[$k][GQUE_LQUE][0]) : 0; /* new since 0.5.38 */
+            $queued  = @($qentries[$k][GQUE_QUED][0]) ? ($qentries[$k][GQUE_QUED][0]) : 0;
+            $locque  = @($qentries[$k][GQUE_LQUE][0]) ? ($qentries[$k][GQUE_LQUE][0]) : 0;
             $gridque = $queued - $locque;
-            if ( $gridrque < 0 ) $gridque = 0;
-            $gmque   = @($qentries[$k][GQUE_PQUE][0]) ? ($qentries[$k][GQUE_PQUE][0]) : 0; /* new since 0.5.38 */
+            if ( $gridque < 0 ) $gridque = 0;
+            $gmque   = @($qentries[$k][GQUE_PQUE][0]) ? ($qentries[$k][GQUE_PQUE][0]) : 0;
             // Running
             $run     = @($qentries[$k][GQUE_RUNG][0]) ? ($qentries[$k][GQUE_RUNG][0]) : 0;
             $locrun  = @($qentries[$k][GQUE_LRUN][0]) ? ($qentries[$k][GQUE_LRUN][0]) : 0;
@@ -169,9 +169,7 @@ if ($ds) {
             // Limits
             $cpumin  = @($qentries[$k][GQUE_MINT][0]) ? $qentries[$k][GQUE_MINT][0] : "0";
             $cpumax  = @($qentries[$k][GQUE_MAXT][0]) ? $qentries[$k][GQUE_MAXT][0] : "&gt;";
-            // this does not exist in GLUE2. maybe maxtotaljobs*(maxslotsperjob=1) can be used?
-            $cpu = @($qentries[$k][GQUE_MAXQ][0]) ? $qentries[$k][GQUE_MAXQ][0] : "N/A";
-            //$cpu     = @($qentries[$k][GQUE_ASCP][0]) ? $qentries[$k][GQUE_ASCP][0] : "N/A";
+            $cpu     = @($qentries[$k][GQUE_MAXR][0]) ? $qentries[$k][GQUE_MAXR][0] : "N/A";
             
             // This below TODO
             $quewin  = popup("quelist.php?host=$host&port=$port&qname=$qname&schema=$schema",750,430,6,$lang,$debug);
