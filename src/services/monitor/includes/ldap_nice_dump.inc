@@ -64,6 +64,9 @@ function ldap_nice_dump() {
         $entries = ldap_get_attributes($ds,$first);
         $nfields = $entries["count"];
       
+        //Attempt to order the contents for GLUE2. Maybe needs a custom sort, but didn't seem to work so far.
+         if ( strpos($dn, DN_GLUE) ) array_multisort($entries,SORT_DESC,SORT_NATURAL);
+      
         // get the Distinguished Name
       
         $thisdn = ldap_get_dn($ds,$first);
