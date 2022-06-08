@@ -40,7 +40,8 @@ function ldap_nice_dump() {
   // Plain LDAP dump for the DN
   $filstr = "(objectclass=*)";
   if ( strpos($dn, DN_GLUE) ) {
-      $filstr = "(|(objectClass=".GOBJ_CLUS.")(objectClass=".GOBJ_MAN.")(objectClass=".GOBJ_LOC.")(objectClass=".GOBJ_QUEU.")(objectClass=".GOBJ_CON."))";
+      $filstr = "(|(objectClass=".GOBJ_CLUS.")(objectClass=".GOBJ_MAN.")(objectClass=".GOBJ_LOC.")(objectClass=".GOBJ_QUEU.")(objectClass=".GOBJ_CON.")
+                   (objectClass=".GOBJ_ADMD.")(objectClass=".GOBJ_EENV.")(objectClass=".GOBJ_BENC.")(objectClass=".GOBJ_AENV."))";
       if ( strpos(strtolower(" ".$dn), GJOB_GLID) ) {
           $filstr = "(|(objectClass=".GOBJ_AJOB."))";
       }

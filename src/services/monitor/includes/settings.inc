@@ -111,6 +111,9 @@ if ( !defined("GOBJ_LOC") ) define("GOBJ_LOC",IS_PREFXG."location");
 if ( !defined("GOBJ_MAN") ) define("GOBJ_MAN",IS_PREFXG."manager");
 if ( !defined("GOBJ_CON") ) define("GOBJ_CON",IS_PREFXG."contact");
 if ( !defined("GOBJ_ADMD") ) define("GOBJ_ADMD",IS_PREFXG."admindomain");
+if ( !defined("GOBJ_EENV") ) define("GOBJ_EENV",IS_PREFXG."executionenvironment");
+if ( !defined("GOBJ_BENC") ) define("GOBJ_BENC",IS_PREFXG."benchmark");
+if ( !defined("GOBJ_AENV") ) define("GOBJ_AENV",IS_PREFXG."applicationenvironment");
 
 if ( !defined("OBJ_PERS") ) define("OBJ_PERS","organizationalPerson");
 if ( !defined("OBJ_RCOL") ) define("OBJ_RCOL","GlobusReplicaLogicalCollection");  /* RC Logical Collection object */
