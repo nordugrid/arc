@@ -43,7 +43,10 @@ $errors   = &$toppage->errors;
 // Header table
 
 $toppage->tabletop("","<b>".$toptitle." <i>$host</i></b>");
-  
+
+//TODO add translation string here
+echo "<p><a href=\"#qstable\">[Scroll down to queues/shares table]</a></p>";
+
 // Array defining the attributes to be returned
   
 $qlim = array( QUE_NAME, QUE_QUED, QUE_GQUE, QUE_PQUE, QUE_LQUE, QUE_RUNG, QUE_GRUN, 
@@ -54,12 +57,14 @@ $qlim = array( QUE_NAME, QUE_QUED, QUE_GQUE, QUE_PQUE, QUE_LQUE, QUE_RUNG, QUE_G
 $qfilter = "(objectclass=".OBJ_QUEU.")";
 $dn      = DN_LOCAL;
 if ($schema == "GLUE2") {
-    $qlim = array( GQUE_NAME, GQUE_MAPQ, GQUE_QUED, GQUE_GQUE, GQUE_PQUE, GQUE_LQUE, GQUE_RUNG, GQUE_GRUN,
-               GQUE_ASCP, GQUE_MAXT, GQUE_MINT, GQUE_STAT );
+    $qlim = array( GQUE_NAME, GQUE_MAPQ, GQUE_STAT, GQUE_RUNG, GQUE_MAXR, GQUE_LQUE, GQUE_LRUN,
+                   GQUE_PQUE, GQUE_QUED, GQUE_MAXQ, GQUE_MINT, GQUE_MAXT, GQUE_ENVK );
+    
+    $elim = array( EENV_ID, EENV_LCPU, EENV_PCPU, EENV_TINS );
 
-    // ldapsearch filter strings for cluster and queues
-
+    // ldapsearch filter strings for Shares and ExecutionEnvironments
     $qfilter = "(objectclass=".GOBJ_QUEU.")";
+    $efilter = "(objectclass=".GOBJ_EENV.")";
     $dn      = DN_GLUE;
 }
 
@@ -87,10 +92,14 @@ if ($ds) {
   if ( $isse ) {
     $exclude = array(SEL_USER);
     if ( $dn == DN_LOCAL ) $thisdn = ldap_nice_dump($strings,$ds,SEL_NAME."=".$host.",".$dn,$exclude);
-    if ( $dn == DN_GLUE ) {
-        $querydn = SEL_NAME."=".$host.":arex,GLUE2GroupID=services,".DN_GLUE;//TODO: change SEL_NAME
-        $thisdn = ldap_nice_dump($strings,$ds,$querydn,$exclude);
-    }
+ /**
+  *  Storage not supported in GLUE2
+  * if ( $dn == DN_GLUE ) {
+  *         $querydn = SEL_NAME."=".$host.":arex,GLUE2GroupID=services,".DN_GLUE;//TODO: change SEL_NAME
+  *         $thisdn = ldap_nice_dump($strings,$ds,$querydn,$exclude);
+  * }
+  */
+  // if it is a cluster
   } else {
     if ( $dn == DN_LOCAL ) $thisdn = ldap_nice_dump($strings,$ds,CLU_NAME."=".$host.",".$dn);
     if ( $dn == DN_GLUE  ) {
@@ -102,15 +111,40 @@ if ($ds) {
   if ( strlen($thisdn) < 4 && $debug ) dbgmsg("<div align=\"left\"><i>".$errors["129"].$thisdn."</i></div><br>");
   echo "<br>";
     
-  // Loop on queues (if everything works)
+  // Loop on queues/shares (if everything works)
 
   if ($thisdn != 1 && !$isse) {
     $ts1 = time();
     $qsr = @ldap_search($ds,$dn,$qfilter,$qlim,0,0,$tlim,LDAP_DEREF_NEVER);
+    // Only for GLUE2, search ExecutionEnvironments
+    if ( $dn == DN_GLUE ) $esr = @ldap_search($ds,$dn,$efilter,$elim,0,0,$tlim,LDAP_DEREF_NEVER);
     $ts2 = time(); if($debug) dbgmsg("<br><b>".$errors["110"]." (".($ts2-$ts1).$errors["104"].")</b><br>");
     // Fall back to conventional LDAP
     //      if (!$qsr) $qsr = @ldap_search($ds,$dn,$qfilter,$qlim,0,0,$tlim,LDAP_DEREF_NEVER);
   }
+  
+  // only for GLUE2, store executionenvironments in $envs for later use
+  if (($dn == DN_GLUE ) && ($esr) ) {
+    $nematch = @ldap_count_entries($ds,$esr);
+    if ($nematch > 0) {
+       $envs = array();  
+      // TODO: If there are valid entries, save them in an array for later use, reorder with ID as primary key
+      $eentries = @ldap_get_entries($ds,$esr);
+      $nenvs  = $eentries["count"];
+      for ($k=0; $k<$nenvs+1; $k++) {
+          $envs[$eentries[$k][EENV_ID][0]] = array(
+            EENV_LCPU => $eentries[$k][EENV_LCPU][0],
+            EENV_PCPU => $eentries[$k][EENV_PCPU][0],
+            EENV_TINS => $eentries[$k][EENV_TINS][0]
+          );
+      }
+    } else {
+        // TODO: add error strings to errors file, for translation
+        //if($debug) dbgmsg("<br><b>".$errors["TODO-ERR1"]."</b><br>");
+        if($debug) dbgmsg("<br><b> No ExecutionEnvironments found</b><br>");
+    }
+  }
+   
   if ($qsr) {
        
     // If search returned, check that there are valid entries
@@ -122,21 +156,33 @@ if ($ds) {
          
       $qentries = @ldap_get_entries($ds,$qsr);
       $nqueues  = $qentries["count"];
-        
+      
+      
       // HTML table initialisation
-         
+      echo "<a id=\"qstable\"></a>";
       $qtable = new LmTableSp($module,$toppage->$module,$schema);
         
       // loop on the rest of attributes
 
-      define("CMPKEY",QUE_MAXT);
-      usort($qentries,"quetcmp");
+      // some sorting, diversified depending on schema
+      if ($dn == DN_LOCAL) {
+          define("CMPKEY",QUE_MAXT);
+          usort($qentries,"quetcmp");
+      } elseif ($dn == DN_GLUE) {
+          // suprisingly, sorting buy dn did the trick for queues...
+          usort($qentries,"dncmp");
+      } else {
+        // TODO: add error strings to errors file, for translation
+        //if($debug) dbgmsg("<br><b>".$errors["TODO-ERR2"]."</b><br>");
+        if($debug) dbgmsg("<br><b>Sorting of queues/shares failed</b><br>");
+      }
+      
       for ($k=1; $k<$nqueues+1; $k++) {
         if ( $dn == DN_LOCAL ) {
 	    $qname   =  $qentries[$k][QUE_NAME][0];
 	    $qstatus =  $qentries[$k][QUE_STAT][0];
 	    //	$queued  =  @$qentries[$k][QUE_QUED][0];
-       	    $queued  = @($qentries[$k][QUE_QUED][0]) ? ($entries[$k][QUE_QUED][0]) : 0; /* deprecated since 0.5.38 */
+       	$queued  = @($qentries[$k][QUE_QUED][0]) ? ($entries[$k][QUE_QUED][0]) : 0; /* deprecated since 0.5.38 */
 	    $locque  = @($qentries[$k][QUE_LQUE][0]) ? ($qentries[$k][QUE_LQUE][0]) : 0; /* new since 0.5.38 */
 	    $run     = @($qentries[$k][QUE_RUNG][0]) ? ($qentries[$k][QUE_RUNG][0]) : 0;
 	    $cpumin  = @($qentries[$k][QUE_MINT][0]) ? $qentries[$k][QUE_MINT][0] : "0";
@@ -151,16 +197,30 @@ if ($ds) {
             $qname   =  $qentries[$k][GQUE_NAME][0];
             $mapque  =  $qentries[$k][GQUE_MAPQ][0];
             $qstatus =  $qentries[$k][GQUE_STAT][0];
-            //  $queued  =  @$qentries[$k][GQUE_QUED][0];
-            $queued  = @($qentries[$k][GQUE_QUED][0]) ? ($entries[$k][GQUE_QUED][0]) : 0; /* deprecated since 0.5.38 */
-            $locque  = @($qentries[$k][GQUE_LQUE][0]) ? ($qentries[$k][GQUE_LQUE][0]) : 0; /* new since 0.5.38 */
+            // Queued
+            $queued  = @($qentries[$k][GQUE_QUED][0]) ? ($qentries[$k][GQUE_QUED][0]) : 0;
+            $locque  = @($qentries[$k][GQUE_LQUE][0]) ? ($qentries[$k][GQUE_LQUE][0]) : 0;
+            $gridque = $queued - $locque;
+            if ( $gridque < 0 ) $gridque = 0;
+            $gmque   = @($qentries[$k][GQUE_PQUE][0]) ? ($qentries[$k][GQUE_PQUE][0]) : 0;
+            // Running
             $run     = @($qentries[$k][GQUE_RUNG][0]) ? ($qentries[$k][GQUE_RUNG][0]) : 0;
+            $locrun  = @($qentries[$k][GQUE_LRUN][0]) ? ($qentries[$k][GQUE_LRUN][0]) : 0;
+            $gridrun = $run - $locrun;
+            if ( $gridrun < 0 ) $gridrun = 0;
+            // Limits
             $cpumin  = @($qentries[$k][GQUE_MINT][0]) ? $qentries[$k][GQUE_MINT][0] : "0";
             $cpumax  = @($qentries[$k][GQUE_MAXT][0]) ? $qentries[$k][GQUE_MAXT][0] : "&gt;";
-            $cpu     = @($qentries[$k][GQUE_ASCP][0]) ? $qentries[$k][GQUE_ASCP][0] : "N/A";
-            $gridque = @($qentries[$k][GQUE_GQUE][0]) ? $qentries[$k][GQUE_GQUE][0] : "0";
-            $gmque   = @($qentries[$k][GQUE_PQUE][0]) ? ($qentries[$k][GQUE_PQUE][0]) : 0; /* new since 0.5.38 */
-            $gridrun = @($qentries[$k][GQUE_GRUN][0]) ? $qentries[$k][GQUE_GRUN][0] : "0";
+            // related execenv
+            $qenvkey = @($qentries[$k][GQUE_ENVK][0]) ? $qentries[$k][GQUE_ENVK][0] : "";
+
+            // use ExecutionEnvironment TotalInstances, LogicalCPUs when available to calculate cpus
+            // use mapping between queues and execenvs
+            $env = $envs[$qenvkey];
+            $cpu = $env[EENV_LCPU] * $env[EENV_TINS];
+            if (!$cpu) $cpu = "N/A";
+                
+            // This below TODO
             $quewin  = popup("quelist.php?host=$host&port=$port&qname=$qname&schema=$schema",750,430,6,$lang,$debug);
         }
 	$gridque = $gridque + $gmque;
