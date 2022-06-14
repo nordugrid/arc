@@ -155,10 +155,6 @@ namespace Arc {
 
     void Cleanup();
 
-    OpenIDMetadata(OpenIDMetadata const &);
-
-    OpenIDMetadata& operator=(OpenIDMetadata const &);
-
   }; // class OpenIDMetadata
 
   class OpenIDMetadataFetcher {
