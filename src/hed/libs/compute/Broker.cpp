@@ -20,13 +20,13 @@ namespace Arc {
   Logger ExecutionTargetSorter::logger(Logger::getRootLogger(), "ExecutionTargetSorter");
 
   Broker::Broker(const UserConfig& uc, const JobDescription& j, const std::string& name) : uc(uc), j(&j), p(getLoader().load(uc, j, name, false)) {
-    Credential credential(uc, std::string(2,'\0')); // private key is not needed here
+    Credential credential(uc);
     proxyDN = credential.GetDN();
     proxyIssuerCA = credential.GetCAName();
   }
 
   Broker::Broker(const UserConfig& uc, const std::string& name) : uc(uc), j(NULL), p(getLoader().load(uc, name, false)) {
-    Credential credential(uc, std::string(2,'\0'));
+    Credential credential(uc);
     proxyDN = credential.GetDN();
     proxyIssuerCA = credential.GetCAName();
   }
@@ -136,13 +136,13 @@ namespace Arc {
 
   bool Broker::genericMatch(const ExecutionTarget& t, const JobDescription& j, const UserConfig& uc) {
     // Maybe Credential can be passed to plugins through one more set()
-    Credential credential(uc, std::string(2, '\0'));
+    Credential credential(uc);
     std::string proxyDN = credential.GetDN();
     std::string proxyIssuerCA = credential.GetCAName();
 
     if ( !(t.ComputingEndpoint->TrustedCA.empty()) && (findDN(t.ComputingEndpoint->TrustedCA.begin(), t.ComputingEndpoint->TrustedCA.end(), proxyIssuerCA)
             == t.ComputingEndpoint->TrustedCA.end()) ){
-        logger.msg(VERBOSE, "The CA issuer (%s) of the credentials (%%s) is not trusted by the target (%s).", proxyIssuerCA, proxyDN, t.ComputingEndpoint->URLString);
+        logger.msg(VERBOSE, "The CA issuer (%s) of the credentials (%s) is not trusted by the target (%s).", proxyIssuerCA, proxyDN, t.ComputingEndpoint->URLString);
         return false;
     }
 

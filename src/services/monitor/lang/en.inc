@@ -647,6 +647,7 @@ $message = array (
                                         "GR"  => "Greece",
                                         "HK"  => "HongKong",
                                         "HU"  => "Hungary",
+                                        "IL"  => "Israel",
                                         "IS"  => "Iceland",
                                         "IR"  => "Ireland",
                                         "IE"  => "Ireland",
@@ -677,8 +678,11 @@ $message = array (
                                         "UA"  => "Ukraine",
                                         "COM" => "USA",
                                         "GOV" => "USA",
+                                        "OV"  => "USA",
                                         "USA" => "USA",
                                         "US"  => "USA",
+					"EDU" => "USA",
+					"DU" => "USA",
                                         "RG"  => "World"
                                         )
                   );

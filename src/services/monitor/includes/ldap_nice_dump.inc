@@ -40,7 +40,8 @@ function ldap_nice_dump() {
   // Plain LDAP dump for the DN
   $filstr = "(objectclass=*)";
   if ( strpos($dn, DN_GLUE) ) {
-      $filstr = "(|(objectClass=".GOBJ_CLUS.")(objectClass=".GOBJ_MAN.")(objectClass=".GOBJ_LOC.")(objectClass=".GOBJ_QUEU.")(objectClass=".GOBJ_CON."))";
+      $filstr = "(|(objectClass=".GOBJ_CLUS.")(objectClass=".GOBJ_MAN.")(objectClass=".GOBJ_LOC.")(objectClass=".GOBJ_QUEU.")(objectClass=".GOBJ_CON.")
+                   (objectClass=".GOBJ_ADMD.")(objectClass=".GOBJ_EENV.")(objectClass=".GOBJ_BENC.")(objectClass=".GOBJ_AENV."))";
       if ( strpos(strtolower(" ".$dn), GJOB_GLID) ) {
           $filstr = "(|(objectClass=".GOBJ_AJOB."))";
       }
@@ -62,6 +63,9 @@ function ldap_nice_dump() {
       for ( $j=0; $j<$nmatch; $j++){
         $entries = ldap_get_attributes($ds,$first);
         $nfields = $entries["count"];
+      
+        //Attempt to order the contents for GLUE2. Maybe needs a custom sort, but didn't seem to work so far.
+         if ( strpos($dn, DN_GLUE) ) array_multisort($entries,SORT_DESC,SORT_NATURAL);
       
         // get the Distinguished Name
       

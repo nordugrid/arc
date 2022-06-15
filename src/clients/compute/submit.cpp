@@ -105,29 +105,17 @@ void check_missing_plugins(Arc::Submitter s, int is_error) {
   // TODO: What to do when failing to load other plugins.
 }
 
-int legacy_submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface, const std::string& jobidfile, bool direct_submission, bool no_delegation) {
+int legacy_submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface, const std::string& jobidfile, bool direct_submission) {
 
   HandleSubmittedJobs hsj(jobidfile, usercfg);
   Arc::Submitter s(usercfg);
   s.addConsumer(hsj);
 
-  std::list<Arc::JobDescription> w_jobdescriptionlist(jobdescriptionlist);
-  if(no_delegation) {
-    for(std::list<Arc::JobDescription>::iterator it = w_jobdescriptionlist.begin();
-                    it != w_jobdescriptionlist.end(); ++it) {
-      it->NoDelegation = true;
-      for(std::list<Arc::JobDescription>::iterator itAlt = it->GetAlternatives().begin();
-                      itAlt != it->GetAlternatives().end(); ++itAlt) {
-        itAlt->NoDelegation = true;
-      }
-    }
-  }
-
   Arc::SubmissionStatus status;
   if (!direct_submission) {
     std::list<std::string> rsi;
     if (!requestedSubmissionInterface.empty()) rsi.push_back(requestedSubmissionInterface);
-    status = s.BrokeredSubmit(services, w_jobdescriptionlist, rsi);
+    status = s.BrokeredSubmit(services, jobdescriptionlist, rsi);
   }
   else {
     if (!requestedSubmissionInterface.empty()) {
@@ -143,7 +131,7 @@ int legacy_submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescri
         ++it;
       }
     }
-    status = s.Submit(services, w_jobdescriptionlist);
+    status = s.Submit(services, jobdescriptionlist);
   }
   hsj.write();
 
@@ -153,7 +141,7 @@ int legacy_submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescri
   if (status.isSet(Arc::SubmissionStatus::SUBMITTER_PLUGIN_NOT_LOADED))
     check_missing_plugins(s, error_check);
 
-  hsj.printsummary(w_jobdescriptionlist, s.GetDescriptionsNotSubmitted());
+  hsj.printsummary(jobdescriptionlist, s.GetDescriptionsNotSubmitted());
 
   return error_check;
 }
@@ -397,7 +385,7 @@ bool prepare_submission_endpoint_batches(const Arc::UserConfig& usercfg, const C
   return info_discovery;
 }
 
-int submit_jobs(const Arc::UserConfig& usercfg, const std::list<std::list<Arc::Endpoint> >& endpoint_batches, bool info_discovery, const std::string& jobidfile, const std::list<Arc::JobDescription>& jobdescriptionlist, bool no_delegation) {
+int submit_jobs(const Arc::UserConfig& usercfg, const std::list<std::list<Arc::Endpoint> >& endpoint_batches, bool info_discovery, const std::string& jobidfile, const std::list<Arc::JobDescription>& jobdescriptionlist) {
 
     HandleSubmittedJobs hsj(jobidfile, usercfg);
     Arc::Submitter submitter(usercfg);
@@ -405,16 +393,6 @@ int submit_jobs(const Arc::UserConfig& usercfg, const std::list<std::list<Arc::E
 
     std::list<Arc::JobDescription> w_jobdescriptionlist(jobdescriptionlist);
     int error_check = 0;
-    if(no_delegation) {
-      for(std::list<Arc::JobDescription>::iterator it = w_jobdescriptionlist.begin();
-                      it != w_jobdescriptionlist.end(); ++it) {
-        it->NoDelegation = true;
-        for(std::list<Arc::JobDescription>::iterator itAlt = it->GetAlternatives().begin();
-                        itAlt != it->GetAlternatives().end(); ++itAlt) {
-          itAlt->NoDelegation = true;
-        }
-      }
-    }
 
     for (std::list<std::list<Arc::Endpoint> >::const_iterator it = endpoint_batches.begin();
          it != endpoint_batches.end(); ++it) {

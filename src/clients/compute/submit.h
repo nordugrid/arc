@@ -20,7 +20,7 @@ int process_submission_status(Arc::SubmissionStatus status, const Arc::UserConfi
 
 void check_missing_plugins(Arc::Submitter s, int is_error);
 
-int legacy_submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface, const std::string& jobidfile, bool direct_submission, bool no_delegation);
+int legacy_submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface, const std::string& jobidfile, bool direct_submission);
 
 int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface);
 
@@ -46,7 +46,7 @@ bool prepare_submission_endpoint_batches(const Arc::UserConfig& usercfg, const C
   \param[in] jobdescriptionlist list of job descriptions to submit
   \return a bool indicating the need of target information lookup versus direct submission.
 */
-int submit_jobs(const Arc::UserConfig& usercfg, const std::list<std::list<Arc::Endpoint> >& endpoint_batches, bool info_discovery, const std::string& jobidfile, const std::list<Arc::JobDescription>& jobdescriptionlist, bool no_delegation);
+int submit_jobs(const Arc::UserConfig& usercfg, const std::list<std::list<Arc::Endpoint> >& endpoint_batches, bool info_discovery, const std::string& jobidfile, const std::list<Arc::JobDescription>& jobdescriptionlist);
 
 /// Class to handle submitted job and present the results to user
 class HandleSubmittedJobs : public Arc::EntityConsumer<Arc::Job> {

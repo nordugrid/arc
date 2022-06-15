@@ -75,8 +75,10 @@ if ( !defined("DN_TUTOR") ) define("DN_TUTOR","ou=tutorial,dc=nordugrid,dc=org")
 if ( !defined("DN_SERVS") ) define("DN_SERVS","ou=services,dc=nordugrid,dc=org");
 if ( !defined("DN_RECAT") ) define("DN_RECAT","rc=NorduGrid,dc=nordugrid,dc=org");
 
-// Information system classes and attributes namespace prefix, "nordugrid"
+// Information system classes and attributes namespace prefix, for NorduGRID schema, "nordugrid"
 if ( !defined("IS_PREFX") ) define("IS_PREFX","nordugrid");
+// Information system classes and attributes namespace prefix for GLUE2 schema, "GLUE2". Due to 
+// the way the php library works, this needs to be all lowercase.
 if ( !defined("IS_PREFXG") ) define("IS_PREFXG","glue2");
 
 // Cache location (use ../htdata when installing directly in ./htdocs)
@@ -98,13 +100,20 @@ if ( !defined("OBJ_USER") ) define("OBJ_USER",IS_PREFX."-authuser");
 
 //GLUE2
 if ( !defined("GOBJ_CLUS") ) define("GOBJ_CLUS",IS_PREFXG."ComputingService");
-if ( !defined("GOBJ_STEL") ) define("GOBJ_STEL",IS_PREFXG."-se");
+// SE are currently not supported in our GLUE2 rendering.
+//if ( !defined("GOBJ_STEL") ) define("GOBJ_STEL",IS_PREFXG."-se");
 if ( !defined("GOBJ_QUEU") ) define("GOBJ_QUEU",IS_PREFXG."ComputingShare");
 if ( !defined("GOBJ_AJOB") ) define("GOBJ_AJOB",IS_PREFXG."ComputingActivity");
-if ( !defined("GOBJ_USER") ) define("GOBJ_USER",IS_PREFXG."-authuser");
-if ( !defined("GOBJ_LOC") ) define("GOBJ_LOC",IS_PREFXG."Location");
-if ( !defined("GOBJ_MAN") ) define("GOBJ_MAN",IS_PREFXG."Manager");
-if ( !defined("GOBJ_CON") ) define("GOBJ_CON",IS_PREFXG."Contact");
+// GLUE2 has no equivalent to authuser at the moment.
+//if ( !defined("GOBJ_USER") ) define("GOBJ_USER",IS_PREFXG."-authuser");
+// Making everything lowercase due to php ldap library
+if ( !defined("GOBJ_LOC") ) define("GOBJ_LOC",IS_PREFXG."location");
+if ( !defined("GOBJ_MAN") ) define("GOBJ_MAN",IS_PREFXG."manager");
+if ( !defined("GOBJ_CON") ) define("GOBJ_CON",IS_PREFXG."contact");
+if ( !defined("GOBJ_ADMD") ) define("GOBJ_ADMD",IS_PREFXG."admindomain");
+if ( !defined("GOBJ_EENV") ) define("GOBJ_EENV",IS_PREFXG."executionenvironment");
+if ( !defined("GOBJ_BENC") ) define("GOBJ_BENC",IS_PREFXG."benchmark");
+if ( !defined("GOBJ_AENV") ) define("GOBJ_AENV",IS_PREFXG."applicationenvironment");
 
 if ( !defined("OBJ_PERS") ) define("OBJ_PERS","organizationalPerson");
 if ( !defined("OBJ_RCOL") ) define("OBJ_RCOL","GlobusReplicaLogicalCollection");  /* RC Logical Collection object */
@@ -163,41 +172,63 @@ if ( !defined("USR_CPUS") ) define("USR_CPUS",IS_PREFX."-authuser-freecpus");
 if ( !defined("USR_QUEU") ) define("USR_QUEU",IS_PREFX."-authuser-queuelength");
 if ( !defined("USR_DISK") ) define("USR_DISK",IS_PREFX."-authuser-diskspace");
 
-//GLUE2
+//GLUE2. All lowercase due to php ldap library
+// in ComputingService
 if ( !defined("GCLU_NAME") ) define("GCLU_NAME",IS_PREFXG."entityname");
 if ( !defined("GCLU_ANAM") ) define("GCLU_ANAM",IS_PREFXG."entityname");
-if ( !defined("GCLU_ZIPC") ) define("GCLU_ZIPC",IS_PREFXG."locationpostcode");
-if ( !defined("GCLU_TCPU") ) define("GCLU_TCPU",IS_PREFXG."computingmanagertotallogicalcpus");
-if ( !defined("GCLU_UCPU") ) define("GCLU_UCPU",IS_PREFXG."-cluster-usedcpus");
+// this number seems to be incorrect, check infosys code
 if ( !defined("GCLU_TJOB") ) define("GCLU_TJOB",IS_PREFXG."computingservicetotaljobs");
-if ( !defined("GCLU_QJOB") ) define("GCLU_QJOB",IS_PREFXG."-cluster-queuedjobs"); /* deprecated since 0.5.38 */
-if ( !defined("GCLU_OWNR") ) define("GCLU_OWNR",IS_PREFXG."-cluster-owner");
-if ( !defined("GCLU_SUPP") ) define("GCLU_SUPP",IS_PREFXG."-cluster-support");
-if ( !defined("GCLU_PQUE") ) define("GCLU_PQUE",IS_PREFXG."computingserviceprelrmswaitingjobs"); /* new since 0.5.38 */
-if ( !defined("GSEL_NAME") ) define("GSEL_NAME",IS_PREFXG."-se-name");
-if ( !defined("GSEL_BURL") ) define("GSEL_BURL",IS_PREFXG."-se-baseurl"); /* gone since 0.5.26 */
-if ( !defined("GSEL_CURL") ) define("GSEL_CURL",IS_PREFXG."-se-url"); /* in place since 0.5.26 */
-if ( !defined("GSEL_ANAM") ) define("GSEL_ANAM",IS_PREFXG."-se-aliasname");
-if ( !defined("GSEL_TYPE") ) define("GSEL_TYPE",IS_PREFXG."-se-type");
-if ( !defined("GSEL_FREE") ) define("GSEL_FREE",IS_PREFXG."-se-freespace");
-if ( !defined("GSEL_TOTA") ) define("GSEL_TOTA",IS_PREFXG."-se-totalspace");
-if ( !defined("GSEL_USER") ) define("GSEL_USER",IS_PREFXG."-se-authuser");
+// queuedjobs has no equivalent in GLUE2. Must be calculated with some maths. Since it's deprecated, who cares
+//if ( !defined("GCLU_QJOB") ) define("GCLU_QJOB",IS_PREFXG."-cluster-queuedjobs"); /* deprecated since 0.5.38 */
+if ( !defined("GCLU_PQUE") ) define("GCLU_PQUE",IS_PREFXG."computingserviceprelrmswaitingjobs");
+// in Location
+if ( !defined("GCLU_ZIPC") ) define("GCLU_ZIPC",IS_PREFXG."locationpostcode");
+// in ComputingManager
+// TODO: There are discrepancies on how LogicalCPUs are reported.Maybe TotalSlots is better. This needs to be fixed in the infosys.
+//if ( !defined("GCLU_TCPU") ) define("GCLU_TCPU",IS_PREFXG."computingmanagertotallogicalcpus");
+if ( !defined("GCLU_TCPU") ) define("GCLU_TCPU",IS_PREFXG."computingmanagertotalslots");
+// usedcpus is not available in GLUE2 as such. SlotsUsedByGridJobs should be ok, renaming to GCLU_GCPU
+if ( !defined("GCLU_GCPU") ) define("GCLU_GCPU",IS_PREFXG."computingmanagerslotsusedbygridjobs");
+if ( !defined("GCLU_LCPU") ) define("GCLU_LCPU",IS_PREFXG."computingmanagerslotsusedbylocaljobs");
+// in Contact
+if ( !defined("GCLU_SUPP") ) define("GCLU_SUPP",IS_PREFXG."contactdetail");
+// in AdminDomain 
+if ( !defined("GCLU_OWNR") ) define("GCLU_OWNR",IS_PREFXG."admindomainowner");
+// Storage element not supported in current GLUE2
+//if ( !defined("GSEL_NAME") ) define("GSEL_NAME",IS_PREFXG."-se-name");
+//if ( !defined("GSEL_BURL") ) define("GSEL_BURL",IS_PREFXG."-se-baseurl"); /* gone since 0.5.26 */
+//if ( !defined("GSEL_CURL") ) define("GSEL_CURL",IS_PREFXG."-se-url"); /* in place since 0.5.26 */
+//if ( !defined("GSEL_ANAM") ) define("GSEL_ANAM",IS_PREFXG."-se-aliasname");
+//if ( !defined("GSEL_TYPE") ) define("GSEL_TYPE",IS_PREFXG."-se-type");
+//if ( !defined("GSEL_FREE") ) define("GSEL_FREE",IS_PREFXG."-se-freespace");
+//if ( !defined("GSEL_TOTA") ) define("GSEL_TOTA",IS_PREFXG."-se-totalspace");
+//if ( !defined("GSEL_USER") ) define("GSEL_USER",IS_PREFXG."-se-authuser");
+// In ComputingShare
 if ( !defined("GQUE_NAME") ) define("GQUE_NAME",IS_PREFXG."entityname");
 if ( !defined("GQUE_MAPQ") ) define("GQUE_MAPQ",IS_PREFXG."computingsharemappingqueue");
 if ( !defined("GQUE_STAT") ) define("GQUE_STAT",IS_PREFXG."computingshareservingstate");
-if ( !defined("GQUE_RUNG") ) define("GQUE_RUNG",IS_PREFXG."computingsharelocalrunningjobs");
-if ( !defined("GQUE_GRUN") ) define("GQUE_GRUN",IS_PREFXG."computingsharerunningjobs");
+// RUNG is all the running jobs in the queue, NG queue-running, maps to GLUE2 RunningJobs
+if ( !defined("GQUE_RUNG") ) define("GQUE_RUNG",IS_PREFXG."computingsharerunningjobs");
+// GRUN is the grid jobs only in the queue, NG queue-gridrunning, there is no equivalent for this in GLUE2. Must be calculated from total-local jobs in the queue
+//if ( !defined("GQUE_GRUN") ) define("GQUE_GRUN",IS_PREFXG."");
 if ( !defined("GQUE_MAXR") ) define("GQUE_MAXR",IS_PREFXG."computingsharemaxrunningjobs");
-if ( !defined("GQUE_QUED") ) define("GQUE_QUED",IS_PREFXG."-queue-queued"); /* deprecated since 0.5.38 */
 if ( !defined("GQUE_LQUE") ) define("GQUE_LQUE",IS_PREFXG."computingsharelocalwaitingjobs"); /* new since 0.5.38 */
+// LRUN is non-grid jobs running in the queue
+if ( !defined("GQUE_LRUN") ) define("GQUE_LRUN",IS_PREFXG."computingsharelocalrunningjobs"); 
 if ( !defined("GQUE_PQUE") ) define("GQUE_PQUE",IS_PREFXG."computingshareprelrmswaitingjobs"); /* new since 0.5.38 */
-if ( !defined("GQUE_GQUE") ) define("GQUE_GQUE",IS_PREFXG."computingsharewaitingjobs");
-if ( !defined("GQUE_MAXQ") ) define("GQUE_MAXQ",IS_PREFXG."-queue-maxqueuable");
-if ( !defined("GQUE_ASCP") ) define("GQUE_ASCP",IS_PREFXG."-queue-totalcpus");
-if ( !defined("GQUE_MINT") ) define("GQUE_MINT",IS_PREFXG."-queue-mincputime");
-if ( !defined("GQUE_MAXT") ) define("GQUE_MAXT",IS_PREFXG."-queue-maxcputime");
-if ( !defined("GJOB_GLID") ) define("GJOB_GLID",IS_PREFXG."activityid");
+//This is equivalent to the deprecated -queue-queued, /* deprecated since 0.5.38 */, but exists in GLUE2
+if ( !defined("GQUE_QUED") ) define("GQUE_QUED",IS_PREFXG."computingsharewaitingjobs");
+if ( !defined("GQUE_MAXQ") ) define("GQUE_MAXQ",IS_PREFXG."computingsharemaxtotaljobs");
+// No such thing in GLUE2, when possible, the related execution environment data should be used.
+// using maxtotaljobs is not correct, clusters have weird stuff in their setup.
+//if ( !defined("GQUE_ASCP") ) define("GQUE_ASCP",IS_PREFXG."-queue-totalcpus");
+if ( !defined("GQUE_MINT") ) define("GQUE_MINT",IS_PREFXG."computingsharemincputime");
+if ( !defined("GQUE_MAXT") ) define("GQUE_MAXT",IS_PREFXG."computingsharemaxcputime");
+if ( !defined("GQUE_ENVK") ) define("GQUE_ENVK",IS_PREFXG."computingshareexecutionenvironmentforeignkey");
+// in ComputingActivity -- these are disabled by default in GLUE2 LDAP.
+if ( !defined("GJOB_GLID") ) define("GJOB_GLID",IS_PREFXG."computingactivityidfromendpoint");
 if ( !defined("GJOB_NAME") ) define("GJOB_NAME",IS_PREFXG."name");
+// Job state is multivalued in GLUE2 (for each state model). Must be handled differently in rendering
 if ( !defined("GJOB_STAT") ) define("GJOB_STAT",IS_PREFXG."computingactivitystate");
 if ( !defined("GJOB_EQUE") ) define("GJOB_EQUE",IS_PREFXG."computingactivityqueue");
 if ( !defined("GJOB_ECLU") ) define("GJOB_ECLU",IS_PREFXG."computingactivityexecutionnode");
@@ -205,14 +236,24 @@ if ( !defined("GJOB_GOWN") ) define("GJOB_GOWN",IS_PREFXG."computingactivityowne
 if ( !defined("GJOB_USET") ) define("GJOB_USET",IS_PREFXG."computingactivityusedtotalcputime");
 if ( !defined("GJOB_USEM") ) define("GJOB_USEM",IS_PREFXG."computingactivityusedmainmemory");
 if ( !defined("GJOB_SUBM") ) define("GJOB_SUBM",IS_PREFXG."computingactivitysubmissiontime");
-if ( !defined("GJOB_COMP") ) define("GJOB_COMP",IS_PREFXG."computingactivitycomputingmanagerendtime");
+if ( !defined("GJOB_COMP") ) define("GJOB_COMP",IS_PREFXG."computingactivityendtime");
 if ( !defined("GJOB_ERRS") ) define("GJOB_ERRS",IS_PREFXG."computingactivityerror");
 if ( !defined("GJOB_CPUS") ) define("GJOB_CPUS",IS_PREFXG."computingactivityrequestedslots");
-if ( !defined("GUSR_NAME") ) define("GUSR_NAME",IS_PREFXG."-authuser-name");
-if ( !defined("GUSR_USSN") ) define("GUSR_USSN",IS_PREFXG."-authuser-sn");
-if ( !defined("GUSR_CPUS") ) define("GUSR_CPUS",IS_PREFXG."-authuser-freecpus");
-if ( !defined("GUSR_QUEU") ) define("GUSR_QUEU",IS_PREFXG."-authuser-queuelength");
-if ( !defined("GUSR_DISK") ) define("GUSR_DISK",IS_PREFXG."-authuser-diskspace");
+// in ExecutionEnvironment
+if ( !defined("EENV_ID") ) define("EENV_ID",IS_PREFXG."resourceid");
+if ( !defined("EENV_LCPU") ) define("EENV_LCPU",IS_PREFXG."executionenvironmentlogicalcpus");
+if ( !defined("EENV_PCPU") ) define("EENV_PCPU",IS_PREFXG."executionenvironmentphysicalcpus");
+if ( !defined("EENV_TINS") ) define("EENV_TINS",IS_PREFXG."executionenvironmenttotalinstances");
+// UserInfo is not implemented in our GLUE2 and never will. Most likely all this below and the
+// relative code can be removed
+//if ( !defined("GUSR_NAME") ) define("GUSR_NAME",IS_PREFXG."-authuser-name");
+//if ( !defined("GUSR_USSN") ) define("GUSR_USSN",IS_PREFXG."-authuser-sn");
+//if ( !defined("GUSR_CPUS") ) define("GUSR_CPUS",IS_PREFXG."-authuser-freecpus");
+//if ( !defined("GUSR_QUEU") ) define("GUSR_QUEU",IS_PREFXG."-authuser-queuelength");
+//if ( !defined("GUSR_DISK") ) define("GUSR_DISK",IS_PREFXG."-authuser-diskspace");
+
+// This VO information is relative to country info and has nothing to do with the VO-VOMS concept.
+// TODO: assess how relevant this can be for GLUE2.
 if ( !defined("VO_USCN" ) ) define("VO_USCN" ,"cn");
 if ( !defined("VO_USSN" ) ) define("VO_USSN" ,"sn");
 if ( !defined("VO_DESC" ) ) define("VO_DESC" ,"description");
