@@ -8,6 +8,7 @@
 
 set_include_path(get_include_path().":".getcwd()."/includes".":".getcwd()."/lang");
 
+require_once('settings.inc');
 require_once('headfoot.inc');
 
 $lang   = @$_GET["lang"];
@@ -24,6 +25,9 @@ $errors   = &$toppage->errors;
 require_once('attlist.inc');
 
 $itself  = $_SERVER["PHP_SELF"];
+$schema = @$_GET["schema"];
+if (!$schema) $schema = "NG";
+$itself = $itself."?schema=".$schema;
 
 $ifsub = $_POST["submit"] ? TRUE : FALSE ;
 $ifsel = $_POST["select"] ? TRUE : FALSE ;
@@ -50,7 +54,9 @@ if ( $ifsub ) {
 
   //  $attwin = popup("attlist.php?attribute=$encatt",650,300,7,$lang,$debug);
 
-  do_attlist($thething,$attributes,$signs,$filters,$strings,$giislist);
+  //TODO: change thething to object class, or it will never work for GLUE2. 
+  //      alternative: keep job queue authuser and do guessing for GLUE2.
+  do_attlist($thething,$attributes,$signs,$filters,$strings,$giislist,$archery_list,$schema);
 
   echo " <div align=\"center\"><a href=\"javascript:history.go(-1)\"><img src=\"./mon-icons/icon_back.php\" vspace=\"5\" hspace=\"1\" border=\"0\" align=\"absmiddle\"></a>&nbsp;";  
   echo " <a href=$itself><img src=\"./mon-icons/icon_start.php\" vspace=\"5\" hspace=\"1\" border=\"0\" align=\"absmiddle\"></a>\n</div>";  
