@@ -1183,7 +1183,7 @@ static bool processJobStatus(Arc::Message& inmsg,ARexConfigContext& config, Arc:
     jobXml.NewChild("status-code") = "404";
     jobXml.NewChild("reason") = (!failure.empty()) ? failure : "Job not found";
     jobXml.NewChild("id") = id;
-    jobXml.NewChild("State") = "None";
+    jobXml.NewChild("state") = "None";
     return false;
   }
   // Collecting job state
