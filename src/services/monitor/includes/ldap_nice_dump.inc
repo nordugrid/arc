@@ -40,10 +40,14 @@ function ldap_nice_dump() {
   // Plain LDAP dump for the DN
   $filstr = "(objectclass=*)";
   if ( strpos($dn, DN_GLUE) ) {
-      $filstr = "(|(objectClass=".GOBJ_CLUS.")(objectClass=".GOBJ_MAN.")(objectClass=".GOBJ_LOC.")(objectClass=".GOBJ_QUEU.")(objectClass=".GOBJ_CON."))";
+      $schema = "GLUE2";
+      $filstr = "(|(objectClass=".GOBJ_CLUS.")(objectClass=".GOBJ_MAN.")(objectClass=".GOBJ_LOC.")(objectClass=".GOBJ_QUEU.")(objectClass=".GOBJ_CON.")
+                   (objectClass=".GOBJ_ADMD.")(objectClass=".GOBJ_EENV.")(objectClass=".GOBJ_BENC.")(objectClass=".GOBJ_AENV."))";
       if ( strpos(strtolower(" ".$dn), GJOB_GLID) ) {
           $filstr = "(|(objectClass=".GOBJ_AJOB."))";
       }
+  } else {
+    $schema = "NG";
   }
   $sr     = ldap_search($ds,$dn,$filstr,array("*"),0,0,$tlim,LDAP_DEREF_NEVER);
 
@@ -63,9 +67,26 @@ function ldap_nice_dump() {
         $entries = ldap_get_attributes($ds,$first);
         $nfields = $entries["count"];
       
+        //Attempt to order the contents for GLUE2. Maybe needs a custom sort, but didn't seem to work so far.
+         if ( strpos($dn, DN_GLUE) ) array_multisort($entries,SORT_DESC,SORT_NATURAL);
+      
         // get the Distinguished Name
       
         $thisdn = ldap_get_dn($ds,$first);
+        
+        // get current objectclass - take either a nordugrid or a glue2
+        $objclasses = @($entries["objectClass"]);
+        $nclasses = count($objclasses);
+        $thisobj = "";
+        $c = 0;
+        while ( ($thisobj == "") && ($c < $nclasses) ) {
+           if ( strpos($objclasses[$c],"nordugrid") !== false ) $thisobj = $objclasses[$c];
+           if ( strpos($objclasses[$c],"GLUE2") !== false ) $thisobj = $objclasses[$c];
+           $c++;
+        }
+        // TODO: add error code and string
+        if ($thisobj == "") dbgmsg("<p>Error: Cannot find objectclass</p>");
+        
         // HTML table initialisation
       
         $dtable = new LmTableSp("ldapdump",$strings["ldapdump"]);
@@ -85,7 +106,8 @@ function ldap_nice_dump() {
           $nval   = $entries[$curatt]["count"];
         
           $encatt = rawurlencode($curatt);
-          $attwin = popup("attlist.php?attribute=$encatt",650,300,7);
+          // OBS the GLUE2 strings are uppercase, must be lowercased to process with LDAP lib in attlist
+          $attwin = popup("attlist.php?object=".$thisobj."&attribute=".$encatt."&schema=".$schema,650,300,7);
 
           $attstring   = @( $mdsattr[$curatt] ) ? "<b>$engatt</b>" : "<a href=\"$attwin\"><b>$engatt</b></a>";
           $drowcont[0] = $attstring;

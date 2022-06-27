@@ -4,6 +4,7 @@
 
 #include <glibmm/miscutils.h>
 #include <openssl/err.h>
+#include <openssl/dh.h> // For DH_* in newer OpenSSL
 
 #include <arc/credential/Credential.h>
 
@@ -11,9 +12,17 @@
 
 #include "ConfigTLSMCC.h"
 
+
+// For early OpenSSL 1.0.0
+#ifndef SSL_OP_NO_TLSv1_1
+#define SSL_OP_NO_TLSv1_1 SSL_OP_NO_TLSv1
+#endif
+
 namespace ArcMCCTLS {
 
 using namespace Arc;
+
+Arc::Logger ConfigTLSMCC::logger(Arc::Logger::getRootLogger(), "MCC.TLS.Config");
 
 static void config_VOMS_add(XMLNode cfg,std::vector<std::string>& vomscert_trust_dn) {
   XMLNode nd = cfg["VOMSCertTrustDNChain"];
@@ -40,6 +49,10 @@ static void config_VOMS_add(XMLNode cfg,std::vector<std::string>& vomscert_trust
 // This class is collection of configuration information
 
 ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
+  protocol_options_ = 0;
+#if (OPENSSL_VERSION_NUMBER >= 0x10001000L)
+  curve_nid_ = NID_secp521r1;
+#endif
   client_authn_ = true;
   cert_file_ = (std::string)(cfg["CertificatePath"]);
   key_file_ = (std::string)(cfg["KeyPath"]);
@@ -52,9 +65,36 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   handshake_ = (cfg["Handshake"] == "SSLv3")?ssl3_handshake:tls_handshake;
   proxy_file_ = (std::string)(cfg["ProxyPath"]);
   credential_ = (std::string)(cfg["Credential"]);
+  cipher_list_ = (std::string)(cfg["Ciphers"]);
+  dhparam_file_ = (std::string)(cfg["DHParamFile"]);
+  if(cipher_list_.empty()) {
+    // Safest setup by default
+    if(client) {
+      cipher_list_ = "HIGH:!eNULL:!aNULL";
+      if(cfg["Encryption"] == "required") {
+      } else if(cfg["Encryption"] == "preferred") {
+        cipher_list_ = "HIGH:eNULL:!aNULL";
+      } else if(cfg["Encryption"] == "optional") {
+        cipher_list_ = "eNULL:HIGH:!aNULL";
+      } else if(cfg["Encryption"] == "off") {
+        cipher_list_ = "eNULL:!aNULL";
+      }
+    } else {
+      // For server disable DES and 3DES (https://www.openssl.org/blog/blog/2016/08/24/sweet32/)
+      // Do not use encryption in CBC mode (https://cve.mitre.org/cgi-bin/cvename.cgi?name=cve-2011-3389)
+      // Specific ! in this list is just in case we compile with older OpenSSL. Otherwise HIGH should be enough.
+      cipher_list_ = "HIGH:!3DES:!DES:!CBC:!RC4:!eNULL:!aNULL";
+      if(cfg["Encryption"] == "required") {
+      } else if(cfg["Encryption"] == "preferred") {
+        cipher_list_ = "HIGH:!3DES:!DES:!CBC:!RC4:eNULL:!aNULL";
+      } else if(cfg["Encryption"] == "optional") {
+        cipher_list_ = "eNULL:HIGH:!3DES:!CBC:!DES:!RC4:!aNULL";
+      } else if(cfg["Encryption"] == "off") {
+        cipher_list_ = "eNULL:!aNULL";
+      }
+    }
+  }
   if(client) {
-    // Client is using safest setup by default
-    cipher_list_ = "ALL:!SSLv2:!eNULL:!aNULL";
     hostname_ = (std::string)(cfg["Hostname"]);
     XMLNode protocol_node = cfg["Protocol"];
     while((bool)protocol_node) {
@@ -66,21 +106,59 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
       }
       ++protocol_node;
     }
-    // protocols must be converted into special format
-    protocols_ = (std::string)(cfg["Protocols"]);
   } else {
-    // Server allows client to choose. But requires authentication.
-    cipher_list_ = "ALL:!SSLv2:eNULL:!aNULL";
+    protocol_options_ = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1; // default
+    XMLNode protocol_node = cfg["Protocol"];
+    if((bool)protocol_node) {
+      // start from all disallowed (all we know about)
+#ifdef SSL_OP_NO_TLSv1_3
+      protocol_options_ = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2 | SSL_OP_NO_TLSv1_3;
+#else
+#ifdef SSL_OP_NO_TLSv1_2
+      protocol_options_ = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2;
+#else
+      protocol_options_ = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1;
+#endif
+#endif
+      while((bool)protocol_node) {
+        std::string protocol = (std::string)protocol_node;
+        std::list<std::string> tokens;
+        Arc::tokenize(protocol, tokens);
+        for(std::list<std::string>::iterator token = tokens.begin(); token != tokens.end(); ++token) {
+          std::string str = Arc::trim(*token);
+          if(str == "SSLv2") {
+            protocol_options_ &= ~SSL_OP_NO_SSLv2;
+          } else if(str == "SSLv3") {
+            protocol_options_ &= ~SSL_OP_NO_SSLv3;
+          } else if(str == "TLSv1.0") {
+            protocol_options_ &= ~SSL_OP_NO_TLSv1;
+          } else if(str == "TLSv1.1") {
+            protocol_options_ &= ~SSL_OP_NO_TLSv1_1;
+#ifdef SSL_OP_NO_TLSv1_2
+          } else if(str == "TLSv1.2") {
+            protocol_options_ &= ~SSL_OP_NO_TLSv1_2;
+#ifdef SSL_OP_NO_TLSv1_3
+          } else if(str == "TLSv1.3") {
+            protocol_options_ &= ~SSL_OP_NO_TLSv1_3;
+#endif
+#endif
+          };
+        };
+        ++protocol_node;
+      };
+    };
+
+#if (OPENSSL_VERSION_NUMBER >= 0x10001000L)
+    XMLNode curve_node = cfg["Curve"];
+    if((bool)curve_node) {
+      int nid = OBJ_sn2nid(((std::string)curve_node).c_str());
+      if (nid != NID_undef) {
+        curve_nid_ = nid;
+      }
+    }
+#endif
   }
-  if(cfg["Encryption"] == "required") {
-  } else if(cfg["Encryption"] == "preferred") {
-    cipher_list_ = "ALL:!SSLv2:eNULL:!aNULL";
-  } else if(cfg["Encryption"] == "optional") {
-    cipher_list_ = "eNULL:ALL:!SSLv2:!aNULL";
-  } else if(cfg["Encryption"] == "off") {
-    cipher_list_ = "eNULL:!aNULL";
-  }
-  
+
   std::vector<std::string> gridSecDir (2);
   gridSecDir[0] = G_DIR_SEPARATOR_S + std::string("etc");
   gridSecDir[1] = "grid-security";
@@ -211,7 +289,51 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
       };
     };
   };
+  if(!dhparam_file_.empty()) {
+    logger.msg(VERBOSE, "Using DH parameters from file: %s",dhparam_file_);
+    FILE *dhf = fopen(dhparam_file_.c_str(), "r");
+    if (!dhf) {
+      logger.msg(ERROR, "Failed to open file with DH parameters for reading");
+    } else {
+      DH *dh = PEM_read_DHparams(dhf, NULL, NULL, NULL);
+      fclose(dhf);
+      if (dh == NULL) {
+        logger.msg(ERROR, "Failed to read file with DH parameters");
+      } else {
+        if (SSL_CTX_set_tmp_dh(sslctx, dh) != 1) {
+          logger.msg(ERROR, "Failed to apply DH parameters");
+        } else {
+          logger.msg(DEBUG, "DH parameters applied");
+        };
+        DH_free(dh);
+      };
+    };
+  };
+#if (OPENSSL_VERSION_NUMBER >= 0x10001000L)
+  /*
+  if(SSL_CTX_set1_curves_list(sslctx,"P-256:P-384:P-521")) {
+    logger.msg(ERROR, "Failed to apply ECDH groups");
+  } else {
+    logger.msg(DEBUG, "ECDH groups applied");
+  };
+  */
+  if(curve_nid_ != NID_undef) {
+    logger.msg(VERBOSE, "Using curve with NID: %u",curve_nid_);
+    EC_KEY* ecdh = EC_KEY_new_by_curve_name(curve_nid_);
+    if (ecdh == NULL) {
+      logger.msg(ERROR, "Failed to generate EC key");
+    } else {
+      if(SSL_CTX_set_tmp_ecdh(sslctx, ecdh) != 1) {
+        logger.msg(ERROR, "Failed to apply ECDH parameters");
+      } else {
+        logger.msg(DEBUG, "ECDH parameters applied");
+      };
+      EC_KEY_free(ecdh);
+    };
+  };
+#endif
   if(!cipher_list_.empty()) {
+    logger.msg(VERBOSE, "Using cipher list: %s",cipher_list_);
     if(!SSL_CTX_set_cipher_list(sslctx,cipher_list_.c_str())) {
       failure_ = "No ciphers found to satisfy requested encryption level. "
                  "Check if OpenSSL supports ciphers '"+cipher_list_+"'\n";
@@ -226,6 +348,10 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
     };
   };
 #endif
+  if(protocol_options_ != 0) {
+    logger.msg(VERBOSE, "Using protocol options: 0x%x",protocol_options_);
+    SSL_CTX_set_options(sslctx, protocol_options_);
+  };
   return true;
 }
 

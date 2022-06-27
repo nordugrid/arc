@@ -28,6 +28,7 @@
 #include <arc/Logger.h>
 #include <arc/User.h>
 #include <arc/Utils.h>
+#include <arc/StringConv.h>
 
 #include "Run.h"
 
@@ -386,6 +387,7 @@ namespace Arc {
       argv_(Glib::shell_parse_argv(cmdline)),
       initializer_func_(NULL),
       initializer_arg_(NULL),
+      initializer_is_complex_(false),
       kicker_func_(NULL),
       kicker_arg_(NULL),
       started_(false),
@@ -413,6 +415,7 @@ namespace Arc {
       argv_(argv),
       initializer_func_(NULL),
       initializer_arg_(NULL),
+      initializer_is_complex_(false),
       kicker_func_(NULL),
       kicker_arg_(NULL),
       started_(false),
@@ -476,8 +479,14 @@ namespace Arc {
   }
 
   bool Run::Start(void) {
-    if (started_) return false;
-    if (argv_.size() < 1) return false;
+    if (started_) {
+      logger.msg(ERROR, "Child was already started");
+      return false;
+    }
+    if (argv_.size() < 1) {
+      logger.msg(ERROR, "No arguments are assigned for external process");
+      return false;
+    }
     RunPump& pump = RunPump::Instance();
     AutoPointer<UserSwitch> usw;
     AutoPointer<RunInitializerArgument> arg;
@@ -495,6 +504,7 @@ namespace Arc {
       int pipe_stdin[2] = { -1, -1 };
       int pipe_stdout[2] = { -1, -1 };
       int pipe_stderr[2] = { -1, -1 };
+      std::string strerr;
       if((stdin_keep_  || (::pipe(pipe_stdin) == 0)) && 
          (stdout_keep_ || (::pipe(pipe_stdout) == 0)) &&
          (stderr_keep_ || (::pipe(pipe_stderr) == 0))) {
@@ -522,8 +532,14 @@ namespace Arc {
         sigset_t oldsig; sigemptyset(&oldsig);
         bool oldsig_set = (pthread_sigmask(SIG_BLOCK,&newsig,&oldsig) == 0);
 
-        if (oldsig_set)
-          pid = ::fork();
+        if (oldsig_set) {
+          // If initilizer is not defined or is simple enough use vfork for
+          // better performance, otherwise fork is safer option.
+          if (initializer_is_complex_)
+            pid = ::fork();
+          else
+            pid = ::vfork();
+        };
         if(pid == 0) {
           // child - set std* and do exec
           if(pipe_stdin[0] != -1) {
@@ -565,12 +581,18 @@ namespace Arc {
             close(pipe_stderr[1]); pipe_stderr[1] = -1;
             stderr_ = pipe_stderr[0]; pipe_stderr[0] = -1;
           };
-        };
+        } else {
+          int err_num = errno;
+          strerr = std::string("fork()/vfork() faled: ") + Arc::tostring(err_num);
+        }
         if(oldsig_set)
           pthread_sigmask(SIG_SETMASK,&oldsig,NULL);
 
         delete[] argv;
         delete[] envp;
+      } else {
+        int err_num = errno;
+        strerr = std::string("pipe() faled: ") + Arc::tostring(err_num);
       };
       if(pid == -1) {
         // child was not spawned
@@ -580,7 +602,7 @@ namespace Arc {
         if(pipe_stdout[1] != -1) close(pipe_stdout[1]);
         if(pipe_stderr[0] != -1) close(pipe_stderr[0]);
         if(pipe_stderr[1] != -1) close(pipe_stderr[1]);
-        throw Glib::SpawnError(Glib::SpawnError::FORK, "Generic error");
+        throw Glib::SpawnError(Glib::SpawnError::FORK, strerr.empty()?"Generic error":strerr.c_str());
       };
       pid_ = pid;
       if (!stdin_keep_) {
@@ -595,10 +617,12 @@ namespace Arc {
       run_time_ = Time();
       started_ = true;
     } catch (Glib::Exception& e) {
+      logger.msg(ERROR, "Excepton while trying to start external process: %s", e.what().c_str());
       running_ = false;
       // TODO: report error
       return false;
     } catch (std::exception& e) {
+      logger.msg(ERROR, "Excepton while trying to start external process: %s", e.what());
       running_ = false;
       return false;
     };
@@ -853,10 +877,11 @@ namespace Arc {
     if (!running_) stdin_keep_ = keep;
   }
 
-  void Run::AssignInitializer(void (*initializer_func)(void *arg), void *initializer_arg) {
+  void Run::AssignInitializer(void (*initializer_func)(void *arg), void *initializer_arg, bool initializer_is_complex) {
     if (!running_) {
       initializer_arg_ = initializer_arg;
       initializer_func_ = initializer_func;
+      initializer_is_complex_ = initializer_func?initializer_is_complex:false;
     }
   }
 

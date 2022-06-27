@@ -13,13 +13,13 @@ if [ -z "$1" ] ; then
 fi
 for ctr_dir in "$@"; do
     if [ ! -d "$ctr_dir" ]; then
-	echo "called with erronous control dir: $ctr_dir"
-	exit 1
+        echo "called with erronous control dir: $ctr_dir"
+        exit 1
     fi
 done
 
 joboption_lrms="SLURM"
-lrms_options="slurm_wakeupperiod slurm_use_sacct slurm_bin_path"
+lrms_options="slurm_wakeupperiod slurm_use_sacct slurm_bin_path slurm_query_retries"
 
 # define paths and config parser
 basedir=`dirname $0`
@@ -42,21 +42,21 @@ lockfile="${TMPDIR:-@tmp_dir@}/scan-slurm-job.lock"
 (set -C; : > "$lockfile") 2> /dev/null
 if [ "$?" != "0" ]; then
     if ps -p $(< "$lockfile") 2>/dev/null;then
-	echo "lockfile exists and PID $(< $lockfile) is running"
-	exit 1
+        echo "lockfile exists and PID $(< $lockfile) is running"
+        exit 1
     fi
     echo "old lockfile found, was scan-slurm-job killed?"
-
+    
     # sleep, and if no other have removed and recreated the lockfile we remove it.
     # there are still races possible, but this will have to do
     sleep $((${RANDOM}%30+10))
     if ps -p $(< $lockfile) &>/dev/null;then
         echo "lockfile exists and $(< $lockfile) is running"
-	exit 1
+        exit 1
     else
-	echo "still not running, removing lockfile"
-	rm $lockfile
-	exit 1
+        echo "still not running, removing lockfile"
+        rm $lockfile
+        exit 1
     fi
 fi
 echo "$$" > "$lockfile"
@@ -67,23 +67,32 @@ sleep ${CONFIG_slurm_wakeupperiod:-30}
 
 # Log system performance
 if [ ! -z "$perflogdir" ]; then
-   perflog_common "$perflogdir" "$CONFIG_controldir"
+    perflog_common "$perflogdir" "$CONFIG_controldir"
 fi
 
 ### use sacct
 unset use_sacct
 
 if [ ! -z "${CONFIG_slurm_use_sacct}" ]; then
-  if [ "${CONFIG_slurm_use_sacct}" = "yes" ]; then
-    use_sacct="true"
-  fi
+    if [ "${CONFIG_slurm_use_sacct}" = "yes" ]; then
+        use_sacct="true"
+    fi
 fi
+
+
+### slurm_query_retries
+unset slurm_query_retries
+
+if [ ! -z "${CONFIG_slurm_query_retries}" ]; then
+    slurm_query_retries=${CONFIG_slurm_query_retries}
+fi
+
 
 my_id=`id -u`
 
 if [ ! -z "$perflogdir" ]; then
-   #start time stamp
-   start_ts=`date +%s.%N`
+    #start time stamp
+    start_ts=`date +%s.%N`
 fi
 
 # List of SLURM jobids for grid-jobs with state INLRMS
@@ -101,17 +110,17 @@ declare -a lidblocks
 # Find list of grid jobs with status INLRMS, store localid and
 # basename for those jobs
 for ctr_dir in "$@"; do
-for basename in $(find "$ctr_dir/processing" -name 'job.*.status' -print0 \
-    | xargs -0 egrep -l "INLRMS|CANCELING" \
-    | sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1/')
-  do
-  localid=$(grep ^localid= "${basename}.local" | cut -d= -f2)
-
-  verify_jobid "$localid" || continue
-
-  localids[${#localids[@]}]="$localid"
-  basenames[$localid]="$basename"
-done
+    for basename in $(find "$ctr_dir/processing" -name 'job.*.status' -print0 \
+        | xargs -0 egrep -l "INLRMS|CANCELING" \
+        | sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1/')
+    do
+        localid=$(grep ^localid= "${basename}.local" | cut -d= -f2)
+        
+        verify_jobid "$localid" || continue
+        
+        localids[${#localids[@]}]="$localid"
+        basenames[$localid]="$basename"
+    done
 done
 
 # No need to continue further if no jobs have status INLRMS
@@ -122,24 +131,24 @@ fi
 
 # Distribute localids into block so that we don't exceed max command line length
 for jids in `echo "${localids[@]}" | xargs -n 4000 | tr ' ' ,`; do
-  lidblocks[${#lidblocks[@]}]=$jids
+    lidblocks[${#lidblocks[@]}]=$jids
 done
 
 if [ ! -z "$perflogdir" ]; then
-   stop_ts=`date +%s.%N`
-#   t=`perl -e "printf '%.2f',$stop_ts-$start_ts;"`
-   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-   echo "[`date +%Y-%m-%d\ %T`] scan-slurm-job, ControldirTraversal: $t" >> $perflogfile
+    stop_ts=`date +%s.%N`
+    #   t=`perl -e "printf '%.2f',$stop_ts-$start_ts;"`
+    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+    echo "[`date +%Y-%m-%d\ %T`] scan-slurm-job, ControldirTraversal: $t" >> $perflogfile
 fi
 
 
 if [ ! -z "$perflogdir" ]; then
-   start_ts=`date +%s.%N`
+    start_ts=`date +%s.%N`
 fi
 
 # Get JobStates from SLURM
 jobstate_squeue=$(echo "${lidblocks[@]}" | xargs -n 1 $squeue -a -h -o "%i:%T" -t all -j )\
-    || { echo "squeue failed" 1>&2; exit 1; }
+    || { echo "[$(date  +%Y-%m-%d\ %T)] squeue failed" 1>&2; exit 1; }
 
 for record in $jobstate_squeue; do
     localid=$(echo "$record"|cut -d: -f1)
@@ -149,9 +158,9 @@ done
 unset jobstate_squeue
 
 if [ ! -z "$perflogdir" ]; then
-   stop_ts=`date +%s.%N`
-   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-   echo "[`date +%Y-%m-%d\ %T`] scan-slurm-job, squeue -a -h -o %i:%T -t all -j: $t" >> $perflogfile
+    stop_ts=`date +%s.%N`
+    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+    echo "[`date +%Y-%m-%d\ %T`] scan-slurm-job, squeue -a -h -o %i:%T -t all -j: $t" >> $perflogfile
 fi
 
 # A special version of interval_to_seconds for Slurm v20.02
@@ -167,19 +176,19 @@ slurm_interval_to_seconds () {
     _interval_good=`echo $_interval_dhms | grep -E '[^:0-9]'`
     _interval_size=`echo $_interval_dhms | grep -o : | wc -l`
     if [ X"$_interval_good" = "X" ] ; then
-      if [ $_interval_size -eq 0 ]; then
-          return_interval_seconds=$_interval_dhms
-      elif [ $_interval_size -eq 1 ]; then
-          return_interval_seconds=`echo $_interval_dhms | tr : ' ' | awk '{print $1*60+$2;}'`
-      elif [ $_interval_size -eq 2 ]; then
-          return_interval_seconds=`echo $_interval_dhms | tr : ' ' | awk '{print $1*60*60+$2*60+$3;}'`
-      elif [ $_interval_size -eq 3 ]; then
-          return_interval_seconds=`echo $_interval_dhms | tr : ' ' | awk '{print $1*24*60*60+$2*60*60+$3*60+$4;}'`
-      else
-        echo "Bad formatting of time interval: $_interval_dhms" 1>&2
-      fi
+        if [ "$_interval_size" -eq 0 ]; then
+            return_interval_seconds=$_interval_dhms
+        elif [ "$_interval_size" -eq 1 ]; then
+            return_interval_seconds=`echo $_interval_dhms | tr : ' ' | awk '{print $1*60+$2;}'`
+        elif [ "$_interval_size" -eq 2 ]; then
+            return_interval_seconds=`echo $_interval_dhms | tr : ' ' | awk '{print $1*60*60+$2*60+$3;}'`
+        elif [ "$_interval_size" -eq 3 ]; then
+            return_interval_seconds=`echo $_interval_dhms | tr : ' ' | awk '{print $1*24*60*60+$2*60*60+$3*60+$4;}'`
+        else
+            echo "Bad formatting of time interval: $_interval_dhms" 1>&2
+        fi
     else
-      echo "Bad formatting of time interval: $_interval_dhms" 1>&2
+        echo "Bad formatting of time interval: $_interval_dhms" 1>&2
     fi
     unset _interval_dhms _interval_size _interval_good
 }
@@ -195,153 +204,202 @@ handle_commentfile () {
     save_commentfile "$uid" "${sessiondir}.comment" "${basenames[$localid]}.errors"
 }
 
-# Call scontrol and find the exitcode of a job. Write this, together with a
-# message to the lrms_done file. This function is used in the loop below.
+# This function is called after a successfull call to handle_diag_file.
+# It fetches the exitcode from SLURM and inserts the code into the job.$localid.lrms_done file
+# The kicklist is updated to include the $localid of this job
+#
+# Input variables:
+#  * localid
+#  * tmpexitcode (hardcoded exitcode)
+#  * reason (hardcoded reason)
+#
+# The following variables are initialized and updated, then written to .lrms_done
+#  * exitcode (either hardcoded tmpexitcode or 
+#  * reason
+#
+# In slurm the exitcode is returned as <num>:<num> where the first <num> is the exit code,
+# and the second <num> is the signal number responsible for the job termination
+#
 function handle_exitcode {
     localid="$1"
     tmpexitcode="$2"
     reason="$3"
+    exitcode_retries=$(( ${slurm_query_retries} + 1  ))
+    
+    while [ "$exitcode_retries" -gt 0 ]; do
 
-    if [ "$use_sacct" ]; then 
-      jobinfostring=$("$sacct" -j $localid.batch -o ExitCode -P | tail -n 1)
-      exitcode1=$(echo $jobinfostring|awk -F':' '{print $1}')
-      exitcode2=$(echo $jobinfostring|awk -F':' '{print $2}')
-    else
-      jobinfostring=$("$scontrol" -o show job $localid)
+        if [ "$use_sacct" ]; then 
+            jobinfostring=$("$sacct" -j $localid -o ExitCode -P | tail -n 1)
+            exitcode1=$(echo $jobinfostring|awk -F':' '{print $1}')
+            exitcode2=$(echo $jobinfostring|awk -F':' '{print $2}')
+        else
+            jobinfostring=$("$scontrol" -o show job $localid)
+            exitcode1=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\1/p')
+            exitcode2=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\2/p')
+        fi
+        
+        if [ -z "$jobinfostring" ]; then
+            exitcode_retries=$(( $exitcode_retries - 1 ))
+            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed for job: $jobid - could not fetch jobinfostring for exit code handling. Retries left: $exitcode_retries" 1>&2;
+            jobinfo_exitcode_failed=1
+        else
+            ## all ok, break out of loop
+            unset jobinfo_exitcode_failed
+            break
+        fi
+    done
 
-      exitcode1=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\1/p')
-      exitcode2=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\2/p')
+    ## If all retries failed hence jobinfo_exitcode_failed set, skip this step and try again at next scan
+    if [ -z "$jobinfo_exitcode_failed" ]; then
+        if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
+            exitcode=$tmpexitcode
+        elif [ -n "$exitcode2" ] && [ "$exitcode2" -ne 0 ]; then
+            exitcode=$(( $exitcode2 + 256 ))
+        elif [ -n "$exitcode1" ] && [ "$exitcode1" -ne 0 ]; then
+            exitcode=$exitcode1
+        else
+            exitcode=0
+        fi
+
+        # Special handling of cancelled jobs - as SLURM can return exitcode 0:0 for cancelled jobs
+        if [ "$exitcode" -eq 0 ] && [ "${reason}" != "${reason/cancelled/}" ]; then
+            exitcode=15
+        fi
+
+        echo "$exitcode $reason" > "${basenames[$localid]}.lrms_done"
+        kicklist=(${kicklist[@]} $localid)
     fi
-
-
-    if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
-	exitcode=$tmpexitcode
-    elif [ $exitcode2 -ne 0 ]; then
-	exitcode=$(( $exitcode2 + 256 ))
-    elif [ $exitcode1 -ne 0 ]; then
-	exitcode=$exitcode1
-    else
-	exitcode=0
-    fi
-
-    echo "$exitcode $reason" > "${basenames[$localid]}.lrms_done"
-    kicklist=(${kicklist[@]} $localid)
+        
 }
 
-# A special version of the function above, needed to force 
-# exit code to non-zero if the job was cancelled, since
-# CANCELLED jobs in SLURM can have 0 exit code.
-# This is a temporary workaround, should later be replaced by 
-# proper fix that determines the reason of failure
+
 #
-# if the job was canceled in queued state there is no .batch for it
-# so, sacct -j $localid.batch does not work, but  sacct -j $localid will do
-# the fix done
-function handle_exitcode_cancelled {
-    localid="$1"
-    tmpexitcode="$2"
-    reason="$3"
-
-    if [ "$use_sacct" ]; then 
-      jobinfostring=$("$sacct" -j $localid -o ExitCode,State -P | tail -n 1)
-      exitcode1=$(echo $jobinfostring|awk -F':' '{print $1}')
-      exitcode2=$(echo $jobinfostring|awk -F':' '{print $2}')
-      reason=$(echo $jobinfostring|awk -F'|' '{print $2}')
-      [ -z "$reason" ] || exitcode2=$(echo $exitcode2|awk -F'|' '{print $1}')
-    else
-      jobinfostring=$("$scontrol" -o show job $localid)
-      exitcode1=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\1/p')
-      exitcode2=$(echo $jobinfostring|sed -n 's/.*ExitCode=\([0-9]*\):\([0-9]*\).*/\2/p')
-    fi
-
-
-    if [ -z "$exitcode1" ] && [ -z "$exitcode2" ] ; then
-      exitcode=$tmpexitcode
-    elif [ ! -z "$exitcode2" ] && [ "$exitcode2" -ne 0 ]; then
-      exitcode=$(( $exitcode2 + 256 ))
-    elif [ ! -z "$exitcode1" ] && [ "$exitcode1" -ne 0 ]; then
-      exitcode=$exitcode1
-    else
-      exitcode=0
-    fi
-    if [ $exitcode -eq 0 ]; then
-      exitcode=15
-      if [ ! -z "$reason" ]; then
-        reason="Job was cancelled by SLURM"
-      fi
-    fi
-    echo "$exitcode $reason" > "${basenames[$localid]}.lrms_done"
-    kicklist=(${kicklist[@]} $localid)
-}
-
-
-#This function filters out WallTime from the .diag-file if present and
-#replaces it with output from the LRMS, it also adds StartTime and
-#EndTime for accounting.
-
+# Collects accounting info from LRMS for a job by using sacct or scontrol SLURM commands
+# depending on ARC configuration. The job's LRMS id is stored in the "localid" variable.
+# It first reads the jobs diag file. The job_read_diag function initializes the following variables:
+#  * nodename
+#  * WallTime
+#  * UserTime
+#  * KernelTime
+#  * TotalMemory
+#  * ResidentMemory
+#  * LRMSStartTime
+#  * LRMSEndTime
+#  * exitcode
+#
+# Next, information from LRMS is fetched.
+# If sacct is used, the following info is fetched:
+#   * cpus (NCPUS)
+#   * starttime (Start)
+#   * endtime (End)
+#   * usercputime (UserCPU)
+#   * kernelcputime (SystemCPU)
+#
+# If scontrol is used instead of sacct, no usercputime is available, only walltime.
+# The following info is fetched from scontrol:
+#   * cpus
+#   * starttime (Start)
+#   * endtime (End)
+#
+# Once the values have been fetched, the diag file values updated are
+#   * WallTime - in seconds
+#   * Processors
+#   * UserTime - in seconds
+#   * KernelTime - in seconds 
+# Note again that in the case where scontrol is used instead of sacct UserTime=WallTime
+#
+# If for some reason sacct or scontrol fails (the former due to e.g. the slurm database being overloade)
+# a retry functionality is included. 3 retries is attempted for sacct/scontrol call. If still no 
+# success, the handle_errorcode or handle_errorcode_cancelled is not called, avoiding the lrms_done mark.
+# This results in the job being picked up in the next scan for a new attempt.
+#
+# The STDOUT and STDERR are redirected to the job-helper.errors file.
+#
 function handle_diag_file {
     localid="$1"
     ctr_diag="$2"
 
+    handle_diag_tries=$(( ${slurm_query_retries} + 1  ))
+
     job_read_diag
+    
+    ## This while loop is an attempt to reduce the cases where the job info
+    ## is not successfully fetched from slurm due to slurm connection/timeout issues
+    while [ "$handle_diag_tries" -gt 0 ] ; do
+        
+        
+        unset jobinfo_collect_failed
+        
+        if [ "$use_sacct" ]; then 
+            jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,Start,End,UserCPU,SystemCPU -P | tail -n 1) 
+            
+            cpus=$(echo "$jobinfostring" | awk -F'|' '{print $1}')
+            starttime=$(echo "$jobinfostring"|awk -F'|' '{print $2}'| sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
+            endtime=$(echo "$jobinfostring"|awk -F'|' '{print $3}'| sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
+            
+            # UserCPU,SystemCPU format is [dd-]hh:mm:ss[.uuu]
+            usercputime=$(echo "$jobinfostring" | awk -F'|' '{print $4}')
+            kernelcputime=$(echo "$jobinfostring" | awk -F'|' '{print $5}')
+            [ -z "$usercputime" ] && usercputime="00:00:00"
+            [ -z "$kernelcputime" ] && kernelcputime="00:00:00"
+        else
+            jobinfostring=$("$scontrol" -o show job $localid) 
+            
+            #Slurm can report StartTime and EndTime in at least these two formats:
+            #2010-02-15T15:30:29
+            #02/15-15:25:15
+            #For our code to be able to manage both, the first needs to keep its hyphens,
+            #the second needs them removed
+            starttime=$(echo "$jobinfostring"|sed -n 's/.*StartTime=\([^ ]*\) .*/\1/p' | \
+                            sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
+            endtime=$(echo "$jobinfostring"|sed -n 's/.*EndTime=\([^ ]*\) .*/\1/p' | \
+                          sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
+            cpus=$(echo "$jobinfostring"|sed -n 's/.*NumCPUs=\([^ ]*\) .*/\1/p')
+        fi
+        
+        if [ -z "$jobinfostring" ]; then
+            jobinfo_collect_failed=1;
+        fi
 
-    if [ "$use_sacct" ]; then 
-      jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,NNODES,CPUTimeRAW,Start,End,UserCPU,SystemCPU,ExitCode,State -P | tail -n 1)
+        
+        ## Do not try again if cpus correctly filled with a number. Or if cpus filled with header of sacct, which means cpus=NCPUS. 
+        ## The latter is handled already in handle_diag_file function
+        ## If (not empty cpus variable, and cpus variable is a number) or cpus variable is NCPUS then we are done, so break out of the retry loop  
+        if ( [   -n "$cpus" ]  &&  [ "$cpus" -eq "$cpus" ]  2>/dev/null ) ||   [ z"$cpus" = "zNCPUS" ] ; then break ; fi
 
-      cpus=$(echo "$jobinfostring" | awk -F'|' '{print $1}')
-
-      starttime=$(echo "$jobinfostring"|awk -F'|' '{print $4}'| sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
-
-      endtime=$(echo "$jobinfostring"|awk -F'|' '{print $5}'| sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
-
-      # UserCPU,SystemCPU format is [dd-]hh:mm:ss[.uuu]
-      usercputime=$(echo "$jobinfostring" | awk -F'|' '{print $6}')
-      kernelcputime=$(echo "$jobinfostring" | awk -F'|' '{print $7}')
-      [ -z "$usercputime" ] && usercputime="00:00:00"
-      [ -z "$kernelcputime" ] && kernelcputime="00:00:00"
-    else
-      jobinfostring=$("$scontrol" -o show job $localid)
-
-      #Slurm can report StartTime and EndTime in at least these two formats:
-      #2010-02-15T15:30:29
-      #02/15-15:25:15
-      #For our code to be able to manage both, the first needs to keep its hyphens,
-      #the second needs them removed
-      starttime=$(echo "$jobinfostring"|sed -n 's/.*StartTime=\([^ ]*\) .*/\1/p' | \
-  	sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
-      endtime=$(echo "$jobinfostring"|sed -n 's/.*EndTime=\([^ ]*\) .*/\1/p' | \
-	sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
-      cpus=$(echo "$jobinfostring"|sed -n 's/.*NumCPUs=\([^ ]*\) .*/\1/p')
-    fi
-
+        handle_diag_tries=$(( $handle_diag_tries - 1 ))
+        if [ -n "$jobinfo_collect_failed"  ] ; then
+            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed for job: $localid - could not fetch jobinfostring to update the diag file. Retries left: $handle_diag_tries." 1>&2;
+        fi
+        
+        sleep 2
+    done
 
     # if "sacct -j $localid.batch" return string "NCPUS|NNodes..." only, the job has no batch stage, it was killed before start on WN
-    if [ ! z"$cpus" = "zNCPUS" ] ; then
-      date_to_utc_seconds "$starttime"
-      starttime_seconds="$return_date_seconds"
-      seconds_to_mds_date "$return_date_seconds"
-      LRMSStartTime=$return_mds_date
-      date_to_utc_seconds "$endtime"
-      endtime_seconds="$return_date_seconds"
-      seconds_to_mds_date "$return_date_seconds"
-      LRMSEndTime=$return_mds_date
-
-      #TODO handle exitcode etc.
-      walltime=$(( $endtime_seconds - $starttime_seconds))
-      slurm_interval_to_seconds "$usercputime"
-      cputime="$return_interval_seconds"
-      slurm_interval_to_seconds "$kernelcputime"
-      kernel="$return_interval_seconds"
-      #cputime=$(( $walltime * $count))
-
-      # Values to write to diag. These will override values already written.
-      [ -n "$walltime" ] && WallTime=$walltime
-      [ -n "$cpus" ] && Processors=$cpus
-      [ -n "$cputime" ] && UserTime=$cputime
-      [ -n "$kernel" ] && KernelTime=$kernel
-
-
-      job_write_diag
+    if [ ! z"$cpus" = "zNCPUS" ] && [ -z "$jobinfo_collect_failed" ]; then
+        date_to_utc_seconds "$starttime"
+        starttime_seconds="$return_date_seconds"
+        seconds_to_mds_date "$return_date_seconds"
+        LRMSStartTime=$return_mds_date
+        date_to_utc_seconds "$endtime"
+        endtime_seconds="$return_date_seconds"
+        seconds_to_mds_date "$return_date_seconds"
+        LRMSEndTime=$return_mds_date
+        
+        #TODO handle exitcode etc.
+        walltime=$(( $endtime_seconds - $starttime_seconds))
+        slurm_interval_to_seconds "$usercputime"
+        cputime="$return_interval_seconds"
+        slurm_interval_to_seconds "$kernelcputime"
+        kernel="$return_interval_seconds"
+        
+        # Values to write to diag. These will override values already written.
+        [ -n "$walltime" ] && WallTime=$walltime
+        [ -n "$cpus" ] && Processors=$cpus
+        [ -n "$cputime" ] && UserTime=$cputime
+        [ -n "$kernel" ] && KernelTime=$kernel
+        
+        job_write_diag
     fi
 }
 
@@ -350,25 +408,23 @@ if [ ! -z "$perflogdir" ]; then
 fi
 
 run=0
-done=0
+completed=0
 zombie=0
 failed=0
 # Look at the list of jobstates and determine which jobs that have
 # finished. Write job.XXXX.lrms_done according to this
 for localid in ${localids[@]}; do
-#    state=${jobstates[$localid]}
-#     case $state in
     # Initialize jobfile variable since it's used below
     jobfile="${basenames[$localid]}.local"
     case "${jobstates[$localid]}" in
- 	"")
+        "")
             # Job is missing (no state) from slurm but INLRMS.
             zombie=$(($zombie + 1))
             exitcode=''
             # get session directory of this job
             sessiondir=`grep -h '^sessiondir=' $jobfile | sed 's/^sessiondir=\(.*\)/\1/'`
             diagfile="${sessiondir}.diag"
-	    commentfile="${sessiondir}.comment"
+            commentfile="${sessiondir}.comment"
             if [ "$my_id" != '0' ] ; then
                 if [ ! -O "$jobfile" ] ; then continue ; fi
             fi
@@ -376,84 +432,84 @@ for localid in ${localids[@]}; do
             [ -z "$uid" ] && { log "Failed to stat $jobfile"; continue; }
 
             if [ ! -z "$sessiondir" ] ; then
-            # have chance to obtain exit code
-		if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
-            # In case of non-NFS setup it may take some time till
-            # diagnostics file is delivered. Wait for it max 2 minutes.
-		    diag_tries=20
-		    while [ "$diag_tries" -gt 0 ] ; do
-			if [ -z "$uid" ] ; then
-			    exitcode=`grep '^exitcode=' "$diagfile" 2>/dev/null | sed 's/^exitcode=//'`
-			else
-			    exitcode=$(do_as_uid "$uid" "grep '^exitcode=' '$diagfile'" | sed 's/^exitcode=//')
-			fi
-			if [ ! -z "$exitcode" ] ; then break ; fi
-			sleep 10
-			diag_tries=$(( $diag_tries - 1 ))
-		    done
-		else
-		    if [ -z "$uid" ] ; then
-			exitcode=`grep '^exitcode=' "$diagfile" 2>/dev/null | sed 's/^exitcode=//'`
-		    else
-			exitcode=$(do_as_uid "$uid" "grep '^exitcode=' '$diagfile'" | sed 's/^exitcode=//')
-		    fi
-		fi
-	    fi
+                # have chance to obtain exit code
+                if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+                    # In case of non-NFS setup it may take some time till
+                    # diagnostics file is delivered. Wait for it max 2 minutes.
+                    diag_tries=20
+                    while [ "$diag_tries" -gt 0 ] ; do
+                        if [ -z "$uid" ] ; then
+                            exitcode=`grep '^exitcode=' "$diagfile" 2>/dev/null | sed 's/^exitcode=//'`
+                        else
+                            exitcode=$(do_as_uid "$uid" "grep '^exitcode=' '$diagfile'" | sed 's/^exitcode=//')
+                        fi
+                        if [ ! -z "$exitcode" ] ; then break ; fi
+                        sleep 10
+                        diag_tries=$(( $diag_tries - 1 ))
+                    done
+                else
+                    if [ -z "$uid" ] ; then
+                        exitcode=`grep '^exitcode=' "$diagfile" 2>/dev/null | sed 's/^exitcode=//'`
+                    else
+                        exitcode=$(do_as_uid "$uid" "grep '^exitcode=' '$diagfile'" | sed 's/^exitcode=//')
+                    fi
+                fi
+            fi
 
-	    jobstatus="$exitcode Job missing from SLURM, exitcode recovered from session directory"
-	    if [ -z $exitcode ];then
-		exitcode="-1"
-		jobstatus="$exitcode Job missing from SLURM"
-	    fi
+            jobstatus="$exitcode Job missing from SLURM, exitcode recovered from session directory"
+            if [ -z $exitcode ];then
+                exitcode="-1"
+                jobstatus="$exitcode Job missing from SLURM"
+            fi
+            
+            save_commentfile "$uid" "$commentfile" "${basenames[$localid]}.errors"
+            echo  "$jobstatus" > "${basenames[$localid]}.lrms_done"
+            kicklist=(${kicklist[@]} $localid)
 
-	    save_commentfile "$uid" "$commentfile" "${basenames[$localid]}.errors"
-	    echo  "$jobstatus" > "${basenames[$localid]}.lrms_done"
-	    kicklist=(${kicklist[@]} $localid)
-
- 	    ;;
-  	PENDING|RUNNING|SUSPENDE|COMPLETING)
-  	#Job is running, nothing to do.
-            run=$(($run + 1))
-  	    ;;
-  	CANCELLED)
-            failed=$(($failed + 1))
-	    handle_commentfile $localid
-	    echo "-1 Job was cancelled" > "${basenames[$localid]}.lrms_done"
-	    kicklist=(${kicklist[@]} $localid)
-	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
-	    handle_exitcode_cancelled $localid "-1" "Job was cancelled"
-	    ;;
-  	COMPLETED)
-            done=$(($done + 1))
-	    handle_commentfile $localid
-	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
-	    handle_exitcode $localid "0" ""
-  	    ;;
-  	FAILED)
-            failed=$(($failed + 1))
-	    handle_commentfile $localid
-	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
-	    handle_exitcode $localid "-1" "Job failed"
-  	    ;;
-  	TIMEOUT)
-            failed=$(($failed + 1))
-	    handle_commentfile $localid
-	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
-	    handle_exitcode $localid "-1" "Job timeout"
-  	    ;;
-  	NODE_FAIL)
-            failed=$(($failed + 1))
-	    handle_commentfile $localid
-	    handle_diag_file "$localid" "${basenames[$localid]}.diag"
-	    handle_exitcode_cancelled $localid "-1" "Node fail"
-  	    ;;
+            ;;
+            PENDING|RUNNING|SUSPENDE|COMPLETING)
+                #Job is running, nothing to do.
+                run=$(($run + 1))
+                ;;
+            CANCELLED)
+                failed=$(($failed + 1))
+                handle_commentfile $localid
+                kicklist=(${kicklist[@]} $localid)
+                handle_diag_file "$localid" "${basenames[$localid]}.diag"
+                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Job was cancelled" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] Job:$localid CANCELLED, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
+                ;;
+            COMPLETED)
+                completed=$(($completed + 1))
+                handle_commentfile $localid
+                handle_diag_file "$localid" "${basenames[$localid]}.diag"
+                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "0" "" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] Job:$localid COMPLETED, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
+                ;;
+            FAILED)
+                failed=$(($failed + 1))
+                handle_commentfile $localid
+                handle_diag_file "$localid" "${basenames[$localid]}.diag"
+                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Job failed" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] Job:$localid FAILED, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
+                ;;
+            TIMEOUT)
+                failed=$(($failed + 1))
+                handle_commentfile $localid
+                handle_diag_file "$localid" "${basenames[$localid]}.diag"
+                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Job timeout" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] Job:$localid TIMEOUT, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
+                ;;
+            NODE_FAIL)
+                failed=$(($failed + 1))
+                handle_commentfile $localid
+                handle_diag_file "$localid" "${basenames[$localid]}.diag"
+                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Node fail" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] Job:$localid NODE_FAIL, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
+                ;;
     esac
+    unset jobinfo_collect_failed
 done
-
+    
 if [ ! -z "$perflogdir" ]; then
-   stop_ts=`date +%s.%N`
-   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-   echo "[`date +%Y-%m-%d\ %T`] scan-slurm-job, JobHandling, R= $run, D= $done, Z= $zombie, F= $failed:  $t" >> $perflogfile
+    stop_ts=`date +%s.%N`
+    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+    echo "[`date +%Y-%m-%d\ %T`] scan-slurm-job, JobHandling, R= $run, D= $completed, Z= $zombie, F= $failed:  $t" >> $perflogfile
 fi
 
 # Kick the GM

@@ -142,7 +142,7 @@ init_lrms_env () {
 init_perflog () {
    unset perflogdir
    unset perflogfile
-   if [ "$CONFIG_enable_perflog_reporting" == "expert-debug-on" ]; then
+   if [ "x$CONFIG_enable_perflog_reporting" = "xexpert-debug-on" ]; then
       perflogdir=${CONFIG_perflogdir:-/var/log/arc/perfdata}
       perflogfile="${perflogdir}/backends.perflog"
       perflogfilesub="${perflogdir}/submission.perflog"

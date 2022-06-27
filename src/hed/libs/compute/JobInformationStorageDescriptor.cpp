@@ -8,14 +8,14 @@
 #ifdef DBJSTORE_ENABLED
 #include "JobInformationStorageBDB.h"
 #endif
-#ifdef HAVE_SQLITE
+#ifdef SQLITEJSTORE_ENABLED
 #include "JobInformationStorageSQLite.h"
 #endif
 
 namespace Arc {
   
   JobInformationStorageDescriptor JobInformationStorage::AVAILABLE_TYPES[] = {
-#ifdef HAVE_SQLITE
+#ifdef SQLITEJSTORE_ENABLED
     { "SQLITE", &JobInformationStorageSQLite::Instance },
 #endif
 #ifdef DBJSTORE_ENABLED

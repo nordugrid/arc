@@ -40,9 +40,6 @@ if [ ! -z "$perflogdir" ]; then
    start_ts=`date +%s.%N`
 fi
 
-# define path to wrote failures
-define_failures_file
-
 # check remote or local scratch is configured
 check_any_scratch
 
@@ -243,7 +240,7 @@ add_user_env
 if [ -z "${joboption_arg_0}" ] ; then
   echo 'Executable is not specified' 1>&2
   rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
-  echo "Submission: Job description error.">>"$failures_file"
+  echo "Submission: Job description error."
   exit 1
 fi
 
@@ -447,12 +444,12 @@ if [ $SLURM_RESULT -eq '0' ] ; then
       echo "job *NOT* submitted successfully!" 1>&2
       echo "failed getting the slurm jobid for the job!" 1>&2
       echo "Instead got: ${job_id}" 1>&2
-      echo "Submission: Local submission client behaved unexpectedly.">>"$failures_file"
+      echo "Submission: Local submission client behaved unexpectedly."
    fi
 else
   echo "job *NOT* submitted successfully!" 1>&2
   echo "got error code from sbatch: $SLURM_RESULT !" 1>&2
-  echo "Submission: Local submission client failed.">>"$failures_file"
+  echo "Submission: Local submission client failed."
 fi
 echo "Output is:" 1>&2
 cat $LRMS_JOB_OUT 1>&2

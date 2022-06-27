@@ -16,12 +16,13 @@ require('ldap_purge.inc');
  * @param strings array
  * @desc Retrieves the list of objects satisfying attr1ibute/filter selection criteria
  */
-function do_attlist ($thething,$attributes,$signs,$filters,$strings,$giislist,$archery_list)
+
+function do_attlist ($object,$attributes,$signs,$filters,$strings,$giislist,$archery_list, $schema = "NG")
 {
   $errors = &$strings["errors"];
   $isattr = &$strings["isattr"];
 
-  if ( !$thething ) $thething = "cluster";
+  if ( !$object ) $object = "cluster";
 
   // Header table
   
@@ -34,9 +35,15 @@ function do_attlist ($thething,$attributes,$signs,$filters,$strings,$giislist,$a
   $lim     = array ( "dn" );
 
   // deduce the top object name assuming all requests are for the same object
-  $components = explode("-",$attributes[0]);
-  $object     = $components[0]."-".$components[1];
-
+  // TODO: this works only for NG, there is no dashes in GLUE2. Object name should not be guessed, as in some cases in GLUE2 there is no trace of the object
+  //       Change in clusdes.php or other callers
+  // Keeping this code for backward compatibility only for NG
+  
+  if ( $schema == "NG") {
+    $components = explode("-",$attributes[0]);
+    $object     = $components[0]."-".$components[1];
+  }
+  
   // start building the filter
   $filter     = "(&(objectclass=$object)";
 
@@ -74,11 +81,15 @@ function do_attlist ($thething,$attributes,$signs,$filters,$strings,$giislist,$a
   $filter .= ")";
 
   if ( ! empty($giislist) )     {
-    $gentries = recursive_giis_info($giislist,$thething,$errors,0,1);
+    // TODO?: thething was used as a shorname for objects. Must be fixed somewhat, but egiis is dead...
+    $gentries = recursive_giis_info($giislist,$object,$errors,0,1);
     $nc       = count($gentries);
   }
-  // TODO: fix for GLUE2 schema
-  if ( ! empty($archery_list) ) $gentries = array_merge($gentries, archery_info($archery_list, "NG", $errors, 0));
+  // TODO: fix for GLUE2 schema? It works with NG.
+  if ( ! empty($archery_list) ) {
+      $gentries = array_merge($gentries, archery_info($archery_list, "NG", $errors, 0));
+      $nc       =  count($gentries);
+  }
 
   if ( !$nc ) {
     $errno = 1;
@@ -97,6 +108,7 @@ function do_attlist ($thething,$attributes,$signs,$filters,$strings,$giislist,$a
     $ldapuri = "ldap://".$clhost.":".$clport;
 
     $clconn = ldap_connect($ldapuri);
+    @ldap_set_option($clconn, LDAP_OPT_NETWORK_TIMEOUT, $tout);
     if ( $clconn && !$sitetag[$clhost] ) {
       array_push($dsarray,$clconn);
       array_push($pnarray,$clport);
@@ -114,7 +126,13 @@ function do_attlist ($thething,$attributes,$signs,$filters,$strings,$giislist,$a
 
   // Search all clusters
 
-  $srarray = @ldap_search($dsarray,DN_LOCAL,$filter,$lim,0,0,$tlim,LDAP_DEREF_NEVER);
+  if ($schema == "GLUE2" ) {
+       $adn = DN_GLUE;
+  } else {
+       $adn = DN_LOCAL;
+  }
+
+  $srarray = @ldap_search($dsarray,$adn,$filter,$lim,0,0,$tlim,LDAP_DEREF_NEVER);
 
   echo "<!-- LDAP filter used: $filter -->\n";
   
@@ -140,65 +158,78 @@ function do_attlist ($thething,$attributes,$signs,$filters,$strings,$giislist,$a
         // If there are valid entries, tabulate results
          
         $allentries = ldap_get_entries($dst,$sr);
-	$entries    = ldap_purge($allentries);
-	if ( $object == OBJ_AJOB ) {
-	  define("CMPKEY",JOB_STAT);
-	  //usort($entries,"ldap_entry_comp");
-	}
+        $entries    = ldap_purge($allentries);
+        if ( $object == OBJ_AJOB ) {
+          define("CMPKEY",JOB_STAT);
+          //usort($entries,"ldap_entry_comp");
+        }
         $nclus = $entries["count"];
         
         for ($i=0; $i<$nclus; $i++) {
 
-	  $cluster = "N/A";
-	  $queue   = "N/A";
-	  $job     = "N/A";
+          $cluster = "N/A";
+          $queue   = "N/A";
+          $job     = "N/A";
 
-	  $currdn  = $entries[$i]["dn"];
-	  $currdn  = preg_replace("/\"/","",$currdn);
-	  $dnparts = ldap_explode_dn($currdn,0);
-	  foreach ($dnparts as $part) {
-	    $pair = explode("=",$part);
-	    switch ( $pair[0] ) {
-	    case CLU_NAME:
-	      $cluster = $pair[1];
-	      break;
-	    case SEL_NAME:
-	      $se      = $pair[1];
-	      break;
-	    case QUE_NAME:
-	      $queue   = $pair[1];
-	      break;
-	    case JOB_GLID:
-	      $job     = $pair[1];
-              $encjob  = rawurlencode($currdn);
-	      break;
-	    }
-	  }
+          $currdn  = $entries[$i]["dn"];
+          $currdn  = preg_replace("/\"/","",$currdn);
+          $dnparts = ldap_explode_dn($currdn,0);
+          foreach ($dnparts as $part) {
+            $pair = explode("=",$part);
+            switch ( $pair[0] ) {
+              case CLU_NAME:
+                $cluster = $pair[1];
+                break;
+              case SEL_NAME:
+                $se      = $pair[1];
+                break;
+              case QUE_NAME:
+                $queue   = $pair[1];
+                break;
+              case JOB_GLID:
+                $job     = $pair[1];
+                $encjob  = rawurlencode($currdn);
+                break;
+              case "GLUE2ServiceID":
+              // for any other GLUE2 object take cluster hostname(urn:ogf:object:hostname)
+              // TODO: this does not work. One has to pinpoint which DN wants to see per object. It probably means a case per object as above.
+                if ($schema == "GLUE2" ) {
+                  $colfields = explode(":",$pair[1]);
+                  $cluster = $colfields[3];
+                }
+            }
+          }
 
-	  $sort = "cluster";
-	  // 410: cluster; 411: queue; 412: job; 413: user; 414: SE
-	  switch ( $object ) {
-	  case OBJ_CLUS:
-	    $resource  = $errors["410"]." <i>$cluster</i>";
-            $winstring = popup("clusdes.php?host=$cluster&port=$pn",700,620,1);
-	    break;
-	  case OBJ_QUEU:
-	    $resource  = $errors["410"]." <i>$cluster</i>, ".$errors["411"]." <i>$queue</i>";
-	    $winstring = popup("quelist.php?host=$cluster&port=$pn&qname=$queue",750,430,6);
-	    break;
-	  case OBJ_USER:
-	    $resource  = $errors["410"]." <i>$cluster</i>, ".$errors["411"]." <i>$queue</i>";
-	    $winstring = popup("quelist.php?host=$cluster&port=$pn&qname=$queue",750,430,6);
-	    break;
-	  case OBJ_AJOB:
-	    $resource  = $errors["412"]." <i>$job</i>";
-	    $winstring = popup("jobstat.php?host=$cluster&port=$pn&status=&jobdn=$encjob",750,430,4);
-	    break;
-	  case OBJ_STEL:
-	    $resource  = $errors["414"]." <i>$se</i>";
-	    $winstring = "";
-	    break;
-	  }
+          $sort = "cluster";
+          // 410: cluster; 411: queue; 412: job; 413: user; 414: SE
+          switch ( strtolower($object) ) {
+              case OBJ_CLUS:
+                $resource  = $errors["410"]." <i>$cluster</i>";
+                $winstring = popup("clusdes.php?host=$cluster&port=$pn",700,620,1);
+                break;
+              case OBJ_QUEU:
+                $resource  = $errors["410"]." <i>$cluster</i>, ".$errors["411"]." <i>$queue</i>";
+                $winstring = popup("quelist.php?host=$cluster&port=$pn&qname=$queue",750,430,6);
+                break;
+              case OBJ_USER:
+                $resource  = $errors["410"]." <i>$cluster</i>, ".$errors["411"]." <i>$queue</i>";
+                $winstring = popup("quelist.php?host=$cluster&port=$pn&qname=$queue",750,430,6);
+                break;
+              case OBJ_AJOB:
+                $resource  = $errors["412"]." <i>$job</i>";
+                $winstring = popup("jobstat.php?host=$cluster&port=$pn&status=&jobdn=$encjob",750,430,4);
+                break;
+              case OBJ_STEL:
+                $resource  = $errors["414"]." <i>$se</i>";
+                $winstring = "";
+                break;
+              default: 
+                // for any other glue object take cluster for now (should be set by code in the previous switch).
+                if ($schema == "GLUE2" ) {
+                  $resource  = $errors["410"]." <i>$cluster</i>"; 
+                  $winstring = popup("clusdes.php?host=$cluster&port=$pn&schema=GLUE2",700,620,1);
+              }
+          }
 	  
 	  $rc++;
           $rowcont[0] = ( $winstring ) ? "$rc&nbsp;<a href=\"$winstring\">$resource</a>" : "$rc&nbsp;$resource";
@@ -206,8 +237,10 @@ function do_attlist ($thething,$attributes,$signs,$filters,$strings,$giislist,$a
 	  // determine maximum row count per object
 	  $vcount = 0;
 	  foreach ( $attributes as $attribute ) {
-	    if ( !$attribute ) continue;
-	    $ccount = $entries[$i][$attribute]["count"];
+          // lowercase due to LDAP lib
+          $attributelc = strtolower($attribute);
+	    if ( !$attributelc ) continue;
+	    $ccount = $entries[$i][$attributelc]["count"];
 	    $vcount = ( $ccount > $vcount ) ? $ccount : $vcount;
 	  }
 	  if ($vcount == 0) $jtable->adderror($resource);
@@ -218,9 +251,11 @@ function do_attlist ($thething,$attributes,$signs,$filters,$strings,$giislist,$a
 	    $attcheck = FALSE;
 	    for ( $k = 0; $k < $n ; $k++ ) {
 	      $attribute = $attributes[$k];
-	      if ( !$attribute || @in_array($attribute,$attrtag[$j]) ) continue;
-	      if ( $entries[$i][$attribute][$j] ) {
-		$attval   = $entries[$i][$attribute][$j];
+          // lowercase due to LDAP lib
+          $attributelc = strtolower($attribute);
+	      if ( !$attributelc || @in_array($attributelc,$attrtag[$j]) ) continue;
+	      if ( $entries[$i][$attributelc][$j] ) {
+		$attval   = $entries[$i][$attributelc][$j];
 		$attcheck = TRUE;
 	      } else {
 		$attval   = " ";

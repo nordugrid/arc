@@ -286,7 +286,7 @@ namespace Arc {
      * @return The string representation of the passed
      *         Software::ComparisonOperator is returned.
      **/
-    static std::string toString(ComparisonOperator co);
+    static std::string toString(ComparisonOperatorEnum co);
 
     /// Tokens used to split version string.
     /**
@@ -332,22 +332,6 @@ namespace Arc {
      * requirements.
      **/
     SoftwareRequirement() {}
-    /// Create a SoftwareRequirement object.
-    /**
-     * The created SoftwareRequirement object will contain one
-     * requirement specified by the Software object \a sw, and the
-     * Software::ComparisonOperator \a swComOp.
-     *
-     * This constructor is not available in language bindings created by
-     * Swig, since method pointers are not supported by Swig, see
-     * SoftwareRequirement(const Software&, Software::ComparisonOperatorEnum)
-     * instead.
-     *
-     * @param sw is the Software object of the requirement to add.
-     * @param swComOp is the Software::ComparisonOperator of the
-     *        requirement to add.
-     **/
-    SoftwareRequirement(const Software& sw, Software::ComparisonOperator swComOp);
 
     /// Create a SoftwareRequirement object.
     /**
@@ -359,7 +343,7 @@ namespace Arc {
      * @param co is the Software::ComparisonOperatorEnum of the
      *        requirement to add.
      **/
-    SoftwareRequirement(const Software& sw, Software::ComparisonOperatorEnum co = Software::EQUAL);
+    SoftwareRequirement(const Software& sw, Software::ComparisonOperatorEnum co);
 
     /// Assignment operator.
     /**
@@ -379,22 +363,6 @@ namespace Arc {
      * @param sr is the SoftwareRequirement object to make a copy of.
      **/
     SoftwareRequirement(const SoftwareRequirement& sr) { *this = sr; }
-
-    /// Add a Software object a corresponding comparion operator to this object.
-    /**
-     * Adds software name and version to list of requirements and
-     * associates the comparison operator with it (equality by default).
-     *
-     * This method is not available in language bindings created by
-     * Swig, since method pointers are not supported by Swig, see
-     * add(const Software&, Software::ComparisonOperatorEnum) instead.
-     *
-     * @param sw is the Software object to add as part of a requirement.
-     * @param swComOp is the Software::ComparisonOperator method pointer
-     *        to add as part of a requirement, the default operator
-     *        will be Software::operator==().
-     **/
-    void add(const Software& sw, Software::ComparisonOperator swComOp);
 
     /// Add a Software object a corresponding comparion operator to this object.
     /**
@@ -562,14 +530,14 @@ namespace Arc {
     /**
      * @return The list of internally stored comparison operators is
      *         returned.
-     * @see Software::ComparisonOperator,
+     * @see Software::ComparisonOperatorEnum,
      * @see getSoftwareList.
      **/
-    const std::list<Software::ComparisonOperator>& getComparisonOperatorList() const { return comparisonOperatorList; }
+    const std::list<Software::ComparisonOperatorEnum>& getComparisonOperatorList() const { return comparisonOperatorList; }
 
   private:
     std::list<Software> softwareList;
-    std::list<Software::ComparisonOperator> comparisonOperatorList;
+    std::list<Software::ComparisonOperatorEnum> comparisonOperatorList;
 
     bool isSatisfiedSelect(const std::list<Software>&, SoftwareRequirement* = NULL) const;
 

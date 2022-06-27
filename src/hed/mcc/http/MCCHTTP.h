@@ -38,6 +38,8 @@ class MCC_HTTP : public MCC {
  translated into HTTP header with corresponding 'name's.
  */
 class MCC_HTTP_Service: public MCC_HTTP {
+    protected:
+        std::list< std::pair<std::string,std::string> > headers_;
     public:
         MCC_HTTP_Service(Config *cfg,PluginArgument* parg);
         virtual ~MCC_HTTP_Service(void);

@@ -115,13 +115,14 @@ bool Software::operator>(const Software& sv) const {
   return false;
 }
 
-std::string Software::toString(ComparisonOperator co) {
-  if (co == &Software::operator==) return "==";
-  if (co == &Software::operator<)  return "<";
-  if (co == &Software::operator>)  return ">";
-  if (co == &Software::operator<=) return "<=";
-  if (co == &Software::operator>=) return ">=";
-  return "!=";
+std::string Software::toString(ComparisonOperatorEnum co) {
+  if (co == EQUAL) return "==";
+  if (co == LESSTHAN)  return "<";
+  if (co == GREATERTHAN)  return ">";
+  if (co == LESSTHANOREQUAL) return "<=";
+  if (co == GREATERTHANOREQUAL) return ">=";
+  if (co == NOTEQUAL) return "!=";
+  return "??";
 }
 
 Software::ComparisonOperator Software::convert(const Software::ComparisonOperatorEnum& co) {
@@ -144,12 +145,7 @@ Software::ComparisonOperator Software::convert(const Software::ComparisonOperato
 
 SoftwareRequirement::SoftwareRequirement(const Software& sw,
                                          Software::ComparisonOperatorEnum co)
-  : softwareList(1, sw), comparisonOperatorList(1, Software::convert(co))
-{}
-
-SoftwareRequirement::SoftwareRequirement(const Software& sw,
-                                         Software::ComparisonOperator swComOp)
-  : softwareList(1, sw), comparisonOperatorList(1, swComOp)
+  : softwareList(1, sw), comparisonOperatorList(1, co)
 {}
 
 SoftwareRequirement& SoftwareRequirement::operator=(const SoftwareRequirement& sr) {
@@ -158,15 +154,11 @@ SoftwareRequirement& SoftwareRequirement::operator=(const SoftwareRequirement& s
   return *this;
 }
 
-void SoftwareRequirement::add(const Software& sw, Software::ComparisonOperator swComOp) {
+void SoftwareRequirement::add(const Software& sw, Software::ComparisonOperatorEnum co) {
   if (!sw.empty()) {
     softwareList.push_back(sw);
-    comparisonOperatorList.push_back(swComOp);
+    comparisonOperatorList.push_back(co);
   }
-}
-
-void SoftwareRequirement::add(const Software& sw, Software::ComparisonOperatorEnum co) {
-  add(sw, Software::convert(co));
 }
 
 bool SoftwareRequirement::isSatisfied(const std::list<ApplicationEnvironment>& swList) const {
@@ -176,21 +168,22 @@ bool SoftwareRequirement::isSatisfied(const std::list<ApplicationEnvironment>& s
 bool SoftwareRequirement::isSatisfiedSelect(const std::list<Software>& swList, SoftwareRequirement* sr) const {
   // Compare Software objects in the 'versions' list with those in 'swList'.
   std::list<Software>::const_iterator itSW = softwareList.begin();
-  std::list<Software::ComparisonOperator>::const_iterator itSWC = comparisonOperatorList.begin();
+  std::list<Software::ComparisonOperatorEnum>::const_iterator itSWC = comparisonOperatorList.begin();
   for (; itSW != softwareList.end() && itSWC != comparisonOperatorList.end(); itSW++, itSWC++) {
     Software * currentSelectedSoftware = NULL; // Pointer to the current selected software from the argument list.
     // Loop over 'swList'.
     std::list<Software>::const_iterator itSWList = swList.begin();
     for (; itSWList != swList.end(); itSWList++) {
-      if (((*itSWList).**itSWC)(*itSW)) { // One of the requirements satisfied.
-        if (*itSWC == &Software::operator!=) {
+      Software::ComparisonOperator op = itSWList->convert(*itSWC);
+      if (((*itSWList).*op)(*itSW)) { // One of the requirements satisfied.
+        if (*itSWC == Software::NOTEQUAL) {
           continue;
         }
         
         if (sr != NULL) {
           if (currentSelectedSoftware == NULL) { // First software to satisfy requirement. Push it to the selected software.
             sr->softwareList.push_back(*itSWList);
-            sr->comparisonOperatorList.push_back(&Software::operator ==);
+            sr->comparisonOperatorList.push_back(Software::EQUAL);
           }
           else if (*currentSelectedSoftware < *itSWList) { // Select the software with the highest version still satisfying the requirement.
             sr->softwareList.back() = *itSWList;
@@ -202,13 +195,13 @@ bool SoftwareRequirement::isSatisfiedSelect(const std::list<Software>& swList, S
           break;
         }
       }
-      else if (*itSWC == &Software::operator!=) {
+      else if (*itSWC == Software::NOTEQUAL) {
         logger.msg(VERBOSE, "Requirement \"%s %s\" NOT satisfied.", Software::toString(*itSWC), (std::string)*itSW);
         return false;
       }
     }
 
-    if (*itSWC == &Software::operator!=) {
+    if (*itSWC == Software::NOTEQUAL) {
       logger.msg(VERBOSE, "Requirement \"%s %s\" satisfied.", Software::toString(*itSWC), (std::string)*itSW);
       continue;
     }
@@ -245,9 +238,9 @@ bool SoftwareRequirement::selectSoftware(const std::list<ApplicationEnvironment>
 }
 
 bool SoftwareRequirement::isResolved() const {
-  for (std::list<Software::ComparisonOperator>::const_iterator it = comparisonOperatorList.begin();
+  for (std::list<Software::ComparisonOperatorEnum>::const_iterator it = comparisonOperatorList.begin();
        it != comparisonOperatorList.end(); it++) {
-    if (*it != &Software::operator==) {
+    if (*it != Software::EQUAL) {
       return false;
     }
   }

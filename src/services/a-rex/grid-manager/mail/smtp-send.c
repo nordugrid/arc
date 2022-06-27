@@ -189,7 +189,7 @@ int main(int argc,char** argv) {
   };
   domain_rcpt++;
   if(strlen(domain_rcpt) == 0) {
-    fprintf(stderr,"Recepient address does not contain domain (%s)\n", mail_to);
+    fprintf(stderr,"Recipient address does not contain domain (%s)\n", mail_to);
     exit(1);
   };
 

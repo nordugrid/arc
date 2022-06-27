@@ -14,6 +14,7 @@ debian/tmp/usr/share/arc/submit-*-job
 debian/tmp/usr/share/arc/perferator
 debian/tmp/usr/share/arc/PerfData.pl
 debian/tmp/usr/share/arc/arc-arex-start
+debian/tmp/usr/share/arc/arc-arex-ws-start
 
 debian/tmp/usr/lib/arc/libarex.so
 debian/tmp/usr/lib/arc/libarex.apd

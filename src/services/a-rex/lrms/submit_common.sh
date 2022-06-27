@@ -35,21 +35,15 @@ common_init () {
     # init common LRMS environmental variables
     init_lrms_env
     # optionally enable support for community RTEs
-    [ -e "${pkgdatadir}/community_rtes.sh" ] && source "${pkgdatadir}/community_rtes.sh"
+    [ -e "${pkgdatadir}/community_rtes.sh" ] && . "${pkgdatadir}/community_rtes.sh"
 }
-
-# defines failures_file
-define_failures_file () {
-    failures_file="$joboption_controldir/job.$joboption_gridid.failed"
-}
-
 
 # checks any scratch is defined (shared or local)
 check_any_scratch () {
     if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
         if [ -z "${RUNTIME_LOCAL_SCRATCH_DIR}" ] ; then
             echo "Need to know at which directory to run job: RUNTIME_LOCAL_SCRATCH_DIR must be set if RUNTIME_NODE_SEES_FRONTEND is empty" 1>&2
-            echo "Submission: Configuration error.">>"$failures_file"
+            echo "Submission: Configuration error."
             exit 1
         fi
     fi
@@ -116,6 +110,9 @@ mktempscript () {
 
 accounting_init () {
     cat >> $LRMS_JOB_SCRIPT <<EOSCR
+# Record job start timestamp
+ACCOUNTING_STARTTIME=\`date +"%s"\`
+# Select accounting method
 echo "Detecting resource accounting method available for the job." 1>&2
 JOB_ACCOUNTING=""
 # Try to use cgroups first
@@ -215,6 +212,13 @@ fi
 [ -n "${ACCOUNTING_BENCHMARK}" ] && echo "benchmark=${ACCOUNTING_BENCHMARK}" >> "$RUNTIME_JOB_DIAG"
 # Record WN instance tag if defined
 [ -n "${ACCOUNTING_WN_INSTANCE}" ] && echo "wninstance=${ACCOUNTING_WN_INSTANCE}" >> "$RUNTIME_JOB_DIAG"
+
+# Record execution clock times
+ACCOUNTING_ENDTIME=`date +"%s"`
+# Mds date format (YYYYMMDDHHMMSSZ)
+echo "LRMSStartTime=`date -d "1970-01-01 UTC ${ACCOUNTING_STARTTIME} seconds" +"%Y%m%d%H%M%SZ"`" >> "$RUNTIME_JOB_DIAG"
+echo "LRMSEndTime=`date -d "1970-01-01 UTC ${ACCOUNTING_ENDTIME} seconds" +"%Y%m%d%H%M%SZ"`" >> "$RUNTIME_JOB_DIAG"
+echo "walltime=$(( ACCOUNTING_ENDTIME - ACCOUNTING_STARTTIME ))" >> "$RUNTIME_JOB_DIAG"
 
 # Add exit code to the accounting information and exit the job script
 echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"
@@ -433,7 +437,7 @@ RTE_stage0 () {
             # run RTE stage 0
             # WARNING!!! IN SOME CASES DUE TO DIRECT SOURCING OF RTE SCRIPT WITHOUT ANY SAFETY CHECKS 
             #            SPECIALLY CRAFTED RTES CAN BROKE CORRECT SUBMISSION (e.g. RTE redefine 'rte_idx' variable)
-            [ -e "${rte_params_path}" ] && source "${rte_params_path}" 1>&2
+            [ -e "${rte_params_path}" ] && . "${rte_params_path}" 1>&2
             # prepare RUNTIME_JOB_SWDIR for community-defined RTE software
             [ -n "${COMMUNITY_RTES}" ] && community_software_prepare
             # execute RTE script stage 0
@@ -706,10 +710,10 @@ EOSCR
   if [ -z "$joboption_benchmark" ]; then
      joboption_benchmark="HEPSPEC:1.0"
      if [ -n "$CONFIG_benchmark" ]; then
-        if [ "$CONFIG_benchmark" == "__array__" ]; then
-          joboption_benchmark="${CONFIG_benchmark_0// /:}"
-        else
-          joboption_benchmark="${CONFIG_benchmark// /:}"
+         if [ "$CONFIG_benchmark" = "__array__" ]; then
+	  joboption_benchmark=$(printf '%s' "${CONFIG_benchmark_0}" | tr ' ' ':') 
+         else
+	  joboption_benchmark=$(printf '%s' "${CONFIG_benchmark}" | tr ' ' ':') 
         fi
      fi
   fi

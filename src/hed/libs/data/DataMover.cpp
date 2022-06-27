@@ -369,9 +369,10 @@ namespace Arc {
     bool destination_meta_initially_stored = destination.Registered();
     bool destination_overwrite = false;
     if (!replication) { // overwriting has no sense in case of replication
-      std::string value = destination.GetURL().Option("overwrite", "no");
-      if (strcasecmp(value.c_str(), "no") != 0)
+      std::string value = destination.GetURL().Option("overwrite");
+      if (lower(value) == "yes" || force_registration) {
         destination_overwrite = true;
+      }
     }
     // sort source replicas according to the expression supplied
     source.SortLocations(preferred_pattern, map);
@@ -390,7 +391,9 @@ namespace Arc {
             break;
           if (!destination.IsIndex()) {
             // pfn has chance to be overwritten directly
-            logger.msg(WARNING, "Failed to delete %s but will still try to copy", del_url.str());
+            if (res.GetErrno() != ENOENT) {
+              logger.msg(WARNING, "Failed to delete %s but will still try to copy", del_url.str());
+            }
             break;
           }
           logger.msg(INFO, "Failed to delete %s", del_url.str());
@@ -744,8 +747,10 @@ namespace Arc {
           // check location meta
           DataStatus r = source_url.CompareLocationMetadata();
           if (!r.Passed()) {
-            if (r == DataStatus::InconsistentMetadataError)
+            if (r == DataStatus::InconsistentMetadataError) {
               logger.msg(ERROR, "Meta info of source and location do not match for %s", source_url.str());
+              source_url.Finalise("Meta info of source and location do not match", source_url.GetUserConfig().GetUser().Name());
+            }
             if (source.NextLocation())
               logger.msg(VERBOSE, "(Re)Trying next source");
             res = r;
@@ -777,6 +782,7 @@ namespace Arc {
           URL dest_url(cacheable ? chdest.GetURL() : destination.GetURL());
           DataStatus datares = source_url.Transfer(dest_url, true, show_progress ? transfer_cb : NULL);
           if (!datares.Passed()) {
+            source_url.Finalise(datares.GetDesc(), source_url.GetUserConfig().GetUser().Name());
             if (source.NextLocation()) {
               logger.msg(VERBOSE, "(Re)Trying next source");
               continue;
@@ -796,6 +802,7 @@ namespace Arc {
           logger.msg(INFO, "Using internal transfer method of %s", destination.str());
           DataStatus datares = destination.Transfer(source_url.GetURL(), false, show_progress ? transfer_cb : NULL);
           if (!datares.Passed()) {
+            source_url.Finalise(datares.GetDesc(), source_url.GetUserConfig().GetUser().Name());
             if (source.NextLocation()) {
               logger.msg(VERBOSE, "(Re)Trying next source");
               continue;
@@ -816,6 +823,7 @@ namespace Arc {
           logger.msg(ERROR, "Failed to prepare source: %s",
                      source_url.str());
           source_url.FinishReading(true);
+          source_url.Finalise(datares.GetDesc(), source_url.GetUserConfig().GetUser().Name());
           res = datares;
           /* try another source */
           if (source.NextLocation())
@@ -831,6 +839,7 @@ namespace Arc {
                      source_url.str());
           source_url.StopReading();
           source_url.FinishReading(true);
+          source_url.Finalise(datares.GetDesc(), source_url.GetUserConfig().GetUser().Name());
           res = datares;
           if (source.GetFailureReason() != DataStatus::UnknownError)
             res = source.GetFailureReason();
@@ -849,6 +858,7 @@ namespace Arc {
             logger.msg(ERROR, "Metadata of source and destination are different");
             source_url.StopReading();
             source_url.FinishReading(true);
+            source_url.Finalise("Metadata of source and destination are different", source_url.GetUserConfig().GetUser().Name());
             source.NextLocation(); /* not exactly sure if this would help */
             res = DataStatus::PreRegisterError;
             if (cacheable)
@@ -890,7 +900,7 @@ namespace Arc {
                                          destination_meta_initially_stored).Passed())
             logger.msg(ERROR, "Failed to unregister preregistered lfn. "
                        "You may need to unregister it manually: %s", destination.str());
-          /* try another source */
+          // try another destination location
           if (destination.NextLocation())
             logger.msg(VERBOSE, "(Re)Trying next destination");
           res = datares;
@@ -992,6 +1002,7 @@ namespace Arc {
           // Easy part first - if either read or write part report error
           // go to next endpoint.
           if (buffer.error_read()) {
+            source_url.Finalise("Error reading from source", source_url.GetUserConfig().GetUser().Name());
             if (source.NextLocation())
               logger.msg(VERBOSE, "(Re)Trying next source");
             // check for error from callbacks etc
@@ -1024,6 +1035,7 @@ namespace Arc {
             else if (!buffer.for_write()) {
               // Buffer is empty
               res.SetDesc(source.GetFailureReason().GetDesc());
+              source_url.Finalise(res.GetDesc(), source_url.GetUserConfig().GetUser().Name());
               if (source.NextLocation()) {
                 logger.msg(VERBOSE, "(Re)Trying next source");
               }
@@ -1034,6 +1046,7 @@ namespace Arc {
               Glib::Rand r;
               if (r.get_int() < (RAND_MAX / 2)) {
                 res.SetDesc(source.GetFailureReason().GetDesc());
+                source_url.Finalise(res.GetDesc(), source_url.GetUserConfig().GetUser().Name());
                 if (source.NextLocation()) {
                   logger.msg(VERBOSE, "(Re)Trying next source");
                 }
@@ -1107,6 +1120,7 @@ namespace Arc {
                 cache.StopAndDelete(canonic_url);
               }
               res = DataStatus(DataStatus::TransferError, EARCCHECKSUM);
+              source_url.Finalise("Checksum mismatch", source_url.GetUserConfig().GetUser().Name());
               if (source.NextLocation()) {
                 logger.msg(VERBOSE, "(Re)Trying next source");
               }
@@ -1139,6 +1153,7 @@ namespace Arc {
           continue;
         }
       } // not using internal transfer
+      source_url.Finalise("", source_url.GetUserConfig().GetUser().Name());
       if (cacheable) {
         cache.AddDN(canonic_url, dn, exp_time);
         logger.msg(INFO, "Linking/copying cached file");

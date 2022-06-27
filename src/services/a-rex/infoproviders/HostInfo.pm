@@ -366,7 +366,7 @@ sub get_host_info {
     # Considering only common cache disk space (not including per-user caches)
     if ($control->{'.'}) {
         my $cachedirs = $control->{'.'}{cachedir} || [];
-        my ($cachemax, $cachemin) = split " ", $control->{'.'}{cachesize};
+        my ($cachemax, $cachemin) = split " ", $control->{'.'}{cachesize} if defined $control->{'.'}{cachesize};
         my @paths = map { my @pair = split " ", $_; $pair[0] } @$cachedirs;
         if (@paths) {
             my %res = Sysinfo::diskspaces(@paths);
@@ -418,8 +418,8 @@ sub get_host_info {
 #### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ####
 
 sub test {
-    my $options = { x509_host_cert => '/home/pflorido/build/certs/hostcert.pem',
-                    x509_cert_dir => '/home/pflorido/build/certs',
+    my $options = { x509_host_cert => '/etc/grid-security/testCA-hostcert.pem',
+                    x509_cert_dir => '/etc/grid-security/certificates',
                     control => {
                         '.' => {
                             sessiondir => [ '/home', '/boot' ],

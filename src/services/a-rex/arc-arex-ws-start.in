@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export MALLOC_ARENA_MAX=2
+
 add_library_path() {
     location="$1"
     if [ ! "x$location" = "x" ] ; then
@@ -220,18 +222,35 @@ prepare() {
     VOMS_PROCESSING=`readconfigvar "$ARC_RUNTIME_CONFIG" voms_processing common`
     mapping_present=`testconfigblock "$ARC_RUNTIME_CONFIG" mapping`
     authtokens_present=`testconfigblock "$ARC_RUNTIME_CONFIG" authtokens`
+    CIPHERS_STRING=`readconfigvar "$ARC_RUNTIME_CONFIG" tlsciphers arex/ws`
+    PROTOCOLS_STRING=`readconfigvar "$ARC_RUNTIME_CONFIG" tlsprotocols arex/ws`
+    CURVE_STRING=`readconfigvar "$ARC_RUNTIME_CONFIG" tlscurve arex/ws`
     USERMAP_BLOCK=''
     if [ "$mapping_present" = 'true' ] ; then
       USERMAP_BLOCK='mapping'
     fi
     HOSTNAME=`readconfigvar "$ARC_RUNTIME_CONFIG" hostname common`
     SERVICEMAIL=`readconfigvar "$ARC_RUNTIME_CONFIG" mail arex`
+    CONTROLDIR=`readconfigvar "$ARC_RUNTIME_CONFIG" controldir arex`
     # It is easier to handle root user through empty value.
     if [ "$USERNAME" = "root" ] ; then
         USERNAME=""
     fi
     if [ "$GROUPNAME" = "root" ] ; then
         GROUPNAME=""
+    fi
+    DHPARAM_PATH=''
+    if [ ! -z "$CONTROLDIR" ] ; then
+        DHPARAM_PATH="$CONTROLDIR/dhparam.pem"
+        if [ -f "$DHPARAM_PATH" ] ; then
+            openssl dhparam -in "$DHPARAM_PATH" -check -noout &>/dev/null
+            if [ $? -ne 0 ] ; then
+               rm -f "$DHPARAM_PATH"
+            fi
+        fi
+        if [ ! -f "$DHPARAM_PATH" ] ; then
+            /bin/bash -c "umask 0177 ; openssl dhparam -out '$DHPARAM_PATH' 4096" &>/dev/null & disown;
+        fi
     fi
 
     # Exporting collected variables
@@ -477,6 +496,23 @@ prepare() {
 <SecHandler name=\"otokens.handler\" event=\"incoming\"/>"
     fi
 
+    ciphers_xml=""
+    if [ ! -z "$CIPHERS_STRING" ] ; then
+      ciphers_xml="<Ciphers>$CIPHERS_STRING</Ciphers>"
+    fi
+    protocols_xml=""
+    if [ ! -z "$PROTOCOLS_STRING" ] ; then
+      protocols_xml="<Protocol>$PROTOCOLS_STRING</Protocol>"
+    fi
+    curve_xml=""
+    if [ ! -z "$CURVE_STRING" ] ; then
+      curve_xml="<Curve>$CURVE_STRING</Curve>"
+    fi
+    dhparam_xml=""
+    if [ ! -z "$DHPARAM_PATH" ] ; then
+      dhparam_xml="<DHParamFile>$DHPARAM_PATH</DHParamFile>"
+    fi
+
     # A-Rex with WS interface over HTTP
     AREXCFGWS="\
 <?xml version=\"1.0\"?>
@@ -534,7 +570,6 @@ prepare() {
       <arex:InfosysInterfaceMaxClients>$MAX_INFOSYS_REQUESTS</arex:InfosysInterfaceMaxClients>
       <arex:JobControlInterfaceMaxClients>$MAX_JOB_CONTROL_REQUESTS</arex:JobControlInterfaceMaxClients>
       <arex:DataTransferInterfaceMaxClients>$MAX_DATA_TRANSFER_REQUESTS</arex:DataTransferInterfaceMaxClients>
-      <arex:
     </Service>
     $candypond
   </Chain>
@@ -582,11 +617,17 @@ prepare() {
       <CACertificatesDir PolicyGlobus=\"true\">$X509_CERT_DIR</CACertificatesDir>
       <VOMSProcessing>$VOMS_PROCESSING</VOMSProcessing>
       <ClientAuthn>false</ClientAuthn>
+      $ciphers_xml
+      $protocols_xml
+      $curve_xml
+      $dhparam_xml
     </Component>
     <Component name=\"http.service\" id=\"http\">
       <next id=\"soap\">POST</next>
       <next id=\"plexer\"/>
       $authtokens_handler
+      <!-- Make dumb security probes happy -->
+      <Header>Strict-Transport-Security: max-age=31536000; includeSubDomains</Header>
       <!-- Match client to legacy authorization groups -->
       <SecHandler name=\"arclegacy.handler\" event=\"incoming\">
         <ConfigFile>$ARC_RUNTIME_CONFIG</ConfigFile>

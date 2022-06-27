@@ -21,8 +21,6 @@
 #include <arc/Utils.h>
 
 #include "CoreConfig.h"
-#include "../run/RunParallel.h"
-
 #include "GMConfig.h"
 
 namespace ARex {

@@ -573,6 +573,18 @@ namespace Arc {
      */
     virtual DataStatus Unregister(bool all) = 0;
 
+    /// Finalise source replica in index service.
+    /**
+     * Should be called after transferring a replica, to clean up the catalog,
+     * send traces etc.
+     * \param error_msg An error message from the transfer (empty if
+     * there was no error)
+     * \param dn The DN associated with the transfer
+     * \return success if finalising succeeded
+     */
+    virtual DataStatus Finalise(const std::string& error_msg,
+                                const std::string& dn) = 0;
+
     /// Check if meta-information 'size' is available.
     virtual bool CheckSize() const;
 

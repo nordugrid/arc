@@ -24,6 +24,7 @@ $archery_list = &$toppage->archery_list;
 
 require_once('attlist.inc');
 
+$schema     = $_GET["schema"];
 $object     = $_GET["object"];
 $attribute  = $_GET["attribute"];
 $filter     = $_GET["filter"];
@@ -45,7 +46,7 @@ if ( $attribute[1]==":") {
   $filters    = array ($filter);
 }
 
-do_attlist($object,$attributes,$signs,$filters,$strings,$giislist,$archery_list);
+do_attlist($object,$attributes,$signs,$filters,$strings,$giislist,$archery_list,$schema);
 
 // Done
 

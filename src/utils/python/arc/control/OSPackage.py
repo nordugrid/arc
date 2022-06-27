@@ -69,6 +69,24 @@ class OSPackageManagement(object):
     def version(self):
         print('{0} version {1}'.format(self.pm, self.pm_version))
 
+    def is_yum(self):
+        if self.pm == 'yum':
+            return True
+        else:
+            return False
+
+    def is_dnf(self):
+        if self.pm == 'dnf':
+            return True
+        else:
+            return False
+
+    def is_apt(self):
+        if self.pm == 'apt':
+            return True
+        else:
+            return False
+
     def __get_url_content(self, url):
         req = Request(url)
         try:
@@ -113,7 +131,7 @@ class OSPackageManagement(object):
         self.logger.info('Saving repository configuration to %s', fpath)
         try:
             with open(fpath, 'wb') as f:
-                f.write(fcontent)
+                f.write(fcontent.encode())
         except (IOError, OSError) as e:
             self.logger.error('Failed to save repository configuration to %s. Error: %s', fpath, e.strerror)
             sys.exit(1)

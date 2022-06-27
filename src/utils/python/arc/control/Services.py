@@ -27,7 +27,7 @@ class ServicesControl(ComponentControl):
             'service': 'arc-arex'
         },
         'arex/ws': {
-            'package': 'arex-ws',
+            'package': 'arex',
             'service': 'arc-arex-ws'
         },
         'gridftpd': {
@@ -91,7 +91,8 @@ class ServicesControl(ComponentControl):
             if bservice is not None:
                 services_all.add(bservice)
             if self.arcconfig.check_blocks(block):
-                packages_needed.add(self.package_base + '-' + self.__blocks_map[block]['package'])
+                if self.__blocks_map[block]['package'] is not None:
+                    packages_needed.add(self.package_base + '-' + self.__blocks_map[block]['package'])
                 if bservice is not None:
                     services_needed.add(bservice)
         return packages_needed, services_all, services_needed
@@ -167,6 +168,8 @@ class ServicesControl(ComponentControl):
         pm, sm = self.__get_pm_sm()
         services = {}
         for s in self.__blocks_map.values():
+            """ N/A for services that do not have their own package, i.e. s['package'] is None. """
+            installed_str = 'N/A'
             sname = s['service']
             if sname is None:
                 continue
@@ -176,8 +179,9 @@ class ServicesControl(ComponentControl):
                 installed = sm.is_installed(s['service'])
                 installed_str = 'Built from source' if installed else 'Not built'
             else:
-                installed = pm.is_installed(self.package_base + '-' + s['package'])
-                installed_str = 'Installed' if installed else 'Not installed'
+                if s['package'] is not None:
+                    installed = pm.is_installed(self.package_base + '-' + s['package'])
+                    installed_str = 'Installed' if installed else 'Not installed'
             active = sm.is_active(s['service'])
             enabled = sm.is_enabled(s['service'])
             services[sname] = {

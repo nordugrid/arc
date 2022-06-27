@@ -371,7 +371,11 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         if installrepo:
             self.install_cacerts_repo(pm, installrepo)
             pm.update_cache()
-        exitcode = pm.install(list(['ca_policy_igtf-' + p for p in bundle]))
+        exitcode = None
+        if pm.is_yum():
+            exitcode = pm.install(list(['ca_policy_igtf-' + p for p in bundle]))
+        elif pm.is_apt():
+            exitcode = pm.install(list(['igtf-policy-' + p for p in bundle]))
         if exitcode:
             self.logger.error('Can not install IGTF CA Certificate packages. '
                               'Make sure you have repositories installed (see --help for options).')
@@ -519,7 +523,7 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         deploy_vomses.add_argument('vo', help='VO Name')
         deploy_vomses_sources = deploy_vomses.add_mutually_exclusive_group(required=True)
         deploy_vomses_sources.add_argument('-v', '--voms', help='VOMS-Admin URL', action='append')
-        deploy_vomses_sources.add_argument('-e', '--egi-vo', help='Fetch information from EGI VOs database',
+        deploy_vomses_sources.add_argument('-e', '--egi-vo', help='NOTE: BROKEN due to an EGI server change. Fetch information from EGI VOs database',
                                          action='store_true')
         deploy_vomses.add_argument('-u', '--user', help='Install to user\'s home instead of /etc',
                                    action='store_true')
@@ -531,7 +535,7 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         deploy_voms_lsc.add_argument('vo', help='VO Name')
         deploy_voms_sources = deploy_voms_lsc.add_mutually_exclusive_group(required=True)
         deploy_voms_sources.add_argument('-v', '--voms', help='VOMS-Admin URL', action='append')
-        deploy_voms_sources.add_argument('-e', '--egi-vo', help='Fetch information from EGI VOs database',
+        deploy_voms_sources.add_argument('-e', '--egi-vo', help='NOTE: BROKEN due to an EGI server change. Fetch information from EGI VOs database',
                                          action='store_true')
         deploy_voms_lsc.add_argument('--pythonssl', action='store_true',
                                      help='Use Python SSL module to establish TLS connection '

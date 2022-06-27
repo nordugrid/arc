@@ -40,7 +40,7 @@ enum ResponseFormat {
 
 static void RenderToJson(Arc::XMLNode xml, std::string& output, int depth = 0) {
     if(xml.Size() == 0) {
-        std::string val = (std::string)xml;
+        std::string val = json_encode((std::string)xml);
         if((depth != 0) || (!val.empty())) {
             output += "\"";
             output += val;
@@ -96,7 +96,7 @@ static void RenderToJson(Arc::XMLNode xml, std::string& output, int depth = 0) {
             XMLNode child = xml.Attribute(n);
             if (!child) break;
             if(n != 0) output += ",";
-            std::string val = (std::string)xml;
+            std::string val = json_encode((std::string)xml);
             output += "\"";
             output += child.Name();
             output += "\":\"";
@@ -159,6 +159,19 @@ static char const * SkipTo(char const * input, char tag) {
     return input;
 }
 
+static char const * SkipToEscaped(char const * input, char tag) {
+    while(*input) {
+        if(*input == '\\') {
+            ++input;
+            if(!*input) break;
+        } else if(*input == tag) {
+            break;
+        }
+        ++input;
+    }
+    return input;
+}
+
 static char const * ParseFromJson(Arc::XMLNode& xml, char const * input, int depth = 0) {
     input = SkipWS(input);
     if(!*input) return input;
@@ -169,11 +182,11 @@ static char const * ParseFromJson(Arc::XMLNode& xml, char const * input, int dep
         if(*nameStart != '}') while(true) {
             if(*nameStart != '"') return NULL;
             ++nameStart;
-            char const * nameEnd = SkipTo(nameStart, '"');
+            char const * nameEnd = SkipToEscaped(nameStart, '"');
             if(*nameEnd != '"') return NULL;
             char const * sep = SkipWS(nameEnd+1);
             if(*sep != ':') return NULL;
-            XMLNode item = xml.NewChild(std::string(nameStart, nameEnd-nameStart));
+            XMLNode item = xml.NewChild(json_unencode(std::string(nameStart, nameEnd-nameStart)));
             input = sep+1;
             input = ParseFromJson(item,input,depth+1);
             if(!input) return NULL;
@@ -216,9 +229,9 @@ static char const * ParseFromJson(Arc::XMLNode& xml, char const * input, int dep
         ++input;
         // string
         char const * strStart = input;
-        input = SkipTo(strStart, '"');
+        input = SkipToEscaped(strStart, '"');
         if(*input != '"') return NULL;
-        xml = std::string(strStart, input-strStart);
+        xml = json_unencode(std::string(strStart, input-strStart));
         ++input;
     // } else if((*input >= '0') && (*input <= '9')) {
     // } else if(*input == 't') {
@@ -332,12 +345,20 @@ static bool GetPathToken(std::string& subpath, std::string& token) {
   return true;
 }
 
+static std::string StripNewLine(char const * str) {
+  std::string res(str);
+  for(std::string::size_type pos = res.find_first_of("\r\n"); pos != std::string::npos; pos = res.find_first_of("\r\n",pos)) {
+    res[pos] = ' ';
+  }
+  return res;
+}
+
 // Insert generic (error) HTTP response into outmsg.
 static Arc::MCC_Status HTTPFault(Arc::Message& inmsg, Arc::Message& outmsg,int code,const char* resp) {
   Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
   delete outmsg.Payload(outpayload);
   outmsg.Attributes()->set("HTTP:CODE",Arc::tostring(code));
-  if(resp) outmsg.Attributes()->set("HTTP:REASON",resp);
+  if(resp) outmsg.Attributes()->set("HTTP:REASON",StripNewLine(resp));
   return Arc::MCC_Status(Arc::STATUS_OK);
 }
 
@@ -445,7 +466,7 @@ static Arc::MCC_Status HTTPPOSTResponse(Arc::Message& inmsg, Arc::Message& outms
 static ResponseFormat ProcessAcceptedFormat(Arc::Message& inmsg, Arc::Message& outmsg) {
   // text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8
   std::list<std::string> accepts;
-  tokenize(inmsg.Attributes()->get("HTTP:accept"), accepts, ",");
+  for(Arc::AttributeIterator attrIt = inmsg.Attributes()->getAll("HTTP:accept"); attrIt.hasMore(); ++attrIt) tokenize(*attrIt, accepts, ",");
   for(std::list<std::string>::iterator acc = accepts.begin(); acc != accepts.end(); ++acc) {
     *acc = Arc::trim(*acc, " ");
     std::string::size_type pos = acc->find_first_of(';');
@@ -1002,7 +1023,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
                 jobXml.NewChild("status-code") = "500";
                 jobXml.NewChild("reason") = result.str();
               } else {
-                ARexJob job(desc_str,*config,"",clientid,logger_,idgenerator);
+                ARexJob job(jobdesc_str,*config,"",clientid,logger_,idgenerator);
                 if(!job) {
                   jobXml.NewChild("status-code") = "500";
                   jobXml.NewChild("reason") = job.Failure();
@@ -1011,7 +1032,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
                   jobXml.NewChild("reason") = "Created";
                   jobXml.NewChild("id") = job.ID();
                   jobXml.NewChild("state") = "ACCEPTING";
-               } 
+                } 
               }
             }
           }
@@ -1175,8 +1196,9 @@ static bool processJobStatus(Arc::Message& inmsg,ARexConfigContext& config, Arc:
       if((bool)glue_xml) {
         for(Arc::XMLNode snode = glue_xml["State"]; (bool)snode ; ++snode) {
           std::string state_str = snode;
-          if(state_str.compare(0, 7, "arcrest:") == 0) {
-            rest_state = state_str.substr(7);
+          if(state_str.compare(0, 8, "arcrest:") == 0) {
+            rest_state = state_str.substr(8);
+            break;
           }
         }
       }

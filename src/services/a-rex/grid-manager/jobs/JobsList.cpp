@@ -536,7 +536,8 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
     std::string grami = config.ControlDir()+"/job."+(*i).job_id+".grami";
     cmd += " --config " + config.ConfigFile() + " " + grami;
     job_errors_mark_put(*i,config);
-    if(!RunParallel::run(config,*i,*this,cmd,&(i->child))) {
+    i->child_output.clear();
+    if(!RunParallel::run(config,*i,*this,&(i->child_output),cmd,&(i->child))) {
       i->AddFailure("Failed initiating job submission to LRMS");
       logger.msg(Arc::ERROR,"%s: Failed running submission process",i->job_id);
       return false;
@@ -583,7 +584,11 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
     logger.msg(Arc::ERROR,"%s: Job submission to LRMS failed",i->job_id);
     JobFailStateRemember(i,JOB_STATE_SUBMITTING);
     CleanChildProcess(i);
-    i->AddFailure("Job submission to LRMS failed");
+    if(i->child_output.empty()) {
+      i->AddFailure("Job submission to LRMS failed");
+    } else {
+      i->AddFailure(i->child_output);
+    }
     return false;
   }
   // success code - process LRMS job id
@@ -640,7 +645,7 @@ bool JobsList::state_canceling(GMJobRef i,bool &state_changed) {
     std::string grami = config.ControlDir()+"/job."+(*i).job_id+".grami";
     cmd += " --config " + config.ConfigFile() + " " + grami;
     job_errors_mark_put(*i,config);
-    if(!RunParallel::run(config,*i,*this,cmd,&(i->child))) {
+    if(!RunParallel::run(config,*i,*this,NULL,cmd,&(i->child))) {
       logger.msg(Arc::ERROR,"%s: Failed running cancellation process",i->job_id);
       return false;
     }
@@ -912,6 +917,7 @@ JobsList::ActJobResult JobsList::ActJobUndefined(GMJobRef i) {
     "<IDFromEndpoint></IDFromEndpoint>"
     "<State>nordugrid:ACCEPTED</State>"
     "<State>emies:accepted</State>"
+    "<State>arcrest:ACCEPTED</State>"
     "<State>emiesattr:client-stagein-possible</State>"
     "<Owner></Owner>"
   "</ComputingActivity>";
@@ -1972,28 +1978,26 @@ JobsList::ExternalHelper::~ExternalHelper() {
 
 static void ExternalHelperInitializer(void* arg) {
   const char* logpath = reinterpret_cast<const char*>(arg);
-  // just set good umask
-  umask(0077);
   // set up stdin,stdout and stderr
   int h;
   h = ::open("/dev/null",O_RDONLY);
-  if(h != 0) { if(dup2(h,0) != 0) { sleep(10); _exit(1); }; close(h); };
+  if(h != 0) { if(dup2(h,0) != 0) { _exit(1); }; close(h); };
   h = ::open("/dev/null",O_WRONLY);
-  if(h != 1) { if(dup2(h,1) != 1) { sleep(10); _exit(1); }; close(h); };
+  if(h != 1) { if(dup2(h,1) != 1) { _exit(1); }; close(h); };
   if(logpath && logpath[0]) {
     h = ::open(logpath,O_WRONLY | O_CREAT | O_APPEND,S_IRUSR | S_IWUSR);
     if(h==-1) { h = ::open("/dev/null",O_WRONLY); };
   }
   else { h = ::open("/dev/null",O_WRONLY); };
-  if(h != 2) { if(dup2(h,2) != 2) { sleep(10); exit(1); }; close(h); };
+  if(h != 2) { if(dup2(h,2) != 2) { exit(1); }; close(h); };
 }
 
-static void ExternalHelperKicker(void* arg) {
-  // Uncomment following if we must support helpers
-  // which can't run gm-kick.
-  // JobsList* jobs = reinterpret_cast<JobsList*>(arg);
-  // if(jobs) jobs->RequestAttention();
-}
+// Uncomment following if we must support helpers
+// which can't run gm-kick.
+// static void ExternalHelperKicker(void* arg) {
+//   JobsList* jobs = reinterpret_cast<JobsList*>(arg);
+//   if(jobs) jobs->RequestAttention();
+// }
 
 bool JobsList::ExternalHelper::run(JobsList const& jobs) {
   if (proc != NULL) {
@@ -2011,8 +2015,8 @@ bool JobsList::ExternalHelper::run(JobsList const& jobs) {
   proc->KeepStdin(true);
   proc->KeepStdout(true);
   proc->KeepStderr(true);
-  proc->AssignInitializer(&ExternalHelperInitializer, const_cast<char*>(jobs.config.HelperLog().c_str()));
-  proc->AssignKicker(&ExternalHelperKicker, const_cast<void*>(reinterpret_cast<void const*>(&jobs)));
+  proc->AssignInitializer(&ExternalHelperInitializer, const_cast<char*>(jobs.config.HelperLog().c_str()), false);
+  //proc->AssignKicker(&ExternalHelperKicker, const_cast<void*>(reinterpret_cast<void const*>(&jobs)));
   if (proc->Start()) return true;
   delete proc;
   proc = NULL;

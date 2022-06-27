@@ -34,7 +34,6 @@
 #include "grid-manager/jobs/JobDescriptionHandler.h"
 #include "grid-manager/jobs/CommFIFO.h"
 #include "grid-manager/jobs/JobsList.h"
-#include "grid-manager/run/RunPlugin.h"
 #include "grid-manager/files/ControlFileHandling.h"
 #include "delegation/DelegationStores.h"
 #include "delegation/DelegationStore.h"

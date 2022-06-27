@@ -69,6 +69,8 @@ namespace DataStaging {
     static void DTRStagePrepare(void* arg);
     /// Release requests made during DTRStagePrepare
     static void DTRReleaseRequest(void* arg);
+    /// Finalise replica
+    static void DTRFinaliseReplica(void* arg);
     /// Register destination file in catalog
     static void DTRRegisterReplica(void* arg);
     /// Link cached file to final destination

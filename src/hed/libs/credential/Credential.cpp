@@ -65,6 +65,12 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 #endif
 
 
+#if (OPENSSL_VERSION_NUMBER < 0x30000000L)
+#define OPENSSL_CONST
+#else
+#define OPENSSL_CONST const
+#endif
+
 
   #define DEFAULT_DIGEST   ((EVP_MD*)EVP_sha256())
   #define DEFAULT_KEYBITS  (2048)
@@ -2085,7 +2091,7 @@ err:
       std::stringstream CN_name;
       unsigned char md[SHA_DIGEST_LENGTH];
       unsigned int len = sizeof(md);
-      if(!ASN1_digest((int(*)(void*, unsigned char**))&i2d_PUBKEY, EVP_sha1(), (char*)req_pubkey, md, &len)) {
+      if(!ASN1_digest((int(*)(OPENSSL_CONST void*, unsigned char**))&i2d_PUBKEY, EVP_sha1(), (char*)req_pubkey, md, &len)) {
         CredentialLogger.msg(ERROR, "Can not compute digest of public key");
         goto err;
       }

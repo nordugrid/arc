@@ -9,9 +9,8 @@ namespace ARex {
 /// Run child process with stdin, stdout and stderr redirected to specified handles
 class RunRedirected {
  private:
-  RunRedirected(const char* cmdname,int in,int out,int err):cmdname_(cmdname?cmdname:""),stdin_(in),stdout_(out),stderr_(err) { };
+  RunRedirected(int in,int out,int err):stdin_(in),stdout_(out),stderr_(err) { };
   ~RunRedirected(void) { };
-  std::string cmdname_;
   int stdin_;
   int stdout_;
   int stderr_;

@@ -17,7 +17,6 @@
 #include "log/HeartBeatMetrics.h"
 #include "log/SpaceMetrics.h"
 #include "run/RunRedirected.h"
-#include "run/RunParallel.h"
 #include "files/ControlFileHandling.h"
 #include "../delegation/DelegationStore.h"
 #include "../delegation/DelegationStores.h"
