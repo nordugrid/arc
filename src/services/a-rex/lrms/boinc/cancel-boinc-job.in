@@ -15,7 +15,7 @@ echo "----- starting cancel_boinc_job -----" 1>&2
 trap 'echo "----- exiting cancel_boinc_job -----" 1>&2; echo "" 1>&2' EXIT
 
 joboption_lrms="boinc"
-lrms_options="boinc_app_id boinc_db_host boinc_db_port boinc_db_user boinc_db_pass boinc_db_name"
+lrms_options="boinc_app_id boinc_db_host boinc_db_port boinc_db_user boinc_db_pass boinc_db_name boinc_project_dir"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
@@ -76,13 +76,24 @@ else
   exit 1
 fi
 
+if [ -z "$CONFIG_boinc_project_dir" ]; then
+  echo "No project directory configured, cannot cancel" 1>&2
+  exit 1
+elif [ ! -d "$CONFIG_boinc_project_dir" ]; then
+  echo "Project dir ${CONFIG_boinc_project_dir} does not exist, cannot cancel" 1>&2
+  exit 1
+elif [ ! -x "${CONFIG_boinc_project_dir}/bin/cancel_jobs" ]; then
+  echo "Project dir ${CONFIG_boinc_project_dir} does appear to be a BOINC project, cannot cancel" 1>&2
+  exit 1
+fi
+
 case X`cat "$job_control_subdir/${joboption_gridid}.status"` in
     XINLRMS | XCANCELING)
         if [ -z "$joboption_jobid" ] ; then
             echo "Can't find local id of job" 1>&2
             exit 1
         fi
-        cd $ProjectDir;bin/cancel_jobs --name $joboption_gridid
+        cd $CONFIG_boinc_project_dir; bin/cancel_jobs --name $joboption_gridid
         ;;
 
     XFINISHED | XDELETED)

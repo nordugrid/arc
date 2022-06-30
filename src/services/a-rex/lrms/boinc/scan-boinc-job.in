@@ -21,7 +21,7 @@ if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 if [ -z "$1" ] ; then echo "Controldir argument missing" 1>&2 ; exit 1 ; fi
 
 joboption_lrms="boinc"
-lrms_options="boinc_app_id boinc_db_host boinc_db_port boinc_db_user boinc_db_pass boinc_db_name"
+lrms_options="boinc_app_id boinc_db_host boinc_db_port boinc_db_user boinc_db_pass boinc_db_name boinc_project_dir"
 
 # define paths and config parser
 basedir=`dirname $0`
