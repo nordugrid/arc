@@ -387,7 +387,7 @@ sub get_gmjobs {
                 }
                 
                 # Use completion time from diag instead of status, more reliable
-                if ( ( $job->{status} eq 'FINISHED' ) or ( $job->{status} eq 'DELETED' ) ) {
+                if ( ( $job->{status} eq 'FINISHED' ) ) {
                     my @file_stat = stat GMJOB_DIAG;
                     if (@file_stat) {
                        my ($s,$m,$h,$D,$M,$Y) = gmtime($file_stat[9]);
