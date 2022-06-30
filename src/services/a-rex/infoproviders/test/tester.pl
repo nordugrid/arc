@@ -9,7 +9,7 @@ use Cwd;
 use strict;
 
 BEGIN {
-    my $pkgdatadir = "/home/florido/src/ARC/arc1/trunk/src/services/a-rex/infoproviders";
+    my $pkgdatadir = getcwd;
     unshift @INC, $pkgdatadir;
 }
 
