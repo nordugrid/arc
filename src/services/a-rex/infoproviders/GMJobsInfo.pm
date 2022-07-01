@@ -32,7 +32,7 @@ our $j = { 'jobID' => {
             jobreport          => '*',
             interface          => '*', # added for GLUE2, the interface the job was submitted. If missing, gridftp
             voms               => [ '*' ], #ref array, contains all the voms attributes in the user certificate that A-REX authorization accepted
-            vomsvo			   => '*', # string, the first VO in the voms array without the slashes
+            vomsvo             => '*', # string, the first VO in the voms array without the slashes
             # from .description
             description        => '', # rsl or xml
             # from .grami -- not kept when the job is deleted
@@ -47,7 +47,6 @@ our $j = { 'jobID' => {
             status             => '',
             statusmodified     => '',  # seconds since epoch
             statusread         => '',  # seconds since epoch
-            completiontime     => '*', # MDS time format
             localowner         => '',
             # from .failed
             errors             => [ '*' ],
@@ -57,7 +56,10 @@ our $j = { 'jobID' => {
             nodenames          => [ '*' ],
             UsedMem            => '*', # units: kB; summed over all execution threads
             CpuTime            => '*', # units: s;  summed over all execution threads
-            WallTime           => '*' # units: s;  real-world time elapsed
+            WallTime           => '*', # units: s;  real-world time elapsed
+            LRMSStartTime      => '*', # units: MDS time format
+            LRMSEndTime        => '*', # units: MDS time format
+            completiontime     => '*'  # MDS time format
         }
 };
 
@@ -254,13 +256,6 @@ sub get_gmjobs {
 
                 $job->{"statusmodified"} = $file_stat[9];
                 $job->{"statusread"} = time();
-                # completiontime
-                if ($job->{"status"} eq "FINISHED") {
-                    my ($s,$m,$h,$D,$M,$Y) = gmtime($file_stat[9]);
-                    my $ts = sprintf("%4d%02d%02d%02d%02d%02d%1s",$Y+1900,$M+1,$D,$h,$m,$s,"Z");
-                    $job->{"completiontime"} = $ts;
-                }
-
             } else {
                 $log->debug("Job $ID: Cannot stat status file: $!");
             }
@@ -398,7 +393,24 @@ sub get_gmjobs {
                         $kerneltime=$1;
                     $line=~m/^UserTime=(\d+)(\.\d*)?/ and
                         $usertime=$1;
+                    $line=~m/^LRMSStartTime=(\d*Z)/ and
+                        $job->{LRMSStartTime}=$1;
+                    $line=~m/^LRMSEndTime=(\d*Z)/ and
+                        $job->{LRMSEndTime}=$1;
                 }
+                
+                # Use completion time from diag instead of status, more reliable
+                if ( ( $job->{status} eq 'FINISHED' ) ) {
+                    my @file_stat = stat GMJOB_DIAG;
+                    if (@file_stat) {
+                       my ($s,$m,$h,$D,$M,$Y) = gmtime($file_stat[9]);
+                       my $ts = sprintf("%4d%02d%02d%02d%02d%02d%1s",$Y+1900,$M+1,$D,$h,$m,$s,"Z");
+                       $job->{"completiontime"} = $ts;
+                    } else {
+                       $log->debug("Job $ID: Cannot stat diag file: $!");
+                    }
+                }
+                
                 close GMJOB_DIAG;
 
                 $job->{nodenames} = [ sort keys %nodenames ] if %nodenames;
@@ -427,6 +439,6 @@ sub test() {
     print Data::Dumper::Dumper($results);
 }
 
-# test;
+test;
 
 1;
