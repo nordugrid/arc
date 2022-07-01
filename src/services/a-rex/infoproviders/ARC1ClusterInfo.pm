@@ -1518,7 +1518,7 @@ sub collect($) {
           $cact->{Owner} = $gmjob->{subject} if $gmjob->{subject};
           $cact->{LocalOwner} = $gmjob->{localowner} if $gmjob->{localowner};
           # OBS: Times are in seconds.
-	  $cact->{RequestedTotalWallTime} = $gmjob->{reqwalltime} * ($gmjob->{count} || 1) if defined $gmjob->{reqwalltime};
+          $cact->{RequestedTotalWallTime} = $gmjob->{reqwalltime} * ($gmjob->{count} || 1) if defined $gmjob->{reqwalltime};
           $cact->{RequestedTotalCPUTime} = $gmjob->{reqcputime} if defined $gmjob->{reqcputime};
           # OBS: Should include name and version. Exact format not specified
           $cact->{RequestedApplicationEnvironment} = $gmjob->{runtimeenvironments} if $gmjob->{runtimeenvironments};
@@ -1533,13 +1533,13 @@ sub collect($) {
           $cact->{UsedTotalWallTime} = $gmjob->{WallTime} * ($gmjob->{count} || 1) if defined $gmjob->{WallTime};
           $cact->{UsedTotalCPUTime} = $gmjob->{CpuTime} if defined $gmjob->{CpuTime};
           $cact->{UsedMainMemory} = ceil($gmjob->{UsedMem}/1024) if defined $gmjob->{UsedMem};
+          # Submission Time to AREX
           $cact->{SubmissionTime} = mdstoiso($gmjob->{starttime}) if $gmjob->{starttime};
-          # TODO: change gm to save LRMSSubmissionTime
+          # TODO: change gm to save LRMSSubmissionTime - maybe take from accounting?
           #$cact->{ComputingManagerSubmissionTime} = 'NotImplemented';
-          # TODO: this should be queried in scan-job.
-          #$cact->{StartTime} = 'NotImplemented';
-          # TODO: scan-job has to produce this
-          #$cact->{ComputingManagerEndTime} = 'NotImplemented';
+          # Start time in LRMS
+          $cact->{StartTime} = mdstoiso($gmjob->{LRMSStartTime}) if $gmjob->{LRMSStartTime};
+          $cact->{ComputingManagerEndTime} = mdstoiso($gmjob->{LRMSEndTime}) if $gmjob->{LRMSEndTime};
           $cact->{EndTime} = mdstoiso($gmjob->{completiontime}) if $gmjob->{completiontime};
           $cact->{WorkingAreaEraseTime} = mdstoiso($gmjob->{cleanuptime}) if $gmjob->{cleanuptime};
           $cact->{ProxyExpirationTime} = mdstoiso($gmjob->{delegexpiretime}) if $gmjob->{delegexpiretime};
