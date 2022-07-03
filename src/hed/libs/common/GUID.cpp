@@ -5,6 +5,7 @@
 #endif
 
 #include <sys/time.h>
+#include <time.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <unistd.h>

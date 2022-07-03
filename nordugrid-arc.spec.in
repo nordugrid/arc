@@ -52,10 +52,10 @@
 %filter_setup
 %endif
 
-%if %{?fedora}%{!?fedora:0} || ( %{?rhel}%{!?rhel:0} >= 7 && %{?rhel}%{!?rhel:0} <= 8 ) || %{?suse_version:1}%{!?suse_version:0}
-%global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
-%else
+%if %{?fedora}%{!?fedora:0} >= 37 || %{?rhel}%{!?rhel:0} == 6 || %{?rhel}%{!?rhel:0} == 9
 %global with_pylint 0
+%else
+%global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 29 || %{?rhel}%{!?rhel:0} >= 8
@@ -64,10 +64,10 @@
 %global py3default 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 7 || ( %{?rhel}%{!?rhel:0} >= 5 && %{?rhel}%{!?rhel:0} <= 8 ) || %{?suse_version}%{!?suse_version:0} >= 1110
-%global with_acix 1
-%else
+%if %{?fedora}%{!?fedora:0} >= 37 || %{?rhel}%{!?rhel:0} == 9
 %global with_acix 0
+%else
+%global with_acix 1
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 5
