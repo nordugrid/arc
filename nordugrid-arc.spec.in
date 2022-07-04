@@ -64,7 +64,7 @@
 %global py3default 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 37 || %{?rhel}%{!?rhel:0} == 9
+%if %{?fedora}%{!?fedora:0} >= 35 || %{?rhel}%{!?rhel:0} == 9
 %global with_acix 0
 %else
 %global with_acix 1
