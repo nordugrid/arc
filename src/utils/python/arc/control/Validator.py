@@ -203,23 +203,29 @@ class Validator(object):
         # Extra checks for certain options
         if option == 'benchmark':
             # Benchmark values have different syntax in different blocks
-            if block == 'lrms' and not re.match('\w+:\d+(\.\d*)?|\.\d+', value):
+            if block == 'lrms' and not re.match(r'\w+:\d+(\.\d*)?|\.\d+', value):
                 self.error("benchmark option '%s' in [lrms] has incorrect syntax" % value)
-            if block == 'queue' and not re.match('\w+ \d+(\.\d*)?|\.\d+', value):
+            if block == 'queue' and not re.match(r'\w+ \d+(\.\d*)?|\.\d+', value):
                 self.error("benchmark option '%s' in [queue] has incorrect syntax" % value)
 
         if block == 'arex/cache' and option == 'cachedir':
-            if not os.path.exists(value.split()[0]):
+            if not value.split()[0].startswith('/'):
+                self.error("cachedir must specify an absolute path")
+            elif not os.path.exists(value.split()[0]):
                 self.warning("cachedir doesn't exist at %s" % value.split()[0])
 
         if block == 'arex' and option == 'sessiondir':
-            if not os.path.exists(value.split()[0]):
+            if not value.split()[0].startswith('/'):
+                self.error("sessiondir must specify an absolute path")
+            elif not os.path.exists(value.split()[0]):
                 self.warning("sessiondir doesn't exist at %s" % value.split()[0])
             if len(value.split()) == 2 and value.split()[1] != 'drain':
                 self.error("Second option in sessiondir must be 'drain' or empty")
 
         if block == 'arex' and option == 'controldir':
-            if not os.path.exists(value):
+            if not value.split()[0].startswith('/'):
+                self.error("controldir must specify an absolute path")
+            elif not os.path.exists(value):
                 self.warning("controldir doesn't exist at %s" % value)
             elif os.stat(value).st_mode & 0o022:
                 self.error("%s must have permissions 0700 or 0755" % value)
@@ -229,6 +235,10 @@ class Validator(object):
                 self.warning("tmpdir doesn't exist at %s" % value)
             elif not os.stat(value).st_mode & stat.S_ISVTX:
                 self.error("tmpdir %s must have the sticky bit set" % value)
+
+        if block == 'arex' and option == 'maxjobs':
+            if len(value.split()) != 5:
+                self.error("maxjobs must specify 5 numbers")
 
         if option in ('logfile', 'pidfile'):
             default_file = _default_value(block, option)
