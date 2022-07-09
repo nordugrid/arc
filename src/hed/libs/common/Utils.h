@@ -167,6 +167,12 @@ namespace Arc {
       object = NULL;
       return tmp;
     }
+    // Convenience method to pass as argument to function which allocates object.
+    T** ForAssign() {
+      if (object) if(deleter) (*deleter)(object);
+      object = NULL;
+      return &object;
+    }
   };
 
   /// Wrapper for pointer with automatic destruction and multiple references
