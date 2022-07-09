@@ -14,9 +14,9 @@
 
 int main(int argc,char* argv[]) {
 
-  Arc::OptionParser options("[control_file]",
+  Arc::OptionParser options("[control_dir]",
                             istring("gm-kick wakes up the A-REX corresponding to the given "
-                                    "control file. If no file is given it uses the control directory "
+                                    "control directory. If no directory is given it uses the control directory "
                                     "found in the configuration file."));
 
   std::string conf_file;
@@ -51,7 +51,6 @@ int main(int argc,char* argv[]) {
       char buf[1024];
       if (getcwd(buf, 1024) != NULL) control_dir = std::string(buf) + "/" + control_dir;
     }
-    control_dir = control_dir.substr(0, control_dir.rfind('/'));
   }
 
   bool success = true;

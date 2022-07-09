@@ -281,8 +281,8 @@ bool JobsList::ScanOldJobs(void) {
     // todo: implement fetching few jobs before passing them to attention
     // job id must contain at least one character
     int l=file.length();
-    if(l>(4+7) && file.substr(0,4) == "job." && file.substr(l-7) == ".status") {
-      JobId id(file.substr(4, l-7-4));
+    if(l>7 && file.substr(l-7) == ".status") {
+      JobId id(file.substr(0, l-7));
       logger.msg(Arc::DEBUG, "%s: job found while scanning", id);
       RequestAttention(id);
     };
@@ -417,7 +417,7 @@ bool JobsList::FailedJob(GMJobRef i,bool cancel) {
     r = false;
   }
   // Convert delegation ids to credential paths.
-  std::string default_cred = config.ControlDir() + "/job." + i->get_id() + ".proxy";
+  std::string default_cred = job_control_path(config.ControlDir(),i->get_id(),sfx_proxy);
   for(std::list<FileData>::iterator f = job_desc.outputdata.begin();
                                    f != job_desc.outputdata.end(); ++f) {
     if(f->has_lfn()) {
@@ -533,7 +533,7 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
     // submit job to LRMS using submit-X-job
     std::string cmd = Arc::ArcLocation::GetDataDir()+"/submit-"+job_desc->lrms+"-job";
     logger.msg(Arc::INFO,"%s: state SUBMIT: starting child: %s",i->job_id,cmd);
-    std::string grami = config.ControlDir()+"/job."+(*i).job_id+".grami";
+    std::string grami = job_control_path(config.ControlDir(),(*i).job_id,sfx_grami);
     cmd += " --config " + config.ConfigFile() + " " + grami;
     job_errors_mark_put(*i,config);
     i->child_output.clear();
@@ -642,7 +642,7 @@ bool JobsList::state_canceling(GMJobRef i,bool &state_changed) {
       state_changed=true;
       return true;
     }
-    std::string grami = config.ControlDir()+"/job."+(*i).job_id+".grami";
+    std::string grami = job_control_path(config.ControlDir(),(*i).job_id,sfx_grami);
     cmd += " --config " + config.ConfigFile() + " " + grami;
     job_errors_mark_put(*i,config);
     if(!RunParallel::run(config,*i,*this,NULL,cmd,&(i->child))) {
@@ -1620,7 +1620,7 @@ bool JobsList::RestartJobs(const std::string& cdir,const std::string& odir) {
       if(file.empty()) break;
       int l=file.length();
       // job id contains at least 1 character
-      if(l>(4+7) && file.substr(0,4) == "job." && file.substr(l-7) == ".status") {
+      if(l>7 && file.substr(l-7) == ".status") {
         uid_t uid;
         gid_t gid;
         time_t t;
@@ -1654,7 +1654,7 @@ bool JobsList::RestartJobs(void) {
 
 bool JobsList::ScanJobDesc(const std::string& cdir, JobFDesc& id) {
   if(!FindJob(id.id)) {
-    std::string fname=cdir+'/'+"job."+id.id+".status";
+    std::string fname=cdir+'/'+id.id+"."+sfx_status;
     uid_t uid;
     gid_t gid;
     time_t t;
@@ -1690,8 +1690,8 @@ bool JobsList::ScanAllJobs(const std::string& cdir,std::list<JobFDesc>& ids, Job
       if(file.empty()) break;
       int l=file.length();
       // job id contains at least 1 character
-      if(l>(4+7) && file.substr(0,4) == "job." && file.substr(l-7) == ".status") {
-        JobFDesc id(file.substr(4,l-7-4));
+      if(l>7 && file.substr(l-7) == ".status") {
+        JobFDesc id(file.substr(0,l-7));
         if(filter.accept(id.id)) {
           std::string fname=cdir+'/'+file.c_str();
           uid_t uid;
@@ -1722,13 +1722,13 @@ bool JobsList::ScanMarks(const std::string& cdir,const std::list<std::string>& s
       std::string file=dir.read_name();
       if(file.empty()) break;
       int l=file.length();
-      // job id contains at least 1 character
-      if(l>(4+7) && file.substr(0,4) == "job.") {
+      // job id contains at least 1 separtor and 1 suffix character
+      if(l>1) {
         for(std::list<std::string>::const_iterator sfx = suffices.begin();
             sfx != suffices.end();++sfx) {
           int ll = sfx->length();
-          if(l > (ll+4) && file.substr(l-ll) == *sfx) {
-            JobFDesc id(file.substr(4,l-ll-4));
+          if(l > ll && file.substr(l-ll) == *sfx) {
+            JobFDesc id(file.substr(0,l-ll));
             if(!FindJob(id.id)) {
               std::string fname=cdir+'/'+file.c_str();
               uid_t uid;
@@ -1921,7 +1921,7 @@ GMJobRef JobsList::GetJob(const GMConfig& config, const JobId& id) {
                                subdir != subdirs.end();++subdir) {
     std::string cdir=config.ControlDir();
     std::string odir=cdir+(*subdir);
-    std::string fname=odir+'/'+"job."+id+".status";
+    std::string fname=odir+'/'+id+".status";
     uid_t uid;
     gid_t gid;
     time_t t;

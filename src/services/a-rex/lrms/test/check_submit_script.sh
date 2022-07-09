@@ -25,6 +25,8 @@ if test $# != 2; then
   exit 1
 fi
 
+. ./lrms_common.sh
+
 function goToParentAndRemoveDir() {
   export PATH=${ORIG_PATH}
 
@@ -173,7 +175,8 @@ runtimedir=$(pwd)/rtes" ${test}.arc.conf
   fi
   
   # Execute submit script
-  script_output=$(ONLY_WRITE_JOBSCRIPT="yes" ../${submit_script} --config $(pwd)/${test}.arc.conf $(pwd)/controldir/job.${test}.grami 2>&1)
+  grami_path=$(control_path "$(pwd)/controldir" "${test}" "grami")
+  script_output=$(ONLY_WRITE_JOBSCRIPT="yes" ../${submit_script} --config $(pwd)/${test}.arc.conf ${grami_path} 2>&1)
   if test $? -ne 0; then
     echo -n "F"
     errorOutput="$errorOutput"$'\n\n'"Error: Submit script \"${submit_script}\" failed:"$'\n'"${script_output}"
