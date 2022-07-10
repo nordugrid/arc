@@ -283,7 +283,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
       xmlNodePtr assertion_reference = NULL;
       assertion_signature = xmlSecTmplSignatureCreate(NULL,
   				xmlSecTransformExclC14NId,
-				xmlSecTransformRsaSha1Id, NULL);
+				xmlSecTransformRsaSha256Id, NULL);
       //Add signature into assertion
       xmlNodePtr assertion_nd = ((SAMLToken*)(&assertion))->node_;
       xmlAddChild(assertion_nd, assertion_signature);
@@ -296,7 +296,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
 
       std::string assertion_uri; assertion_uri.append("#"); assertion_uri.append((char*)id);
 
-      assertion_reference = xmlSecTmplSignatureAddReference(assertion_signature, xmlSecTransformSha1Id,
+      assertion_reference = xmlSecTmplSignatureAddReference(assertion_signature, xmlSecTransformSha256Id,
 						    NULL, (xmlChar *)(assertion_uri.c_str()), NULL);
       xmlSecTmplReferenceAddTransform(assertion_reference, xmlSecTransformEnvelopedId);
       xmlSecTmplReferenceAddTransform(assertion_reference, xmlSecTransformExclC14NId);
@@ -341,7 +341,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
     xmlNodePtr wsse_reference = NULL;
     wsse_signature = xmlSecTmplSignatureCreate(NULL,
                                 xmlSecTransformExclC14NId,
-                                xmlSecTransformRsaSha1Id, NULL);
+                                xmlSecTransformRsaSha256Id, NULL);
     //Add signature into wsse
     xmlNodePtr wsse_nd = ((SAMLToken*)(&wsse))->node_;
     xmlAddChild(wsse_nd, wsse_signature);
@@ -358,7 +358,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
     id =  xmlGetProp(bodyPtr, (xmlChar *)"Id");
     std::string body_uri; body_uri.append("#"); body_uri.append((char*)id);
 
-    wsse_reference = xmlSecTmplSignatureAddReference(wsse_signature, xmlSecTransformSha1Id,
+    wsse_reference = xmlSecTmplSignatureAddReference(wsse_signature, xmlSecTransformSha256Id,
                                                     NULL, (xmlChar *)(body_uri.c_str()), NULL);
     xmlSecTmplReferenceAddTransform(wsse_reference, xmlSecTransformEnvelopedId);
     xmlSecTmplReferenceAddTransform(wsse_reference, xmlSecTransformExclC14NId);
