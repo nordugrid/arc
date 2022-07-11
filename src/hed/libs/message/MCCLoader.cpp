@@ -4,6 +4,7 @@
 
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
+#include <arc/Utils.h>
 
 #include "MCCLoader.h"
 
@@ -194,13 +195,12 @@ namespace Arc {
       return NULL;
     }
     MCCPluginArgument arg(&cfg_,context_);
-    Plugin* plugin = factory_->get_instance(MCCPluginKind ,name, &arg);
-    MCC* mcc = plugin?dynamic_cast<MCC*>(plugin):NULL;
+    AutoPointer<Plugin> plugin(factory_->get_instance(MCCPluginKind ,name, &arg));
+    MCC* mcc = dynamic_cast<MCC*>(plugin.Ptr());
     if(!mcc) {
       error_description_ = "Component "+name+" could not be created";
       // TODO: need a way to propagate error description from factory.
       logger.msg(VERBOSE, "Component %s(%s) could not be created", name, id);
-      if(plugin) delete plugin;
       return NULL;
     }
 
@@ -211,7 +211,6 @@ namespace Arc {
       if(!can) break;
       ArcSec::SecHandler* sechandler = make_sec_handler(cfg, can);
       if(!sechandler) {
-        if(plugin) delete plugin;
         return NULL;
       };
       std::string event = can.Attribute("event");
@@ -219,11 +218,9 @@ namespace Arc {
     }
 
     mcc_container_t::iterator mccp = mccs_.find(id);
-    MCC* oldmcc = (mccp == mccs_.end())?NULL:(mccp->second);
-    mccs_[id] = mcc;
+    mcc_connector_t mcc_connector(mccp);
     if(mcc_connectors) {
       // Add to chain list
-      mcc_connector_t mcc_connector(mccs_.find(id));
       for(int nn = 0;; ++nn) {
         XMLNode cnn = cn["next"][nn];
         if(!cnn) break;
@@ -232,23 +229,29 @@ namespace Arc {
           logger.msg(ERROR, "Component's %s(%s) next has no ID "
                             "attribute defined", name, id);
           error_description_ = "Component "+name+" has no id defined in next target";
-          if(plugin) delete plugin;
-          if(oldmcc) {
-            mccs_[id] = oldmcc;
-          } else {
-            mccs_.erase(id);
-          }
           return NULL;
         }
         std::string label = cnn;
         mcc_connector.nexts[label] = nid;
       }
       mcc_connector.name = name;
-      mcc_connectors->push_back(mcc_connector);
     }
+
+    if(mccp == mccs_.end()) {
+      mccp = mccs_.insert(std::make_pair(id,(MCC*)NULL)).first;
+      mcc_connector.mcc = mccp;
+    }
+
+    delete mccp->second;
+    mccp->second = mcc;
+    plugin.Release();
+
+    if(mcc_connectors) mcc_connectors->push_back(mcc_connector);
+
     std::string entry = cn.Attribute("entry");
-    if(!entry.empty()) mccs_exposed_[entry] = mcc;
-    return mcc;
+    if(!entry.empty()) mccs_exposed_[entry] = mccp->second;
+
+    return mccp->second;
   }
 
   bool MCCLoader::make_elements(Config& cfg, int level,

@@ -302,7 +302,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     //Add signature template 
     signature = xmlSecTmplSignatureCreate(NULL,
 				xmlSecTransformExclC14NId,
-				xmlSecTransformRsaSha1Id, NULL);
+				xmlSecTransformRsaSha256Id, NULL);
 
     //Add signature into wsse
     xmlNodePtr wsse_nd = ((X509Token*)(&wsse))->node_;
@@ -323,7 +323,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
 
     std::string body_uri; body_uri.append("#"); body_uri.append((char*)id);
 
-    reference = xmlSecTmplSignatureAddReference(signature, xmlSecTransformSha1Id,
+    reference = xmlSecTmplSignatureAddReference(signature, xmlSecTransformSha256Id,
 						    NULL, (xmlChar *)(body_uri.c_str()), NULL);
     xmlSecTmplReferenceAddTransform(reference, xmlSecTransformEnvelopedId);
     xmlSecTmplReferenceAddTransform(reference, xmlSecTransformExclC14NId);
@@ -337,7 +337,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
  
     std::string token_uri; token_uri.append("#").append("binarytoken");
 
-    reference = xmlSecTmplSignatureAddReference(signature, xmlSecTransformSha1Id,
+    reference = xmlSecTmplSignatureAddReference(signature, xmlSecTransformSha256Id,
                                                     NULL, (xmlChar *)(token_uri.c_str()), NULL);
     xmlSecTmplReferenceAddTransform(reference, xmlSecTransformEnvelopedId);
     xmlSecTmplReferenceAddTransform(reference, xmlSecTransformExclC14NId);

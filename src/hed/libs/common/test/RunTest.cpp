@@ -84,6 +84,7 @@ class RunH {
 };
 
 void RunTest::TestRunMany() {
+  time_t start_time = time(NULL);
   std::list<RunH> runs;
   for(int n=0;n<5000;++n) {
     //std::cerr<<time(NULL)<<": ";
@@ -98,6 +99,7 @@ void RunTest::TestRunMany() {
     r.cnt = 0;
     r.run = new Arc::Run(srcdir + "/rcode 2");
     if(r.run->Start()) runs.push_back(r);
+    if((time(NULL)-start_time) > 60) break;
   }
   //std::cerr<<time(NULL)<<": exiting: "<<runs.size()<<std::endl;
   for(std::list<RunH>::iterator r = runs.begin();r != runs.end();++r) {

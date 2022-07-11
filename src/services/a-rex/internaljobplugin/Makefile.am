@@ -9,7 +9,7 @@ libaccINTERNAL_la_SOURCES  = INTERNALClient.cpp INTERNALClient.h \
 	DescriptorsINTERNAL.cpp \
 	../job.cpp ../tools.cpp
 libaccINTERNAL_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 
 
 libaccINTERNAL_la_LIBADD = \
