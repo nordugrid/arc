@@ -38,11 +38,6 @@ common_init () {
     [ -e "${pkgdatadir}/community_rtes.sh" ] && . "${pkgdatadir}/community_rtes.sh"
 }
 
-# defines failures_file
-define_failures_file () {
-    failures_file=$(control_path "$joboption_controldir" "$joboption_gridid" "failed")
-}
-
 # checks any scratch is defined (shared or local)
 check_any_scratch () {
     if [ -z "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
@@ -580,9 +575,8 @@ clean_local_scratch_dir_output () {
   echo '  find ./ -type l -exec rm -f "{}" ";"' >> $LRMS_JOB_SCRIPT
   echo '  chmod -R u+w "./"' >> $LRMS_JOB_SCRIPT
   
-  output_file=$(control_path "$joboption_controldir" "$joboption_gridid" "output")
-  if [ -f "$output_file" ] ; then
-    cat "$output_file" | \
+  if [ -f "$joboption_controldir/job.$joboption_gridid.output" ] ; then
+    cat "$joboption_controldir/job.$joboption_gridid.output" | \
     # remove leading backslashes, if any
     sed 's/^\/*//' | \
     # backslashes and spaces are escaped with a backslash in job.*.output. The

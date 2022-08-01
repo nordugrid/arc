@@ -60,41 +60,25 @@ if [ -z "$lines_skip" ] ; then lines_skip='0' ; fi
 if [ -z "$ldate" ] ; then ldate='0' ; fi
 whole_line=
 
-control_path () {
-    # job_id=`echo "$2" | sed 's/\(.\{9\}\)/\1\//g' | sed 's/\/$//'`
-    job_id=`echo "$2" | sed -e 's#\(.\{3\}\)#\1/#3' -e 's#\(.\{3\}\)#\1/#2' -e 's#\(.\{3\}\)#\1/#1' -e 's#$#/#'`
-    path="$1/jobs/${job_id}/$3"
-    echo "$path"
-}
-
 find_by_local() {
   eval "set -- $control_dirs"
   for ctr_dir in "$@"; do
-    find ${ctr_dir}/processing -name '*.status' -print | sed 's/^.*\/\([^\.]*\)\.status$/\1/g' | {
-      while true; do
-        read id
-        if [ $? -ne '0' ] ; then break ; fi
-        path=$(control_path "${ctr_dir}" "${id}" "local")
-        grep -F -c $whole_line "localid=$job_id" "${path}" 2>/dev/null 1>/dev/null
-        if [ $? -eq '0' ] ; then echo "${id} ${ctr_dir}" ; break ; fi
-      done
-    }
-  done
+    find ${ctr_dir}/processing -name 'job.*.status' -print0 \
+    | sed 's/processing\/job\.\([^\.]*\)\.status/job.\1.local/g' \
+    | xargs -0 grep -F -l $whole_line "localid=$job_id" 2>/dev/null
+  done \
+  | head -n 1
 }
 
 find_by_grami() {
   eval "set -- $control_dirs"
   for ctr_dir in "$@"; do
-    find ${ctr_dir}/processing -name '*.status' -print | sed 's/^.*\/\([^\.]*\)\.status$/\1/g' | {
-      while true; do
-        read id
-        if [ $? -ne '0' ] ; then break ; fi
-        path=$(control_path "${ctr_dir}" "${id}" "grami")
-        grep -F -l $whole_line "joboption_jobid=$job_id" "${path}" 2>/dev/null 1>/dev/null
-        if [ $? -eq '0' ] ; then echo "${id} ${ctr_dir}" ; break ; fi
-      done
-    }
-  done
+    find ${ctr_dir}/processing -name 'job.*.status' -print0 \
+    | sed 's/processing\/job\.\([^\.]*\)\.status/job.\1.grami/g' \
+    | xargs -0 grep -F -l $whole_line "joboption_jobid=$job_id" 2>/dev/null
+  done \
+  | sed 's/\.grami$/.local/' \
+  | head -n 1
 }
 
 # set_job_vars takes a line from pbs logs and splits it, returning information
@@ -162,27 +146,26 @@ process_log_file () {
       whole_line=
     fi
 
-    # look for this id in ID.local, then in ID.grami
-    gridid=`find_by_local`
-    if [ -z "$gridid" ]; then
-      gridid=`find_by_grami`
+    # look for this id in job.ID.local, then in job.ID.grami
+    name=`find_by_local`
+    if [ -z "$name" ]; then
+      name=`find_by_grami`
+      if [ -z "$name" ]; then continue; fi
     fi
-    ctrdir=`echo "${gridid}" | sed -n 's/^[^ ]* \(.*\)/\1/p'
-    gridid=`echo "${gridid}" | sed -n 's/^\([^ ]*\) .*/\1/p'
-    if [ -z "$gridid" ]; then continue; fi
-    if [ -z "$ctrdir" ]; then continue; fi
-    statusfile="${ctrdir}/processing/${id}.status"
-    lrmsfile=$(control_path "${ctrdir}" "${gridid}" "lrms_done")
-    localfile=$(control_path "${ctrdir}" "${gridid}" "local")
-    errorsfile=$(control_path "${ctrdir}" "${gridid}" "errors")
     if [ "$my_id" != '0' ] ; then
-      if [ ! -O "$statusfile" ] ; then continue ; fi
+      if [ ! -O "$name" ] ; then continue ; fi
     fi
-    uid=$(get_owner_uid "$statusfile")
-    [ -z "$uid" ] && { log "Failed to stat $statusfile"; continue; }
+    uid=$(get_owner_uid "$name")
+    [ -z "$uid" ] && { log "Failed to stat $name"; continue; }
+
+    base_name=`echo "$name" 2>/dev/null | sed -n 's/\.local$//p'`
+    if [ -z "${base_name}" ] ; then continue ; fi
+    gridid=`echo "$base_name" 2>/dev/null | sed -n 's/.*\.\([^\.]*\)$/\1/'`
 
     # check if job already reported
-    if [ -f "$lrmsfile" ] ; then continue ; fi
+    if [ -f "${base_name}.lrms_done" ] ; then continue ; fi
+
+    statusfile=`echo "$name" 2>/dev/null | sed -n 's/job\.\([^\.]*\)\.local$/processing\/job.\1.status/p'`
 
     # more protection - check if arex thinks job is still running
     egrep 'INLRMS|SUBMIT|CANCELING' "$statusfile" >/dev/null 2>&1
@@ -193,7 +176,7 @@ process_log_file () {
     exitcode=''
 
     # get session directory of this job
-    sessiondir=`grep -h '^sessiondir=' "$localfile" | sed 's/^sessiondir=\(.*\)/\1/'`
+    sessiondir=`grep -h '^sessiondir=' "${base_name}.local" | sed 's/^sessiondir=\(.*\)/\1/'`
     diagfile="${sessiondir}.diag"
     commentfile="${sessiondir}.comment"
 
@@ -220,7 +203,7 @@ process_log_file () {
     fi
     # Try to obtain message from PBS if any
     pbs_comment=$(do_as_uid "$uid" "tail -n 1 '$commentfile'")
-    save_commentfile "$uid" "$commentfile" "${errorsfile}"
+    save_commentfile "$uid" "$commentfile" "${base_name}.errors"
 
     # Extract values from PBS
     walltime=`echo "$job_message" | sed -n 's/^.*resources_used.walltime=\(\([0-9]*:\)*[0-9][0-9]\).*/\1/p'`
@@ -262,36 +245,36 @@ process_log_file () {
       if [ -z "$exit_code" ] ; then exit_code='-1'; fi
       if [ "$exit_code" = '0' ] ; then
         echo "Job $job_id failed but PBS have not noticed that" 1>&2
-        echo "-1 Job failed but PBS reported 0 exit code." > "${lrmsfile}"
+        echo "-1 Job failed but PBS reported 0 exit code." > "${base_name}.lrms_done"
       elif [ -z "$pbs_comment" ] ; then
         echo "Job $job_id failed with PBS exit code $exit_code" 1>&2
-        echo "$exit_code Job was killed by PBS." > "${lrmsfile}"
+        echo "$exit_code Job was killed by PBS." > "${base_name}.lrms_done"
       else
         echo "Job $job_id failed with PBS exit code $exit_code" 1>&2
-        echo "$exit_code $pbs_comment" > "${lrmsfile}"
+        echo "$exit_code $pbs_comment" > "${base_name}.lrms_done"
       fi
     else
       if [ -z "$exit_code" ] ; then exit_code='-1'; fi
       if [ ! "$exitcode" = 0 ] ; then
         if [ "$exit_code" = '0' ] ; then exit_code='-1'; fi
         echo "Job $job_id failed with exit code $exitcode, PBS reported $exit_code." 1>&2
-        echo "$exit_code Job failed with exit code $exitcode." > "${lrmsfile}"
+        echo "$exit_code Job failed with exit code $exitcode." > "${base_name}.lrms_done"
       else
         if [ ! "$exit_code" = '0' ] ; then
           echo "Job finished properly but PBS reported $exit_code." 1>&2
           if [ -z "$pbs_comment" ] ; then
-            echo "$exit_code Job was killed by PBS." > "${lrmsfile}"
+            echo "$exit_code Job was killed by PBS." > "${base_name}.lrms_done"
           else
-            echo "$exit_code $pbs_comment" > "${lrmsfile}"
+            echo "$exit_code $pbs_comment" > "${base_name}.lrms_done"
           fi
         else
           # echo "Job finished without errors." 1>&2
-          echo "0" > "${lrmsfile}"
+          echo "0" > "${base_name}.lrms_done"
         fi
       fi
     fi
     # wake up GM
-    ${GMKICK} -j "${gridid}" "${ctrdir}"
+    ${GMKICK} -j "${gridid}" "${base_name}.local"
   done
   IFS=$old_IFS
 }
@@ -376,24 +359,18 @@ for ctr_dir in "$@" ; do
   if [ ! -z "$perflogdir" ]; then
    start_ts=`date +%s.%N`
   fi
+
   # Obtain ids stored in job.*.local
-  ids=`
-  find ${ctr_dir}/processing -name '*.status' -print | sed 's/^.*\/\([^\.]*\)\.status$/\1/g' | {
-    while true; do \
-      read id; \
-      if [ $? -ne '0' ] ; then break ; fi
-      path=$(control_path "${ctr_dir}" "${id}" "local")
-      grep -h "^localid=" "${path}" 2>/dev/null | sed 's/^localid=\([0-9]*\).*/\1/'
-    done
-  }
-  `
+  ids=`find ${ctr_dir}/processing -name 'job.*.status' -print0 \
+       | sed 's/processing\/job\.\([^\.]*\)\.status/job.\1.local/g' \
+       | xargs -0 grep -h "^localid=" 2>/dev/null | sed 's/^localid=\([0-9]*\).*/\1/'`
   if [ -z "$ids" ] ; then continue ; fi
   if [ ! -z "$perflogdir" ]; then
     stop_ts=`date +%s.%N`
     t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
     echo "[`date +%Y-%m-%d\ %T`] scan-pbs-job, ControlDirTraversal: $t" >> $perflogfile
   fi
-  # compare them to running jobs and find missing
+ # compare them to running jobs and find missing
   bids=
   for id in $ids ; do
     found=`echo "$pids" | grep "^$id$"`
@@ -402,36 +379,26 @@ for ctr_dir in "$@" ; do
     fi
   done
   if [ ! -z "$perflogdir" ]; then
-    start_ts=`date +%s.%N`
+   start_ts=`date +%s.%N`
   fi
 
   # go through missing ids
   for id in $bids ; do
     # find grid job corresponding to curent local id
-    jobfile=""
-    gridid=""
-    find ${ctr_dir}/processing -name '*.status' -print | sed 's/^.*\/\([^\.]*\)\.status$/\1/g' | {
-      while true; do \
-        read id; \
-        if [ $? -ne '0' ] ; then break ; fi
-        path=$(control_path "${ctr_dir}" "${id}" "local")
-        grep -F -l "localid=$id." 2>/dev/null 1>/dev/null
-        if [ $? -eq '0' ] ; then
-          gridid="$id"
-          jobfile="$path"
-          break
-        fi
-      done
-    }
+    jobfile=`find ${ctr_dir}/processing -name 'job.*.status' -print0 \
+             | sed 's/processing\/job\.\([^\.]*\)\.status/job.\1.local/g' \
+             | xargs -0 grep -F -l "localid=$id." 2>/dev/null`
     if [ -z "$jobfile" ] ; then continue ; fi
     if [ "$my_id" != '0' ] ; then
       if [ ! -O "$jobfile" ] ; then continue ; fi
     fi
     uid=$(get_owner_uid "$jobfile")
     [ -z "$uid" ] && { log "Failed to stat $jobfile"; continue; }
-    donefile=$(control_path "${ctr_dir}" "${gridid}" "lrms_done")
+    # extract grid id
+    gridid=`basename "$jobfile" '.local' | sed 's/^job\.//'`
+    donefile="${ctr_dir}/job.${gridid}.lrms_done"
     if [ -f "$donefile" ] ; then continue ; fi
-    statusfile="${ctr_dir}/processing/${gridid}.status"
+    statusfile="${ctr_dir}/processing/job.${gridid}.status"
     if [ ! -f "$statusfile" ] ; then continue ; fi
     status=`cat "$statusfile"`
     if [ "$status" != "INLRMS" ] && [ "$status" != "CANCELING" ]; then continue ; fi
@@ -447,16 +414,16 @@ for ctr_dir in "$@" ; do
       fi
       if [ ! -z "$exitcode" ] ; then
         # job finished and exit code is known
-        save_commentfile "$uid" "${session}.comment" $(control_path "${ctr_dir}" "${gridid}" "errors")
+        save_commentfile "$uid" "${session}.comment" "${ctr_dir}/job.${gridid}.errors"
         echo "$exitcode Executable finished with exit code $exitcode" > "$donefile"
-        ${GMKICK} -j "$gridid" "${ctr_dir}"
+        ${GMKICK} -j "$gridid" "$jobfile"
         echo "Job $gridid finished with exit code $exitcode"
         continue
       fi
     fi
     # job has probaly finished and exit code is not known
     exitcode='-1'
-    countfile=$(control_path "${ctr_dir}" "${gridid}" "lrms_job")
+    countfile="${ctr_dir}/job.${gridid}.lrms_job"
     counter=0
     if [ -f "$countfile" ] ; then
       counter=`cat "$countfile"`
@@ -464,9 +431,9 @@ for ctr_dir in "$@" ; do
     fi
     if [ "$counter" -gt 5 ] ; then
       rm -f "$countfile"
-      save_commentfile "$uid" "${session}.comment" $(control_path "${ctr_dir}" "${gridid}" "errors")
+      save_commentfile "$uid" "${session}.comment" "${ctr_dir}/job.${gridid}.errors"
       echo "$exitcode Job was lost with unknown exit code" > "$donefile"
-      ${GMKICK} -j "$gridid" "${ctr_dir}"
+      ${GMKICK} -j "$gridid" "$jobfile"
       echo "Job $gridid finished with unknown exit code"
     else
       echo "$counter" > "$countfile"
@@ -481,9 +448,10 @@ for ctr_dir in "$@" ; do
   # go through existing ids
   for id in $pids ; do
     # find grid job corresponding to curent local id
-    jobfile=`find ${ctr_dir} -name '*.local' -print0 | xargs -0 grep -F -l "localid=$id." 2>/dev/null`
+    jobfile=`find ${ctr_dir} -name 'job.*.local' -print0 | xargs -0 grep -F -l "localid=$id." 2>/dev/null`
     if [ -z "$jobfile" ] ; then continue ; fi
-    countfile=`echo "$jobfile" | sed 's/local$/lrms_job'`
+    gridid=`basename "$jobfile" '.local' | sed 's/^job\.//'`
+    countfile="${ctr_dir}/job.${gridid}.lrms_job"
     # reset failure counter
     rm -f "$countfile"
   done

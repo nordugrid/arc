@@ -52,13 +52,6 @@ fi
 
 my_id=`id -u`
 
-control_path () {
-    # job_id=`echo "$2" | sed 's/\(.\{9\}\)/\1\//g' | sed 's/\/$//'`
-    job_id=`echo "$2" | sed -e 's#\(.\{3\}\)#\1/#3' -e 's#\(.\{3\}\)#\1/#2' -e 's#\(.\{3\}\)#\1/#1' -e 's#$#/#'`
-    path="$1/jobs/${job_id}/$3"
-    echo "$path"
-}
-
 get_bunch_jobs_status() {
   #get the string list of jobs
   loop=`$LL_BIN_PATH/llq -r %st %id $1`
@@ -82,17 +75,17 @@ mergedlist=()
 # the arc .local file divided by space 
 inLocalIdsString=""
 
-findoutput=$(find "$control_dir/processing" -maxdepth 1 -type f -name '*.status' | sed 's/.*\/\([^\]*\)\.status$/\1/') 
+findoutput=$(find "$control_dir/processing" -maxdepth 1 -type f -name 'job.*.status' | sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1.local/') 
 
-while read jobid
+while read i
 do
-  i=$(control_path "$control_dir" "$jobid" "local")
 
   # Continue if no glob expansion or other problems
   test -f "$i" || continue
   
-  donefile=$(control_path "$control_dir" "$jobid" "lrms_done")
-  statusfile="${control_dir}/processing/${jobid}.status"
+  jobid=`basename $i .local|sed 's/^job.//'`
+  donefile="${control_dir}/job.${jobid}.lrms_done"
+  statusfile="${control_dir}/processing/job.${jobid}.status"
 
   # Continue if the job is already flagged as done?
   test -f "$donefile" && continue
@@ -157,10 +150,10 @@ do
       continue
   fi
   numelem=$((numelem+1))
-  donefile=$(control_path "${control_dir}" "${jobid}" "lrms_done"
-  statusfile="${control_dir}/processing/${jobid}.status"
-  jobfile=$(control_path "${control_dir}" "${jobid}" "local"
-  errorsfile=$(control_path "${control_dir}" "${jobid}" "errors"
+  donefile="${control_dir}/job.${jobid}.lrms_done"
+  statusfile="${control_dir}/processing/job.${jobid}.status"
+  jobfile="${control_dir}/job.${jobid}.local"
+  errorsfile="${control_dir}/job.${jobid}.errors"
 
   # Continue if the job is already flagged as done?
   test -f "$donefile" && continue
@@ -171,7 +164,7 @@ do
   exitcode=''
 
   # get session directory of this job
-  sessiondir=`grep -h '^sessiondir=' "${jobfile}" | sed 's/^sessiondir=\(.*\)/\1/'`
+  sessiondir=`grep -h '^sessiondir=' "$control_dir/job.${jobid}.local" | sed 's/^sessiondir=\(.*\)/\1/'`
   diagfile="${sessiondir}.diag"
   commentfile="${sessiondir}.comment"
 
@@ -191,7 +184,7 @@ do
   if [ ! -z "$exitcode" ] ; then
     if [ "$exitcode" = "152" -o $exitcode = "24" ] ; then
       exitcode="24"
-      save_commentfile "$uid" "${commentfile}" "$errorsfile"
+      save_commentfile "$uid" "${sessiondir}.comment" "$errorsfile"
       echo "$exitcode Job exceeded time limit." > "$donefile"
       # If job exceeded time, then it will have been killed and no cputime/walltime has been written
       walltime=`$LL_BIN_PATH/llq -l $localid|sed -n 's/^ *Wall Clk Hard Limit:.*(\([0-9]*\) seconds.*/\1/p'`
@@ -222,19 +215,19 @@ do
 
       job_write_diag
 
-      ${GMKICK} -j "${jobid}" "${control_dir}"
+      ${GMKICK} -j "${jobid}" "$jobfile"
       continue
     fi
     # job finished and exit code is known
-    save_commentfile "$uid" "${commentfile}" "$errorsfile"
+    save_commentfile "$uid" "${sessiondir}.comment" "$errorsfile"
     echo "$exitcode Executable finished with exit code $exitcode" >> "$donefile"
-    ${GMKICK} -j "${jobid}" "${control_dir}"
+    ${GMKICK} -j "${jobid}" "$jobfile"
     continue
   fi
   exitcode=-1
-  save_commentfile "$uid" "${commentfile}" "$errorsfile"
+  save_commentfile "$uid" "${sessiondir}.comment" "$errorsfile"
   echo "$exitcode Job finished with unknown exit code" >> "$donefile"
-  ${GMKICK} -j "${jobid}" "${control_dir}"
+  ${GMKICK} -j "${jobid}" "$jobfile"
 done
 
 if [ ! -z "$perflogdir" ]; then

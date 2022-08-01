@@ -98,14 +98,10 @@ fi
 # List of SLURM jobids for grid-jobs with state INLRMS
 declare -a localids
 # Array with basenames of grid-job files in ctrl_dir, indexed by localid
-# example /some/path/XX/XX/X /some/other/path/YY/YY/Y
+# example /some/path/job.XXXXX /some/other/parh/job.YYYYY
 declare -a basenames
 # Array with states of the jobs in SLURM, indexed by localid
 declare -a jobstates
-# Array with grid id values, indexed by localid
-declare -a gridids
-# Array with control directories, indexed by localid
-declare -a ctrdirs
 # Array to store localids of jobs that are determined to have finished, which are sent to gm-kick
 declare -a kicklist
 # Array with jobid blocks 
@@ -114,19 +110,16 @@ declare -a lidblocks
 # Find list of grid jobs with status INLRMS, store localid and
 # basename for those jobs
 for ctr_dir in "$@"; do
-    for id in $(find "$ctr_dir/processing" -name '*.status' -print0 \
+    for basename in $(find "$ctr_dir/processing" -name 'job.*.status' -print0 \
         | xargs -0 egrep -l "INLRMS|CANCELING" \
-        | sed 's/\/\([^\.]*\)\/processing\/\([^\.]*\)\.status$/\2/')
+        | sed 's/processing\/job\.\([^\.]*\)\.status$/job.\1/')
     do
-        basename=$(control_path "${ctr_dir}" "${id}" "")
-        localid=$(grep ^localid= "${basename}/local" | cut -d= -f2)
+        localid=$(grep ^localid= "${basename}.local" | cut -d= -f2)
         
         verify_jobid "$localid" || continue
-
+        
         localids[${#localids[@]}]="$localid"
         basenames[$localid]="$basename"
-        gridids[$localid]="$id"
-        ctrdirs[$localid]="$ctr_dir"
     done
 done
 
@@ -208,11 +201,11 @@ handle_commentfile () {
     fi
     uid=$(get_owner_uid "$jobfile")
     [ -z "$uid" ] && { log "Failed to stat $jobfile"; continue; }
-    save_commentfile "$uid" "${sessiondir}.comment" "${basenames[$localid]}/errors"
+    save_commentfile "$uid" "${sessiondir}.comment" "${basenames[$localid]}.errors"
 }
 
 # This function is called after a successfull call to handle_diag_file.
-# It fetches the exitcode from SLURM and inserts the code into the $localid/lrms_done file
+# It fetches the exitcode from SLURM and inserts the code into the job.$localid.lrms_done file
 # The kicklist is updated to include the $localid of this job
 #
 # Input variables:
@@ -220,7 +213,7 @@ handle_commentfile () {
 #  * tmpexitcode (hardcoded exitcode)
 #  * reason (hardcoded reason)
 #
-# The following variables are initialized and updated, then written to lrms_done
+# The following variables are initialized and updated, then written to .lrms_done
 #  * exitcode (either hardcoded tmpexitcode or 
 #  * reason
 #
@@ -269,14 +262,14 @@ function handle_exitcode {
         fi
 
         # Special handling of cancelled jobs - as SLURM can return exitcode 0:0 for cancelled jobs
-        if [ "$exitcode" -eq 0 ] && [[ $reason == *"cancelled"* ]] ; then
+        if [ "$exitcode" -eq 0 ] && [ "${reason}" != "${reason/cancelled/}" ]; then
             exitcode=15
         fi
 
-        echo "$exitcode $reason" > "${basenames[$localid]}/lrms_done"
+        echo "$exitcode $reason" > "${basenames[$localid]}.lrms_done"
         kicklist=(${kicklist[@]} $localid)
     fi
-
+        
 }
 
 
@@ -338,7 +331,7 @@ function handle_diag_file {
         unset jobinfo_collect_failed
         
         if [ "$use_sacct" ]; then 
-            jobinfostring=$("$sacct" -j ${basenames[$localid]}/batch -o NCPUS,Start,End,UserCPU,SystemCPU -P | tail -n 1) 
+            jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,Start,End,UserCPU,SystemCPU -P | tail -n 1) 
             
             cpus=$(echo "$jobinfostring" | awk -F'|' '{print $1}')
             starttime=$(echo "$jobinfostring"|awk -F'|' '{print $2}'| sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
@@ -382,7 +375,7 @@ function handle_diag_file {
         sleep 2
     done
 
-    # if "sacct -j $localid/batch" return string "NCPUS|NNodes..." only, the job has no batch stage, it was killed before start on WN
+    # if "sacct -j $localid.batch" return string "NCPUS|NNodes..." only, the job has no batch stage, it was killed before start on WN
     if [ ! z"$cpus" = "zNCPUS" ] && [ -z "$jobinfo_collect_failed" ]; then
         date_to_utc_seconds "$starttime"
         starttime_seconds="$return_date_seconds"
@@ -419,10 +412,10 @@ completed=0
 zombie=0
 failed=0
 # Look at the list of jobstates and determine which jobs that have
-# finished. Write XXXX/lrms_done according to this
+# finished. Write job.XXXX.lrms_done according to this
 for localid in ${localids[@]}; do
     # Initialize jobfile variable since it's used below
-    jobfile="${basenames[$localid]}/local"
+    jobfile="${basenames[$localid]}.local"
     case "${jobstates[$localid]}" in
         "")
             # Job is missing (no state) from slurm but INLRMS.
@@ -469,45 +462,46 @@ for localid in ${localids[@]}; do
                 jobstatus="$exitcode Job missing from SLURM"
             fi
             
-            save_commentfile "$uid" "$commentfile" "${basenames[$localid]}/errors"
-            echo  "$jobstatus" > "${basenames[$localid]}/lrms_done"
+            save_commentfile "$uid" "$commentfile" "${basenames[$localid]}.errors"
+            echo  "$jobstatus" > "${basenames[$localid]}.lrms_done"
             kicklist=(${kicklist[@]} $localid)
- 	    ;;
-        PENDING|RUNNING|SUSPENDE|COMPLETING)
-            #Job is running, nothing to do.
-            run=$(($run + 1))
+
             ;;
-        CANCELLED)
-            failed=$(($failed + 1))
-            handle_commentfile $localid
-            kicklist=(${kicklist[@]} $localid)
-            handle_diag_file "$localid" "${basenames[$localid]}/diag"
-            [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Job was cancelled" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] Job:$localid CANCELLED, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
-            ;;
-        COMPLETED)
-            completed=$(($completed + 1))
-            handle_commentfile $localid
-            handle_diag_file "$localid" "${basenames[$localid]}/diag"
-            [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "0" "" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] Job:$localid COMPLETED, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
-            ;;
-        FAILED)
-            failed=$(($failed + 1))
-            handle_commentfile $localid
-            handle_diag_file "$localid" "${basenames[$localid]}/diag"
-            [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Job failed" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] Job:$localid FAILED, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
-            ;;
-        TIMEOUT)
-            failed=$(($failed + 1))
-            handle_commentfile $localid
-            handle_diag_file "$localid" "${basenames[$localid]}/diag"
-            [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Job timeout" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] Job:$localid TIMEOUT, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
-            ;;
-        NODE_FAIL)
-            failed=$(($failed + 1))
-            handle_commentfile $localid
-            handle_diag_file "$localid" "${basenames[$localid]}/diag"
-            [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Node fail" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] Job:$localid NODE_FAIL, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
-            ;;
+            PENDING|RUNNING|SUSPENDE|COMPLETING)
+                #Job is running, nothing to do.
+                run=$(($run + 1))
+                ;;
+            CANCELLED)
+                failed=$(($failed + 1))
+                handle_commentfile $localid
+                kicklist=(${kicklist[@]} $localid)
+                handle_diag_file "$localid" "${basenames[$localid]}.diag"
+                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Job was cancelled" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] Job:$localid CANCELLED, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
+                ;;
+            COMPLETED)
+                completed=$(($completed + 1))
+                handle_commentfile $localid
+                handle_diag_file "$localid" "${basenames[$localid]}.diag"
+                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "0" "" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] Job:$localid COMPLETED, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
+                ;;
+            FAILED)
+                failed=$(($failed + 1))
+                handle_commentfile $localid
+                handle_diag_file "$localid" "${basenames[$localid]}.diag"
+                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Job failed" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] Job:$localid FAILED, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
+                ;;
+            TIMEOUT)
+                failed=$(($failed + 1))
+                handle_commentfile $localid
+                handle_diag_file "$localid" "${basenames[$localid]}.diag"
+                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Job timeout" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] Job:$localid TIMEOUT, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
+                ;;
+            NODE_FAIL)
+                failed=$(($failed + 1))
+                handle_commentfile $localid
+                handle_diag_file "$localid" "${basenames[$localid]}.diag"
+                [ -z "$jobinfo_collect_failed" ] && handle_exitcode $localid "-1" "Node fail" || echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] Job:$localid NODE_FAIL, but jobinfo_collect_failed - not setting exit code, will try again in next scan" 1>&2;
+                ;;
     esac
     unset jobinfo_collect_failed
 done
@@ -521,9 +515,8 @@ fi
 # Kick the GM
 if [ -n "${kicklist[*]}" ];then
     for localid in "${kicklist[@]}";do
-        gridid=${gridids[$localid]}
-        ctrdir=${ctrdirs[$localid]}
-        "${pkglibexecdir}/gm-kick" -j "${gridid}" "${ctrdir}"
+        gridid=`echo "${basenames[$localid]}" | sed 's/.*\.\([^\.]*\)$/\1/'`
+        "${pkglibexecdir}/gm-kick" -j "${gridid}" "${basenames[$localid]}.local"
     done
 fi
 

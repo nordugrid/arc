@@ -145,14 +145,14 @@ JobReqResult JobDescriptionHandler::parse_job_req(const JobId &job_id,JobLocalDe
 }
 
 JobReqResult JobDescriptionHandler::parse_job_req(const JobId &job_id,JobLocalDescription &job_desc,Arc::JobDescription& arc_job_desc,bool check_acl) const {
-  std::string fname = job_control_path(config.ControlDir(),job_id,sfx_desc);
+  std::string fname = config.ControlDir() + "/job." + job_id + ".description";
   return parse_job_req(job_desc,arc_job_desc,fname,check_acl);
 }
 
 std::string JobDescriptionHandler::get_local_id(const JobId &job_id) const {
   std::string id;
   std::string joboption("joboption_jobid=");
-  std::string fgrami(job_control_path(config.ControlDir(),job_id,sfx_grami));
+  std::string fgrami(config.ControlDir() + "/job." + job_id + ".grami");
   std::list<std::string> grami_data;
   if (Arc::FileRead(fgrami, grami_data)) {
     for (std::list<std::string>::iterator line = grami_data.begin(); line != grami_data.end(); ++line) {
@@ -182,7 +182,7 @@ bool JobDescriptionHandler::write_grami_executable(std::ofstream& f, const std::
 }
 
 bool JobDescriptionHandler::write_grami(GMJob &job,const char *opt_add) const {
-  const std::string fname = job_control_path(config.ControlDir(),job.get_id(),sfx_desc);
+  const std::string fname = config.ControlDir() + "/job." + job.get_id() + ".description";
 
   Arc::JobDescription arc_job_desc;
   if (!get_arc_job_description(fname, arc_job_desc)) return false;
@@ -195,7 +195,7 @@ bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc,
   JobLocalDescription& job_local_desc = *(job.GetLocalDescription(config));
   const std::string session_dir = job.SessionDir();
   const std::string control_dir = config.ControlDir();
-  const std::string fgrami = job_control_path(control_dir,job.get_id(),sfx_grami);
+  const std::string fgrami = control_dir + "/job." + job.get_id() + ".grami";
   std::ofstream f(fgrami.c_str(),std::ios::out | std::ios::trunc);
   if(!f.is_open()) return false;
   if(!fix_file_permissions(fgrami,job,config)) return false;
@@ -382,7 +382,7 @@ JobReqResult JobDescriptionHandler::get_acl(const Arc::JobDescription& arc_job_d
 
 /* parse job description and set specified file permissions to executable */
 bool JobDescriptionHandler::set_execs(const GMJob &job) const {
-  std::string fname = job_control_path(config.ControlDir(),job.get_id(),sfx_desc);
+  std::string fname = config.ControlDir() + "/job." + job.get_id() + ".description";
   Arc::JobDescription desc;
   if (!get_arc_job_description(fname, desc)) return false;
 

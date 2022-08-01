@@ -13,8 +13,6 @@ if test $# != 2; then
   exit 1
 fi
 
-. ./lrms_common.sh
-
 function goToParentAndRemoveDir() {
   cd ..
   rm -rf ${1}
@@ -93,13 +91,9 @@ controldir=`pwd`/controldir" ${test}.arc.conf
   for i in $(seq 0 $(( ${#test_jobs[@]} - 1 )) ); do
     IFS=" " job=( ${test_jobs[$i]} )
     mkdir ${test}-${job[0]} # Create session directory
-    job_path=$(control_path "$(pwd)/controldir" "${job[0]}" "")
-    mkdir -p ${job_path}
-    status_path="$(pwd)/controldir/processing/${job[0]}.status"
-    echo "${job[1]}" > ${status_path}
-    local_path=$(control_path "$(pwd)/controldir" "${job[0]}" "local")
-    echo "localid=${job[0]}" >  ${local_path}
-    echo "sessiondir=$(pwd)/${test}-${job[0]}"  >> ${local_path}
+    echo "${job[1]}" > $(pwd)/controldir/processing/job.${job[0]}.status
+    echo "localid=${job[0]}" >  $(pwd)/controldir/job.${job[0]}.local
+    echo "sessiondir=$(pwd)/${test}-${job[0]}"  >> $(pwd)/controldir/job.${job[0]}.local
 
     IFS=";" job_diag=( ${test_input_diag_list[$i]} )
     printf "%s\n" "${job_diag[@]}" >  $(pwd)/${test}-${job[0]}.diag
@@ -159,10 +153,7 @@ controldir=`pwd`/controldir" ${test}.arc.conf
     oIFS="${IFS}"
     IFS=";" expected_exit_code=( $expected_exit_code )
     IFS="${oIFS}"
-    lrms_done_path=$(control_path "controldir" "${expected_exit_code[0]}" "lrms_done")
-    ls -l controldir
-    ls -l controldir/jobs
-    read job_exit_code < ${lrms_done_path}
+    read job_exit_code < controldir/job.${expected_exit_code[0]}.lrms_done
     if test "${job_exit_code%% *}" != "${expected_exit_code[1]}"; then
       echo -n "F"
       exitCode=$((exitCode + 1))

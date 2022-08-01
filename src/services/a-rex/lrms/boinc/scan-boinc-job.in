@@ -99,31 +99,26 @@ for control_dir in "$@" ; do
     done
 
     # iterate over all jobs known in the control directory
-    find "${control_dir}/processing" -name '*.status' \
+    find "${control_dir}/processing" -name 'job.*.status' \
     | xargs egrep -l "INLRMS|CANCELING" \
-    | sed -e 's/.*\///' -e 's/\.status$//' \
+    | sed -e 's/.*job\.//' -e 's/\.status$//' \
     | while read job; do
         #debug "scanning job = $job"
         unset joboption_jobid
         unset joboption_directory
 
-        lrmsfile=$(control_path "${control_dir}" "${job}" "lrms_done")
-        gramifile=$(control_path "${control_dir}" "${job}" "grami")
-        localfile=$(control_path "${control_dir}" "${job}" "local")
-        errorsfile=$(control_path "${control_dir}" "${job}" "errors")
-
         # this job was already completed, nothing remains to be done
-        [ -f "$lrmsfile" ] && continue
+        [ -f "${control_dir}/job.${job}.lrms_done" ] && continue
 
         # a grami file exists for all jobs that GM thinks are running.
         # proceed to next job if this file is missing.
-        if [ ! -f "$gramifile" ]; then
+        if [ ! -f "${control_dir}/job.${job}.grami" ]; then
             continue
         fi
 
         # extract process IDs of the grami file
-        [ ! -f "$gramifile" ] && continue
-        . "$gramifile"
+        [ ! -f "${control_dir}/job.${job}.grami" ] && continue
+        . "${control_dir}/job.${job}.grami"
 
         # process IDs could not be learned, proceeding to next
         [ -z "$joboption_jobid" ] && continue
@@ -137,7 +132,7 @@ for control_dir in "$@" ; do
         else
             debug "$joboption_jobid is finished"
         fi
-        uid=$(printuid "$localfile")
+        uid=$(printuid "${control_dir}/job.${job}.local")
         debug "local user id = $uid"
         diagfile=${joboption_directory}.diag
         debug "checking $diagfile"
@@ -155,9 +150,9 @@ for control_dir in "$@" ; do
             comment="Job finished with wrong exit code - $exitcode != $joboption_arg_code" 1>&2
         fi
         debug "got exitcode=$exitcode"
-        save_commentfile "$uid" "${joboption_directory}.comment" "$errorsfile"
-        echo "$exitcode $comment" > "$lrmsfile"
-        "${GMKICK}" -j "${job}" "${control_dir}"
+        save_commentfile "$uid" "${joboption_directory}.comment" "${control_dir}/job.${job}.errors"
+        echo "$exitcode $comment" > "${control_dir}/job.${job}.lrms_done"
+        "${GMKICK}" -j "${job}" "${control_dir}/job.${job}.local"
     done
 
 done

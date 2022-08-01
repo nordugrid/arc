@@ -61,7 +61,7 @@ void ProcessorTest::TestPreClean() {
   // Note: mock doesn't really delete, but reports success
   std::string jobid("123456789");
   std::string source("mock://mocksrc/1");
-  std::string destination("mock://mockdest;overwrite=yes/1");
+  std::string destination("mock://mockdest/1");
 
   DataStaging::DTR_ptr dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logs, log_name);
   CPPUNIT_ASSERT(dtr);
@@ -78,7 +78,7 @@ void ProcessorTest::TestPreClean() {
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::PRE_CLEANED, dtr->get_status().GetStatus());
 
   // use a non-existent file
-  destination = "fail://badhost;overwrite=yes/file1";
+  destination = "fail://badhost/file1";
   dtr = new DataStaging::DTR(source, destination, cfg, jobid, Arc::User().get_uid(), logs, log_name);
   CPPUNIT_ASSERT(dtr);
   CPPUNIT_ASSERT(*dtr);
