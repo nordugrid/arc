@@ -1,6 +1,5 @@
-#TESTS = basic-test memory-test count-test queue-test job-name-test \
-#	cpu-wall-time-test rte-test config-options-test std-io-test
-TESTS =
+TESTS = basic-test memory-test count-test queue-test job-name-test \
+	cpu-wall-time-test rte-test config-options-test std-io-test
 
 TESTS_ENVIRONMENT = \
 	PERL5LIB=$(abs_top_srcdir)/src/services/a-rex/infoproviders \
@@ -11,7 +10,7 @@ TESTS_ENVIRONMENT = \
 	SRCDIR=$(srcdir) \
 	$(SHELL) check_submit_script.sh submit-SLURMPY-job
 
-SCRIPTSNEEDED = check_submit_script.sh lrms_common.sh \
+SCRIPTSNEEDED = check_submit_script.sh \
 	submit-SLURMPY-job $(builddir)/share/arc/job_script.stubs
 
 check_SCRIPTS = $(TESTS) basic-script.sh $(SCRIPTSNEEDED)
@@ -24,9 +23,6 @@ check_submit_script.sh: $(srcdir)/../../../test/check_submit_script.sh
 submit-SLURMPY-job: $(builddir)/../../submit-SLURMPY-job
 	cp $< $@
 	chmod +x $@
-
-lrms_common.sh: $(builddir)/../../../lrms_common.sh
-	cp $< $@
 
 $(builddir)/share/arc/job_script.stubs: $(srcdir)/../../../arc/lrms/common/job_script.stubs
 	mkdir -p $(builddir)/share/arc

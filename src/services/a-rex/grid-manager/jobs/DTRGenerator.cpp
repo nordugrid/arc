@@ -564,7 +564,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   }
   
   // Print transfer statistics
-  std::string fname = job_control_path(config.ControlDir(),job->get_id(),sfx_statistics);
+  std::string fname = config.ControlDir() + "/job." + job->get_id() + ".statistics";
   std::ofstream f(fname.c_str(),std::ios::out | std::ios::app);
   if(f.is_open() ) {
     f << dtr_transfer_statistics << std::endl;  
@@ -707,7 +707,7 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
   DataStaging::DTRCredentialInfo cred_info(job_desc.DN, job_desc.expiretime, job_desc.voms);
 
   // Create a file for the transfer statistics and fix its permissions
-  std::string fname = job_control_path(config.ControlDir(),jobid,sfx_statistics);
+  std::string fname = config.ControlDir() + "/job." + jobid + ".statistics";
   std::ofstream f(fname.c_str(),std::ios::out | std::ios::app);
   f.close();
   fix_file_permissions(fname);

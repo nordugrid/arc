@@ -12,14 +12,6 @@ from .files import write
 from .log import *
 
 
-def control_path(controldir, jobid, suffix):
-     """
-     Generates path to file in control directory
-     """
-     path = controldir + "/jobs/" + jobid[0:3] + "/" + jobid[3:6] + "/" + jobid[6:9] + "/" + jobid[9:] + "/" + suffix;
-     return path
-
-
 def validate_attributes(jd):
      """
      Checks if GRID (global) job ID and executable are set in job description
@@ -227,7 +219,7 @@ def RTE_stage0(jobdesc, lrms, **mapping):
    # Save it for accouting purposes.
    if jobdesc.Resources.SlotRequirement.NumberOfSlots > 0:
        try:
-           diagfilename = control_path(config.Config.controldir, jobdesc.OtherAttributes['joboption;gridid'], 'diag')
+           diagfilename = '%s/job.%s.diag' % (config.Config.controldir, jobdesc.OtherAttributes['joboption;gridid'])
            with open(diagfilename, 'w+') as diagfile:
                diagfile.write('Processors=%s\n' % jobdesc.Resources.SlotRequirement.NumberOfSlots)
        except IOError:
@@ -491,7 +483,7 @@ class JobscriptAssembler(object):
           Setup trash cleaning. No reason to keep trash until gm-kick runs.
           """
 
-          output = control_path(config.Config.controldir, self['GRIDID'], '.output')
+          output = config.Config.controldir + '/job.' + self['GRIDID'] + '.output'
           try:
                with open(output, 'r') as outputfile:
                     self['OUTPUT_LISTS'] = []

@@ -48,17 +48,17 @@ def get_jobs(ctrdirs):
         procdir = ctrdir + '/processing'
         for fname in os.listdir(procdir):
             try:
-                globalid = re.search(r'(?P<id>\w+).status',fname).groupdict()['id']
+                globalid = re.search(r'job.(?P<id>\w+).status',fname).groupdict()['id']
                 with open('%s/%s' % (procdir, fname), 'r') as f:
                     if re.search('INLRMS|CANCELING', f.readline()):
                         job = type('Job', (object, ), {})()
                         job.globalid = globalid
                         job.controldir = ctrdir
-                        job.local_file = control_path(ctrdir, job.globalid, 'local')
+                        job.local_file = '%s/job.%s.local' % (ctrdir, job.globalid)
                         if not read_local_file(job): # sets localid and sessiondir
                             continue
-                        job.lrms_done_file = control_path(ctrdir, job.globalid, 'lrms_done')
-                        job.count_file = control_path(ctrdir, job.globalid, 'lrms_job')
+                        job.lrms_done_file = '%s/job.%s.lrms_done' % (ctrdir, job.globalid)
+                        job.count_file = '%s/job.%s.lrms_job' % (ctrdir, job.globalid)
                         job.state = 'UNKNOWN'
                         job.message = ''
                         job.diag_file = '%s.diag' % job.sessiondir
@@ -226,7 +226,7 @@ def gm_kick(jobs):
 
     # Execute locally.
     for j in jobs:
-        execute_local('%s/gm-kick -j %s %s' % (arc.common.ArcLocation_GetToolsDir(), j.globalid, j.controldir))
+        execute_local('%s/gm-kick -j %s %s' % (arc.common.ArcLocation_GetToolsDir(), j.globalid, j.local_file))
 
 
 def write_comments(job):
