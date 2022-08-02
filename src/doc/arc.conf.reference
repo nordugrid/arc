@@ -722,6 +722,10 @@
 ## makes database queries much faster in large projects with many apps.
 ## default: undefined
 #boinc_app_id=1
+
+## boinc_project_dir - Base directory of the BOINC project
+## default:undefined
+#boinc_project_dir=/home/boinc
 ##
 ##
 ### end of [lrms] block #####################################################
