@@ -116,7 +116,7 @@ declare -a lidblocks
 for ctr_dir in "$@"; do
     for id in $(find "$ctr_dir/processing" -name '*.status' -print0 \
         | xargs -0 egrep -l "INLRMS|CANCELING" \
-        | sed 's/\/\([^\.]*\)\/processing\/\([^\.]*\)\.status$/\2/')
+        | sed 's#.*/processing/\([^\.]*\)\.status$#\1#')
     do
         basename=$(control_path "${ctr_dir}" "${id}" "")
         localid=$(grep ^localid= "${basename}/local" | cut -d= -f2)
