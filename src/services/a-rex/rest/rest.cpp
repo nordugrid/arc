@@ -38,15 +38,28 @@ enum ResponseFormat {
     ResponseFormatJson
 };
 
-static void RenderToJson(Arc::XMLNode xml, std::string& output, int depth = 0) {
+static void RenderToJson(Arc::XMLNode xml, std::string& output, char const * array_paths[], int depth = 0) {
     if(xml.Size() == 0) {
-        std::string val = json_encode((std::string)xml);
-        if((depth != 0) || (!val.empty())) {
-            output += "\"";
-            output += val;
-            output += "\"";
-        }
-        return;
+	// Either it is a value or it has forced array sub-elements.
+	bool has_arrays = false;
+        if(array_paths) {
+            for(int idx = 0; array_paths[idx]; ++idx) {
+	        char const * array_path = array_paths[idx];
+	        char const * sep = strchr(array_path, '/');
+	        if(sep) continue; // not last element of path
+		has_arrays = true;
+		break;
+	    }
+	}
+        if(!has_arrays) {
+            std::string val = json_encode((std::string)xml);
+            if((depth != 0) || (!val.empty())) {
+                output += "\"";
+                output += val;
+                output += "\"";
+            }
+            return;
+	}
     }
     output += "{";
     // Because JSON does not allow for same key we must first
@@ -63,30 +76,58 @@ static void RenderToJson(Arc::XMLNode xml, std::string& output, int depth = 0) {
         else
             ++(nameIt->second); 
     }
+    // Check for forced JSON arrays
+    if(array_paths) {
+        for(int idx = 0; array_paths[idx]; ++idx) {
+	    char const * array_path = array_paths[idx];
+	    char const * sep = strchr(array_path, '/');
+	    if(sep) continue; // not last element of path
+	    // Add fake 2 elements to make them arrays later
+            std::list< std::pair<std::string,int> >::iterator nameIt = FindFirst(names.begin(),names.end(),array_path);
+            if(nameIt == names.end())
+                names.push_back(std::make_pair(array_path,2));
+            else
+                nameIt->second += 2; 
+        }
+    }
     bool newElement = true;
     for(std::list< std::pair<std::string,int> >::iterator nameIt = names.begin(); nameIt != names.end(); ++nameIt) {
+        if(!newElement) output += ",";
+        newElement = false;
+        output += "\"";
+        output += nameIt->first;
+        output += "\"";
+        output += ":";
         XMLNode child = xml[nameIt->first.c_str()];
         if(child) {
-            if(!newElement) output += ",";
-            newElement = false;
-            output += "\"";
-            output += child.Name();
-            output += "\"";
-            output += ":";
+            std::vector<char const *> new_array_paths;
+            if(array_paths) {
+                for(int idx = 0; array_paths[idx]; ++idx) {
+	            char const * array_path = array_paths[idx];
+		    if(strncmp(nameIt->first.c_str(), array_path, nameIt->first.length()) == 0) {
+		        if(array_path[nameIt->first.length()] == '/') {
+                            new_array_paths.push_back(array_path+(nameIt->first.length()+1));
+			}
+		    }
+                }
+            }
             if(nameIt->second == 1) {
-                RenderToJson(child, output, depth+1);
+                RenderToJson(child, output, new_array_paths.empty() ? NULL : &(new_array_paths[0]), depth+1);
             } else {
                 output += "[";
                 bool newItem = true;
                 while(child) {
                     if(!newItem) output += ",";
                     newItem = false;
-                    RenderToJson(child, output, depth+1);
+                    RenderToJson(child, output, new_array_paths.empty() ? NULL : &(new_array_paths[0]), depth+1);
                     ++child;
                 }
                 output += "]";
             }
-        }
+        } else {
+	    // Must be forced array element
+            output += "[]";
+	}
     }
     // Hope no attributes with same name
     if(xml.AttributesSize() > 0) {
@@ -251,7 +292,7 @@ static char const * ParseFromJson(Arc::XMLNode& xml, char const * input, int dep
     return input;
 }
 
-static void RenderResponse(Arc::XMLNode xml, ResponseFormat format, std::string& output) {
+static void RenderResponse(Arc::XMLNode xml, ResponseFormat format, std::string& output, char const * json_arrays[]) {
     switch(format) {
         case ResponseFormatXml:
             RenderToXml(xml, output);
@@ -260,7 +301,7 @@ static void RenderResponse(Arc::XMLNode xml, ResponseFormat format, std::string&
             RenderToHtml(xml, output);
             break;
         case ResponseFormatJson:
-            RenderToJson(xml, output);
+            RenderToJson(xml, output, json_arrays);
             break;
         default:
             break;
@@ -492,10 +533,10 @@ static ResponseFormat ProcessAcceptedFormat(Arc::Message& inmsg, Arc::Message& o
 }
 
 // Insert structured positive response into outmsg.
-static Arc::MCC_Status HTTPResponse(Arc::Message& inmsg, Arc::Message& outmsg, Arc::XMLNode& resp) {
+static Arc::MCC_Status HTTPResponse(Arc::Message& inmsg, Arc::Message& outmsg, Arc::XMLNode& resp, char const * json_arrays[]) {
   ResponseFormat outFormat = ProcessAcceptedFormat(inmsg,outmsg);
   std::string respStr;
-  RenderResponse(resp, outFormat, respStr);
+  RenderResponse(resp, outFormat, respStr, json_arrays);
   if(inmsg.Attributes()->get("HTTP:METHOD") == "HEAD") {
     Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
     if(outpayload) outpayload->Truncate(respStr.length());
@@ -511,10 +552,10 @@ static Arc::MCC_Status HTTPResponse(Arc::Message& inmsg, Arc::Message& outmsg, A
 }
 
 static Arc::MCC_Status HTTPPOSTResponse(Arc::Message& inmsg, Arc::Message& outmsg,
-                                    Arc::XMLNode& resp, std::string const & redir = "") {
+                                    Arc::XMLNode& resp, char const * json_arrays[], std::string const & redir = "") {
   ResponseFormat outFormat = ProcessAcceptedFormat(inmsg,outmsg);
   std::string respStr;
-  RenderResponse(resp, outFormat, respStr);
+  RenderResponse(resp, outFormat, respStr, json_arrays);
   Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
   if(outpayload) outpayload->Insert(respStr.c_str(),0,respStr.length());
   delete outmsg.Payload(outpayload);
@@ -721,7 +762,8 @@ Arc::MCC_Status ARexRest::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 Arc::MCC_Status ARexRest::processVersions(Arc::Message& inmsg,Arc::Message& outmsg,ProcessingContext& context) {
   if((context.method == "GET") || (context.method == "HEAD")) {
     XMLNode versions("<versions><version>1.0</version></versions>"); // only supported version is 1.0
-    return HTTPResponse(inmsg, outmsg, versions);
+    char const * json_arrays[] = { "version", NULL };
+    return HTTPResponse(inmsg, outmsg, versions, json_arrays);
   }
   logger_.msg(Arc::VERBOSE, "process: method %s is not supported for subpath %s",context.method,context.processed);
   return HTTPFault(inmsg,outmsg,501,"Not Implemented");
@@ -752,7 +794,7 @@ Arc::MCC_Status ARexRest::processInfo(Arc::Message& inmsg,Arc::Message& outmsg, 
   std::string infoStr;
   Arc::FileRead(config_.InformationFile(), infoStr);
   XMLNode infoXml(infoStr);
-  return HTTPResponse(inmsg, outmsg, infoXml);
+  return HTTPResponse(inmsg, outmsg, infoXml, NULL);
 }
 
 // ---------------------------- DELEGATIONS ---------------------------------
@@ -780,7 +822,8 @@ Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& o
     for(std::list<std::string>::iterator itId = ids.begin(); itId != ids.end(); ++itId) {
       listXml.NewChild("delegation").NewChild("id") = *itId;
     }
-    return HTTPResponse(inmsg, outmsg, listXml);
+    char const * json_arrays[] = { "delegation", NULL };
+    return HTTPResponse(inmsg, outmsg, listXml, json_arrays);
   } else if(context.method == "POST") {
     std::string action = context["action"];
     if(action != "new") 
@@ -935,7 +978,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
       if(!rest_state.empty())
         jobXml.NewChild("state") = rest_state;
     }
-    return HTTPResponse(inmsg, outmsg, listXml);
+    char const * json_arrays[] = { "job", NULL };
+    return HTTPResponse(inmsg, outmsg, listXml, json_arrays);
   } else if(context.method == "POST") {
     std::string action = context["action"];
     if(action == "new") {
@@ -1042,7 +1086,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
           return HTTPFault(inmsg,outmsg,500,"Payload is not recognized");
           break;
       }
-      return HTTPPOSTResponse(inmsg, outmsg, listXml);
+      char const * json_arrays[] = { "job", NULL };
+      return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "info") {
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
@@ -1051,7 +1096,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobInfo(inmsg,*config,logger_,*id,jobXml);
       }
-      return HTTPPOSTResponse(inmsg, outmsg, listXml);
+      char const * json_arrays[] = { "job", NULL };
+      return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "status") {
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
@@ -1060,7 +1106,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobStatus(inmsg,*config,logger_,*id,jobXml);
       }
-      return HTTPPOSTResponse(inmsg, outmsg, listXml);
+      char const * json_arrays[] = { "job", NULL };
+      return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "kill") {
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
@@ -1069,7 +1116,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobKill(inmsg,*config,logger_,*id,jobXml);
       }
-      return HTTPPOSTResponse(inmsg, outmsg, listXml);
+      char const * json_arrays[] = { "job", NULL };
+      return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "clean") {
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
@@ -1078,7 +1126,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobClean(inmsg,*config,logger_,*id,jobXml);
       }
-      return HTTPPOSTResponse(inmsg, outmsg, listXml);
+      char const * json_arrays[] = { "job", NULL };
+      return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "restart") {
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
@@ -1087,7 +1136,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobRestart(inmsg,*config,logger_,*id,jobXml);
       }
-      return HTTPPOSTResponse(inmsg, outmsg, listXml);
+      char const * json_arrays[] = { "job", NULL };
+      return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "delegations") {
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
@@ -1096,7 +1146,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobDelegations(inmsg,*config,logger_,*id,jobXml,delegation_stores_);
       }
-      return HTTPPOSTResponse(inmsg, outmsg, listXml);      
+      char const * json_arrays[] = { "job", NULL };
+      return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);      
     }
     logger_.msg(Arc::VERBOSE, "process: action %s is not supported for subpath %s",action,context.processed);
     return HTTPFault(inmsg,outmsg,501,"Action not implemented");
@@ -1570,7 +1621,8 @@ Arc::MCC_Status ARexRest::processJobSessionDir(Arc::Message& inmsg,Arc::Message&
           };
         };
       };
-      return HTTPResponse(inmsg,outmsg,listXml);
+      char const * json_arrays[] = { "file", "dir", NULL };
+      return HTTPResponse(inmsg,outmsg,listXml,json_arrays);
     };
     FileAccessRef file(job.OpenFile(context.subpath,true,false));
     if(file) {
@@ -1727,7 +1779,8 @@ Arc::MCC_Status ARexRest::processJobDelegations(Arc::Message& inmsg,Arc::Message
     for(std::list<std::string>::iterator itId = ids.begin(); itId != ids.end(); ++itId) {
       listXml.NewChild("delegation").NewChild("id") = *itId;
     }
-    return HTTPResponse(inmsg, outmsg, listXml);
+    char const * json_arrays[] = { "delegation", NULL };
+    return HTTPResponse(inmsg, outmsg, listXml, json_arrays);
   }
   logger_.msg(Arc::VERBOSE, "process: method %s is not supported for subpath %s",context.method,context.processed);
   return HTTPFault(inmsg,outmsg,501,"Not Implemented");
