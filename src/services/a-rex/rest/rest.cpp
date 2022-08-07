@@ -40,13 +40,26 @@ enum ResponseFormat {
 
 static void RenderToJson(Arc::XMLNode xml, std::string& output, char const * array_paths[], int depth = 0) {
     if(xml.Size() == 0) {
-        std::string val = json_encode((std::string)xml);
-        if((depth != 0) || (!val.empty())) {
-            output += "\"";
-            output += val;
-            output += "\"";
-        }
-        return;
+	// Either it is a value or it has forced array sub-elements.
+	bool has_arrays = false;
+        if(array_paths) {
+            for(int idx = 0; array_paths[idx]; ++idx) {
+	        char const * array_path = array_paths[idx];
+	        char const * sep = strchr(array_path, '/');
+	        if(sep) continue; // not last element of path
+		has_arrays = true;
+		break;
+	    }
+	}
+        if(!has_arrays) {
+            std::string val = json_encode((std::string)xml);
+            if((depth != 0) || (!val.empty())) {
+                output += "\"";
+                output += val;
+                output += "\"";
+            }
+            return;
+	}
     }
     output += "{";
     // Because JSON does not allow for same key we must first
