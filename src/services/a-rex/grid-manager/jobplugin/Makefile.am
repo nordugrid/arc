@@ -6,7 +6,7 @@ pkglib_LTLIBRARIES = jobsplugin.la
 
 jobsplugin_la_SOURCES = jobplugin.cpp jobplugin_acl.cpp jobplugin.h init.cpp
 jobsplugin_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(DBCXX_CPPFLAGS) \
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
 	$(GLOBUS_FTP_CLIENT_CFLAGS) $(AM_CXXFLAGS)
 jobsplugin_la_LDFLAGS = -no-undefined -avoid-version -module
 
@@ -23,4 +23,4 @@ jobsplugin_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/security/libarcsecurity.la \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
-	$(DBCXX_LIBS) $(SQLITE_LIBS) $(GLOBUS_JOBPLUGIN_LIBS) -lpthread
+	$(SQLITE_LIBS) $(GLOBUS_JOBPLUGIN_LIBS) -lpthread

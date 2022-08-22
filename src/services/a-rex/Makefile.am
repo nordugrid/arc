@@ -50,7 +50,7 @@ libarex_la_SOURCES  = arex.cpp job.cpp \
 	information_collector.cpp cachecheck.cpp tools.cpp \
 	arex.h job.h PayloadFile.h FileChunks.h tools.h
 libarex_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 # Needs real cleaning in respect to dependencies
 libarex_la_LIBADD = \
 	$(GRIDMANAGER_LIBS) \
@@ -64,7 +64,7 @@ libarex_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/otokens/libarcotokens.la
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
-libarex_la_LDFLAGS = -no-undefined -avoid-version -module $(DBCXX_LIBS)
+libarex_la_LDFLAGS = -no-undefined -avoid-version -module
 
 test_cache_check_SOURCES = test_cache_check.cpp
 test_cache_check_CXXFLAGS = -I$(top_srcdir)/include \

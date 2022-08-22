@@ -17,8 +17,7 @@ from __future__ import print_function
 # Configuration variables
 #
 # Type of storage 
-types = ["XML", "BDB"]
-#types = ["BDB"]
+types = ["XML"]
 #nmeasurements = 20
 nmeasurements = 2
 storage_filename = "/tmp/jobs.dat"

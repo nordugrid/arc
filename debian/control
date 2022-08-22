@@ -17,7 +17,6 @@ Build-Depends:
  uuid-dev,
  libcppunit-dev,
  pkg-config,
- libdb++-dev,
  libxmlsec1-dev (>= 1.2.4),
  libglobus-common-dev,
  libglobus-gssapi-gsi-dev,

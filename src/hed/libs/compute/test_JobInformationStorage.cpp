@@ -13,9 +13,6 @@
 #include <arc/Logger.h>
 #include <arc/compute/Job.h>
 #include "JobInformationStorageXML.h"
-#ifdef DBJSTORE_ENABLED
-#include "JobInformationStorageBDB.h"
-#endif
 
 
 int main(int argc, char **argv) {
@@ -39,7 +36,7 @@ int main(int argc, char **argv) {
   options.AddOption('f', "filename", "", "", filename);
   
   std::string typeS = "";
-  options.AddOption('t', "type", "Type of storage back-end to use (BDB or XML)", "type", typeS);
+  options.AddOption('t', "type", "Type of storage back-end to use (XML)", "type", typeS);
   
   std::string hostname = "test.nordugrid.org";
   options.AddOption(0, "hostname", "", "", hostname);
@@ -75,12 +72,6 @@ int main(int argc, char **argv) {
     Arc::JobInformationStorageXML *jisXML = new Arc::JobInformationStorageXML(filename);
     jisPointer = (Arc::JobInformationStorage**)&jisXML;
   }
-#ifdef DBJSTORE_ENABLED
-  else if (typeS == "BDB") {
-    Arc::JobInformationStorageBDB *jisDB4 = new Arc::JobInformationStorageBDB(filename);
-    jisPointer = (Arc::JobInformationStorage**)&jisDB4;
-  }
-#endif
   else {
     std::cerr << "ERROR: Unable to determine storage back-end to use." << std::endl;
     return 1;

@@ -244,19 +244,6 @@ BuildRequires:	gfal2-devel
 %if %{with_s3}
 BuildRequires:	libs3-devel
 %endif
-%if %{?suse_version}%{!?suse_version:0} == 1110
-BuildRequires:	db43-devel
-%else
-%if %{?fedora}%{!?fedora:0} >= 15 || %{?rhel}%{!?rhel:0} >= 7
-BuildRequires:	libdb-cxx-devel
-%else
-%if %{?fedora}%{!?fedora:0} == 14
-BuildRequires:	libdb-devel
-%else
-BuildRequires:	db4-devel
-%endif
-%endif
-%endif
 %if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0}
 BuildRequires:	perl-generators
 %endif
@@ -1439,7 +1426,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/cache-clean
 %{_libexecdir}/%{pkgdir}/cache-list
 %{_libexecdir}/%{pkgdir}/jura-ng
-%{_libexecdir}/%{pkgdir}/gm-delegations-converter
 %{_libexecdir}/%{pkgdir}/gm-jobs
 %{_libexecdir}/%{pkgdir}/gm-kick
 %{_libexecdir}/%{pkgdir}/smtp-send
@@ -1499,7 +1485,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/arc-config-check.1*
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
-%doc %{_mandir}/man8/gm-delegations-converter.8*
 %doc %{_mandir}/man8/gm-jobs.8*
 %doc %{_mandir}/man8/arc-blahp-logger.8*
 %doc %{_mandir}/man8/a-rex-backtrace-collect.8*

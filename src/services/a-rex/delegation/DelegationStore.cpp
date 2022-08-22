@@ -13,9 +13,6 @@
 #include <arc/FileUtils.h>
 
 #include "FileRecordSQLite.h"
-#ifdef HAVE_DBCXX
-#include "FileRecordBDB.h"
-#endif
 
 #include "DelegationStore.h"
 
@@ -29,11 +26,6 @@ namespace ARex {
     mtimeout_ = 0;
     mrec_ = NULL;
     switch(db) {
-#ifdef HAVE_DBCXX
-      case DbBerkeley:
-        fstore_ = new FileRecordBDB(base, allow_recover);
-        break;
-#endif
       case DbSQLite:
         fstore_ = new FileRecordSQLite(base, allow_recover);
         break;
@@ -68,11 +60,6 @@ namespace ARex {
             };
           };
           switch(db) {
-#ifdef HAVE_DBCXX
-            case DbBerkeley:
-              fstore_ = new FileRecordBDB(base);
-              break;
-#endif
             case DbSQLite:
               fstore_ = new FileRecordSQLite(base);
               break;
