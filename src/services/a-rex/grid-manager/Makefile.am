@@ -6,28 +6,20 @@ endif
 
 SUBDIRS = accounting jobs run conf misc log mail files $(JOBPLUGIN_DIR)
 
-if DBCXX_ENABLED
-GM_DELEGATIONS_CONVERTER = gm-delegations-converter
-GM_DELEGATIONS_CONVERTER_MAN = gm-delegations-converter.8
-else
-GM_DELEGATIONS_CONVERTER =
-GM_DELEGATIONS_CONVERTER_MAN =
-endif
-
 noinst_LTLIBRARIES = libgridmanager.la
-pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck arc-blahp-logger $(GM_DELEGATIONS_CONVERTER)
+pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck arc-blahp-logger
 noinst_PROGRAMS = test_write_grami_file
 dist_pkglibexec_SCRIPTS = arc-config-check
 
-man_MANS = arc-config-check.1 arc-blahp-logger.8 gm-jobs.8 $(GM_DELEGATIONS_CONVERTER_MAN)
+man_MANS = arc-config-check.1 arc-blahp-logger.8 gm-jobs.8
 
 libgridmanager_la_SOURCES = GridManager.cpp GridManager.h
 libgridmanager_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 libgridmanager_la_LIBADD = \
 	jobs/libjobs.la conf/libconf.la log/liblog.la files/libfiles.la \
 	run/librun.la misc/libmisc.la mail/libmail.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(DBCXX_LIBS) -lpthread
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) -lpthread
 
 gm_kick_SOURCES = gm_kick.cpp
 gm_kick_CXXFLAGS = -I$(top_srcdir)/include \
@@ -36,13 +28,8 @@ gm_kick_LDADD = libgridmanager.la
 
 gm_jobs_SOURCES = gm_jobs.cpp
 gm_jobs_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 gm_jobs_LDADD = libgridmanager.la ../delegation/libdelegation.la
-
-gm_delegations_converter_SOURCES = gm_delegations_converter.cpp
-gm_delegations_converter_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
-gm_delegations_converter_LDADD = libgridmanager.la ../delegation/libdelegation.la
 
 inputcheck_SOURCES = inputcheck.cpp
 inputcheck_CXXFLAGS = -I$(top_srcdir)/include \
@@ -60,5 +47,5 @@ arc_blahp_logger_LDADD = $(top_builddir)/src/hed/libs/credential/libarccredentia
 
 test_write_grami_file_SOURCES = test_write_grami_file.cpp
 test_write_grami_file_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
+	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 test_write_grami_file_LDADD = libgridmanager.la ../delegation/libdelegation.la

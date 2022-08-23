@@ -172,7 +172,6 @@ enables_s3=no
 enables_xrootd=yes
 enables_argus=no
 enables_xmlsec1=yes
-enables_dbjstore=yes
 enables_sqlitejstore=yes
 enables_ldns=yes
 #  Libraries and plugins
@@ -229,7 +228,6 @@ enables_argus=$enableval
 enables_cppunit=$enableval
 enables_doc=$enableval
 enables_acix=$enableval
-enables_dbjstore=$enableval
 enables_sqlitejstore=$enableval
 enables_ldns=$enableval
 ],
@@ -1154,161 +1152,6 @@ AC_SUBST(ARGUS_CFLAGS)
 AC_SUBST(ARGUS_LIBS)
 AM_CONDITIONAL(ARGUS_ENABLED, test "x$enables_argus" = "xyes")
 
-###############################################
-#
-# Check for Berkeley DB C++
-#
-###############################################
-DBCXX_LIBS=""
-DBCXX_CPPFLAGS=
-
-if test "$enables_hed" = "yes"; then
-
-#
-# Allow the user to specify db_cxx.h location (we will still check though)
-#
-
-dbcxx_include_paths=
-AC_ARG_WITH(dbcxx-include,
-   [  --with-dbcxx-include=PATH   Specify path to db_cxx.h],
-   [
-  if test "x$withval" = "xyes" ; then
-    AC_MSG_ERROR([--with-dbcxx-include requires PATH argument])
-  fi
-  if test "x$withval" != "xno" ; then
-    dbcxx_include_paths=$withval
-  fi
-   ]
-)
-
-#
-# Allow the user to specify DB4 library location (we will still check though)
-#
-
-db4_library_path=
-AC_ARG_WITH(db4-library-path,
-   [  --with-db4-library-path=PATH   Specify path to DB4 library],
-   [
-  if test "x$withval" = "xyes" ; then
-    AC_MSG_ERROR([--with-db4-library-path requires PATH argument])
-  fi
-  if test "x$withval" != "xno" ; then
-    db4_library_path=$withval
-  fi
-   ]
-)
-
-AC_LANG_SAVE
-AC_LANG_CPLUSPLUS
-
-#
-# If user did not specify location we start by searching at the standard locations
-#
-
-if test "x$dbcxx_include_paths" = "x"
-then
-  AC_MSG_NOTICE([Looking for db_cxx.h in standard locations])
-  AC_CHECK_HEADERS(db_cxx.h,HAVE_DBCXX=yes,HAVE_DBCXX=no)
-  # If the user did not provide a location we have some good suggestions
-  dbcxx_include_paths="/usr/include/db4 /usr/include/db44 /usr/include/db43"
-else
-  HAVE_DBCXX=no
-fi
-
-#
-# Now Look for db_cxx.h in non-standard locations
-#
-
-if test "$HAVE_DBCXX" = no
-then
-  for dbcxx_dir in $dbcxx_include_paths
-  do
-    SAVE_CPPFLAGS=$CPPFLAGS
-    DBCXX_CPPFLAGS=-I$dbcxx_dir
-    CPPFLAGS="$CPPFLAGS $DBCXX_CPPFLAGS"
-    # Disable Autoconf caching
-    unset ac_cv_header_db_cxx_h
-    AC_MSG_NOTICE([Looking for db_cxx.h in $dbcxx_dir])
-    AC_CHECK_HEADERS(db_cxx.h,HAVE_DBCXX=yes,HAVE_DBCXX=no)
-    CPPFLAGS=$SAVE_CPPFLAGS
-    # If a db_cxx.h was found we break and keep the current value of DBCXX_CPPFLAGS
-    if test "$HAVE_DBCXX" = yes
-    then
-      break
-    fi
-    DBCXX_CPPFLAGS=
-  done
-fi
-AC_SUBST(DBCXX_CPPFLAGS)
-
-if test "x$db4_library_path" != "x"
-then
-  db4_library_path="-L$db4_library_path"
-fi
-
-if test "$HAVE_DBCXX" = no
-then
-  DBCXX_LIBS=""
-else
-  SAVE_LDFLAGS=$LDFLAGS
-  SAVE_CXXFLAGS=$CXXFLAGS
-
-  # pthread needed for RH9
-  LDFLAGS="$LDFLAGS -lpthread"
-
-  LDFLAGS="$LDFLAGS $db4_library_path"
-
-  for db_ver in "" -4.7 -4.3 -4.2
-  do
-    AC_CHECK_LIB(db_cxx$db_ver,main,DBCXX_LIBS="$db4_library_path -ldb_cxx$db_ver",DBCXX_LIBS="")
-
-    if test "$DBCXX_LIBS" = ""
-    then
-      AC_MSG_WARN([BerkeleyDB library libdb_cxx$db_ver was not found!])
-    else
-      break
-    fi
-  done
-
-  if test "$DBCXX_LIBS" = ""
-  then
-    AC_MSG_WARN([No BerkeleyDB library found!])
-  fi
-
-  LDFLAGS=$SAVE_LDFLAGS
-  CXXFLAGS=$SAVE_CXXFLAGS
-fi
-
-AC_SUBST(DBCXX_LIBS)
-if test ! "x$DBCXX_LIBS" = "x"
-then
-  AC_DEFINE(HAVE_DBCXX, 1, [define if Berkeley DB C++ binding is available])
-  SAVE_CXXFLAGS=$CXXFLAGS
-  CXXFLAGS="$CXXFLAGS $DBCXX_CPPFLAGS"
-  AC_DBCXX_HAVE_DBDEADLOCKEXCEPTION
-  CXXFLAGS=$SAVE_CXXFLAGS
-fi
-AC_LANG_RESTORE
-AM_CONDITIONAL([DBCXX_ENABLED], test ! "x$DBCXX_LIBS" = "x")
-
-fi
-
-# DBJSTORE (storing job information in BDB)
-AC_ARG_ENABLE(dbjstore, AC_HELP_STRING([--disable-dbjstore], [disable storing local job information in BDB]),
-  [enables_dbjstore=$enableval],[])
-if test "$enables_dbjstore" = "yes"; then
-  if test "x$DBCXX_LIBS" = "x" ; then
-    AC_MSG_NOTICE([For storing jobs in BDB C++ API is needed (dbcxx) - disabling])
-    enables_dbjstore="no"
-  fi
-fi
-AC_MSG_NOTICE([Storing jobs in BDB enabled: $enables_dbjstore])
-AM_CONDITIONAL([DBJSTORE_ENABLED],[test "x$enables_dbjstore" = "xyes"])
-if test "x$enables_dbjstore" = "xyes"; then
-  AC_DEFINE(DBJSTORE_ENABLED, 1,
-    [define to build job information in BDB storage])
-fi
-
 # SQLITEJSTORE (storing job information in SQLite)
 AC_ARG_ENABLE(sqlitejstore, AC_HELP_STRING([--disable-sqlitejstore], [disable storing local job information in SQLite]),
   [enables_sqlitejstore=$enableval],[])
@@ -1710,8 +1553,6 @@ fi
 # Setup messages for reporting
 enables_gridftp=no
 if test -n "$GLOBUS_FTP_CLIENT_VERSION" ; then enables_gridftp=yes; fi
-enables_dbcxx=no
-if test -n "$DBCXX_LIBS" ; then enables_dbcxx=yes; fi
 enables_sqlite=no
 if test "x$SQLITE_INSTALLED" = "xyes" ; then enables_sqlite=yes; fi
 
@@ -2263,7 +2104,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/perferator
                  src/services/a-rex/grid-manager/arc-blahp-logger.8
                  src/services/a-rex/grid-manager/gm-jobs.8
-                 src/services/a-rex/grid-manager/gm-delegations-converter.8
                  src/services/a-rex/rest/Makefile
                  src/services/a-rex/delegation/Makefile
                  src/services/a-rex/grid-manager/Makefile
@@ -2485,13 +2325,11 @@ LDAP:               ${enables_ldap}
 xmlsec1:            ${enables_xmlsec1}
 ARGUS:              ${enables_argus}
 NSS:                ${enables_nss}
-BDB C++:            ${enables_dbcxx}
 SQLite:             ${enables_sqlite}
 LDNS:               ${enables_ldns}
 
 Enabled features:
 
-Local jobs info in BDB:    ${enables_dbjstore}
 Local jobs info in SQLite: ${enables_sqlitejstore}
 Systemd Integration:       ${enables_systemd}
 

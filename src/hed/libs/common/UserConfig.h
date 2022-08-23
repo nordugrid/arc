@@ -486,7 +486,7 @@ namespace Arc {
     
     /// Set type of job storage
     /**
-     * Possible storage types are BDB and XML. This method always return true.
+     * Possible storage types are SQLITE and XML. This method always return true.
      * 
      * The attribute associated with this setter method is 'joblisttype'.
      * 

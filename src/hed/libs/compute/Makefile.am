@@ -1,18 +1,6 @@
 lib_LTLIBRARIES = libarccompute.la
 noinst_PROGRAMS = test_jobdescription test_JobInformationStorage
 
-if DBJSTORE_ENABLED
-HEADER_WITH_DBJSTORE   = JobInformationStorageBDB.h
-SOURCE_WITH_DBJSTORE   = JobInformationStorageBDB.cpp
-CXXFLAGS_WITH_DBJSTORE = $(DBCXX_CPPFLAGS)
-LIBADD_WITH_DBJSTORE   = $(DBCXX_LIBS)
-else
-HEADER_WITH_DBJSTORE   =
-SOURCE_WITH_DBJSTORE   =
-CXXFLAGS_WITH_DBJSTORE =
-LIBADD_WITH_DBJSTORE   =
-endif
-
 if SQLITEJSTORE_ENABLED
 HEADER_WITH_SQLITEJSTORE   = JobInformationStorageSQLite.h
 SOURCE_WITH_SQLITEJSTORE   = JobInformationStorageSQLite.cpp
@@ -33,7 +21,7 @@ libarccompute_la_HEADERS = Broker.h BrokerPlugin.h ExecutionTarget.h \
 	GLUE2.h EndpointQueryingStatus.h TestACCControl.h \
 	EntityRetriever.h EntityRetrieverPlugin.h Endpoint.h WSCommonPlugin.h \
 	ComputingServiceRetriever.h JobInformationStorage.h \
-	JobInformationStorageXML.h $(HEADER_WITH_DBJSTORE) $(HEADER_WITH_SQLITEJSTORE)
+	JobInformationStorageXML.h $(HEADER_WITH_SQLITEJSTORE)
 libarccompute_la_SOURCES = Broker.cpp BrokerPlugin.cpp ExecutionTarget.cpp \
 	Submitter.cpp SubmitterPlugin.cpp \
 	JobState.cpp Job.cpp JobControllerPlugin.cpp JobSupervisor.cpp \
@@ -42,10 +30,10 @@ libarccompute_la_SOURCES = Broker.cpp BrokerPlugin.cpp ExecutionTarget.cpp \
 	EntityRetriever.cpp EntityRetrieverPlugin.cpp Endpoint.cpp \
 	ComputingServiceRetriever.cpp \
 	JobInformationStorageDescriptor.cpp \
-	JobInformationStorageXML.cpp $(SOURCE_WITH_DBJSTORE) $(SOURCE_WITH_SQLITEJSTORE)
+	JobInformationStorageXML.cpp $(SOURCE_WITH_SQLITEJSTORE)
 libarccompute_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) \
-	$(CXXFLAGS_WITH_DBJSTORE) $(CXXFLAGS_WITH_SQLITEJSTORE) $(AM_CXXFLAGS)
+	$(CXXFLAGS_WITH_SQLITEJSTORE) $(AM_CXXFLAGS)
 libarccompute_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/delegation/libarcdelegation.la \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
@@ -53,7 +41,7 @@ libarccompute_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(LIBADD_WITH_DBJSTORE) $(LIBADD_WITH_SQLITEJSTORE)
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(LIBADD_WITH_SQLITEJSTORE)
 libarccompute_la_LDFLAGS = -version-info 3:0:0
 
 test_jobdescription_SOURCES = test_jobdescription.cpp
@@ -61,11 +49,11 @@ test_jobdescription_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 test_jobdescription_LDADD = libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(DBCXX_LIBS)
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
 
 test_JobInformationStorage_SOURCES = test_JobInformationStorage.cpp
 test_JobInformationStorage_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(DBCXX_CPPFLAGS) $(AM_CXXFLAGS)
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 test_JobInformationStorage_LDADD = libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
