@@ -828,10 +828,10 @@ namespace ArcDMCSRM {
 
     std::string option_protocols(url.Option("transferprotocol"));
     if (option_protocols.empty()) {
-      transport_protocols.push_back("gsiftp");
       transport_protocols.push_back("http");
       transport_protocols.push_back("https");
       transport_protocols.push_back("httpg");
+      transport_protocols.push_back("gsiftp");
       transport_protocols.push_back("ftp");
     } else {
       tokenize(option_protocols, transport_protocols, ",");
