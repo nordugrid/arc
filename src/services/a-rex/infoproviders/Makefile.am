@@ -1,11 +1,3 @@
-pythondir = $(PYTHON_SITE_ARCH)/arc
-
-if PYTHON_LRMS_ENABLED
-    PYTHON_LRMS = SLURMPYmod.pm
-else
-    PYTHON_LRMS =
-endif
-
 pkgdata_SCRIPTS = CEinfo.pl PerfData.pl
 
 dist_pkgdata_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm PBSPRO.pm \
@@ -17,7 +9,7 @@ dist_pkgdata_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm PBSPRO.pm \
 	SGE.pm Fork.pm \
 	XmlPrinter.pm GLUE2xmlPrinter.pm \
 	LdifPrinter.pm GLUE2ldifPrinter.pm \
-	NGldifPrinter.pm InfosysHelper.pm $(PYTHON_LRMS)
+	NGldifPrinter.pm InfosysHelper.pm
 
 pkgdata_DATA = ConfigCentral.pm
 
@@ -32,7 +24,6 @@ PERL = @PERL@
 PERLSCRIPTS = $(dist_pkgdata_DATA) CEinfo.pl
 
 TESTS_ENVIRONMENT = \
-	PYTHONPATH=$(abs_top_builddir)/python/python:$(abs_top_builddir)/python/python/arc/.libs:$(abs_top_srcdir)/src/services/a-rex/infoproviders:$(abs_builddir) \
 	$(PERL) -I$(srcdir) -Mstrict -wc
 TESTS = $(PERLSCRIPTS)
 

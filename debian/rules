@@ -10,13 +10,7 @@ export DEB_CXXFLAGS_MAINT_APPEND=-std=c++11
 endif
 endif
 
-ifeq ($(shell perl -mInline::Python < /dev/null 2>/dev/null && echo 1),1)
-N =
-else
-N = -Nnordugrid-arc-arex-python-lrms
-endif
-
-ifeq ($(shell dpkg-query -W -f '$${Depends}' libinline-python-perl 2>/dev/null | grep -q python3 && echo 1),1)
+ifeq ($(shell dpkg --compare-versions $$(dpkg-query -W -f '$${Version}' python3) ge 3.7.4 && echo 1),1)
 PYVER = 3
 WITH_ALT_PYTHON =
 P = -Npython-nordugrid-arc
@@ -69,7 +63,7 @@ NA =
 endif
 
 %:
-	dh $@ --with autoreconf $(WSD) --with python$(PYVER) $(P) $(N) $(NA)
+	dh $@ --with autoreconf $(WSD) --with python$(PYVER) $(P) $(NA)
 
 override_dh_auto_configure:
 	if [ ! -f po/POTFILES.in.save ] ; then \
@@ -258,8 +252,6 @@ override_dh_python2:
 		>> debian/nordugrid-arc-archery-manage.substvars
 	echo "pydeps:Depends=python-nordugrid-arc (= \$${binary:Version})" \
 		>> debian/nordugrid-arc-plugins-python.substvars
-	echo "pydeps:Depends=python-nordugrid-arc (= \$${binary:Version})" \
-		>> debian/nordugrid-arc-arex-python-lrms.substvars
 endif
 
 ifeq ($(PYVER),3)
@@ -278,6 +270,4 @@ override_dh_python3:
 		>> debian/nordugrid-arc-archery-manage.substvars
 	echo "pydeps:Depends=python3-nordugrid-arc (= \$${binary:Version})" \
 		>> debian/nordugrid-arc-plugins-python.substvars
-	echo "pydeps:Depends=python3-nordugrid-arc (= \$${binary:Version})" \
-		>> debian/nordugrid-arc-arex-python-lrms.substvars
 endif

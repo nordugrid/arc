@@ -88,12 +88,6 @@
 %global with_xmlsec1 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 21 || ( %{?rhel}%{!?rhel:0} >= 6 && %{?rhel}%{!?rhel:0} <= 8 )
-%global with_pythonlrms 1
-%else
-%global with_pythonlrms 0
-%endif
-
 # LDNS
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 5
 %global with_ldns 1
@@ -185,6 +179,7 @@ Obsoletes:	%{name}-doxygen < 4.0.0
 Obsoletes:	%{name}-arcproxyalt < 6.0.0
 Obsoletes:	%{name}-java < 6.0.0
 Obsoletes:	%{name}-egiis < 6.0.0
+Obsoletes:	%{name}-arex-python-lrms < 7.0.0
 %if ! %{with_python2}
 Obsoletes:	python2-%{name} < %{version}-%{release}
 Obsoletes:	%{name}-python < 5.3.3
@@ -294,10 +289,6 @@ BuildRequires:	swig
 BuildRequires:	libtool-ltdl-devel
 %else
 BuildRequires:	libtool
-%endif
-%if %{with_pythonlrms}
-BuildRequires:	perl(Inline)
-BuildRequires:	perl(Inline::Python)
 %endif
 BuildRequires:	sqlite-devel >= 3.6
 %if %{with_ldns}
@@ -544,29 +535,6 @@ batch systems, taking care of complex environments such as data
 staging, data caching, software environment provisioning, information
 collection and exposure, accounting information gathering and
 publishing.
-
-%if %{with_pythonlrms}
-%package arex-python-lrms
-Summary:	ARC Resource-coupled EXecution service - Python LRMS backends
-Group:		System Environment/Libraries
-Requires:	%{name}-arex = %{version}-%{release}
-%if %{py3default}
-Requires:	python%{python3_pkgversion}-%{name} = %{version}-%{release}
-%else
-Requires:	python2-%{name} = %{version}-%{release}
-%endif
-Requires:	perl(Inline)
-Requires:	perl(Inline::Python)
-
-%description arex-python-lrms
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the middleware, known as the Advanced Resource
-Connector (ARC).
-
-The Python LRMS backends are a new implementation of the AREX LRMS
-backend scripts written in Python. Currently only the SLURM LRMS is
-supported. It is released as a technology preview.
-%endif
 
 %package community-rtes
 Summary:	ARC Community defined RTEs support
@@ -1007,9 +975,6 @@ fi
 %endif
 %if ! %{with_xrootd}
      --disable-xrootd \
-%endif
-%if %{with_pythonlrms}
-     --with-inline-python \
 %endif
 %if ! %{with_ldns}
      --disable-ldns \
@@ -1544,19 +1509,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/rte/ENV/CONDOR/DOCKER
 %{_sbindir}/a-rex-backtrace-collect
 %config(noreplace) %{_sysconfdir}/arc.conf
-
-%if %{with_pythonlrms}
-%files arex-python-lrms
-%defattr(-,root,root,-)
-%{_libexecdir}/%{pkgdir}/arc-sshfs-mount
-%if %{py3default}
-%{python3_sitearch}/%{pkgdir}/lrms
-%else
-%{python2_sitearch}/%{pkgdir}/lrms
-%endif
-%{_datadir}/%{pkgdir}/SLURMPYmod.pm
-%{_datadir}/%{pkgdir}/job_script.stubs
-%endif
 
 %files community-rtes
 %defattr(-,root,root,-)

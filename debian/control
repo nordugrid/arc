@@ -33,14 +33,13 @@ Build-Depends:
  libsqlite3-dev (>= 3.6),
  libldns-dev,
  libsystemd-dev [linux-any] | debhelper (<< 9.20150101) [linux-any],
- libinline-python-perl | dpkg (<< 1.18),
  bash-completion,
- python-dev | libinline-python-perl (>= 0.56-2~),
- python-twisted | libinline-python-perl (>= 0.56-2~),
- python-openssl | libinline-python-perl (>= 0.56-2~),
+ python-dev | python3 (>= 3.7.4),
+ python-twisted | python3 (>= 3.7.4),
+ python-openssl | python3 (>= 3.7.4),
  python3-dev,
- python3-twisted | libinline-python-perl (<< 0.56-2~) | dpkg (<< 1.18),
- python3-openssl | libinline-python-perl (<< 0.56-2~) | dpkg (<< 1.18)
+ python3-twisted | python3 (<< 3.7.4),
+ python3-openssl | python3 (<< 3.7.4)
 XS-Python-Version: current
 Standards-Version: 4.4.1
 Homepage: http://www.nordugrid.org
@@ -60,7 +59,8 @@ Conflicts:
  nordugrid-arc-doxygen (<< 4.0.0~),
  nordugrid-arc-arcproxyalt (<< 6.0.0~),
  nordugrid-arc-java (<< 6.0.0~),
- nordugrid-arc-egiis (<< 6.0.0~)
+ nordugrid-arc-egiis (<< 6.0.0~),
+ nordugrid-arc-arex-python-lrms (<< 7.0.0~)
 Breaks:
  nordugrid-arc-hed (<< 1.0.1~rc2~),
  nordugrid-arc-arex (<< 2.0.1~),
@@ -302,29 +302,6 @@ Description: ARC Resource-coupled EXecution service
  staging, data caching, software environment provisioning, information
  collection and exposure, accounting information gathering and
  publishing.
-
-Package: nordugrid-arc-arex-python-lrms
-Replaces:
- nordugrid-arc-arex (<< 6.0.0~)
-Breaks:
- nordugrid-arc-arex (<< 6.0.0~)
-Architecture: any
-Depends:
- ${misc:Depends},
- ${python:Depends},
- ${python3:Depends},
- libinline-python-perl,
- nordugrid-arc-arex (= ${binary:Version}),
- ${pydeps:Depends}
-XB-Python-Version: ${python:Versions}
-Description: ARC Resource-coupled EXecution service - Python LRMS backends
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the middleware, known as the Advanced Resource
- Connector (ARC).
- .
- The Python LRMS backends are a new implementation of the AREX LRMS
- backend scripts written in Python. Currently only the SLURM LRMS is
- supported. It is released as a technology preview.
 
 Package: nordugrid-arc-community-rtes
 Architecture: all
@@ -694,6 +671,7 @@ Depends:
  ${python:Depends},
  ${python3:Depends},
  ${pydeps:Depends}
+XB-Python-Version: ${python:Versions}
 Description: ARCHERY administration tool
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
