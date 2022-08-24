@@ -9,13 +9,6 @@ DIST_SUBDIRS = delegation grid-manager infoproviders lrms schema internaljobplug
 
 pkglib_LTLIBRARIES = libarex.la
 noinst_PROGRAMS = test_cache_check
-if PYTHON_LRMS_ENABLED
-    PYTHON_LRMS_PKGLIBEXEC_FILES = arc-sshfs-mount
-else
-    PYTHON_LRMS_PKGLIBEXEC_FILES =
-endif
-
-pkglibexec_SCRIPTS = $(PYTHON_LRMS_PKGLIBEXEC_FILES)
 
 if SYSV_SCRIPTS_ENABLED
 AREX_SCRIPT = arc-arex arc-arex-ws
@@ -37,7 +30,7 @@ sbin_SCRIPTS = a-rex-backtrace-collect
 
 man_MANS = a-rex-backtrace-collect.8
 
-EXTRA_DIST = arc-sshfs-mount arc.zero.conf
+EXTRA_DIST = arc.zero.conf
 
 GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la rest/libarexrest.la
 

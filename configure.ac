@@ -1610,50 +1610,6 @@ if test $(echo "$perl_test_more_version_found" | cut -d. -f1) -gt $(echo "$min_p
 fi
 AC_SUBST(PERL_TEST_DIR)
 
-# Check for the Perl module Inline::Python - temporary during rewrite.
-PERL5LIB_INLINE_PYTHON=
-INLINE_PYTHON_FOUND=no
-AC_ARG_WITH(inline-python,
-  AC_HELP_STRING([--with-inline-python=<PATH>], [Location of the Perl module Inline::Python.]),
-  [if test "$with_inline_python" = "yes"
-   then
-     PERL5LIB_INLINE_PYTHON=
-     if ${PERL} -e "use Inline::Python; exit;" > /dev/null 2>&1
-     then
-       INLINE_PYTHON_FOUND="yes"
-       AC_MSG_NOTICE([Perl module Inline::Python found])
-     else
-       AC_MSG_ERROR([Perl module Inline::Python not found])
-     fi
-   elif test "$with_inline_python" = "no"
-   then
-     AC_MSG_NOTICE([Disabling PYTHON LRMS])
-   else
-     PERL5LIB_INLINE_PYTHON="$with_inline_python"
-     if test -d $PERL5LIB_INLINE_PYTHON; then
-       PERL5LIB_INLINE_PYTHON="-I${PERL5LIB_INLINE_PYTHON}"
-       if `${PERL} ${PERL5LIB_INLINE_PYTHON} -e "use Inline::Python; exit;" > /dev/null 2>&1`
-       then    
-         INLINE_PYTHON_FOUND="yes"
-         AC_MSG_NOTICE([Perl module Inline::Python found])
-       else
-         AC_MSG_ERROR([--with-inline-python given, but test failed: PERL5LIB_INLINE_PYTHON=${PERL5LIB_INLINE_PYTHON}])
-       fi
-     fi
-   fi
-   ],[
-   if `${PERL} -e "use Inline::Python; exit;" > /dev/null 2>&1`
-   then
-     INLINE_PYTHON_FOUND="yes"
-     AC_MSG_NOTICE([Perl module Inline::Python found])
-   else
-     AC_MSG_NOTICE([Perl module Inline::Python not found])
-   fi]
-)
-AC_SUBST(PERL5LIB_INLINE_PYTHON)
-AM_CONDITIONAL([PYTHON_LRMS_ENABLED],[test "x${INLINE_PYTHON_FOUND}" = "xyes"])
-
-
 # Check for the uuid lib
 UUID_LIBS=""
 if test "$enables_hed" = "yes"; then
@@ -2125,9 +2081,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/infoproviders/test/Makefile
                  src/services/a-rex/lrms/Makefile
                  src/services/a-rex/lrms/test/Makefile
-                 src/services/a-rex/lrms/arc/Makefile
-                 src/services/a-rex/lrms/arc/lrms/Makefile
-                 src/services/a-rex/lrms/arc/lrms/common/Makefile
                  src/services/a-rex/lrms/lrms_common.sh
                  src/services/a-rex/lrms/condor/Makefile
                  src/services/a-rex/lrms/condor/scan-condor-job
@@ -2168,13 +2121,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/boinc/submit-boinc-job
                  src/services/a-rex/lrms/boinc/scan-boinc-job
                  src/services/a-rex/lrms/boinc/cancel-boinc-job
-                 src/services/a-rex/lrms/slurmpy/Makefile
-                 src/services/a-rex/lrms/slurmpy/submit-SLURMPY-job
-                 src/services/a-rex/lrms/slurmpy/scan-SLURMPY-job
-                 src/services/a-rex/lrms/slurmpy/cancel-SLURMPY-job
-                 src/services/a-rex/lrms/slurmpy/test/Makefile
-                 src/services/a-rex/lrms/slurmpy/test/submit/Makefile
-                 src/services/a-rex/lrms/slurmpy/test/scan/Makefile
                  src/services/a-rex/rte/Makefile
                  src/services/a-rex/rte/ENV/PROXY
                  src/services/a-rex/rte/ENV/CANDYPOND
@@ -2332,9 +2278,6 @@ Enabled features:
 
 Local jobs info in SQLite: ${enables_sqlitejstore}
 Systemd Integration:       ${enables_systemd}
-
-Python LRMS back-end dependency:
-Inline::Python Perl module: ${INLINE_PYTHON_FOUND}
 
 Included components:
 HED:                ${enables_hed}
