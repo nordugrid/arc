@@ -160,7 +160,7 @@ build_ubuntu1804:
 
 
 #############################################################
-##             DEPLOY (ONLY MAIN REPO)                     ## 
+##             DEPLOY                                      ## 
 #############################################################
 
 .deploy: &deploy
@@ -209,9 +209,6 @@ build_ubuntu1804:
       - $CI_PROJECT_DIR/arc-logs/
       - $CI_PROJECT_DIR/arc-testlogs/
   allow_failure: true
-  only:
-    - branches@nordugrid/arc
-    - tags@nordugrid/arc
 
 
 ##################
@@ -336,9 +333,6 @@ deploy_ubuntu1804:
     - python3 /asserttest.py $TESTTYPE
   tags:
     - generic
-  only:
-    - branches@nordugrid/arc
-    - tags@nordugrid/arc
 
 
 ############################
