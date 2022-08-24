@@ -74,6 +74,12 @@ namespace ArcDMCRucio {
     Arc::URL auth_url;
     /// Our hostname
     std::string hostname;
+    /// Scope
+    std::string scope;
+    /// Filename
+    std::string name;
+    /// Parent dataset
+    std::string dataset;
     /// Length of time for which a token is valid
     const static Arc::Period token_validity;
     /// Map of url to Rucio RSE
@@ -86,6 +92,8 @@ namespace ArcDMCRucio {
     Arc::DataStatus postTraces(const char* data) const;
     /// Parse replica json
     Arc::DataStatus parseLocations(const std::string& content);
+    /// Parse DID json
+    Arc::DataStatus parseDIDs(const std::string& content);
     /// Send Rucio traces
     Arc::DataStatus sendTrace(const std::string& error_msg, const std::string& dn);
 

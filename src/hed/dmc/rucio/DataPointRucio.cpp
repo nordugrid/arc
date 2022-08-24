@@ -116,6 +116,17 @@ namespace ArcDMCRucio {
     }
     auth_url = URL(rucio_auth_url);
 
+    // Extract scope and filename
+    std::list<std::string> scopename;
+    tokenize(url.Path(), scopename, "/");
+    if (scopename.size() < 3) {
+      logger.msg(WARNING, "Strange path in Rucio URL: %s", url.str());
+    } else {
+      name = scopename.back();
+      scopename.pop_back();
+      scope = scopename.back();
+    }
+
     // Hostname (for traces)
     char host[256];
     if (gethostname(host, sizeof(host)) != 0) {
@@ -166,6 +177,24 @@ namespace ArcDMCRucio {
     std::string content;
     r = queryRucio(content, token);
     if (!r) return r;
+
+    // Query parent dataset for traces
+    std::string oldpath(url.Path());
+    url.ChangePath(std::string("/dids/"+scope+"/"+name+"/parents"));
+    std::string parentscontent;
+    r = queryRucio(parentscontent, token);
+    url.ChangePath(oldpath);
+
+    // If it fails log a warning but continue
+    if (!r) {
+      logger.msg(WARNING, "Failed to query parent DIDs: %s", std::string(r));
+    } else {
+      // Take first dataset returned
+      parentscontent = parentscontent.substr(0, parentscontent.find('\n'));
+      r = parseDIDs(parentscontent);
+      if (!r) logger.msg(WARNING, "Failed to parse Rucio info: %s", std::string(r));
+    }
+
     if (!osresolve) {
       return parseLocations(content);
     }
@@ -516,21 +545,40 @@ namespace ArcDMCRucio {
     return DataStatus::Success;
   }
 
+
+  DataStatus DataPointRucio::parseDIDs(const std::string& content) {
+
+    // parse JSON:
+    // {"name": "TXT.11804243._000002.tar.gz.1",
+    //  "scope": "mc15_13TeV",
+    //  "type": "DATASET"}
+
+    if (content.empty()) {
+      // empty response means no such file
+      return DataStatus(DataStatus::ReadResolveError, ENOENT);
+    }
+
+    AutoPointer<cJSON> root(cJSON_Parse(content.c_str()), &cJSON_Delete);
+    if (!root) {
+      logger.msg(ERROR, "Failed to parse Rucio response: %s", content);
+      return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
+    }
+    cJSON *dname = cJSON_GetObjectItem(root.Ptr(), "name");
+    if (!dname || dname->type != cJSON_String || !dname->valuestring) {
+      logger.msg(ERROR, "Filename not returned in Rucio response: %s", content);
+      return DataStatus(DataStatus::ReadResolveError, EARCRESINVAL, "Failed to parse Rucio response");
+    }
+
+    dataset = dname->valuestring;
+    logger.msg(VERBOSE, "Parent dataset: %s", dataset);
+    return DataStatus::Success;
+  }
+
+
   DataStatus DataPointRucio::sendTrace(const std::string& error_msg, const std::string& dn) {
     // Construct info
     // UUID
     std::string uuid = UUID();
-
-    // scope and filename
-    std::list<std::string> scopename;
-    tokenize(url.Path(), scopename, "/");
-    if (scopename.size() < 3) {
-      logger.msg(WARNING, "Strange path in Rucio URL: %s", url.str());
-      return DataStatus(DataStatus::GenericError, "Strange path in Rucio URL");
-    }
-    std::string filename = scopename.back();
-    scopename.pop_back();
-    std::string scope = scopename.back();
 
     // Filesize
     unsigned long long filesize(size);
@@ -570,7 +618,8 @@ namespace ArcDMCRucio {
     cJSON_AddStringToObject(root, "type", "rucio-trace");
     cJSON_AddStringToObject(root, "uuid", uuid.c_str());
     cJSON_AddStringToObject(root, "scope", scope.c_str());
-    cJSON_AddStringToObject(root, "filename", filename.c_str());
+    cJSON_AddStringToObject(root, "filename", name.c_str());
+    cJSON_AddStringToObject(root, "dataset", dataset.c_str());
     cJSON_AddNumberToObject(root, "filesize", filesize);
     cJSON_AddNumberToObject(root, "timeStart", timeStart);
     cJSON_AddStringToObject(root, "usrdn", usrdn.c_str());
