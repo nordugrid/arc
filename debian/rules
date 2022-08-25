@@ -48,22 +48,8 @@ else
 SYSDNOENBL =
 endif
 
-ifeq ($(PYVER),3)
-TWISTVER = $(shell dpkg-query -W -f '$${Version}' python3-twisted)
-else
-TWISTVER = $(shell dpkg-query -W -f '$${Version}' python-twisted)
-endif
-
-ifeq ($(shell dpkg --compare-versions $(TWISTVER) ge 22 && echo 1),1)
-ACIX = no
-NA = -Nnordugrid-arc-acix-core -Nnordugrid-arc-acix-scanner -Nnordugrid-arc-acix-index
-else
-ACIX = yes
-NA =
-endif
-
 %:
-	dh $@ --with autoreconf $(WSD) --with python$(PYVER) $(P) $(NA)
+	dh $@ --with autoreconf $(WSD) --with python$(PYVER) $(P)
 
 override_dh_auto_configure:
 	if [ ! -f po/POTFILES.in.save ] ; then \
@@ -76,7 +62,6 @@ override_dh_auto_configure:
 		    --libdir=/usr/lib \
 		    --libexecdir=/usr/lib \
 		    --docdir=/usr/share/doc/nordugrid-arc \
-		    --enable-acix=$(ACIX) \
 		    --enable-internal \
 		    --enable-systemd=$(SYSTEMD) \
 		    --with-systemd-units-location=/lib/systemd/system \
@@ -93,8 +78,6 @@ override_dh_auto_clean:
 	rm -f debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.init
 	rm -f debian/nordugrid-arc-gridftpd.arc-gridftpd.init
 	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.init
-	rm -f debian/nordugrid-arc-acix-scanner.arc-acix-scanner.init
-	rm -f debian/nordugrid-arc-acix-index.arc-acix-index.init
 
 	rm -f debian/nordugrid-arc-arex.arc-arex.service
 	rm -f debian/nordugrid-arc-arex.arc-arex-ws.service
@@ -103,8 +86,6 @@ override_dh_auto_clean:
 	rm -f debian/nordugrid-arc-gridftpd.arc-gridftpd.service
 	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.service
 	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap-slapd.service
-	rm -f debian/nordugrid-arc-acix-scanner.arc-acix-scanner.service
-	rm -f debian/nordugrid-arc-acix-index.arc-acix-index.service
 
 	rm -f debian/*.default
 	rm -f debian/*.maintscript
@@ -116,9 +97,6 @@ override_dh_auto_clean:
 
 	find python src -name *.pyc -exec rm {} ';'
 	find python src -depth -name __pycache__ -exec rm -rf {} ';'
-	rm -rf src/services/acix/*/test/_trial_temp
-	rm -rf src/services/a-rex/infoproviders/_Inline
-	rm -rf src/services/a-rex/infoproviders/test/_Inline
 
 override_dh_auto_install:
 	dh_auto_install
@@ -159,12 +137,6 @@ override_dh_auto_install:
 	   debian/nordugrid-arc-gridftpd.arc-gridftpd.init
 	mv debian/tmp/etc/init.d/arc-infosys-ldap \
 	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.init
-	if [ $(ACIX) = "yes" ] ; then \
-	mv debian/tmp/etc/init.d/arc-acix-scanner \
-	   debian/nordugrid-arc-acix-scanner.arc-acix-scanner.init ; \
-	mv debian/tmp/etc/init.d/arc-acix-index \
-	   debian/nordugrid-arc-acix-index.arc-acix-index.init ; \
-	fi
 
 	mv debian/tmp/lib/systemd/system/arc-arex.service \
 	   debian/nordugrid-arc-arex.arc-arex.service
@@ -180,12 +152,6 @@ override_dh_auto_install:
 	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.service
 	mv debian/tmp/lib/systemd/system/arc-infosys-ldap-slapd.service \
 	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap-slapd.service
-	if [ $(ACIX) = "yes" ] ; then \
-	mv debian/tmp/lib/systemd/system/arc-acix-scanner.service \
-	   debian/nordugrid-arc-acix-scanner.arc-acix-scanner.service ; \
-	mv debian/tmp/lib/systemd/system/arc-acix-index.service \
-	   debian/nordugrid-arc-acix-index.arc-acix-index.service ; \
-	fi
 
 	chmod 4755 debian/tmp/usr/bin/arc-job-cgroup
 
@@ -205,8 +171,6 @@ override_dh_installinit:
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-gridftpd --name arc-gridftpd
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
-	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-acix-scanner --name arc-acix-scanner
-	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-acix-index --name arc-acix-index
 
 override_dh_systemd_enable:
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-hed --name arched
@@ -216,8 +180,6 @@ override_dh_systemd_enable:
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-gridftpd --name arc-gridftpd
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap-slapd
-	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-acix-scanner --name arc-acix-scanner
-	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-acix-index --name arc-acix-index
 
 override_dh_systemd_start:
 	dh_systemd_start -p nordugrid-arc-hed --name arched
@@ -227,8 +189,6 @@ override_dh_systemd_start:
 	dh_systemd_start -p nordugrid-arc-gridftpd --name arc-gridftpd
 	dh_systemd_start -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
 	dh_systemd_start -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap-slapd
-	dh_systemd_start -p nordugrid-arc-acix-scanner --name arc-acix-scanner
-	dh_systemd_start -p nordugrid-arc-acix-index --name arc-acix-index
 
 override_dh_fixperms:
 	dh_fixperms -X /usr/bin/arc-job-cgroup
@@ -244,10 +204,6 @@ override_dh_python2:
 		>> debian/nordugrid-arc-arex.substvars
 	echo "pydeps:Depends=python-dnspython" \
 		>> debian/nordugrid-arc-community-rtes.substvars
-	if [ $(ACIX) = "yes" ] ; then \
-	echo "pydeps:Depends=python-twisted, python-openssl" \
-		>> debian/nordugrid-arc-acix-core.substvars ; \
-	fi
 	echo "pydeps:Depends=python-ldap, python-dnspython" \
 		>> debian/nordugrid-arc-archery-manage.substvars
 	echo "pydeps:Depends=python-nordugrid-arc (= \$${binary:Version})" \
@@ -262,10 +218,6 @@ override_dh_python3:
 		>> debian/nordugrid-arc-arex.substvars
 	echo "pydeps:Depends=python3-dnspython" \
 		>> debian/nordugrid-arc-community-rtes.substvars
-	if [ $(ACIX) = "yes" ] ; then \
-	echo "pydeps:Depends=python3-twisted, python3-openssl" \
-		>> debian/nordugrid-arc-acix-core.substvars ; \
-	fi
 	echo "pydeps:Depends=python3-ldap, python3-dnspython" \
 		>> debian/nordugrid-arc-archery-manage.substvars
 	echo "pydeps:Depends=python3-nordugrid-arc (= \$${binary:Version})" \

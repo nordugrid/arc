@@ -34,20 +34,14 @@ else
 DATADELIVERY_SERVICE =
 endif
 
-if ACIX_ENABLED
-ACIX = acix
-else
-ACIX =
-endif
-
 SUBDIRS = $(GRIDFTPD_SERVICE) $(AREX_SERVICE) $(LDAP_SERVICE) \
 	$(MONITOR) \
 	$(CANDYPOND_SERVICE) \
 	$(DATADELIVERY_SERVICE) \
-	$(ACIX) \
 	wrappers examples
 DIST_SUBDIRS = gridftpd a-rex ldap-infosys \
 	monitor \
 	candypond \
-	data-staging wrappers examples acix
+	data-staging \
+	wrappers examples
 

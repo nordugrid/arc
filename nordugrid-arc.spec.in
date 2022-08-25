@@ -64,12 +64,6 @@
 %global py3default 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 35 || %{?rhel}%{!?rhel:0} == 9
-%global with_acix 0
-%else
-%global with_acix 1
-%endif
-
 %if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 5
 %global with_s3 1
 %else
@@ -179,6 +173,10 @@ Obsoletes:	%{name}-doxygen < 4.0.0
 Obsoletes:	%{name}-arcproxyalt < 6.0.0
 Obsoletes:	%{name}-java < 6.0.0
 Obsoletes:	%{name}-egiis < 6.0.0
+Obsoletes:	%{name}-acix-cache < 6.0.0
+Obsoletes:	%{name}-acix-core < 7.0.0
+Obsoletes:	%{name}-acix-scanner < 7.0.0
+Obsoletes:	%{name}-acix-index < 7.0.0
 Obsoletes:	%{name}-arex-python-lrms < 7.0.0
 %if ! %{with_python2}
 Obsoletes:	python2-%{name} < %{version}-%{release}
@@ -253,25 +251,6 @@ BuildRequires:	perl(XML::Simple)
 # Needed for LRMS testing during make check
 BuildRequires:	perl(Test::Harness)
 BuildRequires:	perl(Test::Simple)
-# Needed to run ACIX unit tests
-%if %{with_acix}
-%if %{py3default}
-BuildRequires:	python3-twisted
-BuildRequires:	python3-pyOpenSSL
-%else
-%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 8 || %{?suse_version:1}%{!?suse_version:0}
-BuildRequires:	python-twisted
-%else
-BuildRequires:	python-twisted-core
-BuildRequires:	python-twisted-web
-%endif
-%if %{?suse_version:1}%{!?suse_version:0}
-BuildRequires:	python-openssl
-%else
-BuildRequires:	pyOpenSSL
-%endif
-%endif
-%endif
 BuildRequires:	swig
 %if %{?fedora}%{!?fedora:0} >= 4 || %{?rhel}%{!?rhel:0} >= 5
 BuildRequires:	libtool-ltdl-devel
@@ -729,86 +708,6 @@ Connector (ARC).
 
 ARC plugins dependent on Python.
 
-%if %{with_acix}
-%package acix-core
-Summary:	ARC cache index - core
-Group:		System Environment/Libraries
-%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
-BuildArch:	noarch
-%endif
-%if %{py3default}
-Requires:	python3-twisted
-Requires:	python3-pyOpenSSL
-%else
-%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 8 || %{?suse_version:1}%{!?suse_version:0}
-Requires:	python-twisted
-%else
-Requires:	python-twisted-core
-Requires:	python-twisted-web
-%endif
-%if %{?suse_version:1}%{!?suse_version:0}
-Requires:	python-openssl
-%else
-Requires:	pyOpenSSL
-%endif
-%endif
-
-%description acix-core
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the middleware, known as the Advanced Resource
-Connector (ARC).
-
-Core components of the ARC Cache Index (ACIX).
-
-%package acix-scanner
-Summary:	ARC cache index - scanner server
-Group:		System Environment/Libraries
-%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
-BuildArch:	noarch
-%endif
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-acix-core = %{version}-%{release}
-Requires:	%{name}-arcctl-service = %{version}-%{release}
-Obsoletes:	%{name}-acix-cache < 6.0.0
-
-Requires(post):		%{service_post_requires}
-Requires(preun):	%{service_preun_requires}
-Requires(postun):	%{service_postun_requires}
-
-%description acix-scanner
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the middleware, known as the Advanced Resource
-Connector (ARC).
-
-Cache scanner component of the ARC Cache Index (ACIX), usually
-installed alongside A-REX. This component collects information on the
-content of an A-REX cache.
-
-%package acix-index
-Summary:	ARC cache index - index server
-Group:		System Environment/Libraries
-%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
-BuildArch:	noarch
-%endif
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-arcctl-service = %{version}-%{release}
-Requires:	%{name}-acix-core = %{version}-%{release}
-
-Requires(post):		%{service_post_requires}
-Requires(preun):	%{service_preun_requires}
-Requires(postun):	%{service_postun_requires}
-
-%description acix-index
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the middleware, known as the Advanced Resource
-Connector (ARC).
-
-Index server component of the ARC Cache Index (ACIX), usually
-installed independently of any A-REX installation. This component
-pulls cache content from ACIX cache scanner servers and can be queried
-by clients for the location of cached files.
-%endif
-
 %package devel
 Summary:	ARC development files
 Group:		Development/Libraries
@@ -941,9 +840,6 @@ if pkg-config --atleast-version 2.6 sigc++-2.0 ; then
 fi
 
 %configure --disable-static \
-%if ! %{with_acix}
-     --disable-acix \
-%endif
 %if %{with_gfal}
      --enable-gfal \
 %endif
@@ -1142,26 +1038,6 @@ FIRST_ARG=1
 %else
 service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
-%endif
-
-%if %{with_acix}
-%post acix-scanner
-%enable_service arc-acix-scanner
-
-%preun acix-scanner
-%stop_on_removal arc-acix-scanner
-
-%postun acix-scanner
-%condrestart_on_update arc-acix-scanner
-
-%post acix-index
-%enable_service arc-acix-index
-
-%preun acix-index
-%stop_on_removal arc-acix-index
-
-%postun acix-index
-%condrestart_on_update arc-acix-index
 %endif
 
 %files -f %{name}.lang
@@ -1625,50 +1501,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libaccPythonBroker.apd
 %{_libdir}/%{pkgdir}/libpythonservice.so
 %{_libdir}/%{pkgdir}/libpythonservice.apd
-
-%if %{with_acix}
-%files acix-core
-%defattr(-,root,root,-)
-%if %{py3default}
-%dir %{python3_sitelib}/acix
-%{python3_sitelib}/acix/__init__.py
-%dir %{python3_sitelib}/acix/__pycache__
-%{python3_sitelib}/acix/__pycache__/__init__.*
-%{python3_sitelib}/acix/core
-%else
-%dir %{python2_sitelib}/acix
-%{python2_sitelib}/acix/__init__.py*
-%{python2_sitelib}/acix/core
-%endif
-
-%files acix-scanner
-%defattr(-,root,root,-)
-%if %{py3default}
-%{python3_sitelib}/acix/scanner
-%else
-%{python2_sitelib}/acix/scanner
-%endif
-%if %{use_systemd}
-%{_unitdir}/arc-acix-scanner.service
-%else
-%{_initrddir}/arc-acix-scanner
-%endif
-%{_datadir}/%{pkgdir}/arc-acix-scanner-start
-
-%files acix-index
-%defattr(-,root,root,-)
-%if %{py3default}
-%{python3_sitelib}/acix/indexserver
-%else
-%{python2_sitelib}/acix/indexserver
-%endif
-%if %{use_systemd}
-%{_unitdir}/arc-acix-index.service
-%else
-%{_initrddir}/arc-acix-index
-%endif
-%{_datadir}/%{pkgdir}/arc-acix-index-start
-%endif
 
 %files devel
 %defattr(-,root,root,-)
