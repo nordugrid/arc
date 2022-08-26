@@ -59,10 +59,13 @@ Conflicts:
  nordugrid-arc-arcproxyalt (<< 6.0.0~),
  nordugrid-arc-java (<< 6.0.0~),
  nordugrid-arc-egiis (<< 6.0.0~),
+ nordugrid-arc-aris (<< 6.0.0~),
+ nordugrid-arc-ldap-infosys (<< 6.0.0~),
  nordugrid-arc-acix-cache (<< 6.0.0~),
  nordugrid-arc-acix-core (<< 7.0.0~),
  nordugrid-arc-acix-scanner (<< 7.0.0~),
  nordugrid-arc-acix-index (<< 7.0.0~),
+ nordugrid-arc-infosys-ldap (<< 7.0.0~),
  nordugrid-arc-arex-python-lrms (<< 7.0.0~)
 Breaks:
  nordugrid-arc-hed (<< 1.0.1~rc2~),
@@ -159,36 +162,6 @@ Description: ARC data delivery service
  Connector (ARC).
  .
  This package contains the ARC data delivery service.
-
-Package: nordugrid-arc-infosys-ldap
-Provides:
- nordugrid-arc-ldap-infosys,
- nordugrid-arc-aris
-Replaces:
- nordugrid-arc-ldap-infosys (<< 6.0.0~),
- nordugrid-arc-aris (<< 6.0.0~),
- nordugrid-arc-ldap-egiis (<< 6.0.0~)
-Conflicts:
- nordugrid-arc-ldap-infosys (<< 6.0.0~),
- nordugrid-arc-aris (<< 6.0.0~),
- nordugrid-arc-ldap-egiis (<< 6.0.0~)
-Architecture: all
-Depends:
- ${misc:Depends},
- ${perl:Depends},
- slapd,
- bdii,
- nordugrid-arc-arcctl-service (= ${source:Version}),
- lsb-base (>= 3.0-6)
-Description: ARC LDAP-based information services
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the middleware, known as the Advanced Resource
- Connector (ARC).
- .
- This package contains the ARC information services relying on BDII and
- LDAP technologies to publish ARC CE information according to various
- LDAP schemas. Please note that the information collectors are part of
- another package, the nordugrid-arc-arex.
 
 Package: nordugrid-arc-monitor
 Replaces:

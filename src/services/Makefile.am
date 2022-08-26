@@ -10,12 +10,6 @@ else
 GRIDFTPD_SERVICE =
 endif
 
-if LDAP_SERVICE_ENABLED
-LDAP_SERVICE = ldap-infosys
-else
-LDAP_SERVICE =
-endif
-
 if MONITOR_ENABLED
 MONITOR = monitor
 else
@@ -34,12 +28,12 @@ else
 DATADELIVERY_SERVICE =
 endif
 
-SUBDIRS = $(GRIDFTPD_SERVICE) $(AREX_SERVICE) $(LDAP_SERVICE) \
+SUBDIRS = $(GRIDFTPD_SERVICE) $(AREX_SERVICE) \
 	$(MONITOR) \
 	$(CANDYPOND_SERVICE) \
 	$(DATADELIVERY_SERVICE) \
 	wrappers examples
-DIST_SUBDIRS = gridftpd a-rex ldap-infosys \
+DIST_SUBDIRS = gridftpd a-rex \
 	monitor \
 	candypond \
 	data-staging \

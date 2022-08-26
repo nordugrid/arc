@@ -184,7 +184,6 @@ enables_hed=yes
 enables_a_rex_service=yes
 enables_internal=no
 enables_gridftpd_service=yes
-enables_ldap_service=yes
 enables_candypond=yes
 enables_datadelivery_service=yes
 enables_monitor=yes
@@ -203,7 +202,6 @@ AC_ARG_ENABLE(all, AC_HELP_STRING([--disable-all], [disables all buildable compo
 enables_a_rex_service=$enableval
 enables_internal=$enableval
 enables_gridftpd_service=$enableval
-enables_ldap_service=$enableval
 enables_monitor=$enableval
 enables_candypond=$enableval
 enables_datadelivery_service=$enableval
@@ -252,7 +250,6 @@ AC_ARG_ENABLE(all-services, AC_HELP_STRING([--disable-all-services], [disables a
 [
 enables_a_rex_service=$enableval
 enables_gridftpd_service=$enableval
-enables_ldap_service=$enableval
 enables_monitor=$enableval
 enables_candypond=$enableval
 enables_datadelivery_service=$enableval
@@ -1797,13 +1794,6 @@ fi
 AC_MSG_NOTICE([Gridftpd service enabled: $enables_gridftpd_service])
 AM_CONDITIONAL([GRIDFTPD_SERVICE_ENABLED],[test "x$enables_gridftpd_service" = "xyes"])
 
-# LDAP service
-AC_ARG_ENABLE(ldap_service, AC_HELP_STRING([--disable-ldap-service], [disable building LDAP Infosystem Service]),
-  [enables_ldap_service=$enableval],[])
-
-AC_MSG_NOTICE([LDAP Infosystem service enabled: $enables_ldap_service])
-AM_CONDITIONAL([LDAP_SERVICE_ENABLED],[test "x$enables_ldap_service" = "xyes"])
-
 # LDAP monitor
 AC_ARG_ENABLE(monitor, AC_HELP_STRING([--disable-monitor], [disable building LDAP Monitor]),
   [enables_monitor=$enableval],[])
@@ -2117,12 +2107,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/gridftpd/misc/Makefile
                  src/services/gridftpd/run/Makefile
                  src/services/gridftpd/fileplugin/Makefile
-                 src/services/ldap-infosys/Makefile
-                 src/services/ldap-infosys/create-bdii-config
-                 src/services/ldap-infosys/create-slapd-config
-                 src/services/ldap-infosys/arc-infosys-ldap
-                 src/services/ldap-infosys/arc-infosys-ldap.service
-                 src/services/ldap-infosys/arc-infosys-ldap-slapd.service
                  src/services/monitor/Makefile
                  src/services/monitor/monitor
                  src/services/monitor/README
@@ -2249,7 +2233,6 @@ HED:                ${enables_hed}
 A-REX service:      ${enables_a_rex_service}
 Internal plugin:    ${enables_internal}
 GRIDFTPD service:   ${enables_gridftpd_service}
-LDAP Info service:  ${enables_ldap_service}
 CANDYPOND service:  ${enables_candypond}
 DATADELIVERY service: ${enables_datadelivery_service}
 

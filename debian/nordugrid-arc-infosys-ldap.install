@@ -1,5 +1,0 @@
-debian/tmp/usr/share/arc/create-bdii-config
-debian/tmp/usr/share/arc/create-slapd-config
-debian/tmp/usr/share/arc/glue-generator.pl
-debian/tmp/usr/share/arc/glite-info-provider-ldap
-debian/tmp/usr/share/arc/ldap-schema

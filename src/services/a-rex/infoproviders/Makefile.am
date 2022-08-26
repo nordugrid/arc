@@ -13,12 +13,6 @@ dist_pkgdata_DATA = ARC0mod.pm SGEmod.pm FORKmod.pm PBS.pm PBSPRO.pm \
 
 pkgdata_DATA = ConfigCentral.pm
 
-if LDAP_SERVICE_ENABLED
-dist_pkgdata_SCRIPTS = glue-generator.pl glite-info-provider-ldap
-arcldapschemadir = $(pkgdatadir)/ldap-schema
-dist_arcldapschema_DATA = schema/nordugrid.schema
-endif
-
 PERL = @PERL@
 
 PERLSCRIPTS = $(dist_pkgdata_DATA) CEinfo.pl

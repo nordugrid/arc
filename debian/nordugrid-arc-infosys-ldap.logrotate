@@ -1,9 +1,0 @@
-/var/log/arc/bdii/bdii-update.log
-{
-  missingok
-  compress
-  daily
-  rotate 14
-  copytruncate
-}
-
