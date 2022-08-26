@@ -196,8 +196,6 @@ enables_emies_client=yes
 enables_arcrest_client=yes
 #  Documentation
 enables_doc=yes
-# ACIX cache index
-enables_acix=yes
 
 # Handle group enable/disable switches
 AC_ARG_ENABLE(all, AC_HELP_STRING([--disable-all], [disables all buildable components. Can be overwritten with --enable-* for group or specific component. It is also possible to use --enable-all to overwrite defaults for most of components.]),
@@ -227,7 +225,6 @@ enables_xmlsec1=$enableval
 enables_argus=$enableval
 enables_cppunit=$enableval
 enables_doc=$enableval
-enables_acix=$enableval
 enables_sqlitejstore=$enableval
 enables_ldns=$enableval
 ],
@@ -259,7 +256,6 @@ enables_ldap_service=$enableval
 enables_monitor=$enableval
 enables_candypond=$enableval
 enables_datadelivery_service=$enableval
-enables_acix=$enableval
 ],
 [])
 
@@ -1833,25 +1829,6 @@ AC_ARG_ENABLE(datadelivery_service, AC_HELP_STRING([--disable-datadelivery-servi
 AC_MSG_NOTICE([DataDelivery service enabled: $enables_datadelivery_service])
 AM_CONDITIONAL([DATADELIVERY_SERVICE_ENABLED],[test "x$enables_datadelivery_service" = "xyes"])
 
-# ACIX service
-AC_ARG_ENABLE(acix, AC_HELP_STRING([--disable-acix], [disable building ACIX service]),
-  [enables_acix=$enableval],[])
-AC_PATH_PROGS(TWISTD, twistd-${PYTHON_MAJOR} twistd${PYTHON_MAJOR} twistd)
-if test "x$TWISTD" = "x"; then
-  AC_MSG_NOTICE([twistd not found - ACIX service disabled])
-  enables_acix="no"
-fi
-AC_MSG_NOTICE([ACIX enabled: $enables_acix])
-AM_CONDITIONAL([ACIX_ENABLED],[test "x$enables_acix" = "xyes"])
-
-# trial command (from python-twisted-core) is used for acix unittests
-AC_PATH_PROGS(TRIAL, trial-${PYTHON_MAJOR} trial${PYTHON_MAJOR} trial)
-if test "x$TRIAL" = "x"; then
-  AC_MSG_NOTICE([trial not found - ACIX unit tests will be skipped])
-fi
-# unit tests also require python >=2.6
-AM_CONDITIONAL([ACIX_TESTS_ENABLED], [test "x$TRIAL" != "x" && test "x$PYTHON_VERSION" != "x2.4" && test "x$PYTHON_VERSION" != "x2.5"])
-
 # Check for explicitly and implicitely disabled clients
 AC_ARG_ENABLE(compute_client, AC_HELP_STRING([--disable-compute-client], [disable building compute (job management) client tools]),
   [enables_compute_client=$enableval],[])
@@ -2125,19 +2102,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/rte/ENV/PROXY
                  src/services/a-rex/rte/ENV/CANDYPOND
                  src/services/a-rex/schema/Makefile
-                 src/services/acix/Makefile
-                 src/services/acix/scanner/Makefile
-                 src/services/acix/scanner/arc-acix-scanner
-                 src/services/acix/scanner/arc-acix-scanner-start
-                 src/services/acix/scanner/arc-acix-scanner.service
-                 src/services/acix/scanner/test/Makefile
-                 src/services/acix/core/Makefile
-                 src/services/acix/core/test/Makefile
-                 src/services/acix/indexserver/Makefile
-                 src/services/acix/indexserver/arc-acix-index
-                 src/services/acix/indexserver/arc-acix-index-start
-                 src/services/acix/indexserver/arc-acix-index.service
-                 src/services/acix/indexserver/test/Makefile
                  src/services/candypond/Makefile
                  src/services/data-staging/Makefile
                  src/services/data-staging/arc-datadelivery-service
@@ -2288,7 +2252,6 @@ GRIDFTPD service:   ${enables_gridftpd_service}
 LDAP Info service:  ${enables_ldap_service}
 CANDYPOND service:  ${enables_candypond}
 DATADELIVERY service: ${enables_datadelivery_service}
-ACIX service:       ${enables_acix}
 
 COMPUTE clients:    ${enables_compute_client}
 DATA clients:       ${enables_data_client}

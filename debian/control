@@ -59,6 +59,10 @@ Conflicts:
  nordugrid-arc-arcproxyalt (<< 6.0.0~),
  nordugrid-arc-java (<< 6.0.0~),
  nordugrid-arc-egiis (<< 6.0.0~),
+ nordugrid-arc-acix-cache (<< 6.0.0~),
+ nordugrid-arc-acix-core (<< 7.0.0~),
+ nordugrid-arc-acix-scanner (<< 7.0.0~),
+ nordugrid-arc-acix-index (<< 7.0.0~),
  nordugrid-arc-arex-python-lrms (<< 7.0.0~)
 Breaks:
  nordugrid-arc-hed (<< 1.0.1~rc2~),
@@ -477,68 +481,6 @@ Description: ARC Python dependent plugin
  Connector (ARC).
  .
  ARC plugins dependent on Python.
-
-Package: nordugrid-arc-acix-core
-Architecture: all
-Depends:
- ${misc:Depends},
- ${python:Depends},
- ${python3:Depends},
- ${pydeps:Depends}
-XB-Python-Version: ${python:Versions}
-Description: ARC cache index - core components
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the middleware, known as the Advanced Resource
- Connector (ARC).
- .
- Core components of the ARC Cache Index (ACIX).
-
-Package: nordugrid-arc-acix-scanner
-Provides:
- nordugrid-arc-acix-cache
-Replaces:
- nordugrid-arc-acix-cache (<< 6.0.0~)
-Conflicts:
- nordugrid-arc-acix-cache (<< 6.0.0~)
-Architecture: all
-Depends:
- ${misc:Depends},
- ${python:Depends},
- ${python3:Depends},
- libarccommon3 (>= ${source:Version}),
- nordugrid-arc-acix-core (= ${source:Version}),
- nordugrid-arc-arcctl-service (= ${source:Version}),
- lsb-base (>= 3.0-6)
-XB-Python-Version: ${python:Versions}
-Description: ARC cache index - scanner server
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the middleware, known as the Advanced Resource
- Connector (ARC).
- .
- Cache scanner component of the ARC Cache Index (ACIX), usually
- installed alongside A-REX. This component collects information on the
- content of an A-REX cache.
-
-Package: nordugrid-arc-acix-index
-Architecture: all
-Depends:
- ${misc:Depends},
- ${python:Depends},
- ${python3:Depends},
- libarccommon3 (>= ${source:Version}),
- nordugrid-arc-acix-core (= ${source:Version}),
- nordugrid-arc-arcctl-service (= ${source:Version}),
- lsb-base (>= 3.0-6)
-XB-Python-Version: ${python:Versions}
-Description: ARC cache index - index server
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the middleware, known as the Advanced Resource
- Connector (ARC).
- .
- Index server component of the ARC Cache Index (ACIX), usually
- installed independently of any A-REX installation. This component
- pulls cache content from ACIX cache scanner servers and can be queried
- by clients for the location of cached files.
 
 Package: nordugrid-arc-dev
 Replaces:
