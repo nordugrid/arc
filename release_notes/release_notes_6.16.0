@@ -3,7 +3,7 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.16.0     24.08.2022
+Release Notes for NorduGrid ARC  6.16.0     30.08.2022
 =======================================================
 
 
@@ -13,6 +13,7 @@ Highlights in this release
 
 The following Bugzilla tickets have been adressed or solved
 ------------------------------------------------------------
+* 4075  Change default SRM transfer protocol to HTTPS
 * 4071  Send traces to Rucio
 * 4070  Staging of plain https URL fails, indicating attempt to communicate over webdav
 * 4065  Prevent overwrite of existing files via http/dav
@@ -22,6 +23,7 @@ The following Bugzilla tickets have been adressed or solved
 * 3896  Allow setting BOINC project dir in arc.conf
 * 3892  overwrite option for arccp
 * 3244  Inconsistent ComputingService Name between gridftp and WS
+
 
 Documentation
 ==============
