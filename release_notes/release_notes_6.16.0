@@ -56,9 +56,8 @@ This was needed in order to supply both ARC 5 already available for RHEL7 and th
 We provide binary builds for all supported versions of
   * Debian (i386 and amd64)
   * Fedora (x86_64)
-  * Centos/RHEL 7 (x86_64)
-  * CentosStream 8,9 (x86_64)
-  * Ubuntu (i386 and amd64, both LTS and interim releases) - from Ubuntu 20.04 no i386 support
+  * RHEL/CentOS Linux/CentOS Stream/Rocky Linux (x86_64)
+  * Ubuntu (LTS and interrim releases) on i386 and x86_64 where supported
 
 In addition we build nightly packages for older platforms. 
 
