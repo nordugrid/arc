@@ -1,15 +1,25 @@
-=================================
+=============================A====
 Advanced Resource Connector (ARC)
 =================================
 
 
 Release Notes for NorduGrid ARC  6.16.0     30.08.2022
 =======================================================
+We are happy to announce the release of ARC 6.16.0.
 
 
 Highlights in this release
 --------------------------
+This release brings several improvements to ARC's WebDAV protocol implementation,
+and adds sending of trace information to Rucio when ARC downloads Rucio files.
 
+In addition we have several bugfixes and smaller improvements included as usual. 
+
+
+Note that support for CentOS 8 is dropped, as EPEL 8 no longer provides support this version.
+We do provide CentOS Stream 8 and Rocky Linux 8.
+
+With this release we also support version 9 of CentOS Stream and Rocky Linux. 
 
 The following Bugzilla tickets have been adressed or solved
 ------------------------------------------------------------
@@ -46,7 +56,8 @@ This was needed in order to supply both ARC 5 already available for RHEL7 and th
 We provide binary builds for all supported versions of
   * Debian (i386 and amd64)
   * Fedora (x86_64)
-  * Centos/RHEL (x86_64)
+  * Centos/RHEL 7 (x86_64)
+  * CentosStream 8,9 (x86_64)
   * Ubuntu (i386 and amd64, both LTS and interim releases) - from Ubuntu 20.04 no i386 support
 
 In addition we build nightly packages for older platforms. 
