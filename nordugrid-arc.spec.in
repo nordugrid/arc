@@ -52,7 +52,7 @@
 %filter_setup
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 37 || %{?rhel}%{!?rhel:0} == 6 || %{?rhel}%{!?rhel:0} == 9
+%if %{?rhel}%{!?rhel:0} == 6
 %global with_pylint 0
 %else
 %global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
@@ -76,13 +76,13 @@
 %global with_s3 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 21 || ( %{?rhel}%{!?rhel:0} >= 5 && %{?rhel}%{!?rhel:0} <= 8 )
+%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 5
 %global with_gfal 1
 %else
 %global with_gfal 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} || ( %{?rhel}%{!?rhel:0} && %{?rhel}%{!?rhel:0} <= 8 )
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0}
 %global with_xmlsec1 %{!?_without_xmlsec1:1}%{?_without_xmlsec1:0}
 %else
 %global with_xmlsec1 0
