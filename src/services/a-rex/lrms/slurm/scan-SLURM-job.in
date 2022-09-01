@@ -338,7 +338,7 @@ function handle_diag_file {
         unset jobinfo_collect_failed
         
         if [ "$use_sacct" ]; then 
-            jobinfostring=$("$sacct" -j ${basenames[$localid]}/batch -o NCPUS,Start,End,UserCPU,SystemCPU -P | tail -n 1) 
+            jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,Start,End,UserCPU,SystemCPU -P | tail -n 1) 
             
             cpus=$(echo "$jobinfostring" | awk -F'|' '{print $1}')
             starttime=$(echo "$jobinfostring"|awk -F'|' '{print $2}'| sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
