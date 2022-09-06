@@ -236,7 +236,7 @@ function handle_exitcode {
     while [ "$exitcode_retries" -gt 0 ]; do
 
         if [ "$use_sacct" ]; then 
-            jobinfostring=$("$sacct" -j $localid -o ExitCode -P | tail -n 1)
+            jobinfostring=$("$sacct" -j $localid -o ExitCode -P -n | head -n 1)
             exitcode1=$(echo $jobinfostring|awk -F':' '{print $1}')
             exitcode2=$(echo $jobinfostring|awk -F':' '{print $2}')
         else
@@ -247,7 +247,7 @@ function handle_exitcode {
         
         if [ -z "$jobinfostring" ]; then
             exitcode_retries=$(( $exitcode_retries - 1 ))
-            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed for job: $jobid - could not fetch jobinfostring for exit code handling. Retries left: $exitcode_retries" 1>&2;
+            echo "scan-SLURM-job - [$(date  +%Y-%m-%d\ %T)] sacct/scontrol failed for job: $localid - could not fetch jobinfostring for exit code handling. Retries left: $exitcode_retries" 1>&2;
             jobinfo_exitcode_failed=1
         else
             ## all ok, break out of loop
@@ -338,7 +338,7 @@ function handle_diag_file {
         unset jobinfo_collect_failed
         
         if [ "$use_sacct" ]; then 
-            jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,Start,End,UserCPU,SystemCPU -P | tail -n 1) 
+            jobinfostring=$("$sacct" -j $localid.batch -o NCPUS,Start,End,UserCPU,SystemCPU -P -n | tail -n 1) 
             
             cpus=$(echo "$jobinfostring" | awk -F'|' '{print $1}')
             starttime=$(echo "$jobinfostring"|awk -F'|' '{print $2}'| sed 's,\([0-9]\+/[0-9]\+\)-\([0-9:]\+\),\1 \2,g' | sed 's/T/ /g')
