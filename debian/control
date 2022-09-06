@@ -340,6 +340,24 @@ Description: ARC base plugins
  ARC base plugins. This includes the Message Chain Components (MCCs)
  and Data Manager Components (DMCs).
 
+Package: nordugrid-arc-plugins-ldap
+Replaces:
+ nordugrid-arc-plugins-needed (<< 7.0.0~)
+Breaks:
+ nordugrid-arc-plugins-needed (<< 7.0.0~)
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ libarccommon3 (= ${binary:Version})
+Description: ARC LDAP plugins
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ ARC LDAP plugins. These allow access to data through the ldap
+ protocol.
+
 Package: nordugrid-arc-plugins-globus
 Architecture: all
 Section: oldlibs
