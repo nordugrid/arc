@@ -307,6 +307,17 @@
 ## In arguments following substitutions are supported:
 ##   - "%D" - subject of certicate
 ##   - "%P" - path to proxy
+##
+## The environment variables passed to plugin contain basic information about user
+## authentication. Following variables are set if corresponding information is available:
+##  X509_SUBJECT_NAME - common name of user's certificate.
+##  BEARER_TOKEN_#_SUBJECT  - user's subject (identifier) extracted from JWT token (here # is tokens index, typically 0)
+##  BEARER_TOKEN_#_ISSUER   - issuer of the token extracted from JWT token
+##  BEARER_TOKEN_#_AUDIENCE - designated audience extracted from JWT token
+##  BEARER_TOKEN_#_SCOPE_# - assigned scope extracted from JWT token (here second # is scope's index starting from 0)
+##  BEARER_TOKEN_#_GROUP_# - assigned WLCG group extracted from JWT token
+##  BEARER_TOKEN_#_CLAIM_<name>_# - raw claim values of the token of claim <name>
+##
 ## ARC ships with LCAS plugin that can be enabled with following plugin configuration.
 ## For more information about configuring LCAS refer to 'Using LCAS/LCMAPS' document.
 ## sequenced
