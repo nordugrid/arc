@@ -13,6 +13,7 @@ namespace Arc {
   //! from OpenID Metadata.
   class OpenIDMetadata {
    public:
+    static char const * const ErrorTag;
     static char const * const IssuerTag;
     static char const * const AuthorizationEndpointTag;
     static char const * const TokenEndpointTag;
@@ -74,6 +75,8 @@ namespace Arc {
 
     //! Serializes stored SciToken into string container.
     bool Output(std::string& metadta) const;
+
+    char const* Error() const;
 
     char const* Issuer() const;
 
