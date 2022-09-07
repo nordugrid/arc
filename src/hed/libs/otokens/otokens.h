@@ -1,4 +1,5 @@
 #include <string>
+#include <set>
 #include <arc/Utils.h>
 #include <arc/Logger.h>
 
@@ -73,6 +74,9 @@ namespace Arc {
 
     //! Set specified header parameter to new value.
     void HeaderParameter(char const* name, char const* value);
+
+    //! Returns list of claim names.
+    std::set<std::string> ClaimNames() const;
 
     //! Access to claim by its name.
     cJSON const* Claim(char const* name) const;
