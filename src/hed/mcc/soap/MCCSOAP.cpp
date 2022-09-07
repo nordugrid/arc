@@ -52,6 +52,7 @@ class SOAPSecAttr: public SecAttr {
   virtual operator bool(void) const;
   virtual bool Export(SecAttrFormat format,XMLNode &val) const;
   virtual std::string get(const std::string& id) const;
+  std::map<std::string, std::list<std::string> > getAll() const;
  protected:
   std::string action_;
   std::string object_;
@@ -77,6 +78,21 @@ std::string SOAPSecAttr::get(const std::string& id) const {
   if(id == "OBJECT") return object_;
   if(id == "CONTEXT") return context_;
   return "";
+}
+
+std::map<std::string, std::list<std::string> > SOAPSecAttr::getAll() const {
+  static char const * const allIds[] = {
+    "ACTION",
+    "OBJECT",
+    "CONTEXT",
+    NULL
+  };
+  std::map<std::string, std::list<std::string> > all;
+  for(char const * const * id = allIds; *id; ++id) {
+    std::string idStr(*id);
+    all[idStr] = SecAttr::getAll(idStr);
+  }
+  return all;
 }
 
 bool SOAPSecAttr::equal(const SecAttr &b) const {

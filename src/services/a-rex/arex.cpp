@@ -90,6 +90,7 @@ class ARexSecAttr: public Arc::SecAttr {
   virtual operator bool(void) const;
   virtual bool Export(Arc::SecAttrFormat format,Arc::XMLNode &val) const;
   virtual std::string get(const std::string& id) const;
+  virtual std::map< std::string, std::list<std::string> > getAll() const;
   void SetResource(const std::string& service, const std::string& job, const std::string& action);
  protected:
   std::string action_;
@@ -235,6 +236,16 @@ std::string ARexSecAttr::get(const std::string& id) const {
   if(id == "FILE") return file_;
   return "";
 };
+
+std::map< std::string, std::list<std::string> > ARexSecAttr::getAll() const {
+  std::map< std::string, std::list<std::string> > all;
+  all["ACTION"] = Arc::SecAttr::getAll("ACTION");
+  all["NAMESPACE"] = Arc::SecAttr::getAll("NAMESPACE");
+  all["SERVICE"] = Arc::SecAttr::getAll("SERVICE");
+  all["JOB"] = Arc::SecAttr::getAll("JOB");
+  all["FILE"] = Arc::SecAttr::getAll("FILE");
+  return all;
+}
 
 static bool match_lists(const std::list<std::pair<bool,std::string> >& list1, const std::list<std::string>& list2, std::string& matched) {
   for(std::list<std::pair<bool,std::string> >::const_iterator l1 = list1.begin(); l1 != list1.end(); ++l1) {

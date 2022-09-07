@@ -22,6 +22,7 @@ class LegacySecAttr: public Arc::SecAttr {
   virtual bool Export(Arc::SecAttrFormat format,Arc::XMLNode &val) const;
   virtual std::string get(const std::string& id) const;
   virtual std::list<std::string> getAll(const std::string& id) const;
+  virtual std::map< std::string,std::list<std::string> > getAll() const;
 
   // Specific interface
   void AddGroup(const std::string& group,

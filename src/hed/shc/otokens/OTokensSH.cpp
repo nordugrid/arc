@@ -40,6 +40,7 @@ class OTokensSecAttr: public SecAttr {
   virtual operator bool(void) const;
   virtual std::string get(const std::string& id) const;
   virtual std::list<std::string> getAll(const std::string& id) const;
+  virtual std::map< std::string,std::list<std::string> > getAll() const;
  protected:
   bool valid_;
   Arc::JWSE jwse_;
@@ -97,6 +98,7 @@ std::string OTokensSecAttr::get(const std::string& id) const {
 }
 
 std::list<std::string> OTokensSecAttr::getAll(const std::string& id) const {
+  // Implement for many claims
   std::list<std::string> items;
   if(!valid_)
     return items;
@@ -129,6 +131,18 @@ std::list<std::string> OTokensSecAttr::getAll(const std::string& id) const {
     }
   }
   return items;
+}
+
+std::map< std::string,std::list<std::string> > OTokensSecAttr::getAll() const {
+  std::map< std::string,std::list<std::string> > all;
+  if(!valid_)
+    return all;
+
+  std::set<std::string> names = jwse_.ClaimNames();
+  for(std::set<std::string>::iterator itName = names.begin(); itName != names.end(); ++itName) {
+    all[*itName] = getAll(*itName);
+  }
+  return all;
 }
 
 OTokensSecAttr::operator bool() const {

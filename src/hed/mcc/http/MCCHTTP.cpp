@@ -52,6 +52,7 @@ class HTTPSecAttr: public SecAttr {
   virtual operator bool(void) const;
   virtual bool Export(SecAttrFormat format,XMLNode &val) const;
   virtual std::string get(const std::string& id) const;
+  virtual std::map< std::string, std::list<std::string> > getAll() const;
  protected:
   std::string action_;
   std::string object_;
@@ -84,6 +85,20 @@ std::string HTTPSecAttr::get(const std::string& id) const {
   if(id == "ACTION") return action_;
   if(id == "OBJECT") return object_;
   return "";
+}
+
+std::map<std::string, std::list<std::string> > HTTPSecAttr::getAll() const {
+  static char const * const allIds[] = {
+    "ACTION",
+    "OBJECT",
+    NULL
+  };
+  std::map<std::string, std::list<std::string> > all;
+  for(char const * const * id = allIds; *id; ++id) {
+    std::string idStr(*id);
+    all[idStr] = SecAttr::getAll(idStr);
+  }
+  return all;
 }
 
 bool HTTPSecAttr::equal(const SecAttr &b) const {

@@ -35,11 +35,14 @@ struct voms_t {
 };
 
 struct otokens_t {
-  std::string subject;
-  std::string issuer;
-  std::string audience;
-  std::list<std::string> scopes;
-  std::list<std::string> groups;
+  // Values from token which follow WLCG profile
+  std::string subject; // first "sub" claim from token
+  std::string issuer;  // first "iss" claim from token
+  std::string audience; // first "aud" claim from token
+  std::list<std::string> scopes; // first "scope" claim from token split by empty spaces
+  std::list<std::string> groups; // all "wlcg.groups" claims (from array) from token
+  // Full collection of claims
+  std::map< std::string,std::list<std::string> > claims;
 };
 
 class AuthUser {
@@ -84,6 +87,7 @@ class AuthUser {
   AuthResult match_ldap(const char* line);
   AuthResult match_voms(const char* line);
   AuthResult match_otokens(const char* line);
+  AuthResult match_ftokens(const char* line);
   AuthResult match_vo(const char* line);
   AuthResult match_lcas(const char *);
   AuthResult match_plugin(const char* line);
