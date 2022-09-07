@@ -340,7 +340,12 @@ namespace Arc {
       OpenIDMetadataFetcher metadataFetcher(issuerObj->valuestring);
       if(!metadataFetcher.Fetch(*serviceMetadata))
         return false;
+      if(serviceMetadata->Error())
+        return false;
       char const * jwksUri = serviceMetadata->JWKSURI();
+      if(!jwksUri)
+        return false;
+
       if(strncasecmp("https:", jwksUri, 6) != 0) keyProtocolSafe = false;
 
       logger_.msg(DEBUG, "JWSE::ExtractPublicKey: fetching jwl key from %s", jwksUri);
@@ -553,6 +558,7 @@ namespace Arc {
 
   JWSEKeyFetcher::JWSEKeyFetcher(char const * endpoint_url):
        url_(endpoint_url?url_no_cred(endpoint_url):URL()), client_(Arc::MCCConfig(), url_) {
+    client_.RelativeURI(true);
   }
 
   bool JWSEKeyFetcher::Fetch(JWSEKeyHolderList& keys) {

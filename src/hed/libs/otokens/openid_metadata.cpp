@@ -132,6 +132,7 @@ namespace Arc {
   }
   */
 
+  char const * const OpenIDMetadata::ErrorTag = "error";
   char const * const OpenIDMetadata::IssuerTag = "issuer";
   char const * const OpenIDMetadata::AuthorizationEndpointTag = "authorization_endpoint";
   char const * const OpenIDMetadata::TokenEndpointTag = "token_endpoint";
@@ -167,6 +168,10 @@ namespace Arc {
   char const * const OpenIDMetadata::RequestParameterSupportedTag = "request_parameter_supported";
   char const * const OpenIDMetadata::RequestURIParameterSupportedTag = "request_uri_parameter_supported";
   char const * const OpenIDMetadata::RequireRequestURIRegistrationTag = "require_request_uri_registration";
+
+  char const* OpenIDMetadata::Error() const {
+    return Parameter(ErrorTag, -1);
+  }
 
   char const* OpenIDMetadata::Issuer() const {
     return Parameter(IssuerTag, -1);
@@ -324,6 +329,7 @@ namespace Arc {
 
   OpenIDMetadataFetcher::OpenIDMetadataFetcher(char const * issuer_url):
        url_(issuer_url?url_no_cred(issuer_url):URL()), client_(Arc::MCCConfig(), url_) {
+    client_.RelativeURI(true);
   }
 
   bool OpenIDMetadataFetcher::Fetch(OpenIDMetadata& metadata) {
@@ -348,6 +354,7 @@ namespace Arc {
   OpenIDTokenFetcher::OpenIDTokenFetcher(char const * token_endpoint, char const * id, char const * secret):
        url_(token_endpoint?url_no_cred(token_endpoint):URL()), client_(Arc::MCCConfig(), url_),
        client_id_(id?id:""), client_secret_(secret?secret:"") {
+    client_.RelativeURI(true);
   }
 
 
