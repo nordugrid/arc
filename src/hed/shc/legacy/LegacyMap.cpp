@@ -135,6 +135,7 @@ class LegacyMapAttr: public Arc::SecAttr {
   virtual bool Export(Arc::SecAttrFormat format,Arc::XMLNode &val) const;
   virtual std::string get(const std::string& id) const;
   virtual std::list<std::string> getAll(const std::string& id) const;
+  virtual std::map< std::string,std::list<std::string> > getAll() const;
 
   // Specific interface
   const std::string GetID(void) const { return id_; };
@@ -161,6 +162,10 @@ std::string LegacyMapAttr::get(const std::string& id) const {
 
 std::list<std::string> LegacyMapAttr::getAll(const std::string& id) const {
   return std::list<std::string>(); 
+}
+
+std::map< std::string,std::list<std::string> > LegacyMapAttr::getAll() const {
+  return std::map<std::string, std::list<std::string> >();
 }
 
 bool LegacyMapAttr::equal(const SecAttr &b) const {

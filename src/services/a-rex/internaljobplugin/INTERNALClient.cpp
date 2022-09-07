@@ -240,6 +240,13 @@ namespace ARexINTERNAL {
       return identity_;
     }
 
+    virtual std::map< std::string,std::list<std::string> > getAll() const {
+      std::map< std::string,std::list<std::string> > all;
+      all["IDENTITY"] = getAll("IDENTITY");
+      all["VOMS"] = getAll("VOMS");
+      return all;
+    }
+
   protected:
     std::string identity_; // Subject of last non-proxy certificate
     std::list<std::string> voms_; // VOMS attributes from the VOMS extension of proxy

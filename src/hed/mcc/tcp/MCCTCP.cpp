@@ -333,6 +333,7 @@ class TCPSecAttr: public SecAttr {
   virtual operator bool(void);
   virtual bool Export(SecAttrFormat format,XMLNode &val) const;
   virtual std::string get(const std::string& id) const;
+  virtual std::map< std::string, std::list<std::string> > getAll() const;
  protected:
   std::string local_ip_;
   std::string local_port_;
@@ -358,6 +359,22 @@ std::string TCPSecAttr::get(const std::string& id) const {
   if(id == "REMOTEIP") return remote_ip_;
   if(id == "REMOTEPORT") return remote_port_;
   return "";
+}
+
+std::map<std::string, std::list<std::string> > TCPSecAttr::getAll() const {
+  static char const * const allIds[] = {
+    "LOCALIP",
+    "LOCALPORT",
+    "REMOTEIP",
+    "REMOTEPORT",
+    NULL
+  };
+  std::map<std::string, std::list<std::string> > all;
+  for(char const * const * id = allIds; *id; ++id) {
+    std::string idStr(*id);
+    all[idStr] = SecAttr::getAll(idStr);
+  }
+  return all;
 }
 
 bool TCPSecAttr::equal(const SecAttr &b) const {

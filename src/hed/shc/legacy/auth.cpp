@@ -83,6 +83,7 @@ AuthUser::source_t AuthUser::sources[] = {
   { "file", &AuthUser::match_file },
   { "voms", &AuthUser::match_voms },
   { "authtokens", &AuthUser::match_otokens },
+  { "authtokensgen", &AuthUser::match_ftokens },
   { "userlist", &AuthUser::match_vo },
   { "plugin", &AuthUser::match_plugin },
   { NULL, NULL }
@@ -137,6 +138,7 @@ AuthUser::AuthUser(Arc::Message& message):
     otokens.audience = sattr->get("aud");
     Arc::tokenize(sattr->get("scope"), otokens.scopes);
     otokens.groups   = sattr->getAll("wlcg.groups");
+    otokens.claims   = sattr->getAll();
     otokens_data_.push_back(otokens);
     if(subject_.empty())
       subject_ = sattr->get("iss+sub");
@@ -149,6 +151,7 @@ AuthUser::AuthUser(Arc::Message& message):
     otokens.audience = sattr->get("aud");
     Arc::tokenize(sattr->get("scope"), otokens.scopes);
     otokens.groups   = sattr->getAll("wlcg.groups");
+    otokens.claims   = sattr->getAll();
     otokens_data_.push_back(otokens);
     if(subject_.empty())
       subject_ = sattr->get("iss+sub");

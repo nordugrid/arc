@@ -62,6 +62,25 @@ std::list<std::string> LegacySecAttr::getAll(const std::string& id) const {
   return std::list<std::string>();
 }
 
+std::map<std::string, std::list<std::string> > LegacySecAttr::getAll() const {
+  std::map<std::string, std::list<std::string> > all;
+  all["GROUP"] = groups_;
+  all["VO"] = VOs_;
+
+  std::list< std::list<std::string> >::const_iterator vo = groupsVO_.begin();
+  for(std::list<std::string>::const_iterator grp = groups_.begin(); grp != groups_.end(); ++grp) {
+    if(vo == groupsVO_.end()) break;
+    all["VO:" + *grp] = *vo;
+    ++vo;
+  };
+
+  std::list< std::list<std::string> >::const_iterator voms = groupsVOMS_.begin();
+  for(std::list<std::string>::const_iterator grp = groups_.begin(); grp != groups_.end(); ++grp) {
+    if(voms == groupsVOMS_.end()) break;
+    all["VOMS:" + *grp] = *voms;
+    ++voms;
+  };
+}
 
 bool LegacySecAttr::Export(Arc::SecAttrFormat format,Arc::XMLNode &val) const {
   // No need to export information yet.

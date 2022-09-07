@@ -320,6 +320,22 @@
 #authtokens=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0 https://wlcg.cloud.cnaf.infn.it/ * * *
 ## CHANGE: INTRODUCED in 6.6.0.
 
+## authtokensgen = logical expression - Match OIDC token claims.
+## Expression to match. Following operators are available:
+##  = - match token claim value (left part represents claim name) to specified string (right part), produces boolean result
+##  ~ - match token claim value (left part represents claim name) to regex expression (right part), produces boolean result
+##  ! - boolean negation
+##  & - boolean AND
+##  | - boolean OR
+##  ^ - boolean XOR
+##  () - brackets are used to control priority of evaluation, without brackets all operators have same priority
+##  '' or "" - strings can be enclosd in quotes to allow special symbols in strings
+## All empty spaces are optional. This functionality is experimental. Please expect some bugs and suboptimal performance.
+## sequenced
+## default: undefined
+#authtokensgen = (sub=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0) & (iss="https://wlcg.cloud.cnaf.infn.it/")
+## CHANGE: INTRODUCED in 7.0.0.
+
 ## all = yes|no - Matches any or none user identity. For "yes" argument this rule
 ## always returns positive match. For "no" it is always no match.
 ## sequenced

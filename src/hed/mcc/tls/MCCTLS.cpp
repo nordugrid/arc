@@ -109,6 +109,25 @@ class TLSSecAttr: public SecAttr {
     };
     return items;
   };
+  std::map<std::string, std::list<std::string> > getAll() const {
+    static char const * const allIds[] = {
+      "IDENTITY",
+      "SUBJECT",
+      "CA",
+      "CERTIFICATE",
+      "CERTIFICATECHAIN",
+      "LOCALSUBJECT",
+      "VOMS",
+      "VO",
+      NULL
+    };
+    std::map<std::string, std::list<std::string> > all;
+    for(char const * const * id = allIds; *id; ++id) {
+      std::string idStr(*id);
+      all[idStr] = SecAttr::getAll(idStr);
+    }
+    return all;
+  }
  protected:
   std::string identity_; // Subject of last non-proxy certificate
   std::list<std::string> subjects_; // Subjects of all certificates in chain
