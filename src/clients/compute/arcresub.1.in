@@ -60,6 +60,8 @@ configuration file (default ~/.arc/client.conf)
 FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
 .IP "\fB-b\fR, \fB--broker\fR=\fIbroker\fR"
 selected broker: Random (default), FastestQueue or custom
+.IP "\fB-n\fR, \fB--no-delegation\fR"
+do not perform X.509 delegation for submitted jobs
 .IP "\fB-v\fR, \fB--version\fR"
 print version information
 .IP "\fB-?\fR, \fB--help\fR"
