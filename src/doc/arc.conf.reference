@@ -431,6 +431,9 @@
 ## failure and will abort any further mapping processing. That will also cause
 ## rejection of corresponding connection.
 ## Plugin execution time is limited to "timeout" seconds.
+## The environment variables passed to plugin contain basic information about user
+## authentication. For description of those variables see 'plugin' command from
+## [authgroup] section.
 ##
 ## In the arguments the following substitutions are applied before the plugin is started:
 ##   - "%D" - subject of user's certificate,
