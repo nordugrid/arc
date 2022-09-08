@@ -13,6 +13,34 @@ namespace ArcSHCLegacy {
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"AuthUser");
 
+void AuthUser::add_auth_environment(Arc::Run& run) const {
+  if(!subject_.empty()) run.AddEnvironment("X509_SUBJECT_NAME",subject_);
+  for(int tokenIdx = 0; tokenIdx < otokens_data_.size(); ++tokenIdx) {
+    otokens_t const & token = otokens_data_[tokenIdx];
+    if(!token.subject.empty()) run.AddEnvironment("BEARER_TOKEN_"+Arc::tostring(tokenIdx)+"_SUBJECT",token.subject);
+    if(!token.issuer.empty()) run.AddEnvironment("BEARER_TOKEN_"+Arc::tostring(tokenIdx)+"_ISSUER",token.issuer);
+    if(!token.audience.empty()) run.AddEnvironment("BEARER_TOKEN_"+Arc::tostring(tokenIdx)+"_AUDIENCE",token.audience);
+    int idx = 0;
+    for(std::list<std::string>::const_iterator it = token.scopes.begin(); it != token.scopes.end(); ++it) {
+      run.AddEnvironment("BEARER_TOKEN_"+Arc::tostring(tokenIdx)+"_SCOPE_"+Arc::tostring(idx),*it);
+      ++idx;
+    }
+    idx = 0;
+    for(std::list<std::string>::const_iterator it = token.groups.begin(); it != token.groups.end(); ++it) {
+      run.AddEnvironment("BEARER_TOKEN_"+Arc::tostring(tokenIdx)+"_GROUP_"+Arc::tostring(idx),*it);
+      ++idx;
+    }
+    for(std::map< std::string,std::list<std::string> >::const_iterator claim = token.claims.begin(); claim != token.claims.end(); ++claim) {
+      idx = 0;
+      for(std::list<std::string>::const_iterator it = claim->second.begin(); it != claim->second.end(); ++it) {
+        run.AddEnvironment("BEARER_TOKEN_"+Arc::tostring(tokenIdx)+"_CLAIM_"+claim->first+"_"+Arc::tostring(idx),*it);
+        ++idx;
+      }
+    }
+  }
+  // TODO std::vector<struct voms_t> voms_data_; // VOMS information extracted from message
+}
+
 AuthResult AuthUser::match_plugin(const char* line) {
   // plugin = timeout path [argument ...] - Run external executable or
   if(!line) return AAA_NO_MATCH;
@@ -36,33 +64,7 @@ AuthResult AuthUser::match_plugin(const char* line) {
   std::string stdout_str;
   std::string stderr_str;
   Arc::Run run(args);
-
-  if(!subject_.empty()) run.AddEnvironment("X509_SUBJECT_NAME",subject_);
-  for(int tokenIdx = 0; tokenIdx < otokens_data_.size(); ++tokenIdx) {
-    otokens_t& token = otokens_data_[tokenIdx];
-    if(!token.subject.empty()) run.AddEnvironment("BEARER_TOKEN_"+Arc::tostring(tokenIdx)+"_SUBJECT",token.subject);
-    if(!token.issuer.empty()) run.AddEnvironment("BEARER_TOKEN_"+Arc::tostring(tokenIdx)+"_ISSUER",token.issuer);
-    if(!token.audience.empty()) run.AddEnvironment("BEARER_TOKEN_"+Arc::tostring(tokenIdx)+"_AUDIENCE",token.audience);
-    int idx = 0;
-    for(std::list<std::string>::iterator it = token.scopes.begin(); it != token.scopes.end(); ++it) {
-      run.AddEnvironment("BEARER_TOKEN_"+Arc::tostring(tokenIdx)+"_SCOPE_"+Arc::tostring(idx),*it);
-      ++idx;
-    }
-    idx = 0;
-    for(std::list<std::string>::iterator it = token.groups.begin(); it != token.groups.end(); ++it) {
-      run.AddEnvironment("BEARER_TOKEN_"+Arc::tostring(tokenIdx)+"_GROUP_"+Arc::tostring(idx),*it);
-      ++idx;
-    }
-    for(std::map< std::string,std::list<std::string> >::iterator claim = token.claims.begin(); claim != token.claims.end(); ++claim) {
-      idx = 0;
-      for(std::list<std::string>::iterator it = claim->second.begin(); it != claim->second.end(); ++it) {
-        run.AddEnvironment("BEARER_TOKEN_"+Arc::tostring(tokenIdx)+"_CLAIM_"+claim->first+"_"+Arc::tostring(idx),*it);
-        ++idx;
-      }
-    }
-  }
-  // TODO std::vector<struct voms_t> voms_data_; // VOMS information extracted from message
-
+  add_auth_environment(run);
   run.AssignStdout(stdout_str);
   run.AssignStderr(stderr_str);
   if(run.Start()) {

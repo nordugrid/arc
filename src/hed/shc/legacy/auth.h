@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include <arc/ArcConfig.h>
+#include <arc/Run.h>
 #include <arc/message/Message.h>
 //#include <arc/message/SecHandler.h>
 
@@ -174,6 +175,7 @@ class AuthUser {
     return (group == NULL)?NULL:&(group->otokens);
   };
 
+  void add_auth_environment(Arc::Run& run) const;
 
   // convert ARC list into voms structure
   static std::vector<struct voms_t> arc_to_voms(const std::list<std::string>& attributes);
