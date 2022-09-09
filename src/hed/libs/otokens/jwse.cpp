@@ -362,7 +362,24 @@ namespace Arc {
     cJSON_AddItemToObject(header_.Ptr(), name, cJSON_CreateString(value));
   }
 
+  std::set<std::string> JWSE::ClaimNames() const {
+    std::set<std::string> names;
+    if(!content_)
+      return names;
+    for(int n = 0;; ++n) {
+      cJSON const * param = cJSON_GetArrayItem(content_.Ptr(),n);
+      if(!param) break;
+      if(param->string) {
+	names.insert(param->string);
+      }
+    }
+
+    return names;
+  }
+
   cJSON const* JWSE::Claim(char const* name) const {
+    if(!name)
+      return NULL;
     if(!content_)
       return NULL;
     cJSON const* param = cJSON_GetObjectItem(const_cast<cJSON*>(content_.Ptr()), name);
@@ -370,7 +387,6 @@ namespace Arc {
       return NULL;
     return param;
   }
-
 
   void JWSE::Claim(char const* name, cJSON const* value) {
     if(!content_)

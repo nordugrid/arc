@@ -172,6 +172,7 @@ class LegacyPDPAttr: public Arc::SecAttr {
   virtual bool Export(Arc::SecAttrFormat format,Arc::XMLNode &val) const;
   virtual std::string get(const std::string& id) const;
   virtual std::list<std::string> getAll(const std::string& id) const;
+  virtual std::map< std::string,std::list<std::string> > getAll() const;
 
   // Specific interface
   bool GetDecision(void) const { return decision_; };
@@ -211,6 +212,21 @@ std::list<std::string> LegacyPDPAttr::getAll(const std::string& id) const {
   if(id == "VO") return vo;
   if(id == "OTOKENS") return otokens;
   return std::list<std::string>();
+}
+
+std::map< std::string,std::list<std::string> > LegacyPDPAttr::getAll() const {
+  static char const * const allIds[] = {
+    "VOMS",
+    "VO",
+    "OTOKENS",
+    NULL
+  };
+  std::map<std::string, std::list<std::string> > all;
+  for(char const * const * id = allIds; *id; ++id) {
+    std::string idStr(*id);
+    all[idStr] = getAll(idStr);
+  }
+  return all;
 }
 
 bool LegacyPDPAttr::equal(const SecAttr &b) const {

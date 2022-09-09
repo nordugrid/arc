@@ -150,7 +150,7 @@ AuthResult UnixMap::mapgroup(const char* rule, const char* line) {
 
 // -----------------------------------------------------------
 
-AuthResult UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_user,const char* line) {
+AuthResult UnixMap::map_mapplugin(const AuthUser& user,unix_user_t& unix_user,const char* line) {
   // ... timeout path arg ...
   if(!line) {
     logger.msg(Arc::ERROR,"Plugin (user mapping) command is empty");
@@ -190,6 +190,7 @@ AuthResult UnixMap::map_mapplugin(const AuthUser& /* user */ ,unix_user_t& unix_
   std::string stdout_channel;
   std::string stderr_channel;
   Arc::Run run(args);
+  user.add_auth_environment(run);
   run.AssignStdout(stdout_channel);
   run.AssignStderr(stderr_channel);
   if(run.Start()) {

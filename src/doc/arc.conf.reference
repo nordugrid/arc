@@ -307,6 +307,17 @@
 ## In arguments following substitutions are supported:
 ##   - "%D" - subject of certicate
 ##   - "%P" - path to proxy
+##
+## The environment variables passed to plugin contain basic information about user
+## authentication. Following variables are set if corresponding information is available:
+##  X509_SUBJECT_NAME - common name of user's certificate.
+##  BEARER_TOKEN_#_SUBJECT  - user's subject (identifier) extracted from JWT token (here # is tokens index, typically 0)
+##  BEARER_TOKEN_#_ISSUER   - issuer of the token extracted from JWT token
+##  BEARER_TOKEN_#_AUDIENCE - designated audience extracted from JWT token
+##  BEARER_TOKEN_#_SCOPE_# - assigned scope extracted from JWT token (here second # is scope's index starting from 0)
+##  BEARER_TOKEN_#_GROUP_# - assigned WLCG group extracted from JWT token
+##  BEARER_TOKEN_#_CLAIM_<name>_# - raw claim values of the token of claim <name>
+##
 ## ARC ships with LCAS plugin that can be enabled with following plugin configuration.
 ## For more information about configuring LCAS refer to 'Using LCAS/LCMAPS' document.
 ## sequenced
@@ -319,6 +330,22 @@
 ## default: undefined
 #authtokens=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0 https://wlcg.cloud.cnaf.infn.it/ * * *
 ## CHANGE: INTRODUCED in 6.6.0.
+
+## authtokensgen = logical expression - Match OIDC token claims.
+## Expression to match. Following operators are available:
+##  = - match token claim value (left part represents claim name) to specified string (right part), produces boolean result
+##  ~ - match token claim value (left part represents claim name) to regex expression (right part), produces boolean result
+##  ! - boolean negation
+##  & - boolean AND
+##  | - boolean OR
+##  ^ - boolean XOR
+##  () - brackets are used to control priority of evaluation, without brackets all operators have same priority
+##  '' or "" - strings can be enclosd in quotes to allow special symbols in strings
+## All empty spaces are optional. This functionality is experimental. Please expect some bugs and suboptimal performance.
+## sequenced
+## default: undefined
+#authtokensgen = (sub=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0) & (iss="https://wlcg.cloud.cnaf.infn.it/")
+## CHANGE: INTRODUCED in 7.0.0.
 
 ## all = yes|no - Matches any or none user identity. For "yes" argument this rule
 ## always returns positive match. For "no" it is always no match.
@@ -404,6 +431,9 @@
 ## failure and will abort any further mapping processing. That will also cause
 ## rejection of corresponding connection.
 ## Plugin execution time is limited to "timeout" seconds.
+## The environment variables passed to plugin contain basic information about user
+## authentication. For description of those variables see 'plugin' command from
+## [authgroup] section.
 ##
 ## In the arguments the following substitutions are applied before the plugin is started:
 ##   - "%D" - subject of user's certificate,

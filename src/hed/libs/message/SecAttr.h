@@ -88,6 +88,12 @@ namespace Arc {
        and provides more effective interface than Export. */
     virtual std::list<std::string> getAll(const std::string& id) const;
 
+    /** Access to all items of the security attribute at once.
+       This method returns all items and their ids assigned.
+       It is meant to be used for tightly coupled SecHandlers
+       and provides more effective interface than Export. */
+    virtual std::map< std::string,std::list<std::string> > getAll() const;
+
    protected:
     virtual bool equal(const SecAttr &b) const;
   };
