@@ -2,6 +2,7 @@
 #define __ARC_AREX_H__
 
 #include <arc/message/PayloadRaw.h>
+#include <arc/message/PayloadSOAP.h>
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/infosys/InformationInterface.h>
 #include <arc/Thread.h>
@@ -33,6 +34,18 @@ class CountedResource {
   int count_;
   void Acquire(void);
   void Release(void);
+};
+
+class CountedResourceLock {
+ private:
+  CountedResource& r_;
+ public:
+  CountedResourceLock(CountedResource& resource):r_(resource) {
+    r_.Acquire();
+  };
+  ~CountedResourceLock(void) {
+    r_.Release();
+  };
 };
 
 class OptimizedInformationContainer: public Arc::InformationContainer {
@@ -87,6 +100,7 @@ class ARexService: public Arc::Service {
   Arc::MCC_Status UpdateCredentials(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& credentials);
 
   // EMI ES operations
+  Arc::MCC_Status ESOperations(ARexConfigContext* config, std::string const & clientid, Arc::XMLNode op, Arc::PayloadSOAP* inpayload, Arc::Message& outmsg, bool& processed, bool& passed);
   Arc::MCC_Status ESCreateActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& clientid);
   AREXOP(ESGetResourceInfo);
   AREXOP(ESQueryResourceInfo);
@@ -198,6 +212,15 @@ class ARexService: public Arc::Service {
   void InformationCollector(void);
   virtual std::string getID();
   void StopChildThreads(void);
+
+  // Authorization methods
+  enum OperationType {
+    OperationInfo,
+    OperationCreate,
+    OperationModify,
+    OpearationDelete
+  };
+  bool CheckOperationAllowed(OperationType op, ARexConfigContext* config) const;
 };
 
 } // namespace ARex

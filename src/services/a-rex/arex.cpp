@@ -284,33 +284,6 @@ static bool match_groups(std::list<std::pair<bool,std::string> > const & groups,
   return false;
 }
 
-static Arc::XMLNode ESCreateResponse(Arc::PayloadSOAP& res,const char* opname) {
-  Arc::XMLNode response = res.NewChild(ES_CREATE_NPREFIX + ":" + opname + "Response");
-  return response;
-}
-
-/*
-static Arc::XMLNode ESDelegResponse(Arc::PayloadSOAP& res,const char* opname) {
-  Arc::XMLNode response = res.NewChild(ES_DELEG_NPREFIX + ":" + opname + "Response");
-  return response;
-}
-*/
-
-static Arc::XMLNode ESRInfoResponse(Arc::PayloadSOAP& res,const char* opname) {
-  Arc::XMLNode response = res.NewChild(ES_RINFO_NPREFIX + ":" + opname + "Response");
-  return response;
-}
-
-static Arc::XMLNode ESManagResponse(Arc::PayloadSOAP& res,const char* opname) {
-  Arc::XMLNode response = res.NewChild(ES_MANAG_NPREFIX + ":" + opname + "Response");
-  return response;
-}
-
-static Arc::XMLNode ESAInfoResponse(Arc::PayloadSOAP& res,const char* opname) {
-  Arc::XMLNode response = res.NewChild(ES_AINFO_NPREFIX + ":" + opname + "Response");
-  return response;
-}
-
 //static Arc::LogStream logcerr(std::cerr);
 
 static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
@@ -352,18 +325,6 @@ CountedResource::CountedResource(int maxconsumers):
 
 CountedResource::~CountedResource(void) {
 }
-
-class CountedResourceLock {
- private:
-  CountedResource& r_;
- public:
-  CountedResourceLock(CountedResource& resource):r_(resource) {
-    r_.Acquire();
-  };
-  ~CountedResourceLock(void) {
-    r_.Release();
-  };
-};
 
 static std::string GetPath(std::string url){
   std::string::size_type ds, ps;
@@ -461,7 +422,6 @@ static std::string GetPath(Arc::Message &inmsg,std::string &base) {
 
 #define SOAP_NOT_SUPPORTED { \
   logger_.msg(Arc::ERROR, "SOAP operation is not supported: %s", op.Name()); \
-  delete outpayload; \
   return make_soap_fault(outmsg,"Operation not supported"); \
 }
 
@@ -660,86 +620,16 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
     if(id.empty()) {
       // Factory operations
       logger_.msg(Arc::VERBOSE, "process: factory endpoint");
-      Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
-      Arc::PayloadSOAP& res = *outpayload;
-      // Preparing known namespaces
-      outpayload->Namespaces(ns_);
-      if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
-        if(!config) return make_soap_fault(outmsg, "User can't be assigned configuration");
-        // Applying known namespaces
-        inpayload->Namespaces(ns_);
-        if(MatchXMLName(op,"CreateActivity")) {
-          CountedResourceLock cl_lock(beslimit_);
-          ESCreateActivities(*config,op,ESCreateResponse(res,"CreateActivity"),clientid);
-        } else {
-          SOAP_NOT_SUPPORTED;
-        }
-      } else if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_RINFO_NAMESPACE)) {
-        // Aplying known namespaces
-        // Resource information is available for anonymous requests - null config is handled properly
-        inpayload->Namespaces(ns_);
-        if(MatchXMLName(op,"GetResourceInfo")) {
-          CountedResourceLock cl_lock(infolimit_);
-          ESGetResourceInfo(*config,op,ESRInfoResponse(res,"GetResourceInfo"));
-        } else if(MatchXMLName(op,"QueryResourceInfo")) {
-          CountedResourceLock cl_lock(infolimit_);
-          ESQueryResourceInfo(*config,op,ESRInfoResponse(res,"QueryResourceInfo"));
-        } else {
-          SOAP_NOT_SUPPORTED;
-        }
-      } else if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_MANAG_NAMESPACE)) {
-        if(!config) return make_soap_fault(outmsg, "User can't be assigned configuration");
-        // Aplying known namespaces
-        inpayload->Namespaces(ns_);
-        if(MatchXMLName(op,"PauseActivity")) {
-          CountedResourceLock cl_lock(beslimit_);
-          ESPauseActivity(*config,op,ESManagResponse(res,"PauseActivity"));
-        } else if(MatchXMLName(op,"ResumeActivity")) {
-          CountedResourceLock cl_lock(beslimit_);
-          ESResumeActivity(*config,op,ESManagResponse(res,"ResumeActivity"));
-        } else if(MatchXMLName(op,"NotifyService")) {
-          CountedResourceLock cl_lock(beslimit_);
-          ESNotifyService(*config,op,ESManagResponse(res,"NotifyService"));
-        } else if(MatchXMLName(op,"CancelActivity")) {
-          CountedResourceLock cl_lock(beslimit_);
-          ESCancelActivity(*config,op,ESManagResponse(res,"CancelActivity"));
-        } else if(MatchXMLName(op,"WipeActivity")) {
-          CountedResourceLock cl_lock(beslimit_);
-          ESWipeActivity(*config,op,ESManagResponse(res,"WipeActivity"));
-        } else if(MatchXMLName(op,"RestartActivity")) {
-          CountedResourceLock cl_lock(beslimit_);
-          ESRestartActivity(*config,op,ESManagResponse(res,"RestartActivity"));
-        } else if(MatchXMLName(op,"GetActivityStatus")) {
-          CountedResourceLock cl_lock(beslimit_);
-          ESGetActivityStatus(*config,op,ESManagResponse(res,"GetActivityStatus"));
-        } else if(MatchXMLName(op,"GetActivityInfo")) {
-          CountedResourceLock cl_lock(beslimit_);
-          ESGetActivityInfo(*config,op,ESManagResponse(res,"GetActivityInfo"));
-        } else {
-          SOAP_NOT_SUPPORTED;
-        }
-      } else if(config_.EMIESInterfaceEnabled() && MatchXMLNamespace(op,ES_AINFO_NAMESPACE)) {
-        if(!config) return make_soap_fault(outmsg, "User can't be assigned configuration");
-        // Aplying known namespaces
-        inpayload->Namespaces(ns_);
-        if(MatchXMLName(op,"ListActivities")) {
-          CountedResourceLock cl_lock(beslimit_);
-          ESListActivities(*config,op,ESAInfoResponse(res,"ListActivities"));
-        } else if(MatchXMLName(op,"GetActivityStatus")) {
-          CountedResourceLock cl_lock(beslimit_);
-          ESGetActivityStatus(*config,op,ESAInfoResponse(res,"GetActivityStatus"));
-        } else if(MatchXMLName(op,"GetActivityInfo")) {
-          CountedResourceLock cl_lock(beslimit_);
-          ESGetActivityInfo(*config,op,ESAInfoResponse(res,"GetActivityInfo"));
-        } else {
-          SOAP_NOT_SUPPORTED;
-        }
-      } else if(config_.ARCInterfaceEnabled() && MatchXMLNamespace(op,BES_ARC_NAMESPACE)) {
+      if(config_.ARCInterfaceEnabled() && MatchXMLNamespace(op,BES_ARC_NAMESPACE)) {
         if(!config) return make_soap_fault(outmsg, "User can't be assigned configuration");
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
         if(MatchXMLName(op,"CacheCheck")) {
+          Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
+          // Preparing known namespaces
+          outpayload->Namespaces(ns_);
           CacheCheck(*config,*inpayload,*outpayload);
+          outmsg.Payload(outpayload);
         } else {
           SOAP_NOT_SUPPORTED;
         }
@@ -747,6 +637,9 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
         if(!config) return make_soap_fault(outmsg, "User can't be assigned configuration");
         // Aplying known namespaces
         inpayload->Namespaces(ns_);
+        Arc::PayloadSOAP* outpayload = new Arc::PayloadSOAP(ns_);
+        // Preparing known namespaces
+        outpayload->Namespaces(ns_);
         CountedResourceLock cl_lock(beslimit_);
         std::string credentials;
         if(!delegation_stores_.Process(config->GmConfig().DelegationDir(),
@@ -796,15 +689,22 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 #endif
           };
         };
+        outmsg.Payload(outpayload);
       } else {
-        SOAP_NOT_SUPPORTED;
+        bool processed = false;
+        bool passed = false;
+        Arc::MCC_Status sret = ESOperations(config, clientid, op, inpayload, outmsg, processed, passed);
+        if (!processed) {
+          SOAP_NOT_SUPPORTED;
+        };
+        if(!passed) return sret;
       };
       if(logger_.getThreshold() <= Arc::VERBOSE) {
         std::string str;
-        outpayload->GetDoc(str, true);
+        Arc::PayloadSOAP* oupayload = dynamic_cast<Arc::PayloadSOAP*>(outmsg.Payload());
+        if(oupayload) oupayload->GetDoc(str, true);
         logger_.msg(Arc::VERBOSE, "process: response=%s",str);
       };
-      outmsg.Payload(outpayload);
     } else {
       // Listing operations for session directories
       // TODO: proper failure like interface is not supported
