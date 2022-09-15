@@ -537,7 +537,7 @@ namespace Arc {
       url.ChangeFullPath(path,true);
       if(relative_uri) {
         // Workaround for servers which can't handle full URLs in request
-        reqmsg.Attributes()->set("HTTP:HOST", url.Host() /* + ":" + tostring(url.Port()))*/;
+        reqmsg.Attributes()->set("HTTP:HOST", url.Host() /* + ":" + tostring(url.Port())*/);
         std::string rpath = encoded_uri ? url.FullPathURIEncoded() : url.FullPath();
         if(rpath[0] != '/') rpath.insert(0,"/");
         reqmsg.Attributes()->set("HTTP:ENDPOINT", rpath);
