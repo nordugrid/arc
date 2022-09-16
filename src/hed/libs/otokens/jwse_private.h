@@ -63,7 +63,7 @@ namespace Arc {
   class JWSEKeyFetcher {
    public:
     JWSEKeyFetcher(char const * endpoint_url);
-    bool Fetch(JWSEKeyHolderList& keys);
+    bool Fetch(JWSEKeyHolderList& keys, Logger& logger);
    private:
     Arc::URL url_;
     ClientHTTP client_;
