@@ -212,21 +212,9 @@ class ARexService: public Arc::Service {
   void InformationCollector(void);
   virtual std::string getID();
   void StopChildThreads(void);
-
-  // Authorization methods
-  enum OperationType {
-    OperationInfo,
-    OperationCreate,
-    OperationModify,
-    OpearationDelete
-  };
-  bool CheckOperationAllowed(OperationType op, ARexConfigContext* config) const;
 };
 
 } // namespace ARex
-
-#define HTTP_ERR_NOT_SUPPORTED (501)
-#define HTTP_ERR_FORBIDDEN (403)
 
 #endif
 

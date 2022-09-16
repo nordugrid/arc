@@ -7,6 +7,9 @@
 #include <arc/ArcConfig.h>
 #include "../grid-manager/conf/GMConfig.h"
 
+#define HTTP_ERR_NOT_SUPPORTED (501)
+#define HTTP_ERR_FORBIDDEN (403)
+
 namespace ARex {
 
 

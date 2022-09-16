@@ -10,7 +10,7 @@
 namespace ARex {
 
 
-bool ARexService::CheckOperationAllowed(OperationType op, ARexConfigContext* config) const {
+bool ARexConfigContext::CheckOperationAllowed(OperationType op, ARexConfigContext* config) {
   // TODO: very simplified code below. Proper way to identify how client was identified and 
   // which authentication information matched authorization rules LegacySecAttr must be used.
   if(!config)
@@ -20,7 +20,7 @@ bool ARexService::CheckOperationAllowed(OperationType op, ARexConfigContext* con
   bool has_token_identity = false;
   std::list<std::string> scopes;
 
-  for(std::list<Arc::MessageAuth*>::iterator a = config.beginAuth();a!=config.endAuth();++a) {
+  for(std::list<Arc::MessageAuth*>::iterator a = config->beginAuth();a!=config->endAuth();++a) {
     if(*a) {
       Arc::SecAttr* sattr = NULL;
       if(sattr = (*a)->get("TLS")) {

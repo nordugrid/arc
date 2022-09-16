@@ -59,6 +59,14 @@ class ARexConfigContext:public Arc::MessageContextElement, public ARexGMConfig {
   virtual ~ARexConfigContext(void) { };
   static ARexConfigContext* GetRutimeConfiguration(Arc::Message& inmsg, GMConfig& gmconfig,
                   std::string const & default_uname, std::string const & default_endpoint);
+  // Authorization methods
+  enum OperationType {
+    OperationInfo,
+    OperationCreate,
+    OperationModify,
+    OperationDelete
+  };
+  static bool CheckOperationAllowed(OperationType op, ARexConfigContext* config);
 };
 
 typedef enum {
