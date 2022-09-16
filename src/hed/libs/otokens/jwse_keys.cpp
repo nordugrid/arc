@@ -105,45 +105,71 @@ namespace Arc {
     (void)BIO_free(bio);
   }
 
-  static EVP_PKEY* jwkECParse(cJSON* jwkObject) {
-    return NULL;
+  #define RETURNWARN(value, message) { \
+    logger.msg(WARNING, message); \
+    return value; \
   }
 
-  static EVP_PKEY* jwkRSAParse(cJSON* jwkObject) {
+  static EVP_PKEY* jwkECParse(cJSON* jwkObject, Logger& logger) {
+    cJSON* xObject = cJSON_GetObjectItem(jwkObject, "x");
+    cJSON* yObject = cJSON_GetObjectItem(jwkObject, "y");
+    cJSON* crvObject = cJSON_GetObjectItem(jwkObject, "crv");
+    if((xObject == NULL) || (yObject == NULL) || (crvObject == NULL)) RETURNWARN(NULL, "Missing x, y or crv in EC JWK");
+    if((xObject->type != cJSON_String) || (yObject->type != cJSON_String) || (crvObject->type != cJSON_String)) RETURNWARN(NULL, "Wrong type of x, y or crv in EC JWK");
+    std::string xStr = Base64::decodeURLSafe(xObject->valuestring);
+    std::string yStr = Base64::decodeURLSafe(yObject->valuestring);
+    int crvNid = EC_curve_nist2nid(crvObject->valuestring);
+    AutoPointer<EC_KEY> ecKey(EC_KEY_new_by_curve_name(crvNid),&EC_KEY_free);
+    if(!ecKey) RETURNWARN(NULL, "Failed to create EC_KEY for EC JWK");
+    AutoPointer<BIGNUM> x(NULL,&BN_free);
+    AutoPointer<BIGNUM> y(NULL,&BN_free);
+    if(!(x = BN_bin2bn(reinterpret_cast<unsigned char const *>(xStr.c_str()), xStr.length(), NULL))) RETURNWARN(NULL, "Failed to parse x parameter for EC JWK");
+    if(!(y = BN_bin2bn(reinterpret_cast<unsigned char const *>(yStr.c_str()), yStr.length(), NULL))) RETURNWARN(NULL, "Failed to parse y parameter for EC JWK");
+    if(!EC_KEY_set_public_key_affine_coordinates(ecKey.Ptr(), x.Ptr(), y.Ptr())) RETURNWARN(NULL, "Failed to assign coordinates for EC JWK");
+    x.Release(); // ??
+    y.Release(); // ??
+    AutoPointer<EVP_PKEY> evpKey(EVP_PKEY_new(), &EVP_PKEY_free);
+    if(!evpKey) RETURNWARN(NULL, "Failed to create EVP key for EC JWK");
+    if(EVP_PKEY_assign_EC_KEY(evpKey.Ptr(), ecKey.Ptr()) != 1) RETURNWARN(NULL, "Failed to assign EC_KEY key for EC JWK");
+    ecKey.Release();
+    return evpKey.Release();
+  }
+
+  static EVP_PKEY* jwkRSAParse(cJSON* jwkObject, Logger& logger) {
     cJSON* modulusObject = cJSON_GetObjectItem(jwkObject, "n");
     cJSON* exponentObject = cJSON_GetObjectItem(jwkObject, "e");
-    if((modulusObject == NULL) || (exponentObject == NULL)) return NULL;
-    if((modulusObject->type != cJSON_String) || (exponentObject->type != cJSON_String)) return NULL;
+    if((modulusObject == NULL) || (exponentObject == NULL)) RETURNWARN(NULL, "Missing e or n in RSA JWK");
+    if((modulusObject->type != cJSON_String) || (exponentObject->type != cJSON_String)) RETURNWARN(NULL, "Wrong type of r or n in RSA JWK");
     std::string modulus = Base64::decodeURLSafe(modulusObject->valuestring);
     std::string exponent = Base64::decodeURLSafe(exponentObject->valuestring);
     AutoPointer<RSA> rsaKey(RSA_new(),&RSA_free);
-    if(!rsaKey) return NULL;
+    if(!rsaKey) RETURNWARN(NULL, "Failed to create RSA key for RSA JWK");;
     AutoPointer<BIGNUM> n(NULL,&BN_free);
     AutoPointer<BIGNUM> e(NULL,&BN_free);
-    if(!(n = BN_bin2bn(reinterpret_cast<unsigned char const *>(modulus.c_str()), modulus.length(), NULL))) return NULL;
-    if(!(e = BN_bin2bn(reinterpret_cast<unsigned char const *>(exponent.c_str()), exponent.length(), NULL))) return NULL;
-    if(!RSA_set0_key(rsaKey.Ptr(), n.Ptr(), e.Ptr(), NULL)) return NULL;
+    if(!(n = BN_bin2bn(reinterpret_cast<unsigned char const *>(modulus.c_str()), modulus.length(), NULL))) RETURNWARN(NULL, "Failed to parse n parameter for RSA JWK");
+    if(!(e = BN_bin2bn(reinterpret_cast<unsigned char const *>(exponent.c_str()), exponent.length(), NULL))) RETURNWARN(NULL, "Failed to parse e parameter for RSA JWK");
+    if(!RSA_set0_key(rsaKey.Ptr(), n.Ptr(), e.Ptr(), NULL)) RETURNWARN(NULL, "Failed to assign modules and exponent for RSA JWK");
     n.Release();
     e.Release();
     AutoPointer<EVP_PKEY> evpKey(EVP_PKEY_new(), &EVP_PKEY_free);
-    if(!evpKey) return NULL;
-    if(EVP_PKEY_assign_RSA(evpKey.Ptr(), rsaKey.Ptr()) != 1) return NULL;
+    if(!evpKey) RETURNWARN(NULL, "Failed to create EVP key for RSA JWK");
+    if(EVP_PKEY_assign_RSA(evpKey.Ptr(), rsaKey.Ptr()) != 1) RETURNWARN(NULL, "Failed to assign RSA key for RSA JWK");
     rsaKey.Release();
     return evpKey.Release();
   }
 
-  static EVP_PKEY* jwkOctParse(cJSON* jwkObject) {
+  static EVP_PKEY* jwkOctParse(cJSON* jwkObject, Logger& logger) {
     cJSON* keyObject = cJSON_GetObjectItem(jwkObject, "k");
     cJSON* algObject = cJSON_GetObjectItem(jwkObject, "alg");
-    if((keyObject == NULL) || (algObject == NULL)) return NULL;
-    if((keyObject->type != cJSON_String) || (algObject->type != cJSON_String)) return NULL;
+    if((keyObject == NULL) || (algObject == NULL)) RETURNWARN(NULL, "Missing k or alg in oct JWK");
+    if((keyObject->type != cJSON_String) || (algObject->type != cJSON_String)) RETURNWARN(NULL, "Wrong type of k or ald in oct JWK");
     std::string key = Base64::decodeURLSafe(keyObject->valuestring);
     // It looks like RFC does not define any "alg" values with "JWK" usage.
     // TODO: finish implementing
-    return NULL;
+    RETURNWARN(NULL, "The oct JWK is not implemented yet");
   }
 
-  static bool jwkParse(cJSON* jwkObject, JWSEKeyHolder& keyHolder) {
+  static bool jwkParse(cJSON* jwkObject, JWSEKeyHolder& keyHolder, Logger& logger) {
     if(jwkObject->type != cJSON_Object) return false;
 
     cJSON* ktyObject = cJSON_GetObjectItem(jwkObject, "kty");
@@ -152,11 +178,11 @@ namespace Arc {
 
     EVP_PKEY* publicKey(NULL);
     if(strcmp(ktyObject->valuestring, "EC") == 0) {    
-      publicKey = jwkECParse(jwkObject);
+      publicKey = jwkECParse(jwkObject, logger);
     } else if(strcmp(ktyObject->valuestring, "RSA") == 0) {    
-      publicKey = jwkRSAParse(jwkObject);
+      publicKey = jwkRSAParse(jwkObject, logger);
     } else if(strcmp(ktyObject->valuestring, "oct") == 0) {    
-      publicKey = jwkOctParse(jwkObject);
+      publicKey = jwkOctParse(jwkObject, logger);
     }
     if(publicKey == NULL)
       return false;
@@ -298,7 +324,7 @@ namespace Arc {
     } else if(jwkObject != NULL) {
       AutoPointer<JWSEKeyHolder> key(new JWSEKeyHolder());
       logger_.msg(DEBUG, "JWSE::ExtractPublicKey: jwk key");
-      if(jwkParse(jwkObject, *key)) {
+      if(jwkParse(jwkObject, *key, logger_)) {
         keyOrigin_ = EmbeddedKey;
         key_ = key;
         return true;
@@ -315,17 +341,17 @@ namespace Arc {
       if(strncasecmp("https:", issuerObj->valuestring, 6) != 0) keyProtocolSafe = false;
 
       {
-	Time now;
+        Time now;
         Arc::AutoLock<Glib::Mutex> lock(issuersInfoLock);
         for(std::map<std::string, IssuerInfo>::iterator infoIt = issuersInfo.begin(); infoIt != issuersInfo.end();) {
           std::map<std::string, IssuerInfo>::iterator nextIt = infoIt;
-	  ++nextIt;
+          ++nextIt;
           if(now > infoIt->second.validTill)
-	    issuersInfo.erase(infoIt);
-	  infoIt = nextIt;
-	}
+          issuersInfo.erase(infoIt);
+          infoIt = nextIt;
+        }
         std::map<std::string, IssuerInfo>::iterator infoIt = issuersInfo.find(issuerObj->valuestring);
-	if(infoIt != issuersInfo.end()) {
+        if(infoIt != issuersInfo.end()) {
           for(JWSEKeyHolderList::iterator keyIt = infoIt->second.keys->begin(); keyIt != infoIt->second.keys->end(); ++keyIt) {
             if(strcmp(kidObject->valuestring, (*keyIt)->Id()) == 0) {
               keyOrigin_ = infoIt->second.isSafe ? ExternalSafeKey : ExternalUnsafeKey;
@@ -348,29 +374,29 @@ namespace Arc {
 
       if(strncasecmp("https:", jwksUri, 6) != 0) keyProtocolSafe = false;
 
-      logger_.msg(DEBUG, "JWSE::ExtractPublicKey: fetching jwl key from %s", jwksUri);
+      logger_.msg(DEBUG, "JWSE::ExtractPublicKey: fetching jws key from %s", jwksUri);
       JWSEKeyFetcher keyFetcher(jwksUri);
       Arc::AutoPointer<JWSEKeyHolderList> keys(new JWSEKeyHolderList);
-      if(!keyFetcher.Fetch(*keys))
+      if(!keyFetcher.Fetch(*keys, logger_))
         return false;
       bool keyFound = false;
       Time validTill;
       for(JWSEKeyHolderList::iterator keyIt = keys->begin(); keyIt != keys->end(); ++keyIt) {
-	Time certValid = (*keyIt)->ValidTill();
-	if(keyIt == keys->begin())
-	  validTill = certValid;
-	else if(certValid < validTill)
-	  validTill = certValid;
+        Time certValid = (*keyIt)->ValidTill();
+        if(keyIt == keys->begin())
+          validTill = certValid;
+        else if(certValid < validTill)
+          validTill = certValid;
 
         if(!keyFound) {
           if(strcmp(kidObject->valuestring, (*keyIt)->Id()) == 0) {
-	    if(certValid >= Time()) {
+            if(certValid >= Time()) {
               keyOrigin_ = keyProtocolSafe ? ExternalSafeKey : ExternalUnsafeKey;
               key_ = new JWSEKeyHolder(**keyIt);
               keyFound = true;
-	    }
+            }
           }
-	}
+        }
       }
       {
         Arc::AutoLock<Glib::Mutex> lock(issuersInfoLock);
@@ -378,7 +404,7 @@ namespace Arc {
         info.isSafe = keyProtocolSafe;
         info.metadata = serviceMetadata;
         info.keys = keys;
-	if(validTill < info.validTill)
+        if(validTill < info.validTill)
           info.validTill = validTill.GetTime();
       }
       if(keyFound)
@@ -561,7 +587,7 @@ namespace Arc {
     client_.RelativeURI(true);
   }
 
-  bool JWSEKeyFetcher::Fetch(JWSEKeyHolderList& keys) {
+  bool JWSEKeyFetcher::Fetch(JWSEKeyHolderList& keys, Logger& logger) {
     HTTPClientInfo info;
     PayloadRaw request;
     PayloadRawInterface* response(NULL);
@@ -588,7 +614,7 @@ namespace Arc {
         id.assign(kidObj->valuestring);
       Arc::AutoPointer<JWSEKeyHolder> key(new JWSEKeyHolder());
       if(!key) continue;
-      if(!jwkParse(keyObj, *key.Ptr()))
+      if(!jwkParse(keyObj, *key.Ptr(), logger))
         continue;
       key->Id(id.c_str());
       keys.add(key);
