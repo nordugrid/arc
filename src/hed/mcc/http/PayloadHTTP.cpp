@@ -928,6 +928,8 @@ bool PayloadHTTPOut::make_header(bool to_stream) {
           std::string::size_type p2 = uri_.find('/',p1+3);
           if(p2 == std::string::npos) p2 = uri_.length();
           host=uri_.substr(p1+3,p2-p1-3);
+          p2 = host.rfind(':');
+          if(p2 != std::string::npos) host.resize(p2);
         };
       };
       header+="Host: "+host+"\r\n";
