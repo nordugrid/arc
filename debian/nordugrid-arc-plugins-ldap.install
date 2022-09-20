@@ -1,0 +1,4 @@
+debian/tmp/usr/lib/arc/libaccLDAP.so
+debian/tmp/usr/lib/arc/libdmcldap.so
+debian/tmp/usr/lib/arc/libaccLDAP.apd
+debian/tmp/usr/lib/arc/libdmcldap.apd
