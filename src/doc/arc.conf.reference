@@ -1400,6 +1400,11 @@
 #tlsciphers=HIGH:!eNULL:!aNULL
 ## CHANGE: INTRODUCED in 6.14.0.
 
+## tlsserverorder = yes - Force priority order of ciphers for TLS connection to be decided on server sid
+## default: no
+#tlsserverorder=yes
+## CHANGE: INTRODUCED in 7.0.0.
+
 ## tlsprotocols = SSL/TLS protocols - Specify which protocols to enable
 ## This is space separated list of values - SSLv2 SSLv3 TLSv1.0 TLSv1.1 TLSv1.2 TLSv1.3
 ## default: TLSv1.2 TLSv1.3
