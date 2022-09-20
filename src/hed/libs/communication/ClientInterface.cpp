@@ -535,9 +535,19 @@ namespace Arc {
     URL url(default_url);
     if (!path.empty()) {
       url.ChangeFullPath(path,true);
+      // Note below the port is not added to Host header if port value is default one.
+      // This is not required by RFC. Such reduction is needed as workaround for broken
+      // HTTP servers which do not understand port in Host header. Luckily they seems
+      // to have no notion about TCP port at all so should always run on default port.
       if(relative_uri) {
         // Workaround for servers which can't handle full URLs in request
-        reqmsg.Attributes()->set("HTTP:HOST", url.Host() + ":" + tostring(url.Port()));
+        if((url.Protocol() == "http") && (url.Port() == HTTP_DEFAULT_PORT)) {
+          reqmsg.Attributes()->set("HTTP:HOST", url.Host());
+	} else if((url.Protocol() == "https") && (url.Port() == HTTPS_DEFAULT_PORT)) {
+          reqmsg.Attributes()->set("HTTP:HOST", url.Host());
+        } else {
+          reqmsg.Attributes()->set("HTTP:HOST", url.Host() + ":" + tostring(url.Port()));
+        }
         std::string rpath = encoded_uri ? url.FullPathURIEncoded() : url.FullPath();
         if(rpath[0] != '/') rpath.insert(0,"/");
         reqmsg.Attributes()->set("HTTP:ENDPOINT", rpath);
@@ -546,7 +556,13 @@ namespace Arc {
       }
     } else {
       if(relative_uri) {
-        reqmsg.Attributes()->set("HTTP:HOST", default_url.Host() + ":" + tostring(default_url.Port()));
+        if((default_url.Protocol() == "http") && (default_url.Port() == HTTP_DEFAULT_PORT)) {
+          reqmsg.Attributes()->set("HTTP:HOST", default_url.Host());
+	} else if((default_url.Protocol() == "https") && (default_url.Port() == HTTPS_DEFAULT_PORT)) {
+          reqmsg.Attributes()->set("HTTP:HOST", default_url.Host());
+        } else {
+          reqmsg.Attributes()->set("HTTP:HOST", default_url.Host() + ":" + tostring(default_url.Port()));
+	}
         std::string rpath = encoded_uri ? default_url.FullPathURIEncoded() : default_url.FullPath();
         if(rpath[0] != '/') rpath.insert(0,"/");
         reqmsg.Attributes()->set("HTTP:ENDPOINT", rpath);
