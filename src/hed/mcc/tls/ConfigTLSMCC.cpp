@@ -66,6 +66,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   proxy_file_ = (std::string)(cfg["ProxyPath"]);
   credential_ = (std::string)(cfg["Credential"]);
   cipher_list_ = (std::string)(cfg["Ciphers"]);
+  server_ciphers_priority_ = (((std::string)(cfg["Ciphers"].Attribute("ServerPriority"))) == "true");
   dhparam_file_ = (std::string)(cfg["DHParamFile"]);
   if(cipher_list_.empty()) {
     // Safest setup by default
@@ -157,6 +158,9 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
       }
     }
 #endif
+    if(server_ciphers_priority_) {
+      protocol_options_ |= SSL_OP_CIPHER_SERVER_PREFERENCE;
+    }
   }
 
   std::vector<std::string> gridSecDir (2);
