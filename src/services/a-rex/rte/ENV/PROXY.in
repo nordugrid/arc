@@ -5,9 +5,12 @@
 COPY_CACERT_DIR="${COPY_CACERT_DIR:-Yes}"
 USE_DELEGATION_DB="${USE_DELEGATION_DB:-No}"
 X509_CERT_DIR="${X509_CERT_DIR:-/etc/grid-security/certificates}"
-PROXY_FILE=$(control_path "${joboption_controldir}" "${joboption_gridid}" "proxy")
+
 
 if [ "x$1" = "x0" ]; then
+
+    PROXY_FILE=$(control_path "${joboption_controldir}" "${joboption_gridid}" "proxy")
+   
     if [ "x$COPY_CACERT_DIR" = "xYes" ]; then
         mkdir -pv ${joboption_directory}/arc/certificates/
         cp -rv ${X509_CERT_DIR}/* ${joboption_directory}/arc/certificates/
