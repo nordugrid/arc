@@ -195,12 +195,19 @@
     </xsd:simpleType>
 </xsd:element>
 
-<xsd:element name="Ciphers" type="xsd:string" default="">
-    <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-        OpenSSL ciphers list. Overrides Encryption element.
-        </xsd:documentation>
-    </xsd:annotation>
+<xsd:element name="Ciphers" default="">
+    <xsd:complexType>
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+            OpenSSL ciphers list. Overrides Encryption element.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="ServerPriority" type="xsd:boolean" use="optional" default="false"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
 </xsd:element>
 
 <xsd:element name="Protocol" type="xsd:string" default="">

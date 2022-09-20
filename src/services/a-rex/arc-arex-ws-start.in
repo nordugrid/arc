@@ -223,6 +223,7 @@ prepare() {
     mapping_present=`testconfigblock "$ARC_RUNTIME_CONFIG" mapping`
     authtokens_present=`testconfigblock "$ARC_RUNTIME_CONFIG" authtokens`
     CIPHERS_STRING=`readconfigvar "$ARC_RUNTIME_CONFIG" tlsciphers arex/ws`
+    CIPHERS_SERVER_ORDER=`readconfigvar "$ARC_RUNTIME_CONFIG" tlsserverorder arex/ws`
     PROTOCOLS_STRING=`readconfigvar "$ARC_RUNTIME_CONFIG" tlsprotocols arex/ws`
     CURVE_STRING=`readconfigvar "$ARC_RUNTIME_CONFIG" tlscurve arex/ws`
     USERMAP_BLOCK=''
@@ -496,10 +497,11 @@ prepare() {
 <SecHandler name=\"otokens.handler\" event=\"incoming\"/>"
     fi
 
-    ciphers_xml=""
-    if [ ! -z "$CIPHERS_STRING" ] ; then
-      ciphers_xml="<Ciphers>$CIPHERS_STRING</Ciphers>"
+    ciphers_server_order=""
+    if [ "$CIPHERS_SERVER_ORDER" = 'yes' ] ; then
+      ciphers_server_order="ServerOrder=\"true\""
     fi
+    ciphers_xml="<Ciphers $ciphers_server_order>$CIPHERS_STRING</Ciphers>"
     protocols_xml=""
     if [ ! -z "$PROTOCOLS_STRING" ] ; then
       protocols_xml="<Protocol>$PROTOCOLS_STRING</Protocol>"
