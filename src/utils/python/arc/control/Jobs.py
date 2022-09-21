@@ -119,7 +119,7 @@ class JobsControl(ComponentControl):
 
     def __parse_job_attrs(self, jobid, attrtype='local'):
         _KEYVALUE_RE = re.compile(r'^([^=]+)=(.*)$')
-        attr_file = '{0}/jobs/{1}/{2}'.format(self.control_dir, self.__jobid(jobid), attrtype)
+        attr_file = control_path(self.control_dir, jobid, attrtype)
         job_attrs = {}
         if os.path.exists(attr_file):
             with open(attr_file, 'r') as attr_f:
@@ -145,12 +145,6 @@ class JobsControl(ComponentControl):
             sys.stdout.flush()
         else:
             self.logger.error('Failed to open service log file: %s', log_path)
-
-    def __jobid(self,jobid):
-        try:
-            return jobid[0:3] + '/' + jobid[3:6] + '/' + jobid[6:9] + '/' + jobid[9:12]
-        except:
-            self.logger.error('The jobid %s does not have the right format/length - expecting 12 characters',jobid)
 
     def __get_jobs(self):
         # check cache first
@@ -246,7 +240,7 @@ class JobsControl(ComponentControl):
             sys.stdout.flush()
 
     def job_script(self, args):
-        error_log = '{0}/jobs/{1}/errors'.format(self.control_dir, self.__jobid(args.jobid))
+        error_log = control_path(self.control_dir, args.jobid, 'error')
         if os.path.exists(error_log):
             el_f = open(error_log, 'r')
             print_line = False
@@ -309,7 +303,7 @@ class JobsControl(ComponentControl):
             self.logger.error('Failed to find log file: %s', log)
 
     def job_log(self, args):
-        error_log = '{0}/jobs/{1}/errors'.format(self.control_dir, self.__jobid(args.jobid))
+        error_log = control_path(self.control_dir, args.jobid, 'error')
         if os.path.exists(error_log):
             self.__follow_log(error_log, args.follow, process_function=self.__cut_jobscript)
         else:
