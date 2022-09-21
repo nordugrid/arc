@@ -157,7 +157,7 @@ class DataStagingControl(ComponentControl):
         return ds_time
 
     def _has_userdefined_inputfiles(self,jobid):
-        grami_file = self.control_dir + '/' + 'job.' + jobid + '.grami'
+        grami_file = control_path(self.control_dir, jobid, 'grami')
         try:
             with open(grami_file,'r') as f:
                 for line in f:
@@ -175,7 +175,7 @@ class DataStagingControl(ComponentControl):
 
     def _get_inputfilenames(self,jobid):
         """ The grami-info only contains filename, not URI"""
-        grami_file = self.control_dir + '/' + 'job.' + jobid + '.grami'
+        grami_file = control_path(self.control_dir, jobid, 'grami')
         all_files = []
         all_files_user = []
         try:
@@ -210,7 +210,7 @@ class DataStagingControl(ComponentControl):
         all_files, all_files_user = self._get_inputfilenames(jobid)
 
         """ Get files already downloaded """
-        stat_file = self.control_dir + '/' + 'job.' + jobid + '.statistics'
+        stat_file = control_path(self.control_dir, jobid, 'statistics')
         with open(stat_file,'r') as f:
             for line in f:
                 line = line.strip()
@@ -343,7 +343,7 @@ class DataStagingControl(ComponentControl):
 
         datastaging_time={}
         jobid = args.jobid
-        log_f = self.control_dir + '/job.'+jobid +'.errors'
+        log_f = control_path(self.control_dir, jobid, 'errors')
         datastaging_time=self._get_timestamps_joblog(log_f,jobid)
 
         if datastaging_time:
@@ -402,7 +402,7 @@ class DataStagingControl(ComponentControl):
         dtr_file = {}
         file_dtr = {}
 
-        log_file = self.control_dir + '/' + 'job.' + args.jobid + '.errors'
+        log_file = control_path(self.control_dir, args.jobid, 'errors')
         with open(log_file,'r') as f:
             for line in f:
 
@@ -523,7 +523,7 @@ class DataStagingControl(ComponentControl):
 
         print('\nThis may take some time... Fetching the total number of files downloaded for jobs modified after {}'.format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S\n')))
 
-        log_all = glob.glob(self.control_dir + "/job.*.statistics")
+        log_all = glob.glob(self.control_dir + '/jobs/*/*/*/*/statistics')
         for log_f in log_all:
             mtime = None
             try:
@@ -645,7 +645,7 @@ class DataStagingControl(ComponentControl):
     def show_summary_jobs(self,args):
         
         """ Overview over duration of all datastaging processes in the chosen timewindow 
-        Checks job.<jobid>.errors files that have been modified during the timewindow. 
+        Checks job errors files that have been modified during the timewindow. 
         Checks duration between ACCEPTED -> PREPARING to PREPARING -> FINISHING stages. 
         """
         datastaging_jobs={}
@@ -653,7 +653,7 @@ class DataStagingControl(ComponentControl):
 
         print('\nThis may take some time... Fetching summary of download times for jobs modified after {}'.format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S')))
 
-        log_all = glob.glob(self.control_dir + "/job.*.errors")
+        log_all = glob.glob(self.control_dir + "/jobs/*/*/*/*/errors")
         for log_f in log_all:
             mtime = None
             try:
