@@ -12,6 +12,7 @@
 
 #include "PayloadHTTP.h"
 #include <arc/StringConv.h>
+#include <arc/URL.h>
 
 namespace ArcMCCHTTP {
 
@@ -923,13 +924,30 @@ bool PayloadHTTPOut::make_header(bool to_stream) {
     if(it == attributes_.end()) {
       std::string host;
       if(!uri_.empty()) {
-        std::string::size_type p1 = uri_.find("://");
-        if(p1 != std::string::npos) {
-          std::string::size_type p2 = uri_.find('/',p1+3);
-          if(p2 == std::string::npos) p2 = uri_.length();
-          host=uri_.substr(p1+3,p2-p1-3);
-          p2 = host.rfind(':');
-          if(p2 != std::string::npos) host.resize(p2);
+        Arc::URL url(uri_);
+        if(url) {
+          if(!url.Host().empty()) {
+            int port = url.Port();
+            if(port > 0) {
+	      // It appears there are HTTP server implementations which do not follow
+	      // RFC and expect Host header contain only hostname and fail to parse
+	      // port part. It would be stupid to just remove port as it may be 
+	      // crucial for proper servers.
+	      // But it looks like such servers are so broken they simply can't 
+	      // run on non-default ports 80 and 443. So if we remove port with
+	      // default values that should make those servers insanely happy.
+              if((url.Protocol() == "http") && (port == HTTP_DEFAULT_PORT)) {
+                port = 0;
+              } else if((url.Protocol() == "https") && (port == HTTPS_DEFAULT_PORT)) {
+                port = 0;
+              };
+            };
+            if(port > 0) {
+              host = url.Host() + ":" + Arc::inttostr(port);
+            } else {
+              host = url.Host();
+            };
+          };
         };
       };
       header+="Host: "+host+"\r\n";
