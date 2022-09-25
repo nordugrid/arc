@@ -17,12 +17,6 @@
 #define EVP_MD_CTX_free EVP_MD_CTX_destroy
 #endif
 
-#if OPENSSL_VERSION_NUMBER < 0x101010dfL
-const BIGNUM *ECDSA_SIG_get0_r(const ECDSA_SIG *sig) { return sig->r; }
-const BIGNUM *ECDSA_SIG_get0_s(const ECDSA_SIG *sig) { return sig->s; }
-#endif
-
-
 namespace Arc {
 
   bool JWSE::VerifyECDSA(char const* digestName, void const* message, unsigned int messageSize,
@@ -146,8 +140,9 @@ namespace Arc {
       HandleOpenSSLError();
       return false;
     }
-    BIGNUM const * r = ECDSA_SIG_get0_r(sig.Ptr());
-    BIGNUM const * s = ECDSA_SIG_get0_s(sig.Ptr());
+    BIGNUM const * r = NULL;
+    BIGNUM const * s = NULL;
+    ECDSA_SIG_get0(sig.Ptr(), &r, &s);
     if(!r || !s) {
       logger_.msg(DEBUG, "JWSE::SignECDSA: failed to parse signature");
       HandleOpenSSLError();
