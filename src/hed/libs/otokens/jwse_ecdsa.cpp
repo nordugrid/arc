@@ -33,7 +33,7 @@ namespace Arc {
     }
 
     // Key
-    EC_KEY* key = EVP_PKEY_get0_EC_KEY(const_cast<EVP_PKEY*>(key_->PublicKey()));
+    EC_KEY* key = const_cast<EC_KEY*>(EVP_PKEY_get0_EC_KEY(const_cast<EVP_PKEY*>(key_->PublicKey())));
     // Signature
     AutoPointer<ECDSA_SIG> sig(ECDSA_SIG_new(),&ECDSA_SIG_free);
     if(!sig) {
@@ -103,7 +103,7 @@ namespace Arc {
       return false;
     }
     // Key
-    EC_KEY* key = EVP_PKEY_get0_EC_KEY(const_cast<EVP_PKEY*>(key_->PrivateKey()));
+    EC_KEY* key = const_cast<EC_KEY*>(EVP_PKEY_get0_EC_KEY(const_cast<EVP_PKEY*>(key_->PrivateKey())));
     // Hash
     AutoPointer<EVP_MD_CTX> ctx(EVP_MD_CTX_new(),&EVP_MD_CTX_free);
     if(!ctx) {
