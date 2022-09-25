@@ -17,7 +17,11 @@
 #define EVP_MD_CTX_free EVP_MD_CTX_destroy
 #endif
 
-// EVP_PKEY_get0_EC_KEY
+#if OPENSSL_VERSION_NUMBER < 0x101010dfL
+const BIGNUM *ECDSA_SIG_get0_r(const ECDSA_SIG *sig) { return sig->r; }
+const BIGNUM *ECDSA_SIG_get0_s(const ECDSA_SIG *sig) { return sig->s; }
+#endif
+
 
 namespace Arc {
 
