@@ -61,10 +61,14 @@ class ARexConfigContext:public Arc::MessageContextElement, public ARexGMConfig {
                   std::string const & default_uname, std::string const & default_endpoint);
   // Authorization methods
   enum OperationType {
-    OperationInfo,
-    OperationCreate,
-    OperationModify,
-    OperationDelete
+    OperationServiceInfo, // information about service
+    OperationJobInfo,     // information about job
+    OperationJobCreate,   // creation of new job
+    OperationJobCancel,   // canceling existing job
+    OperationJobDelete,   // removing existing job
+    OperationDataInfo,    // getting information about file in session
+    OperationDataWrite,   // writing file to session
+    OperationDataRead,    // reading file from session
   };
   static bool CheckOperationAllowed(OperationType op, ARexConfigContext* config);
 };

@@ -33,24 +33,42 @@ bool ARexConfigContext::CheckOperationAllowed(OperationType op, ARexConfigContex
   }
 
   if(has_token_identity) {
+    std::list<std::string> const * allowed_scopes = NULL;
     switch(op) {
-      case OperationInfo:
-        if(std::find(scopes.begin(), scopes.end(), "computing.read") != scopes.end())
-          return true;
+      case OperationServiceInfo:
+        allowed_scopes = &(config->GmConfig().TokenScopes("info"));
         break;
-      case OperationCreate:
-        if(std::find(scopes.begin(), scopes.end(), "computing.create") != scopes.end())
-          return true;
+      case OperationJobInfo:
+        allowed_scopes = &(config->GmConfig().TokenScopes("jobinfo"));
         break;
-      case OperationModify:
-        if(std::find(scopes.begin(), scopes.end(), "computing.modify") != scopes.end())
-          return true;
+      case OperationJobCreate:
+        allowed_scopes = &(config->GmConfig().TokenScopes("jobcreate"));
         break;
-      case OperationDelete:
-        if(std::find(scopes.begin(), scopes.end(), "computing.cancel") != scopes.end())
-          return true;
+      case OperationJobCancel:
+        allowed_scopes = &(config->GmConfig().TokenScopes("jobcancel"));
+        break;
+      case OperationJobDelete:
+        allowed_scopes = &(config->GmConfig().TokenScopes("jobdelete"));
+        break;
+      case OperationDataInfo:
+        allowed_scopes = &(config->GmConfig().TokenScopes("datainfo"));
+        break;
+      case OperationDataWrite:
+        allowed_scopes = &(config->GmConfig().TokenScopes("datawrite"));
+        break;
+      case OperationDataRead:
+        allowed_scopes = &(config->GmConfig().TokenScopes("dataread"));
+        break;
+      default:
         break;
     }
+    // No assigned scopes means no limitation
+    if(!allowed_scopes) return true;
+    if(allowed_scopes->empty()) return true;
+    for(std::list<std::string>::iterator scopeIt = scopes.begin(); scopeIt != scopes.end(); ++scopeIt) {
+      if(std::find(allowed_scopes->begin(), allowed_scopes->end(), *scopeIt) != allowed_scopes->end()) return true;
+    }
+    return false;
   }
 
   if(has_tls_identity)
