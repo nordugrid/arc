@@ -1064,8 +1064,8 @@
 ##    dataread - read files in session directory
 ## default: undefined
 ## Following example (probably) assigns scopes according to WLCG profile 
-#tokenscopes=jobinfo=computing.read,jobcreate=computing.create,jobcancel=computing.cancel,jobdelete=computing.cancel
-#tokenscopes=datainfo=computing.read,datawrite=computing.modify,dataread=computing.read
+#tokenscopes=jobinfo=compute.read,jobcreate=compute.create,jobcancel=compute.cancel,jobdelete=compute.cancel
+#tokenscopes=datainfo=compute.read,datawrite=compute.modify,dataread=compute.read
 ##
 ##
 ### end of the [arex] block ###################################
