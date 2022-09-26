@@ -371,6 +371,17 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           }
           config.forced_voms[""] = str;
         }
+        else if (command == "tokenscopes") {
+          std::string str = rest;
+          std::list<std::string> pairs;
+          Arc::tokenize(str,pairs,",");
+          for(std::list<std::string>::iterator pair = pairs.begin(); pair != pairs.end(); ++pair) {
+            std::string::size_type pos = pair->find('=');
+            if(pos != std::string::npos) {
+              config.token_scopes[Arc::trim(pair->substr(0,pos))].push_back(Arc::trim(pair->substr(pos+1)));
+            }
+          }
+        }
         /*
           #infoproviders_timelimit
           Currently information provider timeout is not implemented,

@@ -1050,6 +1050,22 @@
 ## into [queue] block.
 ## default: undefined
 #forcedefaultvoms=/vo/group/subgroup
+
+## tokenscopes = action=scope[,action=scope[...]] - assigns JWS token scopes required
+## to perform specific actions. Multiple tokenscopes entries are allowed.
+##  Following actions are supported:
+##    info - information about server
+##    jobinfo - information about jobs
+##    jobcreate - create new job or restart existing
+##    jobcancel - cancel active jobs
+##    jobdelete - remove jobs from server
+##    datainfo - information about files in session directory
+##    datawrite - create new or modify files in session directory
+##    dataread - read files in session directory
+## default: undefined
+## Following example (probably) assigns scopes according to WLCG profile 
+#tokenscopes=jobinfo=computing.read,jobcreate=computing.create,jobcancel=computing.cancel,jobdelete=computing.cancel
+#tokenscopes=datainfo=computing.read,datawrite=computing.modify,dataread=computing.read
 ##
 ##
 ### end of the [arex] block ###################################
