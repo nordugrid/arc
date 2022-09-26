@@ -170,6 +170,8 @@ namespace Arc {
       } else if(strcmp(algObject->valuestring, "PS512") == 0) {
         verifyResult = VerifyRSASSAPSS("SHA512", joseStart, payloadEnd-joseStart,
                          reinterpret_cast<unsigned char const*>(signature.c_str()), signature.length());
+      } else {
+        logger_.msg(DEBUG, "JWSE::Input: JWS: signature algorithn not supported: %s",algObject->valuestring);
       }
 /*
    | RS256        | RSASSA-PKCS1-v1_5 using       | Recommended        |
