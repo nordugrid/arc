@@ -80,6 +80,7 @@
     <xsd:annotation>
         <xsd:documentation xml:lang="en">
         Directory containing certificates of accepted CAs.
+        </xsd:documentation>
     </xsd:annotation>
   </xsd:element>
 
@@ -88,6 +89,7 @@
         <xsd:documentation xml:lang="en">
         Specify if local account name returned by Argus is to be used.
         Default is not to apply local account provided by Argus.
+        </xsd:documentation>
     </xsd:annotation>
   </xsd:element>
 
@@ -97,6 +99,7 @@
         Specify if the "NotApplicable" decision returned by Argus 
         PDP is treated as reason to deny request.
         Default is false, which treats "NotApplicable" as reson to deny request.
+        </xsd:documentation>
     </xsd:annotation>
   </xsd:element>
 
