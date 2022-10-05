@@ -731,7 +731,8 @@ Arc::MCC_Status ARexRest::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   }
   context.processed += apiVersion;
   context.processed += "/";
-  if (apiVersion != "1.0") {
+  if ((apiVersion != "1.0") &&
+      (apiVersion != "1.1")) {
     return HTTPFault(inmsg,outmsg,404,"Version Not Supported");
   }
 
@@ -761,7 +762,7 @@ Arc::MCC_Status ARexRest::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
 Arc::MCC_Status ARexRest::processVersions(Arc::Message& inmsg,Arc::Message& outmsg,ProcessingContext& context) {
   if((context.method == "GET") || (context.method == "HEAD")) {
-    XMLNode versions("<versions><version>1.0</version></versions>"); // only supported version is 1.0
+    XMLNode versions("<versions><version>1.0</version><version>1.1</version></versions>"); // only supported versions are 1.0 and 1.1
     char const * json_arrays[] = { "version", NULL };
     return HTTPResponse(inmsg, outmsg, versions, json_arrays);
   }
@@ -1000,6 +1001,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
       if(start_pos == std::string::npos)
         return HTTPFault(inmsg,outmsg,500,"Payload is empty");
 
+      std::string default_queue = context["queue"];
+      std::string default_delegation_id = context["delegation_id"];
       XMLNode listXml("<jobs/>");
       // TODO: Split to separate functions
       switch(desc_str[start_pos]) {
@@ -1012,7 +1015,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
               if(!job_desc_xml)
                 break;
               XMLNode jobXml = listXml.NewChild("job");
-              ARexJob job(job_desc_xml,*config,"",clientid,logger_,idgenerator);
+              ARexJob job(job_desc_xml,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
               if(!job) {
                 jobXml.NewChild("status-code") = "500";
                 jobXml.NewChild("reason") = job.Failure();
@@ -1026,7 +1029,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
           } else {
             // maybe single
             XMLNode jobXml = listXml.NewChild("job");
-            ARexJob job(jobs_desc_xml,*config,"",clientid,logger_,idgenerator);
+            ARexJob job(jobs_desc_xml,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
             if(!job) {
               jobXml.NewChild("status-code") = "500";
               jobXml.NewChild("reason") = job.Failure();
@@ -1041,7 +1044,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
 
         case '&': { // single-xRSL
           XMLNode jobXml = listXml.NewChild("job");
-          ARexJob job(desc_str,*config,"",clientid,logger_,idgenerator);
+          ARexJob job(desc_str,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
           if(!job) {
             jobXml.NewChild("status-code") = "500";
             jobXml.NewChild("reason") = job.Failure();
@@ -1067,7 +1070,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
                 jobXml.NewChild("status-code") = "500";
                 jobXml.NewChild("reason") = result.str();
               } else {
-                ARexJob job(jobdesc_str,*config,"",clientid,logger_,idgenerator);
+                ARexJob job(jobdesc_str,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
                 if(!job) {
                   jobXml.NewChild("status-code") = "500";
                   jobXml.NewChild("reason") = job.Failure();

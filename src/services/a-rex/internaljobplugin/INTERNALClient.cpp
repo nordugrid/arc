@@ -479,7 +479,7 @@ namespace ARexINTERNAL {
 
 
 
-        ARex::ARexJob arexjob(adl,*arexconfig,delegation_id,dummy,logger,idgenerator);
+        ARex::ARexJob arexjob(adl,*arexconfig,delegation_id,dummy,dummy,logger,idgenerator);
         
         if(!arexjob){
           logger.msg(Arc::ERROR, "%s",arexjob.Failure());
