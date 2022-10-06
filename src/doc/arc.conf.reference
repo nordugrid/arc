@@ -1078,7 +1078,7 @@
 ### The [arex/cache] block #########################################
 ## This subblock enables and configures the cache functionality of A-REX.
 ## A-REX can cache input files downloaded as part of the stage-in process of grid jobs
-## so that subsequent jobs requiring the same file don’t have to download it again.
+## so that subsequent jobs requiring the same file don't have to download it again.
 ## The cached file will be symlinked (or copied) into the session directory of the job.
 ## To disable to cache functionality simply comment out the [arex/cache] config block.
 ## It is a good idea to have the cache on its own separate file system that is shared with the nodes.

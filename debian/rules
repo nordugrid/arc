@@ -3,16 +3,6 @@
 # Filter out -Wl,-Bsymbolic-functions from default Ubuntu LDFLAGS
 export DEB_LDFLAGS_MAINT_STRIP=-Wl,-Bsymbolic-functions
 
-ifeq ($(shell dpkg --compare-versions $$(dpkg-query -W -f '$${Version}' python3) ge 3.7.4 && echo 1),1)
-PYVER = 3
-WITH_ALT_PYTHON =
-P = -Npython-nordugrid-arc
-else
-PYVER = 2
-WITH_ALT_PYTHON = --with-altpython=python3
-P = --with python3
-endif
-
 ifeq ($(shell type dh_systemd_enable > /dev/null 2> /dev/null && echo 1),1)
 WSD = --with systemd
 else
@@ -42,7 +32,7 @@ SYSDNOENBL =
 endif
 
 %:
-	dh $@ --with autoreconf $(WSD) --with python$(PYVER) $(P)
+	dh $@ --with autoreconf $(WSD) --with python3
 
 override_dh_auto_configure:
 	if [ ! -f po/POTFILES.in.save ] ; then \
@@ -59,8 +49,8 @@ override_dh_auto_configure:
 		    --enable-systemd=$(SYSTEMD) \
 		    --with-systemd-units-location=/lib/systemd/system \
 		    --with-sysv-scripts-location=/etc/init.d \
-		    --with-python=python$(PYVER) \
-		    $(WITH_ALT_PYTHON)
+		    --with-python=python3 \
+		    --disable-pylint
 
 override_dh_auto_clean:
 	dh_auto_clean
@@ -86,7 +76,6 @@ override_dh_auto_clean:
 	    mv po/POTFILES.in.save po/POTFILES.in ; \
 	fi
 
-	find python src -name *.pyc -exec rm {} ';'
 	find python src -depth -name __pycache__ -exec rm -rf {} ';'
 
 override_dh_auto_install:
@@ -143,13 +132,7 @@ override_dh_auto_install:
 	chmod 4755 debian/tmp/usr/bin/arc-job-cgroup
 
 override_dh_install:
-	dh_install -p libarccommon3 \
-	  debian/tmp/usr/lib/python$(PYVER).*/site-packages/arc/__init__.py\*
-	if [ $(PYVER) -eq 2 ] ; then \
-	  dh_install -p python3-nordugrid-arc \
-	    debian/tmp/usr/lib/python3.*/site-packages/arc/__init__.py\* ; fi
-	rm debian/tmp/usr/lib/python?.*/site-packages/arc/__init__.py*
-	dh_install --remaining-packages --fail-missing
+	dh_install --fail-missing
 
 override_dh_installinit:
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-hed --name arched
@@ -179,31 +162,3 @@ override_dh_fixperms:
 
 override_dh_compress:
 	dh_compress -X arc.conf.reference -X arc.conf.DELETED
-
-ifeq ($(PYVER),2)
-override_dh_python2:
-	dh_python2
-
-	echo "pydeps:Depends=python-ldap, python-isodate" \
-		>> debian/nordugrid-arc-arex.substvars
-	echo "pydeps:Depends=python-dnspython" \
-		>> debian/nordugrid-arc-community-rtes.substvars
-	echo "pydeps:Depends=python-ldap, python-dnspython" \
-		>> debian/nordugrid-arc-archery-manage.substvars
-	echo "pydeps:Depends=python-nordugrid-arc (= \$${binary:Version})" \
-		>> debian/nordugrid-arc-plugins-python.substvars
-endif
-
-ifeq ($(PYVER),3)
-override_dh_python3:
-	dh_python3
-
-	echo "pydeps:Depends=python3-ldap, python3-isodate" \
-		>> debian/nordugrid-arc-arex.substvars
-	echo "pydeps:Depends=python3-dnspython" \
-		>> debian/nordugrid-arc-community-rtes.substvars
-	echo "pydeps:Depends=python3-ldap, python3-dnspython" \
-		>> debian/nordugrid-arc-archery-manage.substvars
-	echo "pydeps:Depends=python3-nordugrid-arc (= \$${binary:Version})" \
-		>> debian/nordugrid-arc-plugins-python.substvars
-endif
