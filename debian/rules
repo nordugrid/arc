@@ -3,13 +3,6 @@
 # Filter out -Wl,-Bsymbolic-functions from default Ubuntu LDFLAGS
 export DEB_LDFLAGS_MAINT_STRIP=-Wl,-Bsymbolic-functions
 
-ifeq ($(shell pkg-config --atleast-version 2.6 sigc++-2.0 && echo 1),1)
-ifeq ($(shell echo __GNUC__ | gcc -E - | tail -1),5)
-# Workaround for too new libsigc++/glibmm, too old gcc combination
-export DEB_CXXFLAGS_MAINT_APPEND=-std=c++11
-endif
-endif
-
 ifeq ($(shell dpkg --compare-versions $$(dpkg-query -W -f '$${Version}' python3) ge 3.7.4 && echo 1),1)
 PYVER = 3
 WITH_ALT_PYTHON =
