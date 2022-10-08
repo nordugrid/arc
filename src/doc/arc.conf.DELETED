@@ -80,14 +80,6 @@
 ## CHANGE: DELETED
 
 
-### The [lrms/ssh] block ##############################################
-
-## remote_runtimedir = path - Runtime environment directory on cluster frontend to
-## be mounted (sshfs) on CE machine at directory specified by the 'runtimedir'
-## attribute in the [arex] block.
-## CHANGE: DELETED
-
-
 ### The [arex] block - previously [grid-manager] #####################
 
 ## logsize size [number] - 'Size' specifies in bytes how big log file is
@@ -481,6 +473,70 @@
 ##
 ##
 ### end of the [registration/emir] block ############################
+
+
+### The [lrms/ssh] block ##############################################
+## This sub-block configures the ssh environment for remote batch management.
+## Currently ONLY the python slurm (slurmpy) EXPERIMENTAL batch module is able to utilize
+## the remote ssh feature.
+## Parameters within this block are relevant if the cluster frontend is remotely
+## located wrt. CE frontend (machine running A-REX). If specified with the
+## parameters below, the session, cache and runtime directories will be mounted
+## from the cluster frontend on the CE frontend using sshfs. Job submission and
+## management will done using ssh (Paramiko).
+#[lrms/ssh]
+## CHANGE: NEW sub-block in 6.0.0 to configure ssh support in slurmpy as a part of tech preview.
+## CHANGE: DELETED in 7.0.0
+
+## *remote_host = hostname - Define the remote cluster frontend machine which contains
+## session, cache and runtime directories and where jobs should be submitted to.
+## default: undefined
+## mandatory
+#remote_host=myremotehost.org
+## CHANGE: DELETED in 7.0.0
+
+## *private_key = path - Location of the private key which should be used establish
+## connection to the machine specified by the 'remote_host' attribute.
+## default: undefined
+## mandatory
+#private_key=/etc/grid-security/hostkey-priv.pem
+## CHANGE: DELETED in 7.0.0
+
+## *remote_user = user - User on remote cluster which should be used for mounting
+## directories, submitting and managing jobs, and gathering information about
+## cluster.
+## default: undefined
+## mandatory
+#remote_user=grid
+## CHANGE: DELETED in 7.0.0
+
+## remote_sessiondir = path - Session directory on cluster frontend to be
+## mounted (sshfs) on CE machine at directory specified by the 'sessiondir'
+## attribute in the [arex] block.
+## default: undefined
+## mandatory
+#remote_sessiondir=/scratch/grid
+## CHANGE: DELETED in 7.0.0
+
+## remote_cachedir = path - Cache directory on cluster frontend to be
+## mounted (sshfs) on CE machine at directory specified by the 'cachedir'
+## attribute in the [arex] block.
+## default: undefined
+#remote_cachedir=/scratch/cache
+## CHANGE: DELETED in 7.0.0
+
+## ssh_timeout = time - Timeout of establishing ssh connection. Unit in seconds.
+## default: 10
+#ssh_timeout=10
+## CHANGE: DELETED in 7.0.0
+
+## remote_runtimedir = path - Runtime environment directory on cluster frontend to
+## be mounted (sshfs) on CE machine at directory specified by the 'runtimedir'
+## attribute in the [arex] block.
+## CHANGE: DELETED
+##
+##
+### end of [lrms/ssh] block #####################################################
 
 
 ### The [arex/jura/archiving] block ##############################
