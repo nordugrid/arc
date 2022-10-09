@@ -63,7 +63,8 @@ Conflicts:
  nordugrid-arc-acix-core (<< 7.0.0~),
  nordugrid-arc-acix-scanner (<< 7.0.0~),
  nordugrid-arc-acix-index (<< 7.0.0~),
- nordugrid-arc-arex-python-lrms (<< 7.0.0~)
+ nordugrid-arc-arex-python-lrms (<< 7.0.0~),
+ nordugrid-arc-gridftpd (<< 7.0.0~)
 Breaks:
  nordugrid-arc-hed (<< 1.0.1~rc2~),
  nordugrid-arc-arex (<< 2.0.1~),
@@ -124,24 +125,6 @@ Description: ARC Hosting Environment Daemon
  .
  The ARC Hosting Environment Daemon (HED) is a Web Service container
  for ARC services.
-
-Package: nordugrid-arc-gridftpd
-Architecture: any
-Depends:
- ${shlibs:Depends},
- ${misc:Depends},
- libarccommon3 (= ${binary:Version}),
- nordugrid-arc-arcctl-service (= ${source:Version}),
- nordugrid-arc-plugins-gridftp (= ${binary:Version}),
- lsb-base (>= 3.0-6)
-Description: ARC GridFTP server
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the middleware, known as the Advanced Resource
- Connector (ARC).
- .
- This package contains the ARC gridftp server which can be used as a
- custom job submission interface in front of an ARC enabled computing
- cluster or as a low-level dedicated gridftp file server.
 
 Package: nordugrid-arc-datadelivery-service
 Architecture: any

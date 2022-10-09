@@ -178,6 +178,7 @@ Obsoletes:	%{name}-acix-core < 7.0.0
 Obsoletes:	%{name}-acix-scanner < 7.0.0
 Obsoletes:	%{name}-acix-index < 7.0.0
 Obsoletes:	%{name}-arex-python-lrms < 7.0.0
+Obsoletes:	%{name}-gridftpd < 7.0.0
 %if ! %{with_python2}
 Obsoletes:	python2-%{name} < %{version}-%{release}
 Obsoletes:	%{name}-python < 5.3.3
@@ -317,26 +318,6 @@ Connector (ARC).
 
 The ARC Hosting Environment Daemon (HED) is a Web Service container
 for ARC services.
-
-%package gridftpd
-Summary:	ARC gridftp server
-Group:		System Environment/Daemons
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-plugins-gridftp = %{version}-%{release}
-Requires:	%{name}-arcctl-service = %{version}-%{release}
-
-Requires(post):		%{service_post_requires}
-Requires(preun):	%{service_preun_requires}
-Requires(postun):	%{service_postun_requires}
-
-%description gridftpd
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the middleware, known as the Advanced Resource
-Connector (ARC).
-
-This package contains the ARC gridftp server which can be used as a
-custom job submission interface in front of an ARC enabled computing
-cluster or as a low-level dedicated gridftp file server.
 
 %package datadelivery-service
 Summary:	ARC data delivery service
@@ -901,8 +882,6 @@ make install DESTDIR=$RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
 install -p -m 644 debian/%{name}-arex.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-arex
-install -p -m 644 debian/%{name}-gridftpd.logrotate \
-    $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-gridftpd
 %if %{with_ldap_service}
 install -p -m 644 debian/%{name}-infosys-ldap.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-infosys-ldap
@@ -987,15 +966,6 @@ fi
 %postun arex
 %condrestart_on_update arc-arex
 %condrestart_on_update arc-arex-ws
-
-%post gridftpd
-%enable_service arc-gridftpd
-
-%preun gridftpd
-%stop_on_removal arc-gridftpd
-
-%postun gridftpd
-%condrestart_on_update arc-gridftpd
 
 %post datadelivery-service
 %enable_service arc-datadelivery-service
@@ -1172,20 +1142,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/profiles
 %doc %{_mandir}/man8/arched.8*
 %doc %{_mandir}/man5/arc.conf.5*
-
-%files gridftpd
-%defattr(-,root,root,-)
-%if %{use_systemd}
-%{_unitdir}/arc-gridftpd.service
-%else
-%{_initrddir}/arc-gridftpd
-%endif
-%{_sbindir}/gridftpd
-%{_libdir}/%{pkgdir}/jobsplugin.*
-%{_libdir}/%{pkgdir}/filedirplugin.*
-%{_datadir}/%{pkgdir}/arc-gridftpd-start
-%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
-%doc %{_mandir}/man8/gridftpd.8*
 
 %files datadelivery-service
 %defattr(-,root,root,-)

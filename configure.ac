@@ -183,7 +183,6 @@ enables_hed=yes
 #  Services
 enables_a_rex_service=yes
 enables_internal=no
-enables_gridftpd_service=yes
 enables_ldap_service=yes
 enables_candypond=yes
 enables_datadelivery_service=yes
@@ -202,7 +201,6 @@ AC_ARG_ENABLE(all, AC_HELP_STRING([--disable-all], [disables all buildable compo
 [
 enables_a_rex_service=$enableval
 enables_internal=$enableval
-enables_gridftpd_service=$enableval
 enables_ldap_service=$enableval
 enables_monitor=$enableval
 enables_candypond=$enableval
@@ -251,7 +249,6 @@ enables_data_client=$enableval
 AC_ARG_ENABLE(all-services, AC_HELP_STRING([--disable-all-services], [disables all buildable service componets. Can be overwritten with --enable-* for specific component. It is also possible to use --enable-all-services to overwrite defaults and --enable-all.]),
 [
 enables_a_rex_service=$enableval
-enables_gridftpd_service=$enableval
 enables_ldap_service=$enableval
 enables_monitor=$enableval
 enables_candypond=$enableval
@@ -1758,45 +1755,6 @@ fi
 AC_MSG_NOTICE([Internal plugin enabled: $enables_internal])
 AM_CONDITIONAL([INTERNAL_ENABLED],[test "x$enables_internal" = "xyes"])
 
-# Gridftpd
-AC_ARG_ENABLE(gridftpd_service, AC_HELP_STRING([--disable-gridftpd-service], [disable building Gridftpd service]),
-  [enables_gridftpd_service=$enableval],[])
-if test "$enables_gridftpd_service" = "yes"; then
-  gridftpd_service_globus_pkgs="globus-common globus-io globus-gsi-credential globus-openssl-module globus-ftp-control"
-  gridftpd_service_globus_pkgs_missing=""
-  for pkg in $gridftpd_service_globus_pkgs
-  do
-      var=`echo '$'$pkg|tr '[\-a-z]' '[_A-Z]'|sed 's/$/_VERSION/'`
-      if test -z "`eval echo $var`"
-      then
-        gridftpd_service_globus_pkgs_missing="$gridftpd_service_globus_pkgs_missing $pkg"
-      fi
-  done
-
-
-  if test -n "$gridftpd_service_globus_pkgs_missing" ; then
-    AC_MSG_NOTICE([GridFTP service can not be built (missing development packages for$gridftpd_service_globus_pkgs_missing) - disabling])
-    enables_gridftpd_service="no"
-  fi
-
-  #check for struct statfs
-  AC_CHECK_FUNCS([fstatfs])
-  AC_CHECK_HEADERS([sys/param.h sys/statfs.h sys/mount.h sys/vfs.h])dnl
-  AC_CHECK_MEMBERS([struct statfs.f_type],,,
-    [$ac_includes_default
-     #if HAVE_SYS_STATFS_H
-     #include <sys/statfs.h>
-     #endif
-     #if HAVE_SYS_MOUNT_H
-     #include <sys/mount.h>
-     #endif
-     #if HAVE_SYS_VFS_H
-     #include <sys/vfs.h>
-     #endif])
-fi
-AC_MSG_NOTICE([Gridftpd service enabled: $enables_gridftpd_service])
-AM_CONDITIONAL([GRIDFTPD_SERVICE_ENABLED],[test "x$enables_gridftpd_service" = "xyes"])
-
 # LDAP service
 AC_ARG_ENABLE(ldap_service, AC_HELP_STRING([--disable-ldap-service], [disable building LDAP Infosystem Service]),
   [enables_ldap_service=$enableval],[])
@@ -2044,7 +2002,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/conf/Makefile
                  src/services/a-rex/grid-manager/files/Makefile
                  src/services/a-rex/grid-manager/jobs/Makefile
-                 src/services/a-rex/grid-manager/jobplugin/Makefile
                  src/services/a-rex/grid-manager/log/Makefile
                  src/services/a-rex/grid-manager/mail/Makefile
                  src/services/a-rex/grid-manager/misc/Makefile
@@ -2107,16 +2064,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/data-staging/arc-datadelivery-service
                  src/services/data-staging/arc-datadelivery-service.service
                  src/services/data-staging/arc-datadelivery-service-start
-                 src/services/gridftpd/Makefile
-                 src/services/gridftpd/arc-gridftpd
-                 src/services/gridftpd/arc-gridftpd.service
-                 src/services/gridftpd/arc-gridftpd-start
-                 src/services/gridftpd/gridftpd.8
-                 src/services/gridftpd/auth/Makefile
-                 src/services/gridftpd/conf/Makefile
-                 src/services/gridftpd/misc/Makefile
-                 src/services/gridftpd/run/Makefile
-                 src/services/gridftpd/fileplugin/Makefile
                  src/services/ldap-infosys/Makefile
                  src/services/ldap-infosys/create-bdii-config
                  src/services/ldap-infosys/create-slapd-config
@@ -2248,7 +2195,6 @@ HED:                ${enables_hed}
 
 A-REX service:      ${enables_a_rex_service}
 Internal plugin:    ${enables_internal}
-GRIDFTPD service:   ${enables_gridftpd_service}
 LDAP Info service:  ${enables_ldap_service}
 CANDYPOND service:  ${enables_candypond}
 DATADELIVERY service: ${enables_datadelivery_service}
