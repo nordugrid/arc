@@ -35,15 +35,8 @@ class Validator(object):
                              "speedcontrol"]
 
     # Blocks and options removed from arc.conf.reference but still allowed to pass validation
-    __deprecated_blocks = ["arex/jura/archiving"]
-    __deprecated_options = {"arex/jura": ["urdelivery_keepfailed"],
-                            "arex/jura/sgas": ["legacy_fallback"],
-                            "arex/jura/apel": ["use_ssl",
-                                               "benchmark_type",
-                                               "benchmark_value",
-                                               "benchmark_description",
-                                               "legacy_fallback"]
-                           }
+    __deprecated_blocks = []
+    __deprecated_options = {}
 
     def __init__(self, arcconfref, arcconf, arcconffile):
         self.logger = logging.getLogger('ARCCTL.Validator')
@@ -171,16 +164,12 @@ class Validator(object):
             block_order = reference.blocks_ordered(self.arcconfref)
             # Make a unique set of blocks excluding unknown and stripping dynamic blocks
             config_blocks = [b.split(':')[0] for b in config_blocks if b.split(':')[0] in block_order]
-            # Remove duplicates preserving order (OrderedDict not available in python2.6)
-            config_blocks_uniq = []
-            for c in config_blocks:
-                if c not in config_blocks_uniq:
-                    config_blocks_uniq.append(c)
+            # Remove duplicates preserving order
+            config_blocks_uniq = list(dict.fromkeys(config_blocks))
             # Sort the conf blocks according to the reference order and then compare
             config_blocks_sorted = sorted(config_blocks_uniq, key=lambda x: block_order.index(x))
             if config_blocks_sorted != config_blocks_uniq:
-                self.warning("Configuration blocks are not in the correct order. This will be an error in ARC 7. Should be: %s" % config_blocks_sorted)
-                self.warning("Note though that authgroup and mapping must be in correct order in ARC 6.")
+                self.error("Configuration blocks are not in the correct order. Should be: %s" % config_blocks_sorted)
 
 
     def _check_config_option(self, block, option, value, config_defaults):
@@ -328,31 +317,29 @@ class Validator(object):
             self.error("%s does not exist" % x509_host_cert)
         else:
             # Verify cert
-            # With python3-only we can use subprocess.run
             try:
-                result = subprocess.Popen(["openssl", "verify", "-CApath", x509_cert_dir,
-                                           x509_host_cert], stdout=subprocess.PIPE,
-                                           stderr=subprocess.STDOUT)
+                result = subprocess.run(["openssl", "verify", "-CApath", x509_cert_dir,
+                                         x509_host_cert], stdout=subprocess.PIPE,
+                                         stderr=subprocess.STDOUT, encoding='utf-8')
             except Exception as e:
                 self.error("Host certificate verification failed: %s" % str(e))
                 return
-            out = result.communicate()[0]
             if result.returncode != 0:
-                self.error("Host certificate verification failed: %s" % out.decode())
+                self.error("Host certificate verification failed: %s" % result.stdout)
             else:
                 # Check expiration date, warn if less than one week away
-                result = subprocess.Popen(["openssl", "x509", "-enddate", "-noout", "-in",
-                                           x509_host_cert], stdout=subprocess.PIPE,
-                                           stderr=subprocess.STDOUT)
-                enddate = result.communicate()[0].decode().strip().split('=')[-1]
+                result = subprocess.run(["openssl", "x509", "-enddate", "-noout", "-in",
+                                         x509_host_cert], stdout=subprocess.PIPE,
+                                         stderr=subprocess.STDOUT, encoding='utf-8')
+                enddate = result.stdout.strip().split('=')[-1]
                 # Redirect output (-noout doesn't work in openssl1.1.1)
-                # With python3-only we can use subprocess.DEVNULL
-                with open(os.devnull, 'w') as dev_null:
-                    if subprocess.call(["openssl", "x509", "-checkend", "604800", "-noout",
-                                        "-in", x509_host_cert], stdout=dev_null, stderr=dev_null):
-                        self.warning("Host certificate will expire on %s" % enddate)
-                    else:
-                        self.logger.info("Host certificate will expire on %s" % enddate)
+                result = subprocess.run(["openssl", "x509", "-checkend", "604800", "-noout",
+                                         "-in", x509_host_cert], stdout=subprocess.DEVNULL,
+                                         stderr=subprocess.DEVNULL)
+                if result.returncode != 0:
+                    self.warning("Host certificate will expire on %s" % enddate)
+                else:
+                    self.logger.info("Host certificate will expire on %s" % enddate)
 
         # Check key
         if not os.path.exists(x509_host_key):
