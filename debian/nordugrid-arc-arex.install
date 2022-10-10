@@ -1,5 +1,4 @@
 debian/tmp/usr/lib/arc/arc-blahp-logger
-debian/tmp/usr/lib/arc/arc-config-check
 debian/tmp/usr/lib/arc/cache-clean
 debian/tmp/usr/lib/arc/cache-list
 debian/tmp/usr/lib/arc/gm-*
@@ -63,7 +62,6 @@ debian/tmp/usr/share/arc/lrms_common.sh
 
 debian/tmp/usr/share/arc/sql-schema/arex_accounting_db_schema_v1.sql
 
-debian/tmp/usr/share/man/man1/arc-config-check.1
 debian/tmp/usr/share/man/man1/cache-clean.1
 debian/tmp/usr/share/man/man1/cache-list.1
 debian/tmp/usr/share/man/man8/a-rex-backtrace-collect.8

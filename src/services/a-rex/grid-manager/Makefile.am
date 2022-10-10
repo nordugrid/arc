@@ -9,9 +9,8 @@ SUBDIRS = accounting jobs run conf misc log mail files $(JOBPLUGIN_DIR)
 noinst_LTLIBRARIES = libgridmanager.la
 pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck arc-blahp-logger
 noinst_PROGRAMS = test_write_grami_file
-dist_pkglibexec_SCRIPTS = arc-config-check
 
-man_MANS = arc-config-check.1 arc-blahp-logger.8 gm-jobs.8
+man_MANS = arc-blahp-logger.8 gm-jobs.8
 
 libgridmanager_la_SOURCES = GridManager.cpp GridManager.h
 libgridmanager_la_CXXFLAGS = -I$(top_srcdir)/include \
