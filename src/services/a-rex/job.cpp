@@ -1041,9 +1041,8 @@ bool ARexJob::make_job_id(void) {
 bool ARexJob::delete_job_id(void) {
   if(!config_) return true;
   if(!id_.empty()) {
-    if(!job_.sessiondir.empty()) // check if session dir was already defined
-      job_clean_final(GMJob(id_,Arc::User(uid_),
-                      job_.sessiondir),config_.GmConfig());
+    // it is ok to have empty sessiondir because job_clean_final can handle such case
+    job_clean_final(GMJob(id_,Arc::User(uid_),job_.sessiondir),config_.GmConfig());
     id_="";
   };
   return true;
