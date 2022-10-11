@@ -240,7 +240,9 @@ bool job_controldiag_mark_put(const GMJob &job,const GMConfig &config,char const
 }
 
 bool job_diagnostics_mark_put(const GMJob &job,const GMConfig &config) {
-  std::string fname = job.SessionDir() + sfx_diag;
+  std::string fname = job.SessionDir();
+  if(fname.empty()) return false;
+  fname += sfx_diag;
   if(config.StrictSession()) {
     Arc::FileAccess fa;
     if(!fa.fa_setuid(job.get_user().get_uid(),job.get_user().get_gid())) return false;
@@ -252,7 +254,9 @@ bool job_diagnostics_mark_put(const GMJob &job,const GMConfig &config) {
 bool job_diagnostics_mark_remove(const GMJob &job,const GMConfig &config) {
   std::string fname = config.ControlDir() + "/job." + job.get_id() + sfx_diag;
   bool res1 = job_mark_remove(fname);
-  fname = job.SessionDir() + sfx_diag;
+  fname = job.SessionDir();
+  if(fname.empty()) return false;
+  fname += sfx_diag;
   if(config.StrictSession()) {
     Arc::FileAccess fa;
     if(!fa.fa_setuid(job.get_user().get_uid(),job.get_user().get_gid())) return res1;
@@ -264,9 +268,11 @@ bool job_diagnostics_mark_remove(const GMJob &job,const GMConfig &config) {
 bool job_diagnostics_mark_move(const GMJob &job,const GMConfig &config) {
   std::string fname1;
   if (job.GetLocalDescription() && !job.GetLocalDescription()->sessiondir.empty())
-    fname1 = job.GetLocalDescription()->sessiondir + sfx_diag;
+    fname1 = job.GetLocalDescription()->sessiondir;
   else
-    fname1 = job.SessionDir() + sfx_diag;
+    fname1 = job.SessionDir();
+  if(fname1.empty()) return false;
+  fname1 += sfx_diag;
   std::string fname2 = config.ControlDir() + "/job." + job.get_id() + sfx_diag;
 
   std::string data;
@@ -283,7 +289,9 @@ bool job_diagnostics_mark_move(const GMJob &job,const GMConfig &config) {
 }
 
 bool job_lrmsoutput_mark_put(const GMJob &job,const GMConfig &config) {
-  std::string fname = job.SessionDir() + sfx_lrmsoutput;
+  std::string fname = job.SessionDir();
+  if(fname.empty()) return false;
+  fname += sfx_lrmsoutput;
   if(config.StrictSession()) {
     Arc::FileAccess fa;
     if(!fa.fa_setuid(job.get_user().get_uid(),job.get_user().get_gid())) return false;
@@ -293,7 +301,9 @@ bool job_lrmsoutput_mark_put(const GMJob &job,const GMConfig &config) {
 }
 
 bool job_lrmsoutput_mark_remove(const GMJob &job,const GMConfig &config) {
-  std::string fname = job.SessionDir() + sfx_lrmsoutput;
+  std::string fname = job.SessionDir();
+  if(fname.empty()) return false;
+  fname += sfx_lrmsoutput;
   if(config.StrictSession()) {
     Arc::FileAccess fa;
     if(!fa.fa_setuid(job.get_user().get_uid(),job.get_user().get_gid())) return false;
@@ -717,15 +727,17 @@ bool job_clean_deleted(const GMJob &job,const GMConfig &config,std::list<std::st
   fname = config.ControlDir()+"/job."+id+sfx_output; remove(fname.c_str());
   fname = config.ControlDir()+"/job."+id+sfx_input; remove(fname.c_str());
   fname = config.ControlDir()+"/job."+id+".grami_log"; remove(fname.c_str());
-  fname = session+sfx_lrmsoutput; remove(fname.c_str());
   fname = config.ControlDir()+"/job."+id+sfx_outputstatus; remove(fname.c_str());
   fname = config.ControlDir()+"/job."+id+sfx_inputstatus; remove(fname.c_str());
   fname = config.ControlDir()+"/job."+id+sfx_statistics; remove(fname.c_str());
-  /* remove session directory */
-  if(config.StrictSession()) {
-    Arc::DirDelete(session, true, job.get_user().get_uid(), job.get_user().get_gid());
-  } else {
-    Arc::DirDelete(session);
+  if(!session.empty()) {
+    fname = session+sfx_lrmsoutput; remove(fname.c_str());
+    /* remove session directory */
+    if(config.StrictSession()) {
+      Arc::DirDelete(session, true, job.get_user().get_uid(), job.get_user().get_gid());
+    } else {
+      Arc::DirDelete(session);
+    }
   }
   // remove cache per-job links, in case this failed earlier
   for (std::list<std::string>::iterator i = cache_per_job_dirs.begin(); i != cache_per_job_dirs.end(); i++) {
