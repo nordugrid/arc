@@ -1310,15 +1310,6 @@
 #linkurl=gsiftp://somewhere.org/data /data
 #linkurl=gsiftp://example.org:2811/data/ /scratch/data/
 
-## use_remote_acix = URL - (previously acix_endpoint) If configured then the
-## ARC Cache Index, available at the URL, will be queried for every input file
-## specified in a job description and any replicas found in sites with accessible caches
-## will be added to the replica list of the input file.
-## The replicas will be tried in the order specified by preferredpattern variable.
-## default: undefined
-#use_remote_acix=https://cacheindex.ndgf.org:6443/data/index
-## CHANGE: RENAMED in 6.0.0.
-
 ## preferredpattern = pattern - specifies a preferred pattern on which
 ## to sort multiple replicas of an input file. It consists of one or
 ## more patterns separated by a pipe character (|) listed in order of

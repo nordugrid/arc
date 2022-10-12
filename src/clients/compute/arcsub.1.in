@@ -171,8 +171,7 @@ querying the CE. Only CEs with the A-REX BES interface support this operation.
 Choose a random CE with no filtering at all of CEs.
 .IP "PythonBroker"
 User-defined custom brokers can be created in Python. See the example broker
-SampleBroker.py or ACIXBroker.py (like Data broker but uses the ARC Cache
-Index) that come installed with ARC for more details of how to write your own
+SampleBroker.py that comes installed with ARC for more details of how to write your own
 broker. A PythonBroker is specified by
 \fB--broker PythonBroker:Filename.Class:args\fR, where Filename is the file
 containing the class Class which implements the broker interface. The directory
@@ -225,11 +224,6 @@ When submitting against CEs retrieved from information index servers it might
 be useful to do resource brokering:
 .br
 \fBarcsub -g registry.example.com -b FastestQueue helloworld.adl\fR
-
-If the job has a large input data set, it can be useful to send it to a CE
-where those files are already cached. The ACIX broker can be used for this:
-.br
-\fBarcsub -g registry.example.com -b PythonBroker:ACIXBroker.ACIXBroker:https://cacheindex.ndgf.org:6443/data/index helloworld.adl\fR
 
 Disregarding a specific CE for submission submitting against an information
 index server:

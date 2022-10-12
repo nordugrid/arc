@@ -450,16 +450,6 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             if port is None:
                 port = 443
             iptables_config.append({'descr': 'Data Delivery Service', 'port': port})
-        # acix-index
-        if self.arcconfig.check_blocks('acix-index'):
-            port = 6443  # hardcoded
-            iptables_config.append({'descr': 'ACIX Index', 'port': port})
-        # acix-scanner
-        if self.arcconfig.check_blocks('acix-scanner'):
-            port = self.arcconfig.get_value('port', 'acix-scanner')
-            if port is None:
-                port = 5443
-            iptables_config.append({'descr': 'ACIX Scanner', 'port': port})
         # generate iptables config based on the configured services
         statestr = ' -m state --state NEW'
         if anystate:

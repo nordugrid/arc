@@ -1986,7 +1986,6 @@ AC_CONFIG_FILES([Makefile
                  src/hed/dmc/gfal/Makefile
                  src/hed/dmc/xrootd/Makefile
                  src/hed/dmc/mock/Makefile
-                 src/hed/dmc/acix/Makefile
                  src/hed/dmc/rucio/Makefile
                  src/hed/dmc/s3/Makefile
                  src/hed/profiles/general/general.xml
