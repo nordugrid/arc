@@ -942,7 +942,6 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
 
     staging = true;
     std::string source;
-    std::string original_source;
     std::string destination;
     if (job->get_state() == JOB_STATE_PREPARING) { // PREPARING
       source = i->lfn;
