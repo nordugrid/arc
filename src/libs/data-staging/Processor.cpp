@@ -14,8 +14,6 @@
 
 namespace DataStaging {
 
-  std::string Processor::hostname;
-
   /** Set up logging. Should be called at the start of each thread method. */
   void setUpLogger(DTR_ptr request) {
     // Move DTR destinations from DTR logger to Root logger to catch all messages.
@@ -25,14 +23,6 @@ namespace DataStaging {
     Arc::Logger::getRootLogger().removeDestinations();
     Arc::Logger::getRootLogger().addDestinations(request->get_logger()->getDestinations());
     request->get_logger()->removeDestinations();
-  }
-
-  Processor::Processor() {
-    // Get hostname, needed to exclude ACIX replicas on localhost
-    char hostn[256];
-    if (gethostname(hostn, sizeof(hostn)) == 0){
-      hostname = hostn;
-    }
   }
 
   /* Thread methods for each state of the DTR */
@@ -202,30 +192,6 @@ namespace DataStaging {
         return;
       }
     }
-    // If using ACIX, remove sources on our own host
-    if (request->get_use_acix()) {
-      int tries = request->get_source()->GetTries();
-      while (request->get_source()->LocationValid()) {
-        if (request->get_source()->CurrentLocation().Host() == Processor::hostname) {
-          request->get_logger()->msg(Arc::INFO, "Skipping replica on local host %s", request->get_source()->CurrentLocation().str());
-          request->get_source()->RemoveLocation();
-        } else {
-          request->get_source()->NextLocation();
-        }
-      }
-      // Check that there are still replicas to use
-      if (!request->get_source()->HaveLocations()) {
-        request->get_logger()->msg(Arc::ERROR, "No locations left for %s", request->get_source()->str());
-        request->set_error_status(DTRErrorStatus::PERMANENT_REMOTE_ERROR,
-                                  DTRErrorStatus::ERROR_SOURCE,
-                                  "Could not resolve any source replicas for " + request->get_source()->str());
-        request->set_status(DTRStatus::RESOLVED);
-        DTR::push(request, SCHEDULER);
-        return;
-      }
-      // reset retries
-      request->get_source()->SetTries(tries);
-    }
     // If overwrite is requested, the resolving and pre-registering of the
     // destination will be done in the pre-clean stage after deleting.
     if (!request->is_replication() && request->get_destination()->GetURL().Option("overwrite") == "yes") {
@@ -308,27 +274,6 @@ namespace DataStaging {
         request->set_error_status(DTRErrorStatus::PERMANENT_REMOTE_ERROR,
                                   DTRErrorStatus::ERROR_SOURCE,
                                   "No replicas found for " + request->get_source()->str());
-      }
-      // If using ACIX, remove sources on our own host
-      if (request->get_use_acix()) {
-        int tries = request->get_source()->GetTries();
-        while (request->get_source()->LocationValid()) {
-          if (request->get_source()->CurrentLocation().Host() == Processor::hostname) {
-            request->get_logger()->msg(Arc::INFO, "Skipping replica on local host %s", request->get_source()->CurrentLocation().str());
-            request->get_source()->RemoveLocation();
-          } else {
-            request->get_source()->NextLocation();
-          }
-        }
-        // Check that there are still replicas to use
-        if (!request->get_source()->HaveLocations()) {
-          request->get_logger()->msg(Arc::ERROR, "No locations left for %s", request->get_source()->str());
-          request->set_error_status(DTRErrorStatus::PERMANENT_REMOTE_ERROR,
-                                    DTRErrorStatus::ERROR_SOURCE,
-                                    "Could not resolve any source replicas for " + request->get_source()->str());
-        }
-        // reset retries
-        request->get_source()->SetTries(tries);
       }
 
       request->set_status(DTRStatus::RESOLVED);

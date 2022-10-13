@@ -944,28 +944,10 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     std::string source;
     std::string original_source;
     std::string destination;
-    if (job->get_state() == JOB_STATE_PREPARING) {
-      // If ACIX should be used, use it as source and add original URL as
-      // location after DTR is created
-      // If cache=check then don't use remote caches as the copy must be up to date
-      Arc::URL original_url(i->lfn);
-      if (!staging_conf.get_acix_endpoint().empty() && original_url.Option("cache") != "check") {
-        original_source = i->lfn;
-        // Encode the original url so it is not parsed as part of the acix url
-        Arc::URL acix_source(staging_conf.get_acix_endpoint() + "?url=" + Arc::uri_encode(original_source, false));
-        // Add URL options to ACIX URL
-        for (std::map<std::string, std::string>::const_iterator opt = original_url.Options().begin();
-             opt != original_url.Options().end(); ++opt) {
-          acix_source.AddOption(opt->first, opt->second);
-        }
-        source = acix_source.fullstr();
-      }
-      else {
-        source = i->lfn;
-      }
+    if (job->get_state() == JOB_STATE_PREPARING) { // PREPARING
+      source = i->lfn;
       destination = "file:" + job->SessionDir() + i->pfn;
-    } // PREPARING
-    else { // FINISHING
+    } else { // FINISHING
       source = "file:" + job->SessionDir() + i->pfn;
       // Upload to dest ending in '/': append filename to lfn
       // Note: won't work for nested URLs used for index services
@@ -1034,11 +1016,6 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
       dtr->set_priority(job->GetLocalDescription(config)->priority);
     // set whether to use A-REX host certificate for remote delivery services
     dtr->host_cert_for_remote_delivery(staging_conf.use_host_cert_for_remote_delivery);
-    // set real location if ACIX is used
-    if (!original_source.empty()) {
-      dtr->get_source()->AddLocation(Arc::URL(original_source), Arc::URL(original_source).ConnectionURL());
-      dtr->set_use_acix(true);
-    }
     dtr->get_job_perf_log().SetOutput(staging_conf.perf_log.GetOutput());
     dtr->get_job_perf_log().SetEnabled(staging_conf.perf_log.GetEnabled());
 
