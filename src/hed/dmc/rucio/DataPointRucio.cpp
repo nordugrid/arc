@@ -366,6 +366,8 @@ namespace ArcDMCRucio {
     cfg.AddCADir(usercfg.CACertificatesDirectory());
     // Switch rucio protocol to http(s) for lookup
     URL rucio_url(url);
+    // Force relative URI
+    rucio_url.AddOption("relativeuri=yes");
     rucio_url.ChangeProtocol(url.Port() == 80 ? "http" : "https");
     if (rucio_url.Port() == -1) {
       rucio_url.ChangePort(url.Protocol() == "http" ? 80 : 443);
