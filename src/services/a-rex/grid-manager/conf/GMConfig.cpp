@@ -301,6 +301,15 @@ const std::list<std::pair<bool,std::string> > & GMConfig::MatchingGroupsPublicIn
   return matching_groups_publicinfo;
 }
 
+const std::list<std::string> & GMConfig::TokenScopes(const char * action) const {
+  if(!action)
+    return empty_string_list;
+  std::map<std::string, std::list<std::string> >::const_iterator it = token_scopes.find(action);
+  if(it == token_scopes.end())
+    return empty_string_list;
+  return it->second;
+}
+
 bool GMConfig::Substitute(std::string& param, bool& userSubs, bool& otherSubs, const Arc::User& user) const {
   std::string::size_type curpos = 0;
   userSubs = false;
