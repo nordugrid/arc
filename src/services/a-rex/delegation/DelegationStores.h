@@ -39,6 +39,9 @@ class DelegationStores {
   /// Stores delegated credentials corresponding to delegation request obtained by call to GetRequest().
   /// Only public part is expected in 'credentials'.
   bool PutDeleg(const std::string& path,const std::string& id,const std::string& client,const std::string& credentials);
+  /// Stores full credentials into specified 'id' and 'client'. If 'id' is empty
+  /// then new storage slot is created and its identifier stored in 'id'.
+  bool PutCred(const std::string& path,std::string& id,const std::string& client,const std::string& credentials, const std::list<std::string>& meta = std::list<std::string>());
 };
 
 } // namespace ARex

@@ -336,7 +336,6 @@ namespace ARex {
       failure_ = "Local error - failed to find specified credentials. "+fstore_->Error();
       return false;
     }
-    std::string content;
     if(!Arc::FileRead(path,credentials)) {
       failure_ = "Local error - failed to read credentials";
       return false;
@@ -357,6 +356,19 @@ namespace ARex {
     FileRecord::Iterator& rec = *(fstore_->NewIterator());
     for(;(bool)rec;++rec) {
       if(rec.owner() == client) res.push_back(rec.id());
+    };
+    delete &rec;
+    return res;
+  }
+
+  std::list<std::pair<std::string, std::list<std::string> > > DelegationStore::ListCredInfos(const std::string& client) {
+    std::list<std::pair<std::string, std::list<std::string> > > res;
+    FileRecord::Iterator& rec = *(fstore_->NewIterator());
+    for(;(bool)rec;++rec) {
+      if(rec.owner() != client) continue;
+      res.push_back(std::pair<std::string, std::list<std::string> >());
+      res.back().first =  rec.id();
+      res.back().second =  rec.meta();
     };
     delete &rec;
     return res;
@@ -454,6 +466,36 @@ namespace ARex {
     if(!GetCred(id, client, credentials))
       return false;
     remove_key(credentials);
+    return true;
+  }
+
+  bool DelegationStore::PutCred(std::string& id,const std::string& client,const std::string& credentials,const std::list<std::string>& meta) {
+    if(!id.empty()) {
+      std::list<std::string> old_meta;
+      std::string path = fstore_->Find(id,client,old_meta);
+      if(path.empty()) {
+        failure_ = "Local error - failed to find delegation slot. "+fstore_->Error();
+        return false;
+      }
+      if(!Arc::FileCreate(path,credentials,0,0,S_IRUSR|S_IWUSR)) {
+        failure_ = "Local error - failed to store credentials";
+        return false;
+      };
+      if(!meta.empty())
+        fstore_->Modify(id,client,meta);
+    } else {
+      std::list<std::string> meta;
+      std::string path = fstore_->Add(id,client,meta);
+      if(path.empty()) {
+        failure_ = "Local error - failed to create slot for delegation. "+fstore_->Error();
+        return false;
+      }
+      if(!Arc::FileCreate(path,credentials,0,0,S_IRUSR|S_IWUSR)) {
+        fstore_->Remove(id,client);
+        failure_ = "Local error - failed to store credentials";
+        return false;
+      };
+    };
     return true;
   }
 

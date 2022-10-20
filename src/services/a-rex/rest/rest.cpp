@@ -492,6 +492,16 @@ static Arc::MCC_Status HTTPPOSTDelayedResponse(Arc::Message& inmsg, Arc::Message
 }
 
 static Arc::MCC_Status HTTPPOSTResponse(Arc::Message& inmsg, Arc::Message& outmsg,
+                                   std::string const & redir = "") {
+  Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
+  delete outmsg.Payload(outpayload);
+  outmsg.Attributes()->set("HTTP:CODE","201");
+  outmsg.Attributes()->set("HTTP:REASON","Created");
+  if(!redir.empty()) outmsg.Attributes()->set("HTTP:location",redir);
+  return Arc::MCC_Status(Arc::STATUS_OK);
+}
+
+static Arc::MCC_Status HTTPPOSTResponse(Arc::Message& inmsg, Arc::Message& outmsg,
                                    std::string const & content, std::string const& mime,
                                    std::string const & redir = "") {
   Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
@@ -800,7 +810,7 @@ Arc::MCC_Status ARexRest::processInfo(Arc::Message& inmsg,Arc::Message& outmsg, 
 // ---------------------------- DELEGATIONS ---------------------------------
 
 Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& outmsg, ProcessingContext& context) {
-  // GET <base URL>/delegations - retrieves list of delegations belonging to authenticated user
+  // GET <base URL>/delegations[&type={x509|jwt}] - retrieves list of delegations belonging to authenticated user
   // HEAD - supported.
   // POST <base URL>/delegations?action=new starts a new delegation process (1st step).
   // PUT <base URL>/delegations/<delegation id> stores public part (2nd step).
@@ -817,10 +827,18 @@ Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& o
     return HTTPFault(inmsg,outmsg,500,"User can't be assigned configuration");
   }
   if((context.method == "GET") || (context.method == "HEAD")) {
+    std::string requestedType = context["type"];
     XMLNode listXml("<delegations/>");
-    std::list<std::string> ids = delegation_stores_[config_.DelegationDir()].ListCredIDs(config->GridName());
-    for(std::list<std::string>::iterator itId = ids.begin(); itId != ids.end(); ++itId) {
-      listXml.NewChild("delegation").NewChild("id") = *itId;
+    std::list<std::pair<std::string,std::list<std::string> > > ids = delegation_stores_[config_.DelegationDir()].ListCredInfos(config->GridName());
+    for(std::list<std::pair<std::string,std::list<std::string> > >::iterator itId = ids.begin(); itId != ids.end(); ++itId) {
+      char const * delegType = "x509";
+      if(itId->second.size() > 0) delegType = itId->second.front().c_str();
+      if (!requestedType.empty()) {
+         if(requestedType != delegType) continue;
+      }
+      XMLNode delegXml = listXml.NewChild("delegation");
+      delegXml.NewChild("id") = itId->first;
+      delegXml.NewChild("type") = delegType;
     }
     char const * json_arrays[] = { "delegation", NULL };
     return HTTPResponse(inmsg, outmsg, listXml, json_arrays);
@@ -828,14 +846,29 @@ Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& o
     std::string action = context["action"];
     if(action != "new") 
       return HTTPFault(inmsg,outmsg,501,"Action not implemented");
+    std::string requestedType = context["type"];
     std::string delegationId;
     std::string delegationRequest;
-    if(!delegation_stores_.GetRequest(config_.DelegationDir(),delegationId,config->GridName(),delegationRequest)) {
-      return HTTPFault(inmsg,outmsg,500,"Failed generating delegation request");
+    if(requestedType.empty() || (requestedType == "x509")) {
+      // TODO: explicitely put x509 into meta
+      if(!delegation_stores_.GetRequest(config_.DelegationDir(),delegationId,config->GridName(),delegationRequest)) {
+        return HTTPFault(inmsg,outmsg,500,"Failed generating delegation request");
+      }
+      Arc::URL base(inmsg.Attributes()->get("HTTP:ENDPOINT"));
+      return HTTPPOSTResponse(inmsg,outmsg,delegationRequest,"application/x-pem-file",base.Path()+"/"+delegationId);
+    } else if(requestedType == "jwt") {
+      Arc::AttributeIterator tokenIt = inmsg.Attributes()->getAll("HTTP:x-token-delegation");
+      if(!tokenIt.hasMore()) 
+        return HTTPFault(inmsg,outmsg,501,"Missing X-Token-Delegation header in delegation request");
+      std::list<std::string> meta;
+      meta.push_back("jwt");
+      if(!delegation_stores_.PutCred(config_.DelegationDir(),delegationId,config->GridName(),*tokenIt,meta)) {
+        return HTTPFault(inmsg,outmsg,500,"Failed storing delegation token");
+      }
+      Arc::URL base(inmsg.Attributes()->get("HTTP:ENDPOINT"));
+      return HTTPPOSTResponse(inmsg,outmsg,base.Path()+"/"+delegationId);
     }
-
-    Arc::URL base(inmsg.Attributes()->get("HTTP:ENDPOINT"));
-    return HTTPPOSTResponse(inmsg,outmsg,delegationRequest,"application/x-pem-file",base.Path()+"/"+delegationId);
+    return HTTPFault(inmsg,outmsg,501,"Unknown delegation type specified");
   }
   logger_.msg(Arc::VERBOSE, "process: method %s is not supported for subpath %s",context.method,context.processed);
   return HTTPFault(inmsg,outmsg,501,"Not Implemented");

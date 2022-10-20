@@ -46,6 +46,9 @@ namespace ARex {
     return operator[](path).PutDeleg(id,client,credentials);
   }
 
+  bool DelegationStores::PutCred(const std::string& path,std::string& id,const std::string& client,const std::string& credentials,const std::list<std::string>& meta) {
+    return operator[](path).PutCred(id,client,credentials,meta);
+  }
 
 } // namespace ARex
 
