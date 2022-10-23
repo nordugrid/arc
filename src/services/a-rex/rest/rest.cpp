@@ -741,8 +741,11 @@ Arc::MCC_Status ARexRest::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   }
   context.processed += apiVersion;
   context.processed += "/";
-  if ((apiVersion != "1.0") &&
-      (apiVersion != "1.1")) {
+  if (apiVersion == "1.0") {
+    context.version = ProcessingContext::Version_1_0;
+  } else if (apiVersion == "1.1") {
+    context.version = ProcessingContext::Version_1_1;
+  } else {
     return HTTPFault(inmsg,outmsg,404,"Version Not Supported");
   }
 
@@ -830,7 +833,10 @@ Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& o
   if((context.method == "GET") || (context.method == "HEAD")) {
     if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobInfo, config))
       return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
-    std::string requestedType = context["type"];
+    std::string requestedType;
+    if(context.version >= ProcessingContext::Version_1_1) {
+      requestedType = context["type"];
+    }
     XMLNode listXml("<delegations/>");
     std::list<std::pair<std::string,std::list<std::string> > > ids = delegation_stores_[config_.DelegationDir()].ListCredInfos(config->GridName());
     for(std::list<std::pair<std::string,std::list<std::string> > >::iterator itId = ids.begin(); itId != ids.end(); ++itId) {
@@ -851,7 +857,10 @@ Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& o
       return HTTPFault(inmsg,outmsg,501,"Action not implemented");
     if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobCreate, config))
       return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
-    std::string requestedType = context["type"];
+    std::string requestedType;
+    if(context.version >= ProcessingContext::Version_1_1) {
+      requestedType = context["type"];
+    }
     std::string delegationId;
     std::string delegationRequest;
     if(requestedType.empty() || (requestedType == "x509")) {
@@ -1050,8 +1059,12 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
       if(start_pos == std::string::npos)
         return HTTPFault(inmsg,outmsg,500,"Payload is empty");
 
-      std::string default_queue = context["queue"];
-      std::string default_delegation_id = context["delegation_id"];
+      std::string default_queue;
+      std::string default_delegation_id;
+      if(context.version >= ProcessingContext::Version_1_1) {
+        default_queue = context["queue"];
+        default_delegation_id = context["delegation_id"];
+      }
       XMLNode listXml("<jobs/>");
       // TODO: Split to separate functions
       switch(desc_str[start_pos]) {
