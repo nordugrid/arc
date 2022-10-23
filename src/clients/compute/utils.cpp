@@ -426,6 +426,8 @@ ClientOptions::ClientOptions(Client_t c,
     direct_submission(false),
     show_unavailable(false),
     no_delegation(false),
+    x509_delegation(false),
+    token_delegation(false),
     testjobid(-1),
     runtime(5),
     timeout(-1)
@@ -671,8 +673,16 @@ ClientOptions::ClientOptions(Client_t c,
               requestedSubmissionInterfaceName);
 
     GroupAddOption("tuning", 'n', "no-delegation",
-              istring("do not perform X.509 delegation for submitted jobs"),
+              istring("do not perform any delegation for submitted jobs"),
               no_delegation);
+
+    GroupAddOption("tuning", 'x', "x509-delegation",
+              istring("perform X.509 delegation for submitted jobs"),
+              x509_delegation);
+
+    GroupAddOption("tuning", 'j', "token-delegation",
+              istring("perform token delegation for submitted jobs"),
+              token_delegation);
   }
   
   if (c == CO_MIGRATE || c == CO_RESUB || c == CO_SUB || c == CO_TEST || c == CO_INFO) {

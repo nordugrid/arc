@@ -96,7 +96,8 @@ namespace Arc {
     Resources = j.Resources;
     DataStaging = j.DataStaging;
     OtherAttributes = j.OtherAttributes;
-    NoDelegation = j.NoDelegation;
+    X509Delegation = j.X509Delegation;
+    TokenDelegation = j.TokenDelegation;
     sourceLanguage = j.sourceLanguage;
   }
 

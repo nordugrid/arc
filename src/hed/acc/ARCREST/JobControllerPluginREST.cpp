@@ -237,7 +237,7 @@ namespace Arc {
       for(;did != (*it)->DelegationID.end();++did) {
         std::string delegationId(*did);
         if(!delegationId.empty()) {
-          if(!SubmitterPluginREST::GetDelegation(*usercfg, delegationUrl, delegationId)) {
+          if(!SubmitterPluginREST::GetDelegationX509(*usercfg, delegationUrl, delegationId)) {
             logger.msg(INFO, "Job %s failed to renew delegation %s.", (*it)->JobID, *did);
             break;
           }

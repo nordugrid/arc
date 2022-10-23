@@ -169,6 +169,8 @@ public:
   bool direct_submission;
   bool show_unavailable;
   bool no_delegation;
+  bool x509_delegation;
+  bool token_delegation;
 
   int testjobid;
   int runtime;

@@ -34,7 +34,74 @@ namespace Arc {
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "http" && lower(endpoint.substr(0, pos)) != "https";
   }
 
-  bool SubmitterPluginREST::GetDelegation(const UserConfig& usercfg, Arc::URL url, std::string& delegationId) {
+  bool SubmitterPluginREST::GetDelegationToken(const UserConfig& usercfg, Arc::URL url, std::string& delegationId) {
+    Arc::MCCConfig cfg;
+    usercfg.ApplyToConfig(cfg);
+    Arc::ClientHTTP client(cfg, url);
+    std::string delegationPath;
+    if(delegationId.empty()) {
+      url.AddHTTPOption("action","new");
+      url.AddHTTPOption("type","jwt");
+      std::multimap<std::string, std::string> attrs;
+      attrs.insert(std::make_pair("x-token-delegation",usercfg.OToken()));
+      Arc::PayloadRaw request;
+      Arc::PayloadRawInterface* response(NULL);
+      Arc::HTTPClientInfo info;
+      Arc::MCC_Status res = client.process(std::string("POST"), url.FullPath(), attrs, &request, &info, &response);
+      if(!res) {
+        logger.msg(VERBOSE, "Failed to communicate to delegation endpoint.");
+        delete response;
+        return false;
+      }
+      if(info.code != 201) {
+        logger.msg(VERBOSE, "Unexpected response code from delegation endpoint - %u",info.code);
+        if(response)
+          logger.msg(DEBUG, "Response: %s", std::string(response->Buffer(0),response->BufferSize(0)));
+        delete response;
+        return false;
+      }
+      delete response;
+      delegationPath = info.location.Path();
+      std::string::size_type id_pos = delegationPath.rfind('/');
+      if(id_pos == std::string::npos) {
+        logger.msg(INFO, "Unexpected delegation location from delegation endpoint - %s.",info.location.fullstr());
+        return false;
+      }
+      delegationId = delegationPath.substr(id_pos+1);
+    } else {
+      url.ChangePath(url.Path() + "/" + delegationId);
+      url.AddHTTPOption("action","renew");
+      url.AddHTTPOption("type","jwt");
+      std::multimap<std::string, std::string> attrs;
+      attrs.insert(std::make_pair("x-token-delegation",usercfg.OToken()));
+      delegationPath = url.Path();
+      Arc::PayloadRaw request;
+      Arc::PayloadRawInterface* response(NULL);
+      Arc::HTTPClientInfo info;
+      Arc::MCC_Status res = client.process(std::string("POST"), url.FullPath(), attrs, &request, &info, &response);
+      if(!res) {
+        logger.msg(VERBOSE, "Failed to communicate to delegation endpoint.");
+        delete response;
+        return false;
+      }
+      if(info.code != 201) {
+        logger.msg(VERBOSE, "Unexpected response code from delegation endpoint - %u",info.code);
+        if(response)
+          logger.msg(DEBUG, "Response: %s", std::string(response->Buffer(0),response->BufferSize(0)));
+        delete response;
+        return false;
+      }
+      if(!response) {
+        logger.msg(VERBOSE, "Missing response from delegation endpoint.");
+        delete response;
+        return false;
+      }
+      delete response;
+    }
+    return true;
+  }
+
+  bool SubmitterPluginREST::GetDelegationX509(const UserConfig& usercfg, Arc::URL url, std::string& delegationId) {
     std::string delegationRequest;
     Arc::MCCConfig cfg;
     usercfg.ApplyToConfig(cfg);
@@ -201,9 +268,16 @@ namespace Arc {
       }
 
       if(delegationId.empty()) {
-        if(!preparedjobdesc.NoDelegation) {
-          if(!GetDelegation(*usercfg, delegationUrl, delegationId)) {
-            logger.msg(INFO, "Unable to submit jobs. Failed to delegate credentials.");
+        if(preparedjobdesc.X509Delegation) {
+          if(!GetDelegationX509(*usercfg, delegationUrl, delegationId)) {
+            logger.msg(INFO, "Unable to submit jobs. Failed to delegate X.509 credentials.");
+            notSubmitted.push_back(&*it);
+            retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+            continue;
+          }
+	} else if(preparedjobdesc.TokenDelegation) {
+          if(!GetDelegationToken(*usercfg, delegationUrl, delegationId)) {
+            logger.msg(INFO, "Unable to submit jobs. Failed to delegate token.");
             notSubmitted.push_back(&*it);
             retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
             continue;

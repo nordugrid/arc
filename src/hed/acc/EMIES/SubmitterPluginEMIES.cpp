@@ -106,7 +106,7 @@ namespace Arc {
         have_uploads.back() = have_uploads.back() || (!itIF->Sources.empty() && (itIF->Sources.front().Protocol() == "file"));
       }
 
-      if (!preparedjobdesc.NoDelegation && delegation_id.empty()) {
+      if (preparedjobdesc.X509Delegation && delegation_id.empty()) {
         // Assume that delegation interface is on same machine as submission interface.
         if (!getDelegationID(url, delegation_id)) {
           notSubmitted.push_back(&*itJ);
@@ -428,7 +428,7 @@ namespace Arc {
       flag = "true";
     }
 
-    if(iurl && !durl && !preparedjobdesc.NoDelegation) {
+    if(iurl && !durl && preparedjobdesc.X509Delegation) {
       AutoPointer<EMIESClient> ac(clients.acquire(iurl));
       std::list<URL> activitycreation;
       std::list<URL> activitymanagememt;
@@ -447,7 +447,7 @@ namespace Arc {
     }
 
     std::string delegation_id;
-    if(!preparedjobdesc.NoDelegation) {
+    if(preparedjobdesc.X509Delegation) {
       if(!getDelegationID(durl, delegation_id)) return false;
     }
 
