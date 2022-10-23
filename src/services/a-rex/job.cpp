@@ -416,7 +416,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
   gid_ = st.st_gid; 
 }
 
-ARexJob::ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string& delegid,const std::string& clientid, Arc::Logger& logger, JobIDGenerator& idgenerator, Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
+ARexJob::ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator,Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
   std::string job_desc_str;
   // Make full XML doc out of subtree
   {
@@ -424,14 +424,14 @@ ARexJob::ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string&
     xmljobdesc.New(doc);
     doc.GetDoc(job_desc_str);
   };
-  make_new_job(job_desc_str,delegid,clientid,idgenerator,migration);
+  make_new_job(job_desc_str,delegid,queue,clientid,idgenerator,migration);
 }
 
-ARexJob::ARexJob(std::string const& job_desc_str,ARexGMConfig& config,const std::string& delegid,const std::string& clientid, Arc::Logger& logger, JobIDGenerator& idgenerator, Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
-  make_new_job(job_desc_str,delegid,clientid,idgenerator,migration);
+ARexJob::ARexJob(std::string const& job_desc_str,ARexGMConfig& config,const std::string& delegid,const std::string& clientid,const std::string& queue,Arc::Logger& logger,JobIDGenerator& idgenerator,Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
+  make_new_job(job_desc_str,delegid,queue,clientid,idgenerator,migration);
 }
 
-void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& delegid,const std::string& clientid,JobIDGenerator& idgenerator,Arc::XMLNode migration) {
+void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& delegid,const std::string& queue,const std::string& clientid,JobIDGenerator& idgenerator,Arc::XMLNode migration) {
   if(!config_) return;
   uid_ = config_.User().get_uid();
   gid_ = config_.User().get_gid();
@@ -511,12 +511,14 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
   if(job_.lrms.empty()) job_.lrms=config_.GmConfig().DefaultLRMS();
 
   // Handle queue in request.
-  // if (queue in xrsl) submit to that queue w/o modification; 
-  // elseif (no queue in xrsl and exists default queue in arc.conf) substitute default queue into xrsl and check authorisation; 
-  // elseif (no queue in xrsl and no default queue in arc.conf and VO is authorised in one of the arc.conf queues*) substitute
-  //        into xrsl the first; queue where VO is authorised in arc.conf;
+  // if (queue in xrsl/adl) submit to that queue w/o modification; 
+  // elseif (passed default queue by caller) substitute default queue into xrsl/adl and check authorisation; 
+  // elseif (exists default queue in arc.conf) substitute default queue into xrsl and check authorisation; 
+  // elseif (VO is authorised in one of the arc.conf queues*) substitute into xrsl the first queue where VO is authorised in arc.conf;
   // else (reject);
   if(job_.queue.empty()) // queue in job description?
+    job_.queue=queue; // queue passed by caller
+  if(job_.queue.empty())
     job_.queue=config_.GmConfig().DefaultQueue(); // default queue in configuration
 
   bool queue_authorized = false;

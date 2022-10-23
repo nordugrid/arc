@@ -32,6 +32,13 @@ static char const * parse_voms_name(const std::string& id) {
   return NULL;
 }
 
+static char const * parse_otokens_name(const std::string& id) {
+  if(::strncmp(id.c_str(), "OTOKENS:", 8) == 0) {
+    return id.c_str() + 8;
+  };
+  return NULL;
+}
+
 std::string LegacySecAttr::get(const std::string& id) const {
   if(id == "GROUP") {
     if(groups_.size() > 0) return *groups_.begin();
@@ -51,6 +58,11 @@ std::string LegacySecAttr::get(const std::string& id) const {
     if(VOs.size() > 0) return *VOs.begin(); 
     return "";
   };
+  if(char const * group = parse_otokens_name(id)) {
+    const std::list<std::string>& otokenss = LegacySecAttr::GetGroupOtokens(group);
+    if(otokenss.size() > 0) return *otokenss.begin(); 
+    return "";
+  };
   return "";
 }
 
@@ -59,6 +71,7 @@ std::list<std::string> LegacySecAttr::getAll(const std::string& id) const {
   if(id == "VO") return VOs_;
   if(char const * group = parse_voms_name(id)) return GetGroupVOMS(group);
   if(char const * group = parse_vo_name(id)) return GetGroupVO(group);
+  if(char const * group = parse_otokens_name(id)) return GetGroupOtokens(group);
   return std::list<std::string>();
 }
 
@@ -79,6 +92,13 @@ std::map<std::string, std::list<std::string> > LegacySecAttr::getAll() const {
     if(voms == groupsVOMS_.end()) break;
     all["VOMS:" + *grp] = *voms;
     ++voms;
+  };
+
+  std::list< std::list<std::string> >::const_iterator otokens = groupsOtokens_.begin();
+  for(std::list<std::string>::const_iterator grp = groups_.begin(); grp != groups_.end(); ++grp) {
+    if(otokens == groupsOtokens_.end()) break;
+    all["OTOKENS:" + *grp] = *otokens;
+    ++otokens;
   };
 }
 

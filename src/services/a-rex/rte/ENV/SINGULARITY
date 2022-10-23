@@ -10,12 +10,14 @@ BINARY_PATH="${4:-$BINARY_PATH}"
 
 DEFAULT_IMAGE="NULL"
 
+
 if [ "x$1" = "x0" ]; then
 
+    LOCAL_FILE=$(control_path "${joboption_controldir}" "${joboption_gridid}" "local")
+    
     # get VO
     #vo=`arcproxy -P $joboption_controldir/job.$joboption_gridid.proxy -i vomsVO 2> /dev/null`
-    localfile=${joboption_controldir}/job.${joboption_gridid}.local
-    vo=`grep voms= $localfile | awk -F / '{print $2}'|sort -u`
+    vo=`grep voms= $LOCAL_FILE | awk -F / '{print $2}'|sort -u`
     
     values=`echo $SINGULARITY_IMAGE | sed -e 's/,/ /g'`
     for i in $values

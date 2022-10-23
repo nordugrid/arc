@@ -80,7 +80,7 @@ Arc::MCC_Status ARexService::ESCreateActivities(ARexGMConfig& config,Arc::XMLNod
   };
   for(;(bool)adl;++adl) {
     JobIDGeneratorES idgenerator(config.Endpoint());
-    ARexJob job(adl,config,"",clientid,logger_,idgenerator);
+    ARexJob job(adl,config,"","",clientid,logger_,idgenerator);
     // Make SOAP response
     Arc::XMLNode resp = out.NewChild("escreate:ActivityCreationResponse");
     if(!job) {
@@ -152,7 +152,7 @@ Arc::MCC_Status ARexService::PutNew(Arc::Message& inmsg,Arc::Message& outmsg,ARe
   std::string clientid = (inmsg.Attributes()->get("TCP:REMOTEHOST"))+":"+(inmsg.Attributes()->get("TCP:REMOTEPORT"));
   // TODO: Do we need different generators for different formats?
   JobIDGeneratorES idgenerator(config.Endpoint());
-  ARexJob job(desc_str,config,"",clientid,logger_,idgenerator);
+  ARexJob job(desc_str,config,"","",clientid,logger_,idgenerator);
   if(!job) {
     return make_http_fault(outmsg,500,job.Failure().c_str());
   }; 

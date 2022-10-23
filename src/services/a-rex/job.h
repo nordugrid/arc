@@ -59,6 +59,18 @@ class ARexConfigContext:public Arc::MessageContextElement, public ARexGMConfig {
   virtual ~ARexConfigContext(void) { };
   static ARexConfigContext* GetRutimeConfiguration(Arc::Message& inmsg, GMConfig& gmconfig,
                   std::string const & default_uname, std::string const & default_endpoint);
+  // Authorization methods
+  enum OperationType {
+    OperationServiceInfo, // information about service
+    OperationJobInfo,     // information about job
+    OperationJobCreate,   // creation of new job
+    OperationJobCancel,   // canceling existing job
+    OperationJobDelete,   // removing existing job
+    OperationDataInfo,    // getting information about file in session
+    OperationDataWrite,   // writing file to session
+    OperationDataRead,    // reading file from session
+  };
+  static bool CheckOperationAllowed(OperationType op, ARexConfigContext* config);
 };
 
 typedef enum {
@@ -93,14 +105,14 @@ class ARexJob {
   bool make_job_id(void);
   bool delete_job_id(void);
   bool update_credentials(const std::string& credentials);
-  void make_new_job(std::string const& job_desc_str,const std::string& delegid,const std::string& clientid,JobIDGenerator& idgenerator,Arc::XMLNode migration);
+  void make_new_job(std::string const& job_desc_str,const std::string& delegid,const std::string& queue,const std::string& clientid,JobIDGenerator& idgenerator,Arc::XMLNode migration);
  public:
   /** Create instance which is an interface to existing job */
   ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,bool fast_auth_check = false);
   /** Create new job with provided description */
-  ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string& delegid,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator,Arc::XMLNode migration = Arc::XMLNode());
+  ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator,Arc::XMLNode migration = Arc::XMLNode());
   /** Create new job with provided textual description */
-  ARexJob(std::string const& job_desc_str,ARexGMConfig& config,const std::string& delegid,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator,Arc::XMLNode migration = Arc::XMLNode());
+  ARexJob(std::string const& job_desc_str,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator,Arc::XMLNode migration = Arc::XMLNode());
   operator bool(void) { return !id_.empty(); };
   bool operator!(void) { return id_.empty(); };
   /** Returns textual description of failure of last operation */
