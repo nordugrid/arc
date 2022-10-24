@@ -59,7 +59,7 @@ m4_pattern_allow([AC_PATH_PROG])
 m4_pattern_allow([AC_MSG_WARN])
 
 AC_PROG_CXX
-AC_PROG_CC_STDC
+AC_PROG_CC
 AC_PROG_CPP
 AC_GNU_SOURCE
 AC_PROG_AWK
@@ -68,6 +68,33 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_DISABLE_STATIC
 AM_PROG_LIBTOOL
+
+cat > cxxtst.cxx <<EOF
+#include <stdlib.h>
+int main() {
+exit(__cplusplus < 201103L ? EXIT_FAILURE : EXIT_SUCCESS);
+}
+EOF
+cxx11=no
+for CXX11FLAG in '' -std=gnu++11 -std=gnu++0x -std=c++11 -std=c++0x; do
+$CXX -o cxxtst $CXX11FLAG $CXXFLAGS $CPPFLAGS $LDFLAGS cxxtst.cxx 2>/dev/null
+if test "$?" = '0' ; then
+if ./cxxtst ; then
+   if test -z "$CXX11FLAG" ; then
+      AC_MSG_NOTICE([No extra flag for C++ 11])
+   else
+      AC_MSG_NOTICE([Extra flag for C++ 11: $CXX11FLAG])
+      CXXFLAGS="$CXXFLAGS $CXX11FLAG"
+   fi
+   cxx11=yes
+   break
+fi
+fi
+done
+rm -f cxxtst.cxx cxxtst
+if test x$cxx11 = xno ; then
+   AC_MSG_ERROR([ARC requires a C++ 11 capable compiler])
+fi
 
 AC_PATH_PROG(PERL, perl, /usr/bin/perl, :)
 
