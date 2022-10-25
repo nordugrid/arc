@@ -246,7 +246,7 @@ ifeq ($(PYVER),2)
 override_dh_python2:
 	dh_python2
 
-	echo "pydeps:Depends=python-ldap, python-isodate" \
+	echo "pydeps:Depends=python-ldap" \
 		>> debian/nordugrid-arc-arex.substvars
 	echo "pydeps:Depends=python-dnspython" \
 		>> debian/nordugrid-arc-community-rtes.substvars
@@ -266,7 +266,7 @@ ifeq ($(PYVER),3)
 override_dh_python3:
 	dh_python3
 
-	echo "pydeps:Depends=python3-ldap, python3-isodate" \
+	echo "pydeps:Depends=python3-ldap" \
 		>> debian/nordugrid-arc-arex.substvars
 	echo "pydeps:Depends=python3-dnspython" \
 		>> debian/nordugrid-arc-community-rtes.substvars
