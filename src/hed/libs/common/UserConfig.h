@@ -709,7 +709,7 @@ namespace Arc {
 
     /// Set authentication token.
     /**
-     * Assigns OToken (authenticatio and sometimes authorizzation token)
+     * Assigns OToken (authentication and sometimes authorization token)
      * to be used in HTTP communication.
      *
      * @param cred The credential represented as a string

@@ -90,6 +90,9 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
   /** Returns path to file containing credential with specied id and client */
   std::string FindCred(const std::string& id,const std::string& client);
 
+  /** Returns path to file containing credential with specied id and client along with associated metadata */
+  std::string FindCred(const std::string& id,const std::string& client, std::list<std::string>& meta);
+
   /** Retrieves credentials with specified id and associated with client */
   bool GetCred(const std::string& id, const std::string& client, std::string& credentials);
 

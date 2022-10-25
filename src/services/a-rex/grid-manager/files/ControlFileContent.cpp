@@ -160,6 +160,11 @@ std::ostream &operator<< (std::ostream &o,const FileData &fd) {
       if(!escaped_cred.empty()) {
         o.put(' ');
         o.write(escaped_cred.c_str(), escaped_cred.size());
+        std::string escaped_cred_type(Arc::escape_chars(fd.cred_type, " \\\r\n", '\\', false));
+        if(!escaped_cred_type.empty()) {
+          o.put(' ');
+          o.write(escaped_cred_type.c_str(), escaped_cred_type.size());
+        };
       };
     };
   };
@@ -170,10 +175,11 @@ std::istream &operator>> (std::istream &i,FileData &fd) {
   std::string buf;
   std::getline(i,buf);
   Arc::trim(buf," \t\r\n");
-  fd.pfn.resize(0); fd.lfn.resize(0); fd.cred.resize(0);
-  fd.pfn  = Arc::unescape_chars(Arc::extract_escaped_token(buf, ' ', '\\'), '\\');
-  fd.lfn  = Arc::unescape_chars(Arc::extract_escaped_token(buf, ' ', '\\'), '\\');
-  fd.cred = Arc::unescape_chars(Arc::extract_escaped_token(buf, ' ', '\\'), '\\');
+  fd.pfn.resize(0); fd.lfn.resize(0); fd.cred.resize(0); fd.cred_type.resize(0);
+  fd.pfn       = Arc::unescape_chars(Arc::extract_escaped_token(buf, ' ', '\\'), '\\');
+  fd.lfn       = Arc::unescape_chars(Arc::extract_escaped_token(buf, ' ', '\\'), '\\');
+  fd.cred      = Arc::unescape_chars(Arc::extract_escaped_token(buf, ' ', '\\'), '\\');
+  fd.cred_type = Arc::unescape_chars(Arc::extract_escaped_token(buf, ' ', '\\'), '\\');
   if((fd.pfn.length() == 0) && (fd.lfn.length() == 0)) return i; /* empty st */
   if(!Arc::CanonicalDir(fd.pfn,true,true)) {
     logger.msg(Arc::ERROR,"Wrong directory in %s",buf);
@@ -289,6 +295,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
         // It is not possible to extract credentials path here.
         // So temporarily storing id here.
         inputdata.back().cred = file->Sources.front().DelegationID;
+        inputdata.back().cred_type = "id"; // just to have it set to something
       }
     }
 
@@ -347,6 +354,7 @@ JobLocalDescription& JobLocalDescription::operator=(const Arc::JobDescription& a
           // It is not possible to extract credentials path here.
           // So temporarily storing id here.
           outputdata.back().cred = target->DelegationID;
+          outputdata.back().cred_type = "id"; // just to have it set to something
         }
         if(outputdata.back().ifsuccess) ifsuccess = true;
         if(outputdata.back().ifcancel) ifcancel = true;

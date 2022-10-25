@@ -329,6 +329,10 @@ namespace ARex {
     return fstore_->Find(id,client,meta);
   }
 
+  std::string DelegationStore::FindCred(const std::string& id,const std::string& client,std::list<std::string>& meta) {
+    return fstore_->Find(id,client,meta);
+  }
+
   bool DelegationStore::GetCred(const std::string& id, const std::string& client, std::string& credentials) {
     std::list<std::string> meta;
     std::string path = fstore_->Find(id,client,meta);

@@ -417,17 +417,32 @@ bool JobsList::FailedJob(GMJobRef i,bool cancel) {
     r = false;
   }
   // Convert delegation ids to credential paths.
-  std::string default_cred = job_control_path(config.ControlDir(),i->get_id(),sfx_proxy);
+  ARex::DelegationStores* delegs = config.GetDelegations();
+  std::string default_cred = job_proxy_filename(i->get_id(), config); // TODO: drop job.proxy as source of delegation
+  std::string default_cred_type;
+  if(!job_desc.delegationid.empty()) {
+    if(delegs) {
+      std::list<std::string> meta;
+      DelegationStore& deleg = delegs->operator[](config.DelegationDir());
+      std::string fname = deleg.FindCred(job_desc.delegationid, job_desc.DN, meta);
+      if(!fname.empty()) {
+        default_cred = fname;
+        default_cred_type = (!meta.empty())?meta.front():"";
+      };
+    };
+  };
   for(std::list<FileData>::iterator f = job_desc.outputdata.begin();
                                    f != job_desc.outputdata.end(); ++f) {
     if(f->has_lfn()) {
       if(f->cred.empty()) {
         f->cred = default_cred;
+        f->cred_type = default_cred_type;
       } else {
         std::string path;
-        ARex::DelegationStores* delegs = config.GetDelegations();
-        if(delegs && i->local) path = (*delegs)[config.DelegationDir()].FindCred(f->cred,i->local->DN);
+        std::list<std::string> meta;
+        if(delegs && i->local) path = (*delegs)[config.DelegationDir()].FindCred(f->cred,i->local->DN,meta);
         f->cred = path;
+	f->cred_type = (!meta.empty())?meta.front():"";
       }
       if(i->local) ++(i->local->uploads);
     }

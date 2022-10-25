@@ -45,25 +45,32 @@ bool JobDescriptionHandler::process_job_req(const GMJob &job,JobLocalDescription
   // Add default credentials for file which have no own assigned.
   ARex::DelegationStores* delegs = config.GetDelegations();
   std::string default_cred = job_proxy_filename(job.get_id(), config); // TODO: drop job.proxy as source of delegation
+  std::string default_cred_type;
   if(!job_desc.delegationid.empty()) {
     if(delegs) {
+      std::list<std::string> meta;
       DelegationStore& deleg = delegs->operator[](config.DelegationDir());
-      std::string fname = deleg.FindCred(job_desc.delegationid, job_desc.DN);
+      std::string fname = deleg.FindCred(job_desc.delegationid, job_desc.DN, meta);
       if(!fname.empty()) {
         default_cred = fname;
+        default_cred_type = (!meta.empty())?meta.front():"";
       };
     };
   };
 
+  // Resolve delegation ids into proxy credential paths
   for(std::list<FileData>::iterator f = job_desc.inputdata.begin();
                                    f != job_desc.inputdata.end(); ++f) {
     if(f->has_lfn()) {
       if(f->cred.empty()) {
         f->cred = default_cred;
+        f->cred_type = default_cred_type;
       } else {
         std::string path;
-        if(delegs) path = (*delegs)[config.DelegationDir()].FindCred(f->cred,job_desc.DN);
+        std::list<std::string> meta;
+        if(delegs) path = (*delegs)[config.DelegationDir()].FindCred(f->cred,job_desc.DN,meta);
         f->cred = path;
+        f->cred_type = (!meta.empty())?meta.front():"";
       };
     };
   };
@@ -74,9 +81,11 @@ bool JobDescriptionHandler::process_job_req(const GMJob &job,JobLocalDescription
         f->cred = default_cred;
       } else {
         std::string path;
+        std::list<std::string> meta;
         ARex::DelegationStores* delegs = config.GetDelegations();
-        if(delegs) path = (*delegs)[config.DelegationDir()].FindCred(f->cred,job_desc.DN);
+        if(delegs) path = (*delegs)[config.DelegationDir()].FindCred(f->cred,job_desc.DN,meta);
         f->cred = path;
+        f->cred_type = (!meta.empty())?meta.front():"";
       };
     };
   };
