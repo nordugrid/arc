@@ -262,7 +262,6 @@ Depends:
  libjson-xs-perl,
  libxml-simple-perl,
  python3-ldap,
- python3-isodate,
  lsb-base (>= 3.0-6)
 Description: ARC Resource-coupled EXecution service
  NorduGrid is a collaboration aiming at development, maintenance and

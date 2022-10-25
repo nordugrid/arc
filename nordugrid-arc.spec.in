@@ -402,7 +402,6 @@ Requires:	%{name}-hed = %{version}-%{release}
 Requires:	%{name}-arcctl = %{version}-%{release}
 Requires:	%{name}-arcctl-service = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
-Requires:	python3-isodate
 Requires:	python3-ldap
 Provides:	%{name}-cache-service = %{version}-%{release}
 Obsoletes:	%{name}-cache-service < 6.0.0
