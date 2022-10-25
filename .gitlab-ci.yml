@@ -123,7 +123,7 @@ build_el7:
 build_el8:
     extends: .template_build_rhel
     variables:
-        BUILD_IMAGE: maikenp/arc-build-centos8
+        BUILD_IMAGE: maikenp/arc-build-cs8
 
 ####################
 #    CENTOS STREAM 9
@@ -149,6 +149,14 @@ build_deb10:
     extends: .template_build_deb
     variables:
         BUILD_IMAGE: maikenp/arc-build-debian10
+
+###############
+#    DEBIAN 11
+###############
+build_deb11:
+    extends: .template_build_deb
+    variables:
+        BUILD_IMAGE: maikenp/arc-build-debian11
     
 ##################
 #    UBUNTU 18.04
@@ -157,6 +165,22 @@ build_ubuntu1804:
     extends: .template_build_deb
     variables:
         BUILD_IMAGE: maikenp/arc-build-ubuntu1804
+
+##################
+#    UBUNTU 20.04
+##################
+build_ubuntu2004:
+    extends: .template_build_deb
+    variables:
+        BUILD_IMAGE: maikenp/arc-build-ubuntu2004
+    
+##################
+#    UBUNTU 22.04
+##################
+build_ubuntu2204:
+    extends: .template_build_deb
+    variables:
+        BUILD_IMAGE: maikenp/arc-build-ubuntu2204
 
 
 #############################################################
@@ -229,14 +253,14 @@ deploy_el7:
       artifacts: true
 
 
-##################
-#    CENTOS 8
-##################
+#####################
+#    CENTOS STREAM 8
+#####################
 deploy_el8:
   extends: .deploy
   variables:
     OS_V: el8
-    ARC_IMAGE: maikenp/arc-deploy-centos8
+    ARC_IMAGE: maikenp/arc-deploy-cs8
     BUILD_VOL: /rpmbuild
     BUILD_DIR: $CI_PROJECT_DIR/$BUILD_VOL/* 
   tags:
@@ -247,9 +271,9 @@ deploy_el8:
       artifacts: true
 
 
-##################
-#    CENTOS 9
-##################
+#####################
+#    CENTOS STREAM 9
+#####################
 deploy_el9:
   extends: .deploy
   variables:
@@ -298,6 +322,23 @@ deploy_deb10:
   needs:
     - job: build_deb10
       artifacts: true
+
+##################
+#    DEBIAN 11
+##################
+deploy_deb11:
+  extends: .deploy
+  variables:
+    OS_V: deb11
+    ARC_IMAGE: maikenp/arc-deploy-debian11
+    BUILD_VOL: /build
+    BUILD_DIR: $CI_PROJECT_DIR/*.deb    
+  tags:
+    - 158.39.75.5
+    - deploy
+  needs:
+    - job: build_deb11
+      artifacts: true
   
 
 ##################
@@ -315,6 +356,42 @@ deploy_ubuntu1804:
     - deploy
   needs:
     - job: build_ubuntu1804
+      artifacts: true
+
+
+##################
+#    UBUNTU 20.04
+##################
+deploy_ubuntu2004:
+  extends: .deploy
+  variables:
+    OS_V: ubuntu2004
+    ARC_IMAGE: maikenp/arc-deploy-ubuntu2004
+    BUILD_VOL: /build
+    BUILD_DIR: $CI_PROJECT_DIR/*.deb
+  tags:
+    - 158.39.201.198
+    - deploy
+  needs:
+    - job: build_ubuntu2004
+      artifacts: true
+
+
+##################
+#    UBUNTU 22.04
+##################
+deploy_ubuntu2204:
+  extends: .deploy
+  variables:
+    OS_V: ubuntu2204
+    ARC_IMAGE: maikenp/arc-deploy-ubuntu2204
+    BUILD_VOL: /build
+    BUILD_DIR: $CI_PROJECT_DIR/*.deb
+  tags:
+    - 158.39.74.225
+    - deploy
+  needs:
+    - job: build_ubuntu2204
       artifacts: true
 
 
@@ -513,6 +590,42 @@ arcconf_deb10_deploytest:
       artifacts: true
 
 ############################
+##### DEB11 DEPLOY CHECK
+############################
+gridftp_deb11_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'gridftp'
+  needs:
+    - job: deploy_deb11
+      artifacts: true
+
+emies_deb11_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'emies'
+  needs:
+    - job: deploy_deb11
+      artifacts: true
+    
+arcrest_deb11_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'arcrest'
+  needs:
+    - job: deploy_deb11
+      artifacts: true
+
+arcconf_deb11_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'arcconf'
+  needs:
+    - job: deploy_deb11
+      artifacts: true
+
+    
+############################
 ##### UBUNTU DEPLOY CHECK
 ############################
 gridftp_ubuntu1804_deploytest:
@@ -546,5 +659,78 @@ arcconf_ubuntu1804_deploytest:
     TESTTYPE: 'arcconf'
   needs:
     - job: deploy_ubuntu1804
+      artifacts: true
+
+############################
+##### UBUNTU DEPLOY CHECK
+############################
+gridftp_ubuntu2004_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'gridftp'
+  stage:  check_deploy
+  needs:
+    - job: deploy_ubuntu2004
+      artifacts: true
+
+emies_ubuntu2004_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'emies'
+  needs:
+    - job: deploy_ubuntu2004
+      artifacts: true
+    
+arcrest_ubuntu2004_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'arcrest'
+  needs:
+    - job: deploy_ubuntu2004
+      artifacts: true
+
+arcconf_ubuntu2004_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'arcconf'
+  needs:
+    - job: deploy_ubuntu2004
+      artifacts: true
+
+
+############################
+##### UBUNTU DEPLOY CHECK
+############################
+gridftp_ubuntu2204_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'gridftp'
+  stage:  check_deploy
+  needs:
+    - job: deploy_ubuntu2204
+      artifacts: true
+
+emies_ubuntu2204_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'emies'
+  needs:
+    - job: deploy_ubuntu2204
+      artifacts: true
+    
+arcrest_ubuntu2204_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'arcrest'
+  needs:
+    - job: deploy_ubuntu2204
+      artifacts: true
+
+arcconf_ubuntu2204_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'arcconf'
+  needs:
+    - job: deploy_ubuntu2204
       artifacts: true
 
