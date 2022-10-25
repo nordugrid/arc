@@ -95,8 +95,6 @@
 %global use_systemd 0
 %endif
 
-%global with_ldap_service 1
-
 %global pkgdir arc
 
 # bash-completion
@@ -173,19 +171,17 @@ Obsoletes:	%{name}-doxygen < 4.0.0
 Obsoletes:	%{name}-arcproxyalt < 6.0.0
 Obsoletes:	%{name}-java < 6.0.0
 Obsoletes:	%{name}-egiis < 6.0.0
+Obsoletes:	%{name}-aris < 6.0.0
+Obsoletes:	%{name}-ldap-infosys < 6.0.0
 Obsoletes:	%{name}-acix-cache < 6.0.0
 Obsoletes:	%{name}-acix-core < 7.0.0
 Obsoletes:	%{name}-acix-scanner < 7.0.0
 Obsoletes:	%{name}-acix-index < 7.0.0
+Obsoletes:	%{name}-infosys-ldap < 7.0.0
 Obsoletes:	%{name}-arex-python-lrms < 7.0.0
 %if ! %{with_python2}
 Obsoletes:	python2-%{name} < %{version}-%{release}
 Obsoletes:	%{name}-python < 5.3.3
-%endif
-%if ! %{with_ldap_service}
-Obsoletes:	%{name}-infosys-ldap < %{version}-%{release}
-Obsoletes:	%{name}-ldap-infosys < 6.0.0
-Obsoletes:	%{name}-aris < 6.0.0
 %endif
 
 BuildRequires:	gcc-c++
@@ -356,58 +352,6 @@ support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 This package contains the ARC data delivery service.
-
-%if %{with_ldap_service}
-%package infosys-ldap
-Summary:	ARC LDAP-based information services
-Group:		System Environment/Libraries
-%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
-BuildArch:	noarch
-%endif
-%if %{?rhel}%{!?rhel:0} == 8
-#		slapd package not available in EPEL 8
-Recommends:	openldap-servers
-Recommends:	bdii
-%else
-Requires:	openldap-servers
-Requires:	bdii
-%endif
-Requires:	glue-schema >= 2.0.10
-Requires:	%{name}-arcctl-service = %{version}-%{release}
-Provides:	%{name}-ldap-infosys = %{version}-%{release}
-Obsoletes:	%{name}-ldap-infosys < 6.0.0
-Provides:	%{name}-aris = %{version}-%{release}
-Obsoletes:	%{name}-aris < 6.0.0
-
-Requires(post):		%{service_post_requires}
-Requires(preun):	%{service_preun_requires}
-Requires(postun):	%{service_postun_requires}
-
-%if %{?fedora}%{!?fedora:0} >= 23 || %{?rhel}%{!?rhel:0} >= 8
-Requires(post):		policycoreutils-python-utils
-Requires(postun):	policycoreutils-python-utils
-%else
-%if %{?fedora}%{!?fedora:0} >= 11 || %{?rhel}%{!?rhel:0} >= 6
-Requires(post):		policycoreutils-python
-Requires(postun):	policycoreutils-python
-%else
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
-Requires(post):		policycoreutils
-Requires(postun):	policycoreutils
-%endif
-%endif
-%endif
-
-%description infosys-ldap
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the middleware, known as the Advanced Resource
-Connector (ARC).
-
-This package contains the ARC information services relying on BDII and
-LDAP technologies to publish ARC CE information according to various
-LDAP schemas. Please note that the information collectors are part of
-another package, the nordugrid-arc-arex.
-%endif
 
 %package monitor
 Summary:	ARC LDAP monitor web application
@@ -874,9 +818,6 @@ management features on the worker nodes (WN).
      --enable-systemd \
      --with-systemd-units-location=%{_unitdir} \
 %endif
-%if ! %{with_ldap_service}
-     --disable-ldap-service \
-%endif
      --disable-doc \
      --docdir=%{_pkgdocdir}
 
@@ -896,10 +837,6 @@ install -p -m 644 debian/%{name}-arex.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-arex
 install -p -m 644 debian/%{name}-gridftpd.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-gridftpd
-%if %{with_ldap_service}
-install -p -m 644 debian/%{name}-infosys-ldap.logrotate \
-    $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-infosys-ldap
-%endif
 install -p -m 644 debian/%{name}-datadelivery-service.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-datadelivery-service
 
@@ -998,53 +935,6 @@ fi
 
 %postun datadelivery-service
 %condrestart_on_update arc-datadelivery-service
-
-%if %{with_ldap_service}
-%post infosys-ldap
-%enable_service arc-infosys-ldap
-
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
-semanage port -a -t ldap_port_t -p tcp 2135 2>/dev/null || :
-semanage fcontext -a -t slapd_etc_t "/var/run/arc/infosys/bdii-slapd\.conf" 2>/dev/null || :
-semanage fcontext -a -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
-semanage fcontext -a -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null || :
-%endif
-
-%preun infosys-ldap
-%stop_on_removal arc-infosys-ldap
-
-%postun infosys-ldap
-%condrestart_on_update arc-infosys-ldap
-
-%if %{?fedora}%{!?fedora:0} >= 5 || %{?rhel}%{!?rhel:0} >= 5
-if [ $1 -eq 0 ]; then
-  semanage port -d -t ldap_port_t -p tcp 2135 2>/dev/null || :
-  semanage fcontext -d -t slapd_etc_t "/var/run/arc/infosys/bdii-slapd\.conf" 2>/dev/null || :
-  semanage fcontext -d -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
-  semanage fcontext -d -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null || :
-fi
-%endif
-
-%triggerpostun infosys-ldap -- %{name}-ldap-infosys
-# Uninstalling the old %{name}-ldap-infosys will remove some selinux config
-# for %{name}-infosys-ldap - put them back in this triggerpostun script
-semanage port -a -t ldap_port_t -p tcp 2135 2>/dev/null || :
-semanage fcontext -a -t slapd_etc_t "/var/run/arc/infosys/bdii-slapd\.conf" 2>/dev/null || :
-
-%triggerpostun infosys-ldap -- %{name}-aris
-# Uninstalling the old %{name}-aris will remove some selinux config
-# for %{name}-infosys-ldap - put them back in this triggerpostun script
-semanage fcontext -a -t slapd_db_t "/var/lib/arc/bdii/db(/.*)?" 2>/dev/null || :
-semanage fcontext -a -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null || :
-
-%triggerun infosys-ldap -- bdii
-%if %{?suse_version:1}%{!?suse_version:0}
-FIRST_ARG=1
-%restart_on_update arc-infosys-ldap
-%else
-service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
-%endif
-%endif
 
 %files -f %{name}.lang
 %defattr(-,root,root,-)
@@ -1191,23 +1081,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libdatadeliveryservice.apd
 %{_datadir}/%{pkgdir}/arc-datadelivery-service-start
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-datadelivery-service
-
-%if %{with_ldap_service}
-%files infosys-ldap
-%defattr(-,root,root,-)
-%if %{use_systemd}
-%{_unitdir}/arc-infosys-ldap.service
-%{_unitdir}/arc-infosys-ldap-slapd.service
-%else
-%{_initrddir}/arc-infosys-ldap
-%endif
-%{_datadir}/%{pkgdir}/create-bdii-config
-%{_datadir}/%{pkgdir}/create-slapd-config
-%{_datadir}/%{pkgdir}/glue-generator.pl
-%{_datadir}/%{pkgdir}/glite-info-provider-ldap
-%{_datadir}/%{pkgdir}/ldap-schema
-%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-infosys-ldap
-%endif
 
 %files monitor
 %defattr(-,root,root,-)
