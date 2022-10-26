@@ -561,7 +561,7 @@ Architecture: all
 Depends:
  ${misc:Depends},
  ${python3:Depends},
- python3-ldap,
+ python3-ldap | python3-pyldap,
  python3-dnspython
 Description: ARCHERY administration tool
  NorduGrid is a collaboration aiming at development, maintenance and
