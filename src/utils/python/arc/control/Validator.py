@@ -169,7 +169,8 @@ class Validator(object):
             # Sort the conf blocks according to the reference order and then compare
             config_blocks_sorted = sorted(config_blocks_uniq, key=lambda x: block_order.index(x))
             if config_blocks_sorted != config_blocks_uniq:
-                self.error("Configuration blocks are not in the correct order. Should be: %s" % config_blocks_sorted)
+                self.error("Configuration blocks are not in the correct order:\n%s\nShould be:\n%s" %
+                           (config_blocks_uniq, config_blocks_sorted))
 
 
     def _check_config_option(self, block, option, value, config_defaults):
