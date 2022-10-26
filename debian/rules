@@ -69,14 +69,12 @@ override_dh_auto_clean:
 	rm -f debian/nordugrid-arc-arex.arc-arex-ws.init
 	rm -f debian/nordugrid-arc-hed.arched.init
 	rm -f debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.init
-	rm -f debian/nordugrid-arc-gridftpd.arc-gridftpd.init
 	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.init
 
 	rm -f debian/nordugrid-arc-arex.arc-arex.service
 	rm -f debian/nordugrid-arc-arex.arc-arex-ws.service
 	rm -f debian/nordugrid-arc-hed.arched.service
 	rm -f debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.service
-	rm -f debian/nordugrid-arc-gridftpd.arc-gridftpd.service
 	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.service
 	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap-slapd.service
 
@@ -126,8 +124,6 @@ override_dh_auto_install:
 	   debian/nordugrid-arc-hed.arched.init
 	mv debian/tmp/etc/init.d/arc-datadelivery-service \
 	   debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.init
-	mv debian/tmp/etc/init.d/arc-gridftpd \
-	   debian/nordugrid-arc-gridftpd.arc-gridftpd.init
 	mv debian/tmp/etc/init.d/arc-infosys-ldap \
 	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.init
 
@@ -139,8 +135,6 @@ override_dh_auto_install:
 	   debian/nordugrid-arc-hed.arched.service
 	mv debian/tmp/lib/systemd/system/arc-datadelivery-service.service \
 	   debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.service
-	mv debian/tmp/lib/systemd/system/arc-gridftpd.service \
-	   debian/nordugrid-arc-gridftpd.arc-gridftpd.service
 	mv debian/tmp/lib/systemd/system/arc-infosys-ldap.service \
 	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.service
 	mv debian/tmp/lib/systemd/system/arc-infosys-ldap-slapd.service \
@@ -162,7 +156,6 @@ override_dh_installinit:
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-arex --name arc-arex
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-arex --name arc-arex-ws
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
-	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-gridftpd --name arc-gridftpd
 	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
 
 override_dh_systemd_enable:
@@ -170,7 +163,6 @@ override_dh_systemd_enable:
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-arex --name arc-arex
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-arex --name arc-arex-ws
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
-	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-gridftpd --name arc-gridftpd
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
 	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap-slapd
 
@@ -179,7 +171,6 @@ override_dh_systemd_start:
 	dh_systemd_start -p nordugrid-arc-arex --name arc-arex
 	dh_systemd_start -p nordugrid-arc-arex --name arc-arex-ws
 	dh_systemd_start -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
-	dh_systemd_start -p nordugrid-arc-gridftpd --name arc-gridftpd
 	dh_systemd_start -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
 	dh_systemd_start -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap-slapd
 
