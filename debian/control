@@ -25,7 +25,6 @@ Build-Depends:
  openssl,
  swig,
  libnss3-dev,
- pylint,
  libjson-xs-perl,
  libxml-simple-perl,
  libdbi-perl,
@@ -33,13 +32,7 @@ Build-Depends:
  libldns-dev,
  libsystemd-dev [linux-any] | debhelper (<< 9.20150101) [linux-any],
  bash-completion,
- python-dev | python3 (>= 3.7.4),
- python-twisted | python3 (>= 3.7.4),
- python-openssl | python3 (>= 3.7.4),
- python3-dev,
- python3-twisted | python3 (<< 3.7.4),
- python3-openssl | python3 (<< 3.7.4)
-XS-Python-Version: current
+ python3-dev
 Standards-Version: 4.4.1
 Homepage: http://www.nordugrid.org
 
@@ -64,7 +57,9 @@ Conflicts:
  nordugrid-arc-acix-scanner (<< 7.0.0~),
  nordugrid-arc-acix-index (<< 7.0.0~),
  nordugrid-arc-arex-python-lrms (<< 7.0.0~),
- nordugrid-arc-gridftpd (<< 7.0.0~)
+ nordugrid-arc-gridftpd (<< 7.0.0~),
+ nordugrid-arc-python (<< 7.0.0~),
+ python-nordugrid-arc (<< 7.0.0~)
 Breaks:
  nordugrid-arc-hed (<< 1.0.1~rc2~),
  nordugrid-arc-arex (<< 2.0.1~),
@@ -76,10 +71,8 @@ Section: libs
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- ${python:Depends},
  ${python3:Depends},
  openssl
-XB-Python-Version: ${python:Versions}
 Description: Advanced Resource Connector Middleware
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -205,10 +198,8 @@ Breaks:
 Architecture: all
 Depends:
  ${misc:Depends},
- ${python:Depends},
  ${python3:Depends},
  libarccommon3 (>= ${source:Version})
-XB-Python-Version: ${python:Versions}
 Description: ARC Control Tool
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -229,11 +220,9 @@ Breaks:
 Architecture: all
 Depends:
  ${misc:Depends},
- ${python:Depends},
  ${python3:Depends},
  libarccommon3 (>= ${source:Version}),
  nordugrid-arc-arcctl (= ${source:Version})
-XB-Python-Version: ${python:Versions}
 Description: ARC Control Tool - service control modules
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -264,7 +253,6 @@ Depends:
  ${shlibs:Depends},
  ${misc:Depends},
  ${perl:Depends},
- ${python:Depends},
  ${python3:Depends},
  libarccommon3 (= ${binary:Version}),
  nordugrid-arc-hed (= ${binary:Version}),
@@ -273,9 +261,7 @@ Depends:
  nordugrid-arc-plugins-needed (= ${binary:Version}),
  libjson-xs-perl,
  libxml-simple-perl,
- ${pydeps:Depends},
  lsb-base (>= 3.0-6)
-XB-Python-Version: ${python:Versions}
 Description: ARC Resource-coupled EXecution service
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -293,12 +279,10 @@ Package: nordugrid-arc-community-rtes
 Architecture: all
 Depends:
  ${misc:Depends},
- ${python:Depends},
  ${python3:Depends},
  nordugrid-arc-arex (>= ${source:Version}),
  nordugrid-arc-arcctl (= ${source:Version}),
- ${pydeps:Depends}
-XB-Python-Version: ${python:Versions}
+ python3-dnspython
 Description: ARC Community defined RTEs support
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -475,7 +459,7 @@ Depends:
  ${shlibs:Depends},
  ${misc:Depends},
  libarccommon3 (= ${binary:Version}),
- ${pydeps:Depends}
+ python3-nordugrid-arc (= ${binary:Version})
 Description: ARC Python dependent plugin
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -503,40 +487,6 @@ Description: ARC development files
  Connector (ARC).
  .
  Header files and libraries needed to develop applications using ARC.
-
-Package: nordugrid-arc-python
-Architecture: all
-Section: oldlibs
-Depends:
- ${misc:Depends},
- nordugrid-arc-plugins-python (>= ${source:Version}),
-Description: ARC Python wrapper (transitional package)
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the middleware, known as the  Advanced Resource
- Connector (ARC).
- .
- This is a transitional package. It is meant to allow smooth transition
- and will be removed from the upcoming releases.
-
-Package: python-nordugrid-arc
-Replaces:
- nordugrid-arc-python (<< 6.6.0~)
-Breaks:
- nordugrid-arc-python (<< 6.6.0~)
-Architecture: any
-Section: python
-Depends:
- ${shlibs:Depends},
- ${misc:Depends},
- ${python:Depends},
- libarccommon3 (= ${binary:Version})
-XB-Python-Version: ${python:Versions}
-Description: ARC Python 2 wrapper
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the middleware, known as the Advanced Resource
- Connector (ARC).
- .
- Python 2 bindings for ARC.
 
 Package: python3-nordugrid-arc
 Provides:
@@ -610,10 +560,9 @@ Package: nordugrid-arc-archery-manage
 Architecture: all
 Depends:
  ${misc:Depends},
- ${python:Depends},
  ${python3:Depends},
- ${pydeps:Depends}
-XB-Python-Version: ${python:Versions}
+ python3-ldap | python3-pyldap,
+ python3-dnspython
 Description: ARCHERY administration tool
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource

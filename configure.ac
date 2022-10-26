@@ -631,6 +631,7 @@ dnl Check if pylint is explicitly disabled.
 if test "$enables_hed" = "yes"; then
 AC_ARG_ENABLE(pylint, AC_HELP_STRING([--disable-pylint], [disable python example checking using pylint]),
 [enables_pylint=$enableval],[])
+if test "$enables_pylint" = "yes"; then
   AC_PATH_PROGS(PYLINT, pylint)
   if test "x$PYLINT" = "x"; then
     enables_pylint="no"
@@ -660,6 +661,7 @@ AC_ARG_ENABLE(pylint, AC_HELP_STRING([--disable-pylint], [disable python example
     fi
     AC_SUBST(PYLINT_ARGS_ARGUMENTS_DIFFER)
   fi
+fi
 fi
 AM_CONDITIONAL([PYLINT_ENABLED], [test "x$enables_pylint" = "xyes"])
 AC_MSG_NOTICE([Python example checking with pylint enabled: $enables_pylint])
