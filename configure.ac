@@ -379,9 +379,9 @@ if test "$enables_python" = "yes"; then
   # We do not look for python binary when cross-compiling
   # but we need to make the variable non-empty
   if test "${build}" = "${host}"; then
-    AC_PATH_PROGS(PYTHON, $with_python python)
+    AC_PATH_PROGS(PYTHON, $with_python python3)
   else
-    PYTHON=/usr/bin/python
+    PYTHON=/usr/bin/python3
   fi
 
   if test "X$PYTHON" != "X"; then
@@ -2036,7 +2036,6 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/misc/Makefile
                  src/services/a-rex/grid-manager/run/Makefile
                  src/services/a-rex/internaljobplugin/Makefile
-                 src/services/a-rex/grid-manager/arc-config-check.1
                  src/services/a-rex/infoproviders/Makefile
                  src/services/a-rex/infoproviders/CEinfo.pl
                  src/services/a-rex/infoproviders/ConfigCentral.pm
