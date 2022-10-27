@@ -19,7 +19,7 @@ class DTRGenerator(arc.DTRCallback):
     def __init__(self):
         super(DTRGenerator, self).__init__()
         # Set up logging
-        self.root_logger = arc.Logger_getRootLogger()
+        self.root_logger = arc.Logger.getRootLogger()
         self.stream = arc.LogStream(sys.stdout)
         self.root_logger.addDestination(self.stream)
         self.root_logger.setThreshold(arc.DEBUG)

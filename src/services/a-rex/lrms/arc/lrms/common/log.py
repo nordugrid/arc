@@ -64,7 +64,7 @@ def _log(level, message, caller = None):
         caller = 'PythonLRMS.%s' % caller
     else:
         caller = 'PythonLRMS'
-    arc.Logger(arc.Logger_getRootLogger(), caller).msg(level, message)
+    arc.Logger(arc.Logger.getRootLogger(), caller).msg(level, message)
 
 
 class ArcError(Exception):

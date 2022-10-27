@@ -1,6 +1,6 @@
 import arc
 import time
-logger = arc.Logger(arc.Logger_getRootLogger(), 'EchoService.py')
+logger = arc.Logger(arc.Logger.getRootLogger(), 'EchoService.py')
 
 wsrf_rp_ns = "http://docs.oasis-open.org/wsrf/rp-2"
 echo_ns = "http://www.nordugrid.org/schemas/echo"

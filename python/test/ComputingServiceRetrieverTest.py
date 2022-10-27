@@ -7,7 +7,7 @@ class ComputingServiceRetrieverTest(testutils.ARCClientTestCase):
         self.ce = arc.Endpoint()
         self.ce.URLString = "test.nordugrid.org"
         self.ce.InterfaceName = "org.nordugrid.tirtest"
-        self.ce.Capability.append(arc.Endpoint_GetStringForCapability(arc.Endpoint.COMPUTINGINFO))
+        self.ce.Capability.append(arc.Endpoint.GetStringForCapability(arc.Endpoint.COMPUTINGINFO))
         arc.TargetInformationRetrieverPluginTESTControl.delay = 0
         arc.TargetInformationRetrieverPluginTESTControl.targets = [self.create_test_target()]
         arc.TargetInformationRetrieverPluginTESTControl.status = arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL)

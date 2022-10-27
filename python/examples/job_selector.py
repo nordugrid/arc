@@ -26,8 +26,8 @@ class ThreeDaysOldJobSelector(arc.compute.JobSelector):
 
 uc = arc.common.UserConfig()
 
-arc.common.Logger_getRootLogger().addDestination(arc.common.LogStream(sys.stderr))
-arc.common.Logger_getRootLogger().setThreshold(arc.common.VERBOSE)
+arc.common.Logger.getRootLogger().addDestination(arc.common.LogStream(sys.stderr))
+arc.common.Logger.getRootLogger().setThreshold(arc.common.VERBOSE)
 
 j = arc.compute.Job()
 j.JobManagementInterfaceName = "org.ogf.glue.emies.activitymanagement"

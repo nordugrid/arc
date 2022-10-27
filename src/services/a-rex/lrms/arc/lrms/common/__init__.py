@@ -12,5 +12,5 @@ from . import cancel, config, files, log, parse, proc, scan, ssh, submit
 
 _logstream = arc.LogStream(sys.stderr)
 _logstream.setFormat(arc.EmptyFormat)
-arc.Logger_getRootLogger().addDestination(_logstream)
-arc.Logger_getRootLogger().setThreshold(arc.DEBUG)
+arc.Logger.getRootLogger().addDestination(_logstream)
+arc.Logger.getRootLogger().setThreshold(arc.DEBUG)
