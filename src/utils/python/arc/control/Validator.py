@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from socket import socket, getfqdn, AF_INET, SOCK_DGRAM
 import glob
 import logging
@@ -165,7 +166,7 @@ class Validator(object):
             # Make a unique set of blocks excluding unknown and stripping dynamic blocks
             config_blocks = [b.split(':')[0] for b in config_blocks if b.split(':')[0] in block_order]
             # Remove duplicates preserving order
-            config_blocks_uniq = list(dict.fromkeys(config_blocks))
+            config_blocks_uniq = list(OrderedDict.fromkeys(config_blocks))
             # Sort the conf blocks according to the reference order and then compare
             config_blocks_sorted = sorted(config_blocks_uniq, key=lambda x: block_order.index(x))
             if config_blocks_sorted != config_blocks_uniq:
