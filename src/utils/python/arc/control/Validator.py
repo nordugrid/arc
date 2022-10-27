@@ -322,18 +322,18 @@ class Validator(object):
             try:
                 result = subprocess.run(["openssl", "verify", "-CApath", x509_cert_dir,
                                          x509_host_cert], stdout=subprocess.PIPE,
-                                         stderr=subprocess.STDOUT, encoding='utf-8')
+                                         stderr=subprocess.STDOUT)
             except Exception as e:
                 self.error("Host certificate verification failed: %s" % str(e))
                 return
             if result.returncode != 0:
-                self.error("Host certificate verification failed: %s" % result.stdout)
+                self.error("Host certificate verification failed: %s" % result.stdout.decode('utf-8'))
             else:
                 # Check expiration date, warn if less than one week away
                 result = subprocess.run(["openssl", "x509", "-enddate", "-noout", "-in",
                                          x509_host_cert], stdout=subprocess.PIPE,
-                                         stderr=subprocess.STDOUT, encoding='utf-8')
-                enddate = result.stdout.strip().split('=')[-1]
+                                         stderr=subprocess.STDOUT)
+                enddate = result.stdout.decode('utf-8').strip().split('=')[-1]
                 # Redirect output (-noout doesn't work in openssl1.1.1)
                 result = subprocess.run(["openssl", "x509", "-checkend", "604800", "-noout",
                                          "-in", x509_host_cert], stdout=subprocess.DEVNULL,
