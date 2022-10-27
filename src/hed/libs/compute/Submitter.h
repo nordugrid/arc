@@ -58,7 +58,6 @@ namespace Arc {
    * * GridFTPJob interface (requires the nordugrid-arc-plugins-globus package)
    * 
    * <b>Registry and Index Services:</b>
-   * * EGIIS
    * * ARCHERY
    * 
    * <b>Local Information Schemes:</b>

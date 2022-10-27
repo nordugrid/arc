@@ -24,12 +24,8 @@ def example():
     uc.ProxyPath("/tmp/x509up_u%s" % os.getuid())
     uc.CACertificatesDirectory("/etc/grid-security/certificates")
 
-    # Query two registries (index servers) for Computing Services
+    # Query registriy (index server) for Computing Services
     registries = [
-        # for the index1, we specify that it is an EGIIS service
-        arc.Endpoint("index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid", arc.Endpoint.REGISTRY, "org.nordugrid.ldapegiis"),
-        # for the arc-emi.grid.upjs.sk, we don't specify the type (the InterfaceName)
-        # we let the system to try all possibilities
         arc.Endpoint("nordugrid.org", arc.Endpoint.REGISTRY, "org.nordugrid.archery")
     ]
 
