@@ -19,7 +19,7 @@ if len(sys.argv) != 3:
     sys.exit(1)
     
 # Logging to stdout
-root_logger = arc.Logger_getRootLogger()
+root_logger = arc.Logger.getRootLogger()
 stream = arc.LogStream(sys.stdout)
 root_logger.addDestination(stream)
 # Set threshold to VERBOSE or DEBUG for more information
