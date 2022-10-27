@@ -226,7 +226,7 @@ def gm_kick(jobs):
 
     # Execute locally.
     for j in jobs:
-        execute_local('%s/gm-kick -j %s %s' % (arc.common.ArcLocation_GetToolsDir(), j.globalid, j.local_file))
+        execute_local('%s/gm-kick -j %s %s' % (arc.common.ArcLocation.GetToolsDir(), j.globalid, j.local_file))
 
 
 def write_comments(job):

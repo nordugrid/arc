@@ -236,8 +236,8 @@ def Scan(config, ctr_dirs):
     configure(config, set_slurm)
     if cconfig.Config.scanscriptlog:
         scanlogfile = arc.common.LogFile(cconfig.Config.scanscriptlog)
-        arc.common.Logger_getRootLogger().addDestination(scanlogfile)
-        arc.common.Logger_getRootLogger().setThreshold(cconfig.Config.log_threshold)
+        arc.common.Logger.getRootLogger().addDestination(scanlogfile)
+        arc.common.Logger.getRootLogger().setThreshold(cconfig.Config.log_threshold)
 
     jobs = get_jobs(ctr_dirs)
     if not jobs: return

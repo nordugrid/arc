@@ -389,7 +389,7 @@ class JobscriptAssembler(object):
           _macros = None
           _locals = dict(item for item in self.map.items())
 
-          with open(os.path.join(arc.common.ArcLocation_GetDataDir(), 'job_script.stubs'), 'r') as stubs:
+          with open(os.path.join(arc.common.ArcLocation.GetDataDir(), 'job_script.stubs'), 'r') as stubs:
                for num, line in enumerate(stubs):
                     try:
                          if do & READ:

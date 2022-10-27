@@ -4,9 +4,9 @@ import sys
 # Set up logging to stderr with level VERBOSE (a lot of output will be shown)
 logstdout = arc.LogStream(sys.stdout)
 logstdout.setFormat(arc.ShortFormat)
-arc.Logger_getRootLogger().addDestination(logstdout)
-arc.Logger_getRootLogger().setThreshold(arc.VERBOSE)
-logger = arc.Logger(arc.Logger_getRootLogger(), "jobsubmit")
+arc.Logger.getRootLogger().addDestination(logstdout)
+arc.Logger.getRootLogger().setThreshold(arc.VERBOSE)
+logger = arc.Logger(arc.Logger.getRootLogger(), "jobsubmit")
 
 # UserConfig contains information on credentials and default services to use.
 # This form of the constructor is necessary to initialise the local job list.
@@ -17,11 +17,11 @@ jobdescstring = "+(&(executable=/bin/hostname)(stdout=stdout))(&(executable=/bin
 
 # Parse job description
 jobdescs = arc.JobDescriptionList()
-if not arc.JobDescription_Parse(jobdescstring, jobdescs):
+if not arc.JobDescription.Parse(jobdescstring, jobdescs):
     logger.msg(arc.ERROR, "Invalid job description")
     sys.exit(1)
 
-# Use 'arc.JobDescription_ParseFromFile("helloworld.xrsl", jobdescs)'
+# Use 'arc.JobDescription.ParseFromFile("helloworld.xrsl", jobdescs)'
 # to parse job description from file.
 
 # Use top-level NorduGrid information index to find resources

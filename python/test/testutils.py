@@ -79,7 +79,7 @@ class ARCClientTestCase(ExpectationalTestCase):
         cs.ComputingEndpoint[0].URLString = url
         cs.ComputingEndpoint[0].InterfaceName = "org.nordugrid.test"
         cs.ComputingEndpoint[0].HealthState = "ok"
-        cs.ComputingEndpoint[0].Capability.append(arc.Endpoint_GetStringForCapability(arc.Endpoint.JOBCREATION))
+        cs.ComputingEndpoint[0].Capability.append(arc.Endpoint.GetStringForCapability(arc.Endpoint.JOBCREATION))
 
         cs.ComputingShare[0] = arc.ComputingShareType()
         cs.ComputingManager[0] = arc.ComputingManagerType()
