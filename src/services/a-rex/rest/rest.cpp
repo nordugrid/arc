@@ -731,7 +731,8 @@ Arc::MCC_Status ARexRest::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   }
   context.processed += apiVersion;
   context.processed += "/";
-  if (apiVersion != "1.0") {
+  if ((apiVersion != "1.0") &&
+      (apiVersion != "1.1")) {
     return HTTPFault(inmsg,outmsg,404,"Version Not Supported");
   }
 
@@ -761,7 +762,7 @@ Arc::MCC_Status ARexRest::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 
 Arc::MCC_Status ARexRest::processVersions(Arc::Message& inmsg,Arc::Message& outmsg,ProcessingContext& context) {
   if((context.method == "GET") || (context.method == "HEAD")) {
-    XMLNode versions("<versions><version>1.0</version></versions>"); // only supported version is 1.0
+    XMLNode versions("<versions><version>1.0</version><version>1.1</version></versions>"); // only supported versions are 1.0 and 1.1
     char const * json_arrays[] = { "version", NULL };
     return HTTPResponse(inmsg, outmsg, versions, json_arrays);
   }
@@ -817,6 +818,8 @@ Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& o
     return HTTPFault(inmsg,outmsg,500,"User can't be assigned configuration");
   }
   if((context.method == "GET") || (context.method == "HEAD")) {
+    if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobInfo, config))
+      return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
     XMLNode listXml("<delegations/>");
     std::list<std::string> ids = delegation_stores_[config_.DelegationDir()].ListCredIDs(config->GridName());
     for(std::list<std::string>::iterator itId = ids.begin(); itId != ids.end(); ++itId) {
@@ -828,6 +831,8 @@ Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& o
     std::string action = context["action"];
     if(action != "new") 
       return HTTPFault(inmsg,outmsg,501,"Action not implemented");
+    if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobCreate, config))
+      return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
     std::string delegationId;
     std::string delegationRequest;
     if(!delegation_stores_.GetRequest(config_.DelegationDir(),delegationId,config->GridName(),delegationRequest)) {
@@ -879,6 +884,8 @@ Arc::MCC_Status ARexRest::processDelegation(Arc::Message& inmsg,Arc::Message& ou
 
   // POST - manages delegation.
   if(context.method == "PUT") {
+    if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobCreate, config))
+      return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
     // Fetch HTTP content to pass it as delegation
     std::string content;
     Arc::MCC_Status res = extract_content(inmsg,content,1024*1024); // 1mb size limit is sane enough
@@ -893,18 +900,24 @@ Arc::MCC_Status ARexRest::processDelegation(Arc::Message& inmsg,Arc::Message& ou
   } else if(context.method == "POST") {
     std::string action = context["action"];
     if(action == "get") {
+      if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobInfo, config))
+        return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
       std::string credentials;
       if(!delegation_stores_[config_.DelegationDir()].GetDeleg(id, config->GridName(), credentials)) {
         return HTTPFault(inmsg,outmsg,404,"No delegation found");
       }
       return HTTPResponse(inmsg, outmsg, credentials, "application/x-pem-file"); // ??
     } else if(action == "renew") {
+      if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobCreate, config))
+        return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
       std::string delegationId = id;
       std::string delegationRequest;
       if(!delegation_stores_.GetRequest(config_.DelegationDir(),delegationId,config->GridName(),delegationRequest))
         return HTTPFault(inmsg,outmsg,500,"Failed generating delegation request");
       return HTTPPOSTResponse(inmsg,outmsg,delegationRequest,"application/x-pem-file","");
     } else if(action == "delete") {
+      if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobDelete, config))
+        return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
       Arc::DelegationConsumerSOAP* deleg = 
                 delegation_stores_[config_.DelegationDir()].FindConsumer(id, config->GridName());
       if(!deleg)
@@ -949,6 +962,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
     return HTTPFault(inmsg,outmsg,500,"User can't be assigned configuration");
   }
   if((context.method == "GET") || (context.method == "HEAD")) {
+    if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobInfo, config))
+      return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
     std::list<std::string> states;
     tokenize(context["state"], states, ",");
     XMLNode listXml("<jobs/>");
@@ -983,6 +998,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
   } else if(context.method == "POST") {
     std::string action = context["action"];
     if(action == "new") {
+      if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobCreate, config))
+        return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
       if((config->GmConfig().MaxTotal() > 0) && (all_jobs_count_ >= config->GmConfig().MaxTotal()))
         return HTTPFault(inmsg,outmsg,500,"No more jobs allowed");
       // Fetch HTTP content to pass it as job description
@@ -1000,6 +1017,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
       if(start_pos == std::string::npos)
         return HTTPFault(inmsg,outmsg,500,"Payload is empty");
 
+      std::string default_queue = context["queue"];
+      std::string default_delegation_id = context["delegation_id"];
       XMLNode listXml("<jobs/>");
       // TODO: Split to separate functions
       switch(desc_str[start_pos]) {
@@ -1012,7 +1031,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
               if(!job_desc_xml)
                 break;
               XMLNode jobXml = listXml.NewChild("job");
-              ARexJob job(job_desc_xml,*config,"",clientid,logger_,idgenerator);
+              ARexJob job(job_desc_xml,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
               if(!job) {
                 jobXml.NewChild("status-code") = "500";
                 jobXml.NewChild("reason") = job.Failure();
@@ -1026,7 +1045,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
           } else {
             // maybe single
             XMLNode jobXml = listXml.NewChild("job");
-            ARexJob job(jobs_desc_xml,*config,"",clientid,logger_,idgenerator);
+            ARexJob job(jobs_desc_xml,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
             if(!job) {
               jobXml.NewChild("status-code") = "500";
               jobXml.NewChild("reason") = job.Failure();
@@ -1041,7 +1060,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
 
         case '&': { // single-xRSL
           XMLNode jobXml = listXml.NewChild("job");
-          ARexJob job(desc_str,*config,"",clientid,logger_,idgenerator);
+          ARexJob job(desc_str,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
           if(!job) {
             jobXml.NewChild("status-code") = "500";
             jobXml.NewChild("reason") = job.Failure();
@@ -1067,7 +1086,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
                 jobXml.NewChild("status-code") = "500";
                 jobXml.NewChild("reason") = result.str();
               } else {
-                ARexJob job(jobdesc_str,*config,"",clientid,logger_,idgenerator);
+                ARexJob job(jobdesc_str,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
                 if(!job) {
                   jobXml.NewChild("status-code") = "500";
                   jobXml.NewChild("reason") = job.Failure();
@@ -1089,6 +1108,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
       char const * json_arrays[] = { "job", NULL };
       return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "info") {
+      if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobInfo, config))
+        return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
       XMLNode listXml("<jobs/>");
@@ -1099,6 +1120,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
       char const * json_arrays[] = { "job", NULL };
       return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "status") {
+      if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobInfo, config))
+        return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
       XMLNode listXml("<jobs/>");
@@ -1109,6 +1132,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
       char const * json_arrays[] = { "job", NULL };
       return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "kill") {
+      if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobCancel, config))
+        return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
       XMLNode listXml("<jobs/>");
@@ -1119,6 +1144,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
       char const * json_arrays[] = { "job", NULL };
       return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "clean") {
+      if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobDelete, config))
+        return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
       XMLNode listXml("<jobs/>");
@@ -1129,6 +1156,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
       char const * json_arrays[] = { "job", NULL };
       return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "restart") {
+      if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobCreate, config))
+        return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
       XMLNode listXml("<jobs/>");
@@ -1139,6 +1168,8 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
       char const * json_arrays[] = { "job", NULL };
       return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "delegations") {
+      if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobInfo, config))
+        return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
       std::list<std::string> ids;
       ParseJobIds(inmsg,outmsg,ids);
       XMLNode listXml("<jobs/>");
@@ -1601,6 +1632,8 @@ Arc::MCC_Status ARexRest::processJobSessionDir(Arc::Message& inmsg,Arc::Message&
     // File or folder
     FileAccessRef dir(job.OpenDir(context.subpath));
     if(dir) {
+      if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationDataInfo, config))
+        return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
       XMLNode listXml("<list/>");
       std::string dirpath = job.GetFilePath(context.subpath);
       for(;;) {
@@ -1624,6 +1657,8 @@ Arc::MCC_Status ARexRest::processJobSessionDir(Arc::Message& inmsg,Arc::Message&
       char const * json_arrays[] = { "file", "dir", NULL };
       return HTTPResponse(inmsg,outmsg,listXml,json_arrays);
     };
+    if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationDataRead, config))
+      return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
     FileAccessRef file(job.OpenFile(context.subpath,true,false));
     if(file) {
       // File or similar
@@ -1640,6 +1675,8 @@ Arc::MCC_Status ARexRest::processJobSessionDir(Arc::Message& inmsg,Arc::Message&
       logger_.msg(Arc::ERROR, "REST:PUT job %s: file %s: there is no payload", id, context.subpath);
       return HTTPFault(inmsg, outmsg, 500, "Missing payload");
     };
+    if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationDataWrite, config))
+      return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
     // Prepare access to file 
     FileAccessRef file(job.CreateFile(context.subpath));
     if(!file) {
@@ -1663,6 +1700,8 @@ Arc::MCC_Status ARexRest::processJobSessionDir(Arc::Message& inmsg,Arc::Message&
     }
     return r;
   } else if(context.method == "DELETE") {
+    if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationDataWrite, config))
+      return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
     std::string fpath = job.GetFilePath(context.subpath);
     if(!fpath.empty()) {
       if((!FileDelete(fpath,job.UID(),job.GID())) &&
@@ -1672,6 +1711,8 @@ Arc::MCC_Status ARexRest::processJobSessionDir(Arc::Message& inmsg,Arc::Message&
     }
     return HTTPDELETEResponse(inmsg,outmsg);
   } else if(context.method == "PROPFIND") {
+    if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationDataInfo, config))
+      return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
     int depth = 10; // infinite with common sense
     std::string depthStr = inmsg.Attributes()->get("HTTP:depth");
     if(depthStr == "0")
@@ -1730,6 +1771,9 @@ Arc::MCC_Status ARexRest::processJobControlDir(Arc::Message& inmsg,Arc::Message&
     ARexConfigContext* config = ARexConfigContext::GetRutimeConfiguration(inmsg,config_,uname_,endpoint_);
     if(!config) {
       return HTTPFault(inmsg,outmsg,500,"User can't be assigned configuration");
+    }
+    if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobInfo, config)) {
+      return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
     }
     ARexJob job(id,*config,logger_);
     if(!job) {

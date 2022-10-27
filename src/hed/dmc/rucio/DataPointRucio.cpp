@@ -159,17 +159,17 @@ namespace ArcDMCRucio {
 
   DataStatus DataPointRucio::Resolve(bool source) {
 
+    if (!source) return DataStatus(DataStatus::WriteResolveError, ENOTSUP, "Writing to Rucio is not supported");
+
     // Check token and get new one if necessary
     std::string token;
     DataStatus r = checkToken(token);
     if (!r) return r;
 
-    bool osresolve = (url.Path().find("/objectstores/") != std::string::npos);
-
-    // Check if Rucio path is ok: read/write to objectstores and read only from replicas
-    if (!osresolve && !(source && url.Path().find("/replicas/") != std::string::npos)) {
-      logger.msg(ERROR, "Bad path for %s: Rucio supports read/write at /objectstores and read-only at /replicas", url.str());
-      return DataStatus(source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError, EINVAL, "Bad path for Rucio");
+    // Check if Rucio path is ok: read only allowed from /replicas
+    if (url.Path().find("/replicas/") != 0) {
+      logger.msg(ERROR, "Bad path for %s: Format should be /replicas/<scope>/<name>", url.str());
+      return DataStatus(DataStatus::ReadResolveError, EINVAL, "Bad path for Rucio");
     }
 
     // Call Rucio to get a signed URL for the location
@@ -195,28 +195,7 @@ namespace ArcDMCRucio {
       if (!r) logger.msg(WARNING, "Failed to parse Rucio info: %s", std::string(r));
     }
 
-    if (!osresolve) {
-      return parseLocations(content);
-    }
-
-    // content should be a signed URL
-    URL osurl(content, true);
-    if (!osurl) {
-      logger.msg(ERROR, "Can't handle URL %s", osurl.str());
-      return DataStatus(source ? DataStatus::ReadResolveError : DataStatus::WriteResolveError, EINVAL, "Bad signed URL returned from Rucio");
-    }
-    // Add URL options to replicas
-    for (std::map<std::string, std::string>::const_iterator opt = url.CommonLocOptions().begin();
-         opt != url.CommonLocOptions().end(); opt++)
-      osurl.AddOption(opt->first, opt->second, false);
-    for (std::map<std::string, std::string>::const_iterator opt = url.Options().begin();
-         opt != url.Options().end(); opt++)
-      osurl.AddOption(opt->first, opt->second, false);
-    // OS doesn't accept absolute URIs
-    osurl.AddOption("relativeuri=yes");
-
-    AddLocation(osurl, osurl.Host());
-    return DataStatus::Success;
+    return parseLocations(content);
   }
 
   DataStatus DataPointRucio::Resolve(bool source, const std::list<DataPoint*>& urls) {
@@ -283,17 +262,14 @@ namespace ArcDMCRucio {
   }
 
   DataStatus DataPointRucio::PreRegister(bool replication, bool force) {
-    if (url.Path().find("/objectstores/") == 0) return DataStatus::Success;
     return DataStatus(DataStatus::PreRegisterError, ENOTSUP, "Writing to Rucio is not supported");
   }
 
   DataStatus DataPointRucio::PostRegister(bool replication) {
-    if (url.Path().find("/objectstores/") == 0) return DataStatus::Success;
     return DataStatus(DataStatus::PostRegisterError, ENOTSUP, "Writing to Rucio is not supported");
   }
 
   DataStatus DataPointRucio::PreUnregister(bool replication) {
-    if (url.Path().find("/objectstores/") == 0) return DataStatus::Success;
     return DataStatus(DataStatus::UnregisterError, ENOTSUP, "Deleting from Rucio is not supported");
   }
 
@@ -366,6 +342,8 @@ namespace ArcDMCRucio {
     cfg.AddCADir(usercfg.CACertificatesDirectory());
     // Switch rucio protocol to http(s) for lookup
     URL rucio_url(url);
+    // Force relative URI
+    rucio_url.AddOption("relativeuri=yes");
     rucio_url.ChangeProtocol(url.Port() == 80 ? "http" : "https");
     if (rucio_url.Port() == -1) {
       rucio_url.ChangePort(url.Protocol() == "http" ? 80 : 443);
@@ -413,6 +391,8 @@ namespace ArcDMCRucio {
     cfg.AddCADir(usercfg.CACertificatesDirectory());
     // Switch to correct URL
     URL rucio_url(url);
+    // Force relative URI
+    rucio_url.AddOption("relativeuri=yes");
     rucio_url.ChangeProtocol(url.Port() == 80 ? "http" : "https");
     if (rucio_url.Port() == -1) {
       rucio_url.ChangePort(url.Protocol() == "http" ? 80 : 443);

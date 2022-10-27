@@ -371,6 +371,30 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           }
           config.forced_voms[""] = str;
         }
+        else if (command == "tokenscopes") {
+          std::string str = rest;
+          std::list<std::string> pairs;
+          Arc::tokenize(str,pairs,",");
+          for(std::list<std::string>::iterator pair = pairs.begin(); pair != pairs.end(); ++pair) {
+            std::string::size_type pos = pair->find('=');
+            if(pos != std::string::npos) {
+              // action=scope
+              config.token_scopes[Arc::trim(pair->substr(0,pos))].push_back(Arc::trim(pair->substr(pos+1)));
+            } else {
+              // shortcut
+              std::string shortcut = Arc::trim(*pair);
+	      if(shortcut == "wlcg") {
+                config.token_scopes["jobinfo"].push_back("compute.read");
+                config.token_scopes["jobcreate"].push_back("compute.create");
+                config.token_scopes["jobcancel"].push_back("compute.cancel");
+                config.token_scopes["jobdelete"].push_back("compute.cancel");
+                config.token_scopes["datainfo"].push_back("compute.read");
+                config.token_scopes["datawrite"].push_back("compute.modify");
+                config.token_scopes["dataread"].push_back("compute.read");
+              }
+            }
+          }
+        }
         /*
           #infoproviders_timelimit
           Currently information provider timeout is not implemented,

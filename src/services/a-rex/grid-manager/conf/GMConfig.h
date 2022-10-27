@@ -258,6 +258,8 @@ public:
   const std::list<std::pair<bool,std::string> > & MatchingGroups(const char * queue = "") const;
   /// Returns list of authorization groups for public information.
   const std::list<std::pair<bool,std::string> > & MatchingGroupsPublicInformation() const;
+  /// Returns configured scopes for specified action.
+  const std::list<std::string> & TokenScopes(const char* action) const;
 
   bool UseSSH() const { return sshfs_mounts_enabled; }
   /// Check if remote directory is mounted
@@ -372,6 +374,7 @@ private:
   std::map<std::string, std::list<std::pair<bool, std::string> > > matching_groups;
   /// groups allowed to access public information with allow/deny mark (true/false)
   std::list<std::pair<bool, std::string> > matching_groups_publicinfo;
+  std::map<std::string, std::list<std::string> > token_scopes;
 
   /// Indicates whether session, runtime and cache dirs are mounted through sshfs (only suppored by Python backends) 
   bool sshfs_mounts_enabled;

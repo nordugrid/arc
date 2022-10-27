@@ -22,46 +22,12 @@
 %global with_xrootd 0
 %endif
 
-#
-# Python
-#
-%if %{?fedora}%{!?fedora:0} >= 32 || %{?rhel}%{!?rhel:0} >= 8
-%global with_python2 0
-%else
-%global with_python2 1
-%endif
-
-%if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7
-%global with_python3 1
-%else
-%global with_python3 0
-%endif
-
-%if %{with_python2}
-%{!?__python2: %global __python2 /usr/bin/python2}
-%{!?python2_sitearch: %global python2_sitearch %(%{__python2} -Esc "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
-%{!?python2_sitelib: %global python2_sitelib %(%{__python2} -Esc "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
-%endif
-
-%if %{with_python3}
 %{!?python3_pkgversion: %global python3_pkgversion 3}
-%endif
 
-%if %{?rhel}%{!?rhel:0} == 6
-%filter_provides_in %{python2_sitearch}/.*\.so$
-%filter_setup
-%endif
-
-%if %{?rhel}%{!?rhel:0} == 6
+%if %{?rhel}%{!?rhel:0} == 7
 %global with_pylint 0
 %else
 %global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
-%endif
-
-%if %{?fedora}%{!?fedora:0} >= 29 || %{?rhel}%{!?rhel:0} >= 8
-%global py3default 1
-%else
-%global py3default 0
 %endif
 
 %if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 5
@@ -178,10 +144,9 @@ Obsoletes:	%{name}-acix-core < 7.0.0
 Obsoletes:	%{name}-acix-scanner < 7.0.0
 Obsoletes:	%{name}-acix-index < 7.0.0
 Obsoletes:	%{name}-arex-python-lrms < 7.0.0
-%if ! %{with_python2}
-Obsoletes:	python2-%{name} < %{version}-%{release}
+Obsoletes:	%{name}-gridftpd < 7.0.0
+Obsoletes:	python2-%{name} < 7.0.0
 Obsoletes:	%{name}-python < 5.3.3
-%endif
 %if ! %{with_ldap_service}
 Obsoletes:	%{name}-infosys-ldap < %{version}-%{release}
 Obsoletes:	%{name}-ldap-infosys < 6.0.0
@@ -201,12 +166,7 @@ BuildRequires:	libuuid-devel
 BuildRequires:	e2fsprogs-devel
 %endif
 BuildRequires:	gettext
-%if %{with_python2}
-BuildRequires:	python2-devel
-%endif
-%if %{with_python3}
 BuildRequires:	python%{python3_pkgversion}-devel
-%endif
 %if %{with_pylint}
 BuildRequires:	pylint
 %endif
@@ -264,10 +224,6 @@ BuildRequires:	ldns-devel >= 1.6.8
 %if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
 BuildRequires:	pkgconfig(bash-completion)
 %endif
-%if %{?fedora}%{!?fedora:0} <= 13 && %{?rhel}%{!?rhel:0} <= 6
-BuildRequires:	python-argparse
-Requires:	python-argparse
-%endif
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
 Requires:	hostname
 %else
@@ -317,26 +273,6 @@ Connector (ARC).
 
 The ARC Hosting Environment Daemon (HED) is a Web Service container
 for ARC services.
-
-%package gridftpd
-Summary:	ARC gridftp server
-Group:		System Environment/Daemons
-Requires:	%{name} = %{version}-%{release}
-Requires:	%{name}-plugins-gridftp = %{version}-%{release}
-Requires:	%{name}-arcctl-service = %{version}-%{release}
-
-Requires(post):		%{service_post_requires}
-Requires(preun):	%{service_preun_requires}
-Requires(postun):	%{service_postun_requires}
-
-%description gridftpd
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the middleware, known as the Advanced Resource
-Connector (ARC).
-
-This package contains the ARC gridftp server which can be used as a
-custom job submission interface in front of an ARC enabled computing
-cluster or as a low-level dedicated gridftp file server.
 
 %package datadelivery-service
 Summary:	ARC data delivery service
@@ -466,13 +402,6 @@ Requires:	%{name}-hed = %{version}-%{release}
 Requires:	%{name}-arcctl = %{version}-%{release}
 Requires:	%{name}-arcctl-service = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
-%if %{py3default}
-Requires:	python3-isodate
-Requires:	python3-ldap
-%else
-Requires:	python-isodate
-Requires:	python-ldap
-%endif
 Provides:	%{name}-cache-service = %{version}-%{release}
 Obsoletes:	%{name}-cache-service < 6.0.0
 Provides:	%{name}-candypond = %{version}-%{release}
@@ -509,11 +438,7 @@ Group:		System Environment/Libraries
 Requires:	%{name}-arex = %{version}-%{release}
 Requires:	%{name}-arcctl = %{version}-%{release}
 Requires:	gnupg2
-%if %{py3default}
 Requires:	python3-dns
-%else
-Requires:	python-dns
-%endif
 
 %description community-rtes
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -708,11 +633,7 @@ ARC plugin for ARC REST interface technology preview.
 Summary:	ARC Python dependent plugin
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
-%if %{py3default}
 Requires:	python%{python3_pkgversion}-%{name} = %{version}-%{release}
-%else
-Requires:	python2-%{name} = %{version}-%{release}
-%endif
 
 %description plugins-python
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -737,24 +658,6 @@ Connector (ARC).
 
 Header files and libraries needed to develop applications using ARC.
 
-%if %{with_python2}
-%package -n python2-%{name}
-Summary:	ARC Python 2 wrapper
-Group:		Development/Libraries
-%{?python_provide:%python_provide python2-%{name}}
-Provides:	%{name}-python = %{version}-%{release}
-Obsoletes:	%{name}-python < 5.3.3
-Requires:	%{name} = %{version}-%{release}
-
-%description -n python2-%{name}
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the middleware, known as the Advanced Resource
-Connector (ARC).
-
-Python 2 bindings for ARC.
-%endif
-
-%if %{with_python3}
 %package -n python%{python3_pkgversion}-%{name}
 Summary:	ARC Python 3 wrapper
 Group:		Development/Libraries
@@ -769,7 +672,6 @@ support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 Python 3 bindings for ARC.
-%endif
 
 %package nordugridmap
 Summary:	ARC's nordugridmap tool
@@ -810,16 +712,8 @@ Group:		Applications/Internet
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
-%if %{?fedora}%{!?fedora:0} <= 13 && %{?rhel}%{!?rhel:0} <= 6
-Requires:	python-argparse
-%endif
-%if %{py3default}
 Requires:	python3-dns
 Requires:	python3-ldap
-%else
-Requires:	python-dns
-Requires:	python-ldap
-%endif
 
 %description archery-manage
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -845,13 +739,6 @@ management features on the worker nodes (WN).
 %setup @fedorasetupopts@
 
 %build
-if pkg-config --atleast-version 2.6 sigc++-2.0 ; then
-  if [ `echo __GNUC__ | gcc -E - | tail -1` -lt 6 ] ; then
-    # Workaround for too new libsigc++/glibmm, too old gcc combination
-    export CXXFLAGS="%{optflags} -std=c++11"
-  fi
-fi
-
 %configure --disable-static \
 %if %{with_gfal}
      --enable-gfal \
@@ -859,16 +746,9 @@ fi
 %if %{with_s3}
      --enable-s3 \
 %endif
-%if %{py3default}
      --with-python=python3 \
-%if %{with_python2}
-     --with-altpython=python2 \
-%endif
-%else
-     --with-python=python2 \
-%if %{with_python3}
-     --with-altpython=python3 \
-%endif
+%if ! %{with_pylint}
+     --disable-pylint \
 %endif
 %if ! %{with_xrootd}
      --disable-xrootd \
@@ -901,8 +781,6 @@ make install DESTDIR=$RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
 install -p -m 644 debian/%{name}-arex.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-arex
-install -p -m 644 debian/%{name}-gridftpd.logrotate \
-    $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-gridftpd
 %if %{with_ldap_service}
 install -p -m 644 debian/%{name}-infosys-ldap.logrotate \
     $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{name}-infosys-ldap
@@ -987,15 +865,6 @@ fi
 %postun arex
 %condrestart_on_update arc-arex
 %condrestart_on_update arc-arex-ws
-
-%post gridftpd
-%enable_service arc-gridftpd
-
-%preun gridftpd
-%stop_on_removal arc-gridftpd
-
-%postun gridftpd
-%condrestart_on_update arc-gridftpd
 
 %post datadelivery-service
 %enable_service arc-datadelivery-service
@@ -1088,7 +957,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/arc-dmc
 %dir %{_libexecdir}/%{pkgdir}
 %{_libexecdir}/%{pkgdir}/arcconfig-parser
-%if %{py3default}
 %dir %{python3_sitearch}/%{pkgdir}
 %{python3_sitearch}/%{pkgdir}/utils
 %{python3_sitearch}/%{pkgdir}/__init__.py
@@ -1098,13 +966,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/__pycache__/__init__.*
 %{python3_sitearch}/%{pkgdir}/__pycache__/paths.*
 %{python3_sitearch}/%{pkgdir}/__pycache__/paths_dist.*
-%else
-%dir %{python2_sitearch}/%{pkgdir}
-%{python2_sitearch}/%{pkgdir}/utils
-%{python2_sitearch}/%{pkgdir}/__init__.py*
-%{python2_sitearch}/%{pkgdir}/paths.py*
-%{python2_sitearch}/%{pkgdir}/paths_dist.py*
-%endif
 %dir %{_datadir}/%{pkgdir}
 %{_datadir}/%{pkgdir}/arc.parser.defaults
 %dir %{_datadir}/%{pkgdir}/test-jobs
@@ -1173,20 +1034,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man8/arched.8*
 %doc %{_mandir}/man5/arc.conf.5*
 
-%files gridftpd
-%defattr(-,root,root,-)
-%if %{use_systemd}
-%{_unitdir}/arc-gridftpd.service
-%else
-%{_initrddir}/arc-gridftpd
-%endif
-%{_sbindir}/gridftpd
-%{_libdir}/%{pkgdir}/jobsplugin.*
-%{_libdir}/%{pkgdir}/filedirplugin.*
-%{_datadir}/%{pkgdir}/arc-gridftpd-start
-%config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-gridftpd
-%doc %{_mandir}/man8/gridftpd.8*
-
 %files datadelivery-service
 %defattr(-,root,root,-)
 %if %{use_systemd}
@@ -1223,7 +1070,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 
 %files arcctl
 %{_sbindir}/arcctl
-%if %{py3default}
 %dir %{python3_sitearch}/%{pkgdir}/control
 %{python3_sitearch}/%{pkgdir}/control/__init__.py
 %{python3_sitearch}/%{pkgdir}/control/CertificateGenerator.py
@@ -1238,19 +1084,9 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/OSPackage.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/TestCA.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/ThirdPartyDeployment.*
-%else
-%dir %{python2_sitearch}/%{pkgdir}/control
-%{python2_sitearch}/%{pkgdir}/control/__init__.py*
-%{python2_sitearch}/%{pkgdir}/control/CertificateGenerator.py*
-%{python2_sitearch}/%{pkgdir}/control/ControlCommon.py*
-%{python2_sitearch}/%{pkgdir}/control/OSPackage.py*
-%{python2_sitearch}/%{pkgdir}/control/TestCA.py*
-%{python2_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py*
-%endif
 %doc %{_mandir}/man1/arcctl.1*
 
 %files arcctl-service
-%if %{py3default}
 %{python3_sitearch}/%{pkgdir}/control/Config.py
 %{python3_sitearch}/%{pkgdir}/control/ServiceCommon.py
 %{python3_sitearch}/%{pkgdir}/control/Services.py
@@ -1261,13 +1097,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Services.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/OSService.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Validator.*
-%else
-%{python2_sitearch}/%{pkgdir}/control/Config.py*
-%{python2_sitearch}/%{pkgdir}/control/ServiceCommon.py*
-%{python2_sitearch}/%{pkgdir}/control/Services.py*
-%{python2_sitearch}/%{pkgdir}/control/OSService.py*
-%{python2_sitearch}/%{pkgdir}/control/Validator.py*
-%endif
 
 %files arex
 %defattr(-,root,root,-)
@@ -1346,7 +1175,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %dir %{_localstatedir}/spool/arc
 %dir %{_localstatedir}/spool/arc/ssm
 %dir %{_localstatedir}/spool/arc/urs
-%if %{py3default}
 %{python3_sitearch}/%{pkgdir}/control/AccountingDB.py
 %{python3_sitearch}/%{pkgdir}/control/AccountingPublishing.py
 %{python3_sitearch}/%{pkgdir}/control/Accounting.py
@@ -1361,15 +1189,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/DataStaging.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Jobs.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/RunTimeEnvironment.*
-%else
-%{python2_sitearch}/%{pkgdir}/control/AccountingDB.py*
-%{python2_sitearch}/%{pkgdir}/control/AccountingPublishing.py*
-%{python2_sitearch}/%{pkgdir}/control/Accounting.py*
-%{python2_sitearch}/%{pkgdir}/control/Cache.py*
-%{python2_sitearch}/%{pkgdir}/control/DataStaging.py*
-%{python2_sitearch}/%{pkgdir}/control/Jobs.py*
-%{python2_sitearch}/%{pkgdir}/control/RunTimeEnvironment.py*
-%endif
 %{_libexecdir}/%{pkgdir}/arccandypond
 %dir %{_datadir}/%{pkgdir}/rte
 %dir %{_datadir}/%{pkgdir}/rte/ENV
@@ -1386,12 +1205,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %files community-rtes
 %defattr(-,root,root,-)
 %{_datadir}/%{pkgdir}/community_rtes.sh
-%if %{py3default}
 %{python3_sitearch}/%{pkgdir}/control/CommunityRTE.py
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/CommunityRTE.*
-%else
-%{python2_sitearch}/%{pkgdir}/control/CommunityRTE.py*
-%endif
 
 %files plugins-needed
 %defattr(-,root,root,-)
@@ -1526,38 +1341,11 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_bindir}/arcplugin
 %doc %{_mandir}/man1/arcplugin.1*
 
-%if %{with_python2}
-%files -n python2-%{name}
-%defattr(-,root,root,-)
-%{python2_sitearch}/_arc.*so
-%if %{py3default}
-%dir %{python2_sitearch}/%{pkgdir}
-%{python2_sitearch}/%{pkgdir}/__init__.py*
-%endif
-%{python2_sitearch}/%{pkgdir}/[^_p]*.py*
-%endif
-
-%if %{with_python3}
 %files -n python%{python3_pkgversion}-%{name}
 %defattr(-,root,root,-)
 %{python3_sitearch}/_arc.*so
-%if %{?fedora}%{!?fedora:0} >= 15 || %{?rhel}%{!?rhel:0} >= 7
-# Python >= 3.2 uses __pycache__
-%if ! %{py3default}
-%dir %{python3_sitearch}/%{pkgdir}
-%{python3_sitearch}/%{pkgdir}/__init__.py
-%dir %{python3_sitearch}/%{pkgdir}/__pycache__
-%{python3_sitearch}/%{pkgdir}/__pycache__/__init__.*
-%endif
 %{python3_sitearch}/%{pkgdir}/[^_p]*.py
 %{python3_sitearch}/%{pkgdir}/__pycache__/[^_p]*.*
-%else
-# Python 3.1 doesn't use __pycache__
-%dir %{python3_sitearch}/%{pkgdir}
-%{python3_sitearch}/%{pkgdir}/__init__.py*
-%{python3_sitearch}/%{pkgdir}/[^_p]*.py*
-%endif
-%endif
 
 %files nordugridmap
 %defattr(-,root,root,-)

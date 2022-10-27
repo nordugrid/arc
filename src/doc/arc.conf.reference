@@ -1050,6 +1050,26 @@
 ## into [queue] block.
 ## default: undefined
 #forcedefaultvoms=/vo/group/subgroup
+
+## tokenscopes = action=scope[,action=scope[...]] - assigns JWS token scopes required
+## to perform specific actions. Multiple tokenscopes entries are allowed.
+##  Following actions are supported:
+##    info - information about server
+##    jobinfo - information about jobs
+##    jobcreate - create new job or restart existing
+##    jobcancel - cancel active jobs
+##    jobdelete - remove jobs from server
+##    datainfo - information about files in session directory
+##    datawrite - create new or modify files in session directory
+##    dataread - read files in session directory
+## The action=scope pairs can be replaced with identifier which works as shortcut for
+## multiple actions and scopes. Only currently supported shortcut identifier is 'wlcg' (see below)
+## default: undefined
+## Following example (probably) assigns scopes according to WLCG profile 
+#tokenscopes=jobinfo=compute.read,jobcreate=compute.create,jobcancel=compute.cancel,jobdelete=compute.cancel
+#tokenscopes=datainfo=compute.read,datawrite=compute.modify,dataread=compute.read
+## Alternative for tokenscopes above is
+#tokenscopes=wlcg
 ##
 ##
 ### end of the [arex] block ###################################
@@ -1058,7 +1078,7 @@
 ### The [arex/cache] block #########################################
 ## This subblock enables and configures the cache functionality of A-REX.
 ## A-REX can cache input files downloaded as part of the stage-in process of grid jobs
-## so that subsequent jobs requiring the same file don’t have to download it again.
+## so that subsequent jobs requiring the same file don't have to download it again.
 ## The cached file will be symlinked (or copied) into the session directory of the job.
 ## To disable to cache functionality simply comment out the [arex/cache] config block.
 ## It is a good idea to have the cache on its own separate file system that is shared with the nodes.

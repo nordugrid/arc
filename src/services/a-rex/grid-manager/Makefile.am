@@ -1,10 +1,4 @@
-if GRIDFTPD_SERVICE_ENABLED
-JOBPLUGIN_DIR = jobplugin
-else
-JOBPLUGIN_DIR =
-endif
-
-SUBDIRS = accounting jobs run conf misc log mail files $(JOBPLUGIN_DIR)
+SUBDIRS = accounting jobs run conf misc log mail files
 
 noinst_LTLIBRARIES = libgridmanager.la
 pkglibexec_PROGRAMS = gm-kick gm-jobs inputcheck arc-blahp-logger
