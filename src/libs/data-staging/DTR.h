@@ -258,9 +258,6 @@ namespace DataStaging {
     /// Cache state for this DTR
     CacheState cache_state;
 
-    /// Whether ACIX is used as a source
-    bool use_acix;
-
     /// Local user information
     Arc::User user;
 
@@ -590,11 +587,6 @@ namespace DataStaging {
     void set_cache_state(CacheState state);
     /// Get the cache state
     CacheState get_cache_state() const { return cache_state; };
-
-    /// Set whether ACIX is a source
-    void set_use_acix(bool acix) { use_acix = acix; };
-    /// Get whether ACIX is a source
-    bool get_use_acix() const { return use_acix; };
 
     /// Set the mapped file
     void set_mapped_source(const std::string& file = "") { mapped_source = file; };

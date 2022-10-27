@@ -42,14 +42,6 @@ class ServicesControl(ComponentControl):
             'package': 'datadelivery-service',
             'service': 'arc-datadelivery-service'
         },
-        'acix-scanner': {
-            'package': 'acix-scanner',
-            'service': 'arc-acix-scanner'
-        },
-        'acix-index': {
-            'package': 'acix-index',
-            'service': 'arc-acix-index'
-        },
         'nordugridmap': {
             'package': 'nordugridmap',
             'service':  None

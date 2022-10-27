@@ -45,9 +45,6 @@ namespace Arc {
  * - XRootd (root://) - Protocol for data access across large scale storage
  * clusters. More information can be found at http://xrootd.slac.stanford.edu/
  *
- * - ACIX (acix://) - The ARC Cache Index contains locations of cached files
- * in ARC CE caches.
- *
  * DataMover provides a simple high-level interface to copy files. Fine-grained
  * control over data transfer is shown in the following example:
  *

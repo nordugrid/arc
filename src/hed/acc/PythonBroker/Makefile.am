@@ -11,6 +11,6 @@ libaccPythonBroker_la_LIBADD = \
 libaccPythonBroker_la_LDFLAGS = -no-undefined -avoid-version -module
 
 exampledir = $(pkgdatadir)/examples/PythonBroker
-example_DATA = SampleBroker.py ACIXBroker.py
+example_DATA = SampleBroker.py
 
 EXTRA_DIST = $(example_DATA)

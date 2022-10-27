@@ -144,6 +144,16 @@
 ## TODO: DELETE
 ## CHANGE: DELETED 
 
+## use_remote_acix = URL - (previously acix_endpoint) If configured then the
+## ARC Cache Index, available at the URL, will be queried for every input file
+## specified in a job description and any replicas found in sites with accessible caches
+## will be added to the replica list of the input file.
+## The replicas will be tried in the order specified by preferredpattern variable.
+## default: undefined
+#use_remote_acix=https://cacheindex.ndgf.org:6443/data/index
+## CHANGE: DELETED 7.0.0
+
+
 ### The [arex/ws] block #################################
 
 ## enable_arc_interface yes|no - turns on or off the ARC own WS interface

@@ -68,7 +68,6 @@ namespace Arc {
    * <b>Matchmaking and Ranking Algorithms:</b>
    * * Benchmark
    * * Fastest queue
-   * * ACIX
    * * Random
    * * Python interface for custom broker
    * 

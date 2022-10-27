@@ -58,7 +58,6 @@ class ConfigControl(ComponentControl):
                 {'description': 'Infosys Infoproviders log', 'params': ('infosys', 'logfile')},
                 {'description': 'Infosys LDAP/BDII logs', 'params': ('infosys/ldap', 'bdii_log_dir')},
                 {'description': 'DataDelivery Service log', 'params': ('datadelivery-service', 'logfile')},
-                {'description': 'ACIX Scanner log', 'params': ('acix-scanner', 'logfile')},
                 {'description': 'Nordugridmap log', 'params': ('nordugridmap', 'logfile')},
             ]
         }
