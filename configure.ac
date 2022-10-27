@@ -379,9 +379,9 @@ if test "$enables_python" = "yes"; then
   # We do not look for python binary when cross-compiling
   # but we need to make the variable non-empty
   if test "${build}" = "${host}"; then
-    AC_PATH_PROGS(PYTHON, $with_python python)
+    AC_PATH_PROGS(PYTHON, $with_python python3)
   else
-    PYTHON=/usr/bin/python
+    PYTHON=/usr/bin/python3
   fi
 
   if test "X$PYTHON" != "X"; then
