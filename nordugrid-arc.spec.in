@@ -510,10 +510,8 @@ Requires:	%{name}-arcctl = %{version}-%{release}
 Requires:	%{name}-arcctl-service = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
 %if %{py3default}
-Requires:	python3-isodate
 Requires:	python3-ldap
 %else
-Requires:	python-isodate
 Requires:	python-ldap
 %endif
 Provides:	%{name}-cache-service = %{version}-%{release}
