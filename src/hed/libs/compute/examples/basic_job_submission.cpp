@@ -35,9 +35,9 @@ int main() {
    */
 
   // Use top-level NorduGrid information index to find resources
-  Arc::Endpoint index("ldap://index1.nordugrid.org:2135/Mds-Vo-name=NorduGrid,o=grid",
+  Arc::Endpoint index("nordugrid.org",
                       Arc::Endpoint::REGISTRY,
-                      "org.nordugrid.ldapegiis");
+                      "org.nordugrid.archery");
   std::list<Arc::Endpoint> services(1, index);
 
   // Do the submission
