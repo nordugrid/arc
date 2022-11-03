@@ -6,17 +6,17 @@
 ## WARNING: this file will not work as a configuration template!
 ## NEVER USE THIS DOCUMENT AS A CONFIGURATION FILE!
 ##
-## The arc.conf configuration file consists of the following blocks: 
+## The arc.conf configuration file consists of the following blocks:
 ##
 ##  [common]
 ##  [authgroup:groupname]
 ##  [mapping]
 ##  [authtokens]
 ##  [lrms]
-##  [lrms/ssh]
+##  [lrms/ssh] (removed in 7.0.0)
 ##  [arex]
 ##  [arex/cache]
-##  [arex/cache/cleaner] 
+##  [arex/cache/cleaner]
 ##  [arex/data-staging]
 ##  [arex/ws]
 ##  [arex/ws/jobs]
@@ -29,9 +29,9 @@
 ##  [arex/jura/apel:targetname]
 ##  [arex/jura/archiving] (removed in 6.8.0)
 ##  [arex/ganglia]
-##  [gridftpd]
-##  [gridftpd/jobs]
-##  [gridftpd/filedir]
+##  [gridftpd] (removed in 7.0.0)
+##  [gridftpd/jobs] (removed in 7.0.0)
+##  [gridftpd/filedir] (removed in 7.0.0)
 ##  [infosys]
 ##  [infosys/ldap]
 ##  [infosys/nordugrid]
@@ -42,52 +42,52 @@
 ##  [infosys/cluster]
 ##  [queue:name]
 ##  [datadelivery-service]
-##  [acix-scanner]
-##  [acix-index]
+##  [acix-scanner] (removed in 7.0.0)
+##  [acix-index] (removed in 7.0.0)
 ##  [userlist:name]
 ##  [nordugridmap]
 ##  [custom:blockname]
 ##
 ## A block configures an ARC service, a service interface, a utility or a subsystem.
 ## Enabling (turning on) a functionality, a service or an interface requires the presence of the
-## appropriate configuration block. To disable a service or an interface, simply delete or 
+## appropriate configuration block. To disable a service or an interface, simply delete or
 ## comment out the related arc.conf block (you may need to rerun the corresponding startup script).
 ##
-## The [common] block is mandatory even if not a single option is specified within. The presence of 
+## The [common] block is mandatory even if not a single option is specified within. The presence of
 ## the block turns on the default values for the configuration options within the block.
 ##
 ## As an example, in order to set up a minimalistic ARC CE offering no external interfaces
 ## you need to configure at least the [common], [mapping], [arex], [lrms],
-## [infosys] and [queue:name] blocks. 
+## [infosys] and [queue:name] blocks.
 ##
-## As another example, an ARC-based data offloader would require the [common] and the 
+## As another example, an ARC-based data offloader would require the [common] and the
 ## [datadelivery-service] blocks.
 ##
 ## A block is identified by its block header. A block header may consist of
-## keywords and optionally block identifiers. Keywords may be separated by "/" 
+## keywords and optionally block identifiers. Keywords may be separated by "/"
 ## and used to label subblocks (e.g. [arex/jura]), while block identifiers
-## are separated by ":" from keywords. For example, in the [queue:short] 
+## are separated by ":" from keywords. For example, in the [queue:short]
 ## block header "queue" is a keyword while "short" is an identifier, e.g. the name of the queue.
 ## Block headers must be UNIQUE.
 ##
 ## A block starts with a unique [keyword:identifier] blockheader and ends where the next block
-## starts, that is at the next [blockheader] directive. 
+## starts, that is at the next [blockheader] directive.
 ##
 ## A block may have sub-blocks e.g. the various interfaces of the AREX service are configured via
 ## sub-blocks (e.g. [arex/ws]). When a sub-block is enabled then the corresponding parent block must
 ## also appear in the arc.conf file.
 ##
-## Configuration blocks contain (config option, config value) pairs following 
-## the syntax in single line: 
-##    config_option=value element [optional value element]  
+## Configuration blocks contain (config option, config value) pairs following
+## the syntax in single line:
+##    config_option=value element [optional value element]
 ## NOTE that quotes around the configuration value(s) must NOT be used any longer.
 ## NOTE that the arc.conf is CASE-SENSITIVE!
 ##
 ## Space handling syntax in arc.conf
-## for configuration lines: 
+## for configuration lines:
 ##   (stripped space)option(stripped space)=(stripped space)value(saved space)(value)(stripped space)
-## 
-## and for block headers: 
+##
+## and for block headers:
 ##   [keyword:(stripped space)space is NOT allowed within identifier(stripped space)]
 ##
 ## Detailed textual definition:
@@ -99,27 +99,27 @@
 ##   c) In block headers of [keyword] kind (after 'a' is applied) no additional spaces are allowed
 ##      around "keyword" and inside "keyword".
 ##   d) In block headers of [keyword:identifier] kind (after 'a' is applied) no additional spaces
-##      are allowed around "keyword" and inside both "keyword" and "identifier". 
+##      are allowed around "keyword" and inside both "keyword" and "identifier".
 ##      The spaces ARE allowed around  "identifier" part and stripped and ignored.
 ##
 ## Mandatory configuration options are indicated by an asterix prefix to the
-## option name e.g: "*mandatory_configoption". Mandatory options with undefined values 
-## will result in service stop during the startup process. 
+## option name e.g: "*mandatory_configoption". Mandatory options with undefined values
+## will result in service stop during the startup process.
 ##
 ## Each of the configuration options have well-defined default that is specified in this reference
 ## file. The default can take either a pre-set value, a special substitution or the keyword
-## "undefined". Configuration options within an enabled block take their default values in case 
-## they are missing (or commented out). Configuration parameters with "undefined" defaults takes 
-## no values. Furthermore, configuration options within disabled blocks takes no values either.   
+## "undefined". Configuration options within an enabled block take their default values in case
+## they are missing (or commented out). Configuration parameters with "undefined" defaults takes
+## no values. Furthermore, configuration options within disabled blocks takes no values either.
 ##
 ## Configuration blocks are ORDER-DEPENDENT. To be safe, please use the order as indicated in the list
 ## of blocks in this reference. This is especially important for configuration blocks related to
-## authorization and mapping. The order dependency is also honoured within options inside a certain block. 
+## authorization and mapping. The order dependency is also honoured within options inside a certain block.
 ##
 ## This means for instance that configuration blocks related to authorization MUST appear before used in
 ## the blocks such as [mapping], [arex/ws/jobs] or [gridftp/jobs]. Order dependency within a block is
 ## for instance important when it comes to authorization decisions, as the first matching rule is used.
-## For more details see the specific block reference. 
+## For more details see the specific block reference.
 ##
 ## Below we give a detailed description of all the configuration options of the
 ## different configuration blocks. Every configuration option is described
@@ -128,7 +128,7 @@
 ## and so it is important that it follows the agreed syntax: For each block or
 ## option please add explanatory text with two "##" followed by a space at the
 ## beginning of the line and then an example with a single "#" and no spaces at
-## the beginning of the line. 
+## the beginning of the line.
 ##
 ## example_config_option = value [optional values] - Here comes the explanation
 ## of the config option. Mandatory configuration options are indicated by an asterix prefix to the
@@ -154,7 +154,7 @@
 
 
 ### The [common] block ##############################################
-## Common configuration affecting all ARC components, usually related to networking or security 
+## Common configuration affecting all ARC components, usually related to networking or security
 ## or service behaviour. This block is mandatory.
 ## The common block options may be overridden by the specific sections of the components later.
 ## The [common] always appears at the beginning of the config file. The config options set within
@@ -172,10 +172,10 @@
 ## This variable is similar to setting the ARC_HTTP_PROXY environmental variable.
 ## default: undefined
 #http_proxy=proxy.mydomain.org:3128
-## CHANGE: MOVED in 6.0.0 from the old [grid-manager] block. 
+## CHANGE: MOVED in 6.0.0 from the old [grid-manager] block.
 
 ### X509 related parameters
-## x509_host_key = path - (previously x509_user_key) Server credential location. 
+## x509_host_key = path - (previously x509_user_key) Server credential location.
 ## Sets the full path to the host private key.
 ## These variables are similar to the GSI enviroment variable "X509_USER_KEY"
 ## If indicated, the variable can be set individually for each service/component in the
@@ -210,7 +210,7 @@
 ## The following keywords are supported:
 ##   "relaxed"
 ##       use everything that passed validation.
-##   "standard" 
+##   "standard"
 ##       same as relaxed but fail if parsing errors took place and
 ##       VOMS extension is marked as critical. This is a default.
 ##   "strict"
@@ -226,12 +226,12 @@
 
 
 ### The [authgroup:groupname] (previously [group]) blocks ##########################
-## These configuration blocks contain authorization rules. 
-## An [authrgroup:groupname] block always defines a group of users where members of the group are 
+## These configuration blocks contain authorization rules.
+## An [authrgroup:groupname] block always defines a group of users where members of the group are
 ## those who satisfy the authorization rules.
-## The rules within the block determine which user belong to the authgroup. 
-## Then, access control and identity mapping of ARC services are implemented 
-## via associating a authgroup with an interface, queue or a mapping rule 
+## The rules within the block determine which user belong to the authgroup.
+## Then, access control and identity mapping of ARC services are implemented
+## via associating a authgroup with an interface, queue or a mapping rule
 ## using one of the "allowaccess", "denyaccess" or [mapping] block parameters.
 ## For more info please read "Security Framework of ARC" at
 ## http://www.nordugrid.org/documents/arc-security-documentation.pdf
@@ -376,7 +376,7 @@
 ##     Depend on whether this mapping rule returns valid UNIX identity the processing can be
 ##     redefined with "policy_on_map" and "policy_on_nomap" options.
 ##
-## Policy can be redefined at the any point of configuration sequence and affects 
+## Policy can be redefined at the any point of configuration sequence and affects
 ## all mapping rules defined after the polcy rule.
 ##
 ## NOTE that if mapping process STOPS and there is still no local UNIX identity
@@ -388,26 +388,26 @@
 ## CHANGE: NEW block in 6.0.0.
 
 ## map_to_user = authgroup_name unixname[:unixgroup] - the users that belongs to
-## specified authgroup are mapped to "unixname" local UNIX account that may be 
-## optionally followed by a "unixgroup" UNIX group. 
-## In case of non-existing "unixname" account the mapping rule treated as a rule that 
+## specified authgroup are mapped to "unixname" local UNIX account that may be
+## optionally followed by a "unixgroup" UNIX group.
+## In case of non-existing "unixname" account the mapping rule treated as a rule that
 ## did not returned mapped identity (nomap).
 ## sequenced
 ## default: undefined
 #map_to_user=authgroupA nobody:nobody
 
 ## map_to_pool = authgroup_name directory - the user that belong to specified
-## authgroup is assigned one of the local UNIX accounts in the pool. Account names that 
-## are part of this pool are stored line-by-line in the "pool" file inside the "directory". 
+## authgroup is assigned one of the local UNIX accounts in the pool. Account names that
+## are part of this pool are stored line-by-line in the "pool" file inside the "directory".
 ## The "directory" also contains information about used accont names stored in another files.
 ## If there are no more available accounts in the defined pool for mapping then
 ## accounts not used for a configurable time period may be reassigned.
-## The pool behaviour, including account reuse, is configureable with the opional 
-## "directory/config" file that has INI syntax (line-by-line "key=value"). 
+## The pool behaviour, including account reuse, is configureable with the opional
+## "directory/config" file that has INI syntax (line-by-line "key=value").
 ## Possible keys of the "config" file are:
-##   "timeout" 
-##      Define the timeout in days (default is "10") after which the UNIX 
-##      account can be reassigned to another user if not used. The "0" value 
+##   "timeout"
+##      Define the timeout in days (default is "10") after which the UNIX
+##      account can be reassigned to another user if not used. The "0" value
 ##      means no lease expiration.
 ## sequenced
 ## default: undefined
@@ -423,9 +423,9 @@
 #map_with_file=authgroupB /etc/grid-security/grid-mapfile
 
 ## map_with_plugin = authgroup_name timeout plugin [arg1 [arg2 [...]]] - run
-## external "plugin" executable with specified arguments to find the UNIX account 
+## external "plugin" executable with specified arguments to find the UNIX account
 ## name to which users that belogns to specified authgroup will be mapped to.
-## A rule matches if the exit code is "0" and there is a UNIX account name 
+## A rule matches if the exit code is "0" and there is a UNIX account name
 ## printed on stdout (optionally followed by a UNIX group name separated by colon).
 ## The exit code 1 designates failed mapping. Any other code or timeout means fatal
 ## failure and will abort any further mapping processing. That will also cause
@@ -439,8 +439,8 @@
 ##   - "%D" - subject of user's certificate,
 ##   - "%P" - path to credentials' proxy file.
 ##
-## ARC ships with LCMAPS plugin that can be enabled with the corresponfing 
-## configuration. For more information about configuring LCMAPS refer to 
+## ARC ships with LCMAPS plugin that can be enabled with the corresponfing
+## configuration. For more information about configuring LCMAPS refer to
 ## 'Using LCAS/LCMAPS' document.
 ## sequenced
 ## default: undefined
@@ -493,7 +493,7 @@
 ## This block specifies the characteristics of the Local Resource Manager System (batch system)
 ## underneath the ARC CE. This block contains all the lrms-specific parameters and information.
 ## Configuration values in this block are available for A-REX, the backends, accounting and infosys
-## ARC subsystems. 
+## ARC subsystems.
 ##
 ## ARC support the most common LRMS flavours.
 #[lrms]
@@ -513,19 +513,20 @@
 ##   - ll      - LoadLeveler
 ##   - slurm   - SLURM
 ##   - boinc   - Boinc
-##   - slurmpy - new EXPERIMENTAL SLURM scripts (contains the ssh remote batch management as well)
 ##
 ## The optional "defaultqueue" parameter specifies the name of an existing LRMS queue
-## in the cluster that will be used by AREX as the default queue to submit grid jobs in case 
+## in the cluster that will be used by AREX as the default queue to submit grid jobs in case
 ## the client does not specify a queue name during the job submission procees.
 ## This queue name must match one of the [queue:queue_name] blocks.
 ##
-## allowedvalues: fork sge condor pbs pbspro lsf ll slurm boinc slurmpy
+## allowedvalues: fork sge condor pbs pbspro lsf ll slurm boinc
 ## default: undefined
 ## mandatory
 #lrms=pbspro gridlong
 #lrms=slurm
-## CHANGE: slurmpy NEW in 6.0.0. pbspro NEW in 6.1.0
+## CHANGE: slurmpy NEW in 6.0.0
+## CHANGE: pbspro NEW in 6.1.0
+## CHANGE: slurmpy DELETED in 7.0.0
 
 ## lrmsconfig = text - An optional free text field to describe the configuration of your
 ## Local Resource Management System (batch system). The value is published in the infosys,
@@ -551,7 +552,7 @@
 ## CHANGE: MOVED in 6.0.0  from the [cluster] block.
 
 ## nodename = path - Redefine the command to obtain hostname of LRMS worker node.
-## By default the value is defined on buildtime and depend on the OS. 
+## By default the value is defined on buildtime and depend on the OS.
 ## In most cases "/bin/hostname -f" will be used.
 ## NOTE that this way of getting WN hostname will be used only in case of
 ##   particular LRMS backend had no native LRMS-defined way.
@@ -565,9 +566,9 @@
 #gnu_time=/usr/bin/time
 ## CHANGE: MOVED in 6.0.0 from the [arex] block.
 
-## movetool = comand - Redefine the command used to move files during jobscript 
+## movetool = comand - Redefine the command used to move files during jobscript
 ## execution on LRMS worker node (the command should be available on WNs).
-## This in particular applies to files movement from sessiondir to scratchdir 
+## This in particular applies to files movement from sessiondir to scratchdir
 ## in the shared sessiondir case.
 ## default: mv
 #movetool=rsync -av
@@ -628,7 +629,7 @@
 ## reference pre-defined ClassAd attributes (like Memory, Opsys, Arch, HasJava,
 ## etc) but also custom ClassAd attributes.  To define a custom attribute on a
 ## condor node, just add two lines like the ones below in the "$(hostname).local"
-## config file on the node: 
+## config file on the node:
 ##   NORDUGRID_RESOURCE=TRUE
 ##   STARTD_EXPRS = NORDUGRID_RESOURCE, $(STARTD_EXPRS)
 ## A job submitted to this resource is allowed to run on any node which satisfies
@@ -676,14 +677,13 @@
 ## default: /usr/bin
 #slurm_bin_path=/usr/bin
 
-## slurm_wakeupperiod = numsec - How long should infosys wait before querying SLURM 
+## slurm_wakeupperiod = numsec - How long should infosys wait before querying SLURM
 ## for new data (seconds)
 ## default: 30
 #slurm_wakeupperiod=15
 
 ## slurm_use_sacct = yes/no - Indicates whether ARC should use sacct instead of scontrol
 ## to obtain information about finished jobs
-## Not supported by slurmpy.
 ## allowedvalues: yes no
 ## default: yes
 #slurm_use_sacct=yes
@@ -694,12 +694,12 @@
 ## CHANGE: NEW in 6.0.0.
 
 ## slurm_query_retries = number - Number of sacct/scontrol retries performed in scan-SLURM-job
-## If slurm is overloaded the sacct/scontrol command call may fail. 
+## If slurm is overloaded the sacct/scontrol command call may fail.
 ## If retries > 1 sacct/scontrol is retried after some seconds for that(those) particular job(s).
 ## If all retry attempts fail, the next scan-SLURM-job institiation will pick up the job(s) from last time.
 ## default: 1
 #slurm_query_retries=3
-    
+
 ### LSF options: set these only in case of lrms=lsf
 ## lsf_bin_path = path - The PATH to LSF bin folder
 ## default: /usr/bin
@@ -759,58 +759,6 @@
 ##
 ##
 ### end of [lrms] block #####################################################
-
-
-### The [lrms/ssh] block ##############################################
-## This sub-block configures the ssh environment for remote batch management.
-## Currently ONLY the python slurm (slurmpy) EXPERIMENTAL batch module is able to utilize 
-## the remote ssh feature.
-## Parameters within this block are relevant if the cluster frontend is remotely
-## located wrt. CE frontend (machine running A-REX). If specified with the
-## parameters below, the session, cache and runtime directories will be mounted
-## from the cluster frontend on the CE frontend using sshfs. Job submission and
-## management will done using ssh (Paramiko).
-#[lrms/ssh]
-## CHANGE: NEW sub-block in 6.0.0 to configure ssh support in slurmpy as a part of tech preview.
-
-## *remote_host = hostname - Define the remote cluster frontend machine which contains
-## session, cache and runtime directories and where jobs should be submitted to.
-## default: undefined
-## mandatory
-#remote_host=myremotehost.org
-
-## *private_key = path - Location of the private key which should be used establish
-## connection to the machine specified by the 'remote_host' attribute.
-## default: undefined
-## mandatory
-#private_key=/etc/grid-security/hostkey-priv.pem
-
-## *remote_user = user - User on remote cluster which should be used for mounting
-## directories, submitting and managing jobs, and gathering information about
-## cluster.
-## default: undefined
-## mandatory
-#remote_user=grid
-
-## remote_sessiondir = path - Session directory on cluster frontend to be
-## mounted (sshfs) on CE machine at directory specified by the 'sessiondir'
-## attribute in the [arex] block.
-## default: undefined
-## mandatory
-#remote_sessiondir=/scratch/grid
-
-## remote_cachedir = path - Cache directory on cluster frontend to be
-## mounted (sshfs) on CE machine at directory specified by the 'cachedir'
-## attribute in the [arex] block.
-## default: undefined
-#remote_cachedir=/scratch/cache
-
-## ssh_timeout = time - Timeout of establishing ssh connection. Unit in seconds.
-## default: 10
-#ssh_timeout=10
-##
-##
-### end of [lrms/ssh] block #####################################################
 
 
 ### The [arex] block - previously [grid-manager] #####################
@@ -950,7 +898,7 @@
 ## number4 - jobs in whole system
 ## number5 - LRMS scripts limit (jobs in SUBMITTING and CANCELING)
 ## A parameter set to -1 means no limit.
-## default: -1 -1 -1 -1 -1 
+## default: -1 -1 -1 -1 -1
 #maxjobs=10000 10 2000 -1 -1
 ## CHANGE: MODIFIED in 6.0.0. Explicitly indicate "no limit" with -1. "Missing number" should not be allowed.
 
@@ -959,7 +907,7 @@
 ## default: 5
 #maxrerun=5
 
-## statecallout = state options plugin_path [plugin_arguments] - (previously authplugin) 
+## statecallout = state options plugin_path [plugin_arguments] - (previously authplugin)
 ## Enables a callout feature of A-REX: every time job goes to "state" A-REX
 ## will run "plugin_path" executable. The following states are allowed:
 ## ACCEPTED, PREPARING, SUBMIT, FINISHING, FINISHED and DELETED.
@@ -967,7 +915,7 @@
 ##   "timeout"
 ##      defines the timeout in seconds to wait for plugin execution ("timeout=" can be omitted).
 ##   "onsuccess", "onfailure", "ontimeout"
-##      defines the action that A-REX should take on succesfull execution (exit code 0), 
+##      defines the action that A-REX should take on succesfull execution (exit code 0),
 ##      failed execution (exit code is not 0) or execution timeout respectively.
 ## Possible actions are:
 ##   - "pass" - continue executing job,
@@ -1023,7 +971,7 @@
 ## mail = email_address - Specifies the email address from where the notification mails are sent
 ## default: $VAR{user}@$VAR{[common]hostname}
 #mail=grid.support@somewhere.org
-## CHANGE: MODIFIED in 6.0.0. 
+## CHANGE: MODIFIED in 6.0.0.
 
 ## gnu_time = path - The gnu time command
 ## CHANGE: MOVED in 6.0.0 to [lrms].
@@ -1093,7 +1041,7 @@
 ## Optional "link_path" specifies the path at which the "cache_path" is accessible on
 ## computing nodes, if it is different from the path on the A-REX host.
 ## If "link_path" is set to "." files are not soft-linked, but copied to session
-## directory. 
+## directory.
 ## If a cache directory needs to be drained, then "link_path" should specify "drain",
 ## in which case no new files will be added to the cache and files in the cache
 ## will no longer be used.
@@ -1140,8 +1088,8 @@
 ## default: 100 100
 #cachesize=50 20
 
-## calculatesize = filesystem/cachedir - (previously cacheshared) specifies the way the space 
-## occupied by the cache will be calculated. If set to cachedir then cache-clean calculates 
+## calculatesize = filesystem/cachedir - (previously cacheshared) specifies the way the space
+## occupied by the cache will be calculated. If set to cachedir then cache-clean calculates
 ## the size of the cache instead of using filesystem used space.
 ## allowedvalues: filesystem cachedir
 ## default: filesystem
@@ -1188,10 +1136,10 @@
 #loglevel=4
 ## CHANGE: RENAMED in 6.0.0.
 
-## logfile = path  - (previously central_logfile) A central file in which all data staging messages 
-## from every job will be collected and logged in addition to their job.id.errors files. 
-## If this option is not present or the path is empty the log file is not created. 
-## This file is not automatically controlled by logrotate unless you name it as 
+## logfile = path  - (previously central_logfile) A central file in which all data staging messages
+## from every job will be collected and logged in addition to their job.id.errors files.
+## If this option is not present or the path is empty the log file is not created.
+## This file is not automatically controlled by logrotate unless you name it as
 ## /var/log/arc/datastaging.log.
 ## default: undefined
 #logfile=/var/log/arc/datastaging.log
@@ -1213,7 +1161,7 @@
 ## be attempted per job (retries are only performed if an error is judged to be temporary)
 ## default: 10
 #maxtransfertries=20
- 
+
 ## passivetransfer = yes/no - If yes, gridftp transfers are passive. Setting
 ## this option to yes can solve transfer problems caused by firewalls.
 ## allowedvalues: yes no
@@ -1279,8 +1227,8 @@
 ## default: 200
 #maxprepared=250
 
-## sharepolicy = grouping - (previously sharetype) Defines the mechanism to be used for the 
-## grouping of the job transfers. DTR assigns the transfers to shares, so that those shares 
+## sharepolicy = grouping - (previously sharetype) Defines the mechanism to be used for the
+## grouping of the job transfers. DTR assigns the transfers to shares, so that those shares
 ## can be assigned to different priorities.
 ## Possible values for "grouping" are dn, voms:vo, voms:role and voms:group:
 ##   dn
@@ -1288,10 +1236,10 @@
 ##   voms:vo
 ##     each job is assigned to a share based on the VO specified in the proxy.
 ##   voms:role
-##     each job is assigned to a share based on the role specified in the first attribute 
+##     each job is assigned to a share based on the role specified in the first attribute
 ##     found in the proxy.
-##   voms:group 
-##     each job is assigned to a share based on the group specified in the first attribute 
+##   voms:group
+##     each job is assigned to a share based on the group specified in the first attribute
 ##     found in the proxy.
 ## In case of the voms schemes, if the proxy is not a VOMS proxy, then a default share is used.
 ## If sharepolicy is not set then the client-defined priority is applied.
@@ -1341,11 +1289,11 @@
 ## default: undefined
 #preferredpattern=srm://myhost.ac.uk|.uk$|ndgf.org$|badhost.org$
 
-## The following options are used to configure multi-host data staging deployment scenario. 
+## The following options are used to configure multi-host data staging deployment scenario.
 ## In that setup a couple of additional data staging boxes are enabled to off-load data transfers.
 
 ## deliveryservice = URL - The URL to a remote data delivery service which can perform remote
-## data staging. 
+## data staging.
 ## default: undefined
 #deliveryservice=https://myhost.org:443/datadeliveryservice
 
@@ -1379,7 +1327,7 @@
 ## Make sure the chosen port is not blocked by firewall or other security rules.
 ## default: https://$VAR{[common]hostname}:443/arex
 #wsurl=https://piff.hep.lu.se:443/arex
-## CHANGE: RENAMED and MODIFIED in 6.0.0. 
+## CHANGE: RENAMED and MODIFIED in 6.0.0.
 
 ## logfile = path - (previously wslogfile) Specify log file location for WS-interface operations.
 ## default: /var/log/arc/ws-interface.log
@@ -1433,9 +1381,9 @@
 
 ### The [arex/ws/jobs] block ################################
 ## AREX offers a set of web service interfaces implented via either REST or WS-SOAP.
-## This block enables the job management, info query, delegation protocols through both the REST and 
-## EMIES interface. 
-## Consult the http://svn.nordugrid.org/repos/nordugrid/doc/trunk/tech_doc/emi-es/EMI-ES-Specification_v1.16.pdf for EMIES inteface description 
+## This block enables the job management, info query, delegation protocols through both the REST and
+## EMIES interface.
+## Consult the http://svn.nordugrid.org/repos/nordugrid/doc/trunk/tech_doc/emi-es/EMI-ES-Specification_v1.16.pdf for EMIES inteface description
 ## and read the http://www.nordugrid.org/documents/arc6/tech/rest/rest.html for the REST interface specification.
 #[arex/ws/jobs]
 ## CHANGE: NEW sub-block in 6.0.0.
@@ -1456,26 +1404,26 @@
 #allownew_override=yourauthgroup
 ## CHANGE: RENAMED and MODIFIED behaviour in 6.0.0. Modified behaviour: possible to specify several groups on a single line!
 
-## allowaccess = authgroup - (previously groupcfg) Defines that the specified authgroup members 
+## allowaccess = authgroup - (previously groupcfg) Defines that the specified authgroup members
 ## are authorized to access the ARC-CE via this interface. A related config option the
-## "denyaccess" (see below) can be used to reject access. 
+## "denyaccess" (see below) can be used to reject access.
 ## Multiple "allowaccess" and "denyaccess" authorization statements are allowed within a configuration block.
-## These statements are processed sequentially in the order they are specified in the 
+## These statements are processed sequentially in the order they are specified in the
 ## config block. The processing stops on first "allowaccess" or "denyaccess" statement matching the authgroup membership.
-## If there are no authorization statements specified, then no additional restrictions are applied 
+## If there are no authorization statements specified, then no additional restrictions are applied
 ## for authorizing user access and the interface is open to everybody authenticated.
 ## default: undefined
 ## multivalued
 #allowaccess=biousers
 #allowaccess=atlasusers
 
-## denyaccess = authgroup - Defines that the specified authgroup members 
+## denyaccess = authgroup - Defines that the specified authgroup members
 ## are REJECTED, not authorized to access the ARC-CE via this interface. Note that a related config option the
-## "allowaccess" (see above) can be used to grant access. 
+## "allowaccess" (see above) can be used to grant access.
 ## Multiple "denyaccess" and "allowaccess" authorization statements are allowed within a configuration block.
-## These statements are processed sequentially in the order they are specified in the 
+## These statements are processed sequentially in the order they are specified in the
 ## config block. The processing stops on first "allowaccess" or "denyaccess" statement matching the authgroup membership.
-## If there are no authorization statements specified, then no additional restrictions are applied 
+## If there are no authorization statements specified, then no additional restrictions are applied
 ## for authorizing user access and the interface is open to everybody authenticated.
 ## default: undefined
 ## multivalued
@@ -1536,7 +1484,7 @@
 ## A client is allowed to access the cached file if a URL pattern matches the
 ## cached file URL and the client's credential has the attribute and matches the
 ## value required for that pattern. Possible values for credential attribute are
-## dn, voms:vo, voms:role and voms:group. 
+## dn, voms:vo, voms:role and voms:group.
 ## multivalued
 ## default: undefined
 #cacheaccess=gsiftp://host.org/private/data/.* voms:vo myvo:production
@@ -1633,24 +1581,24 @@
 
 
 ### The [arex/jura] block ###################################
-## A-REX is responsible for collecting accounting measurements from various ARC 
+## A-REX is responsible for collecting accounting measurements from various ARC
 ## subsystems, including batch system backends and DTR data staging.
 ##
-## Staring from 6.4 release A-REX writes all accounting data into the local accounting
-## database that can be queries with "arcctl accounting".
+## Starting from 6.4 release A-REX writes all accounting data into the local accounting
+## database that can be queried with "arcctl accounting".
 ##
 ## JURA is the accounting record generating and reporting ARC CE module.
-## A-REX periodically executes JURA to create usage records based on the 
+## A-REX periodically executes JURA to create usage records based on the
 ## accounting target configuration and using accounting data.
 ##
-## NOTE that in the ARC releases before 6.4 the accounting measurements were 
+## NOTE that in the ARC releases before 6.4 the accounting measurements were
 ##   collected in the job log files that are only used for publishing records.
 ##   This functionality was supported for backward compatibility in 6.4-6.7 releases
 ##   and was removed in ARC 6.8.0
 ##
 ## Enable and configure this block if you want to send accounting records to
 ## accounting services.
-## 
+##
 ## Note that a dedicated "accounting target" subblock is needed for every accounting
 ## destination. The target subblocks are either of a type "apel" or "sgas":
 ## "[arex/jura/apel:targetname]" or "[arex/jura/sgas:targetname]".
@@ -1709,7 +1657,7 @@
 ## You need to define a separate block with a unique targetname for every SGAS target server.
 ##
 ## Note that the block name will be used by JURA to track that latest records sent to
-## this targed. Be aware that ff you rename the block, target will be handled as a new one.
+## this targed. Be aware that if you rename the block, target will be handled as a new one.
 ## However "targeturl" change will not trigger a new target handling.
 #
 #[arex/jura/sgas:neic_sgas]
@@ -1755,7 +1703,7 @@
 ## You need to define a separate block with a unique targetname for every APEL target server.
 ##
 ## Note that the block name will be used by JURA to track that latest records sent to
-## this targed. Be aware that ff you rename the block, target will be handled as a new one.
+## this targed. Be aware that if you rename the block, target will be handled as a new one.
 ## However "targeturl" change will not trigger a new target handling.
 #[arex/jura/apel:egi_prod_apel]
 
@@ -1774,9 +1722,9 @@
 ## default: undefined
 #gocdb_name=GRID_UIO_NO
 
-## apel_messages = type - (introduced in 6.4.0) Define what kind of records JURA 
+## apel_messages = type - (introduced in 6.4.0) Define what kind of records JURA
 ## will send to APEL services during regular publishing process.
-## Possible cases are: per-job EMI CAR records ("urs"), APEL summary records ("summaries"). 
+## Possible cases are: per-job EMI CAR records ("urs"), APEL summary records ("summaries").
 ## APEL Sync messages are always generated.
 ## NOTE that on the heavy loaded sites with 10k+ jobs weekly "summaries" generation has
 ##   a performance penalty in ARC < 6.8. It is advised to use "urs" in this case.
@@ -1799,7 +1747,7 @@
 ## default: 500
 #urbatchsize=500
 
-## urdelivery_frequency = seconds - (introduced in 6.4.0) Add optional minimal 
+## urdelivery_frequency = seconds - (introduced in 6.4.0) Add optional minimal
 ## treshold of the interval between subsequent records publishing to this target.
 ## NOTE that the actual delivery interval is the value divisible by "urdelivery_frequency"
 ##   defined in [arex/jura] block that define the entire JURA process invocation frequency.
@@ -1849,261 +1797,8 @@
 ### end of the [arex/ganglia] block ##############
 
 
-### The [gridftpd] block #######################################################
-## This block enables and configures the gridftp server. The usage of the gridftp is
-## twofold in connection with ARC: 1) The server together with its custom jobplugin
-## can be used as a job submission and management interface for an ARC CE.
-## 2) The server with the filedirplugin can be used as a very simplistic storage element.
-## This block configures the common server capabilities. To make the gridftp service functional,
-## you need to enable at least one of the plugin subblocks as well.
-#[gridftpd]
-
-## user = user[:group] - Switch to a non root user/group after startup
-## WARNING: Make sure that the certificate files are owned by the user/group
-## specified by this option.
-## default: root:root
-#user=grid
-
-## loglevel = level - (previously debug) Set log level of the gridftpd daemon, between
-## 0 (FATAL) and 5 (DEBUG). Default is 3 (INFO).
-## allowedvalues: 0 1 2 3 4 5 FATAL ERROR WARNING INFO VERBOSE DEBUG
-## default: 3
-#loglevel=2
-## CHANGE: RENAMED in 6.0.0.
-
-## logfile = path - Set logfile location of the gridftp server.
-## default: /var/log/arc/gridftpd.log
-#logfile=/var/log/arc/gridftpd.log
-
-## pidfile = path - Specify location of file containing PID of daemon process.
-## default: /run/gridftpd.pid
-#pidfile=/run/gridftpd.pid
-
-## port = bindport - Port to listen on. For gridftp-based job submission strongly adviced to use 
-## the default 2811 port because 3rd party clients assume ARC CE using that port.
-## default: 2811
-#port=2811
-
-## allowencryption = yes/no - (previously encryption) should data encryption be allowed on client
-## request. Encryption is very heavy, therefore the default is no.
-## allowedvalues: yes no
-## default: no
-#allowencryption=no
-## CHANGE: RENAMED in 6.0.0.
-
-## allowactivedata = yes/no - if no, only passive data transfer is allowed.
-## By default both passive and active data transfers are allowed.
-## default: yes 
-#allowactivedata=yes
-
-## maxconnections = number - The maximum number of connections accepted by a gridftpd server.
-## default: 100
-#maxconnections=200
-
-## defaultbuffer = size - Defines size of every buffer for data
-## reading/writing. The actual value may decrease if the
-## cumulative size of all buffers exceeds value specified by maxbuffer.
-## default: 65536
-#defaultbuffer=65536
-
-## maxbuffer = size - Defines maximal amount of memory in bytes to be
-## allocated for all data reading/writing buffers. Default is 640kB.
-## The number of buffers is (max {3, min {41, 2P + 1}}), where P is the
-## parallelism level requested by the client.  Hence, even without parallel
-## streams enabled number of buffers will be 3.
-## default: 655360
-#maxbuffer=655360
-
-### Firewall specifics
-## globus_tcp_port_range = port_range - In a firewalled environment
-## the software which uses GSI needs to know what ports are available.
-## If not set a random port is selected.
-## These variable are similar to the Globus enviroment variables:
-## GLOBUS_TCP_PORT_RANGE and GLOBUS_UDP_PORT_RANGE.
-## default: 9000,9300
-#globus_tcp_port_range=9000,12000
-
-## globus_udp_port_range = port_range - In a firewalled environment
-## the software which uses GSI needs to know what ports are available.
-## If not set a random port is selected.
-## These variable are similar to the Globus enviroment variables:
-## GLOBUS_TCP_PORT_RANGE and GLOBUS_UDP_PORT_RANGE.
-## default: 9000,9300
-#globus_udp_port_range=9000,12000
-
-## firewall = hostname - The hostname or IP address to use in response to PASV command
-## instead of the IP address of a network interface of computer.
-## default: undefined
-#firewall=my.host.org
-
-### X509 related parameters
-## x509_host_key = path - Optional parameter to overwrite [common] block values.
-## default: $VAR{[common]x509_host_key}
-#x509_host_key=/etc/grid-security/hostkey.pem
-## CHANGE: RENAMED in 6.0.0.
-
-## x509_host_cert = path - Optional parameter to overwrite [common] block values.
-## default: $VAR{[common]x509_host_cert}
-#x509_host_cert=/etc/grid-security/hostcert.pem
-## CHANGE: RENAMED in 6.0.0.
-
-## x509_cert_dir = path - Optional parameter to overwrite [common] block values.
-## default: $VAR{[common]x509_cert_dir}
-#x509_cert_dir=/etc/grid-security/certificates
-##
-##
-### end of the [gridftpd] block ###############################
-
-
-### The [gridftpd/jobs] block ##############################
-## The jobplugin of the gridftp server implements a custom
-## job management and submission interface of ARC CE.
-## This subblock enables and configures that interface.
-## Consult the Technical Reference within the ARC sysadmin guide
-## for the interface specification.
-## Comment out this subblock if you don't want a gridftp-based jobinterface.
-#[gridftpd/jobs]
-
-## allownew = yes/no - This parameter sets if the ARC CE  accepts submission of new jobs
-## via the gridftp interface. This parameter can be used to close down the ARC CE.
-## allowedvalues: yes no
-## default: yes
-#allownew=yes
-
-## allownew_override = [authgroup ...]  - (previously allowsubmit) Defines which authorization
-## groups are allowed to submit new jobs via the gridftp interface
-## when the CE is closed with allownew=no. Note that it requires the allownew=no to be set.
-## multivalued
-## default: undefined
-#allownew_override=biousers atlasusers
-#allownew_override=yourauthgroup
-## CHANGE: RENAMED and MODIFIED in 6.0.0. Possible to specify several groups on a single line.
-
-## allowaccess = authgroup - (previously groupcfg) Defines that the specified authgroup members 
-## are authorized to access the ARC-CE via this interface. A related config option the
-## "denyaccess" (see below) can be used to reject access. 
-## Multiple "allowaccess" and "denyaccess" authorization statements are allowed within a configuration block.
-## These statements are processed sequentially in the order they are specified in the 
-## config block. The processing stops on first "allowaccess" or "denyaccess" statement matching the authgroup membership.
-## If there are no authorization statements specified, then no additional restrictions are applied 
-## for authorizing user access and the interface is open to everybody authenticated.
-## default: undefined
-## multivalued
-#allowaccess=biousers
-#allowaccess=atlasusers
-
-## denyaccess = authgroup - Defines that the specified authgroup members 
-## are REJECTED, not authorized to access the ARC-CE via this interface. Note that a related config option the
-## "allowaccess" (see above) can be used to grant access. 
-## Multiple "denyaccess" and "allowaccess" authorization statements are allowed within a configuration block.
-## These statements are processed sequentially in the order they are specified in the 
-## config block. The processing stops on first "allowaccess" or "denyaccess" statement matching the authgroup membership.
-## If there are no authorization statements specified, then no additional restrictions are applied 
-## for authorizing user access and the interface is open to everybody authenticated.
-## default: undefined
-## multivalued
-#denyaccess=blacklisted-users
-
-## maxjobdesc = size - specifies maximal allowed size of job description
-## in bytes. Default value is 5MB. Use 0 to set unlimited size.
-## default: 5242880
-#maxjobdesc=0
-##
-##
-### end of [gridftpd/jobs] block #####################################
-
-
-### The [gridftpd/filedir] block #########################################
-## The filedirplugin module of the gridftp server can be used to set up a
-## simplistic grid storage element (SE). This subblock enables and configures
-## such an SE by "exporting" a directory using the gridftpd's filedirplugin.
-## Comment out this block if you don't need a SE.
-#[gridftpd/filedir]
-
-## *path = virtdir - The name of the virtual directory served by the gridftp server.
-## The exported storage area is accessible as "gsiftp://my_server/virtdir".
-## Even "/" is a valid choice.
-## default: undefined
-#path=/topdir
-
-## *mount = path - The physical directory corresponding to the virtual one:
-## gsiftp://my_server/virtdir will give access to this location.
-## default: undefined
-#mount=/scratch/grid
-
-## allowaccess = authgroup - (previously groupcfg) Defines that the specified authgroup members 
-## are authorized to access the gridftp file service. A related config option the
-## "denyaccess" (see below) can be used to reject access. 
-## Multiple "allowaccess" and "denyaccess" authorization statements are allowed within a configuration block.
-## These statements are processed sequentially in the order they are specified in the 
-## config block. The processing stops on first "allowaccess" or "denyaccess" statement matching the authgroup membership.
-## If there are no authorization statements specified, then no additional restrictions are applied 
-## for authorizing user access and the interface is open to everybody authenticated.
-## default: undefined
-## multivalued
-#allowaccess=biousers
-#allowaccess=atlasusers
-
-## denyaccess = authgroup - Defines that the specified authgroup members 
-## are REJECTED, not authorized to access the gridftp file service. Note that a related config option the
-## "allowaccess" (see above) can be used to grant access. 
-## Multiple "denyaccess" and "allowaccess" authorization statements are allowed within a configuration block.
-## These statements are processed sequentially in the order they are specified in the 
-## config block. The processing stops on first "allowaccess" or "denyaccess" statement matching the authgroup membership.
-## If there are no authorization statements specified, then no additional restrictions are applied 
-## for authorizing user access and the interface is open to everybody authenticated.
-## default: undefined
-## multivalued
-#denyaccess=blacklisted-users
-
-## dir = path options - Specifies access rules for accessing files in "path"
-## (relative to virtual and real path) and all the files and directories below.
-## Available permisisons check "options" are:
-##       nouser
-##          do not use local file system rights, only use those specifies in this line
-##       owner
-##          check only file owner access rights
-##       group
-##          check only group access rights
-##       other
-##          check only "others" access rights
-## If none of the above specified usual unix access rights are applied.
-## Avaiable permissions enforecement "options" are:
-##       read      
-##          allow reading files
-##       delete
-##          allow deleting files
-##       append
-##          allow appending files (does not allow creation)
-##       overwrite
-##          allow overwriting already existing files (does not
-##          allow creation, file attributes are not changed)
-##       dirlist
-##          allow obtaining list of the files
-##       cd
-##          allow to make this directory current
-##       create owner:group permissions_or:permissions_and 
-##          allow creating new files. File will be owned by "owner" and owning group
-##          will be "group". If "*" is used, the user/group to which connected user 
-##          is mapped will be used. The permissions will be set to 
-##          "permissions_or & permissions_and". (second number is reserved for 
-##          the future usage).
-##       mkdir owner:group permissions_or:permissions_and
-##          allow creating new directories.
-## Example shows setting permissions on mounted "/" directory and adjusting permissions
-## on "/section1" and "/section2" subdirectories.
-## multivalued
-## default: undefined
-#dir=/ nouser read cd dirlist delete create *:* 664:664 mkdir *:* 775:775
-#dir=/section1 nouser read mkdir *:* 700:700 cd dirlist
-#dir=/section2 nouser read mkdir *:* 700:700 cd dirlist
-##
-##
-### end of [gridftpd/filedir] block #####################################
-
-
 ### The [infosys] block ################################################
-## This block enables and configures the core part of the information system. 
+## This block enables and configures the core part of the information system.
 ## Enables the information collection to be used by other ARC components, including interfaces.
 ## Parameters in this block applies to all the infosys subsystems.
 #[infosys]
@@ -2124,7 +1819,7 @@
 
 ## validity_ttl = seconds - The published infosys records advertise their
 ## validity e.g. how long the info should be considered up-to-date by the clients.
-## Use this parameter to set the published validity value. 
+## Use this parameter to set the published validity value.
 ## NOTE that different schemas may render this information differently.
 ## default: 10800
 #validity_ttl=10800
@@ -2210,9 +1905,9 @@
 ## default: undefined
 #ldap_schema_dir=/nfs/ldap/schema/
 
-## The following options configure the third-party bdii ldap parameters. 
+## The following options configure the third-party bdii ldap parameters.
 ## In 99% of cases no need to change anything and use the defaults.
-## These variables are usually automatically set by ARC, and are here mostly for debug purposes 
+## These variables are usually automatically set by ARC, and are here mostly for debug purposes
 ## and to tweak exotic BDII installations.
 
 ## bdii_debug_level = level - Set this parameter to DEBUG to check bdii errors in bdii-update.log
@@ -2220,9 +1915,9 @@
 ## default: WARNING
 #bdii_debug_level=ERROR
 
-## bdii_provider_timeout = seconds - (previously provider_timeout in bdii block) 
-## This variable allows a system administrator to modify the behaviour of bdii-update. 
-## This is the time BDII waits for the bdii provider scripts generated by 
+## bdii_provider_timeout = seconds - (previously provider_timeout in bdii block)
+## This variable allows a system administrator to modify the behaviour of bdii-update.
+## This is the time BDII waits for the bdii provider scripts generated by
 ## A-REX infosys to produce their output.
 ## default: 10800
 #bdii_provider_timeout=10800
@@ -2296,7 +1991,7 @@
 ## Infosys Schema sub-blocks: The following infosys sub-blocks enable
 ## information publishing according to various information schema.
 ## In order to publish information in a certain schema, the corresponding
-## sub-block must be defined in addition to the schema-neutral [infosys/cluster] 
+## sub-block must be defined in addition to the schema-neutral [infosys/cluster]
 ## and [queue:name] blocks!
 ## Comment out a specific schema block if you don't want to publish a specific
 ## information schema representation.
@@ -2312,7 +2007,7 @@
 ## Enables the publication of the NorduGrid information model in
 ## the LDAP-based infosys. See the NORDUGRID-TECH-4 for schema definition.
 ## The configuration block does not contain any parameter. The information tree
-## is populated based on the contents of the schema-neutral [infosys/cluster] 
+## is populated based on the contents of the schema-neutral [infosys/cluster]
 ## and [queue:name] blocks.
 #[infosys/nordugrid]
 ## CHANGE: NEW block in 6.0.0.
@@ -2324,7 +2019,7 @@
 ### The [infosys/glue2] schema sub-block ###########################
 ## Enables the publication of the GLUE2 information model both in the LDAP and
 ## XML rendering.
-## The information tree is populated based on the contents of the schema-neutral 
+## The information tree is populated based on the contents of the schema-neutral
 ## [infosys/cluster] and [queue:name] blocks and the GLUE2 specific schema sub-blocks.
 #[infosys/glue2]
 ## CHANGE: NEW block in 6.0.0.
@@ -2418,15 +2113,15 @@
 #cpu_scaling_reference_si00=2400
 
 ## processor_other_description = string - GLUE1 proc description
-## The text entered under this option is copied "as in" in the glue1 
+## The text entered under this option is copied "as in" in the glue1
 ## rendering of GlueHostProcessorOtherDescription.
 ## Cores is used to calculate the number of physical processors for
 ##    GlueSubClusterPhysicalCPUs
-## The Benchmark value entered here is ignored by the rest 
+## The Benchmark value entered here is ignored by the rest
 ## of ARC configuration. It will NOT be used for accounting.
 ## Note that in ARC > 6.3 the proper way of configuring benchmark for both
 ## infosys and accounting is by adding it to the [queue:name] blocks.
-## This generic string is kept here for backward compatibility, 
+## This generic string is kept here for backward compatibility,
 ## and most likely will not work as expected (or as used by CREAM).
 ## default: undefined
 #processor_other_description=Cores=3,Benchmark=9.8-HEP-SPEC06
@@ -2448,9 +2143,9 @@
 ## the LDAP server. This block is used to configure ARC to generate a
 ## semi-fake site-bdii that can be registered in GOCDB.
 ## The default will generate an object that you can reference in GOCDB GIIS field as such:
-##      ldap://archost.domain:2135/mds-vo-name=<unique-site-id>,o=grid 
+##      ldap://archost.domain:2135/mds-vo-name=<unique-site-id>,o=grid
 ##      Example: ldap://archost.domain:2135/mds-vo-name=NDGF-T1,o=grid
-## Since the original site-bdii listens on port 2170, you may want to port forward 
+## Since the original site-bdii listens on port 2170, you may want to port forward
 ## 2170 to 2135 in your firewall, but it is not a requirement.
 ## This fake site bdii is only good if you have a single ARC as a service in your organization.
 ## It cannot aggregate any information like the real site-bdii does.
@@ -2459,19 +2154,19 @@
 ## GOCDB checks against this fake-site-bdii should be disabled as it is not fully compliant with
 ## the site-bdii specification. They will fail if enabled.
 #[infosys/glue1/site-bdii]
-## CHANGE: RENAMED block in 6.0.0. 
+## CHANGE: RENAMED block in 6.0.0.
 
 ## *unique_id = id - The unique id used to identify this site, eg "NDGF-T1"
 ## default: undefined
 #unique_id=NDGF-T1
 
-## *url = url - This url is the insertion point in the arc Glue1 ldif tree 
-## for the semi-fake site-bdii ldap object. 
-## The content of the ldap object is mainly generated from the data in the 
-## [infosys/glue1] block. 
+## *url = url - This url is the insertion point in the arc Glue1 ldif tree
+## for the semi-fake site-bdii ldap object.
+## The content of the ldap object is mainly generated from the data in the
+## [infosys/glue1] block.
 ## The url format is ldap://host.domain:ldapport/basedn
 ##          Example: ldap://host.domain:2135/o=grid
-## The generated site-bdii information will be attached under the basedn, 
+## The generated site-bdii information will be attached under the basedn,
 ##     in the example for o=grid: mds-vo-name=unique-id,o=grid
 ## In most cases you want to leave the default untouched, unless you know what you're doing.
 ## default: ldap://localhost:2135/o=grid
@@ -2520,7 +2215,7 @@
 #cluster_owner=World Grid Project
 #cluster_owner=University of NeverLand
 
-## advertisedvo = vo_name - (previously authorizedvo) This attribute is used to advertise 
+## advertisedvo = vo_name - (previously authorizedvo) This attribute is used to advertise
 ## which VOs are authorized on the cluster.
 ## Add only one VO for each advertisedvo entry. Multiple VOs in the same line
 ## will cause errors.
@@ -2528,7 +2223,7 @@
 ## objects, that is, they will apply for all Endpoints(Interfaces) and all
 ## Shares(currently queues). You can override the advertisedvos per queue.
 ## The information is also published in the NorduGrid schema.
-## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any 
+## NOTE that it is IMPORTANT to understand that this parameter is NOT enforcing any
 ##   access control, it is just for information publishing!
 ## multivalued
 ## default: undefined
@@ -2572,7 +2267,7 @@
 ## cluster level, arrange your nodes into homogeneous groups assigned to a queue
 ## and use queue-level attributes.
 ## If opsys=adotf, will result in Automatic Determination of the Operating System
-## On The Frontend, which should only be used if the frontend has the same 
+## On The Frontend, which should only be used if the frontend has the same
 ## OS as the nodes.
 ## The adotf discovered values will be used to fill GLUE2 OSName, OSVersion
 ## and OSFamily unless these values are explicitly defined for each queue.
@@ -2641,8 +2336,8 @@
 ##
 
 ## maxcputime = number - This is the maximum CPU time specified in seconds
-## that the LRMS can allocate for the job. The default if not defined 
-## is that infoproviders get this value automatically from the LRMS. 
+## that the LRMS can allocate for the job. The default if not defined
+## is that infoproviders get this value automatically from the LRMS.
 ## The purpose of this option is to tweak and override discovered value,
 ## or publish this value in case the LRMS module do not support automatic
 ## detection.
@@ -2650,28 +2345,28 @@
 #maxcputime=300000
 
 ## mincputime = number - This is the minimum CPU time specified in seconds
-## that the LRMS can allocate for the job. The default if not defined 
-## is that infoproviders get this value automatically from the LRMS. 
+## that the LRMS can allocate for the job. The default if not defined
+## is that infoproviders get this value automatically from the LRMS.
 ## The purpose of this option is to tweak and override discovered value,
 ## or publish this value in case the LRMS module do not support automatic
 ## detection.
 ## default: undefined
 #mincputime=1200
 
-## maxwalltime = number - This is the maximum Wall time specified in 
-## seconds that the LRMS can allocate for the job. The default 
-## if not defined is that infoproviders get this value automatically 
-## from the LRMS. 
+## maxwalltime = number - This is the maximum Wall time specified in
+## seconds that the LRMS can allocate for the job. The default
+## if not defined is that infoproviders get this value automatically
+## from the LRMS.
 ## The purpose of this option is to tweak and override discovered value,
 ## or publish this value in case the LRMS module do not support automatic
 ## detection.
 ## default: undefined
 #maxwalltime=600000
 
-## minwalltime = number - This is the minimum Wall time specified in 
-## seconds that the LRMS can allocate for the job. The default 
-## if not defined is that infoproviders get this value automatically 
-## from the LRMS. 
+## minwalltime = number - This is the minimum Wall time specified in
+## seconds that the LRMS can allocate for the job. The default
+## if not defined is that infoproviders get this value automatically
+## from the LRMS.
 ## The purpose of this option is to tweak and override discovered value,
 ## or publish this value in case the LRMS module do not support automatic
 ## detection.
@@ -2708,15 +2403,15 @@
 ##
 ## Essentially, "pbs_queue_node" value is used to construct "nodes=" string in
 ## PBS script, such as "nodes=count:pbs_queue_node" where "count" is taken from
-## the job description (1 if not specified). 
+## the job description (1 if not specified).
 ##
-## This corresponds to setting the following parameter in PBS for this queue: 
+## This corresponds to setting the following parameter in PBS for this queue:
 ##   resources_default.neednodes = cpu_topology[:pbs_queue_node]
 ##
 ## Setting the "pbs_queue_node" changes how the queue-totalcpus, user freecpus are
 ## determined for this queue.
 ##
-## You shouldn't use this option unless you are sure that your PBS configuration makes 
+## You shouldn't use this option unless you are sure that your PBS configuration makes
 ## use of the above configuration. Read NorduGrid PBS instructions for more information:
 ## http://www.nordugrid.org/documents/pbs-config.html
 ## default: undefined
@@ -2724,7 +2419,7 @@
 #pbs_queue_node=ppn=4:ib
 ## CHANGE: RENAMED in 6.0.0.
 
-## sge_jobopts = string - Per-queue override of additional SGE options to be used when 
+## sge_jobopts = string - Per-queue override of additional SGE options to be used when
 ## submitting jobs to SGE to this queue
 ## default: undefined
 #sge_jobopts=-P atlas -r yes
@@ -2736,7 +2431,7 @@
 ## reference pre-defined ClassAd attributes (like Memory, Opsys, Arch, HasJava,
 ## etc) but also custom ClassAd attributes.  To define a custom attribute on a
 ## condor node, just add two lines like the ones below in the "$(hostname).local"
-## config file on the node: 
+## config file on the node:
 ##   NORDUGRID_RESOURCE=TRUE
 ##   STARTD_EXPRS = NORDUGRID_RESOURCE, $(STARTD_EXPRS)
 ## A job submitted to this queue is allowed to run on any node which satisfies
@@ -2763,8 +2458,8 @@
 ## queue-level configuration parameters: nodecpu, nodememory, architecture, opsys
 ## should be set if they are homogeneous over the nodes assigned
 ## to the queue AND they are different from the cluster-level value.
-## Their meanings are described in the [infosys/cluster] block. 
-## Usage: this queue collects nodes with "nodememory=512" while another queue has nodes 
+## Their meanings are described in the [infosys/cluster] block.
+## Usage: this queue collects nodes with "nodememory=512" while another queue has nodes
 ## with "nodememory=256" -> don't set the cluster attributes but use the queue-level
 ## attributes. When the frontend's architecture or cputype agrees with the queue
 ## nodes, the "adotf" (Automatically Determine On The Frontend) can be used to
@@ -2793,7 +2488,7 @@
 #architecture=adotf
 
 ## opsys = formatted_string - see description at [infosys/cluster] block
-## If osname, osversion are present, the values in opsys are ignored. 
+## If osname, osversion are present, the values in opsys are ignored.
 ## multivalued
 ## default: $VAR{[infosys/cluster]opsys}
 #opsys=Linux-2.6.18
@@ -2836,11 +2531,11 @@
 #benchmark=Si2k 3065
 ## CHANGE: MODIFIED IN 6.4.0.
 
-## allowaccess = authgroup - (previously groupcfg) Defines that the specified authgroup members 
-## are authorized to submit jobs to this queue of ARC-CE after the user already granted access to the CE via one of the interfaces. 
+## allowaccess = authgroup - (previously groupcfg) Defines that the specified authgroup members
+## are authorized to submit jobs to this queue of ARC-CE after the user already granted access to the CE via one of the interfaces.
 ## A related config option the "denyaccess" (see below) can be used to deny submission to the queue.
 ## Multiple "allowaccess" and "denyaccess" authorization statements are allowed within a configuration block.
-## These statements are processed sequentially in the order they are specified in the 
+## These statements are processed sequentially in the order they are specified in the
 ## config block. The processing stops on first "allowaccess" or "denyaccess" statement matching the authgroup membership.
 ## If there are no authorization statements specified, then the queue is accessible by everyone already authorized.
 ## default: undefined
@@ -2848,18 +2543,18 @@
 #allowaccess=biousers
 #allowaccess=atlasusers
 
-## denyaccess = authgroup - Defines that the specified authgroup members 
-## are NOT allowed to submit jobs to this queue of ARC-CE after despite the user is already granted access to the CE via one of the interfaces. 
+## denyaccess = authgroup - Defines that the specified authgroup members
+## are NOT allowed to submit jobs to this queue of ARC-CE after despite the user is already granted access to the CE via one of the interfaces.
 ## A related config option the "allowaccess" (see below) can be used to grant job submission to the queue.
 ## Multiple "allowaccess" and "denyaccess" authorization statements are allowed within a configuration block.
-## These statements are processed sequentially in the order they are specified in the 
+## These statements are processed sequentially in the order they are specified in the
 ## config block. The processing stops on first "allowaccess" or "denyaccess" statement matching the authgroup membership.
 ## If there are no authorization statements specified, then the queue is accessible by everyone already authorized.
 ## default: undefined
 ## multivalued
 #denyaccess=blacklisted-for-the-queue
 
-## advertisedvo = vo_name - (previously authorizedvo) This attribute is used to advertise 
+## advertisedvo = vo_name - (previously authorizedvo) This attribute is used to advertise
 ## which VOs are authorized on the [queue:name] of the cluster.
 ## Add only one VO for each advertiseddvo entry. Multiple VOs in the same line
 ## will cause errors.
@@ -2894,22 +2589,22 @@
 ## CHANGE: documented in [queue] as described in [arex].
 ##
 ##
-## maxcputime = number - This value overrides the one defined in 
+## maxcputime = number - This value overrides the one defined in
 ## the [infosys/cluster] block. See description in that block.
 ## default: undefined
 #maxcputime=300000
 
-## mincputime = number - This value overrides the one defined in 
+## mincputime = number - This value overrides the one defined in
 ## the [infosys/cluster] block. See description in that block.
 ## default: undefined
 #mincputime=1200
 
-## maxwalltime = number - This value overrides the one defined in 
+## maxwalltime = number - This value overrides the one defined in
 ## the [infosys/cluster] block. See description in that block.
 ## default: undefined
 #maxwalltime=600000
 
-## minwalltime = number - This value overrides the one defined in 
+## minwalltime = number - This value overrides the one defined in
 ## the [infosys/cluster] block. See description in that block.
 ## default: undefined
 #minwalltime=1800
@@ -2918,18 +2613,18 @@
 
 ### The [datadelivery-service] block ###############################
 ## This block configures and enables the data delivery service. This service is intended to off-load
-## data-staging from A-REX and usually deployed on one or more separate machines. 
+## data-staging from A-REX and usually deployed on one or more separate machines.
 ##
-## This service can also act as an independent data transfers service that case it would require 
+## This service can also act as an independent data transfers service that case it would require
 ## an inteligent data manager that could replace A-REX's intelligence.
-##  
+##
 #[datadelivery-service]
 ## CHANGE: NEW block in 6.0.0.
 
-## *transfer_dir = path - (previously allowed_dir) The directori(es) on the DDS host in which 
-## the service is allowed to read and write. 
+## *transfer_dir = path - (previously allowed_dir) The directori(es) on the DDS host in which
+## the service is allowed to read and write.
 ## When DDS is used as a remote transfer service assisting A-REX then this is usually
-## one or more cache and/or session directories shared as a common mount with A-REX. 
+## one or more cache and/or session directories shared as a common mount with A-REX.
 ## multivalued
 ## default: undefined
 #transfer_dir=/shared/arc/cache
@@ -2963,13 +2658,13 @@
 #loglevel=4
 ## CHANGE: NEW in 6.0.0.
 
-## user = username - Overwrites the user under which the service runs. The default is the user 
-## starting the service. DDS is very limited if not run as root. 
+## user = username - Overwrites the user under which the service runs. The default is the user
+## starting the service. DDS is very limited if not run as root.
 ## default: undefined
 #user=ddsuser
 ## CHANGE: NEW in 6.0.0.
 
-## secure = yes/no - Set to "no" if the service should run without a host certificate. In this case 
+## secure = yes/no - Set to "no" if the service should run without a host certificate. In this case
 ## the corresponding deliveryservice option in the [arex/data-staging] A-REX configuration block
 ## should use http rather than https URLs.
 ## allowedvalues: yes no
@@ -3012,110 +2707,6 @@
 ##
 ##
 ### end of the [datadelivery-service] block ##############
-
-
-### The [acix-scanner] (previously [acix/cacheserver]) block ##########
-## The ARC Cache Index (ACIX) is a distributed system that maintains
-## a catalog of locations of cached files stored in various A-REX caches.
-## ACIX consists of two components, the Cache Scanner (on the CEs), and the Index Server.
-##
-## This config block enables and configures the cache scanner component of ACIX.
-## The scanning component of ACIX is a separate service that runs alongside A-REX/DDS and all it needs
-## from A-REX/DDS service is the location of the cache. 
-##
-## The acix-scanner periodically scans the cache directories and composes a Bloom
-## filter of A-REX cache content which can be pulled via its public interface.
-## In the current deployment the ACIX index services are the main consumers of the collected information.
- 
-#[acix-scanner]
-## CHANGE: RENAMED block, RENAMED component in 6.0.0 (cache scanner, instead of cacheserver)
-
-## cachedir = cache_path  - Specifies the cache directory to be scanned in case not set in 
-## [arex/cache] block (e.g. the scanner is running on a different machine then A-REX)
-## multivalued
-## default: $VAR{[arex/cache]cachedir}
-#cachedir=/scratch/cache
-#cachedir=/fs1/cache drain
-
-## logfile = path -  Log file location for the acix-scanner.
-## default: /var/log/arc/arc-acix-scanner.log
-#logfile=/tmp/arc-acix-scanner.log
-## CHANGE: MODIFIED default for the logfile.
-
-## hostname = string - Hostname on which the acix-scanner listens
-## default: $EXEC{hostname -f}
-#hostname=myhost.org
-
-## port = port - Port on which the acix-scanner service listens
-## default: 5443
-#port=6000
-
-## cachedump = yes/no - Whether to make a dump of the list of files on the cache at
-## $TMP/ARC-ACIX/timestamp each time the acix-scanner runs.
-## default: no
-## allowedvalues: yes no
-#cachedump=yes
-
-### X509 related parameters
-## x509_host_key = path - Optional parameter to overwrite [common] block values.
-## default: $VAR{[common]x509_host_key}
-#x509_host_key=/etc/grid-security/hostkey.pem
-## CHANGE: NEW in this block from 6.0.0.
-
-## x509_host_cert = path - Optional parameter to overwrite [common] block values.
-## default: $VAR{[common]x509_host_cert}
-#x509_host_cert=/etc/grid-security/hostcert.pem
-## CHANGE: NEW in this block from 6.0.0.
-
-## x509_cert_dir = path - Optional parameter to overwrite [common] block values.
-## default: $VAR{[common]x509_cert_dir}
-#x509_cert_dir=/etc/grid-security/certificates
-## CHANGE: NEW in this block from 6.0.0.
-##
-##
-### end of the [acix-scanner] block ############################
-
-
-### The [acix-index] (previously [acix/indexserver]) block #################################
-## The ARC Cache Index (ACIX) is a distributed system that maintains
-## a catalog of locations of cached files stored in various A-REX caches.
-## ACIX consists of two components, the Cache Scanner (on the CEs), and the Index Server.
-## This config block enables and configures the index server component of ACIX.
-##
-## The index server component of ACIX collects cache content filters generated by a set of 
-## acix-scanners and maintains an aggregated view of distributed cache contents.
-##
-## The acix-index server is deployed separately and can be queried for the location of cached files.
-## The service endpoint is https://hostname:6443/data/index and a query is
-## performed via giving the URLs to check as comma-separated values to the "url" option, e.g.:
-## "index_service_endpoint?url=http://www.nordugrid.org:80/data/echo.sh,http://my.host/data1"
-#[acix-index]
-
-## *cachescanner = url - (previously cacheserver) ACIX cache scanners from which to pull information
-## multivalued
-## default: undefined
-#cachescanner=https://some.host:5443/data/cache
-#cachescanner=https://another.host:5443/data/cache
-## CHANGE: RENAMED in 6.0.0.
-
-### X509 related parameters
-## x509_host_key = path - Optional parameter to overwrite [common] block values.
-## default: $VAR{[common]x509_host_key}
-#x509_host_key=/etc/grid-security/hostkey.pem
-## CHANGE: NEW in this block from 6.0.0.
-
-## x509_host_cert = path - Optional parameter to overwrite [common] block values.
-## default: $VAR{[common]x509_host_cert}
-#x509_host_cert=/etc/grid-security/hostcert.pem
-## CHANGE: NEW in this block from 6.0.0.
-
-## x509_cert_dir = path - Optional parameter to overwrite [common] block values.
-## default: $VAR{[common]x509_cert_dir}
-#x509_cert_dir=/etc/grid-security/certificates
-## CHANGE: NEW in this block from 6.0.0.
-##
-## 
-### end of the [acix-index] block ############################
 
 
 ### The [userlist:name] (previously [vo]) blocks ################################
@@ -3169,10 +2760,10 @@
 ## between [userlist/name] blocks, but using "userlist://" is a recommended way.
 ##
 ## For each separate source URL it is possible to override some parameters
-## value. You can use the following syntax to perform this: 
+## value. You can use the following syntax to perform this:
 ##    "source=URL < parameter1=value1 parameter2=value2"
 ## You can override the following parameters:
-##    "mapped_unixid"       
+##    "mapped_unixid"
 ##        for http(s),voms(s),ldap and file URLs
 ##    "cache_enable"
 ##        for http(s),voms(s),ldap and file URLs
@@ -3205,13 +2796,13 @@
 ##         does not already has mapping information
 ##
 ## If the "mapped_unixid" config parameter is not specified or has empty value,
-## then behavior depends on the value of "allow_empty_unixid" from the 
+## then behavior depends on the value of "allow_empty_unixid" from the
 ## [nordugridmap] block:
 ##    "allow_empty_unixid = yes"
-##         empty value will be used for "mapped_unixid" which means that 
-##         nordugridmap will generate only the list of DNs without mapping 
+##         empty value will be used for "mapped_unixid" which means that
+##         nordugridmap will generate only the list of DNs without mapping
 ##         (consider using "mapuser_processing = overwrite" along with this
-##         option or sources that does not provide previously defined mapping 
+##         option or sources that does not provide previously defined mapping
 ##         information)
 ##    "allow_empty_unixid = no"
 ##         then nordugridmap will skip users without mapping information
@@ -3294,7 +2885,7 @@
 #gridmap_permissions=0600
 
 ## log_to_file = yes/no - control whether logging output of nordugridmap
-## will be saved to file. If the value is 'no' nordugridmap will write all 
+## will be saved to file. If the value is 'no' nordugridmap will write all
 ## information to STDERR.
 ## allowedvalues: yes no
 ## default: yes
@@ -3319,7 +2910,7 @@
 #cachetime=259200
 
 ## mapuser_processing = owerwrite/keep - Controls the behavior of [userlist:name] block's mapped_unixid
-## parameter usage. 
+## parameter usage.
 ## Please see 'mapped_unixid' description in [userlist:name] block for details.
 ## allowedvalues: keep overwrite
 ## default: keep
