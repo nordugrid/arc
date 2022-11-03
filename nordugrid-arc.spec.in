@@ -454,6 +454,8 @@ It is released as a technology preview.
 Summary:	ARC base plugins
 Group:		System Environment/Libraries
 Requires:	%{name} = %{version}-%{release}
+Provides:	%{name}-plugins-arcrest = %{version}-%{release}
+Obsoletes:	%{name}-plugins-arcrest < 7.0.0
 
 %description plugins-needed
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -616,18 +618,6 @@ Connector (ARC).
 
 The ARC internal plugin. A special interface aimed for restrictive HPC
 sites, to be used with a local installation of the ARC Control Tower.
-
-%package plugins-arcrest
-Summary:	ARC REST plugin
-Group:		System Environment/Libraries
-Requires:	%{name} = %{version}-%{release}
-
-%description plugins-arcrest
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the middleware, known as the Advanced Resource
-Connector (ARC).
-
-ARC plugin for ARC REST interface technology preview.
 
 %package plugins-python
 Summary:	ARC Python dependent plugin
@@ -1212,6 +1202,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %dir %{_libdir}/%{pkgdir}/test
 %{_libdir}/%{pkgdir}/test/libaccTEST.so
+%{_libdir}/%{pkgdir}/libaccARCREST.so
 %{_libdir}/%{pkgdir}/libaccBroker.so
 %{_libdir}/%{pkgdir}/libaccEMIES.so
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.so
@@ -1233,6 +1224,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libmcctcp.so
 %{_libdir}/%{pkgdir}/libmcctls.so
 %{_libdir}/%{pkgdir}/test/libaccTEST.apd
+%{_libdir}/%{pkgdir}/libaccARCREST.apd
 %{_libdir}/%{pkgdir}/libaccBroker.apd
 %{_libdir}/%{pkgdir}/libaccEMIES.apd
 %{_libdir}/%{pkgdir}/libaccJobDescriptionParser.apd
@@ -1315,11 +1307,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %{_libdir}/%{pkgdir}/libaccINTERNAL.so
 %{_libdir}/%{pkgdir}/libaccINTERNAL.apd
-
-%files plugins-arcrest
-%defattr(-,root,root,-)
-%{_libdir}/%{pkgdir}/libaccARCREST.so
-%{_libdir}/%{pkgdir}/libaccARCREST.apd
 
 %files plugins-python
 %defattr(-,root,root,-)

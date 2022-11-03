@@ -295,6 +295,12 @@ Description: ARC Community defined RTEs support
 
 Package: nordugrid-arc-plugins-needed
 Architecture: any
+Provides:
+ nordugrid-arc-plugins-arcrest
+Replaces:
+ nordugrid-arc-plugins-arcrest (<< 7.0.0~)
+Conflifts:
+ nordugrid-arc-plugins-arcrest (<< 7.0.0~)
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
@@ -435,19 +441,6 @@ Description: ARC internal plugin
  .
  The ARC internal plugin. A special interface aimed for restrictive HPC
  sites, to be used with a local installation of the ARC Control Tower.
-
-Package: nordugrid-arc-plugins-arcrest
-Architecture: any
-Depends:
- ${shlibs:Depends},
- ${misc:Depends},
- libarccommon3 (= ${binary:Version})
-Description: ARC REST plugin
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the middleware, known as the Advanced Resource
- Connector (ARC).
- .
- ARC plugin for ARC REST interface technology preview.
 
 Package: nordugrid-arc-plugins-python
 Replaces:
