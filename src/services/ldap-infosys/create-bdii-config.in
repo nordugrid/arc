@@ -177,95 +177,16 @@ mkdir -p $bdii_log_dir
 chown -R ${bdii_user}: ${bdii_log_dir}
 
 if ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/nordugrid || \
-   ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1 || \
    ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue2/ldap; then
    if [ ! -f "$ARC_LOCATION/@pkgdatasubdir@/InfosysHelper.pm" ]; then
 	  log_failure_msg "InfosysHelper.pm not found. Is A-REX installed?"
 	  echo "For operation without A-REX, disable publishing of cluster information"
-	  echo "([infosys/nordugrid], [infosys/glue1] and [infosys/glue2/ldap])"
+	  echo "([infosys/nordugrid] and [infosys/glue2/ldap])"
 	  exit 1
    fi
 fi
 
 BDII_CONF=${CONFIG_bdii_conf:-${infosys_ldap_run_dir}/bdii.conf}
-
-resource_location=""
-resource_latitude=""
-resource_longitude=""
-cpuscalingreferencesi00=""
-processorotherdescription=""
-gluesiteweb=""
-gluesiteuniqueid=""
-
-if ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1; then
-
-    eval $(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1 -e bash)
-
-    resource_location=${CONFIG_resource_location}
-    resource_latitude=${CONFIG_resource_latitude}
-    resource_longitude=${CONFIG_resource_longitude}
-    cpuscalingreferencesi00=${CONFIG_cpu_scaling_reference_si00}
-    processorotherdescription=${CONFIG_processor_other_description}
-    gluesiteweb=${CONFIG_glue_site_web}
-    gluesiteuniqueid=${CONFIG_glue_site_unique_id}
-
-    if ${arcconfig_parser}  --load -r ${ARC_RUNCONFIG} -b infosys/glue1/site-bdii ; then
-	provide_glue_site_info="true"
-    else
-	provide_glue_site_info="false"
-    fi
-
-    if [ "x$resource_location" = "x" ]; then
-	log_failure_msg "If [infosys/glue1] is enabled, then resource_location must be set."
-	echo "It should be set to a free-form string describing the location,"
-	echo "for example: 'Kastrup, Denmark'"
-	exit 1
-    fi
-    if [[ "x$resource_location" =~ "/" ]]; then
-	log_failure_msg "Wrong location format. Please do NOT use slashes / ."
-	echo "It should be set to a free-form string describing the location,"
-	echo "for example: 'Kastrup, Denmark'"
-	exit 1
-    fi
-    if [ "x$resource_latitude" = "x" ]; then
-	log_failure_msg "If [infosys/glue1] is enabled, then resource_latitude must be set."
-	echo "It should be set to the latitude for the location,"
-	echo "for example: '55.75000'"
-	exit 1
-    fi
-    if [ "x$resource_longitude" = "x" ]; then
-	log_failure_msg "If [infosys/glue1] is enabled, then resource_longitude must be set."
-	echo "It should be set to the longitude for the location,"
-	echo "for example: '12.41670'"
-	exit 1
-    fi
-    if [ "x$cpuscalingreferencesi00" = "x" ]; then
-	log_failure_msg "If [infosys/glue1] is enabled, then cpu_scaling_reference_si00 must be set."
-	echo "It should be set to the SI00 value,"
-	echo "for example: '2400'"
-	exit 1
-    fi
-    if [ "x$processorotherdescription" = "x" ]; then
-	log_failure_msg "If [infosys/glue1] is enabled, then processor_other_description must be set."
-	echo "It should be set to a value like in the example,where cores is the average number"
-	echo "of cores in the machine"
-	echo "for example: 'Cores=3,Benchmark=9.8-HEP-SPEC06'"
-	exit 1
-    fi
-    if [ "x$gluesiteweb" = "x" ]; then
-	log_failure_msg "If [infosys/glue1] is enabled, then glue_site_web must be set."
-	echo "It should be set to a url for the website belonging to the institution holding the resource,"
-	echo "for example: 'http://www.ndgf.org'"
-	exit 1
-    fi
-    if [ "x$gluesiteuniqueid" = "x" ]; then
-	log_failure_msg "If [infosys/glue1] is enabled, then glue_site_unique_id must be set."
-	echo "It should be set to a unique id to the resource, this should be entered into the GocDb"
-	echo "for example: 'NDGF-T1'"
-	exit 1
-    fi
-fi
-
 
 # Create directories for storing temporary scripts and check permissions etc
 mkdir -p $bdii_var_dir
@@ -348,7 +269,6 @@ ldif_generator_file=${bdii_tmp_dir}/provider/arc-nordugrid-bdii-ldif
 rm -f ${ldif_generator_file}
 touch ${ldif_generator_file}
 
-ldif_glue1_generator=${infosys_ldap_run_dir}/arc-glue-bdii-ldif
 ldif_script=${infosys_ldap_run_dir}/ldif-provider.sh
 
 cat <<-EOF > ${ldif_generator_file}
@@ -371,56 +291,7 @@ if ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/nordugrid || \
    echo "system('$ldif_script');" >> ${ldif_generator_file}
 fi
 
-if ${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1; then
-	ldif_generator_file_ng=${bdii_tmp_dir}/provider/arc-nordugrid-bdii-ldif
-	ldif_generator_file_glue=${bdii_tmp_dir}/provider/arc-glue-bdii-ldif
-
-	rm -f ${ldif_generator_file_glue}
-	touch ${ldif_generator_file_glue}
-
-	# We use , instead of / here to allow for / in path
-	# resource_location though, can contain commas..
-	sed "s,\$LDIF_GENERATOR_FILE_NG,$ldif_generator_file_ng,g;
-	 s/\$LOC/\"$resource_location\"/g;
-	 s/\$LAT/$resource_latitude/g;
-	 s/\$LONG/$resource_longitude/g;
-	 s/\$CPUSCALINGREFERENCESI00/$cpuscalingreferencesi00/g;
-	 s/\$PROCESSOROTHERDESCRIPTION/$processorotherdescription/g;
-	 s,\$GLUESITEWEB,$gluesiteweb,g;
-	 s,\$BDIIPORT,$bdii_port,g;
-	 s,\$GLUESITEUNIQUEID,$gluesiteuniqueid,g;
-	 s,\$PROVIDE_GLUE_SITE_INFO,$provide_glue_site_info,g;
-	" $ARC_LOCATION/@pkgdatasubdir@/glue-generator.pl > ${ldif_generator_file_glue}
-
-	chmod +x ${ldif_generator_file_glue}
-
-	echo "system('$ldif_glue1_generator');" >> ${ldif_generator_file}
-fi
-
 chmod +x ${ldif_generator_file}
-
-
-# Site BDII
-
-if [ "x$provide_glue_site_info" == "xtrue" ]; then
-	eval $(${arcconfig_parser} --load -r ${ARC_RUNCONFIG} -b infosys/glue1/site-bdii -e bash)
-	unique_id=${CONFIG_unique_id}
-	url=${CONFIG_url}
-    if [ -z "$unique_id" -o -z "$url" ]; then
-        log_failure_msg "Mandaroty options 'unique_id' and 'url' should be configured for Site-BDII."
-        exit 1
-    fi
-	site_config="${bdii_tmp_dir}/${unique_id}.conf"
-	site_provider="$bdii_provider_dir/site_${unique_id}.sh"
-	echo "$unique_id $url" > "$site_config"
-	# Create script and make glite provider use arc directories
-	cat <<-EOF > $site_provider
-		#!/bin/sh
-		export GLITE_LOCATION_VAR=${bdii_tmp_dir}
-		$ARC_LOCATION/@pkgdatasubdir@/glite-info-provider-ldap -m "$unique_id" -c $site_config
-		EOF
-	chmod +x $site_provider
-fi
 
 # Helper script to start BDII Update switching to BDII user
 if [ -x /sbin/runuser ]; then

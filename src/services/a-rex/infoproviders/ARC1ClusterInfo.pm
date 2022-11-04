@@ -819,7 +819,7 @@ sub collect($) {
     # generate one additional share for each VO.
     #
     # TODO: refactorize this to apply to cluster and queue VOs
-    # with a single subroutine, might be handy for glue1 rendering
+    # with a single subroutine
     #
     ## for each share(queue)
     for my $currentshare (@allshares) { 
@@ -1100,7 +1100,6 @@ sub collect($) {
     # defaults now set in ConfigCentral
     my $ldaphostport = "ldap://$hostname:$config->{infosys}{ldap}{port}/" if ($config->{infosys}{ldap}{enabled});
     my $ldapngendpoint = '';
-    my $ldapglue1endpoint = '';
     my $ldapglue2endpoint = '';
 
     my $gridftphostport = '';
@@ -1217,14 +1216,7 @@ sub collect($) {
         $ldapngendpoint = $ldaphostport."Mds-Vo-Name=local,o=grid";
         $epscapabilities->{'org.nordugrid.ldapng'} = [ 'information.discovery.resource' ];
     }
-    
-    # ldapglue1
-    if ( $config->{infosys}{glue1}{enabled} ) {
-        $csvendpointsnum++;
-        $ldapglue1endpoint = $ldaphostport."Mds-Vo-Name=resource,o=grid";
-        $epscapabilities->{'org.nordugrid.ldapglue1'} = [ 'information.discovery.resource' ];
-    }
-    
+
     # ldapglue2
     if ( $config->{infosys}{glue2}{ldap}{enabled} ) {
         $csvendpointsnum++;
@@ -2621,76 +2613,6 @@ sub collect($) {
         };
         
         $arexceps->{LDAPNGEndpoint} = $getArisLdapNGEndpoint if $ldapngendpoint ne '';
-
-        my $getArisLdapGlue1Endpoint = sub {
-
-            my $ep = {};
-
-            $ep->{CreationTime} = $creation_time;
-            $ep->{Validity} = $validity_ttl;
-
-            # Name not necessary -- why? plan was to have it configurable.
-            $ep->{Name} = "ARC CE ARIS LDAP Glue 1.2/1.3 Local Information System";
-
-            # Configuration parser does not contain ldap port!
-            # must be updated
-            # port hardcoded for tests 
-            $ep->{URL} = $ldapglue1endpoint;
-            $ep->{ID} = "$ARISepIDp:ldapglue1:$config->{infosys}{ldap}{port}";
-            $ep->{Capability} = $epscapabilities->{'org.nordugrid.ldapglue1'};
-            $ep->{Technology} = 'ldap';
-            $ep->{InterfaceName} = 'org.nordugrid.ldapglue1';
-            $ep->{InterfaceVersion} = [ '1.0' ];
-            # Wrong type, should be URI
-            #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-            #              ];
-            $ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
-            $ep->{Implementor} = "NorduGrid";
-            $ep->{ImplementationName} = "nordugrid-arc";
-            $ep->{ImplementationVersion} = $config->{arcversion};
-
-            $ep->{QualityLevel} = "production";
-
-            my %healthissues;
-
-            # check health status by using port probe in hostinfo
-            my $ldapport = $config->{infosys}{ldap}{port} if defined $config->{infosys}{ldap}{port};
-            if (defined $host_info->{ports}{slapd}{$ldapport} and @{$host_info->{ports}{slapd}{$ldapport}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{slapd}{$ldapport}}[0]}} , @{$host_info->{ports}{slapd}{$ldapport}}[1];
-            }
-
-            if (%healthissues) {
-            my @infos;
-            for my $level (qw(critical warning other)) {
-                next unless $healthissues{$level};
-                $ep->{HealthState} ||= $level;
-                push @infos, @{$healthissues{$level}};
-            }
-            $ep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-            $ep->{HealthState} = 'ok';
-            }
-
-            $ep->{ServingState} = 'production';
-
-            # TODO: StartTime: get it from hed?
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            # AccessPolicies
-            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
-            
-            $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-                   
-            # Associations
-
-            $ep->{ComputingServiceID} = $csvID;
-
-            return $ep;
-        };
-        
-        $arexceps->{LDAPGLUE1Endpoint} = $getArisLdapGlue1Endpoint if $ldapglue1endpoint ne '';
 
         my $getArisLdapGlue2Endpoint = sub {
 
