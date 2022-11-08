@@ -1047,8 +1047,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %endif
 %{_datadir}/%{pkgdir}/create-bdii-config
 %{_datadir}/%{pkgdir}/create-slapd-config
-%{_datadir}/%{pkgdir}/glue-generator.pl
-%{_datadir}/%{pkgdir}/glite-info-provider-ldap
 %{_datadir}/%{pkgdir}/ldap-schema
 %config(noreplace) %{_sysconfdir}/logrotate.d/%{name}-infosys-ldap
 %endif

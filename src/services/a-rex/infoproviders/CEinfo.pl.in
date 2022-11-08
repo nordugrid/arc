@@ -322,7 +322,7 @@ sub main {
            $log->warning("Failed to create ldif generator script for LDAP information system");
         }
     } else {
-        $log->verbose("LDAP/LDIF information generation is disabled. To enable it, enable [infosys/ldap] AND one of the blocks [infosys/nordugrid], [infosys/glue1], [infosys/glue2/ldap]");
+        $log->verbose("LDAP/LDIF information generation is disabled. To enable it, enable [infosys/ldap] AND one of the blocks [infosys/nordugrid], [infosys/glue2/ldap]");
     }
 
     $log->info("############## A-REX infoprovider finished ##############");

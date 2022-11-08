@@ -78,10 +78,6 @@ Files: src/hed/libs/data/cache-clean
 Copyright: 2008 Niklas Edmundsson, Tomas Ögren, David Cameron
 License: Apache-2.0
 
-Files: src/services/a-rex/infoproviders/glite-info-provider-ldap
-Copyright: Members of the EGEE Collaboration 2004
-License: Apache-2.0
-
 Files: src/external/cJSON/cJSON.c src/external/cJSON/cJSON.h
 Copyright: 2009 Dave Gamble
 License: MIT

@@ -37,8 +37,8 @@
 ##  [infosys/nordugrid]
 ##  [infosys/glue2]
 ##  [infosys/glue2/ldap]
-##  [infosys/glue1]
-##  [infosys/glue1/site-bdii]
+##  [infosys/glue1] (removed in 7.0.0)
+##  [infosys/glue1/site-bdii] (removed in 7.0.0)
 ##  [infosys/cluster]
 ##  [queue:name]
 ##  [datadelivery-service]
@@ -1999,8 +1999,8 @@
 ##  [infosys/nordugrid] - The native ARC info representation of a cluster and its queues
 ##  [infosys/glue2] - The GLUE2 information model, both LDAP and XML (the latter is for WS-interface)
 ##  [infosys/glue2/ldap] - The LDAP rendering of the GLUE2 model
-##  [infosys/glue1] - The legacy GLUE1 model (only LDAP)
-##  [infosys/glue1/site-bdii] - The site BDII element of the GLUE1 legacy model
+##  [infosys/glue1] - The legacy GLUE1 model (only LDAP) (removed in 7.0.0)
+##  [infosys/glue1/site-bdii] - The site BDII element of the GLUE1 legacy model (removed in 7.0.0)
 
 
 ### The [infosys/nordugrid] schema sub-block ###########################
@@ -2084,96 +2084,6 @@
 ##
 ##
 ### end of the [infosys/glue2/ldap] schema sub-block ###########################
-
-
-### The [infosys/glue1] (previously [infosys/glue12]) schema block ##########
-## This block enables the publication of GLUE1 LDAP representation of a CE.
-## The information tree is populated based on the contents of the schema-neutral
-## [infosys/cluster] and [queue:name] blocks and the GLUE1 specific schema sub-blocks.
-## This block holds information that is needed by the glue1, in addition to the
-## schema-neutral blocks.
-#[infosys/glue1]
-## CHANGE: RENAMED block in 6.0.0.
-
-## resource_location = string - GLUE1 location attribute.
-## IMPORTANT: no slashes or backslashes here!
-## default: undefined
-#resource_location=Kastrup, Denmark
-
-## resource_latitude = latitude - GLUE1 latitude.
-## default: undefined
-#resource_latitude=55.75000
-
-## resource_longitude = longitude - GLUE1 longitude.
-## default: undefined
-#resource_longitude=12.41670
-
-## cpu_scaling_reference_si00 = number - GLUE1 CPU_scaling
-## default: undefined
-#cpu_scaling_reference_si00=2400
-
-## processor_other_description = string - GLUE1 proc description
-## The text entered under this option is copied "as in" in the glue1
-## rendering of GlueHostProcessorOtherDescription.
-## Cores is used to calculate the number of physical processors for
-##    GlueSubClusterPhysicalCPUs
-## The Benchmark value entered here is ignored by the rest
-## of ARC configuration. It will NOT be used for accounting.
-## Note that in ARC > 6.3 the proper way of configuring benchmark for both
-## infosys and accounting is by adding it to the [queue:name] blocks.
-## This generic string is kept here for backward compatibility,
-## and most likely will not work as expected (or as used by CREAM).
-## default: undefined
-#processor_other_description=Cores=3,Benchmark=9.8-HEP-SPEC06
-
-## glue_site_web = url - GLUE1 site web url
-## default: undefined
-#glue_site_web=http://www.ndgf.org
-
-## glue_site_unique_id = siteid - GLUE1 site id
-## default: undefined
-#glue_site_unique_id=NDGF-T1
-##
-##
-### end of the [infosys/glue1] schema block ###########################
-
-
-### The [infosys/glue1/site-bdii] (previously [infosys/site/sitename]) block ################
-## Enable this block ONLY if you want to publish a semi-fake GLUE1 site-bdii as part of
-## the LDAP server. This block is used to configure ARC to generate a
-## semi-fake site-bdii that can be registered in GOCDB.
-## The default will generate an object that you can reference in GOCDB GIIS field as such:
-##      ldap://archost.domain:2135/mds-vo-name=<unique-site-id>,o=grid
-##      Example: ldap://archost.domain:2135/mds-vo-name=NDGF-T1,o=grid
-## Since the original site-bdii listens on port 2170, you may want to port forward
-## 2170 to 2135 in your firewall, but it is not a requirement.
-## This fake site bdii is only good if you have a single ARC as a service in your organization.
-## It cannot aggregate any information like the real site-bdii does.
-## It just presents a partial rendering of a site-bdii that is good enough for top-bdii
-## to pick up the information.
-## GOCDB checks against this fake-site-bdii should be disabled as it is not fully compliant with
-## the site-bdii specification. They will fail if enabled.
-#[infosys/glue1/site-bdii]
-## CHANGE: RENAMED block in 6.0.0.
-
-## *unique_id = id - The unique id used to identify this site, eg "NDGF-T1"
-## default: undefined
-#unique_id=NDGF-T1
-
-## *url = url - This url is the insertion point in the arc Glue1 ldif tree
-## for the semi-fake site-bdii ldap object.
-## The content of the ldap object is mainly generated from the data in the
-## [infosys/glue1] block.
-## The url format is ldap://host.domain:ldapport/basedn
-##          Example: ldap://host.domain:2135/o=grid
-## The generated site-bdii information will be attached under the basedn,
-##     in the example for o=grid: mds-vo-name=unique-id,o=grid
-## In most cases you want to leave the default untouched, unless you know what you're doing.
-## default: ldap://localhost:2135/o=grid
-#url=ldap://host.domain:2135/o=grid
-##
-##
-### end of the [infosys/glue1/site-bdii] block ###################################
 
 ### The [infosys/cluster] block ###################################################
 ## Information schema-neutral blocks [infosys/cluster] and [queue:NAME] contain attributes

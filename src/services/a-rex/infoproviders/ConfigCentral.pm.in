@@ -38,7 +38,6 @@ my $blockdependencies = {
     'infosys/cluster' => ['infosys'],
     'infosys/ldap' => ['infosys'],
     'infosys/nordugrid' => ['infosys/ldap'],
-    'infosys/glue1' => ['infosys/nordugrid'],
     'infosys/glue2' => ['infosys'],
     'infosys/glue2/ldap' => ['infosys/glue2','infosys/ldap'],
 };
@@ -324,9 +323,6 @@ my $config_schema = {
         ldap => { # C141
             %$ldap_infosys_options, # C 141
         },
-        glue1 => {
-            enabled => ''
-            }, # C 161
         glue2 => { # C 156
            %$glue2_options,
            ldap => { # C158
@@ -675,13 +671,6 @@ sub build_config_from_json {
         move_keys $jsonconf->{'infosys/nordugrid'}, $config->{infosys}{nordugrid}, [keys %{$config_schema->{infosys}{nordugrid}}];
     }
 
-    # Glue 1.2/1.3
-    # this is only used to enable rendering here, no need to parse.
-    # glue-generator.pl actually processes that information.
-    if (defined $jsonconf->{'infosys/glue1'}) {
-        $config->{infosys}{glue1} ||= {};
-    }    
-
     ####### GLUE2
     if ( $jsonconf->{'infosys/glue2'}{enabled} ) {
         $config->{infosys}{glue2} ||= {};
@@ -986,7 +975,6 @@ sub set_defaults {
                       'gridftpd',
                       'infosys',
                       'infosys/cluster',
-                      'infosys/glue1',
                       'infosys/glue2',
                       'infosys/glue2/ldap',
                       'infosys/ldap',
