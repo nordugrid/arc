@@ -50,20 +50,6 @@
   create
 }
 
-
-#
-# Extra services coupled with A-REX
-#
-/var/log/arc/nordugridmap.log
-{
-  missingok
-  compress
-  delaycompress
-  daily
-  rotate 14
-  create
-}
-
 #
 # Developer-enabled performance logging
 #

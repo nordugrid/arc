@@ -2160,9 +2160,6 @@ AC_CONFIG_FILES([Makefile
                  src/utils/hed/wsdl2hed.1
                  src/utils/hed/arcplugin.1
                  src/utils/hed/Makefile
-                 src/utils/gridmap/nordugridmap.cron
-                 src/utils/gridmap/nordugridmap.8
-                 src/utils/gridmap/Makefile
                  src/utils/Makefile
                  src/wn/Makefile
                  src/doc/Makefile
