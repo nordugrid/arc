@@ -30,10 +30,6 @@ class ServicesControl(ComponentControl):
             'package': 'arex',
             'service': 'arc-arex-ws'
         },
-        'gridftpd': {
-            'package': 'gridftpd',
-            'service': 'arc-gridftpd'
-        },
         'infosys/ldap': {
             'package': 'infosys-ldap',
             'service': 'arc-infosys-ldap'
@@ -41,10 +37,6 @@ class ServicesControl(ComponentControl):
         'datadelivery-service': {
             'package': 'datadelivery-service',
             'service': 'arc-datadelivery-service'
-        },
-        'nordugridmap': {
-            'package': 'nordugridmap',
-            'service':  None
         }
     }
 

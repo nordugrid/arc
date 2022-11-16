@@ -15,8 +15,7 @@ class Validator(object):
     """Class for validating host setup and arc configuration"""
 
     # List of blocks which have user-defined subblocks
-    __dynamic_blocks = ["userlist",
-                        "authgroup",
+    __dynamic_blocks = ["authgroup",
                         "arex/jura/sgas",
                         "arex/jura/apel",
                         "queue",
@@ -293,10 +292,6 @@ class Validator(object):
         if 'arex/ws/jobs' in config_dict and 'allowaccess' not in config_dict['arex/ws/jobs'] \
           and 'denyaccess' not in config_dict['arex/ws/jobs']:
             self.warning("No allowaccess or denyaccess defined in [arex/ws/jobs]. " \
-                         "Interface will be open for all mapped users")
-        if 'gridftpd/jobs' in config_dict and 'allowaccess' not in config_dict['gridftpd/jobs'] \
-          and 'denyaccess' not in config_dict['gridftpd/jobs']:
-            self.warning("No allowaccess or denyaccess defined in [gridftpd/jobs]. " \
                          "Interface will be open for all mapped users")
 
         # Check lrms name is correct

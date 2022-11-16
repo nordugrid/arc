@@ -59,7 +59,9 @@ Conflicts:
  nordugrid-arc-arex-python-lrms (<< 7.0.0~),
  nordugrid-arc-gridftpd (<< 7.0.0~),
  nordugrid-arc-python (<< 7.0.0~),
- python-nordugrid-arc (<< 7.0.0~)
+ python-nordugrid-arc (<< 7.0.0~),
+ nordugrid-arc-nordugridmap (<< 7.0.0~),
+ nordugrid-arc-gridmap-utils (<< 6.0.0~)
 Breaks:
  nordugrid-arc-hed (<< 1.0.1~rc2~),
  nordugrid-arc-arex (<< 2.0.1~),
@@ -501,31 +503,6 @@ Description: ARC Python 3 wrapper
  Connector (ARC).
  .
  Python 3 bindings for ARC.
-
-Package: nordugrid-arc-nordugridmap
-Provides:
- nordugrid-arc-gridmap-utils
-Replaces:
- nordugrid-arc-gridmap-utils (<< 6.0.0~)
-Conflicts:
- nordugrid-arc-gridmap-utils (<< 6.0.0~)
-Architecture: all
-Depends:
- liblwp-protocol-https-perl,
- libsoap-lite-perl,
- liburi-perl,
- libxml-dom-perl,
- ${perl:Depends},
- ${misc:Depends}
-Recommends:
- cron
-Description: ARC's nordugridmap tool
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the middleware, known as the Advanced Resource
- Connector (ARC).
- .
- A simple tool to fetch list of users and eventually generate gridmap
- files.
 
 Package: nordugrid-arc-test-utils
 Provides:

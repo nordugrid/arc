@@ -319,10 +319,6 @@ class JobsControl(ComponentControl):
         if self.arcconfig.check_blocks('arex/ws'):
             arexws_log = self.__get_config_value('arex/ws', 'logfile', '/var/log/arc/ws-interface.log')
             self._service_log_print(arexws_log, args.jobid)
-        # GridFTP interface logs
-        if self.arcconfig.check_blocks('gridftpd'):
-            gridftpd_log = self.__get_config_value('gridftpd', 'logfile', '/var/log/arc/gridftpd.log')
-            self._service_log_print(gridftpd_log, args.jobid)
         # A-REX jobs log
         arexjob_log = self.__get_config_value('a-rex', 'joblog')
         if arexjob_log is not None:

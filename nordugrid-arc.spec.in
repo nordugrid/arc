@@ -147,6 +147,8 @@ Obsoletes:	%{name}-arex-python-lrms < 7.0.0
 Obsoletes:	%{name}-gridftpd < 7.0.0
 Obsoletes:	python2-%{name} < 7.0.0
 Obsoletes:	%{name}-python < 5.3.3
+Obsoletes:	%{name}-nordugridmap < 7.0.0
+Obsoletes:	%{name}-gridmap-utils < 6.0.0
 %if ! %{with_ldap_service}
 Obsoletes:	%{name}-infosys-ldap < %{version}-%{release}
 Obsoletes:	%{name}-ldap-infosys < 6.0.0
@@ -662,23 +664,6 @@ support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
 Python 3 bindings for ARC.
-
-%package nordugridmap
-Summary:	ARC's nordugridmap tool
-Group:		Applications/Internet
-Requires:	crontabs
-Obsoletes:	%{name}-gridmap-utils < 6.0.0
-%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
-BuildArch:	noarch
-%endif
-
-%description nordugridmap
-NorduGrid is a collaboration aiming at development, maintenance and
-support of the middleware, known as the Advanced Resource
-Connector (ARC).
-
-A simple tool to fetch list of users and eventually generate gridmap
-files.
 
 %package test-utils
 Summary:	ARC test tools
@@ -1329,12 +1314,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/_arc.*so
 %{python3_sitearch}/%{pkgdir}/[^_p]*.py
 %{python3_sitearch}/%{pkgdir}/__pycache__/[^_p]*.*
-
-%files nordugridmap
-%defattr(-,root,root,-)
-%{_sbindir}/nordugridmap
-%config(noreplace) %{_sysconfdir}/cron.d/nordugridmap
-%doc %{_mandir}/man8/nordugridmap.8*
 
 %files test-utils
 %defattr(-,root,root,-)

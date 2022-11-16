@@ -39,7 +39,6 @@ class ConfigControl(ComponentControl):
                 {'description': 'Scratch directory on Worker Node', 'params': ('arex', 'scratchdir')},
                 {'description': 'Cache directories', 'params': ('arex/cache', 'cachedir')},
                 {'description': 'Additional user-defined RTE directories', 'params': ('arex', 'runtimedir')},
-                {'description': 'Gridftpd file storage directory', 'params': ('gridftpd/filedir', 'mount')},
                 {'description': 'DataDelivery Service transfers directories',
                  'params': ('datadelivery-service', 'transfer_dir')},
             ]
@@ -54,11 +53,9 @@ class ConfigControl(ComponentControl):
                 {'description': 'A-REX Cache cleaning log', 'params': ('arex/cache/clean', 'logfile')},
                 {'description': 'A-REX Data Staging central log', 'params': ('arex/data-staging', 'logfile')},
                 {'description': 'Jura Accounting log', 'params': ('arex/jura', 'logfile')},
-                {'description': 'Gridftp Interface log', 'params': ('gridftpd', 'logfile')},
                 {'description': 'Infosys Infoproviders log', 'params': ('infosys', 'logfile')},
                 {'description': 'Infosys LDAP/BDII logs', 'params': ('infosys/ldap', 'bdii_log_dir')},
                 {'description': 'DataDelivery Service log', 'params': ('datadelivery-service', 'logfile')},
-                {'description': 'Nordugridmap log', 'params': ('nordugridmap', 'logfile')},
             ]
         }
     }

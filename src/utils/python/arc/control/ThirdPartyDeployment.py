@@ -425,19 +425,6 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             globus_udp_ports = self.arcconfig.get_value('globus_udp_port_range', ['arex/data-staging', 'common'])
             self.__globus_port_range(globus_tcp_ports, 'TCP', data_staging_globus_tcp_ports, iptables_config)
             self.__globus_port_range(globus_udp_ports, 'UDP', data_staging_globus_udp_ports, iptables_config)
-        # gridftpd
-        if self.arcconfig.check_blocks('gridftpd'):
-            port = self.arcconfig.get_value('port', 'gridftpd')
-            if port is None:
-                port = 2811
-            iptables_config.append({'descr': 'Gridftpd Interface', 'port': port})
-            # globus port-ranges for gridftp
-            globus_tcp_ports = self.arcconfig.get_value('globus_tcp_port_range', ['gridftpd', 'common'])
-            globus_udp_ports = self.arcconfig.get_value('globus_udp_port_range', ['gridftpd', 'common'])
-            self.__globus_port_range(globus_tcp_ports, 'TCP', data_staging_globus_tcp_ports, iptables_config,
-                                     'gridftpd')
-            self.__globus_port_range(globus_udp_ports, 'UDP', data_staging_globus_udp_ports, iptables_config,
-                                     'gridftpd')
         # infosys LDAP service
         if self.arcconfig.check_blocks('infosys/ldap'):
             port = self.arcconfig.get_value('port', 'infosys/ldap')
