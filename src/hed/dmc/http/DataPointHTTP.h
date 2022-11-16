@@ -49,6 +49,7 @@ using namespace Arc;
     DataStatus do_stat_http(URL& curl, FileInfo& file);
     DataStatus do_stat_webdav(URL& curl, FileInfo& file);
     DataStatus do_list_webdav(URL& rurl, std::list<FileInfo>& files, DataPointInfoType verb);
+    bool parse_webdav_response(XMLNode response, FileInfo& file, std::string& url) const;
     DataStatus makedir(const URL& dir);
     ClientHTTP* acquire_client(const URL& curl);
     ClientHTTP* acquire_new_client(const URL& curl);
