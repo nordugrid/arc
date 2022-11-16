@@ -235,16 +235,25 @@ namespace Arc {
   }
 
   bool DataPoint::CompareMeta(const DataPoint& p) const {
-    if (CheckSize() && p.CheckSize())
-      if (GetSize() != p.GetSize())
+    if (CheckSize() && p.CheckSize()) {
+      if (GetSize() != p.GetSize()) {
         return false;
-    if (CheckCheckSum() && p.CheckCheckSum())
-      // TODO: compare checksums properly
-      if (strcasecmp(GetCheckSum().c_str(), p.GetCheckSum().c_str()))
+      }
+    }
+    if (CheckCheckSum() && p.CheckCheckSum()) {
+      if (GetCheckSum().substr(GetCheckSum().find(":")) != p.GetCheckSum().substr(p.GetCheckSum().find(":"))) {
+        logger.msg(INFO, "Checksum types of index and replica are different, skipping comparison");
+        return true;
+      }
+      if (GetCheckSum() != p.GetCheckSum()) {
         return false;
-    if (CheckValid() && p.CheckValid())
-      if (GetValid() != p.GetValid())
+      }
+    }
+    if (CheckValid() && p.CheckValid()) {
+      if (GetValid() != p.GetValid()) {
         return false;
+      }
+    }
     return true;
   }
 
