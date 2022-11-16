@@ -429,7 +429,7 @@ using namespace Arc;
    return code;
  }
 
-  static bool parse_webdav_response(XMLNode response, FileInfo& file, std::string& url) {
+  bool DataPointHTTP::parse_webdav_response(XMLNode response, FileInfo& file, std::string& url) const {
     bool found = false;
     XMLNode href = response["href"];
     XMLNode propstat = response["propstat"];
@@ -440,6 +440,9 @@ using namespace Arc;
       if(parse_http_status(status) != 200) continue;
       XMLNode prop = propstat["prop"];
       if((bool)prop) {
+        std::string doc;
+        prop.GetDoc(doc, true);
+        logger.msg(DEBUG, "PROPFIND response: %s", doc);
         XMLNode creationdate = prop["creationdate"];
         XMLNode displayname = prop["displayname"];
         XMLNode getcontentlength = prop["getcontentlength"];
@@ -477,9 +480,31 @@ using namespace Arc;
           }
         }
         if((bool)Checksums) {
-          std::string csum = (std::string)Checksums;
-          csum.replace(csum.find('='), 1, ":");
-          file.SetCheckSum(csum);
+          // Multiple checksums may be returned in a comma separated list
+          std::string csums = (std::string)Checksums;
+          std::list<std::string> csumlist;
+          Arc::tokenize(csums, csumlist, ",");
+
+          for (std::list<std::string>::const_iterator csumi = csumlist.begin(); csumi != csumlist.end(); ++csumi) {
+            // type and value are separated by =
+            std::string csum(*csumi);
+            std::string::size_type n = csum.find("=");
+            csum.replace(n, 1, ":");
+            std::string csumtype(csum.substr(0, n));
+            // if the type matches the default checksum type, use it
+            if (csumtype == DefaultCheckSum()) {
+              logger.msg(DEBUG, "Using checksum %s", csum);
+              file.SetCheckSum(csum);
+              break;
+            }
+          }
+          // If no matching default checksum type, use the first in the list
+          if (!file.CheckCheckSum()) {
+            std::string csum(csumlist.front());
+            csum.replace(csum.find('='), 1, ":");
+            logger.msg(INFO, "No matching checksum type, using first in list %s", csum);
+            file.SetCheckSum(csum);
+          }
         } else if ((bool)sumtype && !((std::string)sumtype).empty() &&
                    (bool)sumvalue && !((std::string)sumvalue).empty()) {
           if ((std::string)sumtype == "AD") {
