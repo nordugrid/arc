@@ -9,7 +9,7 @@ Release Notes for NorduGrid ARC  6.17.0     XX.XX.XXXX
 
 Highlights in this release
 --------------------------
-ARC now correctly can parse multiple checksums, avoiding download failures that otherwise occured. (Bug 4094)
+ARC now correctly parses multiple checksums, avoiding download failures that otherwise occured. (Bug 4094)
 
 A long-standing bug in ARC caused a large amount of empty job description files to be produced under certain circumstances.
 This situation is now handled properly by ARC, and the files should no longer be produced. (Bug 4098) 
