@@ -50,6 +50,7 @@ override_dh_auto_configure:
 		    --with-systemd-units-location=/lib/systemd/system \
 		    --with-sysv-scripts-location=/etc/init.d \
 		    --with-python=python3 \
+		    --disable-xrootd \
 		    --disable-pylint
 
 override_dh_auto_clean:
