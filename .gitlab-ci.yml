@@ -133,15 +133,6 @@ build_el9:
     variables:
         BUILD_IMAGE: maikenp/arc-build-cs9
 
-
-###############
-#    DEBIAN 9
-###############
-build_deb9:
-    extends: .template_build_deb
-    variables:
-        BUILD_IMAGE: maikenp/arc-build-debian9
-
 ###############
 #    DEBIAN 10
 ###############
@@ -288,23 +279,6 @@ deploy_el9:
     - job: build_el9
       artifacts: true
 
-
-##################
-#    DEBIAN 9
-##################
-deploy_deb9:
-  extends: .deploy
-  variables:
-    OS_V: deb9
-    ARC_IMAGE: maikenp/arc-deploy-debian9
-    BUILD_VOL: /build
-    BUILD_DIR: $CI_PROJECT_DIR/*.deb
-  tags:
-    - 158.39.77.243
-    - deploy
-  needs:
-    - job: build_deb9
-      artifacts: true
 
 ##################
 #    DEBIAN 10
@@ -518,40 +492,6 @@ arcconf_el9_deploytest:
     - job: deploy_el9
       artifacts: true
 
-############################
-##### DEB9 DEPLOY CHECK
-############################
-gridftp_deb9_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'gridftp'
-  needs:
-    - job: deploy_deb9
-      artifacts: true
-
-emies_deb9_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'emies'
-  needs:
-    - job: deploy_deb9
-      artifacts: true
-
-arcrest_deb9_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcrest'
-  needs:
-    - job: deploy_deb9
-      artifacts: true
-
-arcconf_deb9_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcconf'
-  needs:
-    - job: deploy_deb9
-      artifacts: true
     
 
 ############################
