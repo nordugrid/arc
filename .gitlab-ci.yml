@@ -388,7 +388,7 @@ deploy_ubuntu2204:
     BUILD_VOL: /build
     BUILD_DIR: $CI_PROJECT_DIR/*.deb
   tags:
-    - 158.39.74.225
+    - 158.39.201.198
     - deploy
   needs:
     - job: build_ubuntu2204
