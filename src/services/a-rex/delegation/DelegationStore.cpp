@@ -488,7 +488,6 @@ namespace ARex {
       if(!meta.empty())
         fstore_->Modify(id,client,meta);
     } else {
-      std::list<std::string> meta;
       std::string path = fstore_->Add(id,client,meta);
       if(path.empty()) {
         failure_ = "Local error - failed to create slot for delegation. "+fstore_->Error();

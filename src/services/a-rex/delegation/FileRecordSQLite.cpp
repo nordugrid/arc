@@ -130,8 +130,9 @@ namespace ARex {
 
   void store_strings(const std::list<std::string>& strs, std::string& buf) {
     if(!strs.empty()) {
-      for(std::list<std::string>::const_iterator str = strs.begin(); ; ++str) {
+      for(std::list<std::string>::const_iterator str = strs.begin(); ; ) {
         buf += sql_escape(*str);
+	++str;
         if (str == strs.end()) break;
         buf += '#';
       };
@@ -146,6 +147,8 @@ namespace ARex {
       buf = sep+1;
       sep = std::strchr(buf, '#');
     };
+    if(*buf == '\0') return;
+    strs.push_back(sql_unescape(std::string(buf)));
   }
 
   bool FileRecordSQLite::Recover(void) {
