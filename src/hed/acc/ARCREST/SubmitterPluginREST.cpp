@@ -109,6 +109,7 @@ namespace Arc {
     std::string delegationPath;
     if(delegationId.empty()) {
       url.AddHTTPOption("action","new");
+      // url.AddHTTPOption("type","x509"); - default option in 1.1 and not supported in 1.0
       Arc::PayloadRaw request;
       Arc::PayloadRawInterface* response(NULL);
       Arc::HTTPClientInfo info;
@@ -234,11 +235,14 @@ namespace Arc {
             URL((endpoint.find("://") == std::string::npos ? "https://" : "") + endpoint, false, 443, "/arex"));
 
     Arc::URL submissionUrl(url);
-    Arc::URL delegationUrl(url);
+    Arc::URL delegationX509Url(url);
+    Arc::URL delegationTokenUrl(url);
     submissionUrl.ChangePath(submissionUrl.Path()+"/rest/1.0/jobs");
     submissionUrl.AddHTTPOption("action","new");
-    delegationUrl.ChangePath(delegationUrl.Path()+"/rest/1.0/delegations");
-    delegationUrl.AddHTTPOption("action","new");
+    delegationX509Url.ChangePath(delegationX509Url.Path()+"/rest/1.0/delegations");
+    delegationX509Url.AddHTTPOption("action","new");
+    delegationTokenUrl.ChangePath(delegationTokenUrl.Path()+"/rest/1.1/delegations"); // Token delegation appears in 1.1 version
+    delegationTokenUrl.AddHTTPOption("action","new");
 
     SubmissionStatus retval;
     std::string delegationId;
@@ -269,14 +273,14 @@ namespace Arc {
 
       if(delegationId.empty()) {
         if(preparedjobdesc.X509Delegation) {
-          if(!GetDelegationX509(*usercfg, delegationUrl, delegationId)) {
+          if(!GetDelegationX509(*usercfg, delegationX509Url, delegationId)) {
             logger.msg(INFO, "Unable to submit jobs. Failed to delegate X.509 credentials.");
             notSubmitted.push_back(&*it);
             retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
             continue;
           }
 	} else if(preparedjobdesc.TokenDelegation) {
-          if(!GetDelegationToken(*usercfg, delegationUrl, delegationId)) {
+          if(!GetDelegationToken(*usercfg, delegationTokenUrl, delegationId)) {
             logger.msg(INFO, "Unable to submit jobs. Failed to delegate token.");
             notSubmitted.push_back(&*it);
             retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
