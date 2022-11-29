@@ -1016,14 +1016,14 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
       if(i->cred_type.empty() || (i->cred_type == "x509")) {
         usercfg.ProxyPath(i->cred);
         if (Arc::FileRead(i->cred, proxy_cred)) usercfg.CredentialString(proxy_cred);
-      } else if(i->cred_type == "token") {
+      } else if(i->cred_type == "jwt") {
         if (Arc::FileRead(i->cred, proxy_cred)) usercfg.OToken(proxy_cred);
       }
     } else {
       if(default_cred_type.empty() || (default_cred_type == "x509")) {
         usercfg.ProxyPath(default_cred);
         if (Arc::FileRead(default_cred, proxy_cred)) usercfg.CredentialString(proxy_cred);
-      } else if(i->cred_type == "token") {
+      } else if(i->cred_type == "jwt") {
         if (Arc::FileRead(default_cred, proxy_cred)) usercfg.OToken(proxy_cred);
       }
     }
