@@ -9,12 +9,21 @@
 
 namespace ARex {
 
+static std::string toString(std::list<std::string> strings) {
+  std::string res;
+  for(std::list<std::string>::iterator it = strings.begin(); it != strings.end(); ++it) {
+    res.append(*it).append(" ");
+  }
+  return res;
+}
 
 bool ARexConfigContext::CheckOperationAllowed(OperationType op, ARexConfigContext* config) {
   // TODO: very simplified code below. Proper way to identify how client was identified and 
   // which authentication information matched authorization rules LegacySecAttr must be used.
-  if(!config)
+  if(!config) {
+    logger.msg(Arc::DEBUG, "CheckOperationAllowed: missing configuration");
     return false;
+  }
 
   bool has_tls_identity = false;
   bool has_token_identity = false;
@@ -25,9 +34,10 @@ bool ARexConfigContext::CheckOperationAllowed(OperationType op, ARexConfigContex
       Arc::SecAttr* sattr = NULL;
       if(sattr = (*a)->get("TLS")) {
         has_tls_identity = !sattr->get("SUBJECT").empty();
-      } else if(sattr = (*a)->get("OTOKENS")) {
+      } 
+      if(sattr = (*a)->get("OTOKENS")) {
         scopes = sattr->getAll("scope");
-        has_token_identity = true;
+        has_token_identity = !sattr->get("iss").empty();
       }
     }
   }
@@ -63,16 +73,28 @@ bool ARexConfigContext::CheckOperationAllowed(OperationType op, ARexConfigContex
         break;
     }
     // No assigned scopes means no limitation
-    if(!allowed_scopes) return true;
-    if(allowed_scopes->empty()) return true;
-    for(std::list<std::string>::iterator scopeIt = scopes.begin(); scopeIt != scopes.end(); ++scopeIt) {
-      if(std::find(allowed_scopes->begin(), allowed_scopes->end(), *scopeIt) != allowed_scopes->end()) return true;
+    if((!allowed_scopes) || (allowed_scopes->empty())) {
+      logger.msg(Arc::DEBUG, "CheckOperationAllowed: allowed due to missing configuration scopes");
+      return true;
     }
+    logger.msg(Arc::DEBUG, "CheckOperationAllowed: token scopes: %s", toString(scopes));
+    logger.msg(Arc::DEBUG, "CheckOperationAllowed: configuration scopes: %s", toString(*allowed_scopes));
+    for(std::list<std::string>::iterator scopeIt = scopes.begin(); scopeIt != scopes.end(); ++scopeIt) {
+      if(std::find(allowed_scopes->begin(), allowed_scopes->end(), *scopeIt) != allowed_scopes->end()) {
+        logger.msg(Arc::DEBUG, "CheckOperationAllowed: allowed due to matching scopes");
+        return true;
+      }
+    }
+    logger.msg(Arc::ERROR, "CheckOperationAllowed: token scopes do not match required scopes");
     return false;
   }
 
-  if(has_tls_identity)
+  if(has_tls_identity) {
+    logger.msg(Arc::DEBUG, "CheckOperationAllowed: allowed for TLS connection");
     return true; // X.509 authorization has no per-operation granularity
+  }
+
+  logger.msg(Arc::ERROR, "CheckOperationAllowed: no supported identity found");
 
   return false;
 }
