@@ -111,7 +111,6 @@ fi
 rm -f "${slapd_pid_file}"
 
 bdii_db_config=${CONFIG_bdii_db_config:-"/etc/bdii/DB_CONFIG"}
-bdii_database=${CONFIG_bdii_database:-"hdb"}
 
 # Check for existance of core ldap schema
 coreschema=$(find /etc/openldap /etc/ldap ${ldap_schema_dir} -name core.schema \
@@ -148,6 +147,22 @@ fi
 if [ -z "$slapd_cmd" ] || [ ! -x "$slapd_cmd" ]; then
     log_failure_msg "Could not find ldap server binary, usually /usr/sbin/slapd"
     exit 1
+fi
+
+slapd_ver=$($slapd_cmd -VV 2>&1 | head -1 | sed 's!.*slapd \([0-9.]*\).*!\1!')
+slapd_ver_maj=$(echo $slapd_ver | cut -d. -f1)
+slapd_ver_min=$(echo $slapd_ver | cut -d. -f2)
+
+if [ $slapd_ver_maj -gt 2 ] || ( [ $slapd_ver_maj -eq 2 ] && [ $slapd_ver_min -ge 5 ] ) ; then
+    bdii_database=mdb
+else
+    bdii_database=hdb
+fi
+bdii_database=${CONFIG_bdii_database:-$bdii_database}
+
+has_cachesize=
+if [ $bdii_database = 'mdb' ] ; then
+    has_cachesize='# '
 fi
 
 find_ldap_database_module() {
@@ -333,7 +348,7 @@ cat <<-EOF >> $bdii_slapd_conf
 
 	# ${bdii_database} database definitions for o=grid
 	database        ${bdii_database}
-	cachesize       150000
+	${has_cachesize}cachesize       150000
 	dbnosync
 	suffix          "o=grid"
 	checkpoint      131072 60
@@ -343,7 +358,7 @@ cat <<-EOF >> $bdii_slapd_conf
 
 	# ${bdii_database} database definitions for o=glue
 	database        ${bdii_database}
-	cachesize       150000
+	${has_cachesize}cachesize       150000
 	dbnosync
 	suffix          "o=glue"
 	checkpoint      131072 60
@@ -353,7 +368,7 @@ cat <<-EOF >> $bdii_slapd_conf
 
 	# ${bdii_database} database definitions for o=infosys
 	database        ${bdii_database}
-	cachesize       60
+	${has_cachesize}cachesize       60
 	dbnosync
 	suffix          "o=infosys"
 	checkpoint      131072 60
