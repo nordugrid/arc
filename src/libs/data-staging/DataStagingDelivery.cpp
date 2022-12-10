@@ -236,11 +236,21 @@ int main(int argc,char* argv[]) {
   // Read credential from stdin if available
   std::string proxy_cred;
   std::getline(std::cin, proxy_cred, '\0');
+  bool is_x509_cred = false;
+  bool is_token_cred = false;
+  if(strncmp(proxy_cred.c_str(), "x509 ", 5) == 0) {
+     is_x509_cred = true;
+     proxy_cred.erase(0,5);
+  } else if(strncmp(proxy_cred.c_str(), "token ", 6) == 0) {
+     is_token_cred = true;
+     proxy_cred.erase(0,6);
+  }
 
   initializeCredentialsType source_cred(initializeCredentialsType::SkipCredentials);
   UserConfig source_cfg(source_cred);
-  if(!source_cred_path.empty()) source_cfg.ProxyPath(source_cred_path);
-  else if (!proxy_cred.empty()) source_cfg.CredentialString(proxy_cred);
+  if(!source_cred_path.empty()) { source_cfg.ProxyPath(source_cred_path); }
+  else if(is_x509_cred) { source_cfg.CredentialString(proxy_cred); }
+  else if(is_token_cred) { source_cfg.OToken(proxy_cred); }
   if(!source_ca_path.empty()) source_cfg.CACertificatesDirectory(source_ca_path);
   //source_cfg.UtilsDirPath(...); - probably not needed
   DataHandle source(source_url, source_cfg);
@@ -259,7 +269,8 @@ int main(int argc,char* argv[]) {
   initializeCredentialsType dest_cred(initializeCredentialsType::SkipCredentials);
   UserConfig dest_cfg(dest_cred);
   if(!dest_cred_path.empty()) dest_cfg.ProxyPath(dest_cred_path);
-  else if (!proxy_cred.empty()) dest_cfg.CredentialString(proxy_cred);
+  else if(is_x509_cred) dest_cfg.CredentialString(proxy_cred);
+  else if(is_token_cred) dest_cfg.OToken(proxy_cred);
   if(!dest_ca_path.empty()) dest_cfg.CACertificatesDirectory(dest_ca_path);
   //dest_cfg.UtilsDirPath(...); - probably not needed
   DataHandle dest(dest_url,dest_cfg);

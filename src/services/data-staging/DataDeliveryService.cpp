@@ -159,18 +159,23 @@ namespace DataStaging {
     Arc::XMLNode results = resp.NewChild("DataDeliveryStartResult");
 
     // Save credentials to temp file and set in UserConfig
+    std::string x509_credential;
+    std::string token_credential;
     Arc::XMLNode delegated_token = in["DataDeliveryStart"]["deleg:DelegatedToken"];
     if (!delegated_token) {
       logger.msg(Arc::ERROR, "No delegation token in request");
       return Arc::MCC_Status(Arc::GENERIC_ERROR, "DataDeliveryService", "No delegation token received");
     }
 
-    // Check credentials were already delegated
-    std::string credential;
-    if (!delegation.DelegatedToken(credential, delegated_token)) {
-      // Failed to accept delegation
-      logger.msg(Arc::ERROR, "Failed to accept delegation");
-      return Arc::MCC_Status(Arc::GENERIC_ERROR, "DataDeliveryService", "Failed to accept delegation");
+    if ((std::string)delegated_token.Attribute("Format") == "token") {
+      token_credential = (std::string)delegated_token["Value"];
+    } else {
+      // For X.509 delegation check credentials were already delegated
+      if (!delegation.DelegatedToken(x509_credential, delegated_token)) {
+        // Failed to accept delegation
+        logger.msg(Arc::ERROR, "Failed to accept delegation");
+        return Arc::MCC_Status(Arc::GENERIC_ERROR, "DataDeliveryService", "Failed to accept delegation");
+      }
     }
 
     for(int n = 0;;++n) {
@@ -244,10 +249,10 @@ namespace DataStaging {
         // use some kind of proxy store
         logger.msg(Arc::VERBOSE, "Storing temp proxy at %s", proxy_file);
 
-        bool proxy_result = Arc::FileCreate(proxy_file, credential, 0, 0, S_IRUSR | S_IWUSR);
+        bool proxy_result = Arc::FileCreate(proxy_file, x509_credential, 0, 0, S_IRUSR | S_IWUSR);
         if (!proxy_result && errno == ENOENT) {
           Arc::DirCreate(tmp_proxy_dir, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH, true);
-          proxy_result = Arc::FileCreate(proxy_file, credential, 0, 0, S_IRUSR | S_IWUSR);
+          proxy_result = Arc::FileCreate(proxy_file, x509_credential, 0, 0, S_IRUSR | S_IWUSR);
         }
         if (!proxy_result) {
           logger.msg(Arc::ERROR, "Failed to create temp proxy at %s: %s", proxy_file, Arc::StrError(errno));
@@ -264,8 +269,12 @@ namespace DataStaging {
           continue;
         }
         usercfg.ProxyPath(proxy_file);
-      } else {
-        usercfg.CredentialString(credential);
+      }
+      if(!x509_credential.empty()) {
+        usercfg.CredentialString(x509_credential);
+      }
+      if(!token_credential.empty()) {
+        usercfg.OToken(token_credential);
       }
 
       // Logger destinations for this DTR. Uses a string stream so log can easily be sent

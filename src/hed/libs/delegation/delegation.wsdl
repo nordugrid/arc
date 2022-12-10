@@ -17,6 +17,7 @@
       <xsd:simpleType name="TokenFormatType">
         <xsd:restriction base="xsd:string">
           <xsd:enumeration value="x509"/>
+          <xsd:enumeration value="token"/>
         </xsd:restriction>
       </xsd:simpleType>
 

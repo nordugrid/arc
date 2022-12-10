@@ -7,6 +7,8 @@
 
 #include "DataDeliveryRemoteComm.h"
 
+#define DELEGATION_NAMESPACE "http://www.nordugrid.org/schemas/delegation"
+
 namespace DataStaging {
 
   Arc::Logger DataDeliveryRemoteComm::logger(Arc::Logger::getRootLogger(), "DataStaging.DataDeliveryRemoteComm");
@@ -481,8 +483,9 @@ namespace DataStaging {
     const std::string& cert = (!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath());
     const std::string& key  = (!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.KeyPath());
     const std::string& credentials = usercfg.CredentialString();
+    const std::string& token = usercfg.OToken();
 
-    if (credentials.empty() && (key.empty() || cert.empty())) {
+    if (credentials.empty() && (key.empty() || cert.empty()) && token.empty()) {
       logger_->msg(Arc::VERBOSE, "Failed locating credentials");
       return false;
     }
@@ -498,18 +501,27 @@ namespace DataStaging {
       return false;
     }
 
-    Arc::DelegationProviderSOAP * deleg = NULL;
-    // Use in-memory credentials if set in UserConfig
-    if (!credentials.empty()) deleg = new Arc::DelegationProviderSOAP(credentials);
-    else deleg = new Arc::DelegationProviderSOAP(cert, key);
-    logger_->msg(Arc::VERBOSE, "Initiating delegation procedure");
-    if (!deleg->DelegateCredentialsInit(*entry, &(client->GetContext()))) {
-      logger_->msg(Arc::VERBOSE, "Failed to initiate delegation credentials");
+    if(token.empty()) {
+      Arc::DelegationProviderSOAP * deleg = NULL;
+      // Use in-memory credentials if set in UserConfig
+      if (!credentials.empty()) deleg = new Arc::DelegationProviderSOAP(credentials);
+      else deleg = new Arc::DelegationProviderSOAP(cert, key);
+      logger_->msg(Arc::VERBOSE, "Initiating delegation procedure");
+      if (!deleg->DelegateCredentialsInit(*entry, &(client->GetContext()))) {
+        logger_->msg(Arc::VERBOSE, "Failed to initiate delegation credentials");
+        delete deleg;
+        return false;
+      }
+      deleg->DelegatedToken(op);
       delete deleg;
-      return false;
+    } else {
+      Arc::NS ns; ns["deleg"]=DELEGATION_NAMESPACE;
+      Arc::XMLNode deleg_token = op.NewChild("deleg:DelegatedToken",ns);
+      deleg_token.NewAttribute("deleg:Format")="token";
+      deleg_token.NewChild("deleg:Id")="";
+      deleg_token.NewChild("deleg:Value")=token;
     }
-    deleg->DelegatedToken(op);
-    delete deleg;
+
     return true;
   }
 
