@@ -27,6 +27,7 @@ class FileData {
   std::string pfn;  // path relative to session dir
   std::string lfn;  // input/output url or size.checksum
   std::string cred; // path to file containing credentials
+  std::string cred_type; // type of credentials in cred file
   bool ifsuccess;
   bool ifcancel;
   bool iffailure;

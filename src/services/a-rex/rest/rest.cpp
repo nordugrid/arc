@@ -492,6 +492,16 @@ static Arc::MCC_Status HTTPPOSTDelayedResponse(Arc::Message& inmsg, Arc::Message
 }
 
 static Arc::MCC_Status HTTPPOSTResponse(Arc::Message& inmsg, Arc::Message& outmsg,
+                                   std::string const & redir = "") {
+  Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
+  delete outmsg.Payload(outpayload);
+  outmsg.Attributes()->set("HTTP:CODE","201");
+  outmsg.Attributes()->set("HTTP:REASON","Created");
+  if(!redir.empty()) outmsg.Attributes()->set("HTTP:location",redir);
+  return Arc::MCC_Status(Arc::STATUS_OK);
+}
+
+static Arc::MCC_Status HTTPPOSTResponse(Arc::Message& inmsg, Arc::Message& outmsg,
                                    std::string const & content, std::string const& mime,
                                    std::string const & redir = "") {
   Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
@@ -731,8 +741,11 @@ Arc::MCC_Status ARexRest::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   }
   context.processed += apiVersion;
   context.processed += "/";
-  if ((apiVersion != "1.0") &&
-      (apiVersion != "1.1")) {
+  if (apiVersion == "1.0") {
+    context.version = ProcessingContext::Version_1_0;
+  } else if (apiVersion == "1.1") {
+    context.version = ProcessingContext::Version_1_1;
+  } else {
     return HTTPFault(inmsg,outmsg,404,"Version Not Supported");
   }
 
@@ -801,7 +814,7 @@ Arc::MCC_Status ARexRest::processInfo(Arc::Message& inmsg,Arc::Message& outmsg, 
 // ---------------------------- DELEGATIONS ---------------------------------
 
 Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& outmsg, ProcessingContext& context) {
-  // GET <base URL>/delegations - retrieves list of delegations belonging to authenticated user
+  // GET <base URL>/delegations[&type={x509|jwt}] - retrieves list of delegations belonging to authenticated user
   // HEAD - supported.
   // POST <base URL>/delegations?action=new starts a new delegation process (1st step).
   // PUT <base URL>/delegations/<delegation id> stores public part (2nd step).
@@ -820,10 +833,21 @@ Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& o
   if((context.method == "GET") || (context.method == "HEAD")) {
     if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobInfo, config))
       return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
+    std::string requestedType;
+    if(context.version >= ProcessingContext::Version_1_1) {
+      requestedType = context["type"];
+    }
     XMLNode listXml("<delegations/>");
-    std::list<std::string> ids = delegation_stores_[config_.DelegationDir()].ListCredIDs(config->GridName());
-    for(std::list<std::string>::iterator itId = ids.begin(); itId != ids.end(); ++itId) {
-      listXml.NewChild("delegation").NewChild("id") = *itId;
+    std::list<std::pair<std::string,std::list<std::string> > > ids = delegation_stores_[config_.DelegationDir()].ListCredInfos(config->GridName());
+    for(std::list<std::pair<std::string,std::list<std::string> > >::iterator itId = ids.begin(); itId != ids.end(); ++itId) {
+      char const * delegType = "x509";
+      if(itId->second.size() > 0) delegType = itId->second.front().c_str();
+      if (!requestedType.empty()) {
+         if(requestedType != delegType) continue;
+      }
+      XMLNode delegXml = listXml.NewChild("delegation");
+      delegXml.NewChild("id") = itId->first;
+      delegXml.NewChild("type") = delegType;
     }
     char const * json_arrays[] = { "delegation", NULL };
     return HTTPResponse(inmsg, outmsg, listXml, json_arrays);
@@ -833,14 +857,32 @@ Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& o
       return HTTPFault(inmsg,outmsg,501,"Action not implemented");
     if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobCreate, config))
       return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed");
+    std::string requestedType;
+    if(context.version >= ProcessingContext::Version_1_1) {
+      requestedType = context["type"];
+    }
     std::string delegationId;
     std::string delegationRequest;
-    if(!delegation_stores_.GetRequest(config_.DelegationDir(),delegationId,config->GridName(),delegationRequest)) {
-      return HTTPFault(inmsg,outmsg,500,"Failed generating delegation request");
+    if(requestedType.empty() || (requestedType == "x509")) {
+      // TODO: explicitely put x509 into meta
+      if(!delegation_stores_.GetRequest(config_.DelegationDir(),delegationId,config->GridName(),delegationRequest)) {
+        return HTTPFault(inmsg,outmsg,500,"Failed generating delegation request");
+      }
+      Arc::URL base(inmsg.Attributes()->get("HTTP:ENDPOINT"));
+      return HTTPPOSTResponse(inmsg,outmsg,delegationRequest,"application/x-pem-file",base.Path()+"/"+delegationId);
+    } else if(requestedType == "jwt") {
+      Arc::AttributeIterator tokenIt = inmsg.Attributes()->getAll("HTTP:x-token-delegation");
+      if(!tokenIt.hasMore()) 
+        return HTTPFault(inmsg,outmsg,501,"Missing X-Token-Delegation header in delegation request");
+      std::list<std::string> meta;
+      meta.push_back("jwt");
+      if(!delegation_stores_.PutCred(config_.DelegationDir(),delegationId,config->GridName(),*tokenIt,meta)) {
+        return HTTPFault(inmsg,outmsg,500,"Failed storing delegation token");
+      }
+      Arc::URL base(inmsg.Attributes()->get("HTTP:ENDPOINT"));
+      return HTTPPOSTResponse(inmsg,outmsg,base.Path()+"/"+delegationId);
     }
-
-    Arc::URL base(inmsg.Attributes()->get("HTTP:ENDPOINT"));
-    return HTTPPOSTResponse(inmsg,outmsg,delegationRequest,"application/x-pem-file",base.Path()+"/"+delegationId);
+    return HTTPFault(inmsg,outmsg,501,"Unknown delegation type specified");
   }
   logger_.msg(Arc::VERBOSE, "process: method %s is not supported for subpath %s",context.method,context.processed);
   return HTTPFault(inmsg,outmsg,501,"Not Implemented");
@@ -1017,8 +1059,12 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
       if(start_pos == std::string::npos)
         return HTTPFault(inmsg,outmsg,500,"Payload is empty");
 
-      std::string default_queue = context["queue"];
-      std::string default_delegation_id = context["delegation_id"];
+      std::string default_queue;
+      std::string default_delegation_id;
+      if(context.version >= ProcessingContext::Version_1_1) {
+        default_queue = context["queue"];
+        default_delegation_id = context["delegation_id"];
+      }
       XMLNode listXml("<jobs/>");
       // TODO: Split to separate functions
       switch(desc_str[start_pos]) {

@@ -167,7 +167,30 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     }
   }
 
-  if(!opt.no_delegation || usercfg.OToken().empty()) {
+  DelegationType delegation_type = UndefinedDelegation;
+  if(opt.no_delegation) {
+    if(delegation_type != UndefinedDelegation) {
+      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
+      return 1;
+    }
+    delegation_type = NoDelegation;
+  }
+  if(opt.x509_delegation) {
+    if(delegation_type != UndefinedDelegation) {
+      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
+      return 1;
+    }
+    delegation_type = X509Delegation;
+  }
+  if(opt.token_delegation) {
+    if(delegation_type != UndefinedDelegation) {
+      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
+      return 1;
+    }
+    delegation_type = TokenDelegation;
+  }
+
+  if((delegation_type == X509Delegation) || usercfg.OToken().empty()) {
     if (!checkproxy(usercfg)) {
       return 1;
     }
@@ -198,7 +221,7 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     }
 
     // default action: start submission cycle
-    return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist, opt.no_delegation);
+    return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist, delegation_type);
   } else {
     // Legacy target selection submission logic
     std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
@@ -211,6 +234,6 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
       return dumpjobdescription(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName);
     }
 
-    return legacy_submit(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName, opt.jobidoutfile, opt.direct_submission, opt.no_delegation);
+    return legacy_submit(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName, opt.jobidoutfile, opt.direct_submission, delegation_type);
   }
 }

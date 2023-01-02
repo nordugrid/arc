@@ -27,6 +27,13 @@ namespace ARex {
       std::string processed;
       std::multimap<std::string,std::string> query;
       std::string operator[](char const * key) const;
+      enum Version {
+        Version_undefined = 0,
+        Version_1_0 = 1,
+        Version_1_1 = 2
+      };
+      Version version;
+      ProcessingContext():version(Version_undefined) {};
     };
 
     Arc::Logger logger_;

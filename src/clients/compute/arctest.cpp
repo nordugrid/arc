@@ -190,7 +190,30 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     return 1;
   }
 
-  if(!opt.no_delegation || usercfg.OToken().empty()) {
+  DelegationType delegation_type = UndefinedDelegation;
+  if(opt.no_delegation) {
+    if(delegation_type != UndefinedDelegation) {
+      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
+      return 1;
+    }
+    delegation_type = NoDelegation;
+  }
+  if(opt.x509_delegation) {
+    if(delegation_type != UndefinedDelegation) {
+      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
+      return 1;
+    }
+    delegation_type = X509Delegation;
+  }
+  if(opt.token_delegation) {
+    if(delegation_type != UndefinedDelegation) {
+      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
+      return 1;
+    }
+    delegation_type = TokenDelegation;
+  }
+
+  if((delegation_type == X509Delegation) || usercfg.OToken().empty()) {
     if (!checkproxy(usercfg)) {
       return 1;
     }
@@ -237,7 +260,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     }
 
     // default action: start submission cycle
-    return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist, opt.no_delegation);
+    return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist, delegation_type);
   // legacy code that implements submission logic in arctest
   } else {
     Arc::Broker broker(usercfg, testJob, usercfg.Broker().first);

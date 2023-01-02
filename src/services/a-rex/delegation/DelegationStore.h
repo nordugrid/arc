@@ -90,6 +90,9 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
   /** Returns path to file containing credential with specied id and client */
   std::string FindCred(const std::string& id,const std::string& client);
 
+  /** Returns path to file containing credential with specied id and client along with associated metadata */
+  std::string FindCred(const std::string& id,const std::string& client, std::list<std::string>& meta);
+
   /** Retrieves credentials with specified id and associated with client */
   bool GetCred(const std::string& id, const std::string& client, std::string& credentials);
 
@@ -105,6 +108,8 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
   /** Returns all credentials ids (1st) along with their client ids (2nd) */
   std::list<std::pair<std::string,std::string> > ListCredIDs(void);
 
+  /** Returns credentials ids and their metadata associated with specific client */
+  std::list<std::pair<std::string,std::list<std::string> > > ListCredInfos(const std::string& client);
 
   /** Locks credentials also associating it with specific lock identifier */
   bool LockCred(const std::string& lock_id, const std::list<std::string>& ids,const std::string& client);
@@ -131,6 +136,9 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
   /** Retrieves public part of credentials with specified id and associated with client */
   bool GetDeleg(const std::string& id, const std::string& client, std::string& credentials);
 
+  /** Stores full credentials into specified 'id' and 'client'. If 'id' is empty
+      then new storage slot is created and its identifier stored in 'id'. */
+  bool PutCred(std::string& id,const std::string& client,const std::string& credentials,const std::list<std::string>& meta = std::list<std::string>());
 };
 
 } // namespace ARex

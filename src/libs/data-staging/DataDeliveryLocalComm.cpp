@@ -92,11 +92,18 @@ namespace DataStaging {
       // Check if credentials are needed for source/dest
       Arc::DataHandle surl_h(surl, dtr->get_usercfg());
       Arc::DataHandle durl_h(durl, dtr->get_usercfg());
-      if (!dtr->get_usercfg().CredentialString().empty() &&
-          surl_h && !surl_h->RequiresCredentialsInFile() &&
-          durl_h && !durl_h->RequiresCredentialsInFile()) {
+
+      bool needCredentialsInFile = (surl_h && surl_h->RequiresCredentialsInFile()) ||
+                                   (durl_h && durl_h->RequiresCredentialsInFile());
+      if (!needCredentialsInFile) {
         // If file-based credentials are not required then send through stdin
-        stdin_ = dtr->get_usercfg().CredentialString();
+        if (!dtr->get_usercfg().OToken().empty()) {
+          stdin_ = "token ";
+	  stdin_ += dtr->get_usercfg().OToken();
+	} else {
+          stdin_ = "x509 ";
+          stdin_ += dtr->get_usercfg().CredentialString();
+        }
       } else {
         // If child is going to be run under different user ID
         // we must ensure it will be able to read credentials.

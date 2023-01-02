@@ -689,6 +689,7 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
 
   // Default credentials to be used by transfering files if not specified per file
   std::string default_cred = job_proxy_filename(jobid, config); // TODO: drop job.proxy as source of delegation
+  std::string default_cred_type;
 
   JobLocalDescription job_desc;
   if(job_local_read_file(jobid, config, job_desc)) {
@@ -696,9 +697,11 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
       ARex::DelegationStores* delegs = config.GetDelegations();
       if(delegs) {
         DelegationStore& deleg = delegs->operator[](config.DelegationDir());
-        std::string fname = deleg.FindCred(job_desc.delegationid, job_desc.DN);
+	std::list<std::string> meta;
+        std::string fname = deleg.FindCred(job_desc.delegationid, job_desc.DN, meta);
         if(!fname.empty()) {
           default_cred = fname;
+	  if(!meta.empty()) default_cred_type = meta.front();
         }
       }
     }
@@ -786,7 +789,11 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
         // there is a way to pass credentials for dynamic files. But so far default_cred
         // is always picked up.
         std::string cred(it->cred);
-        if(cred.empty()) cred = default_cred;
+	std::string cred_type(it->cred_type);
+        if(cred.empty()) {
+          cred = default_cred;
+          cred_type = default_cred_type;
+        }
         std::list<FileData> files_;
         std::string outputfilelist = job->SessionDir() + std::string("/") + it->pfn.substr(2);
         logger.msg(Arc::INFO, "%s: Reading output files from user generated list in %s", jobid, outputfilelist);
@@ -805,7 +812,10 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
         }
         // Attach dynamic files and assign credentials to them unless already available
         for(std::list<FileData>::iterator it_ = files_.begin(); it_ != files_.end(); ++it_) {
-          if(it_->cred.empty()) it_->cred = cred;
+          if(it_->cred.empty()) {
+            it_->cred = cred;
+            it_->cred_type = cred_type;
+          }
           files.push_back(*it_);
         }
         it->pfn.erase(1, 1);
@@ -815,6 +825,7 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
       if (it->pfn.rfind('/') == it->pfn.length()-1) {
         if (it->lfn.find(':') != std::string::npos) {
           std::string cred(it->cred);
+          std::string cred_type(it->cred_type);
           std::string dir(job->SessionDir() + it->pfn);
           std::list<std::string> entries;
           if (!Arc::DirList(dir, entries, true, job_uid, job_gid)) {
@@ -839,6 +850,7 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
               logger.msg(Arc::DEBUG, "%s: Adding new output file %s: %s", jobid, pfn, lfn);
               FileData fd(pfn, lfn);
               fd.cred = cred;
+              fd.cred_type = cred_type;
               files.push_back(fd);
             }
           }
@@ -914,8 +926,8 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     logger.msg(Arc::WARNING, "%s: Session directory processing takes too long - %u.%06u seconds",
                                jobid, sessiondir_processing_time.GetPeriod(), sessiondir_processing_time.GetPeriodNanoseconds()/1000);
   }
-  Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCredentials);
-  Arc::UserConfig usercfg(cred_type);
+  Arc::initializeCredentialsType cred_init_type(Arc::initializeCredentialsType::SkipCredentials);
+  Arc::UserConfig usercfg(cred_init_type);
   usercfg.UtilsDirPath(config.ControlDir());
   usercfg.CACertificatesDirectory(config.CertDir());
   if (config.StrictSession()) usercfg.SetUser(job->get_user());
@@ -982,11 +994,19 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     }
     std::string proxy_cred;
     if(!i->cred.empty()) {
-      usercfg.ProxyPath(i->cred);
-      if (Arc::FileRead(i->cred, proxy_cred)) usercfg.CredentialString(proxy_cred);
+      if(i->cred_type.empty() || (i->cred_type == "x509")) {
+        usercfg.ProxyPath(i->cred);
+        if (Arc::FileRead(i->cred, proxy_cred)) usercfg.CredentialString(proxy_cred);
+      } else if(i->cred_type == "jwt") {
+        if (Arc::FileRead(i->cred, proxy_cred)) usercfg.OToken(proxy_cred);
+      }
     } else {
-      usercfg.ProxyPath(default_cred);
-      if (Arc::FileRead(default_cred, proxy_cred)) usercfg.CredentialString(proxy_cred);
+      if(default_cred_type.empty() || (default_cred_type == "x509")) {
+        usercfg.ProxyPath(default_cred);
+        if (Arc::FileRead(default_cred, proxy_cred)) usercfg.CredentialString(proxy_cred);
+      } else if(i->cred_type == "jwt") {
+        if (Arc::FileRead(default_cred, proxy_cred)) usercfg.OToken(proxy_cred);
+      }
     }
 
     std::list<DataStaging::DTRLogDestination> logs;
