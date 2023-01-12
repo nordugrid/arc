@@ -23,6 +23,8 @@ Build-Depends:
  libglobus-gssapi-gsi-dev,
  libglobus-ftp-client-dev,
  libglobus-ftp-control-dev,
+ libxrootd-client-dev | dpkg (<< 1.20.9),
+ libgfal2-dev | dpkg (<< 1.17.5),
  openssl,
  swig,
  libnss3-dev,
@@ -455,6 +457,36 @@ Description: ARC GRIDFTPJOB client plugin
  Connector (ARC).
  .
  ARC GRIDFTPJOB plugin allows submitting jobs via the gridftpd interface.
+
+Package: nordugrid-arc-plugins-xrootd
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ libarccommon3 (= ${binary:Version}),
+Description: ARC xrootd plugins
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ ARC xrootd plugins. These allow access to data through the xrootd
+ protocol.
+
+Package: nordugrid-arc-plugins-gfal
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ libarccommon3 (= ${binary:Version}),
+Description: ARC GFAL2 plugins
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ ARC plugins for GFAL2. This allows third-party transfer and adds
+ support for several extra transfer protocols (rfio, dcap, gsidcap).
+ Support for specific protocols is provided by separate 3rd-party GFAL2
+ plugin packages.
 
 Package: nordugrid-arc-plugins-internal
 Architecture: any
