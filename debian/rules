@@ -31,8 +31,16 @@ else
 SYSDNOENBL =
 endif
 
+ifeq ($(shell test -r /usr/include/xrootd/XrdVersion.hh && echo 1),1)
+XROOTD = yes
+NX =
+else
+XROOTD = no
+NX = -Nnordugrid-arc-plugins-xrootd
+endif
+
 %:
-	dh $@ --with autoreconf $(WSD) --with python3
+	dh $@ --with autoreconf $(WSD) --with python3 $(NX)
 
 override_dh_auto_configure:
 	if [ ! -f po/POTFILES.in.save ] ; then \
@@ -45,12 +53,13 @@ override_dh_auto_configure:
 		    --libdir=/usr/lib \
 		    --libexecdir=/usr/lib \
 		    --docdir=/usr/share/doc/nordugrid-arc \
+		    --enable-gfal \
+		    --enable-xrootd=$(XROOTD) \
 		    --enable-internal \
 		    --enable-systemd=$(SYSTEMD) \
 		    --with-systemd-units-location=/lib/systemd/system \
 		    --with-sysv-scripts-location=/etc/init.d \
 		    --with-python=python3 \
-		    --disable-xrootd \
 		    --disable-pylint
 
 override_dh_auto_clean:
