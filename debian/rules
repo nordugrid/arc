@@ -68,8 +68,24 @@ ACIX = yes
 NA =
 endif
 
+ifeq ($(shell test -r /usr/include/gfal2/gfal_api.h && echo 1),1)
+GFAL = yes
+NG =
+else
+GFAL = no
+NG = -Nnordugrid-arc-plugins-gfal
+endif
+
+ifeq ($(shell test -r /usr/include/xrootd/XrdVersion.hh && echo 1),1)
+XROOTD = yes
+NX =
+else
+XROOTD = no
+NX = -Nnordugrid-arc-plugins-xrootd
+endif
+
 %:
-	dh $@ --with autoreconf $(WSD) --with python$(PYVER) $(P) $(N) $(NA)
+	dh $@ --with autoreconf $(WSD) --with python$(PYVER) $(P) $(N) $(NA) $(NG) $(NX)
 
 override_dh_auto_configure:
 	if [ ! -f po/POTFILES.in.save ] ; then \
@@ -83,6 +99,8 @@ override_dh_auto_configure:
 		    --libexecdir=/usr/lib \
 		    --docdir=/usr/share/doc/nordugrid-arc \
 		    --enable-acix=$(ACIX) \
+		    --enable-gfal=$(GFAL) \
+		    --enable-xrootd=$(XROOTD) \
 		    --enable-internal \
 		    --enable-systemd=$(SYSTEMD) \
 		    --with-systemd-units-location=/lib/systemd/system \
