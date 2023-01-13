@@ -64,7 +64,7 @@ namespace Arc {
     } else if((grp.gr_mem == NULL) || (grp.gr_mem[0] == NULL)) {
       // group without members - nobody will read our file
     } else {
-      // one ore more members - check for our user and for root
+      // more members - check for our user and for root
       // must check for root's name becuse it is not necessary root
       struct passwd root_pwd;
       char pwdbuf[2048];
@@ -75,6 +75,7 @@ namespace Arc {
         if((user.Name() != *member) && ((pwd_p == NULL) || (user.Name() != root_pwd.pw_name))) {
           return file_test_wrong_permissions;
         }
+	++member;
       }
     }
     return file_test_success;
