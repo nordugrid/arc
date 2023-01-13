@@ -26,6 +26,7 @@ class ConfigTLSMCC {
   bool globus_policy_;
   bool globus_gsi_;
   bool globusio_gsi_;
+  bool default_ca_;
   enum {
     tls_handshake, // default
     ssl3_handshake,

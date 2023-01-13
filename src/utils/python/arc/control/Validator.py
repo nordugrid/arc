@@ -307,7 +307,11 @@ class Validator(object):
         config_dict = self.arcconf.get_config_dict()
         x509_host_cert = config_dict['common']['x509_host_cert']
         x509_host_key = config_dict['common']['x509_host_key']
-        x509_cert_dir = config_dict['common']['x509_cert_dir']
+        x509_cert_policy = config_dict['common']['x509_cert_policy']
+        if x509_cert_policy == 'globus':
+            x509_cert_dir = config_dict['common']['x509_cert_dir']
+        else:
+            x509_cert_dir = ''
 
         # Check cert
         if not os.path.exists(x509_host_cert):
@@ -315,9 +319,14 @@ class Validator(object):
         else:
             # Verify cert
             try:
-                result = subprocess.run(["openssl", "verify", "-CApath", x509_cert_dir,
-                                         x509_host_cert], stdout=subprocess.PIPE,
-                                         stderr=subprocess.STDOUT)
+                if x509_cert_dir == '':
+                    result = subprocess.run(["openssl", "verify",
+                                             x509_host_cert], stdout=subprocess.PIPE,
+                                             stderr=subprocess.STDOUT)
+                else:
+                    result = subprocess.run(["openssl", "verify", "-CApath", x509_cert_dir,
+                                             x509_host_cert], stdout=subprocess.PIPE,
+                                             stderr=subprocess.STDOUT)
             except Exception as e:
                 self.error("Host certificate verification failed: %s" % str(e))
                 return
@@ -347,15 +356,16 @@ class Validator(object):
             self.error("%s is not owned by this user" % x509_host_key)
 
         # Check CA dir
-        if not os.path.isdir(x509_cert_dir):
-            self.error("Directory %s does not exist" % x509_cert_dir)
-        else:
-            # Check CRLs
-            crls = glob.glob(os.path.join(x509_cert_dir, "*.r0"))
-            if not crls:
-                self.warning("No certificate revocation lists in %s" % x509_cert_dir)
+        if x509_cert_dir != '':
+            if not os.path.isdir(x509_cert_dir):
+                self.error("Directory %s does not exist" % x509_cert_dir)
             else:
-                now = time.time()
-                for crl in crls:
-                    if now - os.path.getmtime(crl) > 2 * 86400:
-                        self.warning("%s is older than 2 days, rerun fetch-crl" % crl)
+                # Check CRLs
+                crls = glob.glob(os.path.join(x509_cert_dir, "*.r0"))
+                if not crls:
+                    self.warning("No certificate revocation lists in %s" % x509_cert_dir)
+                else:
+                    now = time.time()
+                    for crl in crls:
+                        if now - os.path.getmtime(crl) > 2 * 86400:
+                            self.warning("%s is older than 2 days, rerun fetch-crl" % crl)

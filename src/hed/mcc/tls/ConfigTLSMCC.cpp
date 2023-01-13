@@ -54,12 +54,17 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   curve_nid_ = NID_secp521r1;
 #endif
   client_authn_ = true;
+  default_ca_ = (((std::string)(cfg["DefaultCA"])) == "true");
+  if(!default_ca_) {
+    ca_file_ = (std::string)(cfg["CACertificatePath"]);
+    ca_dir_ = (std::string)(cfg["CACertificatesDir"]);
+    globus_policy_ = (((std::string)(cfg["CACertificatesDir"].Attribute("PolicyGlobus"))) == "true");
+  } else {
+    globus_policy_ = false;
+  }
   cert_file_ = (std::string)(cfg["CertificatePath"]);
   key_file_ = (std::string)(cfg["KeyPath"]);
-  ca_file_ = (std::string)(cfg["CACertificatePath"]);
-  ca_dir_ = (std::string)(cfg["CACertificatesDir"]);
   voms_dir_ = (std::string)(cfg["VOMSDir"]);
-  globus_policy_ = (((std::string)(cfg["CACertificatesDir"].Attribute("PolicyGlobus"))) == "true");
   globus_gsi_ = (((std::string)(cfg["GSI"])) == "globus");
   globusio_gsi_ = (((std::string)(cfg["GSI"])) == "globusio");
   handshake_ = (cfg["Handshake"] == "SSLv3")?ssl3_handshake:tls_handshake;
@@ -169,7 +174,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   std::string gridSecurityDir = Glib::build_path(G_DIR_SEPARATOR_S, gridSecDir);
 
   if(!client) {
-    
+    // Default location of server certificate/key
     if(cert_file_.empty()) cert_file_= Glib::build_filename(gridSecurityDir, "hostcert.pem");
     if(key_file_.empty()) key_file_= Glib::build_filename(gridSecurityDir, "hostkey.pem");
     // Use VOMS trust DN of server certificates specified in configuration
@@ -211,7 +216,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
     //side should not require client authentication
     if(cert_file_.empty() && proxy_file_.empty()) client_authn_ = false;
   };
-  if(ca_dir_.empty() && ca_file_.empty()) ca_dir_= gridSecurityDir + G_DIR_SEPARATOR_S + "certificates";
+  if(!default_ca_ && ca_dir_.empty() && ca_file_.empty()) ca_dir_= gridSecurityDir + G_DIR_SEPARATOR_S + "certificates";
   if(voms_dir_.empty()) voms_dir_= gridSecurityDir + G_DIR_SEPARATOR_S + "vomsdir";
   if(!proxy_file_.empty()) { key_file_=proxy_file_; cert_file_=proxy_file_; };
 }
@@ -223,11 +228,17 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
       failure_ += HandleError();
       return false;
     };
-  };
+  } else {
+    if(!SSL_CTX_set_default_verify_paths(sslctx)) {
+      failure_ = "Can not assign default CA location\n";
+      failure_ += HandleError();
+      return false;
+    };
+  }
   if(!credential_.empty()) {
     // First try to use in-memory credential
     Credential cred(credential_, credential_, ca_dir_, ca_file_, Credential::NoPassword(), false);
-    if (!cred.IsValid()) {
+    if (!cred) {
       failure_ = "Failed to read in-memory credentials";
       return false;
     }

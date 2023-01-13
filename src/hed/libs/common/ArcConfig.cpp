@@ -92,7 +92,7 @@ namespace Arc {
   }
 
 
-  BaseConfig::BaseConfig() : plugin_paths(ArcLocation::GetPlugins()) {}
+  BaseConfig::BaseConfig() : plugin_paths(ArcLocation::GetPlugins()), defaultca(false) {}
 
   void BaseConfig::AddPluginsPath(const std::string& path) {
     plugin_paths.push_back(path);

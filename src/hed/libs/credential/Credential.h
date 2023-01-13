@@ -274,7 +274,7 @@ class Credential {
     /*****Get information from "this" object**/
 
     /**Get the verification result about certificate chain checking*/
-    bool GetVerification(void) const {return verification_valid; };
+    bool GetVerification(void) const {return verification_valid_; };
 
     /**Get the private key attached to this object*/
     EVP_PKEY* GetPrivKey(void) const;
@@ -388,8 +388,14 @@ class Credential {
     /**Set start time of certificate or proxy*/
     void SetStartTime(const Time& start_time);
 
-    /**Returns true if credentials are valid*/
-    bool IsValid(void);
+    /**Returns true if credentials are valid (if vaidation was performed)*/
+    bool IsValid(void) const;
+
+    /**Returns true if credentials were initialized*/
+    operator bool() const;
+
+    /**Returns true if credentials were not initialized*/
+    bool operator!() const;
 
     /************************************/
     /*****Generate certificate request, add certificate extension, inquire certificate request,
@@ -519,10 +525,11 @@ class Credential {
     std::string keyfile_;
 
     //Verification result
-    bool verification_valid;
-    std::string verification_proxy_policy;
+    bool verification_valid_;
+    std::string verification_proxy_policy_;
 
     //Certificate structures
+    bool initialized_;
     X509 *           cert_;    //certificate
     ArcCredential::certType cert_type_;
     EVP_PKEY *       pkey_;    //private key
