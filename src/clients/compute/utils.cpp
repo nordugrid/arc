@@ -680,7 +680,7 @@ ClientOptions::ClientOptions(Client_t c,
               istring("perform X.509 delegation for submitted jobs"),
               x509_delegation);
 
-    GroupAddOption("tuning", 'J', "token-delegation",
+    GroupAddOption("tuning", 'K', "token-delegation",
               istring("perform token delegation for submitted jobs"),
               token_delegation);
   }
