@@ -24,7 +24,7 @@ Build-Depends:
  libglobus-ftp-client-dev,
  libglobus-ftp-control-dev,
  libxrootd-client-dev | dpkg (<< 1.20.9),
- libgfal2-dev | dpkg (<< 1.17.5),
+ libgfal2-dev (>= 2.9) | dpkg (<< 1.18),
  openssl,
  swig,
  libnss3-dev,
