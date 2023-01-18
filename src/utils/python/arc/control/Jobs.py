@@ -240,7 +240,7 @@ class JobsControl(ComponentControl):
             sys.stdout.flush()
 
     def job_script(self, args):
-        error_log = control_path(self.control_dir, args.jobid, 'error')
+        error_log = control_path(self.control_dir, args.jobid, 'errors')
         if os.path.exists(error_log):
             el_f = open(error_log, 'r')
             print_line = False
@@ -303,9 +303,12 @@ class JobsControl(ComponentControl):
             self.logger.error('Failed to find log file: %s', log)
 
     def job_log(self, args):
-        error_log = control_path(self.control_dir, args.jobid, 'error')
+        error_log = control_path(self.control_dir, args.jobid, 'errors')
         if os.path.exists(error_log):
-            self.__follow_log(error_log, args.follow, process_function=self.__cut_jobscript)
+            if args.raw:
+                self.__follow_log(error_log, args.follow)
+            else:
+                self.__follow_log(error_log, args.follow, process_function=self.__cut_jobscript)
         else:
             self.__get_jobs()
             self.__job_exists(args.jobid)
@@ -493,6 +496,8 @@ class JobsControl(ComponentControl):
         jobs_log = jobs_actions.add_parser('log', help='Display job log')
         jobs_log.add_argument('jobid', help='Job ID').completer = complete_job_id
         jobs_log.add_argument('-f', '--follow', help='Follow the job log output', action='store_true')
+        jobs_log.add_argument('-r', '--raw', help='Show raw logfile content as it is (including jobscript)',
+                              action='store_true')
         jobs_log.add_argument('-s', '--service', help='Show ARC CE logs containing the jobID instead of job log',
                               action='store_true')
 
