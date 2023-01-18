@@ -804,8 +804,12 @@ class AAR(object):
 
     # info that requires processing
     def submithost(self):
-        submithost = self.aar['EndpointURL']
-        submithost = submithost.split(':')[1][2:]  # http://[example.org]:443/jobs..
+        split_url = self.aar['EndpointURL'].split(':')
+        if len(split_url) < 2:
+            self.logger.error('Endpoint URL "%s" does not comply with URL syntax for AAR %s. Returning empty string.',
+                              self.aar['EndpointURL'], self.aar['RecordID'])
+            return ''
+        submithost = split_url[1][2:]  # http://[example.org]:443/jobs..
         submithost = submithost.split('/')[0]  # [exmple.org]/jobs...
         return submithost
 
