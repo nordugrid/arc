@@ -405,7 +405,7 @@ class RTEControl(ComponentControl):
         if params[parameter]['allowed_string'] == 'string':
             pass
         elif params[parameter]['allowed_string'] == 'int':
-            if not re.match(r'[-0-9]+'):
+            if not re.match(r'[-0-9]+', value):
                 self.logger.error('Parameter %s for RunTimeEnvironment %s should be integer', parameter, rte)
                 sys.exit(1)
         elif value not in params[parameter]['allowed_values']:
