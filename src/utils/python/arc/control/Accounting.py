@@ -349,6 +349,9 @@ class AccountingControl(ComponentControl):
         targetid = None
         confrequired = True
         publisher = RecordsPublisher(self.arcconfig)
+        if args.end_from > args.end_till:
+            self.logger.error('Republishing timeframe specified incorrectly: "--end-from" cannot be later that "--end-till"')
+            sys.exit(1)
         if args.target_name is not None:
             targetid = args.target_name
             (targetconf, targettype) = publisher.find_configured_target(targetid)
