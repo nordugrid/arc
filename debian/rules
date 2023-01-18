@@ -68,7 +68,7 @@ ACIX = yes
 NA =
 endif
 
-ifeq ($(shell test -r /usr/include/gfal2/gfal_api.h && echo 1),1)
+ifeq ($(shell pkg-config --atleast-version 2.9 gfal2 && echo 1),1)
 GFAL = yes
 NG =
 else
