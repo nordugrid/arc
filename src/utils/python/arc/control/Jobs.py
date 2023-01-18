@@ -327,6 +327,9 @@ class JobsControl(ComponentControl):
         if arexjob_log is not None:
             self._service_log_print(arexjob_log, args.jobid)
 
+    def job_path(self, args):
+        print(control_path(self.control_dir, args.jobid, ''))
+
     def jobinfo(self, args):
         self.__get_jobs()
         self.__job_exists(args.jobid)
@@ -450,6 +453,8 @@ class JobsControl(ComponentControl):
             self.job_stderr(args)
         elif args.action == 'attr':
             self.job_getattr(args)
+        elif args.action == 'path':
+            self.job_path(args)
         elif args.action == 'stats':
             self.job_stats(args)
         elif args.action == 'accounting' and AccountingControl is not None:
@@ -512,9 +517,12 @@ class JobsControl(ComponentControl):
         jobs_stderr.add_argument('jobid', help='Job ID').completer = complete_job_id
         jobs_stderr.add_argument('-f', '--follow', help='Follow the job log output', action='store_true')
 
-        jobs_attr = jobs_actions.add_parser('attr', help='Get ')
+        jobs_attr = jobs_actions.add_parser('attr', help='Get job attribute')
         jobs_attr.add_argument('jobid', help='Job ID').completer = complete_job_id
         jobs_attr.add_argument('attr', help='Attribute name', nargs='?')
+
+        jobs_path = jobs_actions.add_parser('path', help='Print control directory path for a job')
+        jobs_path.add_argument('jobid', help='Job ID').completer = complete_job_id
 
         jobs_kill = jobs_actions.add_parser('kill', help='Cancel job')
         jobs_kill.add_argument('jobid', nargs='+', help='Job ID').completer = complete_job_id
