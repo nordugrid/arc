@@ -55,6 +55,9 @@ namespace DataStaging {
       durl = dtr->get_cache_file();
       caching = true;
     }
+    else if (!dtr->get_mapped_destination().empty()) {
+      durl = dtr->get_mapped_destination();
+    }
 
     if (dtr->host_cert_for_remote_delivery()) {
       Arc::initializeCredentialsType cred_type(Arc::initializeCredentialsType::TryCredentials);

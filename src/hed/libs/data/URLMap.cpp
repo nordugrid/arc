@@ -21,7 +21,7 @@ namespace Arc {
 
   URLMap::~URLMap() {}
 
-  bool URLMap::map(URL& url) const {
+  bool URLMap::map(URL& url, bool existence_check) const {
     for (std::list<map_entry>::const_iterator i = entries.begin();
          i != entries.end(); ++i)
       if (url.str().substr(0, i->initial.str().length()) == i->initial.str()) {
@@ -33,7 +33,7 @@ namespace Arc {
           logger.msg(Arc::ERROR, "Can't use URL %s", tmp_url);
           return false;
         }
-        if (newurl.Protocol() == "file") { /* local file - check permissions */
+        if (newurl.Protocol() == "file" && existence_check) { /* local file - check permissions */
           int h = ::open(newurl.Path().c_str(), O_RDONLY);
           if (h == -1) {
             logger.msg(ERROR, "file %s is not accessible", newurl.Path());

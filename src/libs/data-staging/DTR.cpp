@@ -163,6 +163,7 @@ namespace DataStaging {
     // empty cache and map info
     cache_file.clear();
     mapped_source.clear();
+    mapped_destination.clear();
     bytes_transferred = 0;
     transfer_time = 0;
     reset_error_status();

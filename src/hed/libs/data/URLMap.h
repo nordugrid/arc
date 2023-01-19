@@ -41,15 +41,18 @@ namespace Arc {
     /// Map a URL if possible.
     /**
      * If the given URL matches any template it will be changed to the mapped
-     * URL. Additionally, if the mapped URL is a local file, a permission check
-     * is done by attempting to open the file. If a different access path is
-     * specified for this URL the URL will be changed to link://accesspath. To
-     * check if a URL will be mapped without changing it local() can be used.
+     * URL. Additionally, if the mapped URL is a local file and existence_check
+     * is true, a permission check is done by attempting to open the file. If a
+     * different access path is specified for this URL the URL will be changed
+     * to link://accesspath. If existence_check is false then the access path
+     * is ignored. To check if a URL will be mapped without changing it local()
+     * can be used.
      * \param url URL to check
+     * \param existence_check If true, check if the mapped URL exists
      * \return true if the URL was mapped to a new URL, false if it was not
      * mapped or an error occurred during mapping
      */
-    bool map(URL& url) const;
+    bool map(URL& url, bool existence_check=true) const;
     /// Check if a mapping exists for a URL.
     /**
      * Checks to see if a URL will be mapped but does not do the mapping.

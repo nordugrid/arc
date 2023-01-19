@@ -1248,16 +1248,15 @@
 #sharepriority=myvo:production 80
 ## CHANGE: RENAMED in 6.0.0.
 
-## copyurl = url_head local_path - Configures that DTR should use copy instead of download
-## in case of certain stagein files. URLs, starting from 'url_head'
-## should be accessed in a different way (most probaly unix open). The
-## 'url_head' part of the URL will be replaced with 'local_path' and
-## file from obtained path will be copied to the session directory.
+## copyurl = url_head local_path - Configures a mapping of URLs to locally-
+## accessible paths. If a URL starts with 'url_head', the 'local_path' will be
+## substituted for the actual transfer. Applies to both input and output files.
 ## NOTE: 'local_path' can also be of URL type.
 ## multivalued
 ## default: undefined
 #copyurl=gsiftp://example.org:2811/data/ /data/
 #copyurl=gsiftp://example2.org:2811/data/ /data/
+## CHANGE: Applies also to output files in 7.0.0
 
 ## linkurl = url_head local_path [node_path] - Identical to 'copyurl', configures DTR
 ## so that for certain URLs files won't be downloaded or copied (in case of copyurl),
@@ -1265,7 +1264,8 @@
 ## specifies the way to access the file from the frontend, and is used
 ## to check permissions. The 'node_path' specifies how the file can be
 ## accessed from computing nodes, and will be used for soft-link creation.
-## If 'node_path' is missing - 'local_path' will be used.
+## If 'node_path' is missing - 'local_path' will be used. This option applies
+## only to input files.
 ## multivalued
 ## default: undefined
 #linkurl=gsiftp://somewhere.org/data /data
