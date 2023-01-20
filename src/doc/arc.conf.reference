@@ -9,9 +9,9 @@
 ## The arc.conf configuration file consists of the following blocks:
 ##
 ##  [common]
+##  [authtokens]
 ##  [authgroup:groupname]
 ##  [mapping]
-##  [authtokens]
 ##  [lrms]
 ##  [lrms/ssh] (removed in 7.0.0)
 ##  [arex]
@@ -223,6 +223,16 @@
 ##
 ##
 ### end of the [common] block ##############################################
+
+
+### The [authtokens] block ##############################################
+## This block activates processing of OIDC tokens as defined in WLCG profile.
+##
+##
+#[authtokens]
+## CHANGE: NEW block in 6.6.0.
+##
+### end of the [authtokens] block ##############################################
 
 
 ### The [authgroup:groupname] (previously [group]) blocks ##########################
@@ -470,16 +480,6 @@
 #policy_on_nogroup=stop
 ##
 ### end of the [mapping] block ##############################################
-
-
-### The [authtokens] block ##############################################
-## This block activates processing of OIDC tokens as defined in WLCG profile.
-##
-##
-#[authtokens]
-## CHANGE: NEW block in 6.6.0.
-##
-### end of the [authtokens] block ##############################################
 
 
 ### The [lrms] block ##############################################
