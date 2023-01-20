@@ -79,6 +79,9 @@ namespace DataStaging {
         durl = dtr->get_cache_file();
         caching = true;
       }
+      else if (!dtr->get_mapped_destination().empty()) {
+        durl = dtr->get_mapped_destination();
+      }
       int child_uid = 0;
       int child_gid = 0;
       if(!caching) {

@@ -299,6 +299,10 @@ namespace DataStaging {
     /** Delivery should check if this is set and if so use this as source. */
     std::string mapped_source;
 
+    /// The file that the current destination is mapped to.
+    /** Delivery should check if this is set and if so use this as destination. */
+    std::string mapped_destination;
+
     /// Status of the DTR
     DTRStatus status;
 
@@ -588,10 +592,15 @@ namespace DataStaging {
     /// Get the cache state
     CacheState get_cache_state() const { return cache_state; };
 
-    /// Set the mapped file
+    /// Set the mapped source file
     void set_mapped_source(const std::string& file = "") { mapped_source = file; };
-    /// Get the mapped file
+    /// Get the mapped source file
     std::string get_mapped_source() const { return mapped_source; };
+
+    /// Set the mapped destination file
+    void set_mapped_destination(const std::string& file = "") { mapped_destination = file; };
+    /// Get the mapped destination file
+    std::string get_mapped_destination() const { return mapped_destination; };
 
     /// Find the DTR owner
     StagingProcesses get_owner() const { return current_owner; };

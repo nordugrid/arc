@@ -465,6 +465,14 @@ namespace DataStaging {
       }
     }
 
+    // Check for destination mapping
+    if (url_map) {
+      Arc::URL mapped_url(request->get_destination()->CurrentLocation());
+      if (url_map.map(mapped_url, false)) {
+        request->set_mapped_destination(mapped_url.str());
+      }
+    }
+
     // After normal workflow the DTR is ready for delivery
     request->get_logger()->msg(Arc::VERBOSE, "DTR is ready for transfer, moving to delivery queue");
 
