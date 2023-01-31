@@ -70,14 +70,14 @@ void CacheConfig::parseINIConf(Arc::ConfigIni& cf) {
           if(min_s.length() == 0)
             throw CacheConfigException("Not enough parameters in cachesize parameter");
 
-          off_t max_i;
+          float max_i;
           if(!Arc::stringto(max_s,max_i))
             throw CacheConfigException("bad number in cachesize parameter");
           if (max_i > 100 || max_i < 0)
             throw CacheConfigException("max cache size must be between 0 and 100");
           _cache_max = max_i;
       
-          off_t min_i;
+          float min_i;
           if(!Arc::stringto(min_s,min_i))
             throw CacheConfigException("bad number in cachesize parameter");
           if (min_i > 100 || min_i < 0)
