@@ -172,6 +172,15 @@ bool checkproxy(const Arc::UserConfig& uc)
   return true;
 }
 
+bool checktoken(const Arc::UserConfig& uc) {
+  if(uc.OToken().empty()) {
+    std::cout << Arc::IString("Cannot find any token. Please run 'oidc-token' or use similar\n"
+		              "  utility to obtain authentication token!") << std::endl;
+    return false;
+  }
+  return true;
+}
+
 static bool urlisinsecure(Arc::URL const & url) {
   std::string protocol = url.Protocol();
   return protocol.empty() || (protocol == "http") || (protocol == "ftp") || (protocol == "ldap");

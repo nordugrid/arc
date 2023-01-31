@@ -190,8 +190,21 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     delegation_type = TokenDelegation;
   }
 
-  if((delegation_type == X509Delegation) || usercfg.OToken().empty()) {
+  // If delegation is not specified try to guess it
+  if(delegation_type == UndefinedDelegation) {
+    if(!usercfg.OToken().empty()) {
+      delegation_type = TokenDelegation;
+    } else {
+      delegation_type = X509Delegation;
+    }
+  }
+
+  if(delegation_type == X509Delegation) {
     if (!checkproxy(usercfg)) {
+      return 1;
+    }
+  } else if(delegation_type == TokenDelegation) {
+    if (!checktoken(usercfg)) {
       return 1;
     }
   }
