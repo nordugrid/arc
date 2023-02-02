@@ -112,6 +112,8 @@ void showplugins(const std::string& program, const std::list<std::string>& types
 
 bool checkproxy(const Arc::UserConfig& uc);
 
+bool checktoken(const Arc::UserConfig& uc);
+
 bool jobneedsproxy(const Arc::JobDescription& job);
 
 void splitendpoints(std::list<std::string>& selected, std::list<std::string>& rejected);
