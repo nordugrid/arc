@@ -39,8 +39,8 @@ class CacheConfig {
     * List of (cache dir [link dir])
     */
    std::vector<std::string> _cache_dirs;
-   int _cache_max;
-   int _cache_min;
+   float _cache_max;
+   float _cache_min;
    /**
     * Whether automatic cleaning is enabled
     */
@@ -100,8 +100,8 @@ class CacheConfig {
   std::vector<std::string> getReadOnlyCacheDirs() const { return _readonly_cache_dirs; };
   /// Substitute all cache paths, with information given in user if necessary
   void substitute(const GMConfig& config, const Arc::User& user);
-  int getCacheMax() const { return _cache_max; };
-  int getCacheMin() const { return _cache_min; };
+  float getCacheMax() const { return _cache_max; };
+  float getCacheMin() const { return _cache_min; };
   bool cleanCache() const { return _cleaning_enabled; };
   std::string getLogFile() const { return _log_file; };
   std::string getLogLevel() const { return _log_level; };
