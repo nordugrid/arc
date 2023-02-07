@@ -633,6 +633,7 @@ $message = array (
                                         "Hungary"      => "Ungern",
                                         "Iceland"      => "Island",
                                         "Ireland"      => "Irland",
+                                        "Israel"       => "Israel",
                                         "Italy"        => "Italien",
                                         "Japan"        => "Japan",
                                         "Latvia"       => "Lettland",

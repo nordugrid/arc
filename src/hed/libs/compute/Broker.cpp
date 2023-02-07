@@ -142,7 +142,7 @@ namespace Arc {
 
     if ( !(t.ComputingEndpoint->TrustedCA.empty()) && (findDN(t.ComputingEndpoint->TrustedCA.begin(), t.ComputingEndpoint->TrustedCA.end(), proxyIssuerCA)
             == t.ComputingEndpoint->TrustedCA.end()) ){
-        logger.msg(VERBOSE, "The CA issuer (%s) of the credentials (%%s) is not trusted by the target (%s).", proxyIssuerCA, proxyDN, t.ComputingEndpoint->URLString);
+        logger.msg(VERBOSE, "The CA issuer (%s) of the credentials (%s) is not trusted by the target (%s).", proxyIssuerCA, proxyDN, t.ComputingEndpoint->URLString);
         return false;
     }
 
