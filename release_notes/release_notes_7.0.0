@@ -3,44 +3,71 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.X.X     XX.XX.XXXX
+Release Notes for NorduGrid ARC  7.0.0     XX.XX.2023
 =======================================================
 
 
 Highlights in this release
 --------------------------
 
+- Tokens (link): not new but there were major improvements, community compliance, enhancements. 
+Added support for using JWT compute scopes for token-based authorization via allowaccess arc.conf parameter(?)
+ Token information is part of the accounting records (?)
 
-The following Bugzilla tickets have been adressed or solved
-------------------------------------------------------------
+- ARC server can use operating system provided CA bundles (fix wording)
+
+- REST 1.1 (link)
+  delegation type extension to support tokens as well
+
+- consistent handling of the benchmark parameters over the various arc.conf blocks
+
+- restructured controldir for increased scalability (link) 
+
+Backwards compatibilities and incompatibilities
+------------------------------------------------
+
+ARC7 still suports x509 proxies in addition to the tokens.
+
+new blocks to enable/disable the authentication methods: [authtokens] [authx509], zero conf turns on both?? 
+
+Support for the EMIES interface was completely removed. 
+
+Publshing cluster information via REST interface is enabled by default [arex/ws/publicinfo] block is added to zero.conf
+
+No incompatible changes in the ARC7 accounting subsystem. APEL and SGAS supported.
+
+the internal structure of the controldir files have been changed, ARC internal scripts were updated but custom scripts may be broken because of the changed file structure in the controldir.
+
+ARC 7 supports XRSL and ADL as job description languages, no backward incompatible changes were introduced, all ARC6 job files should work with ARC7. 
+
+ARC 7 fully supports the SLURM, Condor and the fork batch systems and community efforts were made to provide some maintenance for OpenPBS as well. The other batch systems from ARC6 are kept in ARC7 but their status is unclear. 
+
+
+
 
 
 
 Documentation
 ==============
-The ARC 6 documentation can be found at http://www.nordugrid.org/arc/arc6
+The ARC 7 documentation can be found at
 
 If you miss something or have questions, please contact us!
 
+Links to Technology papers, specs
+----------------------------------
+ Token support in ARC tech white paper
 
-Installing ARC 6 
+
+Installing ARC 7 
 =================
 We recommend to install ARC release using the Nordugrid repository.
-* Start with the basics: http://www.nordugrid.org/arc/arc6/admins/try_arc6.html
-* Get production ready: http://www.nordugrid.org/arc/arc6/admins/arc6_install_guide.html 
-
-Note that if you instead install from EPEL for RHEL 7 compatible systems,
-the ARC 6 packages can be found as nordugrid-arc6-* and not nordugrid-arc-*
-This was needed in order to supply both ARC 5 already available for RHEL7 and the new ARC 6.
 
 
 We provide binary builds for all supported versions of
-  * Debian (i386 and amd64)
-  * Fedora (x86_64)
-  * Centos/RHEL (x86_64)
-  * Ubuntu (i386 and amd64, both LTS and interim releases) - from Ubuntu 20.04 no i386 support
+  
 
 In addition we build nightly packages for older platforms. 
+
 
 
 Contributing
@@ -54,35 +81,16 @@ merged into the source-code if accepted.
 
 Getting in touch
 ==================
-If you need help with the configuration file or have any other questions related to ARC 6, please contact us via
+If you need help with the configuration file or have any other questions related to ARC, please contact us via
 * Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
-* Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
+* Skype channel dedicated to ARC support: https://join.skype.com/dyf3A6Uutjy2
 
 
-Future support of ARC 5-series
+Future support of ARC 6-series
 ===============================
-As of June 2020 no more security updates are provided to ARC 5.
-Also since the release of ARC 6 in June 2019, no more development on the ARC 5 code base has been provided.
-
-Production Sites already running ARC 5 will still get operational site support in form of
-deployment and configuration troubleshooting help via GGUS until end June 2021.
-However, we may recommend upgrading to ARC 6 depending on the issues the site is facing. 
-
-ARC5 is available in EPEL7 and will stay there. EPEL8 will only contain ARC 6.
-To install ARC 6 from EPEL7 the package-names are of type: nordugrid-arc6-* 
 
 
 
 
-Known issues
-==============
-* In Centos8 the openldap server is not installable because slapd is not available in the RHEL8 release (Bugzilla 3944).
-  As a consequence, the LDAP-based server-side information system interface of the ARC-CE will not be available either.
-  If interaction with the ARC-CE relies on LDAP-based information schemas (glue1.3 or nordugrid schema),
-  then we recommend that you stay with Centos7 for the time being.
-* Related to the new accounting system introduded in release 6.4.0: 
-  * Accounting records created by ARC 6.4.0 are affected by a bug causing missing benchmark values:
-   https://bugzilla.nordugrid.org./show_bug.cgi?id=3921#c3
-   Recommendations are to update to a newer version of ARC.
-   The bugreport gives instructions on how to manually fix the wrong benchmark values.
+
 
