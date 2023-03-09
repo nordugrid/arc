@@ -33,7 +33,7 @@ libarcwssecurity_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS)
 endif
-libarcwssecurity_la_LDFLAGS = -version-info 3:0:0
+libarcwssecurity_la_LDFLAGS = -version-info 4:0:0
 
 test_usernametoken_SOURCES = test_usernametoken.cpp 
 test_usernametoken_CXXFLAGS = -I$(top_srcdir)/include \

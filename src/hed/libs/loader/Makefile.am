@@ -11,7 +11,7 @@ libarcloader_la_CXXFLAGS = -I$(top_srcdir)/include \
 libarcloader_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
-libarcloader_la_LDFLAGS = -version-info 3:0:0
+libarcloader_la_LDFLAGS = -version-info 4:0:0
 
 #libtestservice_la_SOURCES = TestService.cpp TestService.h
 #libtestservice_la_CXXFLAGS = -I$(top_srcdir)/include \

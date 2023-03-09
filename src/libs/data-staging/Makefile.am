@@ -22,7 +22,7 @@ libarcdatastaging_la_LIBADD = \
   $(top_builddir)/src/hed/libs/loader/libarcloader.la \
   $(top_builddir)/src/hed/libs/communication/libarccommunication.la \
   $(GLIBMM_LIBS)
-libarcdatastaging_la_LDFLAGS = -version-info 3:0:0
+libarcdatastaging_la_LDFLAGS = -version-info 4:0:0
 
 pgmpkglibdir = $(pkglibdir)
 pgmpkglib_PROGRAMS = DataStagingDelivery

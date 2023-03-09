@@ -28,4 +28,4 @@ libarccommunication_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBS_WITH_XMLSEC) $(LIBXML2_LIBS) $(GLIBMM_LIBS)
-libarccommunication_la_LDFLAGS = -version-info 3:0:0
+libarccommunication_la_LDFLAGS = -version-info 4:0:0

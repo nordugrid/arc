@@ -31,7 +31,7 @@ libarcdata_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(GTHREAD_LIBS) \
 	$(OPENSSL_LIBS)
-libarcdata_la_LDFLAGS = -version-info 3:0:0
+libarcdata_la_LDFLAGS = -version-info 4:0:0
 
 arc_dmc_SOURCES = DataExternalHelper.cpp DataExternalHelper.h
 arc_dmc_CXXFLAGS = -I$(top_srcdir)/include \

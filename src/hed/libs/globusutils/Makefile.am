@@ -19,4 +19,4 @@ libarcglobusutils_la_LIBADD = \
 	$(GLOBUS_GSSAPI_GSI_LIBS) $(GLOBUS_GSI_CALLBACK_LIBS) \
 	$(GLOBUS_COMMON_LIBS)
 
-libarcglobusutils_la_LDFLAGS  = -version-info 3:0:0
+libarcglobusutils_la_LDFLAGS  = -version-info 4:0:0
