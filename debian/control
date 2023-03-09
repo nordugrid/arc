@@ -38,13 +38,15 @@ Build-Depends:
 Standards-Version: 4.4.1
 Homepage: http://www.nordugrid.org
 
-Package: libarccommon3
+Package: libarccommon4
 Replaces:
  nordugrid-arc-hed (<< 1.0.1~rc2~),
  nordugrid-arc-arex (<< 2.0.1~),
  libarccommon0,
  libarccommon1,
- libarccommon2
+ libarccommon2,
+ libarccommon3,
+ libarccommon3v5
 Conflicts:
  nordugrid-arc-chelonia (<< 2.0.0~),
  nordugrid-arc-hopi (<< 2.0.0~),
@@ -93,7 +95,7 @@ Architecture: any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- libarccommon3 (= ${binary:Version}),
+ libarccommon4 (= ${binary:Version}),
  nordugrid-arc-plugins-needed (= ${binary:Version})
 Description: ARC command line clients
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -113,7 +115,7 @@ Architecture: any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- libarccommon3 (= ${binary:Version}),
+ libarccommon4 (= ${binary:Version}),
  lsb-base (>= 3.0-6)
 Description: ARC Hosting Environment Daemon
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -128,7 +130,7 @@ Architecture: any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- libarccommon3 (= ${binary:Version}),
+ libarccommon4 (= ${binary:Version}),
  nordugrid-arc-hed (= ${binary:Version}),
  nordugrid-arc-arcctl-service (= ${source:Version}),
  nordugrid-arc-plugins-needed (= ${binary:Version}),
@@ -203,7 +205,7 @@ Architecture: all
 Depends:
  ${misc:Depends},
  ${python3:Depends},
- libarccommon3 (>= ${source:Version})
+ libarccommon4 (>= ${source:Version})
 Description: ARC Control Tool
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -225,7 +227,7 @@ Architecture: all
 Depends:
  ${misc:Depends},
  ${python3:Depends},
- libarccommon3 (>= ${source:Version}),
+ libarccommon4 (>= ${source:Version}),
  nordugrid-arc-arcctl (= ${source:Version})
 Description: ARC Control Tool - service control modules
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -258,7 +260,7 @@ Depends:
  ${misc:Depends},
  ${perl:Depends},
  ${python3:Depends},
- libarccommon3 (= ${binary:Version}),
+ libarccommon4 (= ${binary:Version}),
  nordugrid-arc-hed (= ${binary:Version}),
  nordugrid-arc-arcctl (= ${source:Version}),
  nordugrid-arc-arcctl-service (= ${source:Version}),
@@ -308,7 +310,7 @@ Conflifts:
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- libarccommon3 (= ${binary:Version})
+ libarccommon4 (= ${binary:Version})
 Description: ARC base plugins
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -326,7 +328,7 @@ Architecture: any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- libarccommon3 (= ${binary:Version})
+ libarccommon4 (= ${binary:Version})
 Description: ARC LDAP plugins
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -355,7 +357,7 @@ Description: ARC Globus plugins (transitional package)
  This is a transitional package. It is meant to allow smooth transition
  and will be removed from the upcoming releases.
 
-Package: libarcglobusutils3
+Package: libarcglobusutils4
 Replaces:
  nordugrid-arc-plugins-globus (<< 6.5.0~)
 Breaks:
@@ -364,7 +366,7 @@ Architecture: any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- libarccommon3 (= ${binary:Version})
+ libarccommon4 (= ${binary:Version})
 Description: ARC Globus plugins common libraries
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -383,8 +385,8 @@ Architecture: any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- libarccommon3 (= ${binary:Version}),
- libarcglobusutils3 (= ${binary:Version})
+ libarccommon4 (= ${binary:Version}),
+ libarcglobusutils4 (= ${binary:Version})
 Description: ARC Globus dependent DMCs
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -402,8 +404,8 @@ Architecture: any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- libarccommon3 (= ${binary:Version}),
- libarcglobusutils3 (= ${binary:Version})
+ libarccommon4 (= ${binary:Version}),
+ libarcglobusutils4 (= ${binary:Version})
 Description: ARC LCAS/LCMAPS plugins
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -421,8 +423,8 @@ Architecture: any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- libarccommon3 (= ${binary:Version}),
- libarcglobusutils3 (= ${binary:Version}),
+ libarccommon4 (= ${binary:Version}),
+ libarcglobusutils4 (= ${binary:Version}),
  nordugrid-arc-plugins-gridftp (= ${binary:Version})
 Description: ARC GRIDFTPJOB client plugin
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -436,7 +438,7 @@ Architecture: any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- libarccommon3 (= ${binary:Version}),
+ libarccommon4 (= ${binary:Version}),
 Description: ARC xrootd plugins
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -450,7 +452,7 @@ Architecture: any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- libarccommon3 (= ${binary:Version}),
+ libarccommon4 (= ${binary:Version}),
 Description: ARC GFAL2 plugins
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -466,7 +468,7 @@ Architecture: any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- libarccommon3 (= ${binary:Version}),
+ libarccommon4 (= ${binary:Version}),
  nordugrid-arc-arex (= ${binary:Version})
 Description: ARC internal plugin
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -485,7 +487,7 @@ Architecture: any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- libarccommon3 (= ${binary:Version}),
+ libarccommon4 (= ${binary:Version}),
  python3-nordugrid-arc (= ${binary:Version})
 Description: ARC Python dependent plugin
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -504,7 +506,7 @@ Section: libdevel
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- libarccommon3 (= ${binary:Version}),
+ libarccommon4 (= ${binary:Version}),
  libxml2-dev (>= 2.4.0),
  libssl-dev,
  libglibmm-2.4-dev
@@ -528,7 +530,7 @@ Depends:
  ${shlibs:Depends},
  ${misc:Depends},
  ${python3:Depends},
- libarccommon3 (= ${binary:Version})
+ libarccommon4 (= ${binary:Version})
 Description: ARC Python 3 wrapper
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -547,7 +549,7 @@ Architecture: any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
- libarccommon3 (= ${binary:Version}),
+ libarccommon4 (= ${binary:Version}),
  nordugrid-arc-plugins-needed (= ${binary:Version})
 Description: ARC test tools
  NorduGrid is a collaboration aiming at development, maintenance and

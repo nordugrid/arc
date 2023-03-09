@@ -8,4 +8,4 @@ libarccrypto_la_CXXFLAGS = -I$(top_srcdir)/include \
 libarccrypto_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(GTHREAD_LIBS) $(OPENSSL_LIBS)
-libarccrypto_la_LDFLAGS = -version-info 3:0:0
+libarccrypto_la_LDFLAGS = -version-info 4:0:0

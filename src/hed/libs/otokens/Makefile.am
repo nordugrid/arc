@@ -18,5 +18,5 @@ libarcotokens_la_LIBADD = \
         $(top_builddir)/src/hed/libs/crypto/libarccrypto.la \
         $(top_builddir)/src/hed/libs/communication/libarccommunication.la \
         $(OPENSSL_LIBS) $(GLIBMM_LIBS) $(LIBINTL)
-libarcotokens_la_LDFLAGS = -version-info 3:0:0
+libarcotokens_la_LDFLAGS = -version-info 4:0:0
 

@@ -12,7 +12,7 @@ libarccredentialstore_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS)
-libarccredentialstore_la_LDFLAGS  = -version-info 3:0:0
+libarccredentialstore_la_LDFLAGS  = -version-info 4:0:0
 
 #test_SOURCES = test.cpp
 #test_CXXFLAGS = -I$(top_srcdir)/include \

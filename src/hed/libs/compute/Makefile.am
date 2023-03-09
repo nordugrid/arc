@@ -42,7 +42,7 @@ libarccompute_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(LIBADD_WITH_SQLITEJSTORE)
-libarccompute_la_LDFLAGS = -version-info 3:0:0
+libarccompute_la_LDFLAGS = -version-info 4:0:0
 
 test_jobdescription_SOURCES = test_jobdescription.cpp
 test_jobdescription_CXXFLAGS = -I$(top_srcdir)/include \
