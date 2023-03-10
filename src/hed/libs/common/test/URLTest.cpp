@@ -31,6 +31,7 @@ class URLTest
   CPPUNIT_TEST(TestWithDefaults);
   CPPUNIT_TEST(TestStringMatchesURL);
   CPPUNIT_TEST(TestOptions);
+  CPPUNIT_TEST(TestEquality);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -53,6 +54,7 @@ public:
   void TestWithDefaults();
   void TestStringMatchesURL();
   void TestOptions();
+  void TestEquality();
 
 private:
   Arc::URL *gsiftpurl, *gsiftpurl2, *ldapurl, *httpurl, *davsurl, *fileurl, *ldapurl2, *opturl, *ftpurl, *srmurl, *rooturl, *ip6url, *ip6url2, *ip6url3;
@@ -411,6 +413,12 @@ void URLTest::TestOptions() {
   CPPUNIT_ASSERT_EQUAL(std::string("value2"), url.Option("attr1"));
   CPPUNIT_ASSERT(url.AddOption("attr1=value1", true));
   CPPUNIT_ASSERT_EQUAL(std::string("value1"), url.Option("attr1"));
+}
+
+void URLTest::TestEquality() {
+  Arc::URL url1("gsiftp://hathi.hep.lu.se/public/test.txt");
+  CPPUNIT_ASSERT(*gsiftpurl == url1);
+  CPPUNIT_ASSERT(*gsiftpurl != *gsiftpurl2);
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(URLTest);
