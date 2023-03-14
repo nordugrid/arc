@@ -169,7 +169,7 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
       }
     }
   } else {
-    std::cout << "\"jobs\": [";
+    std::cout << "{\"jobs\": [";
     for (std::vector<Arc::Job>::const_iterator it = jobsSortable.begin();
          it != jobsSortable.end(); ++it) {
       std::cout << (it==jobsSortable.begin()?"":",") << std::endl;
@@ -181,7 +181,7 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
       }
     }
     std::cout << std::endl;
-    std::cout << "]" << std::endl;
+    std::cout << "]}" << std::endl;
   }
 
   if (opt.show_unavailable) {
