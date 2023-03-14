@@ -284,6 +284,9 @@ namespace Arc {
     /// Is one URL equal to another?
     bool operator==(const URL& url) const;
 
+    /// Is one URL not equal to another?
+    bool operator!=(const URL& url) const;
+
     /// Check if instance holds valid URL.
     operator bool() const;
     /// Check if instance does not hold valid URL.

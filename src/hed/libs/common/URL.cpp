@@ -974,6 +974,10 @@ namespace Arc {
     return (str() == url.str());
   }
 
+  bool URL::operator!=(const URL& url) const {
+    return !operator==(url);
+  }
+
   std::string URL::BaseDN2Path(const std::string& basedn) {
 
     std::string::size_type pos, pos2;
