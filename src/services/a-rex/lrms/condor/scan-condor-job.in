@@ -1,4 +1,4 @@
-#!@posix_shell@
+#!/bin/bash
 
 progname=$(basename "$0")
 
