@@ -6,6 +6,16 @@ LRMS=Condor # for use in log messages
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+# Validate control directories supplied on command-line
+if [ -z "$1" ] ; then
+    echo "no control_dir specified" 1>&2; exit 1
+fi
+for ctr_dir in "$@"; do
+    if [ ! -d "$ctr_dir" ]; then
+        echo "called with erronous control dir: $ctr_dir"
+        exit 1
+    fi
+done
 
 joboption_lrms="condor"
 lrms_options="condor_requirements condor_rank condor_bin_path condor_config"
@@ -434,12 +444,6 @@ scan_init () {
 
 
 scan_main() {
-
-    # Initial working directory
-    myworkdir=$(pwd) || { log "pwd failed"; exit 1; }
-
-    # Validate control directories supplied on command-line
-    #test -n "$1" || { log "control_dir not specified"; exit 1; }
 
     log () { echo "$progname: $*" 1>&2; }
     
