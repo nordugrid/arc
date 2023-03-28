@@ -2786,13 +2786,14 @@
 ## with respect to the benchmark performance.
 ## NOTE that in ARC < 6.4 this parameter is only used for information publishing.
 ## In case of multiple benchmarks are specified:
-##   - Accounting subsystem will use only the FIRST defined benchmark.
+##   - Accounting subsystem will use ONLY THE FIRST defined benchmark.
 ##   - Infosys will publish all defined benchmark values.
 ##
 ## The values represent per-core CPU performance.
-## Note that APEL accounting services are accept "HEPSPEC" or "Si2k" benchmark types only.
+## Note that APEL accounting services are accept "HEPscore23", "HEPSPEC" or "Si2k" benchmark types only.
 ## multivalued
 ## default: HEPSPEC 1.0
+#benchmark=HEPscore23 16.5
 #benchmark=HEPSPEC 12.26
 #benchmark=Si2k 3065
 ## CHANGE: MODIFIED IN 6.4.0.
