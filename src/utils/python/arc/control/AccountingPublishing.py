@@ -96,7 +96,7 @@ def datetime_to_iso8601(dt):
 
 def get_apel_benchmark(logger, benchmark):
     """Use only APEL supported benchmarks (fallback to HEPSPEC 1.0)"""
-    __allowed_benchmark_types = ['Si2k', 'HEPSPEC']
+    __allowed_benchmark_types = ['Si2k', 'HEPSPEC', 'HEPscore23']
     if not benchmark:
         logger.error('Missing benchmark value. "HEPSPEC:1.0" will be used as a fallback.')
         return 'HEPSPEC', '1.0'
