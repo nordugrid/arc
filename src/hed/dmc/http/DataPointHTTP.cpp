@@ -386,7 +386,8 @@ using namespace Arc;
         if((info.code == 301) || // permanent redirection
            (info.code == 302) || // temporary redirection
            (info.code == 303) || // POST to GET redirection
-           (info.code == 304)) { // redirection to cache
+           (info.code == 304) || // redirection to cache
+           (info.code == 307)) { // temporary redirection
           // 305 - redirection to proxy - unhandled
           // Recreate connection now to new URL
           rurl = info.location;
@@ -571,7 +572,8 @@ using namespace Arc;
         if((info.code == 301) || // permanent redirection
            (info.code == 302) || // temporary redirection
            (info.code == 303) || // POST to GET redirection
-           (info.code == 304)) { // redirection to cache
+           (info.code == 304) || // redirection to cache
+           (info.code == 307)) { // temporary redirection
           // 305 - redirection to proxy - unhandled
           // Recreate connection now to new URL
           rurl = info.location;
@@ -664,7 +666,8 @@ using namespace Arc;
         if((info.code == 301) || // permanent redirection
            (info.code == 302) || // temporary redirection
            (info.code == 303) || // POST to GET redirection
-           (info.code == 304)) { // redirection to cache
+           (info.code == 304) || // redirection to cache
+           (info.code == 307)) { // temporary redirection
           // 305 - redirection to proxy - unhandled
           // Recreate connection now to new URL
           rurl = info.location;
@@ -1245,7 +1248,8 @@ using namespace Arc;
       if((transfer_info.code == 301) || // permanent redirection
          (transfer_info.code == 302) || // temporary redirection
          (transfer_info.code == 303) || // POST to GET redirection
-         (transfer_info.code == 304)) { // redirection to cache
+         (transfer_info.code == 304) || // redirection to cache
+         (transfer_info.code == 307)) { // temporary redirection
         // 305 - redirection to proxy - unhandled
         // Return buffer
         point.buffer->is_read(transfer_handle, 0, 0);
