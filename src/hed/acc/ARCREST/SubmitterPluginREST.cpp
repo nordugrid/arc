@@ -302,6 +302,9 @@ namespace Arc {
       preparedjobdescs.push_back(std::make_pair(preparedjobdesc,it));
     };
     if(jobdescs.size() > 1) fullProduct = "</ActivityDescriptions>";
+    if (preparedjobdescs.empty()) {
+      return retval;
+    }
 
     Arc::MCCConfig cfg;
     usercfg->ApplyToConfig(cfg);
