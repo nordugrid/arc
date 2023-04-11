@@ -173,9 +173,6 @@ namespace Arc {
     const UserConfig& uc;
     mutable const JobDescription* j;
 
-    std::string proxyDN;
-    std::string proxyIssuerCA;
-
     CountedPointer<BrokerPlugin> p;
 
     static BrokerPluginLoader& getLoader();

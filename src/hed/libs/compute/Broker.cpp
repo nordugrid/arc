@@ -20,18 +20,12 @@ namespace Arc {
   Logger ExecutionTargetSorter::logger(Logger::getRootLogger(), "ExecutionTargetSorter");
 
   Broker::Broker(const UserConfig& uc, const JobDescription& j, const std::string& name) : uc(uc), j(&j), p(getLoader().load(uc, j, name, false)) {
-    Credential credential(uc, std::string(2,'\0')); // private key is not needed here
-    proxyDN = credential.GetDN();
-    proxyIssuerCA = credential.GetCAName();
   }
 
   Broker::Broker(const UserConfig& uc, const std::string& name) : uc(uc), j(NULL), p(getLoader().load(uc, name, false)) {
-    Credential credential(uc, std::string(2,'\0'));
-    proxyDN = credential.GetDN();
-    proxyIssuerCA = credential.GetCAName();
   }
 
-  Broker::Broker(const Broker& b) : uc(b.uc), j(b.j), proxyDN(b.proxyDN), proxyIssuerCA(b.proxyIssuerCA), p(b.p) {
+  Broker::Broker(const Broker& b) : uc(b.uc), j(b.j), p(b.p) {
     p = getLoader().copy(p.Ptr(), false);
   }
 
@@ -40,8 +34,6 @@ namespace Arc {
 
   Broker& Broker::operator=(const Broker& b) {
     j = b.j;
-    proxyDN = b.proxyDN;
-    proxyIssuerCA = b.proxyIssuerCA;
     p = getLoader().copy(p.Ptr(), false);
     return *this;
   }
@@ -136,17 +128,25 @@ namespace Arc {
 
   bool Broker::genericMatch(const ExecutionTarget& t, const JobDescription& j, const UserConfig& uc) {
     // Maybe Credential can be passed to plugins through one more set()
-    Credential credential(uc, std::string(2, '\0'));
-    std::string proxyDN = credential.GetDN();
-    std::string proxyIssuerCA = credential.GetCAName();
-
-    if ( !(t.ComputingEndpoint->TrustedCA.empty()) && (findDN(t.ComputingEndpoint->TrustedCA.begin(), t.ComputingEndpoint->TrustedCA.end(), proxyIssuerCA)
-            == t.ComputingEndpoint->TrustedCA.end()) ){
-        logger.msg(VERBOSE, "The CA issuer (%s) of the credentials (%s) is not trusted by the target (%s).", proxyIssuerCA, proxyDN, t.ComputingEndpoint->URLString);
-        return false;
-    }
 
     std::map<std::string, std::string>::const_iterator itAtt;
+
+    if ((itAtt = j.OtherAttributes.find("nordugrid:broker;ignore_ca")) == j.OtherAttributes.end()) {
+      std::string proxyIssuerCA;
+      std::string proxyDN;
+      if (!uc.OToken().empty()) {
+        // If we have token matching by X.509 has no sense because user can be authenticated by both.
+        Credential credential(uc, std::string(2, '\0'));
+        proxyDN = credential.GetDN();
+        proxyIssuerCA = credential.GetCAName();
+      }
+      if ( !(proxyIssuerCA.empty()) && !(t.ComputingEndpoint->TrustedCA.empty()) && (findDN(t.ComputingEndpoint->TrustedCA.begin(), t.ComputingEndpoint->TrustedCA.end(), proxyIssuerCA)
+              == t.ComputingEndpoint->TrustedCA.end()) ){
+          logger.msg(VERBOSE, "The CA issuer (%s) of the credentials (%s) is not trusted by the target (%s).", proxyIssuerCA, proxyDN, t.ComputingEndpoint->URLString);
+          return false;
+      }
+    }
+
     if ((itAtt = j.OtherAttributes.find("nordugrid:broker;reject_queue")) != j.OtherAttributes.end()) {
       if (t.ComputingShare->MappingQueue.empty()) {
         if (t.ComputingShare->Name.empty()) {
