@@ -1,4 +1,4 @@
-#!@posix_shell@
+#!/bin/bash
 
 progname=$(basename "$0")
 
@@ -6,6 +6,16 @@ LRMS=Condor # for use in log messages
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
+# Validate control directories supplied on command-line
+if [ -z "$1" ] ; then
+    echo "no control_dir specified" 1>&2; exit 1
+fi
+for ctr_dir in "$@"; do
+    if [ ! -d "$ctr_dir" ]; then
+        echo "called with erronous control dir: $ctr_dir"
+        exit 1
+    fi
+done
 
 joboption_lrms="condor"
 lrms_options="condor_requirements condor_rank condor_bin_path condor_config"
@@ -30,15 +40,52 @@ if [ ! -z "$perflogdir" ]; then
    perflog_common "$perflogdir" "$CONFIG_controldir"
 fi
 
+
+# List of  jobids for grid-jobs with state INLRMS
+declare -a localids
+# Array with basenames of grid-job files in ctrl_dir, indexed by localid
+# example /some/path/XX/XX/X /some/other/path/YY/YY/Y
+declare -a basenames
+# Array with states of the jobs in SLURM, indexed by localid
+declare -a jobstates
+# Array with grid id values, indexed by localid
+declare -a gridids
+# Array with control directories, indexed by localid
+declare -a ctrdirs
+# Array to store localids of jobs that are determined to have finished, which are sent to gm-kick
+declare -a kicklist
+# Array with jobid blocks 
+declare -a lidblocks
+
+# Find list of grid jobs with status INLRMS, store localid and
+# basename for those jobs
+
+for ctr_dir in "$@"; do
+    for id in $(find "$ctr_dir/processing" -name '*.status' -print0 \
+        | xargs -0 egrep -l "INLRMS|CANCELING" \
+        | sed 's#.*/processing/\([^\.]*\)\.status$#\1#')
+    do
+        basename=$(control_path "${ctr_dir}" "${id}" "")
+        localid=$(grep ^localid= "${basename}/local" | cut -d= -f2 | cut -d "." -f1)
+        #verify_jobid "$localid" || continue
+	
+        localids[${#localids[@]}]="$localid"
+        basenames[$localid]="$basename"
+        gridids[$localid]="$id"
+        ctrdirs[$localid]="$ctr_dir"
+    done
+done
+
+
+# No need to continue further if no jobs have status INLRMS
+if [ ${#localids[@]} -eq 0 ]; then
+    exit 0
+fi
+
 #############################################################################
 ########################## LRMS specific functions ##########################
 #############################################################################
 
-control_file () {
-    job_id=`echo "$1" | sed -e 's#\(.\{3\}\)#\1/#3' -e 's#\(.\{3\}\)#\1/#2' -e 's#\(.\{3\}\)#\1/#1' -e 's#$#/#'`
-    path="jobs/${job_id}/$2"
-    echo "$path"
-}
 
 #
 # Should print the id's of all jobs in the LRMS, one per line. If left
@@ -150,7 +197,8 @@ to_integer() {
 #   * ReqTotalMemory
 read_grami() {
 
-    gramifile=$(control_file "$gridid" "grami")
+
+    gramifile="${basenames[$localid]}/grami"
 
     [ -f "$gramifile" ] || { log "grami file not found: $PWD/$gramifile"; return 1; }
 
@@ -235,7 +283,8 @@ job_canwait() {
     [ -n "$gridid" ] && [ -n "$maxwait" ] \
     || { log "job_canwait requires the following to be set: gridid, maxwait"; return 1; }
 
-    countfile=$(control_file "$gridid" "lrms_job")
+    
+    countfile="${basenames[$localid]}/lrms_done"
     if [ ! -f "$countfile" ]; then
         echo "1" > "$countfile" || { log "cannot write count file: $PWD/$countfile"; return 1; }
     else
@@ -322,7 +371,7 @@ job_write_donefile() {
 
     log "${msg:-$LRMS job $lrmsid finished normally}"
 
-    donefile=$(control_file "$gridid" "lrms_done")
+    donefile="${basenames[$localid]}/lrms_done"
     echo "${LRMSExitcode:--1} $msg" > $donefile || log "failed writing file: $PWD/$donefile"
 
     # wake up GM
@@ -338,24 +387,23 @@ job_write_donefile() {
 #   * uid
 #
 process_job() {
-
     [ -n "$gridid" ] && [ -n "$lrmsid" ] && [ -n "$uid" ] && [ -n "$LRMS" ] \
-    || { log "process_job requires the following to be set: gridid, lrmsid, uid, LRMS"; return 1; }
- 
-    lrms_job_finished || return
+    	|| { log "process_job requires the following to be set: gridid, lrmsid, uid, LRMS"; return 1; }
+    
 
+    lrms_job_finished || return
+	
     log "[$(date +%Y-%m-%d\ %T)] $LRMS job $lrmsid has exited"
- 
-    localfile=$(control_file "$gridid" "local")
+    
+    localfile="${basenames[$localid]}/local"
     sessiondir=$(sed -n 's/^sessiondir=//p' "$localfile" | tail -n 1)
     [ -n "$sessiondir" ] || { log "failed reading sessiondir from: $PWD/$localfile"; return 1; }
-
+    
     # move diag file that end-up in session directory after condor transfer_output (shared_filesystem = no)
     [ -f "${sessiondir}/${sessiondir##*/}.diag" ] && mv "${sessiondir}/${sessiondir##*/}.diag" "${sessiondir}.diag"
-
     job_read_diag
     lrms_get_accounting
- 
+    
     if [ -z "$LRMSExitcode" ] && job_canwait; then
         : # Come back again next time
     else
@@ -365,6 +413,7 @@ process_job() {
         job_write_diag
         job_write_donefile
     fi
+    
 }
 
 
@@ -390,109 +439,28 @@ scan_init () {
     elif [ "$CONFIG_shared_filesystem" = 'no' ]; then
       CONFIG_shared_filesystem=
     fi
+
 }
 
 
 scan_main() {
 
-    # Initial working directory
-    myworkdir=$(pwd) || { log "pwd failed"; exit 1; }
-
-    # Validate control directories supplied on command-line
-    test -n "$1" || { log "control_dir not specified"; exit 1; }
-
-    for ctr_dir in "$@"; do
-        cd "$myworkdir" || { log "cannot cd to $myworkdir"; exit 1; }
-        cd "$ctr_dir" || { log "erroneous control dir: $ctr_dir"; exit 1; }
-    done
-
-    for ctr_dir in "$@"; do
-        cd "$myworkdir" || { log "cannot cd to $myworkdir"; exit 1; }
-        cd "$ctr_dir" || { log "erroneous control dir: $ctr_dir"; exit 1; }
-
-        # This perl script scans the 'processing' sub-directory for grid jobs
-        # in INLRMS and CANCELING states. If not running as the superuser, also
-        # filter out any jobs not belonging to the current user.  Finally,
-        # prints to STDOUT onle line for each job containing:
-        #   * grid ID, only the digits
-        #   * local ID, as in LRMS
-        #   * uid of owner of the job.*.local file
-        localfile=$(control_file "$gridid" "local")
-        listscript='use English;
-                    exit 1 unless opendir(DIR,"processing");
-                    while (my $fname = readdir DIR) {
-                        my ($gridid, $lrmsid, $status);
-                        ($gridid) = ($fname =~ m/^(\w+)\.status$/);
-                        next unless defined $gridid;
-                        next unless open(STATUS,"< processing/$fname");
-                        $status = <STATUS>;
-                        close STATUS;
-                        next unless $status and $status =~ m/^INLRMS|CANCELING$/;
-                        next unless open(LOCAL,"< $localfile");
-                        my @stat = stat(LOCAL);
-                        { local $/=undef; ($lrmsid) = (<LOCAL> =~ m/^localid=(\d+)/m) };
-                        close LOCAL;
-                        next unless $lrmsid;
-                        next unless @stat;
-                        next unless $EUID == 0 or $EUID == $stat[4];
-                        print "$gridid $lrmsid $stat[4]\n";
-                    }
-                    closedir DIR;
-        '
-
-        # This perl script filters out from the output of the previous script
-        # jobs whose lrms id is among the arguments passed to the script.
-        filterscript='my $lrmsids = " @ARGV ";
-                      while(my $line = <STDIN>) {
-                          chomp $line;
-                          my ($gridid,$lrmsid,$uid) = split / /, $line;
-                          next if $lrmsids =~ m/\s$lrmsid\s/;
-                          print "$gridid $lrmsid $uid\n";
-                      }
-        '
-        if [ ! -z "$perflogdir" ]; then
-           start_ts=`date +%s.%N`
-        fi
-
-        lrmsids=$(lrms_list_jobs) || { log "lrms_list_jobs failed"; continue; }
-
-        if [ ! -z "$perflogdir" ]; then
-           stop_ts=`date +%s.%N`
-           t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-           echo "[`date +%Y-%m-%d\ %T`] scan-condor-job, condor_q: $t" >> $perflogfile
-        fi
-
-        if [ -n "$LIST_IMPLEMENTED" ]; then
-            filter_jobs() { /usr/bin/perl -we "$filterscript" $lrmsids; }
-        else
-            filter_jobs() { cat; } # no filtering
-        fi
-
-        if [ ! -z "$perflogdir" ]; then
-           start_ts=`date +%s.%N`
-        fi
-
-        /usr/bin/perl -we "$listscript" | filter_jobs | while read gridid lrmsid uid; do
-
-            log () { echo "$progname: $*" 1>&2; }
-
-            donefile=$(control_file "$gridid" "lrms_done")
-            [ -f "$donefile" ] && continue
-
-            errorsfile=$(control_file "$gridid" "errors")
-            [ -w "$errorsfile" ] || { log "cannot write to errors file at: $PWD/$errorsfile"; continue; }
-
-            # run in separate process to make sure shell vars of one job
-            # are not influencing other jobs
-            ( process_job; ) >> "$errorsfile" 2>&1
-        done
-        if [ ! -z "$perflogdir" ]; then
-           stop_ts=`date +%s.%N`
-           t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-           echo "[`date +%Y-%m-%d\ %T`] scan-condor-job, ControlDirTraversalAndProcessing: $t" >> $perflogfile
-        fi
-
-    done
+    log () { echo "$progname: $*" 1>&2; }
+    
+    donefile="${basenames[$localid]}/lrms_done"
+    [ -f "$donefile" ] && continue
+    
+    errorsfile="${basenames[$localid]}/errors"
+    [ -w "$errorsfile" ] || { log "cannot write to errors file at: $PWD/$errorsfile"; continue; }
+    
+    jobfile="${basenames[$localid]}/local"
+    uid=$(get_owner_uid "$jobfile")
+    
+    # run in separate process to make sure shell vars of one job
+    # are not influencing other jobs
+    ( process_job; ) >> "$errorsfile" 2>&1
+        
+    
 }
 
 
@@ -592,7 +560,8 @@ find_in_file() { file=$1; regex=$2;
 condor_read_log() {
 
     # Find the Condor log.
-    gramifile=$(control_file "$gridid" "grami")
+
+    gramifile="${basenames[$localid]}/grami"
     [ -f "$gramifile" ] || { log "grami file not found: $PWD/$gramifile"; return 1; }
     condor_log=$(sed -n 's/^condor_log=//p' "$gramifile" | tail -n 1)
     [ -n "$condor_log" ] || { log "condor_log not set in grami file: $PWD/$gramifile"; return 1; }
@@ -720,7 +689,16 @@ lrms_last_call() {
     exitcode=$LRMSExitcode
 }
 
-scan_init
-scan_main "$@"
+
+for localid in ${localids[@]}; do
+
+    gridid=${gridids[$localid]}
+    ctrdir=${ctrdirs[$localid]}
+    lrmsid=$localid
+    
+    scan_init
+    scan_main "$@"
+
+done
 
 exit 0
