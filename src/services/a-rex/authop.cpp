@@ -17,11 +17,12 @@ static std::string toString(std::list<std::string> strings) {
   return res;
 }
 
-bool ARexConfigContext::CheckOperationAllowed(OperationType op, ARexConfigContext* config) {
+bool ARexConfigContext::CheckOperationAllowed(OperationType op, ARexConfigContext* config, std::string& msg) {
   // TODO: very simplified code below. Proper way to identify how client was identified and 
   // which authentication information matched authorization rules LegacySecAttr must be used.
   if(!config) {
     logger.msg(Arc::DEBUG, "CheckOperationAllowed: missing configuration");
+    msg = "User has no configuration assigned";
     return false;
   }
 
@@ -86,6 +87,7 @@ bool ARexConfigContext::CheckOperationAllowed(OperationType op, ARexConfigContex
       }
     }
     logger.msg(Arc::ERROR, "CheckOperationAllowed: token scopes do not match required scopes");
+    msg = "Token scopes do not match requires scopes";
     return false;
   }
 
@@ -95,6 +97,7 @@ bool ARexConfigContext::CheckOperationAllowed(OperationType op, ARexConfigContex
   }
 
   logger.msg(Arc::ERROR, "CheckOperationAllowed: no supported identity found");
+  msg = "No supported identity found";
 
   return false;
 }

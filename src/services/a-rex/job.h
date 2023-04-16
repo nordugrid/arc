@@ -70,7 +70,7 @@ class ARexConfigContext:public Arc::MessageContextElement, public ARexGMConfig {
     OperationDataWrite,   // writing file to session
     OperationDataRead,    // reading file from session
   };
-  static bool CheckOperationAllowed(OperationType op, ARexConfigContext* config);
+  static bool CheckOperationAllowed(OperationType op, ARexConfigContext* config, std::string& msg);
 };
 
 typedef enum {
