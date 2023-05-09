@@ -19,6 +19,7 @@
 #include <xmlsec/xmlsec.h>
 #include <xmlsec/base64.h>
 #include <xmlsec/errors.h>
+#include <xmlsec/version.h>
 
 #include <xmlsec/openssl/app.h>
 #include <openssl/bio.h>
@@ -35,6 +36,15 @@
 #include <arc/Thread.h>
 
 #include "XmlSecUtils.h"
+
+#if XMLSEC_VERSION_MAJOR < 1 || ( XMLSEC_VERSION_MAJOR == 1 && XMLSEC_VERSION_MINOR < 2 ) || ( XMLSEC_VERSION_MAJOR == 1 && XMLSEC_VERSION_MINOR == 2 && XMLSEC_VERSION_SUBMINOR < 35 )
+static int
+xmlSecBase64Decode_ex(const xmlChar* str, xmlSecByte* out, xmlSecSize outSize, xmlSecSize* outWritten) {
+  int rc = xmlSecBase64Decode(str, out, outSize);
+  if (outWritten) *outWritten = (rc < 0) ? 0 : rc;
+  return (rc < 0) ? rc : 0;
+}
+#endif
 
 namespace Arc {
 
@@ -79,6 +89,10 @@ bool init_xmlsec(void) {
      * xmlsec-crypto library.
      */
 #ifdef XMLSEC_CRYPTO_DYNAMIC_LOADING
+#ifndef XMLSEC_CRYPTO
+    // XMLSEC_CRYPTO macro removed in xmlsec1 1.3.0 (deprecated in 1.2.21)
+#define XMLSEC_CRYPTO (xmlSecGetDefaultCrypto())
+#endif
     if(xmlSecCryptoDLLoadLibrary(BAD_CAST XMLSEC_CRYPTO) < 0) {
       std::cerr<<"Unable to load default xmlsec-crypto library. Make sure"
                         "that you have it installed and check shared libraries path"
@@ -168,7 +182,7 @@ xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool usage) 
     (xmlSecKeyDataFormat)0
   };
 
-  int rc;
+  xmlSecSize len;
 
   //We need to remove the "BEGIN RSA PRIVATE KEY" and "END RSA PRIVATE KEY" 
   //if they exit in the input parameter
@@ -191,14 +205,13 @@ xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool usage) 
   xmlSecByte* tmp_str = new xmlSecByte[v.size()];
   memset(tmp_str,0,v.size());
 
-  rc = xmlSecBase64Decode((const xmlChar*)(v.c_str()), tmp_str, v.size());
-  if (rc < 0) {
+  if (xmlSecBase64Decode_ex((const xmlChar*)(v.c_str()), tmp_str, v.size(), &len) < 0) {
     //bad base-64
     memcpy(tmp_str,v.c_str(),v.size());
-    rc = v.size();
+    len = v.size();
   }
   for (int i=0; key_formats[i] && key == NULL; i++) {
-    key = xmlSecCryptoAppKeyLoadMemory(tmp_str, rc, key_formats[i], NULL, NULL, NULL);
+    key = xmlSecCryptoAppKeyLoadMemory(tmp_str, len, key_formats[i], NULL, NULL, NULL);
   }
   delete[] tmp_str;
   xmlSecErrorsDefaultCallbackEnableOutput(TRUE);
