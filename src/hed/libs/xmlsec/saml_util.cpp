@@ -22,6 +22,7 @@
 #include <xmlsec/crypto.h>
 #include <xmlsec/openssl/app.h>
 #include <xmlsec/openssl/crypto.h>
+#include <xmlsec/version.h>
 
 #include <openssl/bio.h>
 #include <openssl/evp.h>
@@ -33,6 +34,15 @@
 
 #include "XmlSecUtils.h"
 #include "saml_util.h"
+
+#if XMLSEC_VERSION_MAJOR < 1 || ( XMLSEC_VERSION_MAJOR == 1 && XMLSEC_VERSION_MINOR < 2 ) || ( XMLSEC_VERSION_MAJOR == 1 && XMLSEC_VERSION_MINOR == 2 && XMLSEC_VERSION_SUBMINOR < 35 )
+static int
+xmlSecBase64Decode_ex(const xmlChar* str, xmlSecByte* out, xmlSecSize outSize, xmlSecSize* outWritten) {
+  int rc = xmlSecBase64Decode(str, out, outSize);
+  if (outWritten) *outWritten = (rc < 0) ? 0 : rc;
+  return (rc < 0) ? rc : 0;
+}
+#endif
 
 namespace Arc {
 
@@ -152,8 +162,7 @@ namespace Arc {
     std::string sig_alg = str0.substr(f+8);
 
     int key_size;
-    RSA *rsa = NULL;
-    DSA *dsa = NULL;
+    EVP_PKEY *pKey = NULL;
     char* usig_alg = NULL;
     usig_alg = xmlURIUnescapeString(sig_alg.c_str(), 0, NULL);
 
@@ -161,22 +170,22 @@ namespace Arc {
       if (sender_public_key->value->id != xmlSecOpenSSLKeyDataRsaId) {
          xmlFree(usig_alg); return false;
       }
-      rsa = xmlSecOpenSSLKeyDataRsaGetRsa(sender_public_key->value);
-        if (rsa == NULL) {
+      pKey = xmlSecOpenSSLKeyDataRsaGetEvp(sender_public_key->value);
+        if (pKey == NULL) {
           xmlFree(usig_alg); return false;
         }
-        key_size = RSA_size(rsa);
-    } 
+        key_size = EVP_PKEY_size(pKey);
+    }
     else if (strcmp(usig_alg, (char*)xmlSecHrefDsaSha1) == 0) {
       if (sender_public_key->value->id != xmlSecOpenSSLKeyDataDsaId) {
         xmlFree(usig_alg); return false;
       }
-      dsa = xmlSecOpenSSLKeyDataDsaGetDsa(sender_public_key->value);
-      if (dsa == NULL) {
+      pKey = xmlSecOpenSSLKeyDataDsaGetEvp(sender_public_key->value);
+      if (pKey == NULL) {
         xmlFree(usig_alg); return false;
       }
-      key_size = DSA_size(dsa);
-    } 
+      key_size = EVP_PKEY_size(pKey);
+    }
     else {
       xmlFree(usig_alg);
       return false;
@@ -192,7 +201,7 @@ namespace Arc {
     signature = (unsigned char*)(xmlMalloc(key_size+1));
     b64_signature = (char*)xmlURIUnescapeString(sig_str.c_str(), 0, NULL);
 
-    xmlSecBase64Decode((xmlChar*)b64_signature, signature, key_size+1);
+    xmlSecBase64Decode_ex((xmlChar*)b64_signature, signature, key_size+1, NULL);
 
     /* compute signature digest */
     xmlChar* md;
@@ -208,14 +217,12 @@ namespace Arc {
 
     int status = 0;
 
-    if (rsa) {
-      status = RSA_verify(NID_sha1, (unsigned char*)digest, 20, signature, key_size, rsa);
-    } 
-    else if (dsa) {
-      status = DSA_verify(NID_sha1, (unsigned char*)digest, 20, signature, key_size, dsa);
-    }
+    EVP_PKEY_CTX *ctx = EVP_PKEY_CTX_new(pKey, NULL);
+    EVP_PKEY_CTX_set_signature_md(ctx, EVP_sha1());
+    status = EVP_PKEY_verify(ctx, signature, key_size, (unsigned char*)digest, 20);
+    EVP_PKEY_CTX_free(ctx);
 
-    if (status == 0) {
+    if (status <= 0) {
       std::cout<<"Signature of the query is not valid"<<std::endl;
       xmlFree(b64_signature);
       xmlFree(signature);
@@ -269,11 +276,11 @@ namespace Arc {
   }
 
   std::string Base64Decode(const std::string& data) {
-    unsigned long len;
+    xmlSecSize len;
     xmlChar *out = NULL;
     len = data.length();
     out = (xmlChar*)(xmlMalloc(len*4));
-    len = xmlSecBase64Decode((xmlChar*)(data.c_str()), out, len*4);
+    xmlSecBase64Decode_ex((xmlChar*)(data.c_str()), out, len*4, &len);
     std::string ret;
     if(out != NULL) {
       ret.append((char*)out, len);
@@ -397,8 +404,8 @@ namespace Arc {
     char* str = (char*)(msg.c_str());
     if (is_base64(msg.c_str())) {   
       str = (char*)malloc(msg.length());
-      int r = xmlSecBase64Decode((xmlChar*)(msg.c_str()), (xmlChar*)str, msg.length());
-      if (r >= 0) b64 = true;
+      int r = xmlSecBase64Decode_ex((xmlChar*)(msg.c_str()), (xmlChar*)str, msg.length(), NULL);
+      if (r == 0) b64 = true;
       else {
         free(str);
         str = (char*)(msg.c_str());
