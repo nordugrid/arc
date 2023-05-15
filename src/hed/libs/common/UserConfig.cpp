@@ -250,7 +250,7 @@ namespace Arc {
   }
 
   UserConfig::UserConfig(initializeCredentialsType initializeCredentials)
-    : timeout(0), keySize(0), ok(false), initializeCredentials(initializeCredentials) {
+    : timeout(0), keySize(0), ok(false), caUseDefault(false), initializeCredentials(initializeCredentials) {
     if (!InitializeCredentials(initializeCredentials)) {
       return;
     }
@@ -263,7 +263,7 @@ namespace Arc {
   UserConfig::UserConfig(const std::string& conffile,
                          initializeCredentialsType initializeCredentials,
                          bool loadSysConfig)
-    : timeout(0), keySize(0), ok(false), initializeCredentials(initializeCredentials)  {
+    : timeout(0), keySize(0), ok(false), caUseDefault(false), initializeCredentials(initializeCredentials)  {
     setDefaults();
     if (loadSysConfig) {
       if (Glib::file_test(SYSCONFIG(), Glib::FILE_TEST_IS_REGULAR)) {
@@ -309,7 +309,7 @@ namespace Arc {
 
   UserConfig::UserConfig(const std::string& conffile, const std::string& jfile,
                          initializeCredentialsType initializeCredentials, bool loadSysConfig)
-    : timeout(0), keySize(0), ok(false), initializeCredentials(initializeCredentials)  {
+    : timeout(0), keySize(0), ok(false), caUseDefault(false), initializeCredentials(initializeCredentials)  {
     // If job list file have been specified, try to initialize it, and
     // if it fails then this object is non-valid (ok = false).
     setDefaults();
@@ -378,14 +378,17 @@ namespace Arc {
         ccfg.AddPrivateKey(keyPath);
       }
     }
-    ccfg.AddCADir(caCertificatesDirectory);
+    ccfg.SetDefaultCA(caUseDefault);
+    if(!caUseDefault)
+      ccfg.AddCADir(caCertificatesDirectory);
 
     if(!otoken.empty()) {
       ccfg.AddOToken(otoken);
     }
 
-    if(!overlayfile.empty())
+    if(!overlayfile.empty()) {
       ccfg.GetOverlay(overlayfile);
+    }
   }
 
   bool UserConfig::Timeout(int newTimeout) {
@@ -826,6 +829,7 @@ namespace Arc {
           }
           HANDLESTRATT("cacertificatepath", CACertificatePath)
           HANDLESTRATT("cacertificatesdirectory", CACertificatesDirectory)
+	  HANDLESTRATT("causedefault", CAUseDefault)
           if (common["certificatelifetime"]) {
             certificateLifeTime = Period((std::string)common["certificatelifetime"]);
             common["certificatelifetime"].Destroy();
@@ -961,6 +965,7 @@ namespace Arc {
       file << "cacertificatepath = " << caCertificatePath << std::endl;
     if (!caCertificatesDirectory.empty())
       file << "cacertificatesdirectory = " << caCertificatesDirectory << std::endl;
+    file << "causedefalt = " << (caUseDefault?1:0) << std::endl;
     if (certificateLifeTime > 0)
       file << "certificatelifetime = " << certificateLifeTime << std::endl;
     if (slcs)

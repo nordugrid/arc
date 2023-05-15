@@ -386,7 +386,8 @@ namespace Arc {
      * @see InitializeCredentials()
      **/
     bool CredentialsFound() const {
-      return !((proxyPath.empty() && (certificatePath.empty() || keyPath.empty())) || caCertificatesDirectory.empty());
+      return !((proxyPath.empty() && (certificatePath.empty() || keyPath.empty())) ||
+               (caCertificatesDirectory.empty() && !caUseDefault));
     }
 
     /// Load specified configuration file
@@ -921,6 +922,35 @@ namespace Arc {
      **/
     const std::string& CACertificatesDirectory() const { return caCertificatesDirectory; }
 
+    /// Set if system wide CA-certificates to be used
+    /**
+     * Specifies if system wide CA-certificates are used.
+     *
+     * The attribute associated with this setter method is
+     * 'causedefault'.
+     *
+     * @param newCAUseDefault if system wide CA-certificates are used.
+     * @return This method always returns \c true.
+     * @see InitializeCredentials()
+     * @see CredentialsFound() const
+     **/
+    bool CAUseDefault(bool newCAUseDefault) { caUseDefault = newCAUseDefault; return true; }
+    bool CAUseDefault(const std::string& newCAUseDefault) {
+      if((newCAUseDefault == "true") || (newCAUseDefault == "1"))
+        return CAUseDefault(true);
+      if((newCAUseDefault == "false") || (newCAUseDefault == "0"))
+        return CAUseDefault(false);
+      return false;
+    }
+    /**
+     * Retrieve if system wide CA-cerificates are used.
+     *
+     * @return True if system wide CA-certificate are used.
+     * @see InitializeCredentials()
+     * @see CredentialsFound() const
+     **/
+    bool CAUseDefault() const { return caUseDefault; }
+
     /// Set certificate life time
     /**
      * Sets lifetime of user certificate which will be obtained from
@@ -1335,6 +1365,7 @@ namespace Arc {
     int keySize;
     std::string caCertificatePath;
     std::string caCertificatesDirectory;
+    bool caUseDefault;
     Period certificateLifeTime;
 
     URL slcs;
