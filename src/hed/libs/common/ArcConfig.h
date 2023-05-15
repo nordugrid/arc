@@ -145,8 +145,6 @@ namespace Arc {
     void AddCAFile(const std::string& path);
     /// Add CA directory
     void AddCADir(const std::string& path);
-    /// Add authentication token
-    void AddOToken(const std::string& token);
     /// Add configuration overlay
     void AddOverlay(XMLNode cfg);
     /// Read overlay from file
@@ -155,6 +153,12 @@ namespace Arc {
     /** \return reference to XML node representing configuration of
         ModuleManager */
     virtual XMLNode MakeConfig(XMLNode cfg) const;
+    /**
+     * \since Added in 7.0.0.
+     **/
+    /// Add authentication token
+    void AddOToken(const std::string& token);
+    void SetDefaultCA(bool use_default);
   };
 
 } // namespace Arc
