@@ -36,28 +36,6 @@ class JobSupervisorTest(testutils.ARCClientTestCase):
         self.expect(js.AddJob(job)).to_be(False, message = "AddJob was expected to return False")
         self.expect(js.GetAllJobs()).to_have(1).job()
 
-    def test_resubmit(self):
-        self.usercfg.Broker("TEST")
-
-        arc.TargetInformationRetrieverPluginTESTControl.targets = [self.create_test_target("http://test2.nordugrid.org")]
-        arc.TargetInformationRetrieverPluginTESTControl.status = arc.EndpointQueryingStatus(arc.EndpointQueryingStatus.SUCCESSFUL)
-
-        js = arc.JobSupervisor(self.usercfg, [
-            self.create_test_job(job_id = "http://test.nordugrid.org/1234567890test1", state = arc.JobState.FAILED),
-            self.create_test_job(job_id = "http://test.nordugrid.org/1234567890test2", state = arc.JobState.RUNNING)
-        ])
-
-        self.expect(js.GetAllJobs()).to_have(2).jobs()
-
-        endpoints = [arc.Endpoint("http://test2.nordugrid.org",  arc.Endpoint.COMPUTINGINFO, "org.nordugrid.tirtest")]
-        resubmitted = arc.JobList()
-        result = js.Resubmit(0, endpoints, resubmitted)
-
-        # TODO: When using the wrapped arc.TargetInformationRetrieverPluginTESTControl.targets static variable, the bindings sometimes segfaults.
-        #       Particular when accessing member of the arc.TargetInformationRetrieverPluginTESTControl.targets[].ComputingManager map, e.g. arc.TargetInformationRetrieverPluginTESTControl.targets[<some-existing-key>].ComputingManager["some-key"]
-        #self.expect(result).to_be(True)
-        #self.expect(resubmitted).to_have(2).jobs()
-
     def test_cancel(self):
         id1 = "http://test.nordugrid.org/1234567890test1"
         id2 = "http://test.nordugrid.org/1234567890test2"

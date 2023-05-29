@@ -41,7 +41,6 @@ complete -F _arccli arcmkdir
 complete -F _arccli arcproxy
 complete -F _arccli arcrename
 complete -F _arccli arcrenew
-complete -F _arccli arcresub
 complete -F _arccli arcresume
 complete -F _arccli arcrm
 complete -F _arccli arcstat

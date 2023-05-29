@@ -416,7 +416,7 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
   gid_ = st.st_gid; 
 }
 
-ARexJob::ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator,Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
+ARexJob::ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator):id_(""),logger_(logger),config_(config) {
   std::string job_desc_str;
   // Make full XML doc out of subtree
   {
@@ -424,14 +424,14 @@ ARexJob::ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string&
     xmljobdesc.New(doc);
     doc.GetDoc(job_desc_str);
   };
-  make_new_job(job_desc_str,delegid,queue,clientid,idgenerator,migration);
+  make_new_job(job_desc_str,delegid,queue,clientid,idgenerator);
 }
 
-ARexJob::ARexJob(std::string const& job_desc_str,ARexGMConfig& config,const std::string& delegid,const std::string& clientid,const std::string& queue,Arc::Logger& logger,JobIDGenerator& idgenerator,Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
-  make_new_job(job_desc_str,delegid,queue,clientid,idgenerator,migration);
+ARexJob::ARexJob(std::string const& job_desc_str,ARexGMConfig& config,const std::string& delegid,const std::string& clientid,const std::string& queue,Arc::Logger& logger,JobIDGenerator& idgenerator):id_(""),logger_(logger),config_(config) {
+  make_new_job(job_desc_str,delegid,queue,clientid,idgenerator);
 }
 
-void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& delegid,const std::string& queue,const std::string& clientid,JobIDGenerator& idgenerator,Arc::XMLNode migration) {
+void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& delegid,const std::string& queue,const std::string& clientid,JobIDGenerator& idgenerator) {
   if(!config_) return;
   uid_ = config_.User().get_uid();
   gid_ = config_.User().get_gid();
@@ -693,8 +693,6 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
   job_.starttime=Arc::Time();
   job_.DN=config_.GridName();
   job_.clientname=clientid;
-  job_.migrateactivityid=(std::string)migration["ActivityIdentifier"];
-  job_.forcemigration=(migration["ForceMigration"]=="true");
   // BES ActivityIdentifier is global job ID
   idgenerator.SetLocalID(id_);
   job_.globalid = idgenerator.GetGlobalID();

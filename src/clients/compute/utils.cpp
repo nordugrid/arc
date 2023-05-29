@@ -415,15 +415,12 @@ ClientOptions::ClientOptions(Client_t c,
     show_plugins(false),
     showversion(false),
     all(false),
-    forcemigration(false),
     keep(false),
     forcesync(false),
     truncate(false),
     convert(false),
     longlist(false),
     printids(false),
-    same(false),
-    notsame(false),
     forceclean(false),
     show_stdout(true),
     show_stderr(false),
@@ -450,7 +447,7 @@ ClientOptions::ClientOptions(Client_t c,
   DefineOptionsGroup("arc6-target", istring("ARC6 submission endpoint selection"));
   DefineOptionsGroup("legacy-target", istring("Legacy options set for defining targets"));
 
-  if ( c == CO_RESUB || c == CO_SUB || c == CO_TEST || c == CO_SYNC ) {
+  if ( c == CO_SUB || c == CO_TEST || c == CO_SYNC ) {
     GroupAddOption("arc6-target", 'C', "computing-element",
             istring("specify computing element hostname or a complete endpoint URL"),
             istring("ce"),
@@ -462,7 +459,7 @@ ClientOptions::ClientOptions(Client_t c,
             registries);
   }
 
-  if ( c == CO_RESUB || c == CO_SUB || c == CO_TEST ) {
+  if ( c == CO_SUB || c == CO_TEST ) {
     GroupAddOption("arc6-target", 'T', "submission-endpoint-type",
             istring("require the specified endpoint type for job submission.\n"
                     "\tAllowed values are: arcrest, emies, gridftp or gridftpjob and internal."),
@@ -499,21 +496,7 @@ ClientOptions::ClientOptions(Client_t c,
               infointerface);
   }
 
-  if (c == CO_RESUB || c == CO_MIGRATE) {
-    GroupAddOption("legacy-target", 'q', "qluster",
-              istring("selecting a computing element for the new jobs with a URL or an alias, "
-                      "or selecting a group of computing elements with the name of the group"),
-              istring("name"),
-              qlusters);
-  }
-
-  if (c == CO_MIGRATE) {
-    GroupAddOption("tuning", 'f', "force",
-              istring("force migration, ignore kill failure"),
-              forcemigration);
-  }
-
-  if (c == CO_GET || c == CO_KILL || c == CO_MIGRATE || c == CO_RESUB) {
+  if (c == CO_GET || c == CO_KILL ) {
     GroupAddOption("tuning", 'k', "keep",
               istring("keep the files on the server (do not clean)"),
               keep);
@@ -602,16 +585,6 @@ ClientOptions::ClientOptions(Client_t c,
               show_json);
   }
 
-  if (c == CO_RESUB) {
-    GroupAddOption("filtering", 'm', "same",
-              istring("resubmit to the same resource"),
-              same);
-
-    GroupAddOption("filtering", 'M', "not-same",
-              istring("do not resubmit to the same resource"),
-              notsame);
-  }
-
   if (c == CO_CLEAN) {
     GroupAddOption("tuning", 'f', "force",
               istring("remove the job from the local list of jobs "
@@ -638,14 +611,12 @@ ClientOptions::ClientOptions(Client_t c,
               runtime);
   }
 
-  if (cIsJobMan || c == CO_RESUB) {
+  if (cIsJobMan) {
     GroupAddOption("filtering", 's', "status",
               istring("only select jobs whose status is statusstr"),
               istring("statusstr"),
               status);
-  }
 
-  if (cIsJobMan || c == CO_MIGRATE || c == CO_RESUB) {
     GroupAddOption("filtering", 'a', "all",
               istring("all jobs"),
               all);
@@ -665,7 +636,7 @@ ClientOptions::ClientOptions(Client_t c,
               jobdescriptionfiles);
   }
 
-  if (c == CO_MIGRATE || c == CO_RESUB || c == CO_SUB || c == CO_TEST) {
+  if (c == CO_SUB || c == CO_TEST) {
     GroupAddOption("filtering", 'b', "broker",
               istring("select broker method (list available brokers with --listplugins flag)"),
               istring("broker"), broker);
@@ -694,7 +665,7 @@ ClientOptions::ClientOptions(Client_t c,
               token_delegation);
   }
   
-  if (c == CO_MIGRATE || c == CO_RESUB || c == CO_SUB || c == CO_TEST || c == CO_INFO) {
+  if (c == CO_SUB || c == CO_TEST || c == CO_INFO) {
     GroupAddOption("filtering", 'R', "rejectdiscovery",
               istring("skip the service with the given URL during service discovery"),
               istring("URL"),
@@ -702,7 +673,7 @@ ClientOptions::ClientOptions(Client_t c,
   }
   
 
-  if (cIsJobMan || c == CO_MIGRATE || c == CO_RESUB) {
+  if (cIsJobMan) {
     GroupAddOption("tuning", 'i', "jobids-from-file",
               istring("a file containing a list of jobIDs"),
               istring("filename"),

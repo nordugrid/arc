@@ -2043,7 +2043,6 @@ AC_CONFIG_FILES([Makefile
                  src/clients/compute/arckill.1
                  src/clients/compute/arcget.1
                  src/clients/compute/arccat.1
-                 src/clients/compute/arcresub.1
                  src/clients/compute/arcsync.1
                  src/clients/compute/arcrenew.1
                  src/clients/compute/arcresume.1
