@@ -313,76 +313,6 @@ prepare() {
         arex_service_plexer="<next id=\"a-rex\">^$arex_path</next>"
     fi
 
-    argus_shc=""
-    argus_plugin=""
-
-    arguspep_endpoint=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspep_endpoint arex/ws/argus`
-    if [ ! -z "$arguspep_endpoint" ]; then
-      argus_plugin="${argus_plugin}<Plugins><Name>arguspepclient</Name></Plugins>"
-      if [ ! -f "$ARC_LOCATION/lib/arc/libarguspepclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/libarguspepclient.so" ]; then
-        log_failure_msg "Plugin arguspepclient(libarguspepclient.so) not found. You may need to install corresponding package"
-        exit 1
-      fi
-      arguspep_profile=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspep_profile arex/ws/argus`
-      if [ -z "$arguspep_profile" ]; then arguspep_profile="emi"; fi
-      arguspep_usermap=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspep_usermap arex/ws/argus`
-      if [ -z "$arguspep_usermap" ]; then arguspep_usermap="false"; fi
-      if [ "$arguspep_usermap" = "yes" ]; then arguspep_usermap="true"; fi
-      if [ "$arguspep_usermap" = "no" ]; then arguspep_usermap="false"; fi
-      if [ "$mapping_present" != 'true' ]; then
-        if [ "$arguspep_usermap" = 'true' ]; then
-          log_failure_msg "Can't map user identity through Argus PEP because mapping is disabled for the service."
-          exit 1
-        fi
-      fi
-      argus_shc="${argus_shc}
-<!-- Perform client authorization and mapping according to Argus through PEP service -->
-<SecHandler name=\"arguspepclient.map\" id=\"arguspep\" event=\"incoming\">
-  <PEPD>$arguspep_endpoint</PEPD>
-  <Conversion>$arguspep_profile</Conversion>
-  <KeyPath>$X509_USER_KEY</KeyPath>
-  <CertificatePath>$X509_USER_CERT</CertificatePath>
-  <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>
-  <AcceptMapping>$arguspep_usermap</AcceptMapping>
-</SecHandler>"
-    fi
-
-    arguspdp_endpoint=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspdp_endpoint arex/ws/argus`
-    if [ ! -z "$arguspdp_endpoint" ]; then
-      argus_plugin="${argus_plugin}<Plugins><Name>arguspdpclient</Name></Plugins>"
-      if [ ! -f "$ARC_LOCATION/lib/arc/libarguspdpclient.so" ] && [ ! -f "$ARC_LOCATION/lib64/arc/libarguspdpclient.so" ]; then
-        log_failure_msg "Plugin arguspdpclient(libarguspdpclient.so) not found. You may need to install corresponding package"
-        exit 1
-      fi
-      arguspdp_profile=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspdp_profile arex/ws/argus`
-      if [ -z "$arguspdp_profile" ]; then arguspdp_profile="emi"; fi
-      arguspdp_usermap=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspdp_usermap arex/ws/argus`
-      if [ -z "$arguspdp_usermap" ]; then arguspdp_usermap="false"; fi
-      if [ "$arguspdp_usermap" = "yes" ]; then arguspdp_usermap="true"; fi
-      if [ "$arguspdp_usermap" = "no" ]; then arguspdp_usermap="false"; fi
-      if [ "$mapping_present" != 'true' ]; then
-        if [ "$arguspdp_usermap" = 'true' ]; then
-          log_failure_msg "Can't map user identity through Argus PDP because mapping is disabled for the service."
-          exit 1
-        fi
-      fi
-      arguspdp_acceptnotapplicable=`readconfigvar "$ARC_RUNTIME_CONFIG" arguspdp_acceptnotapplicable arex/ws/argus`
-      if [ -z "$arguspdp_acceptnotapplicable" ]; then arguspdp_acceptnotapplicable="false"; fi
-      if [ "$arguspdp_acceptnotapplicable" = "yes" ]; then arguspdp_acceptnotapplicable="true"; fi
-      if [ "$arguspdp_acceptnotapplicable" = "no" ]; then arguspdp_acceptnotapplicable="false"; fi
-      argus_shc="${argus_shc}
-<!-- Perform echoclient authorization and mapping according to Argus through PDP service -->
-<SecHandler name=\"arguspdpclient.map\" id=\"arguspdp\" event=\"incoming\">
-  <PDPD>$arguspdp_endpoint</PDPD>
-  <Conversion>$arguspdp_profile</Conversion>
-  <KeyPath>$X509_USER_KEY</KeyPath>
-  <CertificatePath>$X509_USER_CERT</CertificatePath>
-  <CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>
-  <AcceptMapping>$arguspdp_usermap</AcceptMapping>
-  <AcceptNotApplicable>$arguspdp_acceptnotapplicable</AcceptNotApplicable>
-</SecHandler>"
-    fi
-
     # candypond
     candypond_plexer=""
     candypond=""
@@ -543,7 +473,6 @@ prepare() {
   <Plugins><Name>arcshc</Name></Plugins>
   <Plugins><Name>arcshclegacy</Name></Plugins>
   $authtokens_plugin
-  $argus_plugin
   <Chain>
     <Component name=\"tcp.service\" id=\"tcp\">
       <next id=\"http\"/>
@@ -564,7 +493,6 @@ prepare() {
     </Plexer>
     <Service name=\"a-rex\" id=\"a-rex\">
       $emies_legacy_shc
-      $argus_shc
       $arex_endpoint
       $service_mail
       <arex:gmconfig>$ARC_RUNTIME_CONFIG</arex:gmconfig>
@@ -606,7 +534,6 @@ prepare() {
   <Plugins><Name>arcshc</Name></Plugins>
   <Plugins><Name>arcshclegacy</Name></Plugins>
   $authtokens_plugin
-  $argus_plugin
   <Chain>
     <Component name=\"tcp.service\" id=\"tcp\">
       <next id=\"tls\"/>
@@ -646,7 +573,6 @@ prepare() {
     <Service name=\"a-rex\" id=\"a-rex\">
       $service_mail
       $emies_legacy_shc
-      $argus_shc
       $arex_endpoint
       <arex:gmconfig>$ARC_RUNTIME_CONFIG</arex:gmconfig>
       <arex:gmrun>none</arex:gmrun>

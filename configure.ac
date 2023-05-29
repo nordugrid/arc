@@ -196,7 +196,6 @@ enables_mock_dmc=no
 enables_gfal=no
 enables_s3=no
 enables_xrootd=yes
-enables_argus=no
 enables_xmlsec1=yes
 enables_sqlitejstore=yes
 enables_ldns=yes
@@ -244,7 +243,6 @@ enables_gfal=$enableval
 enables_s3=$enableval
 enables_xrootd=$enableval
 enables_xmlsec1=$enableval
-enables_argus=$enableval
 enables_cppunit=$enableval
 enables_doc=$enableval
 enables_sqlitejstore=$enableval
@@ -1145,30 +1143,6 @@ LDFLAGS=$SAVE_LDFLAGS
 fi
 AC_SUBST(ZLIB_CFLAGS)
 AC_SUBST(ZLIB_LIBS)
-
-# check ARGUS
-ARGUS_CFLAGS=
-ARGUS_LIBS=
-AC_ARG_ENABLE(argus, AC_HELP_STRING([--enable-argus], [enable use of Argus PEP V2 libraries]),[enables_argus="$enableval"],[])
-if test "x$enables_argus" = "xyes"; then
-  AC_ARG_WITH(argus,
-    AC_HELP_STRING([--with-argus=PATH], [ARGUS PEP installation path]),
-    [
-      if test "x$PKG_CONFIG_PATH" != "x"; then
-        PKG_CONFIG_PATH="$withval/lib/pkgconfig:$PKG_CONFIG_PATH"
-      else
-        PKG_CONFIG_PATH="$withval/lib/pkgconfig"
-      fi
-    ]
-  )
-  PKG_CHECK_MODULES(ARGUS, [libargus-pep >= 2.0.0], [], [
-    AC_MSG_NOTICE([Failed to find Argus PEP libraries with version >= 2])
-    enables_argus=no
-  ])
-fi
-AC_SUBST(ARGUS_CFLAGS)
-AC_SUBST(ARGUS_LIBS)
-AM_CONDITIONAL(ARGUS_ENABLED, test "x$enables_argus" = "xyes")
 
 # SQLITEJSTORE (storing job information in SQLite)
 AC_ARG_ENABLE(sqlitejstore, AC_HELP_STRING([--disable-sqlitejstore], [disable storing local job information in SQLite]),
@@ -2145,7 +2119,6 @@ S3:                 ${enables_s3}
 Xrootd:             ${enables_xrootd}
 MYSQL CLIENT LIB:   ${enables_mysql}
 xmlsec1:            ${enables_xmlsec1}
-ARGUS:              ${enables_argus}
 NSS:                ${enables_nss}
 SQLite:             ${enables_sqlite}
 LDNS:               ${enables_ldns}

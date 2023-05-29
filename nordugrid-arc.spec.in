@@ -1164,7 +1164,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libdmcsrm.so
 %{_libdir}/%{pkgdir}/libdmcrucio.so
 %{_libdir}/%{pkgdir}/libidentitymap.so
-%{_libdir}/%{pkgdir}/libarguspdpclient.so
 %{_libdir}/%{pkgdir}/libmcchttp.so
 %{_libdir}/%{pkgdir}/libmccmsgvalidator.so
 %{_libdir}/%{pkgdir}/libmccsoap.so
@@ -1185,7 +1184,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libdir}/%{pkgdir}/libdmcsrm.apd
 %{_libdir}/%{pkgdir}/libdmcrucio.apd
 %{_libdir}/%{pkgdir}/libidentitymap.apd
-%{_libdir}/%{pkgdir}/libarguspdpclient.apd
 %{_libdir}/%{pkgdir}/libmcchttp.apd
 %{_libdir}/%{pkgdir}/libmccmsgvalidator.apd
 %{_libdir}/%{pkgdir}/libmccsoap.apd
