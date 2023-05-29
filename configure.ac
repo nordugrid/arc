@@ -184,7 +184,6 @@ fi
 
 # Default enable/disable switches
 #  Features
-enables_ldap=yes
 enables_mysql=no
 enables_systemd=no
 enables_swig_python=yes
@@ -218,7 +217,6 @@ enables_monitor=yes
 enables_compute_client=yes
 enables_credentials_client=yes
 enables_data_client=yes
-enables_emies_client=yes
 enables_arcrest_client=yes
 #  Documentation
 enables_doc=yes
@@ -236,7 +234,6 @@ enables_compute_client=$enableval
 enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
-enables_emies_client=$enableval
 enables_arcrest_client=$enableval
 enables_hed=$enableval
 enables_python=$enableval
@@ -261,7 +258,6 @@ enables_compute_client=$enableval
 enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
-enables_emies_client=$enableval
 enables_arcrest_client=$enableval
 enables_doc=$enableval
 ],
@@ -1578,49 +1574,6 @@ if test -n "$GLOBUS_FTP_CLIENT_VERSION" ; then enables_gridftp=yes; fi
 enables_sqlite=no
 if test "x$SQLITE_INSTALLED" = "xyes" ; then enables_sqlite=yes; fi
 
-# Check for LDAP
-
-if test "$enables_hed" = "yes"; then
-LDAP=no
-AC_ARG_ENABLE(ldap, AC_HELP_STRING([--disable-ldap], [disable the LDAP support - requires OpenLDAP]),[enables_ldap="$enableval"],[])
-if test "x$enables_ldap" = "xyes"; then
-  AC_CHECK_HEADER(ldap.h, [
-    LDAP=yes
-
-    SAVE_LDFLAGS=$LDFLAGS
-    LDFLAGS=-lpthread
-
-    AC_CHECK_LIB([ldap_r], [ldap_first_message], [
-      AC_CHECK_LIB([ldap_r], [ldap_initialize], [
-        AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function])
-      ])
-      LDAP_LIBS=-lldap_r ], [
-      AC_CHECK_LIB([ldap], [ldap_first_message], [
-        AC_CHECK_LIB([ldap], [ldap_initialize], [ AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function])
-      ])
-      LDAP_LIBS=-lldap ], [
-      LDAP=no
-    ])
-  ])
-  AC_CHECK_LIB([lber], [ber_init], [LDAP_LIBS="$LDAP_LIBS -llber"], [])
-  AC_SUBST(LDAP_LIBS)
-  LDFLAGS=$SAVE_LDFLAGS
-  ],
-
-  [
-    LDAP=no
-  ])
-
-  enables_ldap="$LDAP"
-fi
-else
-  enables_ldap="no"
-fi
-AM_CONDITIONAL([LDAP_ENABLED], test x$LDAP = xyes)
-if test "x$LDAP" = "xyes"; then
-  AC_DEFINE(HAVE_LDAP,[],[Define if OpenLDAP is available])
-fi
-
 # Check version of Test::More Perl module.
 min_perl_test_more_version_required="0.88" # Stable version of Test::More containing done_testing sub.
 PERL_TEST_DIR=
@@ -1832,11 +1785,6 @@ AC_ARG_ENABLE(data_client, AC_HELP_STRING([--disable-data-client], [disable buil
 AC_MSG_NOTICE([Data client tools enabled: $enables_data_client])
 AM_CONDITIONAL([DATA_CLIENT_ENABLED],[test "x$enables_data_client" = "xyes"])
 
-AC_ARG_ENABLE(emies_client, AC_HELP_STRING([--disable-emies-client], [disables building EMI ES-related client plugins.]),
-  [enables_emies_client=$enableval],[])
-AC_MSG_NOTICE([EMI ES plugin(s) enabled: $enables_emies_client])
-AM_CONDITIONAL([EMIES_ENABLED],[test "x$enables_emies_client" = "xyes"])
-
 AC_ARG_ENABLE(arcrest_client, AC_HELP_STRING([--disable-arcrest-client], [disables building ARC REST interface client plugins.]),
   [enables_arcrest_client=$enableval],[])
 AC_MSG_NOTICE([ARC REST plugin(s) enabled: $enables_arcrest_client])
@@ -1950,24 +1898,18 @@ AC_CONFIG_FILES([Makefile
                  src/hed/mcc/msgvalidator/Makefile
                  src/hed/mcc/msgvalidator/schema/Makefile
                  src/hed/acc/Makefile
-                 src/hed/acc/GRIDFTPJOB/Makefile
                  src/hed/acc/ARCREST/Makefile
-                 src/hed/acc/EMIES/Makefile
-                 src/hed/acc/EMIES/arcemiestest.1
-                 src/hed/acc/EMIES/schema/Makefile
                  src/hed/acc/Broker/Makefile
                  src/hed/acc/Broker/test/Makefile
                  src/hed/acc/PythonBroker/Makefile
                  src/hed/acc/JobDescriptionParser/Makefile
                  src/hed/acc/JobDescriptionParser/test/Makefile
                  src/hed/acc/ARCHERY/Makefile
-                 src/hed/acc/LDAP/Makefile
                  src/hed/acc/TEST/Makefile
                  src/hed/dmc/Makefile
                  src/hed/dmc/file/Makefile
                  src/hed/dmc/gridftp/Makefile
                  src/hed/dmc/http/Makefile
-                 src/hed/dmc/ldap/Makefile
                  src/hed/dmc/srm/Makefile
                  src/hed/dmc/srm/srmclient/Makefile
                  src/hed/dmc/gfal/Makefile
@@ -2202,7 +2144,6 @@ GFAL:               ${enables_gfal}
 S3:                 ${enables_s3}
 Xrootd:             ${enables_xrootd}
 MYSQL CLIENT LIB:   ${enables_mysql}
-LDAP:               ${enables_ldap}
 xmlsec1:            ${enables_xmlsec1}
 ARGUS:              ${enables_argus}
 NSS:                ${enables_nss}
@@ -2227,7 +2168,6 @@ COMPUTE clients:    ${enables_compute_client}
 DATA clients:       ${enables_data_client}
 CREDENTIAL clients: ${enables_credentials_client}
 
-EMI ES client (ACC): ${enables_emies_client}
 ARC REST client (ACC): ${enables_arcrest_client}
 SRM client (DMC):   ${enables_srm_dmc}
 

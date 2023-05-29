@@ -1,4 +1,2 @@
-debian/tmp/usr/bin/arcemiestest
 debian/tmp/usr/bin/arcperftest
-debian/tmp/usr/share/man/man1/arcemiestest.1
 debian/tmp/usr/share/man/man1/arcperftest.1
