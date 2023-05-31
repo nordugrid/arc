@@ -1113,8 +1113,7 @@ Year: {year}
 GlobalUserName: {userdn}{voinfo}
 SubmitHost: {endpoint}
 InfrastructureType: grid
-ServiceLevelType: {benchmark_type}
-ServiceLevel: {benchmark_value}
+ServiceLevel: {service_level}
 NodeCount: {nodecount}
 Processors: {cpucount}
 EarliestEndTime: {timestart}
@@ -1129,8 +1128,7 @@ NumberOfJobs: {count}'''
         self.recorddata['gocdb_name'] = gocdb_name
         self.recorddata['voinfo'] = self.__vo_info()
         (benchmark_type, benchmark_value) = get_apel_benchmark(self.logger, self.recorddata['benchmark'])
-        self.recorddata['benchmark_type'] = benchmark_type
-        self.recorddata['benchmark_value'] = benchmark_value
+        self.recorddata['service_level'] = '{{{0}: {1}}}'.format(benchmark_type, benchmark_value)
 
     def __vo_info(self):
         """Parse WLCG VO info"""
@@ -1155,7 +1153,7 @@ NumberOfJobs: {count}'''
 
     @staticmethod
     def header():
-        return 'APEL-summary-job-message: v0.2\n'
+        return 'APEL-summary-job-message: v0.4\n'
 
     @staticmethod
     def join_str():
