@@ -184,7 +184,6 @@ fi
 
 # Default enable/disable switches
 #  Features
-enables_mysql=no
 enables_systemd=no
 enables_swig_python=yes
 # Features directly related to components
@@ -1070,40 +1069,6 @@ fi
 else
   enables_xmlsec1="no"
 fi
-
-#########################
-#
-# Check libmysqlclient
-#
-#########################
-MYSQL_INSTALLED=no
-if test "$enables_hed" = "yes"; then
-MYSQL_CONFIG="mysql_config"
-MYSQL_CFLAGS=""
-MYSQL_LIBS=""
-dnl Check if libmysqlclient is explicitly enabled, default is disable.
-AC_ARG_ENABLE(mysql, AC_HELP_STRING([--enable-mysql], [enable use of the MySQL client library]),[enables_mysql="$enableval"],[])
-# Ask user for path to libmysqlclient
-if test "x$enables_mysql" = "xyes"; then
-  AC_ARG_WITH(mysql, [  --with-mysql=(PATH) prefix of MySQL installation. e.g. /usr/local or /usr])
-  AC_MSG_CHECKING(for mysql client library)
-  if test "x$with_mysql" != "x" ; then
-      MYSQL_CONFIG=$with_mysql/bin/$MYSQL_CONFIG
-  fi
-  if ! $MYSQL_CONFIG --version > /dev/null 2>&1 ; then
-      AC_MSG_ERROR(Could not find mysql C library anywhere (see config.log for details).)
-  fi
-  MYSQL_LIBS="`$MYSQL_CONFIG --libs`"
-  MYSQL_CFLAGS="`$MYSQL_CONFIG --cflags`"
-  MYSQL_INSTALLED="yes"
-
-  AC_SUBST(MYSQL_LIBS)
-  AC_SUBST(MYSQL_CFLAGS)
-  enables_mysql=$MYSQL_INSTALLED
-fi
-AC_MSG_NOTICE([MySQL client library enabled: $MYSQL_INSTALLED])
-fi
-AM_CONDITIONAL([MYSQL_LIBRARY_ENABLED],[test "x$MYSQL_INSTALLED" = "xyes"])
 
 # Check monitor
 AC_ARG_ENABLE(monitor, AC_HELP_STRING([--enable-monitor], [enable use of the monitor]),[enables_monitor="$enableval"],[])
@@ -2116,7 +2081,6 @@ GridFTP:            ${enables_gridftp}
 GFAL:               ${enables_gfal}
 S3:                 ${enables_s3}
 Xrootd:             ${enables_xrootd}
-MYSQL CLIENT LIB:   ${enables_mysql}
 xmlsec1:            ${enables_xmlsec1}
 NSS:                ${enables_nss}
 SQLite:             ${enables_sqlite}
