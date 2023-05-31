@@ -9,7 +9,6 @@ debian/tmp/usr/bin/arcmkdir
 debian/tmp/usr/bin/arcproxy
 debian/tmp/usr/bin/arcrename
 debian/tmp/usr/bin/arcrenew
-debian/tmp/usr/bin/arcresub
 debian/tmp/usr/bin/arcresume
 debian/tmp/usr/bin/arcrm
 debian/tmp/usr/bin/arcstat
@@ -29,7 +28,6 @@ debian/tmp/usr/share/man/man1/arcmkdir.1
 debian/tmp/usr/share/man/man1/arcproxy.1
 debian/tmp/usr/share/man/man1/arcrename.1
 debian/tmp/usr/share/man/man1/arcrenew.1
-debian/tmp/usr/share/man/man1/arcresub.1
 debian/tmp/usr/share/man/man1/arcresume.1
 debian/tmp/usr/share/man/man1/arcrm.1
 debian/tmp/usr/share/man/man1/arcstat.1

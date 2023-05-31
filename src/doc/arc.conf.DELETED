@@ -165,6 +165,82 @@
 ## CHANGE: DELETED
 
 
+### The [arex/ws/argus] block ############################
+## The Web Service components of A-REX may directly use the Argus service
+## (https://twiki.cern.ch/twiki/bin/view/EGEE/AuthorizationFramework)
+## for requesting authorization decisions and performing client mapping
+## to a local user account.
+## This block turns on and configures the A-REX WS - Argus integration.
+## When this block is enabled, A-REX will communicate to Argus PEP or PDP service
+## for every WS interface operation!
+## Comment out this block if you don't intend to use any external Argus service with A-REX WS interfaces.
+## Using Argus with gridftp interface is possible only via LCMAPS callout.
+#[arex/ws/argus]
+## CHANGE: NEW  block in 6.0.0.
+## CHANGE: REMOVED in 7.0.0
+
+## *arguspep_endpoint = url - Specifies URL of Argus PEPD service to use for
+## authorization and user mapping.
+## It is worth to mention that "requireClientCertAuthentication" (default is false)
+## item of pepd.ini (configuration of Argus PEPD service) is set to be 'true', then
+## https should be used, otherwise http is proper.
+## NOTE that Argus will be contacted for every WS interface operation requested!
+## default: undefined
+#arguspep_endpoint=https://somehost.somedomain:8154/authz
+## CHANGE: REMOVED in 7.0.0
+
+## arguspep_profile = profile_name - Defines which communication profile to use while
+## communicating with Argus PEPD service. Possible values for profile_name are:
+##  direct - pass all authorization attributes (only for debugging)
+##  subject - pass only subject name of client
+##  emi - ARC native profile developed in EMI project. This is default option.
+## allowedvalues: direct subject emi
+## default: emi
+#arguspep_profile=emi
+## CHANGE: MODIFIED parameter values in 6.0.0: removed CREAM.
+## CHANGE: REMOVED in 7.0.0
+
+## arguspep_usermap = yes/no - Specifies whether response from Argus service may define mapping
+## of client to local account. Default is 'no'.
+## Note that Argus is contacted after all the other user mapping is performed. Hence it can
+## overwrite all other decisions.
+## allowedvalues: yes no
+## default: no
+#arguspep_usermap=no
+## CHANGE: REMOVED in 7.0.0
+
+## arguspdp_endpoint = url - Specifies URL of Argus PDP service to use for
+## authorization and user mapping.
+## It is worth to mention that "requireClientCertAuthentication" (default is false)
+## item of pdp.ini (configuration of Argus PDP service) is set to be 'true', then
+## https should be used, otherwise http is proper.
+## NOTE that Argus will be contacted for every WS interface operation requested!
+## default: undefined
+#arguspdp_endpoint=https://somehost.somedomain:8152/authz
+## CHANGE: REMOVED in 7.0.0
+
+## arguspdp_profile = profile_name - Defines which communication profile to use while communicating
+## with Argus PDP service. Possible values for profile_name are:
+##  subject - pass only subject name of client
+##  emi - ARC native profile developed in EMI project. This is default option.
+## allowedvalues: subject emi
+## default: emi
+#arguspdp_profile=emi
+## CHANGE: MODIFIED parameter values in 6.0.0: remove CREAM.
+## CHANGE: REMOVED in 7.0.0
+
+## arguspdp_accpetnotapplicable = yes/no - Specify if the "NotApplicable" decision returned by Argus
+## PDP service is treated as reason to deny request. Default is 'no', which treats
+## "NotApplicable" as reason to deny request.
+## allowedvalues: yes no
+## default: no
+#arguspdp_acceptnotapplicable=no
+## CHANGE: REMOVED in 7.0.0
+##
+##
+#### end of the [arex/ws/argus] block #####################
+
+
 ### The [arex/jura] block ###################################
 
 ## urbatchsize = number - JURA sends usage records not one-by-one, but in batches.

@@ -130,7 +130,6 @@ Those are also states which are used by
 .BR arcget (1),
 .BR arckill (1),
 .BR arcrenew (1),
-.BR arcresub (1),
 .BR arcresume (1)
 to perform job filtering.
 
@@ -242,7 +241,6 @@ ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 .BR arcmkdir (1),
 .BR arcproxy (1),
 .BR arcrenew (1),
-.BR arcresub (1),
 .BR arcresume (1),
 .BR arcrm (1),
 .BR arcsub (1),
