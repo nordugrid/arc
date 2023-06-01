@@ -2,12 +2,12 @@
 ##
 ## This is the arc.conf.DELETED file that contains all the configuration blocks
 ## and options that have been DELETED in ARC version 7.0.0 and later
-## Items marked DELETED without stating a version were deleted in version 7.0.0
-## compared to the latest ARC6 supported configuration.
 
-#######################################################################################
-##########################  DELETED COMPLETE BLOCKS  ##################################
-#######################################################################################
+### The [deleted:blocks] block ##########################
+#[deleted:blocks]
+
+## Following blocks and corresponding functionality are removed complemete from ARC7
+## release and should be cleaned up from previous ARC6 configuration: 
 ##
 ##  [authtokens] (always enabled in ARC7)
 ##  [lrms/ssh]
@@ -23,10 +23,10 @@
 ##  [userlist:name]
 ##  [nordugridmap]
 ##
+### end of the [deleted:blocks] ###################
 
-#######################################################################################
-##########################  DELETED CONFIG OPTIONS  ###################################
-#######################################################################################
+## NOTE that Options marked DELETED without stating a version were deleted in version 7.0.0
+##   compared to the latest ARC6 supported configuration.
 
 ### The [authgroup:groupname] blocks ##########################
 #[authgroup:groupname]
@@ -37,6 +37,7 @@
 ## sequenced
 ## default: undefined
 #userlist=biousers
+## CHANGE: DELETED
 ##
 ##
 ### end of the [authgroup:groupname] blocks ###################
@@ -51,3 +52,6 @@
 ## The replicas will be tried in the order specified by preferredpattern variable.
 ## default: undefined
 #use_remote_acix=https://cacheindex.ndgf.org:6443/data/index
+## CHANGE: DELETED
+##
+### end of the [arex/data-staging] block ###########
