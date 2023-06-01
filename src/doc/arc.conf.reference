@@ -6,7 +6,7 @@
 ## WARNING: this file will not work as a configuration template!
 ## NEVER USE THIS DOCUMENT AS A CONFIGURATION FILE!
 ##
-## The arc.conf configuration file consists of the following blocks:
+## The arc.conf configuration file consists of the following blocks: 
 ##
 ##  [common]
 ##  [authtokens]
@@ -72,10 +72,10 @@
 ## NOTE that the arc.conf is CASE-SENSITIVE!
 ##
 ## Space handling syntax in arc.conf
-## for configuration lines:
+## for configuration lines: 
 ##   (stripped space)option(stripped space)=(stripped space)value(saved space)(value)(stripped space)
 ##
-## and for block headers:
+## and for block headers: 
 ##   [keyword:(stripped space)space is NOT allowed within identifier(stripped space)]
 ##
 ## Detailed textual definition:
@@ -590,7 +590,7 @@
 ## reference pre-defined ClassAd attributes (like Memory, Opsys, Arch, HasJava,
 ## etc) but also custom ClassAd attributes.  To define a custom attribute on a
 ## condor node, just add two lines like the ones below in the "$(hostname).local"
-## config file on the node:
+## config file on the node: 
 ##   NORDUGRID_RESOURCE=TRUE
 ##   STARTD_EXPRS = NORDUGRID_RESOURCE, $(STARTD_EXPRS)
 ## A job submitted to this resource is allowed to run on any node which satisfies
@@ -2122,7 +2122,7 @@
 ## PBS script, such as "nodes=count:pbs_queue_node" where "count" is taken from
 ## the job description (1 if not specified).
 ##
-## This corresponds to setting the following parameter in PBS for this queue:
+## This corresponds to setting the following parameter in PBS for this queue: 
 ##   resources_default.neednodes = cpu_topology[:pbs_queue_node]
 ##
 ## Setting the "pbs_queue_node" changes how the queue-totalcpus, user freecpus are
