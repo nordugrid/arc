@@ -66,7 +66,7 @@
 ## also appear in the arc.conf file.
 ##
 ## Configuration blocks contain (config option, config value) pairs following
-## the syntax in single line:
+## the syntax in single line: 
 ##    config_option=value element [optional value element]
 ## NOTE that quotes around the configuration value(s) must NOT be used.
 ## NOTE that the arc.conf is CASE-SENSITIVE!
@@ -846,12 +846,12 @@
 #runtimedir=/var/spool/arc/extraruntimes
 #runtimedir=/cvmfs/vo/arcruntime
 
-## maxjobs = number1 number2 number3 number4 number5 - specifies maximum allowed number of jobs.
-## number1 - jobs which are not in FINISHED state (jobs tracked in RAM)
-## number2 - jobs being run (SUBMITTING, INLRMS states)
-## number3 - jobs being processed per DN
-## number4 - jobs in whole system
-## number5 - LRMS scripts limit (jobs in SUBMITTING and CANCELING)
+## maxjobs = number1 number2 number3 number4 number5 - specifies maximum allowed number of jobs:
+##  - number1 - jobs which are not in FINISHED state (jobs tracked in RAM)
+##  - number2 - jobs being run (SUBMITTING, INLRMS states)
+##  - number3 - jobs being processed per DN
+##  - number4 - jobs in whole system
+##  - number5 - LRMS scripts limit (jobs in SUBMITTING and CANCELING)
 ## A parameter set to -1 means no limit.
 ## default: -1 -1 -1 -1 -1
 #maxjobs=10000 10 2000 -1 -1
@@ -960,7 +960,7 @@
 ## Following example assigns scopes according to WLCG profile 
 #tokenscopes=jobinfo=compute.read,jobcreate=compute.create,jobcancel=compute.cancel,jobdelete=compute.cancel
 #tokenscopes=datainfo=compute.read,datawrite=compute.modify,dataread=compute.read
-## Alternative for tokenscopes above is
+## Alternative for tokenscopes above is:
 #tokenscopes=wlcg
 ## CHANGE: NEW in 7.0.0.
 ##
@@ -1184,22 +1184,22 @@
 #sharepriority=myvo:production 80
 
 ## copyurl = url_head local_path - Configures a mapping of URLs to locally-
-## accessible paths. If a URL starts with 'url_head', the 'local_path' will be
+## accessible paths. If a URL starts with "url_head", the "local_path" will be
 ## substituted for the actual transfer. Applies to both input and output files.
-## NOTE: 'local_path' can also be of URL type.
+## NOTE that "local_path" can also be of URL type.
 ## multivalued
 ## default: undefined
 #copyurl=gsiftp://example.org:2811/data/ /data/
 #copyurl=gsiftp://example2.org:2811/data/ /data/
 ## CHANGE: MODIFIED in 7.0.0 - applies also to output files
 
-## linkurl = url_head local_path [node_path] - Identical to 'copyurl', configures DTR
+## linkurl = url_head local_path [node_path] - Identical to "copyurl", configures DTR
 ## so that for certain URLs files won't be downloaded or copied (in case of copyurl),
-## but soft-link will be created. The 'local_path'
+## but soft-link will be created. The "local_path"
 ## specifies the way to access the file from the frontend, and is used
-## to check permissions. The 'node_path' specifies how the file can be
+## to check permissions. The "node_path" specifies how the file can be
 ## accessed from computing nodes, and will be used for soft-link creation.
-## If 'node_path' is missing - 'local_path' will be used. This option applies
+## If "node_path" is missing - "local_path" will be used. This option applies
 ## only to input files.
 ## multivalued
 ## default: undefined
@@ -1250,7 +1250,7 @@
 
 ## wsurl = url - Specifies the base URL under which
 ## the web service intrefaces will be available. The URL argument must be a
-## full URL consisting of protocol+host+port+path: e.g. https://<hostname>:<port>/<path>
+## full URL consisting of protocol+host+port+path: e.g. "https://<hostname>:<port>/<path>"
 ## Make sure the chosen port is not blocked by firewall or other security rules.
 ## default: https://$VAR{[common]hostname}:443/arex
 #wsurl=https://piff.hep.lu.se:443/arex
@@ -1606,13 +1606,11 @@
 ##  - cache -- free cache space
 ##  - session -- free session directory space
 ##  - heartbeat -- last modification time of A-REX heartbeat
-##  - processingjobs -- the number of jobs currently being processed by ARC (jobs
-##                      between PREPARING and FINISHING states) - not yet implemented
 ##  - failedjobs -- the number of failed jobs per last 100 finished
 ##  - jobstates -- number of jobs in different A-REX stages
 ##  - all -- all of the above metrics
 ## default: all
-## allowedvalues: staging cache session heartbeat processingjobs failedjobs jobstates all
+## allowedvalues: staging cache session heartbeat failedjobs jobstates all
 #metrics=all
 
 ## frequency = seconds - The period between each information gathering cycle, in seconds.
@@ -1727,7 +1725,7 @@
 ## default: undefined
 #ldap_schema_dir=/nfs/ldap/schema/
 
-## The following options configure the third-party bdii ldap parameters.
+## NOTE that the following options configure the third-party bdii ldap parameters.
 ## In 99% of cases no need to change anything and use the defaults.
 ## These variables are usually automatically set by ARC, and are here mostly for debug purposes
 ## and to tweak exotic BDII installations.
@@ -1744,7 +1742,7 @@
 ## default: 10800
 #bdii_provider_timeout=10800
 
-## BDII5 uses these variables. These might change depending on BDII version.
+## NOTE that BDII5 uses these variables. These might change depending on BDII version.
 ## ARC sets them by inspecting distributed bdii configuration files.
 ## DO NOT CHANGE UNLESS YOU KNOW WHAT YOU'RE DOING
 
@@ -2147,7 +2145,7 @@
 ## reference pre-defined ClassAd attributes (like Memory, Opsys, Arch, HasJava,
 ## etc) but also custom ClassAd attributes.  To define a custom attribute on a
 ## condor node, just add two lines like the ones below in the "$(hostname).local"
-## config file on the node:
+## config file on the node: 
 ##   NORDUGRID_RESOURCE=TRUE
 ##   STARTD_EXPRS = NORDUGRID_RESOURCE, $(STARTD_EXPRS)
 ## A job submitted to this queue is allowed to run on any node which satisfies
