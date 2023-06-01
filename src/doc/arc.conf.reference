@@ -3,8 +3,27 @@
 ## This is the arc.conf REFERENCE DOCUMENT defining the configuration blocks and
 ## configuration options for the ARC services.
 ##
-## WARNING: this file will not work as a configuration template!
-## NEVER USE THIS DOCUMENT AS A CONFIGURATION FILE!
+##! WARNING: this file will not work as a configuration template!
+##! NEVER USE THIS DOCUMENT AS A CONFIGURATION FILE!
+##!
+##! WARNING: this file is machine-read to extract defaults and render the web version!
+##! PLEASE BE CAREFUL EDITING IT AND FOLLOW THE MARKUP!
+##!
+##! Reference markup used by web-rendering:
+##!   - Text delimited by double-quotes("text") or square breaets([text]) is rendered monospace.
+##!   - Lines starded with "##!" are ignored in the web-rendering.
+##!   - There should be an empty line before new option definition.
+##!   - Lines started with "## " are rendered as an option desciption text.
+##!   - Lines started with "#text" are rendered as an example blocks.
+##!   - Line ending with colon followed by space (": ") starts monospace block.
+##!     Content on the block should be indented by spaces. The block ends when indent ends.
+##!   - Line ending with colon (":") start the list. Following lines should be indented and prefixed
+##!     either with dash ("-") or numbers. Another option is to use definition lists with
+##!     further indented description text (see for example "voms_processing")
+##!   - Line started with "NOTE that" rendered as Note block. If you need multiline indent
+##!     subsequent lines with 2 spaces.
+##!   - Lines started with "CHANGE" or "TODO" are rendered as corresponding Warning blocks.
+##!   - Special keywords "## multivalued", "## sequenced' and "## allowedvalues:" are parsed.
 ##
 ## The arc.conf configuration file consists of the following blocks: 
 ##

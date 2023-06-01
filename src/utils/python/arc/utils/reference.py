@@ -174,8 +174,7 @@ Configuration blocks and options
 """
 
 __rst_skiplist = [
-    '## WARNING: this file will not work as a configuration template',
-    '## NEVER USE THIS DOCUMENT AS A CONFIGURATION FILE',
+    '##!'
 ]
 
 __rst_replacelist = [
