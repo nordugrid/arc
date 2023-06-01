@@ -162,6 +162,8 @@ __rst_top_header = """\
 ARC Configuration Reference Document
 ************************************
 
+.. role:: blockhint
+
 General configuration structure
 ===============================
 
@@ -263,6 +265,7 @@ def reference2rst(reference_f, headers=True, block_label_prefix=''):
                     sys.stdout.write(opt_label.replace('/', '_'))
                     sys.stdout.write(optname + '\n')
                     sys.stdout.write('~' * len(optname) + '\n\n')
+                    sys.stdout.write(':blockhint:`[' + block_name + ']`\n\n')
                     # synopsis and string separated by dash
                     dash_pos = sline.find('-')
                     __rst_infotype('Synopsis')
