@@ -809,10 +809,10 @@
 
 ## shared_filesystem = yes/no - Specifies if computing nodes can access folders mounted
 ## with protocols like NFS with the same pathnames as the frontend.
-## Note that the default 'yes' assumes that the paths to the session directories
-## are the same on both frontend and nodes.
-## If these paths are not the same, then one should set the scratchdir option.
-## The option changes the RUNTIME_NODE_SEES_FRONTEND variable in the submission scripts.
+## NOTE that the default 'yes' assumes that the paths to the session directories
+##   are the same on both frontend and nodes.
+##   If these paths are not the same, then one should set the "scratchdir" option.
+## The option changes the "RUNTIME_NODE_SEES_FRONTEND" variable in the submission scripts.
 ## allowedvalues: yes no
 ## default: yes
 #shared_filesystem=yes
@@ -957,11 +957,10 @@
 ## The action=scope pairs can be replaced with identifier which works as shortcut for
 ## multiple actions and scopes. Only currently supported shortcut identifier is "wlcg" (see below)
 ## default: undefined
-## Following example assigns scopes according to WLCG profile 
+## Following example assigns scopes according to WLCG profile and alternatively
+## can be defined by "tokenscopes=wlcg".
 #tokenscopes=jobinfo=compute.read,jobcreate=compute.create,jobcancel=compute.cancel,jobdelete=compute.cancel
 #tokenscopes=datainfo=compute.read,datawrite=compute.modify,dataread=compute.read
-## Alternative for tokenscopes above is:
-#tokenscopes=wlcg
 ## CHANGE: NEW in 7.0.0.
 ##
 ##
@@ -1313,7 +1312,8 @@
 
 ## allownew_override = [authgroup ...]  - Defines which authorization
 ## groups are allowed to submit new jobs via the WS-interfaces
-## when the CE is closed with allownew=no. Note that it requires the allownew=no to be set.
+## when the CE is closed with "allownew=no"
+## NOTE that it requires the "allownew=no" to be set.
 ## multivalued
 ## default: undefined
 #allownew_override=biousers atlasusers
@@ -1333,8 +1333,8 @@
 #allowaccess=atlasusers
 
 ## denyaccess = authgroup - Defines that the specified authgroup members
-## are REJECTED, not authorized to access the ARC-CE via this interface. Note that a related config option the
-## "allowaccess" (see above) can be used to grant access.
+## are REJECTED, not authorized to access the ARC-CE via this interface. 
+## NOTE that a related config option the "allowaccess" (see above) can be used to grant access.
 ## Multiple "denyaccess" and "allowaccess" authorization statements are allowed within a configuration block.
 ## These statements are processed sequentially in the order they are specified in the
 ## config block. The processing stops on first "allowaccess" or "denyaccess" statement matching the authgroup membership.
@@ -1437,9 +1437,9 @@
 ## Enable and configure this block if you want to send accounting records to
 ## accounting services.
 ##
-## Note that a dedicated "accounting target" subblock is needed for every accounting
-## destination. The target subblocks are either of a type "apel" or "sgas":
-## "[arex/jura/apel:targetname]" or "[arex/jura/sgas:targetname]".
+## NOTE that a dedicated "accounting target" subblock is needed for every accounting
+##   destination. The target subblocks are either of a type "apel" or "sgas":
+##   "[arex/jura/apel:targetname]" or "[arex/jura/sgas:targetname]".
 ##
 #[arex/jura]
 
@@ -1592,8 +1592,8 @@
 ## This block enables the monitoring of ARC-specific metrics.
 ## Earlier versions (ARC < 6.0) relied only on the standalone tool gangliarc,
 ## ganglia is now instead integrated into ARC, and gangliarc is obsolete.
-## Note that AREX ganglia (as gangliarc did) depends on an existing ganglia installation,
-## as it sends its metrics to a running gmond process.
+## NOTE that AREX ganglia (as gangliarc did) depends on an existing ganglia installation,
+##   as it sends its metrics to a running gmond process.
 #[arex/ganglia]
 
 ## gmetric_bin_path = path - The path to gmetric executable.
@@ -1726,9 +1726,9 @@
 #ldap_schema_dir=/nfs/ldap/schema/
 
 ## NOTE that the following options configure the third-party bdii ldap parameters.
-## In 99% of cases no need to change anything and use the defaults.
-## These variables are usually automatically set by ARC, and are here mostly for debug purposes
-## and to tweak exotic BDII installations.
+##   In 99% of cases no need to change anything and use the defaults.
+##   These variables are usually automatically set by ARC, and are here mostly for debug purposes
+##   and to tweak exotic BDII installations.
 
 ## bdii_debug_level = level - Set this parameter to DEBUG to check bdii errors in bdii-update.log
 ## At the same time don't enable slapd logs this way reducing performance issues.
@@ -1743,8 +1743,8 @@
 #bdii_provider_timeout=10800
 
 ## NOTE that BDII5 uses these variables. These might change depending on BDII version.
-## ARC sets them by inspecting distributed bdii configuration files.
-## DO NOT CHANGE UNLESS YOU KNOW WHAT YOU'RE DOING
+##   ARC sets them by inspecting distributed bdii configuration files.
+##   DO NOT change unless YOU KNOW WHAT YOU'RE DOING
 
 ## bdii_location = path - The installation directory for the BDII.
 ## default: /usr
@@ -1988,7 +1988,7 @@
 ## The adotf discovered values will be used to fill GLUE2 OSName, OSVersion
 ## and OSFamily unless these values are explicitly defined for each queue.
 ## See the [queue:queuename] block for their usage.
-## Note: Any custom value other than 'adotf' does NOT affect values in the GLUE2 schema.
+## NOTE that any custom value other than "adotf" does NOT affect values in the GLUE2 schema.
 ## multivalued
 ## default: adotf
 #opsys=Linux-2.6.18
@@ -2235,7 +2235,7 @@
 ##   - Infosys will publish all defined benchmark values.
 ##
 ## The values represent per-core CPU performance.
-## Note that APEL accounting services are accept "HEPscore23", "HEPSPEC" or "Si2k" benchmark types only.
+## NOTE that APEL accounting services supports "HEPscore23", "HEPSPEC" or "Si2k" benchmark types only.
 ## multivalued
 ## default: HEPSPEC 1.0
 #benchmark=HEPscore23 16.5
