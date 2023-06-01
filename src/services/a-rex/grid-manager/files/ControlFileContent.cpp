@@ -600,10 +600,6 @@ bool JobLocalDescription::write(const std::string& fname) const {
       act_id != activityid.end(); ++act_id) {
     if(!write_pair(f,"activityid",(*act_id))) return false;
   };
-  if (migrateactivityid != "") {
-    if(!write_pair(f,"migrateactivityid",migrateactivityid)) return false;
-    if(!write_pair(f,"forcemigration",forcemigration)) return false;
-  }
   if(!write_pair(f,"transfershare",transfershare)) return false;
   if(!write_pair(f,"priority",Arc::tostring(priority))) return false;
   if(!write_pair(f,"dryrun",dryrun)) return false;
@@ -726,8 +722,6 @@ bool JobLocalDescription::read(const std::string& fname) {
     else if(name == "activityid") {
       activityid.push_back(buf);
     }
-    else if(name == "migrateactivityid") { migrateactivityid = buf; }
-    else if(name == "forcemigration") { forcemigration = parse_boolean(buf); }
     else if(name == "transfershare") { transfershare = buf; }
     else if(name == "priority") {
       int n;

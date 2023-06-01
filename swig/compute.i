@@ -433,7 +433,6 @@ template <class Type> struct traits_from<const Type *> {
 %}
 #ifdef SWIGPYTHON
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) Arc::SubmitterPluginTestACCControl::submitJob;
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) Arc::SubmitterPluginTestACCControl::migrateJob;
 %rename(_BrokerPluginTestACCControl) Arc::BrokerPluginTestACCControl;
 %rename(_JobDescriptionParserPluginTestACCControl) Arc::JobDescriptionParserPluginTestACCControl;
 %rename(_JobControllerPluginTestACCControl) Arc::JobControllerPluginTestACCControl;

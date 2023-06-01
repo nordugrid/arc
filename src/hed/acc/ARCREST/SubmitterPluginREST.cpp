@@ -413,10 +413,4 @@ namespace Arc {
     return SubmitInternal(jobdescs, &et, "", jc, notSubmitted);
   }
 
-  bool SubmitterPluginREST::Migrate(const std::string& jobid, const JobDescription& jobdesc,
-                             const ExecutionTarget& et,
-                             bool forcemigration, Job& job) {
-    // TODO: Implement
-    return false;
-  }
 } // namespace Arc

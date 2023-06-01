@@ -53,5 +53,5 @@
 ## default: undefined
 #use_remote_acix=https://cacheindex.ndgf.org:6443/data/index
 ## CHANGE: DELETED
-##
+## 
 ### end of the [arex/data-staging] block ###########

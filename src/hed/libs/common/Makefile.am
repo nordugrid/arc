@@ -1,14 +1,6 @@
 DIST_SUBDIRS = test
 SUBDIRS = $(TEST_DIR)
 
-if MYSQL_LIBRARY_ENABLED
-MYSQL_WRAPPER_HEADER = MysqlWrapper.h
-MYSQL_WRAPPER_CPP = MysqlWrapper.cpp   
-else
-MYSQL_WRAPPER_HEADER =
-MYSQL_WRAPPER_CPP =
-endif
-
 lib_LTLIBRARIES = libarccommon.la
 
 pgmpkglibdir = $(pkglibdir)
@@ -23,7 +15,7 @@ libarccommon_la_HEADERS = ArcConfig.h ArcLocation.h \
 	Logger.h OptionParser.h StringConv.h Thread.h URL.h \
 	User.h UserConfig.h Utils.h XMLNode.h HostnameResolver.h \
 	Counter.h IntraProcessCounter.h IniConfig.h Profile.h \
-	Run.h Watchdog.h JobPerfLog.h JSON.h $(MYSQL_WRAPPER_HEADER)
+	Run.h Watchdog.h JobPerfLog.h JSON.h
 
 libarccommon_la_SOURCES = ArcVersion.cpp ArcConfig.cpp ArcLocation.cpp \
 	ArcRegex.cpp ArcConfigIni.cpp ArcConfigFile.cpp \
@@ -32,12 +24,12 @@ libarccommon_la_SOURCES = ArcVersion.cpp ArcConfig.cpp ArcLocation.cpp \
 	Logger.cpp OptionParser.cpp StringConv.cpp Thread.cpp URL.cpp \
 	User.cpp UserConfig.cpp Utils.cpp XMLNode.cpp HostnameResolver.cpp \
 	Counter.cpp IntraProcessCounter.cpp IniConfig.cpp Profile.cpp \
-        JobPerfLog.cpp JSON.cpp Run_unix.cpp Watchdog.cpp $(MYSQL_WRAPPER_CPP)
+        JobPerfLog.cpp JSON.cpp Run_unix.cpp Watchdog.cpp
 libarccommon_la_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) $(ZLIB_CFLAGS) \
-	$(MYSQL_CFLAGS) $(AM_CXXFLAGS)
+	$(AM_CXXFLAGS)
 libarccommon_la_LIBADD = $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS) $(ZLIB_LIBS) \
-	$(UUID_LIBS) $(MYSQL_LIBS) $(LIBINTL) -lpthread
+	$(UUID_LIBS) $(LIBINTL) -lpthread
 libarccommon_la_LDFLAGS = -version-info 4:0:0
 
 arc_file_access_SOURCES  = file_access.cpp file_access.h

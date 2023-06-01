@@ -184,8 +184,6 @@ fi
 
 # Default enable/disable switches
 #  Features
-enables_ldap=yes
-enables_mysql=no
 enables_systemd=no
 enables_swig_python=yes
 # Features directly related to components
@@ -197,7 +195,6 @@ enables_mock_dmc=no
 enables_gfal=no
 enables_s3=no
 enables_xrootd=yes
-enables_argus=no
 enables_xmlsec1=yes
 enables_sqlitejstore=yes
 enables_ldns=yes
@@ -218,7 +215,6 @@ enables_monitor=yes
 enables_compute_client=yes
 enables_credentials_client=yes
 enables_data_client=yes
-enables_emies_client=yes
 enables_arcrest_client=yes
 #  Documentation
 enables_doc=yes
@@ -236,7 +232,6 @@ enables_compute_client=$enableval
 enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
-enables_emies_client=$enableval
 enables_arcrest_client=$enableval
 enables_hed=$enableval
 enables_python=$enableval
@@ -247,7 +242,6 @@ enables_gfal=$enableval
 enables_s3=$enableval
 enables_xrootd=$enableval
 enables_xmlsec1=$enableval
-enables_argus=$enableval
 enables_cppunit=$enableval
 enables_doc=$enableval
 enables_sqlitejstore=$enableval
@@ -261,7 +255,6 @@ enables_compute_client=$enableval
 enables_credentials_client=$enableval
 enables_echo_client=$enableval
 enables_data_client=$enableval
-enables_emies_client=$enableval
 enables_arcrest_client=$enableval
 enables_doc=$enableval
 ],
@@ -1077,40 +1070,6 @@ else
   enables_xmlsec1="no"
 fi
 
-#########################
-#
-# Check libmysqlclient
-#
-#########################
-MYSQL_INSTALLED=no
-if test "$enables_hed" = "yes"; then
-MYSQL_CONFIG="mysql_config"
-MYSQL_CFLAGS=""
-MYSQL_LIBS=""
-dnl Check if libmysqlclient is explicitly enabled, default is disable.
-AC_ARG_ENABLE(mysql, AC_HELP_STRING([--enable-mysql], [enable use of the MySQL client library]),[enables_mysql="$enableval"],[])
-# Ask user for path to libmysqlclient
-if test "x$enables_mysql" = "xyes"; then
-  AC_ARG_WITH(mysql, [  --with-mysql=(PATH) prefix of MySQL installation. e.g. /usr/local or /usr])
-  AC_MSG_CHECKING(for mysql client library)
-  if test "x$with_mysql" != "x" ; then
-      MYSQL_CONFIG=$with_mysql/bin/$MYSQL_CONFIG
-  fi
-  if ! $MYSQL_CONFIG --version > /dev/null 2>&1 ; then
-      AC_MSG_ERROR(Could not find mysql C library anywhere (see config.log for details).)
-  fi
-  MYSQL_LIBS="`$MYSQL_CONFIG --libs`"
-  MYSQL_CFLAGS="`$MYSQL_CONFIG --cflags`"
-  MYSQL_INSTALLED="yes"
-
-  AC_SUBST(MYSQL_LIBS)
-  AC_SUBST(MYSQL_CFLAGS)
-  enables_mysql=$MYSQL_INSTALLED
-fi
-AC_MSG_NOTICE([MySQL client library enabled: $MYSQL_INSTALLED])
-fi
-AM_CONDITIONAL([MYSQL_LIBRARY_ENABLED],[test "x$MYSQL_INSTALLED" = "xyes"])
-
 # Check monitor
 AC_ARG_ENABLE(monitor, AC_HELP_STRING([--enable-monitor], [enable use of the monitor]),[enables_monitor="$enableval"],[])
 if test "x$enables_monitor" = "xyes"; then
@@ -1149,30 +1108,6 @@ LDFLAGS=$SAVE_LDFLAGS
 fi
 AC_SUBST(ZLIB_CFLAGS)
 AC_SUBST(ZLIB_LIBS)
-
-# check ARGUS
-ARGUS_CFLAGS=
-ARGUS_LIBS=
-AC_ARG_ENABLE(argus, AC_HELP_STRING([--enable-argus], [enable use of Argus PEP V2 libraries]),[enables_argus="$enableval"],[])
-if test "x$enables_argus" = "xyes"; then
-  AC_ARG_WITH(argus,
-    AC_HELP_STRING([--with-argus=PATH], [ARGUS PEP installation path]),
-    [
-      if test "x$PKG_CONFIG_PATH" != "x"; then
-        PKG_CONFIG_PATH="$withval/lib/pkgconfig:$PKG_CONFIG_PATH"
-      else
-        PKG_CONFIG_PATH="$withval/lib/pkgconfig"
-      fi
-    ]
-  )
-  PKG_CHECK_MODULES(ARGUS, [libargus-pep >= 2.0.0], [], [
-    AC_MSG_NOTICE([Failed to find Argus PEP libraries with version >= 2])
-    enables_argus=no
-  ])
-fi
-AC_SUBST(ARGUS_CFLAGS)
-AC_SUBST(ARGUS_LIBS)
-AM_CONDITIONAL(ARGUS_ENABLED, test "x$enables_argus" = "xyes")
 
 # SQLITEJSTORE (storing job information in SQLite)
 AC_ARG_ENABLE(sqlitejstore, AC_HELP_STRING([--disable-sqlitejstore], [disable storing local job information in SQLite]),
@@ -1578,49 +1513,6 @@ if test -n "$GLOBUS_FTP_CLIENT_VERSION" ; then enables_gridftp=yes; fi
 enables_sqlite=no
 if test "x$SQLITE_INSTALLED" = "xyes" ; then enables_sqlite=yes; fi
 
-# Check for LDAP
-
-if test "$enables_hed" = "yes"; then
-LDAP=no
-AC_ARG_ENABLE(ldap, AC_HELP_STRING([--disable-ldap], [disable the LDAP support - requires OpenLDAP]),[enables_ldap="$enableval"],[])
-if test "x$enables_ldap" = "xyes"; then
-  AC_CHECK_HEADER(ldap.h, [
-    LDAP=yes
-
-    SAVE_LDFLAGS=$LDFLAGS
-    LDFLAGS=-lpthread
-
-    AC_CHECK_LIB([ldap_r], [ldap_first_message], [
-      AC_CHECK_LIB([ldap_r], [ldap_initialize], [
-        AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function])
-      ])
-      LDAP_LIBS=-lldap_r ], [
-      AC_CHECK_LIB([ldap], [ldap_first_message], [
-        AC_CHECK_LIB([ldap], [ldap_initialize], [ AC_DEFINE(HAVE_LDAP_INITIALIZE,[],[Define if you have ldap_initialize function])
-      ])
-      LDAP_LIBS=-lldap ], [
-      LDAP=no
-    ])
-  ])
-  AC_CHECK_LIB([lber], [ber_init], [LDAP_LIBS="$LDAP_LIBS -llber"], [])
-  AC_SUBST(LDAP_LIBS)
-  LDFLAGS=$SAVE_LDFLAGS
-  ],
-
-  [
-    LDAP=no
-  ])
-
-  enables_ldap="$LDAP"
-fi
-else
-  enables_ldap="no"
-fi
-AM_CONDITIONAL([LDAP_ENABLED], test x$LDAP = xyes)
-if test "x$LDAP" = "xyes"; then
-  AC_DEFINE(HAVE_LDAP,[],[Define if OpenLDAP is available])
-fi
-
 # Check version of Test::More Perl module.
 min_perl_test_more_version_required="0.88" # Stable version of Test::More containing done_testing sub.
 PERL_TEST_DIR=
@@ -1832,11 +1724,6 @@ AC_ARG_ENABLE(data_client, AC_HELP_STRING([--disable-data-client], [disable buil
 AC_MSG_NOTICE([Data client tools enabled: $enables_data_client])
 AM_CONDITIONAL([DATA_CLIENT_ENABLED],[test "x$enables_data_client" = "xyes"])
 
-AC_ARG_ENABLE(emies_client, AC_HELP_STRING([--disable-emies-client], [disables building EMI ES-related client plugins.]),
-  [enables_emies_client=$enableval],[])
-AC_MSG_NOTICE([EMI ES plugin(s) enabled: $enables_emies_client])
-AM_CONDITIONAL([EMIES_ENABLED],[test "x$enables_emies_client" = "xyes"])
-
 AC_ARG_ENABLE(arcrest_client, AC_HELP_STRING([--disable-arcrest-client], [disables building ARC REST interface client plugins.]),
   [enables_arcrest_client=$enableval],[])
 AC_MSG_NOTICE([ARC REST plugin(s) enabled: $enables_arcrest_client])
@@ -1950,24 +1837,18 @@ AC_CONFIG_FILES([Makefile
                  src/hed/mcc/msgvalidator/Makefile
                  src/hed/mcc/msgvalidator/schema/Makefile
                  src/hed/acc/Makefile
-                 src/hed/acc/GRIDFTPJOB/Makefile
                  src/hed/acc/ARCREST/Makefile
-                 src/hed/acc/EMIES/Makefile
-                 src/hed/acc/EMIES/arcemiestest.1
-                 src/hed/acc/EMIES/schema/Makefile
                  src/hed/acc/Broker/Makefile
                  src/hed/acc/Broker/test/Makefile
                  src/hed/acc/PythonBroker/Makefile
                  src/hed/acc/JobDescriptionParser/Makefile
                  src/hed/acc/JobDescriptionParser/test/Makefile
                  src/hed/acc/ARCHERY/Makefile
-                 src/hed/acc/LDAP/Makefile
                  src/hed/acc/TEST/Makefile
                  src/hed/dmc/Makefile
                  src/hed/dmc/file/Makefile
                  src/hed/dmc/gridftp/Makefile
                  src/hed/dmc/http/Makefile
-                 src/hed/dmc/ldap/Makefile
                  src/hed/dmc/srm/Makefile
                  src/hed/dmc/srm/srmclient/Makefile
                  src/hed/dmc/gfal/Makefile
@@ -2127,7 +2008,6 @@ AC_CONFIG_FILES([Makefile
                  src/clients/compute/arckill.1
                  src/clients/compute/arcget.1
                  src/clients/compute/arccat.1
-                 src/clients/compute/arcresub.1
                  src/clients/compute/arcsync.1
                  src/clients/compute/arcrenew.1
                  src/clients/compute/arcresume.1
@@ -2201,10 +2081,7 @@ GridFTP:            ${enables_gridftp}
 GFAL:               ${enables_gfal}
 S3:                 ${enables_s3}
 Xrootd:             ${enables_xrootd}
-MYSQL CLIENT LIB:   ${enables_mysql}
-LDAP:               ${enables_ldap}
 xmlsec1:            ${enables_xmlsec1}
-ARGUS:              ${enables_argus}
 NSS:                ${enables_nss}
 SQLite:             ${enables_sqlite}
 LDNS:               ${enables_ldns}
@@ -2227,7 +2104,6 @@ COMPUTE clients:    ${enables_compute_client}
 DATA clients:       ${enables_data_client}
 CREDENTIAL clients: ${enables_credentials_client}
 
-EMI ES client (ACC): ${enables_emies_client}
 ARC REST client (ACC): ${enables_arcrest_client}
 SRM client (DMC):   ${enables_srm_dmc}
 
