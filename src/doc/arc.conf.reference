@@ -520,12 +520,11 @@
 #lrmsconfig=single job per processor
 
 ## benchmark = string - Defines the default benchmark specification to store in
-## the accounting AAR records (as it is) if per-job data is missing.
+## the accounting AAR records if per-job data is missing.
 ## It is advised to set it to cluster-wide defaults in case of reporting to APEL
 ## to aviod records diversity for failed jobs or buggy backends.
-## default: HEPSPEC:1.0
-#benchmark=HEPSPEC:12.26
-## TODO: implement changes to support space
+## default: HEPSPEC 1.0
+#benchmark=HEPSPEC 12.26
 ## CHANGE: MODIFIED in 7.0.0
 
 ## defaultmemory = number - The LRMS memory request of job to be set by the LRMS backend
