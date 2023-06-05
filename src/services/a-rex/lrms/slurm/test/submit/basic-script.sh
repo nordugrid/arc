@@ -195,7 +195,7 @@ then
   exit 1
 fi
 # See if executable is a script, and extract the name of the interpreter
-line1=`dd if="$executable" count=1 2>/dev/null | head -n 1`
+line1=$(dd if="$executable" count=1 2>/dev/null | head -n 1 | tr -d '\0')
 shebang=`echo $line1 | sed -n 's/^#! *//p'`
 interpreter=`echo $shebang | awk '{print $1}'`
 if [ "$interpreter" = /usr/bin/env ]; then interpreter=`echo $shebang | awk '{print $2}'`; fi
