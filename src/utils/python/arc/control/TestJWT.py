@@ -14,8 +14,11 @@ import random
 import zlib
 import uuid
 import json
-from jwcrypto import jwk, jwt
-from jwcrypto.common import json_decode, json_encode
+try:
+    from jwcrypto import jwk, jwt
+    from jwcrypto.common import json_decode, json_encode
+except ImportError:
+    jwt = None
 
 default_token_validity = 12
 
@@ -36,6 +39,11 @@ def default_jwk_dir():
 class TestJWTControl(ComponentControl):
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.TestJWT')
+        # module is not always in the system repos, but still can be installed from e.g. pip or third-party repos
+        # we are still disctibuting test-jwt without strong package-level requirements for such a systems
+        if jwt is None:
+            self.logger.critical('You need to install python jwcrypto module first to use Test JWT functionality.')
+            sys.exit(1)
         self.jwk = None
         self.hostname = None
         self.jwt_conf = {}
