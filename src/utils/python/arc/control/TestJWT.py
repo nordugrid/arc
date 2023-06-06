@@ -1,0 +1,389 @@
+from __future__ import print_function
+from __future__ import absolute_import
+
+from .ControlCommon import *
+
+import calendar
+import datetime
+import subprocess
+import socket
+import stat
+import sys
+import shutil
+import random
+import zlib
+import uuid
+import json
+from jwcrypto import jwk, jwt
+from jwcrypto.common import json_decode, json_encode
+
+default_token_validity = 12
+
+arc_conf_snippet = """[common]
+token_verify = {0} jwks_file {1}
+
+[authgroup:zero]
+authtokens = * {0} arc * *
+"""
+
+
+def default_jwk_dir():
+    if os.getuid() == 0:
+       return '/etc/grid-security/jwt'
+    return os.path.expanduser('~/.arc/jwt')
+
+
+class TestJWTControl(ComponentControl):
+    def __init__(self, arcconfig):
+        self.logger = logging.getLogger('ARCCTL.TestJWT')
+        self.jwk = None
+        self.hostname = None
+        self.jwt_conf = {}
+        # use hostname from arc.conf if possible
+        self.arcconfig = arcconfig
+        if arcconfig is None:
+            self.logger.debug('Working in config-less mode. ARCCTL defaults will be used.')
+        else:
+            self.hostname = arcconfig.get_value('hostname', 'common')
+            self.logger.debug('Using hostname from arc.conf: %s', self.hostname)
+        # if hostname is not defined via arc.conf
+        if self.hostname is None:
+            try:
+                # try to get it from hostname -f
+                hostname_f = subprocess.Popen(['hostname', '-f'], stdout=subprocess.PIPE)
+                self.hostname = hostname_f.stdout.readline().decode().strip()
+                self.logger.debug('Using hostname from \'hostname -f\': %s', self.hostname)
+            except OSError:
+                # fallback
+                self.hostname = socket.gethostname()
+                self.logger.warning('Cannot get hostname from \'hostname -f\'. '
+                                    'Using %s that comes from name services.', self.hostname)
+    
+    def __define_iss(self, issid=None):
+        """Internal function to define Issuer ID and file paths"""
+        if issid is None:
+            issid = self.hostname
+
+        # CRC32 hash for iss URL
+        isshash = hex(zlib.crc32(issid.encode('utf-8')) & 0xffffffff)[2:]
+        self.iss = 'https://nordugrid.org/arc/testjwt/{0}'.format(isshash)
+        # add user UID to iss URL if non-root
+        if os.getuid() != 0:
+            self.iss = self.iss + '/' + str(os.getuid())
+        self.logger.info('JWT issuer: %s', self.iss)
+        
+        # paths
+        self.iss_dir = os.path.join(self.jwk_dir, isshash)
+        self.jwk_key = os.path.join(self.iss_dir, 'jwk.key')
+        self.jwks_f = os.path.join(self.iss_dir, 'jwks.json')
+        self.jwt_conf_f = os.path.join(self.jwk_dir, 'jwt.conf')
+    
+    def __define_jwk_dir(self, dir=None):
+        """Define JWK dir"""
+        if dir is None:
+            dir = default_jwk_dir()
+        self.jwk_dir = dir
+
+    def __load_jwt_conf(self):
+        """Load config for token generation"""
+        if os.path.exists(self.jwt_conf_f):
+            try:
+                with open(self.jwt_conf_f, 'r') as jwt_cf:
+                    self.logger.debug("Loading default token issuing setting from %s", self.jwt_conf_f)
+                    self.jwt_conf = json.load(jwt_cf)
+            except IOError as err:
+                self.logger.error('Failed to open JWT config file %s. Error: %s', self.jwt_conf_f, str(err))
+                sys.exit(1)
+            except ValueError as err:
+                self.logger.error('Failed to parse JWT config file %s. Error: %s', self.jwt_conf_f, str(err))
+                sys.exit(1)
+
+    def __save_jwt_conf(self):
+        """Save config for token generation"""
+        try:
+            with open(self.jwt_conf_f, 'w') as jwt_cf:
+                self.logger.debug("Saving default token issuing setting to %s", self.jwt_conf_f)
+                json.dump(self.jwt_conf, jwt_cf)
+        except IOError as err:
+            self.logger.error('Failed to write JWT config file %s. Error: %s', self.jwt_conf_f, str(err))
+            sys.exit(1)
+    
+    def __get_jwt_conf(self, profile, key):
+        """Get value from token generation config"""
+        if profile not in self.jwt_conf:
+            return None
+        if key not in self.jwt_conf[profile]:
+            return None
+        return self.jwt_conf[profile][key]
+    
+    def __set_jwt_conf(self, profile, key, value):
+        """Set value in token generation config"""
+        if profile not in self.jwt_conf:
+            self.jwt_conf[profile] = {}
+        self.jwt_conf[profile][key] = value
+
+    def __del_jwt_conf(self, profile, key):
+        """Delete value in token generation config"""
+        if profile not in self.jwt_conf:
+            self.jwt_conf[profile] = {}
+        if key in self.jwt_conf[profile]:
+            del self.jwt_conf[profile][key]
+        
+    def jwt_conf_get(self, args):
+        """Return token generation config value to end-user"""
+        self.__load_jwt_conf()
+
+        profile = args.profile
+        if profile not in self.jwt_conf:
+                self.logger.info('No JWT configuration assigned to %s profile.', profile)
+                sys.exit(1)
+
+        key = args.key
+        if key is None:
+            # print all config
+            print(json.dumps(self.jwt_conf[profile], indent=2))
+        else:
+            value = self.__get_jwt_conf(profile, key)
+            if value is None:
+                self.logger.info('Config value for "%s" in profile "%s" is not set.', key, profile)
+            else:
+                print(value)
+
+    def jwt_conf_set(self, args):
+        """Set token generation config value as provided by end-user"""
+        self.__load_jwt_conf()
+        if args.value:
+            self.__set_jwt_conf(args.profile, args.key, args.value)
+            self.logger.info('Value for %s in profile %s has been set to %s',
+                             args.key, args.profile, args.value)
+        else:
+            self.__del_jwt_conf(args.profile, args.key)
+            self.logger.info('Value for %s in profile %s has ben unset',
+                             args.key, args.profile)
+        self.__save_jwt_conf()
+
+    def load_jwk(self):
+        """Load tokens singing key from disk"""
+        if os.path.exists(self.jwk_key):
+            try:
+                self.logger.debug('Initializing JWK from keyfile %s', self.jwk_key)
+                with open(self.jwk_key, 'r') as jwk_f:
+                    jwk_dict = json_decode(jwk_f.read())
+                    self.jwk = jwk.JWK(**jwk_dict)
+            except IOError as err:
+                self.logger.error('Failed to open JWK key file %s. Error: %s', self.jwk_key, str(err))
+                sys.exit(1)
+            except ValueError as err:
+                self.logger.error('Failed to parse JWK key file %s. Error: %s', self.jwk_key, str(err))
+                sys.exit(1)
+        else:
+            self.logger.error('JWK key file %s does not exist. Run "arctl test-jwt init" first.', self.jwk_key)
+            sys.exit(1)
+
+    def create_jwk(self, args):
+        """Generane new RSA keypair for tokens signing"""
+        if os.path.exists(self.jwk_key):
+            # handle exist vs force
+            if not args.force:
+                self.logger.error('JWK key file %s aleady exists. Use --force if you want to re-init.', 
+                                  self.jwk_key)
+                sys.exit(1)
+        # create issuer JWK dir
+        try:
+            os.makedirs(self.iss_dir)
+        except FileExistsError:
+            pass
+        except IOError as err:
+            self.logger.error('Failed to create JWK direcory %s for issuer %s. Error: %s', 
+                            self.iss_dir, self.iss, str(err))
+            sys.exit(1)
+        # generate RSA keypair
+        self.jwk = jwk.JWK(generate='RSA', size=2048, kid="testjwt", use="sig")
+        # write JWK files
+        try:
+            with open(self.jwk_key, 'w') as jwk_f:
+                jwk_f.write(self.jwk.export(private_key=True))
+            os.chmod(self.jwk_key, stat.S_IRUSR | stat.S_IWUSR )
+            with open(self.jwks_f, 'w') as jwks_f:
+                jwks_f.write("{ \"keys\":[ ")
+                jwks_f.write(self.jwk.export_public())
+                jwks_f.write("]}")
+        except IOError as err:
+            self.logger.error('Failed to write JWK key file. Error: %s', str(err))
+            sys.exit(1)
+        except ValueError as err:
+            self.logger.error('Failed to generate JWK key pair. Error: %s', str(err))
+            sys.exit(1)
+        # print info
+        self.logger.info('Keypair to tokens issuing generated successfully.')
+        self.issuer_info()
+
+    def issuer_info(self, arc_conf=False):
+        """Print information about token issuer"""
+        # check init is done and key exists
+        if self.jwk is None:
+            self.load_jwk()
+        # print general info about issuer
+        print('Issuer URL: {0}'.format(self.iss))
+        print('JWKS ({0}):'.format(self.jwks_f))
+        with open(self.jwks_f, 'r') as jwks_fd:
+            jwks = json.load(jwks_fd)
+            print(json.dumps(jwks, indent=2))
+        # print arc.conf snippet
+        if arc_conf:
+            isshash = hex(zlib.crc32(self.iss.encode('utf-8')) & 0xffffffff)[2:]
+            jwks_file = '/etc/grid-security/jwks/{0}.json'.format(isshash)
+            print('To trust this token issuer copy JWKS to {0} and add following to "arc.conf":'.format(jwks_file))
+            print(arc_conf_snippet.format(self.iss, jwks_file))
+
+    def cleanup_files(self):
+        """Cleanup test JWT files for issuer"""
+        if os.path.exists(self.iss_dir):
+            shutil.rmtree(self.iss_dir)
+
+    def issue_token(self, args):
+        """Issue signed token"""
+        if self.jwk is None:
+            self.load_jwk()
+
+        profile = args.profile
+
+        self.__load_jwt_conf()
+
+        # username
+        username = args.username
+        if username is None:
+            username = self.__get_jwt_conf(profile, 'username')
+            if username is None:
+                # generate persistent default username
+                randidx = random.randint(10000000, 99999999)
+                username = 'Test User {0}'.format(randidx)
+                self.__set_jwt_conf(profile, 'username', username)
+                self.__save_jwt_conf()
+
+        unixtime_now = calendar.timegm(datetime.datetime.today().timetuple())
+        
+        # token validity
+        validity = args.validity
+        if validity is None:
+            validity = self.__get_jwt_conf(profile, 'validity')
+            if validity is None:
+                validity = default_token_validity
+        validity_s = int(validity) * 3600
+
+        # scope
+        scope = "openid profile"
+        extra_scopes = args.scopes
+        if extra_scopes is None:
+            extra_scopes = self.__get_jwt_conf(profile, 'scopes')
+        if extra_scopes:
+            scope = scope + ' ' + extra_scopes
+
+        # arbitrary extra claims
+        extra_claims = {}
+        extra_claims_str = args.claims
+        if extra_claims_str is None:
+            extra_claims_str = self.__get_jwt_conf(profile, 'claims')
+        if extra_claims_str is not None:
+            try:
+                extra_claims = json_decode(extra_claims_str)
+            except ValueError as err:
+                self.logger.error('Failed to parse extra claims JSON %s. Error: %s', 
+                                  extra_claims_str, str(err))
+                sys.exit(1)
+
+        claims = {
+            "iat": unixtime_now,
+            "nbf": unixtime_now - 300,  ## 5 min clock scew (same as grid-proxies)
+            "exp": unixtime_now + validity_s,
+            "jti": str(uuid.uuid1()),
+            "iss": self.iss,
+            "aud": "arc",
+            "azp": "arc",
+            "sub": username.replace(':', ''),  ## RFC7519 StringOrURI
+            "typ": "Bearer",
+            "scope": scope,
+            "name": username,
+            "preferred_username": username
+        }
+
+        claims.update(extra_claims)
+        header = {"alg": "RS256", "typ": "JWT"}
+
+        token = jwt.JWT(header=header, claims=claims)
+        token.make_signed_token(self.jwk)
+       
+        self.logger.info('Token has been issued:\n{0}\n{1}'.format(
+            json.dumps(header, indent=2),
+            json.dumps(claims, indent=2)
+        ))
+        # token to stdout
+        print(token.serialize())
+
+    def control(self, args):
+        # init issuer
+        self.__define_jwk_dir(args.jwk_dir)
+        self.__define_iss(args.iss_id)
+        # parse actions
+        if args.action == 'init':
+            self.create_jwk(args)
+        elif args.action == 'cleanup':
+            self.cleanup_files()
+        elif args.action == 'issuer':
+            self.issuer_info(args.arc_conf)
+        elif args.action == 'config-get':
+            self.jwt_conf_get(args)
+        elif args.action == 'config-set':
+            self.jwt_conf_set(args)
+        elif args.action == 'token':
+            self.issue_token(args)
+        else:
+            self.logger.critical('Unsupported ARC Test JWT action %s', args.action)
+            sys.exit(1)
+
+    @staticmethod
+    def register_parser(root_parser):
+        testjwt_ctl = root_parser.add_parser('test-jwt', help='ARC Test JWT control')
+        testjwt_ctl.set_defaults(handler_class=TestJWTControl)
+
+        testjwt_ctl.add_argument('--iss-id', action='store',
+                                help='Define arcctl token Issuer ID to work with (default is hostname)')
+        testjwt_ctl.add_argument('--jwk-dir', action='store', default=default_jwk_dir(),
+                                help='Redefine path to JWK files directory (default is %(default)s)')
+
+        testjwt_actions = testjwt_ctl.add_subparsers(title='Test JWT Actions', dest='action',
+                                                   metavar='ACTION', help='DESCRIPTION')
+        testjwt_actions.required = True
+
+        testjwt_init = testjwt_actions.add_parser('init', help='Generate RSA key-pair for JWT signing')
+        testjwt_init.add_argument('-f', '--force', action='store_true', help='Overwrite files if exist')
+
+        testjwt_issuer = testjwt_actions.add_parser('issuer', help='Show information about Test JWT issuer')
+        testjwt_issuer.add_argument('-a', '--arc-conf', action='store_true', help='Show arc.conf snippet for using issuer')
+
+        testjwt_cleanup = testjwt_actions.add_parser('cleanup', help='Cleanup TestJWT files')
+
+        testjwt_conf_get = testjwt_actions.add_parser('config-get', help='Get JWT token generation config')
+        testjwt_conf_get.add_argument('-p', '--profile', action='store', default='default',
+                                 help='Config named profile (default is %(default)s')
+        testjwt_conf_get.add_argument('key', nargs='?', help='Config key')
+
+        testjwt_conf_set = testjwt_actions.add_parser('config-set', help='Set JWT token generation config')
+        testjwt_conf_set.add_argument('-p', '--profile', action='store', default='default',
+                                 help='Config named profile (default is %(default)s')
+        testjwt_conf_set.add_argument('key', choices=['username', 'validity', 'scopes', 'claims'],
+                                      help='Config key as in token options')
+        testjwt_conf_set.add_argument('value', help='Config value')
+
+        testjwt_token = testjwt_actions.add_parser('token', help='Issue JWT token')
+        testjwt_token.add_argument('-p', '--profile', action='store', default='default',
+                                 help='Generate using token named profile (default is %(default)s')
+        testjwt_token.add_argument('-n', '--username', action='store',
+                                 help='Use specified username instead of automatically generated')
+        testjwt_token.add_argument('-v', '--validity', type=int,
+                                 help='Validity of the token in hours (default is {0})'.format(default_token_validity))
+        testjwt_token.add_argument('-s', '--scopes', action='store',
+                                 help='Additional scopes to include into the token')
+        testjwt_token.add_argument('-c', '--claims', action='store',
+                                 help='Additional claims (JSON) to include into the token')
+    
