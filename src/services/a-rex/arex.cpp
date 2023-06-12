@@ -22,6 +22,7 @@
 #include <arc/FileUtils.h>
 #include <arc/Utils.h>
 #include <arc/otokens/openid_metadata.h>
+#include <arc/otokens/otokens.h>
 #include "grid-manager/log/JobLog.h"
 #include "grid-manager/log/JobsMetrics.h"
 #include "grid-manager/log/HeartBeatMetrics.h"
@@ -1113,6 +1114,43 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
       logger.getRootLogger().addDestinations(dests);
     }
   }
+
+  {
+    std::string base_path = config_.ControlDir()+"/faketokenissuers";
+    DIR* dir = ::opendir(base_path.c_str());
+    if(dir) {
+      for(;;) {
+        struct dirent* d = ::readdir(dir);
+        if(!d) break;
+        if(strcmp(d->d_name,".") == 0) continue;
+        if(strcmp(d->d_name,"..") == 0) continue;
+        std::string issuer_path   = base_path + "/" + d->d_name + "/issuer";
+        std::string metadata_path = base_path + "/" + d->d_name + "/metadata";
+        std::string keys_path     = base_path + "/" + d->d_name + "/keys";
+	std::string issuer;
+	std::string metadata;
+	std::string keys;
+        if(Arc::FileRead(issuer_path, issuer) &&
+           Arc::FileRead(metadata_path, metadata) &&
+           Arc::FileRead(keys_path, keys)) {
+          if(!issuer.empty() && !metadata.empty() && !keys.empty()) {
+            // Assign validity enough to the future
+            if(Arc::JWSE::SetIssuerInfo(Arc::Time(time(nullptr) + Arc::Time::YEAR*10), true, issuer, metadata, keys, logger_)) {
+              logger_.msg(Arc::INFO, "Created entry for fake issuer %s", d->d_name);
+	    } else {
+              logger_.msg(Arc::ERROR, "Failed to create entry for fake issuer %s", d->d_name);
+            }
+          } else {
+            logger_.msg(Arc::ERROR, "Empty data for fake issuer %s", d->d_name);
+          }
+        } else {
+          logger_.msg(Arc::ERROR, "Failed to read data for fake issuer %s", d->d_name);
+        }
+      }
+      closedir(dir);
+    }
+  }
+
   valid=true;
 }
 
