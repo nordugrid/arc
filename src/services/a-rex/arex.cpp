@@ -1116,7 +1116,7 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
   }
 
   {
-    std::string base_path = config_.ControlDir()+"/faketokenissuers";
+    std::string base_path = config_.ControlDir()+"/tokenissuers";
     DIR* dir = ::opendir(base_path.c_str());
     if(dir) {
       for(;;) {

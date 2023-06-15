@@ -55,7 +55,7 @@ if [ -z "$name" ]; then
   usage
   exit 1
 fi
-if [ ! -d "$controldir/$name" ]; then
+if [ ! -d "$controldir/tokenissuers/$name" ]; then
   echo "There is no issuer confuguration '${name}' at '${controldir}'."
   exit 1
 fi
@@ -68,7 +68,7 @@ if [ -z "$subject" ]; then
   exit 1
 fi
 
-cd "$controldir/$name"
+cd "$controldir/tokenissuers/$name"
 
 issuer=`cat issuer`
 payload=`makepayload "$issuer" "$subject"`

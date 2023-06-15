@@ -3,7 +3,7 @@
 usage () {
 echo 'makeissuer control_dir name issuer'
 echo '   control_dir - path to control dir of A-REX'
-echo '   name - internal name, issuer configuration is stored into control_dir/name'
+echo '   name - internal name, issuer configuration is stored into <control_dir>/tokenissuers/<name>'
 echo '   issuer - URL of issuer, can be something like https://localhost/'
 }
 
@@ -26,7 +26,7 @@ if [ -z "$name" ]; then
   usage
   exit 1
 fi
-if [ -d "$controldir/$name" ]; then
+if [ -d "$controldir/tokenissuers/$name" ]; then
   echo "There is already issuer confuguration '${name}' at '${controldir}'."
   echo "Remove it or change the name"
   exit 1
@@ -40,12 +40,12 @@ if [ -z "$issuer" ]; then
   exit 1
 fi
 
-mkdir "$controldir/$name"
+mkdir -p "$controldir/tokenissuers/$name"
 if [ "$?" -ne '0' ]; then
   echo "Failed to create folder for '${name}' issuer at '${controldir}'."
   exit 1
 fi
-cd "$controldir/$name"
+cd "$controldir/tokenissuers/$name"
 
 openssl genrsa -out private.pem 2048
 modulus=`openssl rsa -in private.pem -noout -modulus | sed 's/^Modulus=//' | basenc --base16 -d | basenc --base64url -w0 | sed 's/=*$//'`
