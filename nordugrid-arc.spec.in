@@ -1089,6 +1089,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/smtp-send.sh
 %{_libexecdir}/%{pkgdir}/inputcheck
 %{_libexecdir}/%{pkgdir}/arc-blahp-logger
+%{_libexecdir}/%{pkgdir}/makeissuer
+%{_libexecdir}/%{pkgdir}/maketoken
 %{_datadir}/%{pkgdir}/cancel-*-job
 %{_datadir}/%{pkgdir}/scan-*-job
 %{_datadir}/%{pkgdir}/submit-*-job
