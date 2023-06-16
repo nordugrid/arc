@@ -32,7 +32,7 @@ if [ -d "$controldir/tokenissuers/$name" ]; then
   exit 1
 fi
 
-issuer=`echo "$3" | sed 's/\/*$//'`
+issuer=`echo -n "$3" | sed 's/\/*$//'`
 if [ -z "$issuer" ]; then
   echo "Missing issuer URL - specify it on command line."
   echo ""
@@ -54,7 +54,7 @@ rm -f issuer
 rm -f metadata
 rm -f keys
 
-echo "${issuer}/" >>issuer
+echo -n "${issuer}/" >>issuer
 cat <<END >>metadata
 {
   "issuer":"${issuer}/",
