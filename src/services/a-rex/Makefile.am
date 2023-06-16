@@ -32,6 +32,8 @@ man_MANS = a-rex-backtrace-collect.8
 
 pkglibexec_SCRIPTS = makeissuer maketoken
 
+dist_pkgdata_DATA = makeissuer maketoken
+
 EXTRA_DIST = arc.zero.conf
 
 GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la rest/libarexrest.la
