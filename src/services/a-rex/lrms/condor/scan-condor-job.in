@@ -448,10 +448,10 @@ scan_main() {
     log () { echo "$progname: $*" 1>&2; }
     
     donefile="${basenames[$localid]}/lrms_done"
-    [ -f "$donefile" ] && continue
+    [ -f "$donefile" ] && return 0
     
     errorsfile="${basenames[$localid]}/errors"
-    [ -w "$errorsfile" ] || { log "cannot write to errors file at: $PWD/$errorsfile"; continue; }
+    [ -w "$errorsfile" ] || { log "cannot write to errors file at: $PWD/$errorsfile"; return 0; }
     
     jobfile="${basenames[$localid]}/local"
     uid=$(get_owner_uid "$jobfile")
