@@ -12,8 +12,6 @@
 
 #include "CertUtil.h"
 
-#define X509_CERT_DIR  "X509_CERT_DIR"
-
 #define FILE_SEPARATOR "/"
 #define SIGNING_POLICY_FILE_EXTENSION   ".signing_policy"
 

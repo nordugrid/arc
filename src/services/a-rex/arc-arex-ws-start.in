@@ -222,6 +222,7 @@ prepare() {
        x509_cert_config="<CACertificatesDir>$X509_CERT_DIR</CACertificatesDir>"
     else
        X509_CERT_DIR=""
+       X509_CERT_POLICY='system'
        x509_cert_config="<DefaultCA>true</DefaultCA>"
     fi
     GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_tcp_port_range arex/data-staging`
@@ -265,6 +266,7 @@ prepare() {
     export X509_USER_CERT
     export X509_USER_KEY
     export X509_CERT_DIR
+    export X509_CERT_POLICY
     export GLOBUS_TCP_PORT_RANGE
     export GLOBUS_UDP_PORT_RANGE
     export HOSTNAME

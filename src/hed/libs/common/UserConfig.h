@@ -135,6 +135,7 @@ namespace Arc {
    * - proxypath / ProxyPath(const std::string&)
    * - cacertificatesdirectory / CACertificatesDirectory(const std::string&)
    * - cacertificatepath / CACertificatePath(const std::string&)
+   * - causedefault / CAUseDefault(bool)
    * - timeout / Timeout(int)
    * - joblist / JobListFile(const std::string&)
    * - joblisttype / JobListType(const std::string&)
@@ -1429,6 +1430,8 @@ namespace Arc {
     bool x509_user_proxy_set;
     std::string ca_cert_dir_old;
     bool ca_cert_dir_set;
+    std::string ca_cert_policy_old;
+    bool ca_cert_policy_set;
   };
 
   /** @} */
