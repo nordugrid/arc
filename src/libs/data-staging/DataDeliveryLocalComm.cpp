@@ -129,6 +129,10 @@ namespace DataStaging {
         args.push_back("--dopt");
         args.push_back("ca="+dtr->get_usercfg().CACertificatesDirectory());
       }
+      args.push_back("--sopt");
+      args.push_back("cadefault="+dtr->get_usercfg().CAUseDefault());
+      args.push_back("--dopt");
+      args.push_back("cadefault="+dtr->get_usercfg().CAUseDefault());
       args.push_back("--topt");
       args.push_back("minspeed="+Arc::tostring(transfer_params.min_current_bandwidth));
       args.push_back("--topt");
