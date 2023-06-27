@@ -46,8 +46,6 @@ def parse_arc_conf(conf_f=__def_path_arcconf, defaults_f=__def_path_defaults):
     """General entry point for parsing arc.conf (with defaults substitutions if defined)"""
     # parse /etc/arc.conf first
     _parse_config(conf_f, __parsed_config, __parsed_blocks)
-    # pre-processing of values
-    _process_config()
     # save parsed dictionary keys that holds arc.conf values without defaults
     for block, options_dict in __parsed_config.items():
         __parsed_config_admin_defined.update({block: options_dict.keys()})
@@ -60,6 +58,8 @@ def parse_arc_conf(conf_f=__def_path_arcconf, defaults_f=__def_path_defaults):
             _merge_defults()
         else:
             __logger.error('There is no defaults file at %s. Default values will not be substituted.', defaults_f)
+    # processing of values
+    _process_config()
     # evaluate special values
     _evaluate_values()
 
@@ -204,6 +204,17 @@ def _process_config():
                 __logger.debug('Replacing loglevel %s with numeric value %s in [%s].',
                              loglevel_value, loglevel_num_value, block)
                 __parsed_config[block]['__values'][loglevel_idx] = loglevel_num_value
+    # Accept both colon (backward compatible and database way) and space (arc7 documented admin-friendly) 
+    # in [lrms] benchmark value
+    try:
+        benchmark_idx = __parsed_config['lrms']['__options'].index('benchmark')
+        benchmark_value = __parsed_config['lrms']['__values'][benchmark_idx]
+        benchmark_split = re.split(':|\s', benchmark_value)
+        __parsed_config['lrms']['__values'][benchmark_idx] = '{0}:{1}'.format(benchmark_split[0], benchmark_split[-1])
+    except KeyError:
+        pass
+    except IndexError:
+        pass
 
 
 def _merge_defults():

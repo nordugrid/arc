@@ -127,7 +127,7 @@ Arc::JobInformationStorage* createJobInformationStorage(const Arc::UserConfig& u
 class ClientOptions : public Arc::OptionParser {
 public:
   enum Client_t {
-    CO_SUB, CO_MIGRATE, CO_RESUB, CO_TEST,
+    CO_SUB, CO_TEST,
     CO_CAT, CO_CLEAN, CO_GET, CO_KILL, CO_RENEW, CO_RESUME, CO_STAT,
     CO_SYNC,
     CO_INFO,
@@ -151,15 +151,12 @@ public:
   bool show_plugins;
   bool showversion;
   bool all;
-  bool forcemigration;
   bool keep;
   bool forcesync;
   bool truncate;
   bool convert;
   bool longlist;
   bool printids;
-  bool same;
-  bool notsame;
   bool forceclean;
   bool show_stdout;
   bool show_stderr;
@@ -192,7 +189,6 @@ public:
   std::string infointerface;
 
   std::list<std::string> clusters;
-  std::list<std::string> qlusters;
   std::list<std::string> indexurls;
   std::list<std::string> jobdescriptionstrings;
   std::list<std::string> jobdescriptionfiles;

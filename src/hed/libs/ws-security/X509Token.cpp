@@ -162,6 +162,11 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& keyfile) : SOAPEnvel
       return;
     }
 
+#ifdef XMLSEC_KEYINFO_FLAGS_LAX_KEY_SEARCH
+    encCtx->keyInfoReadCtx.flags |= XMLSEC_KEYINFO_FLAGS_LAX_KEY_SEARCH;
+    encCtx->keyInfoWriteCtx.flags |= XMLSEC_KEYINFO_FLAGS_LAX_KEY_SEARCH;
+#endif
+
     // Decrypt the soap body
     xmlSecBufferPtr decrypted_buf;
     decrypted_buf = xmlSecEncCtxDecryptToBuffer(encCtx, todecrypt_nd);
@@ -459,6 +464,11 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
       if(encDataNode != NULL) xmlFreeNode(encDataNode);
       return;
     }
+
+#ifdef XMLSEC_KEYINFO_FLAGS_LAX_KEY_SEARCH
+    encCtx->keyInfoReadCtx.flags |= XMLSEC_KEYINFO_FLAGS_LAX_KEY_SEARCH;
+    encCtx->keyInfoWriteCtx.flags |= XMLSEC_KEYINFO_FLAGS_LAX_KEY_SEARCH;
+#endif
 
     // Generate a Triple DES key
     encCtx->encKey = xmlSecKeyGenerate(xmlSecKeyDataDesId, 192, xmlSecKeyDataTypeSession);

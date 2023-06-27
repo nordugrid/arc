@@ -13,7 +13,6 @@
 #include "../../clients/compute/arcstat.cpp"
 #include "../../clients/compute/arcclean.cpp"
 #include "../../clients/compute/arckill.cpp"
-#include "../../clients/compute/arcresub.cpp"
 #include "../../clients/compute/arcsub.cpp"
 #include "../../clients/compute/arcget.cpp"
 #include "../../clients/compute/arcresume.cpp"
@@ -109,12 +108,6 @@ ClientsTest::testarckill()
 
 void
 ClientsTest::testarcrenew()
-{
-  CPPUNIT_FAIL( "not implemented" );
-}
-
-void
-ClientsTest::testarcresub()
 {
   CPPUNIT_FAIL( "not implemented" );
 }

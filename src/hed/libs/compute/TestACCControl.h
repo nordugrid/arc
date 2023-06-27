@@ -87,10 +87,8 @@ class JobControllerPluginTestACCControl {
 class SubmitterPluginTestACCControl {
   public:
     static SubmissionStatus submitStatus;
-    static bool migrateStatus;
     static bool modifyStatus;
     static Job submitJob;
-    static Job migrateJob;
 };
 
 /**

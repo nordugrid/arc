@@ -151,6 +151,13 @@ Arc::MCC_Status ARexService::ESOperations(ARexConfigContext* config, std::string
       } else {
         processed = false;
       };
+
+  if(processed) {
+    outmsg.Payload(outpayload);
+  } else {
+    delete outpayload;
+  };
+
   passed = true;
 
   return Arc::MCC_Status(Arc::STATUS_OK);
