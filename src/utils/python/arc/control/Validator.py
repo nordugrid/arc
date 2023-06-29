@@ -142,7 +142,7 @@ class Validator(object):
             # Check for options allowed in this block
             for option, value in options.items():
                 if option not in config_defaults[block]['__options']:
-                    self.warning("'%s' is not a valid option in [%s]" % (option, block))
+                    self.error("'%s' is not a valid option in [%s]" % (option, block))
                     continue
 
                 if not value and option not in self.__empty_value_options:
