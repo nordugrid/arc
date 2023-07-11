@@ -441,7 +441,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     return
     Credential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
                !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
-               usercfg.CACertificatesDirectory(), usercfg.CACertificatePath()).IsValid();
+               usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseDefault()).IsValid();
   }
 
   bool Credential::IsValid() const {
@@ -927,13 +927,13 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
   }
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile,
-        const std::string& cadir, const std::string& cafile,
+        const std::string& cadir, const std::string& cafile, bool causedefault,
         PasswordSource& passphrase4key, const bool is_file) {
-    InitCredential(certfile,keyfile,cadir,cafile,passphrase4key,is_file);
+    InitCredential(certfile,keyfile,cadir,cafile,causedefault,passphrase4key,is_file);
   }
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile,
-        const std::string& cadir, const std::string& cafile,
+        const std::string& cadir, const std::string& cafile, bool causedefault,
         const std::string& passphrase4key, const bool is_file) {
     PasswordSource* pass = NULL;
     if(passphrase4key.empty()) {
@@ -943,7 +943,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     } else {
       pass = new PasswordSourceString(passphrase4key);
     }
-    InitCredential(certfile,keyfile,cadir,cafile,*pass,is_file);
+    InitCredential(certfile,keyfile,cadir,cafile,causedefault,*pass,is_file);
     delete pass;
   }
 
@@ -951,11 +951,11 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     if (usercfg.CredentialString().empty()) {
       InitCredential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
                      !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
-                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
+                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseDefault(),
                      passphrase4key, true);
     } else {
       InitCredential(usercfg.CredentialString(), "",
-                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
+                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseDefault(),
                      passphrase4key, false);
     }
   }
@@ -972,23 +972,23 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     if (usercfg.CredentialString().empty()) {
       InitCredential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
                      !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
-                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
+                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseDefault(),
                      *pass, true);
     } else {
       InitCredential(usercfg.CredentialString(), "",
-                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
+                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseDefault(),
                      *pass, false);
     }
     delete pass;
   }
 
   void Credential::InitCredential(const std::string& certfile, const std::string& keyfile,
-        const std::string& cadir, const std::string& cafile,
+        const std::string& cadir, const std::string& cafile, bool causedefault,
         PasswordSource& passphrase4key, const bool is_file) {
 
     initialized_ = false;
-    cacertfile_ = cafile;
-    cacertdir_ = cadir;
+    cacertfile_ = !causedefault ? cafile : "";
+    cacertdir_ = !causedefault ? cadir : "";
     certfile_ = certfile;
     keyfile_ = keyfile;
     verification_valid_ = false;
@@ -1083,7 +1083,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       initialized_ = true;
     }
 
-    if(!cacertfile_.empty() || !cacertdir_.empty()) {
+    if(!cacertfile_.empty() || !cacertdir_.empty() || causedefault) {
       Verify();
     } else {
       if(!collect_cert_chain(cert_, &cert_chain_, verification_proxy_policy_)) {

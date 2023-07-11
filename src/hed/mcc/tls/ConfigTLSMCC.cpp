@@ -237,7 +237,7 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
   }
   if(!credential_.empty()) {
     // First try to use in-memory credential
-    Credential cred(credential_, credential_, ca_dir_, ca_file_, Credential::NoPassword(), false);
+    Credential cred(credential_, credential_, ca_dir_, ca_file_, default_ca_, Credential::NoPassword(), false);
     if (!cred) {
       failure_ = "Failed to read in-memory credentials";
       return false;

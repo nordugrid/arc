@@ -616,10 +616,14 @@ namespace Arc {
       }
     }
 
+    std::string ca_policy = GetEnv("X509_CERT_POLICY");
+    if (ca_policy == "globus") {
+      caUseDefault = false;
+    } else if(ca_policy == "system") {
+      caUseDefault = true;
+    }
     if(!noca) {
-      std::string ca_policy = GetEnv("X509_CERT_POLICY");
-      if ((ca_policy == "globus") || (ca_policy.empty())) {
-	caUseDefault = false;
+      if (!caUseDefault) {
         std::string ca_dir = GetEnv("X509_CERT_DIR");
         //std::cerr<<"-- ca_dir = "<<ca_dir<<std::endl;
         if (!ca_dir.empty()) {
@@ -681,9 +685,6 @@ namespace Arc {
             }
           }
         }
-      } else {
-        //std::cerr<<"-- option 7"<<std::endl;
-	caUseDefault = true;
       }
     }
 

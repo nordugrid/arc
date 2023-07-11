@@ -162,17 +162,17 @@ class Credential {
     * @param is_file specifies if the cert/key are from file, otherwise they
     *    are supposed to be from string. default is from file
     */
-    Credential(const std::string& cert, const std::string& key, const std::string& cadir,
-               const std::string& cafile, const std::string& passphrase4key = "",
-               const bool is_file = true);
+    Credential(const std::string& cert, const std::string& key,
+               const std::string& cadir, const std::string& cafile, bool causedefault,
+	       const std::string& passphrase4key = "", const bool is_file = true);
 
     /** Same as previuos constructor but allows password to be
     * supplied from different sources.
     * \since Added in 4.0.0.
     */
-    Credential(const std::string& cert, const std::string& key, const std::string& cadir,
-               const std::string& cafile, PasswordSource& passphrase4key,
-               const bool is_file = true);
+    Credential(const std::string& cert, const std::string& key,
+               const std::string& cadir, const std::string& cafile, bool causedefault,
+	       PasswordSource& passphrase4key, const bool is_file = true);
 
     /**Constructor, specific constructor for usual certificate, constructing from
     * information in UserConfig object. Only acts as a container for parsing the 
@@ -222,8 +222,9 @@ class Credential {
     /** Credential object so far is not supposed to be copied */
     Credential(const Credential&);
 
-    void InitCredential(const std::string& cert, const std::string& key, const std::string& cadir,
-               const std::string& cafile, PasswordSource& passphrase4key, const bool is_file);
+    void InitCredential(const std::string& cert, const std::string& key,
+		        const std::string& cadir, const std::string& cafile, bool causedefault,
+			PasswordSource& passphrase4key, const bool is_file);
 
     /**load key from argument keybio, and put key information into argument pkey */
     //void loadKeyString(const std::string& key, EVP_PKEY* &pkey, const std::string& passphrase = "");

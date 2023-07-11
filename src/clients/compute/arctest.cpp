@@ -114,7 +114,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     if (usercfg.CertificatePath().empty()) {
       std::cout << "  " << Arc::IString("No user-certificate found") << std::endl << std::endl;
     } else {
-      Arc::Credential holder(usercfg.CertificatePath(), "", usercfg.CACertificatesDirectory(), "");
+      Arc::Credential holder(usercfg.CertificatePath(), "", usercfg.CACertificatesDirectory(), "", usercfg.CAUseDefault());
       std::cout << "  " << Arc::IString("Certificate: %s", usercfg.CertificatePath()) << std::endl;
       if (!holder.GetDN().empty()) {
         std::cout << "  " << Arc::IString("Subject name: %s", holder.GetDN()) << std::endl;
@@ -130,7 +130,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     if (usercfg.ProxyPath().empty()) {
       std::cout << "  " << Arc::IString("No proxy found") << std::endl << std::endl;
     } else {
-      Arc::Credential holder(usercfg.ProxyPath(), "", usercfg.CACertificatesDirectory(), "");
+      Arc::Credential holder(usercfg.ProxyPath(), "", usercfg.CACertificatesDirectory(), "", usercfg.CAUseDefault());
       std::cout << "  " << Arc::IString("Proxy: %s", usercfg.ProxyPath()) << std::endl;
       std::cout << "  " << Arc::IString("Proxy-subject: %s", holder.GetDN()) << std::endl;
       if (holder.GetEndTime() < now) {
@@ -155,7 +155,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
       if (Glib::file_test(cafile, Glib::FILE_TEST_IS_REGULAR) && (*it)[(*it).size()-2] == '.' &&
           ((*it)[(*it).size()-1] == '0' || (*it)[(*it).size()-1] == '1' || (*it)[(*it).size()-1] == '2')) {
         
-        Arc::Credential cred(cafile, "", "", "");
+        Arc::Credential cred(cafile, "", "", "", false);
         std::string dn = cred.GetDN();
         if (dn.empty()) continue;
           
