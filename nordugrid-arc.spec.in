@@ -155,6 +155,10 @@ Obsoletes:	%{name}-ldap-infosys < 6.0.0
 Obsoletes:	%{name}-aris < 6.0.0
 %endif
 
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool
+BuildRequires:	make
 BuildRequires:	gcc-c++
 BuildRequires:	cppunit-devel
 BuildRequires:	pkgconfig
@@ -162,12 +166,8 @@ BuildRequires:	pkgconfig
 BuildRequires:	systemd
 BuildRequires:	systemd-devel
 %endif
-%if %{?fedora}%{!?fedora:0} >= 12 || %{?rhel}%{!?rhel:0} >= 6 || %{?suse_version:1}%{!?suse_version:0}
 BuildRequires:	libuuid-devel
-%else
-BuildRequires:	e2fsprogs-devel
-%endif
-BuildRequires:	gettext
+BuildRequires:	gettext-devel
 BuildRequires:	python%{python3_pkgversion}-devel
 %if %{with_pylint}
 BuildRequires:	pylint
@@ -679,6 +679,7 @@ management features on the worker nodes (WN).
 %setup @fedorasetupopts@
 
 %build
+autoreconf -v -f -i
 %configure --disable-static \
 %if %{with_gfal}
      --enable-gfal \
