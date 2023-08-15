@@ -342,9 +342,9 @@ namespace Arc {
 	  // Issuer can be any application specific string. Typically that is URL.
 	  // Sometimes it is hostname (Google tokens). As we need URL anyway to fetch
       // keys let's assume we have either HTTP(S) URL or hostname.	  
-      if(strncasecmp("https:", issuerUrl.c_str(), 6) == 0) {
+      if(strncasecmp("https://", issuerUrl.c_str(), 8) == 0) {
 		// Use as is.
-	  } else if(strncasecmp("http:", issuerUrl.c_str(), 6) == 0) {
+	  } else if(strncasecmp("http://", issuerUrl.c_str(), 7) == 0) {
 		  keyProtocolSafe = false;
 	  } else {
 		issuerUrl = "https://" + issuerUrl + "/";
@@ -382,7 +382,7 @@ namespace Arc {
       if(!jwksUri)
         return false;
 
-      if(strncasecmp("https:", jwksUri, 6) != 0) keyProtocolSafe = false;
+      if(strncasecmp("https://", jwksUri, 8) != 0) keyProtocolSafe = false;
 
       logger_.msg(DEBUG, "JWSE::ExtractPublicKey: fetching jws key from %s", jwksUri);
       JWSEKeyFetcher keyFetcher(jwksUri);
