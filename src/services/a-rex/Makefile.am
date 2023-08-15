@@ -30,9 +30,7 @@ sbin_SCRIPTS = a-rex-backtrace-collect
 
 man_MANS = a-rex-backtrace-collect.8
 
-pkglibexec_SCRIPTS = makeissuer maketoken
-
-dist_pkgdata_DATA = makeissuer maketoken
+dist_pkglibexec_SCRIPTS = makeissuer maketoken
 
 EXTRA_DIST = arc.zero.conf
 
