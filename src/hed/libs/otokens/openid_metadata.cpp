@@ -349,6 +349,11 @@ namespace Arc {
     return metadata.Input(response->Content());
   }
 
+  bool OpenIDMetadataFetcher::Import(char const * content, OpenIDMetadata& metadata) {
+    if(!content) return false;
+    return metadata.Input(content);
+  }
+
 
 
   OpenIDTokenFetcher::OpenIDTokenFetcher(char const * token_endpoint, char const * id, char const * secret):
@@ -444,6 +449,18 @@ namespace Arc {
       }
     }
 
+    return true;
+  }
+
+  bool OpenIDTokenFetcher::Import(char const * content, TokenList& tokens) {
+    if(!content) return false;
+    XMLNode respXml;
+    if(!JSON::Parse(respXml, content)) return false;
+    for(int n = 0; ;++n) {
+      XMLNode node = respXml.Child(n);
+      if(!node) break;
+      tokens.push_back(std::make_pair(node.Name(), (std::string)node));            
+    }
     return true;
   }
 

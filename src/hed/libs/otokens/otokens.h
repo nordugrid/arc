@@ -1,6 +1,7 @@
 #include <string>
 #include <set>
 #include <arc/Utils.h>
+#include <arc/DateTime.h>
 #include <arc/Logger.h>
 
 
@@ -9,6 +10,8 @@ struct cJSON;
 namespace Arc {
 
   class JWSEKeyHolder;
+  class JWSEKeyHolderList;
+  class OpenIDMetadata;
 
   //! Class for parsing, verifying and extracting information
   //! from Tokens (JWS or JWE encoded).
@@ -102,6 +105,7 @@ namespace Arc {
     //! Assigns certificate to use for signing
     void Certificate(char const* certificate = NULL);
  
+    static bool SetIssuerInfo(Time validTill, bool isSafe, std::string const& issuer, std::string const& metadata, std::string const& keys, Logger& logger);
    private:    
 
     static Logger logger_;
@@ -119,6 +123,8 @@ namespace Arc {
     mutable AutoPointer<cJSON> content_;
 
     void Cleanup();
+
+    static void SetIssuerInfo(Time validTill, bool isSafe, std::string const & issuer, AutoPointer<OpenIDMetadata>& metadata, AutoPointer<JWSEKeyHolderList>& keys);
 
     // Propagate information in header_ into key_
     bool ExtractPublicKey() const;

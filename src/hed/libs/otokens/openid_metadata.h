@@ -168,6 +168,7 @@ namespace Arc {
    public:
     OpenIDMetadataFetcher(char const * issuer_url);
     bool Fetch(OpenIDMetadata& metadata);
+    static bool Import(char const * content, OpenIDMetadata& metadata);
    private:
     URL url_;
     ClientHTTP client_;
@@ -183,6 +184,7 @@ namespace Arc {
                std::list<std::string> const & scope,
                std::list<std::string> const & audience,
                TokenList & tokens);
+    static bool Import(char const * content, TokenList & tokens);
    private:
     URL url_;
     std::string client_id_;
