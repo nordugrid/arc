@@ -337,8 +337,18 @@ namespace Arc {
       if(!issuerObj || (issuerObj->type != cJSON_String))
         return false;
       bool keyProtocolSafe = true;
-      if(strncasecmp("https:", issuerObj->valuestring, 6) != 0) keyProtocolSafe = false;
-
+      std::string issuerUrl(issuerObj->valuestring);
+	  // Issuer can be any application specific string. Typically that is URL.
+	  // Sometimes it is hostname (Google tokens). As we need URL anyway to fetch
+      // keys let's assume we have either HTTP(S) URL or hostname.	  
+      if(strncasecmp("https://", issuerUrl.c_str(), 8) == 0) {
+		// Use as is.
+	  } else if(strncasecmp("http://", issuerUrl.c_str(), 7) == 0) {
+		  keyProtocolSafe = false;
+	  } else {
+		issuerUrl = "https://" + issuerUrl + "/";
+	  }
+	  
       {
         Time now;
         Arc::AutoLock<Glib::Mutex> lock(issuersInfoLock);
@@ -362,7 +372,7 @@ namespace Arc {
       }
 
       Arc::AutoPointer<OpenIDMetadata> serviceMetadata(new OpenIDMetadata);
-      OpenIDMetadataFetcher metadataFetcher(issuerObj->valuestring);
+      OpenIDMetadataFetcher metadataFetcher(issuerUrl.c_str());
       if(!metadataFetcher.Fetch(*serviceMetadata))
         return false;
       if(serviceMetadata->Error())
@@ -371,7 +381,7 @@ namespace Arc {
       if(!jwksUri)
         return false;
 
-      if(strncasecmp("https:", jwksUri, 6) != 0) keyProtocolSafe = false;
+      if(strncasecmp("https://", jwksUri, 8) != 0) keyProtocolSafe = false;
 
       logger_.msg(DEBUG, "JWSE::ExtractPublicKey: fetching jws key from %s", jwksUri);
       JWSEKeyFetcher keyFetcher(jwksUri);
