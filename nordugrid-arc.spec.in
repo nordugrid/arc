@@ -195,6 +195,10 @@ Obsoletes:	%{name}-ldap-infosys < 6.0.0
 Obsoletes:	%{name}-aris < 6.0.0
 %endif
 
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool
+BuildRequires:	make
 BuildRequires:	gcc-c++
 BuildRequires:	cppunit-devel
 BuildRequires:	pkgconfig
@@ -202,12 +206,8 @@ BuildRequires:	pkgconfig
 BuildRequires:	systemd
 BuildRequires:	systemd-devel
 %endif
-%if %{?fedora}%{!?fedora:0} >= 12 || %{?rhel}%{!?rhel:0} >= 6 || %{?suse_version:1}%{!?suse_version:0}
 BuildRequires:	libuuid-devel
-%else
-BuildRequires:	e2fsprogs-devel
-%endif
-BuildRequires:	gettext
+BuildRequires:	gettext-devel
 %if %{with_python2}
 BuildRequires:	python2-devel
 %endif
@@ -983,6 +983,7 @@ if pkg-config --atleast-version 2.6 sigc++-2.0 ; then
   fi
 fi
 
+autoreconf -v -f -i
 %configure --disable-static \
 %if ! %{with_acix}
      --disable-acix \
