@@ -473,7 +473,7 @@ for localid in ${localids[@]}; do
             echo  "$jobstatus" > "${basenames[$localid]}/lrms_done"
             kicklist=(${kicklist[@]} $localid)
  	    ;;
-        PENDING|RUNNING|SUSPENDE|COMPLETING)
+        PENDING|RUNNING|SUSPENDED|COMPLETING)
             #Job is running, nothing to do.
             run=$(($run + 1))
             ;;
