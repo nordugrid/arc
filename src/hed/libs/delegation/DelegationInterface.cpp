@@ -22,6 +22,14 @@
 
 #include "DelegationInterface.h"
 
+#ifndef X509_REQ_VERSION_1
+#define X509_REQ_VERSION_1 0
+#endif
+
+#ifndef X509_VERSION_3
+#define X509_VERSION_3 2
+#endif
+
 namespace Arc {
 
 #if (OPENSSL_VERSION_NUMBER < 0x10100000L)
@@ -482,8 +490,7 @@ bool DelegationConsumer::Request(std::string& content) {
       if(EVP_PKEY_set1_RSA(pkey, rsa)) {
         X509_REQ *req = X509_REQ_new();
         if(req) {
-          //if(X509_REQ_set_version(req,0L)) {
-          if(X509_REQ_set_version(req,2L)) {
+          if(X509_REQ_set_version(req,X509_REQ_VERSION_1)) {
             if(X509_REQ_set_pubkey(req,pkey)) {
               if(X509_REQ_sign(req,pkey,digest)) {
                 BIO *out = BIO_new(BIO_s_mem());
@@ -707,7 +714,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   if (!X509_set_serialNumber(cert,sno)) goto err;
   proxy_cn=tostring(ASN1_INTEGER_get(sno));
   ASN1_INTEGER_free(sno); sno=NULL;
-  X509_set_version(cert,2L);
+  X509_set_version(cert,X509_VERSION_3);
 
   /*
    Proxy certificates do not need KeyUsage extension. But
