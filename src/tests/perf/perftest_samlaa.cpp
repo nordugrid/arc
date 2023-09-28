@@ -51,7 +51,7 @@ int Round(double x){
 }
 
 static void prepareAttributeQuery(Arc::XMLNode& attr_query){
-  Arc::Credential cred(cert, key, cadir, cafile);
+  Arc::Credential cred(cert, key, cadir, cafile, false);
   std::string local_dn_str = cred.GetDN();
   std::string local_dn;
   size_t pos1 = std::string::npos;
