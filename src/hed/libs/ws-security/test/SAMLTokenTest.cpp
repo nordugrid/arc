@@ -70,7 +70,7 @@ void SAMLTokenTest::TestSAML2Token() {
   Arc::SAMLToken st2(soap2);
   CPPUNIT_ASSERT((bool)st2);
   CPPUNIT_ASSERT(st2.Authenticate());
-  CPPUNIT_ASSERT(st2.Authenticate("../../credential/test/ca_cert.pem", ""));
+  CPPUNIT_ASSERT(st2.Authenticate("../../credential/test/ca_cert.pem", "", false));
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(SAMLTokenTest);
