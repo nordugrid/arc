@@ -117,7 +117,7 @@ public:
     @param cafile ca file
     @param capath ca directory
   */
-  bool Authenticate(const std::string& cafile, const std::string& capath);
+  bool Authenticate(const std::string& cafile, const std::string& capath, bool defaultca);
 
   /** Check signature by using the cert information in soap message
   */
