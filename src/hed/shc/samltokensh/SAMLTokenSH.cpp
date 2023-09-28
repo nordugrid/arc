@@ -21,7 +21,7 @@
 
 static Arc::Logger logger(Arc::Logger::rootLogger, "SAMLTokenSH");
 
-Arc::Plugin* ArcSec::SAMLTokenSH::get_sechandler(Arc::PluginArgument* arg): default_ca_(false) {
+Arc::Plugin* ArcSec::SAMLTokenSH::get_sechandler(Arc::PluginArgument* arg) {
   ArcSec::SecHandlerPluginArgument* shcarg =
           arg?dynamic_cast<ArcSec::SecHandlerPluginArgument*>(arg):NULL;
   if(!shcarg) return NULL;
@@ -147,7 +147,7 @@ bool SAMLAssertionSecAttr::Import(Arc::SecAttrFormat format, const XMLNode& val)
   return false;
 }
 
-SAMLTokenSH::SAMLTokenSH(Config *cfg,ChainContext*,Arc::PluginArgument* parg):SecHandler(cfg,parg),valid_(false){
+SAMLTokenSH::SAMLTokenSH(Config *cfg,ChainContext*,Arc::PluginArgument* parg):SecHandler(cfg,parg),default_ca_(false),valid_(false){
   if(!init_xmlsec()) return;
   process_type_=process_none;
   std::string process_type = (std::string)((*cfg)["Process"]);
