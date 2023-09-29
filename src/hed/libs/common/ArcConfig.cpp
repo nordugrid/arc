@@ -134,6 +134,10 @@ namespace Arc {
     otoken = token;
   }
 
+  void BaseConfig::SetDefaultCA(bool use_default) {
+    defaultca = use_default;
+  }
+
   void BaseConfig::AddOverlay(XMLNode cfg) {
     overlay.Destroy();
     cfg.New(overlay);

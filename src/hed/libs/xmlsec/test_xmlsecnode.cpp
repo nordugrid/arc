@@ -48,7 +48,7 @@ int main(void)
     //Verify the signature
     std::string cafile("../../../tests/echo/testcacert.pem");
     std::string capath("");
-    if(secnode.VerifyNode(idname, cafile, capath)) {
+    if(secnode.VerifyNode(idname, cafile, capath, false, true)) {
       std::cout<<"Succeed to verify the signature under the node"<<std::endl;
     }
 

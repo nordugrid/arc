@@ -40,7 +40,7 @@ int main(void) {
   Arc::SAMLToken st2(soap2);
   if(!st2) {
     std::cout<<"Failed parsing previously generated SAMLToken"<<std::endl<<std::endl;
-  } else if(!(st2.Authenticate("../../../tests/echo/testcacert.pem", ""))) {
+  } else if(!(st2.Authenticate("../../../tests/echo/testcacert.pem", "", false))) {
     std::cout<<"Failed to authenticate to previously generated SAMLToken"<<std::endl<<std::endl;
   }
 
