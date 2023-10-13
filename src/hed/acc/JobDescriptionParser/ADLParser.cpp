@@ -651,8 +651,8 @@ namespace Arc {
       if((bool)slot) {
         /// \mapattr Resources.SlotRequirement.NumberOfSlots -> NumberOfSlots
         if(!stringto(slot["adl:NumberOfSlots"],parsed_jobdescription.Resources.SlotRequirement.NumberOfSlots)) {
-          logger.msg(ERROR, "[ADLParser] Missing or wrong value in NumberOfSlots.");
-          return false;
+          logger.msg(INFO, "[ADLParser] Missing or wrong value in NumberOfSlots from jobdescription - setting a default value to 1");
+          parsed_jobdescription.Resources.SlotRequirement.NumberOfSlots = 1;
         }
         if((bool)slot["adl:SlotsPerHost"]) {
           XMLNode use = slot["adl:SlotsPerHost"].Attribute("useNumberOfSlots");
