@@ -50,9 +50,7 @@ static void config_VOMS_add(XMLNode cfg,std::vector<std::string>& vomscert_trust
 
 ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   protocol_options_ = 0;
-#if (OPENSSL_VERSION_NUMBER >= 0x10001000L)
-  curve_nid_ = NID_secp521r1;
-#endif
+  curve_nid_ = NID_undef; // so far best seems to be NID_X25519, but let OpenSSL choose by default
   client_authn_ = true;
   cert_file_ = (std::string)(cfg["CertificatePath"]);
   key_file_ = (std::string)(cfg["KeyPath"]);
@@ -66,6 +64,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   proxy_file_ = (std::string)(cfg["ProxyPath"]);
   credential_ = (std::string)(cfg["Credential"]);
   cipher_list_ = (std::string)(cfg["Ciphers"]);
+  cipher_suites_ = (std::string)(cfg["CipherSuites"]);
   server_ciphers_priority_ = (((std::string)(cfg["Ciphers"].Attribute("ServerPriority"))) == "true");
   dhparam_file_ = (std::string)(cfg["DHParamFile"]);
   if(cipher_list_.empty()) {
@@ -96,6 +95,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
     }
   }
   if(client) {
+    protocol_options_ = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
     hostname_ = (std::string)(cfg["Hostname"]);
     XMLNode protocol_node = cfg["Protocol"];
     while((bool)protocol_node) {
@@ -169,7 +169,6 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   std::string gridSecurityDir = Glib::build_path(G_DIR_SEPARATOR_S, gridSecDir);
 
   if(!client) {
-    
     if(cert_file_.empty()) cert_file_= Glib::build_filename(gridSecurityDir, "hostcert.pem");
     if(key_file_.empty()) key_file_= Glib::build_filename(gridSecurityDir, "hostkey.pem");
     // Use VOMS trust DN of server certificates specified in configuration
@@ -345,6 +344,16 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
       return false;
     };
   };
+#if (OPENSSL_VERSION_NUMBER >= 0x10101000L)
+  if(!cipher_suites_.empty()) {
+    if(!SSL_CTX_set_ciphersuites(sslctx,cipher_suites_.c_str())) {
+      failure_ = "No cipher suites found to satisfy requested encryption level. "
+                 "Check if OpenSSL supports cipher suites '"+cipher_suites_+"'\n";
+      failure_ += HandleError();
+      return false;
+    };
+  }
+#endif
 #if (OPENSSL_VERSION_NUMBER >= 0x10002000L)
   if(!protocols_.empty()) {
     if(SSL_CTX_set_alpn_protos(sslctx, (unsigned char const *)protocols_.c_str(), (unsigned int)protocols_.length()) != 0) {
