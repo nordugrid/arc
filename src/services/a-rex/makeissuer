@@ -1,0 +1,117 @@
+#!/bin/sh
+
+usage () {
+echo 'makeissuer control_dir name issuer'
+echo '   control_dir - path to control dir of A-REX'
+echo '   name - internal name, issuer configuration is stored into <control_dir>/tokenissuers/<name>'
+echo '   issuer - URL of issuer, can be something like https://localhost/'
+}
+
+controldir="$1"
+if [ -z "$controldir" ]; then
+  echo "Missing control dir - specify it on command line."
+  echo ""
+  usage
+  exit 1
+fi
+if [ ! -d "$controldir" ]; then
+  echo "There is no control dir at '${controldir}'."
+  exit 1
+fi
+
+name="$2"
+if [ -z "$name" ]; then
+  echo "Missing issuer name - specify it on command line."
+  echo ""
+  usage
+  exit 1
+fi
+if [ -d "$controldir/tokenissuers/$name" ]; then
+  echo "There is already issuer confuguration '${name}' at '${controldir}'."
+  echo "Remove it or change the name"
+  exit 1
+fi
+
+issuer=`echo -n "$3" | sed 's/\/*$//'`
+if [ -z "$issuer" ]; then
+  echo "Missing issuer URL - specify it on command line."
+  echo ""
+  usage
+  exit 1
+fi
+
+mkdir -p "$controldir/tokenissuers/$name"
+if [ "$?" -ne '0' ]; then
+  echo "Failed to create folder for '${name}' issuer at '${controldir}'."
+  exit 1
+fi
+cd "$controldir/tokenissuers/$name"
+
+openssl genrsa -out private.pem 2048
+modulus=`openssl rsa -in private.pem -noout -modulus | sed 's/^Modulus=//' | basenc --base16 -d | basenc --base64url -w0 | sed 's/=*$//'`
+
+rm -f issuer
+rm -f metadata
+rm -f keys
+
+echo -n "${issuer}/" >>issuer
+cat <<END >>metadata
+{
+  "issuer":"${issuer}/",
+  "token_endpoint":"${issuer}/token",
+  "userinfo_endpoint":"${issuer}/userinfo",
+  "introspection_endpoint":"${issuer}/introspect",
+  "authorization_endpoint":"${issuer}/authorize",
+  "jwks_uri":"${issuer}/jwks",
+  "scopes_supported":[
+    "openid",
+    "profile",
+    "email",
+    "wlcg",
+    "wlcg.groups",
+    "storage.read:/",
+    "storage.create:/",
+    "storage.modify:/",
+    "storage.stage:/",
+    "compute.read",
+    "compute.modify",
+    "compute.create",
+    "compute.cancel"
+  ],
+  "claims_supported":[
+    "sub",
+    "name",
+    "preferred_username",
+    "given_name",
+    "family_name",
+    "middle_name",
+    "nickname",
+    "profile",
+    "picture",
+    "zoneinfo",
+    "locale",
+    "updated_at",
+    "email",
+    "email_verified",
+    "groups",
+    "wlcg.groups"
+  ]
+}
+END
+
+cat <<END >>keys
+{
+  "keys":[
+    {
+      "kty":"RSA",
+      "e":"AQAB",
+      "kid":"rsa1",
+      "n":"${modulus}"
+    }
+  ]
+}
+END
+
+echo "Created issuer configuration '${name}' at '${controldir}'."
+
+exit 0
