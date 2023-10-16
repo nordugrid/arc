@@ -715,7 +715,7 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
       return;
     };
     try {
-      Arc::Credential cred(certificates,"","","","",false);
+      Arc::Credential cred(certificates,"","","",false,"",false);
       job_.expiretime = cred.GetEndTime();
       logger_.msg(Arc::VERBOSE, "Credential expires at %s", job_.expiretime.str());
     } catch(std::exception const& e) {
@@ -739,7 +739,7 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
               return;
             };
             try {
-              Arc::Credential cred(certificates,"","","","",false);
+              Arc::Credential cred(certificates,"","","",false,"",false);
               job_.expiretime = cred.GetEndTime();
               logger_.msg(Arc::VERBOSE, "Credential expires at %s", job_.expiretime.str());
             } catch(std::exception const& e) {
@@ -986,7 +986,7 @@ bool ARexJob::update_credentials(const std::string& credentials) {
   if(!delegs) return false;
   DelegationStore& deleg = delegs->operator[](config_.GmConfig().DelegationDir());
   if(!deleg.PutCred(job_.delegationid, config_.GridName(), credentials)) return false;
-  Arc::Credential cred(credentials,"","","","",false);
+  Arc::Credential cred(credentials,"","","",false,"",false);
   job_.expiretime = cred.GetEndTime();
   GMJob job(id_,Arc::User(uid_),
             job_.sessiondir,JOB_STATE_ACCEPTED);

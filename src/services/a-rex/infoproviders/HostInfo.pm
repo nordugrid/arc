@@ -226,14 +226,17 @@ sub get_cert_info {
     # List certs and elliminate duplication in case 2 soft links point to the same file.
     my %certfiles;
     my $certdir = $options->{x509_cert_dir};
-    opendir(CERTDIR, $certdir) or $log->error("Failed listing certificates directory $certdir: $!");
-    for (readdir CERTDIR) {
-        next unless m/\.\d$/;
-        my $file = $certdir."/".$_;
-        my $link = -l $file ? readlink $file : $_;
-        $certfiles{$link} = $file;
+    if (opendir(CERTDIR, $certdir)) {
+        for (readdir CERTDIR) {
+            next unless m/\.\d$/;
+            my $file = $certdir."/".$_;
+            my $link = -l $file ? readlink $file : $_;
+            $certfiles{$link} = $file;
+        }
+        closedir CERTDIR;
+    } else {
+        $log->warning("Failed listing certificates directory $certdir: $!");
     }
-    closedir CERTDIR;
 
     my %trustedca;
     foreach my $cert ( sort values %certfiles ) {

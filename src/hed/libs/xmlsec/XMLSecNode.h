@@ -45,8 +45,8 @@ class XMLSecNode: public XMLNode {
                       <KeyInfo/> part of <Signature/> 
     *@param ca_path   The CA directory; either ca_file or ca_path should be set.
     */
-   bool VerifyNode(const std::string& id_name, const std::string& ca_file, const std::string& ca_path, 
-      bool verify_trusted = true);
+   bool VerifyNode(const std::string& id_name, const std::string& ca_file, const std::string& ca_path, bool defaultca,
+      bool verify_trusted);
    /** Encrypt this node, after encryption, this node will be replaced by the encrypted node
     *@param cert_file   The certificate file, the public key parsed from this certificate is used to 
                         encrypted the symmetric key, and then the symmetric key is used to encrypted the node

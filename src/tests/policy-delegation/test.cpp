@@ -63,7 +63,7 @@ int main(void) {
   //Signing side
   std::string out_string;
   Arc::Credential proxy;
-  Arc::Credential signer(cert, key, "", cafile);
+  Arc::Credential signer(cert, key, "", cafile, false);
   proxy.InquireRequest(req_string);
   //Put an example Arc policy as the extension of proxy certificate
   std::string oid("1.3.6.1.5.5.7.1.21");
@@ -99,7 +99,7 @@ int main(void) {
   //Signing side
   std::string out_string1;
   Arc::Credential proxy1;
-  Arc::Credential signer1(proxy_file, "", "", cafile); //use the existing proxy as the signer
+  Arc::Credential signer1(proxy_file, "", "", cafile, false); //use the existing proxy as the signer
   proxy1.InquireRequest(req_string1);
   std::string oid1("1.3.6.1.5.5.7.1.21");
   std::string sn1("arcpolicy");

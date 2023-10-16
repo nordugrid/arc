@@ -252,7 +252,13 @@ prepare() {
     USERNAME=`echo "$USERNAME" | sed 's/:.*//'`
     X509_USER_CERT=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_host_cert common`
     X509_USER_KEY=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_host_key common`
-    X509_CERT_DIR=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_cert_dir common`
+    X509_CERT_POLICY=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_cert_policy common`
+    if [ "$X509_CERT_POLICY" = 'globus' ] ; then
+        X509_CERT_DIR=`readconfigvar "$ARC_RUNTIME_CONFIG" x509_cert_dir common`
+    else
+       X509_CERT_DIR=""
+       X509_CERT_POLICY='system'
+    fi
     GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_tcp_port_range arex/data-staging`
     GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_udp_port_range arex/data-staging`
     HOSTNAME=`readconfigvar "$ARC_RUNTIME_CONFIG" hostname common`
@@ -270,6 +276,7 @@ prepare() {
     export X509_USER_CERT
     export X509_USER_KEY
     export X509_CERT_DIR
+    export X509_CERT_POLICY
     export GLOBUS_TCP_PORT_RANGE
     export GLOBUS_UDP_PORT_RANGE
     export HOSTNAME

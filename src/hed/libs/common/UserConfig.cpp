@@ -250,7 +250,7 @@ namespace Arc {
   }
 
   UserConfig::UserConfig(initializeCredentialsType initializeCredentials)
-    : timeout(0), keySize(0), ok(false), initializeCredentials(initializeCredentials) {
+    : timeout(0), keySize(0), ok(false), caUseDefault(false), initializeCredentials(initializeCredentials) {
     if (!InitializeCredentials(initializeCredentials)) {
       return;
     }
@@ -263,7 +263,7 @@ namespace Arc {
   UserConfig::UserConfig(const std::string& conffile,
                          initializeCredentialsType initializeCredentials,
                          bool loadSysConfig)
-    : timeout(0), keySize(0), ok(false), initializeCredentials(initializeCredentials)  {
+    : timeout(0), keySize(0), ok(false), caUseDefault(false), initializeCredentials(initializeCredentials)  {
     setDefaults();
     if (loadSysConfig) {
       if (Glib::file_test(SYSCONFIG(), Glib::FILE_TEST_IS_REGULAR)) {
@@ -309,7 +309,7 @@ namespace Arc {
 
   UserConfig::UserConfig(const std::string& conffile, const std::string& jfile,
                          initializeCredentialsType initializeCredentials, bool loadSysConfig)
-    : timeout(0), keySize(0), ok(false), initializeCredentials(initializeCredentials)  {
+    : timeout(0), keySize(0), ok(false), caUseDefault(false), initializeCredentials(initializeCredentials)  {
     // If job list file have been specified, try to initialize it, and
     // if it fails then this object is non-valid (ok = false).
     setDefaults();
@@ -378,14 +378,17 @@ namespace Arc {
         ccfg.AddPrivateKey(keyPath);
       }
     }
-    ccfg.AddCADir(caCertificatesDirectory);
+    ccfg.SetDefaultCA(caUseDefault);
+    if(!caUseDefault)
+      ccfg.AddCADir(caCertificatesDirectory);
 
     if(!otoken.empty()) {
       ccfg.AddOToken(otoken);
     }
 
-    if(!overlayfile.empty())
+    if(!overlayfile.empty()) {
       ccfg.GetOverlay(overlayfile);
+    }
   }
 
   bool UserConfig::Timeout(int newTimeout) {
@@ -613,61 +616,69 @@ namespace Arc {
       }
     }
 
+    std::string ca_policy = GetEnv("X509_CERT_POLICY");
+    if (ca_policy == "globus") {
+      caUseDefault = false;
+    } else if(ca_policy == "system") {
+      caUseDefault = true;
+    }
     if(!noca) {
-      std::string ca_dir = GetEnv("X509_CERT_DIR");
-      //std::cerr<<"-- ca_dir = "<<ca_dir<<std::endl;
-      if (!ca_dir.empty()) {
-        caCertificatesDirectory = ca_dir;
-        if (test && !dir_test(caCertificatesDirectory)) {
-          //std::cerr<<"-- ca_dir test failed"<<std::endl;
-          if(require) {
-            logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified.", caCertificatesDirectory);
-            res = false;
+      if (!caUseDefault) {
+        std::string ca_dir = GetEnv("X509_CERT_DIR");
+        //std::cerr<<"-- ca_dir = "<<ca_dir<<std::endl;
+        if (!ca_dir.empty()) {
+          caCertificatesDirectory = ca_dir;
+          if (test && !dir_test(caCertificatesDirectory)) {
+            //std::cerr<<"-- ca_dir test failed"<<std::endl;
+            if(require) {
+              logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified.", caCertificatesDirectory);
+              res = false;
+            }
+            caCertificatesDirectory.clear();
           }
-          caCertificatesDirectory.clear();
-        }
-      } else if (!caCertificatesDirectory.empty()) {
-        //std::cerr<<"-- caCertificatesDirectory = "<<caCertificatesDirectory<<std::endl;
-        if (test && !dir_test(caCertificatesDirectory)) {
-          //std::cerr<<"-- caCertificatesDirectory test failed"<<std::endl;
-          if(require) {
-            logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified.", caCertificatesDirectory);
-            res = false;
+        } else if (!caCertificatesDirectory.empty()) {
+          //std::cerr<<"-- caCertificatesDirectory = "<<caCertificatesDirectory<<std::endl;
+          if (test && !dir_test(caCertificatesDirectory)) {
+            //std::cerr<<"-- caCertificatesDirectory test failed"<<std::endl;
+            if(require) {
+              logger.msg(WARNING, "Can not access CA certificate directory: %s. The certificates will not be verified.", caCertificatesDirectory);
+              res = false;
+            }
+            caCertificatesDirectory.clear();
           }
-          caCertificatesDirectory.clear();
-        }
-      } else {
-        caCertificatesDirectory = home_path+G_DIR_SEPARATOR_S+".arc"+G_DIR_SEPARATOR_S+"certificates";
-        //std::cerr<<"-- option 1 = "<<caCertificatesDirectory<<std::endl;
-        if (test && !dir_test(caCertificatesDirectory)) {
-          caCertificatesDirectory = home_path+G_DIR_SEPARATOR_S+".globus"+G_DIR_SEPARATOR_S+"certificates";
-          //std::cerr<<"-- option 2 = "<<caCertificatesDirectory<<std::endl;
-          if (!dir_test(caCertificatesDirectory)) {
-            caCertificatesDirectory = ArcLocation::Get()+G_DIR_SEPARATOR_S+"etc"+G_DIR_SEPARATOR_S+"certificates";
-            //std::cerr<<"-- option 3 = "<<caCertificatesDirectory<<std::endl;
+        } else {
+          caCertificatesDirectory = home_path+G_DIR_SEPARATOR_S+".arc"+G_DIR_SEPARATOR_S+"certificates";
+          //std::cerr<<"-- option 1 = "<<caCertificatesDirectory<<std::endl;
+          if (test && !dir_test(caCertificatesDirectory)) {
+            caCertificatesDirectory = home_path+G_DIR_SEPARATOR_S+".globus"+G_DIR_SEPARATOR_S+"certificates";
+            //std::cerr<<"-- option 2 = "<<caCertificatesDirectory<<std::endl;
             if (!dir_test(caCertificatesDirectory)) {
-              caCertificatesDirectory = ArcLocation::Get()+G_DIR_SEPARATOR_S+"etc"+G_DIR_SEPARATOR_S+"grid-security"+G_DIR_SEPARATOR_S+"certificates";
-              //std::cerr<<"-- option 4 = "<<caCertificatesDirectory<<std::endl;
+              caCertificatesDirectory = ArcLocation::Get()+G_DIR_SEPARATOR_S+"etc"+G_DIR_SEPARATOR_S+"certificates";
+              //std::cerr<<"-- option 3 = "<<caCertificatesDirectory<<std::endl;
               if (!dir_test(caCertificatesDirectory)) {
-                caCertificatesDirectory = ArcLocation::Get()+G_DIR_SEPARATOR_S+"share"+G_DIR_SEPARATOR_S+"certificates";
-                //std::cerr<<"-- option 5 = "<<caCertificatesDirectory<<std::endl;
+                caCertificatesDirectory = ArcLocation::Get()+G_DIR_SEPARATOR_S+"etc"+G_DIR_SEPARATOR_S+"grid-security"+G_DIR_SEPARATOR_S+"certificates";
+                //std::cerr<<"-- option 4 = "<<caCertificatesDirectory<<std::endl;
                 if (!dir_test(caCertificatesDirectory)) {
-                  caCertificatesDirectory = std::string(G_DIR_SEPARATOR_S)+"etc"+G_DIR_SEPARATOR_S+"grid-security"+G_DIR_SEPARATOR_S+"certificates";
-                  //std::cerr<<"-- option 6 = "<<caCertificatesDirectory<<std::endl;
+                  caCertificatesDirectory = ArcLocation::Get()+G_DIR_SEPARATOR_S+"share"+G_DIR_SEPARATOR_S+"certificates";
+                  //std::cerr<<"-- option 5 = "<<caCertificatesDirectory<<std::endl;
                   if (!dir_test(caCertificatesDirectory)) {
-                    if(require) {
-                      logger.msg(WARNING,
-                        "Can not find CA certificates directory in default locations:\n"
-                        "~/.arc/certificates, ~/.globus/certificates,\n"
-                        "%s/etc/certificates, %s/etc/grid-security/certificates,\n"
-                        "%s/share/certificates, /etc/grid-security/certificates.\n"
-                        "The certificate will not be verified.\n"
-                        "If the CA certificates directory does exist, please manually specify the locations via env\n"
-                        "X509_CERT_DIR, or the cacertificatesdirectory item in client.conf\n",
-                        ArcLocation::Get(), ArcLocation::Get(), ArcLocation::Get());
-                      res = false;
+                    caCertificatesDirectory = std::string(G_DIR_SEPARATOR_S)+"etc"+G_DIR_SEPARATOR_S+"grid-security"+G_DIR_SEPARATOR_S+"certificates";
+                    //std::cerr<<"-- option 6 = "<<caCertificatesDirectory<<std::endl;
+                    if (!dir_test(caCertificatesDirectory)) {
+                      if(require) {
+                        logger.msg(WARNING,
+                          "Can not find CA certificates directory in default locations:\n"
+                          "~/.arc/certificates, ~/.globus/certificates,\n"
+                          "%s/etc/certificates, %s/etc/grid-security/certificates,\n"
+                          "%s/share/certificates, /etc/grid-security/certificates.\n"
+                          "The certificate will not be verified.\n"
+                          "If the CA certificates directory does exist, please manually specify the locations via env\n"
+                          "X509_CERT_DIR, or the cacertificatesdirectory item in client.conf\n",
+                          ArcLocation::Get(), ArcLocation::Get(), ArcLocation::Get());
+                        res = false;
+                      }
+                      caCertificatesDirectory.clear();
                     }
-                    caCertificatesDirectory.clear();
                   }
                 }
               }
@@ -826,6 +837,7 @@ namespace Arc {
           }
           HANDLESTRATT("cacertificatepath", CACertificatePath)
           HANDLESTRATT("cacertificatesdirectory", CACertificatesDirectory)
+	  HANDLESTRATT("causedefault", CAUseDefault)
           if (common["certificatelifetime"]) {
             certificateLifeTime = Period((std::string)common["certificatelifetime"]);
             common["certificatelifetime"].Destroy();
@@ -961,6 +973,7 @@ namespace Arc {
       file << "cacertificatepath = " << caCertificatePath << std::endl;
     if (!caCertificatesDirectory.empty())
       file << "cacertificatesdirectory = " << caCertificatesDirectory << std::endl;
+    file << "causedefalt = " << (caUseDefault?1:0) << std::endl;
     if (certificateLifeTime > 0)
       file << "certificatelifetime = " << certificateLifeTime << std::endl;
     if (slcs)
@@ -1253,15 +1266,18 @@ static std::string cert_file_fix(const std::string& old_file,std::string& new_fi
     GET_OLD_VAR("X509_USER_CERT",x509_user_cert_old,x509_user_cert_set);
     GET_OLD_VAR("X509_USER_PROXY",x509_user_proxy_old,x509_user_proxy_set);
     GET_OLD_VAR("X509_CERT_DIR",ca_cert_dir_old,ca_cert_dir_set);
+    GET_OLD_VAR("X509_CERT_POLICY",ca_cert_policy_old,ca_cert_policy_set);
     SET_NEW_VAR_FILE("X509_USER_KEY",cfg.KeyPath(),x509_user_key_new);
     SET_NEW_VAR_FILE("X509_USER_CERT",cfg.CertificatePath(),x509_user_cert_new);
     SET_NEW_VAR_FILE("X509_USER_PROXY",cfg.ProxyPath(),x509_user_proxy_new);
     SET_NEW_VAR("X509_CERT_DIR",cfg.CACertificatesDirectory());
+    SET_NEW_VAR("X509_CERT_POLICY",(cfg.CAUseDefault()?"system":"globus"));
     EnvLockWrap(false);
   }
 
   CertEnvLocker::~CertEnvLocker(void) {
     EnvLockUnwrap(false);
+    SET_OLD_VAR("X509_CERT_POLICY",ca_cert_policy_old,ca_cert_policy_set);
     SET_OLD_VAR("X509_CERT_DIR",ca_cert_dir_old,ca_cert_dir_set);
     SET_OLD_VAR("X509_USER_PROXY",x509_user_proxy_old,x509_user_proxy_set);
     SET_OLD_VAR("X509_USER_CERT",x509_user_cert_old,x509_user_cert_set);

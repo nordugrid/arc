@@ -162,17 +162,17 @@ class Credential {
     * @param is_file specifies if the cert/key are from file, otherwise they
     *    are supposed to be from string. default is from file
     */
-    Credential(const std::string& cert, const std::string& key, const std::string& cadir,
-               const std::string& cafile, const std::string& passphrase4key = "",
-               const bool is_file = true);
+    Credential(const std::string& cert, const std::string& key,
+               const std::string& cadir, const std::string& cafile, bool causedefault,
+	       const std::string& passphrase4key = "", const bool is_file = true);
 
     /** Same as previuos constructor but allows password to be
     * supplied from different sources.
     * \since Added in 4.0.0.
     */
-    Credential(const std::string& cert, const std::string& key, const std::string& cadir,
-               const std::string& cafile, PasswordSource& passphrase4key,
-               const bool is_file = true);
+    Credential(const std::string& cert, const std::string& key,
+               const std::string& cadir, const std::string& cafile, bool causedefault,
+	       PasswordSource& passphrase4key, const bool is_file = true);
 
     /**Constructor, specific constructor for usual certificate, constructing from
     * information in UserConfig object. Only acts as a container for parsing the 
@@ -222,8 +222,9 @@ class Credential {
     /** Credential object so far is not supposed to be copied */
     Credential(const Credential&);
 
-    void InitCredential(const std::string& cert, const std::string& key, const std::string& cadir,
-               const std::string& cafile, PasswordSource& passphrase4key, const bool is_file);
+    void InitCredential(const std::string& cert, const std::string& key,
+		        const std::string& cadir, const std::string& cafile, bool causedefault,
+			PasswordSource& passphrase4key, const bool is_file);
 
     /**load key from argument keybio, and put key information into argument pkey */
     //void loadKeyString(const std::string& key, EVP_PKEY* &pkey, const std::string& passphrase = "");
@@ -274,7 +275,7 @@ class Credential {
     /*****Get information from "this" object**/
 
     /**Get the verification result about certificate chain checking*/
-    bool GetVerification(void) const {return verification_valid; };
+    bool GetVerification(void) const {return verification_valid_; };
 
     /**Get the private key attached to this object*/
     EVP_PKEY* GetPrivKey(void) const;
@@ -388,8 +389,14 @@ class Credential {
     /**Set start time of certificate or proxy*/
     void SetStartTime(const Time& start_time);
 
-    /**Returns true if credentials are valid*/
-    bool IsValid(void);
+    /**Returns true if credentials are valid (if vaidation was performed)*/
+    bool IsValid(void) const;
+
+    /**Returns true if credentials were initialized*/
+    operator bool() const;
+
+    /**Returns true if credentials were not initialized*/
+    bool operator!() const;
 
     /************************************/
     /*****Generate certificate request, add certificate extension, inquire certificate request,
@@ -519,10 +526,11 @@ class Credential {
     std::string keyfile_;
 
     //Verification result
-    bool verification_valid;
-    std::string verification_proxy_policy;
+    bool verification_valid_;
+    std::string verification_proxy_policy_;
 
     //Certificate structures
+    bool initialized_;
     X509 *           cert_;    //certificate
     ArcCredential::certType cert_type_;
     EVP_PKEY *       pkey_;    //private key
