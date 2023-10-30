@@ -36,8 +36,9 @@ using namespace Arc;
 class OTokensSecAttr: public SecAttr {
  public:
   OTokensSecAttr(Arc::Message* msg);
-  virtual ~OTokensSecAttr(void);
-  virtual operator bool(void) const;
+  virtual ~OTokensSecAttr();
+  virtual operator bool() const;
+  bool empty() const;
   virtual std::string get(const std::string& id) const;
   virtual std::list<std::string> getAll(const std::string& id) const;
   virtual std::map< std::string,std::list<std::string> > getAll() const;
@@ -149,11 +150,11 @@ std::map< std::string,std::list<std::string> > OTokensSecAttr::getAll() const {
 
 OTokensSecAttr::operator bool() const {
   // Either token is not present at all or was parsed successfully
-  return valid_ || token.empty();
+  return valid_ || token_.empty();
 }
 
-OTokensSecAttr::operator empty() const {
-  return token.empty();
+bool OTokensSecAttr::empty() const {
+  return token_.empty();
 }
 
 OTokensSH::OTokensSH(Config *cfg,ChainContext*,Arc::PluginArgument* parg):SecHandler(cfg,parg),valid_(false){
