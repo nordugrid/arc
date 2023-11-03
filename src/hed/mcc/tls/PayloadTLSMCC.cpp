@@ -189,7 +189,7 @@ PayloadTLSMCC* PayloadTLSMCC::RetrieveInstance(X509_STORE_CTX* container) {
 
 
 PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger& logger):
-    PayloadTLSStream(logger),sslctx_(NULL),bio_(NULL),config_(cfg),flags_(0) {
+    PayloadTLSStream(logger),sslctx_(NULL),bio_(NULL),config_(cfg),flags_(0),connected_(false) {
    // Client mode
    int err = SSL_ERROR_NONE;
    char gsi_cmd[1] = { '0' };
@@ -313,6 +313,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
       logger.msg(VERBOSE, "Failed to establish SSL connection");
       goto error;
    };
+   connected_=true;
    logger.msg(VERBOSE, "Using cipher: %s",SSL_get_cipher_name(ssl_));
    // if(SSL_in_init(ssl_)){
    //handle error
@@ -330,7 +331,7 @@ error:
 }
 
 PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC& cfg, Logger& logger):
-    PayloadTLSStream(logger),sslctx_(NULL),config_(cfg),flags_(0) {
+    PayloadTLSStream(logger),sslctx_(NULL),config_(cfg),flags_(0),connected_(false) {
    // Server mode
    int err = SSL_ERROR_NONE;
    master_=true;
@@ -402,6 +403,7 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
       logger.msg(ERROR, "Failed to accept SSL connection");
       goto error;
    };
+   connected_=true;
    logger.msg(VERBOSE, "Using cipher: %s",SSL_get_cipher_name(ssl_));
    //handle error
    // if(SSL_in_init(ssl_)){
@@ -417,7 +419,7 @@ error:
 }
 
 PayloadTLSMCC::PayloadTLSMCC(PayloadTLSMCC& stream):
-    PayloadTLSStream(stream), config_(stream.config_), flags_(0) {
+    PayloadTLSStream(stream), config_(stream.config_), flags_(0), connected_(stream.connected_) {
    master_=false;
    sslctx_=stream.sslctx_;
    ssl_=stream.ssl_;
@@ -436,27 +438,29 @@ PayloadTLSMCC::~PayloadTLSMCC(void) {
   ClearInstance();
   if (ssl_) {
     SSL_set_verify(ssl_,SSL_VERIFY_NONE,NULL);
-    int err = SSL_shutdown(ssl_);
-    if(err == 0) err = SSL_shutdown(ssl_);
-    if(err < 0) { // -1 expected
-      err = SSL_get_error(ssl_,err);
-      if((err == SSL_ERROR_WANT_READ) || (err == SSL_ERROR_WANT_WRITE)) {
-        // We are not going to wait for connection to
-        // close nicely. We are too impatient.
-        ConfigTLSMCC::HandleError();
-      } else if(err == SSL_ERROR_SYSCALL) {
-        // It would be interesting to check errno. But
-        // unfortunately it seems to be lost already
-        // inside SSL_shutdown().
-        ConfigTLSMCC::HandleError();
-      } else {
-        // This case is unexpected. So it is better to
-        // report it.
-        logger_.msg(VERBOSE, "Failed to shut down SSL: %s",ConfigTLSMCC::HandleError(err));
-      }
-      // Trying to get out of error
-      SSL_set_quiet_shutdown(ssl_,1);
-      SSL_shutdown(ssl_);
+    if(connected_) {
+      int err = SSL_shutdown(ssl_);
+      if(err == 0) err = SSL_shutdown(ssl_);
+      if(err < 0) { // -1 expected
+        err = SSL_get_error(ssl_,err);
+        if((err == SSL_ERROR_WANT_READ) || (err == SSL_ERROR_WANT_WRITE)) {
+          // We are not going to wait for connection to
+          // close nicely. We are too impatient.
+          ConfigTLSMCC::HandleError();
+        } else if(err == SSL_ERROR_SYSCALL) {
+          // It would be interesting to check errno. But
+          // unfortunately it seems to be lost already
+          // inside SSL_shutdown().
+          ConfigTLSMCC::HandleError();
+        } else {
+          // This case is unexpected. So it is better to
+          // report it.
+          logger_.msg(VERBOSE, "Failed to shut down SSL: %s",ConfigTLSMCC::HandleError(err));
+        }
+        // Trying to get out of error
+        SSL_set_quiet_shutdown(ssl_,1);
+        SSL_shutdown(ssl_);
+      };
     };
     // SSL_clear(ssl_); ???
     SSL_free(ssl_);
