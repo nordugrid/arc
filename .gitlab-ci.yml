@@ -567,41 +567,6 @@ arcconf_deb11_deploytest:
       artifacts: true
 
     
-############################
-##### UBUNTU DEPLOY CHECK
-############################
-gridftp_ubuntu1804_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'gridftp'
-  stage:  check_deploy
-  needs:
-    - job: deploy_ubuntu1804
-      artifacts: true
-
-emies_ubuntu1804_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'emies'
-  needs:
-    - job: deploy_ubuntu1804
-      artifacts: true
-    
-arcrest_ubuntu1804_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcrest'
-  needs:
-    - job: deploy_ubuntu1804
-      artifacts: true
-
-arcconf_ubuntu1804_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcconf'
-  needs:
-    - job: deploy_ubuntu1804
-      artifacts: true
 
 ############################
 ##### UBUNTU DEPLOY CHECK
