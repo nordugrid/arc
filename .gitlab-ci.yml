@@ -148,14 +148,15 @@ build_deb11:
     extends: .template_build_deb
     variables:
         BUILD_IMAGE: maikenp/arc-build-debian11
-    
-##################
-#    UBUNTU 18.04
-##################
-build_ubuntu1804:
+
+###############
+#    DEBIAN 12
+###############
+build_deb12:
     extends: .template_build_deb
     variables:
-        BUILD_IMAGE: maikenp/arc-build-ubuntu1804
+        BUILD_IMAGE: maikenp/arc-build-debian12
+
 
 ##################
 #    UBUNTU 20.04
@@ -315,23 +316,24 @@ deploy_deb11:
       artifacts: true
   
 
+
 ##################
-#    UBUNTU 18.04
+#    DEBIAN 12
 ##################
-deploy_ubuntu1804:
+deploy_deb12:
   extends: .deploy
   variables:
-    OS_V: ubuntu1804
-    ARC_IMAGE: maikenp/arc-deploy-ubuntu1804
+    OS_V: deb12
+    ARC_IMAGE: maikenp/arc-deploy-debian12
     BUILD_VOL: /build
-    BUILD_DIR: $CI_PROJECT_DIR/*.deb
+    BUILD_DIR: $CI_PROJECT_DIR/*.deb    
   tags:
-    - 158.39.74.3
+    - 158.39.75.5
     - deploy
   needs:
-    - job: build_ubuntu1804
+    - job: build_deb12
       artifacts: true
-
+  
 
 ##################
 #    UBUNTU 20.04
@@ -565,41 +567,6 @@ arcconf_deb11_deploytest:
       artifacts: true
 
     
-############################
-##### UBUNTU DEPLOY CHECK
-############################
-gridftp_ubuntu1804_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'gridftp'
-  stage:  check_deploy
-  needs:
-    - job: deploy_ubuntu1804
-      artifacts: true
-
-emies_ubuntu1804_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'emies'
-  needs:
-    - job: deploy_ubuntu1804
-      artifacts: true
-    
-arcrest_ubuntu1804_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcrest'
-  needs:
-    - job: deploy_ubuntu1804
-      artifacts: true
-
-arcconf_ubuntu1804_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcconf'
-  needs:
-    - job: deploy_ubuntu1804
-      artifacts: true
 
 ############################
 ##### UBUNTU DEPLOY CHECK
