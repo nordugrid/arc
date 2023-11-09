@@ -148,14 +148,15 @@ build_deb11:
     extends: .template_build_deb
     variables:
         BUILD_IMAGE: maikenp/arc-build-debian11
-    
-##################
-#    UBUNTU 18.04
-##################
-build_ubuntu1804:
+
+###############
+#    DEBIAN 12
+###############
+build_deb12:
     extends: .template_build_deb
     variables:
-        BUILD_IMAGE: maikenp/arc-build-ubuntu1804
+        BUILD_IMAGE: maikenp/arc-build-debian12
+
 
 ##################
 #    UBUNTU 20.04
@@ -315,23 +316,24 @@ deploy_deb11:
       artifacts: true
   
 
+
 ##################
-#    UBUNTU 18.04
+#    DEBIAN 12
 ##################
-deploy_ubuntu1804:
+deploy_deb12:
   extends: .deploy
   variables:
-    OS_V: ubuntu1804
-    ARC_IMAGE: maikenp/arc-deploy-ubuntu1804
+    OS_V: deb12
+    ARC_IMAGE: maikenp/arc-deploy-debian12
     BUILD_VOL: /build
-    BUILD_DIR: $CI_PROJECT_DIR/*.deb
+    BUILD_DIR: $CI_PROJECT_DIR/*.deb    
   tags:
-    - 158.39.74.3
+    - 158.39.75.5
     - deploy
   needs:
-    - job: build_ubuntu1804
+    - job: build_deb12
       artifacts: true
-
+  
 
 ##################
 #    UBUNTU 20.04
@@ -389,6 +391,22 @@ deploy_ubuntu2204:
 ############################
 ##### EL7 DEPLOY CHECK
 ############################
+gridftp_el7_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'gridftp'
+  needs:
+    - job: deploy_el7
+      artifacts: true
+
+emies_el7_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'emies'
+  needs:
+    - job: deploy_el7
+      artifacts: true
+
 arcrest_el7_deploytest:
   extends: .job_template_assert
   variables:
@@ -408,6 +426,22 @@ arcconf_el7_deploytest:
 ############################
 ##### EL8 DEPLOY CHECK
 ############################
+gridftp_el8_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'gridftp'
+  needs:
+    - job: deploy_el8
+      artifacts: true
+
+emies_el8_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'emies'
+  needs:
+    - job: deploy_el8
+      artifacts: true
+    
 arcrest_el8_deploytest:
   extends: .job_template_assert
   variables:
@@ -428,6 +462,22 @@ arcconf_el8_deploytest:
 ############################
 ##### EL9 DEPLOY CHECK
 ############################
+gridftp_el9_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'gridftp'
+  needs:
+    - job: deploy_el9
+      artifacts: true
+
+emies_el9_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'emies'
+  needs:
+    - job: deploy_el9
+      artifacts: true
+    
 arcrest_el9_deploytest:
   extends: .job_template_assert
   variables:
@@ -449,6 +499,22 @@ arcconf_el9_deploytest:
 ############################
 ##### DEB10 DEPLOY CHECK
 ############################
+gridftp_deb10_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'gridftp'
+  needs:
+    - job: deploy_deb10
+      artifacts: true
+
+emies_deb10_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'emies'
+  needs:
+    - job: deploy_deb10
+      artifacts: true
+    
 arcrest_deb10_deploytest:
   extends: .job_template_assert
   variables:
@@ -468,6 +534,22 @@ arcconf_deb10_deploytest:
 ############################
 ##### DEB11 DEPLOY CHECK
 ############################
+gridftp_deb11_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'gridftp'
+  needs:
+    - job: deploy_deb11
+      artifacts: true
+
+emies_deb11_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'emies'
+  needs:
+    - job: deploy_deb11
+      artifacts: true
+    
 arcrest_deb11_deploytest:
   extends: .job_template_assert
   variables:
@@ -485,28 +567,27 @@ arcconf_deb11_deploytest:
       artifacts: true
 
     
-############################
-##### UBUNTU DEPLOY CHECK
-############################
-arcrest_ubuntu1804_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcrest'
-  needs:
-    - job: deploy_ubuntu1804
-      artifacts: true
-
-arcconf_ubuntu1804_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcconf'
-  needs:
-    - job: deploy_ubuntu1804
-      artifacts: true
 
 ############################
 ##### UBUNTU DEPLOY CHECK
 ############################
+gridftp_ubuntu2004_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'gridftp'
+  stage:  check_deploy
+  needs:
+    - job: deploy_ubuntu2004
+      artifacts: true
+
+emies_ubuntu2004_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'emies'
+  needs:
+    - job: deploy_ubuntu2004
+      artifacts: true
+    
 arcrest_ubuntu2004_deploytest:
   extends: .job_template_assert
   variables:
@@ -527,6 +608,23 @@ arcconf_ubuntu2004_deploytest:
 ############################
 ##### UBUNTU DEPLOY CHECK
 ############################
+gridftp_ubuntu2204_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'gridftp'
+  stage:  check_deploy
+  needs:
+    - job: deploy_ubuntu2204
+      artifacts: true
+
+emies_ubuntu2204_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'emies'
+  needs:
+    - job: deploy_ubuntu2204
+      artifacts: true
+    
 arcrest_ubuntu2204_deploytest:
   extends: .job_template_assert
   variables:
