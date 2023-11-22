@@ -14,6 +14,7 @@
 #include <glibmm.h>
 
 // Workaround for include bugs in xmlsec
+#include <libxml/parser.h>
 #include <libxml/tree.h>
 
 #include <xmlsec/xmlsec.h>
