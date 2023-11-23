@@ -13,6 +13,8 @@
 
 #include <glibmm.h>
 
+#include <libxml/parser.h>
+
 #include <xmlsec/base64.h>
 #include <xmlsec/errors.h>
 #include <xmlsec/xmltree.h>

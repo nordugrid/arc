@@ -11,6 +11,7 @@
 #include <cstring>
 #include <zlib.h>
 
+#include <libxml/parser.h>
 #include <libxml/uri.h>
 
 #include <xmlsec/base64.h>
