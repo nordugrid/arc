@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 
+#include <libxml/parser.h>
 #include <xmlsec/crypto.h>
 
 #include <arc/XMLNode.h>
