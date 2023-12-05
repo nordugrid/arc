@@ -5,42 +5,47 @@ Advanced Resource Connector (ARC)
 
 Release Notes for NorduGrid ARC  7.0.0     XX.XX.2023
 =======================================================
-
+Draft release notes
 
 Highlights in this release
 --------------------------
 
-- Tokens (link): not new but there were major improvements, community compliance, enhancements. 
-Added support for using JWT compute scopes for token-based authorization via allowaccess arc.conf parameter(?)
- Token information is part of the accounting records (?)
+- Tokens (http://www.nordugrid.org/arc/arc7/tech/oidc_tokens/oidc_tokens.html)
+  - Major improvements
+  - Community compliance
+  - Enhancements
+  - Added support for using JWT compute scopes for token-based authorization via allowaccess arc.conf parameter authtokens (http://www.nordugrid.org/arc/arc7/admins/reference.html#authtokens)
+  - Token information is part of the accounting records
 
-- ARC server can use operating system provided CA bundles (fix wording)
+- The ARC server can use operating system provided CA bundles via configurable x509_cert_policy in the common block  in arc.conf. An ARC-CE must use *either* the default globus option *or* the system option. 
 
-- REST 1.1 (link)
-  delegation type extension to support tokens as well
+- REST 1.1 (http://www.nordugrid.org/arc/arc7/tech/rest/rest.html)
+  - A new optional delegation parameter type extension to support tokens
+  - A new optional queue parameter to define the default queue of the compute element
 
-- consistent handling of the benchmark parameters over the various arc.conf blocks
+- A tidy up has been done to gain consistent handling of the benchmark parameters over the various arc.conf blocks
 
-- restructured controldir for increased scalability (link) 
+- A restructured controldir for increased scalability (link)
+  - When upgrading from ARC 6 to ARC 7, the controldir will seamlessly restructure itself.
 
 Backwards compatibilities and incompatibilities
 ------------------------------------------------
 
-ARC7 still suports x509 proxies in addition to the tokens.
+- ARC7 still suports x509 proxies in addition to the tokens.
 
-new blocks to enable/disable the authentication methods: [authtokens] [authx509], zero conf turns on both?? 
+- Both authtokens and x509 authentication is enabled by default. 
 
-Support for the EMIES interface was completely removed. 
+- Support for the EMIES interface was completely removed. 
 
-Publshing cluster information via REST interface is enabled by default [arex/ws/publicinfo] block is added to zero.conf
+- Publshing cluster information via REST interface is enabled by default [arex/ws/publicinfo] block is added to zero.conf
 
-No incompatible changes in the ARC7 accounting subsystem. APEL and SGAS supported.
+- No incompatible changes in the ARC7 accounting subsystem. APEL and SGAS supported.
 
-the internal structure of the controldir files have been changed, ARC internal scripts were updated but custom scripts may be broken because of the changed file structure in the controldir.
+- The internal structure of the controldir files have been changed, ARC internal scripts were updated but custom scripts may be broken because of the changed file structure in the controldir.
 
-ARC 7 supports XRSL and ADL as job description languages, no backward incompatible changes were introduced, all ARC6 job files should work with ARC7. 
+- ARC 7 supports XRSL and ADL as job description languages, no backward incompatible changes were introduced, all ARC6 job files should work with ARC7. 
 
-ARC 7 fully supports the SLURM, Condor and the fork batch systems and community efforts were made to provide some maintenance for OpenPBS as well. The other batch systems from ARC6 are kept in ARC7 but their status is unclear. 
+- ARC 7 fully supports the SLURM, Condor and the fork batch systems and community efforts were made to provide some maintenance for OpenPBS as well. The other batch systems from ARC6 are kept in ARC7 but their status is unclear. 
 
 
 
