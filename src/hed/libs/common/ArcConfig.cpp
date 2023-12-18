@@ -92,7 +92,7 @@ namespace Arc {
   }
 
 
-  BaseConfig::BaseConfig() : plugin_paths(ArcLocation::GetPlugins()) {}
+  BaseConfig::BaseConfig() : plugin_paths(ArcLocation::GetPlugins()), defaultca(false) {}
 
   void BaseConfig::AddPluginsPath(const std::string& path) {
     plugin_paths.push_back(path);
@@ -132,6 +132,10 @@ namespace Arc {
 
   void BaseConfig::AddOToken(const std::string& token) {
     otoken = token;
+  }
+
+  void BaseConfig::SetDefaultCA(bool use_default) {
+    defaultca = use_default;
   }
 
   void BaseConfig::AddOverlay(XMLNode cfg) {

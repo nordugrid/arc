@@ -1653,16 +1653,21 @@ sub collect($) {
             my %healthissues;
 
             if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
-            if (     $host_info->{hostcert_expired}
-                  or $host_info->{issuerca_expired}) {
-                push @{$healthissues{critical}}, "Host credentials expired";
-            } elsif (not $host_info->{hostcert_enddate}
-                  or not $host_info->{issuerca_enddate}) {
-                push @{$healthissues{critical}}, "Host credentials missing";
-            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-                  or $host_info->{issuerca_enddate} - time < 48*3600) {
-                push @{$healthissues{warning}}, "Host credentials will expire soon";
-            }
+                if (     $host_info->{hostcert_expired}) {
+                    push @{$healthissues{critical}}, "Host credentials expired";
+                } elsif ($host_info->{issuerca_expired}) {
+                    push @{$healthissues{critical}}, "Host CA credentials expired";
+                } elsif (not $host_info->{hostcert_enddate}) {
+                    push @{$healthissues{critical}}, "Host credentials missing";
+	        } elsif (not $host_info->{issuerca_enddate}) {
+                    push @{$healthissues{warning}}, "Host CA credentials missing";
+                } else {
+                    if (     $host_info->{hostcert_enddate} - time < 48*3600) {
+                        push @{$healthissues{warning}}, "Host credentials will expire soon";
+                    } elsif ($host_info->{issuerca_enddate} - time < 48*3600) {
+                        push @{$healthissues{warning}}, "Host CA credentials will expire soon";
+                    }
+                }
             }
 
             if ( $host_info->{gm_alive} ne 'all' ) {
@@ -1790,16 +1795,21 @@ sub collect($) {
             my %healthissues;
 
             if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
-            if (     $host_info->{hostcert_expired}
-                  or $host_info->{issuerca_expired}) {
-                push @{$healthissues{critical}}, "Host credentials expired";
-            } elsif (not $host_info->{hostcert_enddate}
-                  or not $host_info->{issuerca_enddate}) {
-                push @{$healthissues{critical}}, "Host credentials missing";
-            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-                  or $host_info->{issuerca_enddate} - time < 48*3600) {
-                push @{$healthissues{warning}}, "Host credentials will expire soon";
-            }
+                if (     $host_info->{hostcert_expired}) {
+                    push @{$healthissues{critical}}, "Host credentials expired";
+                } elsif ($host_info->{issuerca_expired}) {
+                    push @{$healthissues{critical}}, "Host CA credentials expired";
+                } elsif (not $host_info->{hostcert_enddate}) {
+                    push @{$healthissues{critical}}, "Host credentials missing";
+	        } elsif (not $host_info->{issuerca_enddate}) {
+                    push @{$healthissues{warning}}, "Host CA credentials missing";
+                } else {
+                    if (     $host_info->{hostcert_enddate} - time < 48*3600) {
+                        push @{$healthissues{warning}}, "Host credentials will expire soon";
+                    } elsif ($host_info->{issuerca_enddate} - time < 48*3600) {
+                        push @{$healthissues{warning}}, "Host CA credentials will expire soon";
+                    }
+                }
             }
 
             if ( $host_info->{gm_alive} ne 'all' ) {
@@ -1922,16 +1932,21 @@ sub collect($) {
             my %healthissues;
 
             if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
-            if (     $host_info->{hostcert_expired}
-                  or $host_info->{issuerca_expired}) {
-                push @{$healthissues{critical}}, "Host credentials expired";
-            } elsif (not $host_info->{hostcert_enddate}
-                  or not $host_info->{issuerca_enddate}) {
-                push @{$healthissues{critical}}, "Host credentials missing";
-            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-                  or $host_info->{issuerca_enddate} - time < 48*3600) {
-                push @{$healthissues{warning}}, "Host credentials will expire soon";
-            }
+                if (     $host_info->{hostcert_expired}) {
+                    push @{$healthissues{critical}}, "Host credentials expired";
+                } elsif ($host_info->{issuerca_expired}) {
+                    push @{$healthissues{critical}}, "Host CA credentials expired";
+                } elsif (not $host_info->{hostcert_enddate}) {
+                    push @{$healthissues{critical}}, "Host credentials missing";
+	        } elsif (not $host_info->{issuerca_enddate}) {
+                    push @{$healthissues{warning}}, "Host CA credentials missing";
+                } else {
+                    if (     $host_info->{hostcert_enddate} - time < 48*3600) {
+                        push @{$healthissues{warning}}, "Host credentials will expire soon";
+                    } elsif ($host_info->{issuerca_enddate} - time < 48*3600) {
+                        push @{$healthissues{warning}}, "Host CA credentials will expire soon";
+                    }
+                }
             }
 
             if ( $host_info->{gm_alive} ne 'all' ) {
@@ -2051,16 +2066,21 @@ sub collect($) {
             my %healthissues;
 
             if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
-            if (     $host_info->{hostcert_expired}
-                  or $host_info->{issuerca_expired}) {
-                push @{$healthissues{critical}}, "Host credentials expired";
-            } elsif (not $host_info->{hostcert_enddate}
-                  or not $host_info->{issuerca_enddate}) {
-                push @{$healthissues{critical}}, "Host credentials missing";
-            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-                  or $host_info->{issuerca_enddate} - time < 48*3600) {
-                push @{$healthissues{warning}}, "Host credentials will expire soon";
-            }
+                if (     $host_info->{hostcert_expired}) {
+                    push @{$healthissues{critical}}, "Host credentials expired";
+                } elsif ($host_info->{issuerca_expired}) {
+                    push @{$healthissues{critical}}, "Host CA credentials expired";
+                } elsif (not $host_info->{hostcert_enddate}) {
+                    push @{$healthissues{critical}}, "Host credentials missing";
+	        } elsif (not $host_info->{issuerca_enddate}) {
+                    push @{$healthissues{warning}}, "Host CA credentials missing";
+                } else {
+                    if (     $host_info->{hostcert_enddate} - time < 48*3600) {
+                        push @{$healthissues{warning}}, "Host credentials will expire soon";
+                    } elsif ($host_info->{issuerca_enddate} - time < 48*3600) {
+                        push @{$healthissues{warning}}, "Host CA credentials will expire soon";
+                    }
+                }
             }            
 
             # check health status by using port probe in hostinfo
@@ -2145,16 +2165,21 @@ sub collect($) {
             my %healthissues;
 
             if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
-            if (     $host_info->{hostcert_expired}
-                  or $host_info->{issuerca_expired}) {
-                push @{$healthissues{critical}}, "Host credentials expired";
-            } elsif (not $host_info->{hostcert_enddate}
-                  or not $host_info->{issuerca_enddate}) {
-                push @{$healthissues{critical}}, "Host credentials missing";
-            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-                  or $host_info->{issuerca_enddate} - time < 48*3600) {
-                push @{$healthissues{warning}}, "Host credentials will expire soon";
-            }
+                if (     $host_info->{hostcert_expired}) {
+                    push @{$healthissues{critical}}, "Host credentials expired";
+                } elsif ($host_info->{issuerca_expired}) {
+                    push @{$healthissues{critical}}, "Host CA credentials expired";
+                } elsif (not $host_info->{hostcert_enddate}) {
+                    push @{$healthissues{critical}}, "Host credentials missing";
+	        } elsif (not $host_info->{issuerca_enddate}) {
+                    push @{$healthissues{warning}}, "Host CA credentials missing";
+                } else {
+                    if (     $host_info->{hostcert_enddate} - time < 48*3600) {
+                        push @{$healthissues{warning}}, "Host credentials will expire soon";
+                    } elsif ($host_info->{issuerca_enddate} - time < 48*3600) {
+                        push @{$healthissues{warning}}, "Host CA credentials will expire soon";
+                    }
+                }
             }
 
             if ( $host_info->{gm_alive} ne 'all' ) {
@@ -2269,16 +2294,21 @@ sub collect($) {
             my %healthissues;
 
             if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
-            if (     $host_info->{hostcert_expired}
-                  or $host_info->{issuerca_expired}) {
-                push @{$healthissues{critical}}, "Host credentials expired";
-            } elsif (not $host_info->{hostcert_enddate}
-                  or not $host_info->{issuerca_enddate}) {
-                push @{$healthissues{critical}}, "Host credentials missing";
-            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-                  or $host_info->{issuerca_enddate} - time < 48*3600) {
-                push @{$healthissues{warning}}, "Host credentials will expire soon";
-            }
+                if (     $host_info->{hostcert_expired}) {
+                    push @{$healthissues{critical}}, "Host credentials expired";
+                } elsif ($host_info->{issuerca_expired}) {
+                    push @{$healthissues{critical}}, "Host CA credentials expired";
+                } elsif (not $host_info->{hostcert_enddate}) {
+                    push @{$healthissues{critical}}, "Host credentials missing";
+	        } elsif (not $host_info->{issuerca_enddate}) {
+                    push @{$healthissues{warning}}, "Host CA credentials missing";
+                } else {
+                    if (     $host_info->{hostcert_enddate} - time < 48*3600) {
+                        push @{$healthissues{warning}}, "Host credentials will expire soon";
+                    } elsif ($host_info->{issuerca_enddate} - time < 48*3600) {
+                        push @{$healthissues{warning}}, "Host CA credentials will expire soon";
+                    }
+                }
             }            
 
             # check health status by using port probe in hostinfo
@@ -2359,16 +2389,21 @@ sub collect($) {
             my %healthissues;
 
             if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
-            if (     $host_info->{hostcert_expired}
-                  or $host_info->{issuerca_expired}) {
-                push @{$healthissues{critical}}, "Host credentials expired";
-            } elsif (not $host_info->{hostcert_enddate}
-                  or not $host_info->{issuerca_enddate}) {
-                push @{$healthissues{critical}}, "Host credentials missing";
-            } elsif ($host_info->{hostcert_enddate} - time < 48*3600
-                  or $host_info->{issuerca_enddate} - time < 48*3600) {
-                push @{$healthissues{warning}}, "Host credentials will expire soon";
-            }
+                if (     $host_info->{hostcert_expired}) {
+                    push @{$healthissues{critical}}, "Host credentials expired";
+                } elsif ($host_info->{issuerca_expired}) {
+                    push @{$healthissues{critical}}, "Host CA credentials expired";
+                } elsif (not $host_info->{hostcert_enddate}) {
+                    push @{$healthissues{critical}}, "Host credentials missing";
+	        } elsif (not $host_info->{issuerca_enddate}) {
+                    push @{$healthissues{warning}}, "Host CA credentials missing";
+                } else {
+                    if (     $host_info->{hostcert_enddate} - time < 48*3600) {
+                        push @{$healthissues{warning}}, "Host credentials will expire soon";
+                    } elsif ($host_info->{issuerca_enddate} - time < 48*3600) {
+                        push @{$healthissues{warning}}, "Host CA credentials will expire soon";
+                    }
+                }
             }
 
             # check health status by using port probe in hostinfo

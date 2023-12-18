@@ -34,10 +34,11 @@ namespace Arc {
     proxy_file_ = cfg.proxy;
     trusted_ca_dir_ = cfg.cadir;
     trusted_ca_file_ = cfg.cafile;
+    trusted_ca_default_ = cfg.defaultca;
     if (!cert_file_.empty() && !privkey_file_.empty())
-      signer_ = new Credential(cert_file_, privkey_file_, trusted_ca_dir_, trusted_ca_file_);
+      signer_ = new Credential(cert_file_, privkey_file_, trusted_ca_dir_, trusted_ca_file_, trusted_ca_default_);
     else if (!proxy_file_.empty())
-      signer_ = new Credential(proxy_file_, "", trusted_ca_dir_, trusted_ca_file_);
+      signer_ = new Credential(proxy_file_, "", trusted_ca_dir_, trusted_ca_file_, trusted_ca_default_);
   }
 
   ClientX509Delegation::~ClientX509Delegation() {
@@ -91,7 +92,7 @@ namespace Arc {
 
         //Sign the proxy certificate
         Time start;
-        Credential proxy(start, Period(12 * 3600), 0, "rfc", "inheritAll", "", -1);
+        Credential proxy(start, Period(12 * 3600), 0, std::string("rfc"), std::string("inheritAll"), std::string(""), -1);
         //Set proxy path length to be -1, which means infinit length
         std::string signedcert;
         proxy.InquireRequest(x509request);
@@ -290,7 +291,7 @@ namespace Arc {
           return false;
         }
 
-        Credential proxy_cred(delegation_cert, privkey_str, trusted_ca_dir_, trusted_ca_file_, "", false);
+        Credential proxy_cred(delegation_cert, privkey_str, trusted_ca_dir_, trusted_ca_file_, trusted_ca_default_, "", false);
         proxy_cred.OutputCertificate(delegation_cred);
         proxy_cred.OutputPrivatekey(delegation_cred);
         proxy_cred.OutputCertificateChain(delegation_cred);

@@ -64,6 +64,7 @@ namespace Arc {
    public:
     JWSEKeyFetcher(char const * endpoint_url);
     bool Fetch(JWSEKeyHolderList& keys, Logger& logger);
+    static bool Import(char const * content, JWSEKeyHolderList& keys, Logger& logger);
    private:
     Arc::URL url_;
     ClientHTTP client_;

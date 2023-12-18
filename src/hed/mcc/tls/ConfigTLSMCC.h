@@ -26,6 +26,7 @@ class ConfigTLSMCC {
   bool globus_policy_;
   bool globus_gsi_;
   bool globusio_gsi_;
+  bool default_ca_;
   enum {
     tls_handshake, // default
     ssl3_handshake,
@@ -44,6 +45,7 @@ class ConfigTLSMCC {
   } voms_processing_;
   std::vector<std::string> vomscert_trust_dn_;
   std::string cipher_list_;
+  std::string cipher_suites_;
   bool server_ciphers_priority_;
   std::string dhparam_file_;
   std::string hostname_;
@@ -63,6 +65,7 @@ class ConfigTLSMCC {
   bool GlobusPolicy(void) const { return globus_policy_; };
   bool GlobusGSI(void) const { return globus_gsi_; };
   bool GlobusIOGSI(void) const { return globusio_gsi_; };
+  bool DefaultCA(void) const { return default_ca_; };
   const std::vector<std::string>& VOMSCertTrustDN(void) { return vomscert_trust_dn_; };
   bool Set(SSL_CTX* sslctx);
   bool IfClientAuthn(void) const { return client_authn_; };

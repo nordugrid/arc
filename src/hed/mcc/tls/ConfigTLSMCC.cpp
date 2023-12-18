@@ -50,22 +50,26 @@ static void config_VOMS_add(XMLNode cfg,std::vector<std::string>& vomscert_trust
 
 ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   protocol_options_ = 0;
-#if (OPENSSL_VERSION_NUMBER >= 0x10001000L)
-  curve_nid_ = NID_secp521r1;
-#endif
+  curve_nid_ = NID_undef; // so far best seems to be NID_X25519, but let OpenSSL choose by default
   client_authn_ = true;
+  default_ca_ = (((std::string)(cfg["DefaultCA"])) == "true");
+  if(!default_ca_) {
+    ca_file_ = (std::string)(cfg["CACertificatePath"]);
+    ca_dir_ = (std::string)(cfg["CACertificatesDir"]);
+    globus_policy_ = (((std::string)(cfg["CACertificatesDir"].Attribute("PolicyGlobus"))) == "true");
+  } else {
+    globus_policy_ = false;
+  }
   cert_file_ = (std::string)(cfg["CertificatePath"]);
   key_file_ = (std::string)(cfg["KeyPath"]);
-  ca_file_ = (std::string)(cfg["CACertificatePath"]);
-  ca_dir_ = (std::string)(cfg["CACertificatesDir"]);
   voms_dir_ = (std::string)(cfg["VOMSDir"]);
-  globus_policy_ = (((std::string)(cfg["CACertificatesDir"].Attribute("PolicyGlobus"))) == "true");
   globus_gsi_ = (((std::string)(cfg["GSI"])) == "globus");
   globusio_gsi_ = (((std::string)(cfg["GSI"])) == "globusio");
   handshake_ = (cfg["Handshake"] == "SSLv3")?ssl3_handshake:tls_handshake;
   proxy_file_ = (std::string)(cfg["ProxyPath"]);
   credential_ = (std::string)(cfg["Credential"]);
   cipher_list_ = (std::string)(cfg["Ciphers"]);
+  cipher_suites_ = (std::string)(cfg["CipherSuites"]);
   server_ciphers_priority_ = (((std::string)(cfg["Ciphers"].Attribute("ServerPriority"))) == "true");
   dhparam_file_ = (std::string)(cfg["DHParamFile"]);
   if(cipher_list_.empty()) {
@@ -96,6 +100,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
     }
   }
   if(client) {
+    protocol_options_ = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
     hostname_ = (std::string)(cfg["Hostname"]);
     XMLNode protocol_node = cfg["Protocol"];
     while((bool)protocol_node) {
@@ -169,7 +174,8 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   std::string gridSecurityDir = Glib::build_path(G_DIR_SEPARATOR_S, gridSecDir);
 
   if(!client) {
-    
+    // Default location of server certificate/key
+
     if(cert_file_.empty()) cert_file_= Glib::build_filename(gridSecurityDir, "hostcert.pem");
     if(key_file_.empty()) key_file_= Glib::build_filename(gridSecurityDir, "hostkey.pem");
     // Use VOMS trust DN of server certificates specified in configuration
@@ -211,7 +217,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
     //side should not require client authentication
     if(cert_file_.empty() && proxy_file_.empty()) client_authn_ = false;
   };
-  if(ca_dir_.empty() && ca_file_.empty()) ca_dir_= gridSecurityDir + G_DIR_SEPARATOR_S + "certificates";
+  if(!default_ca_ && ca_dir_.empty() && ca_file_.empty()) ca_dir_= gridSecurityDir + G_DIR_SEPARATOR_S + "certificates";
   if(voms_dir_.empty()) voms_dir_= gridSecurityDir + G_DIR_SEPARATOR_S + "vomsdir";
   if(!proxy_file_.empty()) { key_file_=proxy_file_; cert_file_=proxy_file_; };
 }
@@ -223,11 +229,17 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
       failure_ += HandleError();
       return false;
     };
-  };
+  } else {
+    if(!SSL_CTX_set_default_verify_paths(sslctx)) {
+      failure_ = "Can not assign default CA location\n";
+      failure_ += HandleError();
+      return false;
+    };
+  }
   if(!credential_.empty()) {
     // First try to use in-memory credential
-    Credential cred(credential_, credential_, ca_dir_, ca_file_, Credential::NoPassword(), false);
-    if (!cred.IsValid()) {
+    Credential cred(credential_, credential_, ca_dir_, ca_file_, default_ca_, Credential::NoPassword(), false);
+    if (!cred) {
       failure_ = "Failed to read in-memory credentials";
       return false;
     }
@@ -345,6 +357,16 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
       return false;
     };
   };
+#if (OPENSSL_VERSION_NUMBER >= 0x10101000L)
+  if(!cipher_suites_.empty()) {
+    if(!SSL_CTX_set_ciphersuites(sslctx,cipher_suites_.c_str())) {
+      failure_ = "No cipher suites found to satisfy requested encryption level. "
+                 "Check if OpenSSL supports cipher suites '"+cipher_suites_+"'\n";
+      failure_ += HandleError();
+      return false;
+    };
+  }
+#endif
 #if (OPENSSL_VERSION_NUMBER >= 0x10002000L)
   if(!protocols_.empty()) {
     if(SSL_CTX_set_alpn_protos(sslctx, (unsigned char const *)protocols_.c_str(), (unsigned int)protocols_.length()) != 0) {

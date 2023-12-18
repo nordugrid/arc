@@ -1,0 +1,80 @@
+#!/bin/sh
+
+makepayload() {
+
+now=`date +%s`
+exp=$(( $now + 360000 ))
+
+basenc --base64url -w0 <<END | sed 's/=*$//'
+{
+  "kid": "rsa1",
+  "alg": "RS256"
+}
+END
+
+echo -n '.'
+
+basenc --base64url -w0 <<END | sed 's/=*$//'
+{
+  "wlcg.ver": "1.0",
+  "sub": "${2}",
+  "aud": "${1}aud",
+  "nbf": ${now},
+  "scope": "openid profile wlcg",
+  "iss": "${1}",
+  "exp": ${exp},
+  "iat": ${now}
+}
+END
+
+}
+
+usage () {
+echo 'maketoken control_dir name subject'
+echo '   control_dir - path to control dir of A-REX'
+echo '   name - issuer internal name as specified in makeissuer'
+echo '   subject - user identifier aka subject (typically GUID or e-mail address'
+}
+
+controldir="$1"
+if [ -z "$controldir" ]; then
+  echo "Missing control dir - specify it on command line."
+  echo ""
+  usage
+  exit 1
+fi
+if [ ! -d "$controldir" ]; then
+  echo "There is no control dir at '${controldir}'."
+  exit 1
+fi
+
+name="$2"
+if [ -z "$name" ]; then
+  echo "Missing issuer name - specify it on command line."
+  echo ""
+  usage
+  exit 1
+fi
+if [ ! -d "$controldir/tokenissuers/$name" ]; then
+  echo "There is no issuer confuguration '${name}' at '${controldir}'."
+  exit 1
+fi
+
+subject="$3"
+if [ -z "$subject" ]; then
+  echo "Missing user subject - specify it on command line."
+  echo ""
+  usage
+  exit 1
+fi
+
+cd "$controldir/tokenissuers/$name"
+
+issuer=`cat issuer`
+payload=`makepayload "$issuer" "$subject"`
+signature=`echo -n ${payload} | openssl dgst -sha256 -sign private.pem | basenc --base64url -w0 | sed 's/=*$//'`
+
+echo -n "${payload}.${signature}"
+
+exit 0
+

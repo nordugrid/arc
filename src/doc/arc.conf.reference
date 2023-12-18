@@ -196,10 +196,17 @@
 ## default: /etc/grid-security/hostcert.pem
 #x509_host_cert=/etc/grid-security/hostcert.pem
 
+## x509_cert_policy = keyword  - layout of CA certificates.
+## The following keywords are supported: globus, system.
+## This varaible defines either server is going to use Globus layout of
+## CA certifiactes or just let OpenSSL handle that.
+## default: globus
+#x509_cert_policy=globus
+
 ## x509_cert_dir = path  - Location of trusted CA certificates.
 ## This variable is similar to the GSI enviroment variable "X509_CERT_DIR"
 ## If indicated, the variable can be set individually for each service/component in the
-## corresponding block.
+## corresponding block.  If x509_cert_policy is set to 'system' this variable is ignored.
 ## default: /etc/grid-security/certificates
 #x509_cert_dir=/etc/grid-security/certificates
 
@@ -520,12 +527,11 @@
 #lrmsconfig=single job per processor
 
 ## benchmark = string - Defines the default benchmark specification to store in
-## the accounting AAR records (as it is) if per-job data is missing.
+## the accounting AAR records if per-job data is missing.
 ## It is advised to set it to cluster-wide defaults in case of reporting to APEL
 ## to aviod records diversity for failed jobs or buggy backends.
-## default: HEPSPEC:1.0
-#benchmark=HEPSPEC:12.26
-## TODO: implement changes to support space
+## default: HEPSPEC 1.0
+#benchmark=HEPSPEC 12.26
 ## CHANGE: MODIFIED in 7.0.0
 
 ## defaultmemory = number - The LRMS memory request of job to be set by the LRMS backend
