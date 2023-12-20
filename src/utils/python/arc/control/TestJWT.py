@@ -1,17 +1,17 @@
 from __future__ import print_function
 from __future__ import absolute_import
+from email.policy import default
 
 from .ControlCommon import *
 
-import calendar
-import datetime
+import time
+import os
 import subprocess
 import socket
 import stat
 import sys
 import shutil
 import random
-import zlib
 import uuid
 import json
 try:
@@ -22,30 +22,170 @@ except ImportError:
 
 default_token_validity = 12
 
-arc_conf_snippet = """[common]
-token_verify = {0} jwks_file {1}
-
-[authgroup:zero]
+arc_conf_snippet = """[authgroup:testjwt]
 authtokens = * {0} arc * *
-"""
 
+[arex/ws/jobs]
+allowaceess = testjwt
+"""
 
 def default_jwk_dir():
     if os.getuid() == 0:
        return '/etc/grid-security/jwt'
     return os.path.expanduser('~/.arc/jwt')
 
+class JWTIssuer(object):
+    """Object to store public information about the JWT issuer"""
+    def __init__(self, iss):
+        self.logger = logging.getLogger('ARCCTL.JWTIssuer')
+        self.iss = iss
+        self.isshash = crc32_id(iss)
+        self.jwks = {}
+        self.metadata = {}
+        self.logger.info('JWT issuer: %s', self.iss)
+
+    def __json_dump(self, dst_file=None, data={}, description=''):
+        """Save json to file"""
+        if dst_file is None:
+            raise Exception('Destination file is required')
+        try:
+            with open(dst_file, 'w') as fd:
+                self.logger.debug("Saving %s to %s", description, dst_file)
+                json.dump(data, fd)
+        except IOError as err:
+            self.logger.error('Failed to write %s file %s. Error: %s', description, dst_file, str(err))
+            sys.exit(1)
+        except ValueError as err:
+            self.logger.error('Failed to dump %s as JSON. Error: %s', description, str(err))
+            sys.exit(1)
+
+    def __json_load(self, src_file=None, description=''):
+        """Load json from file"""
+        if src_file is None:
+            raise Exception('Source file is required')
+        try:
+            with open(src_file, 'r') as fd:
+                self.logger.debug("Loading %s from %s", description, src_file)
+                return json.load(fd)
+        except IOError as err:
+            self.logger.error('Failed to open %s file %s. Error: %s', description, src_file, str(err))
+            sys.exit(1)
+        except ValueError as err:
+            self.logger.error('Failed to parse %s file %s. Error: %s', description, src_file, str(err))
+            sys.exit(1)
+
+    # metadata
+    def define_metadata(self):
+        """Define basic metadata based on issuer URL"""
+        self.metadata = {
+            'issuer': self.iss,
+            'token_endpoint': self.iss + '/token',
+            'userinfo_endpoint': self.iss + '/userinfo',
+            'introspection_endpoint': self.iss + '/introspect',
+            'authorization_endpoint': self.iss + '/authorize',
+            'jwks_uri': self.iss + '/jwks'
+        }
+
+    def fetch_metadata(self):
+        """Fetch issuer metadata from well-known URL"""
+        # TODO: implement
+        pass
+
+    def save_metadata(self, dst_file=None):
+        """Save issuer metadata to file"""
+        self.__json_dump(dst_file, data=self.metadata, description='JWT issuer metadata')
+
+    def load_metadata(self, src_file=None):
+        """Load issuer metadata from file"""
+        self.metadata = self.__json_load(src_file, description='JWT issuer metadata')
+
+    # jwks
+    def define_jwks(self, jwks={}):
+        """Define JWKS"""
+        self.jwks = jwks
+
+    def fetch_jwks(self):
+        """Fetch data from JWKS URL"""
+        # TODO: implement
+        pass
+
+    def save_jwks(self, dst_file=None):
+        """Save JWKS to file"""
+        self.__json_dump(dst_file, data=self.jwks, description='JWKS')
+
+    def load_jwks(self, src_file=None):
+        """Load JWKS from file"""
+        self.jwks = self.__json_load(src_file, description='JWKS')
+
+    # generic methods
+    def save(self, dst_dir=None, metadata='metadata.json', jwks='jwks.json'):
+        if dst_dir is None:
+            raise Exception('Destination dir is required')
+        # create dir if not exists
+        try:
+            os.makedirs(dst_dir)
+        except FileExistsError:
+            pass
+        except IOError as err:
+            self.logger.error('Failed to create JWT Issuer direcory %s. Error: %s',
+                            dst_dir, str(err))
+            sys.exit(1)
+        # dump data
+        self.save_metadata(os.path.join(dst_dir, metadata))
+        self.save_jwks(os.path.join(dst_dir, jwks))
+
+    def load(self, src_dir='.', metadata='metadata.json', jwks='jwks.json'):
+        self.load_metadata(os.path.join(src_dir, metadata))
+        self.load_jwks(os.path.join(src_dir, jwks))
+
+    def info(self):
+        """Print issuer info to end-user"""
+        print('Issuer URL: {0}'.format(self.iss))
+        print('JWKS:')
+        print(json.dumps(self.jwks, indent=2))
+
+    def url(self):
+        """Return issuer URL"""
+        return self.iss
+
+    def hash(self):
+        """Return issuer URL hash"""
+        return self.isshash
+
+    # Controldir operations
+    def controldir_save(self, arcconfig=None):
+        if not arcctl_server_mode():
+            raise Exception("Deployment to controldir cannot run in arcctl client mode")
+        path = self.__controldir_path(arcconfig)
+        self.save(path, metadata='metadata', jwks='keys')
+        with open(os.path.join(path, 'issuer'), 'w') as iss_f:
+            iss_f.write(self.iss)
+        self.logger.info('Issuer data for establishing trust is deployed to A-REX controldir: %s', path)
+
+    def controldir_cleanup(self, arcconfig):
+        path = self.__controldir_path(arcconfig)
+        if os.path.exists(path):
+            self.logger.info('Removing A-REX controldir issuer files: %s', path)
+            shutil.rmtree(path)
+
+    def __controldir_path(self, arcconfig):
+        if arcconfig is None:
+            self.logger.critical('Deploying issuer trust files to controldir is not possible without valid arc.conf')
+            sys.exit(1)
+        return os.path.join(arcconfig.get_value('controldir', 'arex'), 'tokenissuers/test-jwt-{0}'.format(self.isshash))
+
 
 class TestJWTControl(ComponentControl):
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.TestJWT')
         # module is not always in the system repos, but still can be installed from e.g. pip or third-party repos
-        # we are still disctibuting test-jwt without strong package-level requirements for such a systems
+        # we are distributing test-jwt without strong package-level requirements for such a systems
         if jwt is None:
             self.logger.critical('You need to install python jwcrypto module first to use Test JWT functionality.')
             sys.exit(1)
         self.jwk = None
         self.hostname = None
+        self.iss = None
         self.jwt_conf = {}
         # use hostname from arc.conf if possible
         self.arcconfig = arcconfig
@@ -66,26 +206,23 @@ class TestJWTControl(ComponentControl):
                 self.hostname = socket.gethostname()
                 self.logger.warning('Cannot get hostname from \'hostname -f\'. '
                                     'Using %s that comes from name services.', self.hostname)
-    
+
     def __define_iss(self, issid=None):
         """Internal function to define Issuer ID and file paths"""
         if issid is None:
             issid = self.hostname
 
-        # CRC32 hash for iss URL
-        isshash = hex(zlib.crc32(issid.encode('utf-8')) & 0xffffffff)[2:]
-        self.iss = 'https://nordugrid.org/arc/testjwt/{0}'.format(isshash)
-        # add user UID to iss URL if non-root
+        iss_url = 'https://{0}/arc/testjwt/{1}'.format(self.hostname, crc32_id(issid))
         if os.getuid() != 0:
-            self.iss = self.iss + '/' + str(os.getuid())
-        self.logger.info('JWT issuer: %s', self.iss)
-        
+            iss_url = iss_url + '/' + str(os.getuid())
+
+        self.iss = JWTIssuer(iss_url)
+
         # paths
-        self.iss_dir = os.path.join(self.jwk_dir, isshash)
+        self.iss_dir = os.path.join(self.jwk_dir, self.iss.hash())
         self.jwk_key = os.path.join(self.iss_dir, 'jwk.key')
-        self.jwks_f = os.path.join(self.iss_dir, 'jwks.json')
         self.jwt_conf_f = os.path.join(self.jwk_dir, 'jwt.conf')
-    
+
     def __define_jwk_dir(self, dir=None):
         """Define JWK dir"""
         if dir is None:
@@ -97,7 +234,7 @@ class TestJWTControl(ComponentControl):
         if os.path.exists(self.jwt_conf_f):
             try:
                 with open(self.jwt_conf_f, 'r') as jwt_cf:
-                    self.logger.debug("Loading default token issuing setting from %s", self.jwt_conf_f)
+                    self.logger.debug("Loading default token issuing settings from %s", self.jwt_conf_f)
                     self.jwt_conf = json.load(jwt_cf)
             except IOError as err:
                 self.logger.error('Failed to open JWT config file %s. Error: %s', self.jwt_conf_f, str(err))
@@ -115,7 +252,7 @@ class TestJWTControl(ComponentControl):
         except IOError as err:
             self.logger.error('Failed to write JWT config file %s. Error: %s', self.jwt_conf_f, str(err))
             sys.exit(1)
-    
+
     def __get_jwt_conf(self, profile, key):
         """Get value from token generation config"""
         if profile not in self.jwt_conf:
@@ -123,7 +260,7 @@ class TestJWTControl(ComponentControl):
         if key not in self.jwt_conf[profile]:
             return None
         return self.jwt_conf[profile][key]
-    
+
     def __set_jwt_conf(self, profile, key, value):
         """Set value in token generation config"""
         if profile not in self.jwt_conf:
@@ -136,7 +273,7 @@ class TestJWTControl(ComponentControl):
             self.jwt_conf[profile] = {}
         if key in self.jwt_conf[profile]:
             del self.jwt_conf[profile][key]
-        
+
     def jwt_conf_get(self, args):
         """Return token generation config value to end-user"""
         self.__load_jwt_conf()
@@ -178,6 +315,8 @@ class TestJWTControl(ComponentControl):
                 with open(self.jwk_key, 'r') as jwk_f:
                     jwk_dict = json_decode(jwk_f.read())
                     self.jwk = jwk.JWK(**jwk_dict)
+                self.logger.debug('Loading JWT Issue info from %s', self.iss_dir)
+                self.iss.load(self.iss_dir)
             except IOError as err:
                 self.logger.error('Failed to open JWK key file %s. Error: %s', self.jwk_key, str(err))
                 sys.exit(1)
@@ -193,7 +332,7 @@ class TestJWTControl(ComponentControl):
         if os.path.exists(self.jwk_key):
             # handle exist vs force
             if not args.force:
-                self.logger.error('JWK key file %s aleady exists. Use --force if you want to re-init.', 
+                self.logger.error('JWK key file %s aleady exists. Use --force if you want to re-init.',
                                   self.jwk_key)
                 sys.exit(1)
         # create issuer JWK dir
@@ -202,28 +341,34 @@ class TestJWTControl(ComponentControl):
         except FileExistsError:
             pass
         except IOError as err:
-            self.logger.error('Failed to create JWK direcory %s for issuer %s. Error: %s', 
-                            self.iss_dir, self.iss, str(err))
+            self.logger.error('Failed to create JWK direcory %s for issuer %s. Error: %s',
+                            self.iss_dir, self.iss.url(), str(err))
             sys.exit(1)
         # generate RSA keypair
         self.jwk = jwk.JWK(generate='RSA', size=2048, kid="testjwt", use="sig")
-        # write JWK files
+        # write JWK private key
         try:
             with open(self.jwk_key, 'w') as jwk_f:
                 jwk_f.write(self.jwk.export(private_key=True))
             os.chmod(self.jwk_key, stat.S_IRUSR | stat.S_IWUSR )
-            with open(self.jwks_f, 'w') as jwks_f:
-                jwks_f.write("{ \"keys\":[ ")
-                jwks_f.write(self.jwk.export_public())
-                jwks_f.write("]}")
+            self.logger.info('Keypair for tokens issuing generated successfully.')
         except IOError as err:
             self.logger.error('Failed to write JWK key file. Error: %s', str(err))
             sys.exit(1)
         except ValueError as err:
             self.logger.error('Failed to generate JWK key pair. Error: %s', str(err))
             sys.exit(1)
-        # print info
-        self.logger.info('Keypair to tokens issuing generated successfully.')
+        # define metadata and JWKS
+        jwkset = jwk.JWKSet()
+        jwkset['keys'] = self.jwk
+        self.iss.define_jwks(json.loads(jwkset.export(private_keys=False)))
+        self.iss.define_metadata()
+        self.iss.save(self.iss_dir)
+        # install issuer files into controldir
+        # TODO: make deploy configurable
+        if arcctl_server_mode():
+            self.iss.controldir_save(self.arcconfig)
+        # print information to end-user
         self.issuer_info()
 
     def issuer_info(self, arc_conf=False):
@@ -232,22 +377,20 @@ class TestJWTControl(ComponentControl):
         if self.jwk is None:
             self.load_jwk()
         # print general info about issuer
-        print('Issuer URL: {0}'.format(self.iss))
-        print('JWKS ({0}):'.format(self.jwks_f))
-        with open(self.jwks_f, 'r') as jwks_fd:
-            jwks = json.load(jwks_fd)
-            print(json.dumps(jwks, indent=2))
+        self.iss.info()
         # print arc.conf snippet
         if arc_conf:
-            isshash = hex(zlib.crc32(self.iss.encode('utf-8')) & 0xffffffff)[2:]
-            jwks_file = '/etc/grid-security/jwks/{0}.json'.format(isshash)
-            print('To trust this token issuer copy JWKS to {0} and add following to "arc.conf":'.format(jwks_file))
-            print(arc_conf_snippet.format(self.iss, jwks_file))
+            print('To make A-REX authorize issued tokens add the following to "arc.conf":')
+            print(arc_conf_snippet.format(self.iss.url()))
 
     def cleanup_files(self):
         """Cleanup test JWT files for issuer"""
         if os.path.exists(self.iss_dir):
+            self.logger.info('Removing issuer JWK directory: %s', self.iss_dir)
             shutil.rmtree(self.iss_dir)
+        # remove trust when running on server-side
+        if arcctl_server_mode():
+            self.iss.controldir_cleanup(self.arcconfig)
 
     def issue_token(self, args):
         """Issue signed token"""
@@ -269,8 +412,8 @@ class TestJWTControl(ComponentControl):
                 self.__set_jwt_conf(profile, 'username', username)
                 self.__save_jwt_conf()
 
-        unixtime_now = calendar.timegm(datetime.datetime.today().timetuple())
-        
+        unixtime_now = int(time.time())
+
         # token validity
         validity = args.validity
         if validity is None:
@@ -296,7 +439,7 @@ class TestJWTControl(ComponentControl):
             try:
                 extra_claims = json_decode(extra_claims_str)
             except ValueError as err:
-                self.logger.error('Failed to parse extra claims JSON %s. Error: %s', 
+                self.logger.error('Failed to parse extra claims JSON %s. Error: %s',
                                   extra_claims_str, str(err))
                 sys.exit(1)
 
@@ -305,7 +448,7 @@ class TestJWTControl(ComponentControl):
             "nbf": unixtime_now - 300,  ## 5 min clock scew (same as grid-proxies)
             "exp": unixtime_now + validity_s,
             "jti": str(uuid.uuid1()),
-            "iss": self.iss,
+            "iss": self.iss.url(),
             "aud": "arc",
             "azp": "arc",
             "sub": username.replace(':', ''),  ## RFC7519 StringOrURI
@@ -316,11 +459,11 @@ class TestJWTControl(ComponentControl):
         }
 
         claims.update(extra_claims)
-        header = {"alg": "RS256", "typ": "JWT"}
+        header = {"alg": "RS256", "kid": "testjwt"}
 
         token = jwt.JWT(header=header, claims=claims)
         token.make_signed_token(self.jwk)
-       
+
         self.logger.info('Token has been issued:\n{0}\n{1}'.format(
             json.dumps(header, indent=2),
             json.dumps(claims, indent=2)
@@ -337,8 +480,11 @@ class TestJWTControl(ComponentControl):
             self.create_jwk(args)
         elif args.action == 'cleanup':
             self.cleanup_files()
-        elif args.action == 'issuer':
+        elif args.action == 'info':
             self.issuer_info(args.arc_conf)
+        elif args.action == 'export':
+            # TODO: export functionality (along with deployment)
+            pass
         elif args.action == 'config-get':
             self.jwt_conf_get(args)
         elif args.action == 'config-set':
@@ -366,8 +512,10 @@ class TestJWTControl(ComponentControl):
         testjwt_init = testjwt_actions.add_parser('init', help='Generate RSA key-pair for JWT signing')
         testjwt_init.add_argument('-f', '--force', action='store_true', help='Overwrite files if exist')
 
-        testjwt_issuer = testjwt_actions.add_parser('issuer', help='Show information about Test JWT issuer')
+        testjwt_issuer = testjwt_actions.add_parser('info', help='Show information about Test JWT issuer')
         testjwt_issuer.add_argument('-a', '--arc-conf', action='store_true', help='Show arc.conf snippet for using issuer')
+
+        testjwt_export = testjwt_actions.add_parser('export', help='Export JWT issuer information to be imported to ARC CE')
 
         testjwt_cleanup = testjwt_actions.add_parser('cleanup', help='Cleanup TestJWT files')
 
@@ -394,4 +542,3 @@ class TestJWTControl(ComponentControl):
                                  help='Additional scopes to include into the token')
         testjwt_token.add_argument('-c', '--claims', action='store',
                                  help='Additional claims (JSON) to include into the token')
-    

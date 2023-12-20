@@ -4,6 +4,7 @@ import os
 import logging
 import datetime
 import argparse
+import zlib
 from arc.utils import config
 
 logger = logging.getLogger('ARCCTL.Common')
@@ -46,6 +47,10 @@ def get_human_readable_size(sizeinbytes):
         output_fmt = '{0:.1f}{1}'
         sizeinbytes /= 1024.0
     return '{0:.1f}E'.format(sizeinbytes)
+
+def crc32_id(data_str):
+    """returns hexadecimal CRC32 to use as checksum ID"""
+    return hex(zlib.crc32(data_str.encode('utf-8')) & 0xffffffff)[2:]
 
 
 def ensure_root():
