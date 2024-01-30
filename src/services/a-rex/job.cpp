@@ -107,7 +107,7 @@ ARexConfigContext* ARexConfigContext::GetRutimeConfiguration(Arc::Message& inmsg
   std::string grid_name = inmsg.Attributes()->get("TLS:IDENTITYDN");
   if(grid_name.empty()) {
     // Try tokens if TLS has no information about user identity
-    logger.msg(Arc::ERROR, "TLS provides no identity, going for OTokens");
+    logger.msg(Arc::INFO, "TLS provides no identity, going for OTokens");
     grid_name = inmsg.Attributes()->get("OTOKENS:IDENTITYDN");
     /*
     Below is an example on how obtained token can be exchanged.
