@@ -183,7 +183,6 @@ build_ubuntu2204:
   stage: deploy
   image: docker:stable
   before_script: 
-    - export DOCKER_API_VERSION=1.19
     - DEPLOY_CONTAINER=$OS_V_`date +%Y%m%dT%H%M`
     - docker pull $ARC_IMAGE
     - GITLAB_CONTAINER=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
