@@ -76,7 +76,11 @@ OTokensSecAttr::OTokensSecAttr(Arc::Message* msg):valid_(false) {
       if(strnicmp(token_.c_str(), tokenid, sizeof(tokenid)-1) == 0) {
         token_.erase(0, sizeof(tokenid)-1);
         logger.msg(DEBUG, "OTokens: Attr: token: bearer: %s", token_);
-        valid_ = jwse_.Input(token_);
+        // TODO: Propagate information about paths and policy from caller somehow.
+        // So far just using default locations
+        initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCANotTryCredentials);
+        UserConfig userconfig(cred_type);
+        valid_ = jwse_.Input(token_, userconfig);
         if(valid_) {
           // Additionally require signature protected by safely obtained key.
           // So far only accepting keys fetched from issuer through https.

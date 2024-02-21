@@ -1,6 +1,7 @@
 #include <openssl/x509.h>
 
 #include <arc/URL.h>
+#include <arc/UserConfig.h>
 #include <arc/communication/ClientInterface.h>
 
 
@@ -62,7 +63,7 @@ namespace Arc {
 
   class JWSEKeyFetcher {
    public:
-    JWSEKeyFetcher(char const * endpoint_url);
+    JWSEKeyFetcher(char const * endpoint_url, UserConfig& userconfig);
     bool Fetch(JWSEKeyHolderList& keys, Logger& logger);
     static bool Import(char const * content, JWSEKeyHolderList& keys, Logger& logger);
    private:

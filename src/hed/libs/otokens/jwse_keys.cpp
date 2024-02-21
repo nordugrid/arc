@@ -306,7 +306,7 @@ namespace Arc {
     return x5cObject.Release();
   }
 
-  bool JWSE::ExtractPublicKey() const {
+  bool JWSE::ExtractPublicKey(UserConfig& userconfig) const {
     key_.Release();
     // So far we are going to support only embedded keys jwk and x5c and external kid.
     cJSON* x5cObject = cJSON_GetObjectItem(header_.Ptr(), HeaderNameX509CertChain);
@@ -372,7 +372,7 @@ namespace Arc {
       }
 
       Arc::AutoPointer<OpenIDMetadata> serviceMetadata(new OpenIDMetadata);
-      OpenIDMetadataFetcher metadataFetcher(issuerUrl.c_str());
+      OpenIDMetadataFetcher metadataFetcher(issuerUrl.c_str(), userconfig);
       if(!metadataFetcher.Fetch(*serviceMetadata))
         return false;
       if(serviceMetadata->Error())
@@ -384,7 +384,7 @@ namespace Arc {
       if(strncasecmp("https://", jwksUri, 8) != 0) keyProtocolSafe = false;
 
       logger_.msg(DEBUG, "JWSE::ExtractPublicKey: fetching jws key from %s", jwksUri);
-      JWSEKeyFetcher keyFetcher(jwksUri);
+      JWSEKeyFetcher keyFetcher(jwksUri, userconfig);
       Arc::AutoPointer<JWSEKeyHolderList> keys(new JWSEKeyHolderList);
       if(!keyFetcher.Fetch(*keys, logger_))
         return false;
@@ -604,8 +604,14 @@ namespace Arc {
     return url;
   }
 
-  JWSEKeyFetcher::JWSEKeyFetcher(char const * endpoint_url):
-       url_(endpoint_url?url_no_cred(endpoint_url):URL()), client_(Arc::MCCConfig(), url_) {
+  static Arc::MCCConfig make_config(UserConfig& userconfig) {
+    Arc::MCCConfig config;
+    userconfig.ApplyToConfig(config);
+    return config;
+  }
+
+  JWSEKeyFetcher::JWSEKeyFetcher(char const * endpoint_url, UserConfig& userconfig):
+       url_(endpoint_url?url_no_cred(endpoint_url):URL()), client_(make_config(userconfig), url_) {
     client_.RelativeURI(true);
   }
 
