@@ -327,8 +327,14 @@ namespace Arc {
     return url;
   }
 
-  OpenIDMetadataFetcher::OpenIDMetadataFetcher(char const * issuer_url):
-       url_(issuer_url?url_no_cred(issuer_url):URL()), client_(Arc::MCCConfig(), url_) {
+  static Arc::MCCConfig make_config(UserConfig& userconfig) {
+    Arc::MCCConfig config;
+    userconfig.ApplyToConfig(config);
+    return config;
+  }
+
+  OpenIDMetadataFetcher::OpenIDMetadataFetcher(char const * issuer_url, UserConfig& userconfig):
+       url_(issuer_url?url_no_cred(issuer_url):URL()), client_(make_config(userconfig), url_) {
     client_.RelativeURI(true);
   }
 
@@ -356,8 +362,8 @@ namespace Arc {
 
 
 
-  OpenIDTokenFetcher::OpenIDTokenFetcher(char const * token_endpoint, char const * id, char const * secret):
-       url_(token_endpoint?url_no_cred(token_endpoint):URL()), client_(Arc::MCCConfig(), url_),
+  OpenIDTokenFetcher::OpenIDTokenFetcher(char const * token_endpoint, UserConfig& userconfig, char const * id, char const * secret):
+       url_(token_endpoint?url_no_cred(token_endpoint):URL()), client_(make_config(userconfig), url_),
        client_id_(id?id:""), client_secret_(secret?secret:"") {
     client_.RelativeURI(true);
   }

@@ -2,6 +2,7 @@
 #include <arc/Utils.h>
 #include <arc/URL.h>
 #include <arc/Logger.h>
+#include <arc/UserConfig.h>
 #include <arc/communication/ClientInterface.h>
 
 
@@ -166,7 +167,7 @@ namespace Arc {
 
   class OpenIDMetadataFetcher {
    public:
-    OpenIDMetadataFetcher(char const * issuer_url);
+    OpenIDMetadataFetcher(char const * issuer_url, UserConfig& userconfig);
     bool Fetch(OpenIDMetadata& metadata);
     static bool Import(char const * content, OpenIDMetadata& metadata);
    private:
@@ -178,7 +179,7 @@ namespace Arc {
   class OpenIDTokenFetcher {
    public:
     typedef std::list< std::pair<std::string, std::string> > TokenList;
-    OpenIDTokenFetcher(char const * token_endpoint, char const * id, char const * secret);
+    OpenIDTokenFetcher(char const * token_endpoint, UserConfig& userconfig, char const * id, char const * secret);
     bool Fetch(std::string const & grant,
                std::string const & subject,
                std::list<std::string> const & scope,

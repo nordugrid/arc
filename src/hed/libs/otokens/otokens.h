@@ -3,6 +3,7 @@
 #include <arc/Utils.h>
 #include <arc/DateTime.h>
 #include <arc/Logger.h>
+#include <arc/UserConfig.h>
 
 
 struct cJSON;
@@ -39,7 +40,7 @@ namespace Arc {
     //! Parse token available as simple string.
     //! Mostly to be used for tokens embedded into something
     //! like HTTP header.
-    JWSE(std::string const& jwseCompact);
+    JWSE(std::string const& jwseCompact, UserConfig& userconfig);
 
     //! Default contructor creates valid Token
     //! with empty information.
@@ -91,7 +92,7 @@ namespace Arc {
     void Claim(char const* name, char const* value);
 
     //! Parses passed Token and stores collected information in this object.
-    bool Input(std::string const& jwseCompact);
+    bool Input(std::string const& jwseCompact, UserConfig& userconfig);
 
     //! Returns information about how key used to validate signature is obtained.
     KeyOrigin InputKeyOrigin() const { return keyOrigin_; };
@@ -127,7 +128,7 @@ namespace Arc {
     static void SetIssuerInfo(Time validTill, bool isSafe, std::string const & issuer, AutoPointer<OpenIDMetadata>& metadata, AutoPointer<JWSEKeyHolderList>& keys);
 
     // Propagate information in header_ into key_
-    bool ExtractPublicKey() const;
+    bool ExtractPublicKey(UserConfig& userconfig) const;
 
     // Copy content of key_ into header_
     bool InsertPublicKey(bool& keyAdded) const;
