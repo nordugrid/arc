@@ -1,6 +1,5 @@
 from __future__ import print_function
 from __future__ import absolute_import
-from email.policy import default
 
 from .ControlCommon import *
 
@@ -366,7 +365,8 @@ class TestJWTControl(ComponentControl):
         self.iss.save(self.iss_dir)
         # install issuer files into controldir
         # TODO: make deploy configurable
-        if arcctl_server_mode():
+        # TODO: provide export/import instruction instead
+        if arcctl_server_mode() and os.getuid() == 0:
             self.iss.controldir_save(self.arcconfig)
         # print information to end-user
         self.issuer_info()
@@ -484,6 +484,7 @@ class TestJWTControl(ComponentControl):
             self.issuer_info(args.arc_conf)
         elif args.action == 'export':
             # TODO: export functionality (along with deployment)
+            self.logger.error('Not implemented')
             pass
         elif args.action == 'config-get':
             self.jwt_conf_get(args)
