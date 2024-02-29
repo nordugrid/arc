@@ -25,7 +25,7 @@ arc_conf_snippet = """[authgroup:testjwt]
 authtokens = * {0} arc * *
 
 [arex/ws/jobs]
-allowaceess = testjwt
+allowaccess = testjwt
 """
 
 def default_jwk_dir():
