@@ -24,6 +24,10 @@ default_token_validity = 12
 arc_conf_snippet = """[authgroup:testjwt]
 authtokens = * {0} arc * *
 
+
+[mapping]
+map_to_user = testjwt nobody:nobody
+
 [arex/ws/jobs]
 allowaccess = testjwt
 """
