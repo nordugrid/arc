@@ -366,6 +366,9 @@ system and visualizes it.
 Summary:	ARC Control Tool
 Group:		Applications/Internet
 Requires:	%{name} = %{version}-%{release}
+%if %{?fedora}%{!?fedora:0} >= 26 || %{?rhel}%{!?rhel:0} >= 8
+Requires:	python3-jwcrypto
+%endif
 
 %description arcctl
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -1013,6 +1016,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/ControlCommon.py
 %{python3_sitearch}/%{pkgdir}/control/OSPackage.py
 %{python3_sitearch}/%{pkgdir}/control/TestCA.py
+%{python3_sitearch}/%{pkgdir}/control/TestJWT.py
 %{python3_sitearch}/%{pkgdir}/control/ThirdPartyDeployment.py
 %dir %{python3_sitearch}/%{pkgdir}/control/__pycache__
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/__init__.*
@@ -1020,6 +1024,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/ControlCommon.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/OSPackage.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/TestCA.*
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/TestJWT.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/ThirdPartyDeployment.*
 %doc %{_mandir}/man1/arcctl.1*
 

@@ -14,6 +14,14 @@ CTL_COMPONENTS = [
     TestCAControl
 ]
 
+# arcclt test JWT
+try:
+    from .TestJWT import TestJWTControl
+except ImportError:
+    pass
+else:
+    CTL_COMPONENTS.append(TestJWTControl)
+
 #
 # arcctl controllers for ARC services
 #
