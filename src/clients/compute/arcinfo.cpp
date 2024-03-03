@@ -101,6 +101,25 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
   if (opt.timeout > 0)
     usercfg.Timeout(opt.timeout);
 
+  AuthenticationType authentication_type = UndefinedAuthentication;
+  if(!opt.getAuthenticationType(logger, usercfg, authentication_type))
+    return 1;
+  switch(authentication_type) {
+    case NoAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeNone);
+      break;
+    case X509Authentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeCert);
+      break;
+    case TokenAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeToken);
+      break;
+    case UndefinedAuthentication:
+    default:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeUndefined);
+      break;
+  }
+
   std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
 
   std::set<std::string> preferredInterfaceNames;

@@ -1,5 +1,5 @@
-#ifndef __ARC_CLEINT_COMPUTE_SUBMIT_COMMON_H_
-#define __ARC_CLEINT_COMPUTE_SUBMIT_COMMON_H_
+#ifndef __ARC_CLIENT_COMPUTE_SUBMIT_COMMON_H_
+#define __ARC_CLIENT_COMPUTE_SUBMIT_COMMON_H_
 
 #include <string>
 #include <list>
@@ -15,13 +15,6 @@
 #include <arc/compute/Submitter.h>
 
 #include "utils.h"
-
-enum DelegationType {
-  UndefinedDelegation,
-  NoDelegation,
-  X509Delegation,
-  TokenDelegation
-};
 
 int process_submission_status(Arc::SubmissionStatus status, const Arc::UserConfig& usercfg);
 
@@ -76,4 +69,4 @@ private:
   std::list<Arc::Job> submittedJobs;
 };
 
-#endif // __ARC_CLEINT_COMPUTE_SUBMIT_COMMON_H_
+#endif // __ARC_CLIENT_COMPUTE_SUBMIT_COMMON_H_

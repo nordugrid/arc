@@ -352,7 +352,7 @@ namespace Arc {
     return port;
   }
 
-  static TCPSec http_url_to_sec(const URL& url, bool have_otoken) {
+  static TCPSec http_url_to_sec(const URL& url, bool use_otoken, bool use_x509) {
     TCPSec sec;
     if(url.Protocol() == "https" || url.Protocol() == "davs") {
       if(url.Option("protocol") == "ssl3") {
@@ -382,12 +382,14 @@ namespace Arc {
     } else if(url.Option("encryption") == "off") {
       sec.enc = NoEnc;
     }
-    if(have_otoken) {
+    if(use_otoken) {
       sec.cred = UseNoCred;
-    } else {
+    } else if(use_x509) {
       sec.cred = UseX509Cred;
+    } else {
+      sec.cred = UseNoCred; // no authentication is going to be used
     }
-    // URL option overrides decision taken by presence of token
+    // URL option overrides decision taken by configuration
     std::string credOption = url.Option("tlscred");
     if(credOption == "none") {
       sec.cred = UseNoCred;
@@ -403,14 +405,14 @@ namespace Arc {
     : ClientTCP(cfg,
                 get_http_proxy_host(url,proxy_host,proxy_port),
                 get_http_proxy_port(url,proxy_host,proxy_port),
-                http_url_to_sec(url,!cfg.otoken.empty()),
+                http_url_to_sec(url,!cfg.otoken.empty() && cfg.otoken_for_auth,cfg.cert_for_auth),
                 timeout,
                 url.Option("tcpnodelay") == "yes"),
       http_entry(NULL),
       default_url(url),
       relative_uri(url.Option("relativeuri") == "yes"),
       encoded_uri(url.Option("encodeduri") != "no"),
-      sec(http_url_to_sec(url,!cfg.otoken.empty())),
+      sec(http_url_to_sec(url,!cfg.otoken.empty() && cfg.otoken_for_auth,cfg.cert_for_auth)),
       closed(false) {
     XMLNode comp = ConfigMakeComponent(xmlcfg["Chain"], "http.client", "http",
                      (SECURITY_IS_SSL(sec.sec)) ? "tls" :
@@ -418,7 +420,7 @@ namespace Arc {
     comp.NewAttribute("entry") = "http";
     comp.NewChild("Method") = "POST"; // Override using attributes if needed
     comp.NewChild("Endpoint") = url.str(true); // Override using attributes if needed
-    if (!cfg.otoken.empty()) comp.NewChild("Authorization") = "Bearer " + cfg.otoken; // TODO: protect and encode
+    if (!cfg.otoken.empty() && cfg.otoken_for_auth) comp.NewChild("Authorization") = "Bearer " + cfg.otoken; // TODO: protect and encode
     // Pass information about protocol and hostname to TLS level
     XMLNode compTLS = ConfigFindComponent(xmlcfg["Chain"], "tls.client", NULL);
     if(compTLS) {

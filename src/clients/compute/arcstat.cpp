@@ -75,6 +75,25 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
   if (opt.timeout > 0)
     usercfg.Timeout(opt.timeout);
 
+  AuthenticationType authentication_type = UndefinedAuthentication;
+  if(!opt.getAuthenticationType(logger, usercfg, authentication_type))
+    return 1;
+  switch(authentication_type) {
+    case NoAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeNone);
+      break;
+    case X509Authentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeCert);
+      break;
+    case TokenAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeToken);
+      break;
+    case UndefinedAuthentication:
+    default:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeUndefined);
+      break;
+  }
+
   if (!opt.sort.empty() && !opt.rsort.empty()) {
     logger.msg(Arc::ERROR, "The 'sort' and 'rsort' flags cannot be specified at the same time.");
     return 1;

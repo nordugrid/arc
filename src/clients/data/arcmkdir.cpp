@@ -19,6 +19,8 @@
 #include <arc/loader/FinderLoader.h>
 #include <arc/OptionParser.h>
 
+#include "utils.h"
+
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcmkdir");
 
 bool arcmkdir(const Arc::URL& file_url,
@@ -110,6 +112,21 @@ static int runmain(int argc, char **argv) {
                     istring("configuration file (default ~/.arc/client.conf)"),
                     istring("filename"), conffile);
 
+  bool no_authentication = false;
+  options.AddOption('\0', "no-authentication",
+              istring("do not perform any authentication for opened connections"),
+              no_authentication);
+
+  bool x509_authentication = false;
+  options.AddOption('\0', "x509-authentication",
+              istring("perform X.509 authentication for opened connections"),
+              x509_authentication);
+
+  bool token_authentication = false;
+  options.AddOption('\0', "token-authentication",
+              istring("perform token authentication for opened connections"),
+              token_authentication);
+
   std::string debug;
   options.AddOption('d', "debug",
                     istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
@@ -157,6 +174,23 @@ static int runmain(int argc, char **argv) {
   }
   usercfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY());
   usercfg.Timeout(timeout);
+
+  AuthenticationType authentication_type = UndefinedAuthentication;
+  switch(authentication_type) {
+    case NoAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeNone);
+      break;
+    case X509Authentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeCert);
+      break;
+    case TokenAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeToken);
+      break;
+    case UndefinedAuthentication:
+    default:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeUndefined);
+      break;
+  }
 
   if (debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(usercfg.Verbosity()));
