@@ -10,8 +10,6 @@
 #include "utils.h"
 
 
-
-
 bool checkproxy(const Arc::UserConfig& uc)
 {
   if (!uc.ProxyPath().empty() ) {
