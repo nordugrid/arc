@@ -452,6 +452,13 @@ PayloadTLSMCC::~PayloadTLSMCC(void) {
           // unfortunately it seems to be lost already
           // inside SSL_shutdown().
           ConfigTLSMCC::HandleError();
+        } else if(err == SSL_ERROR_SSL) {
+          // Although not explicitely specified this seems to
+          // indicate that there was already error on this SSL object
+          // and hence shutdown is meaningless.
+          // Note: it is strange that extracted error says ssl_ is still in init state
+          // despite handshake already finished. Looks like bug in OpenSSL.
+          ConfigTLSMCC::HandleError();
         } else {
           // This case is unexpected. So it is better to
           // report it.
