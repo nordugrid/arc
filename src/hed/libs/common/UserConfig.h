@@ -952,6 +952,28 @@ namespace Arc {
      **/
     bool CAUseDefault() const { return caUseDefault; }
 
+    enum AuthType {
+      AuthTypeUndefined = 0, /// No restrictions, use whatever authentication avaialble (default)
+      AuthTypeNone = 1,      /// Do not use any credentials (anonymous)
+      AuthTypeCert = 2,      /// Use X.509 certificate/proxy for authentication
+      AuthTypeToken = 3      /// Use OIDC/OAuth2 token for authentication (bearer token)
+    };
+
+    /**
+     * Specify which authentication type to use for communication.
+     *
+     * @param newAuthType authentication type to use for communication.
+     * @return This method always returns \c true.
+     **/
+    bool CommunicationAuthType(AuthType newAuthType) { authType = newAuthType; return true; } 
+    /**
+     * Retrieve which authentication type to use for communication.
+     *
+     * @return Authentication type for communication.
+     **/
+    AuthType CommunicationAuthType() const { return authType; }
+
+
     /// Set certificate life time
     /**
      * Sets lifetime of user certificate which will be obtained from
@@ -1367,6 +1389,7 @@ namespace Arc {
     std::string caCertificatePath;
     std::string caCertificatesDirectory;
     bool caUseDefault;
+    AuthType authType;
     Period certificateLifeTime;
 
     URL slcs;

@@ -1,5 +1,5 @@
-#ifndef __ARC_CLEINT_COMPUTE_UTILS_H_
-#define __ARC_CLEINT_COMPUTE_UTILS_H_
+#ifndef __ARC_CLIENT_COMPUTE_UTILS_H_
+#define __ARC_CLIENT_COMPUTE_UTILS_H_
 
 #include <unistd.h>
 #include <string>
@@ -124,6 +124,20 @@ void splitendpoints(std::list<std::string>& selected, std::list<std::string>& re
  */
 Arc::JobInformationStorage* createJobInformationStorage(const Arc::UserConfig& uc);
 
+enum AuthenticationType {
+  UndefinedAuthentication,
+  NoAuthentication,
+  X509Authentication,
+  TokenAuthentication
+};
+
+enum DelegationType {
+  UndefinedDelegation,
+  NoDelegation,
+  X509Delegation,
+  TokenDelegation
+};
+
 class ClientOptions : public Arc::OptionParser {
 public:
   enum Client_t {
@@ -144,6 +158,9 @@ public:
 
   /// Implement ARC consistent info/submission endpoint types logic
   bool canonicalizeARC6InterfaceTypes(Arc::Logger& logger);
+
+  bool getDelegationType(Arc::Logger& logger, Arc::UserConfig const& usercfg, DelegationType& delegation_type) const;
+  bool getAuthenticationType(Arc::Logger& logger, Arc::UserConfig const& usercfg, AuthenticationType& authentication_type) const;
 
   bool dryrun;
   bool dumpdescription;
@@ -170,6 +187,9 @@ public:
   bool no_delegation;
   bool x509_delegation;
   bool token_delegation;
+  bool no_authentication;
+  bool x509_authentication;
+  bool token_authentication;
 
   int testjobid;
   int runtime;
@@ -209,4 +229,4 @@ public:
   std::list<std::string> info_types;
 };
 
-#endif // __ARC_CLEINT_COMPUTE_UTILS_H_
+#endif // __ARC_CLIENT_COMPUTE_UTILS_H_

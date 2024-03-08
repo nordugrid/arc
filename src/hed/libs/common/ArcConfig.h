@@ -128,6 +128,10 @@ namespace Arc {
     bool defaultca;
     /// Authentication token
     std::string otoken;
+    /// Either otoken can be used for authentication (must be set explicitely)
+    bool otoken_for_auth;
+    /// Either certificate/key/proxy can be used for authentication (must be set explicitely)
+    bool cert_for_auth;
     /**
      * \since Added in 4.0.0.
      **/

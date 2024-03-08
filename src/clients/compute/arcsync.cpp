@@ -201,10 +201,23 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
   if (opt.timeout > 0)
     usercfg.Timeout(opt.timeout);
 
-  if(usercfg.OToken().empty()) {
-    if (!checkproxy(usercfg)) {
-      return 1;
-    }
+  AuthenticationType authentication_type = UndefinedAuthentication;
+  if(!opt.getAuthenticationType(logger, usercfg, authentication_type))
+    return 1;
+  switch(authentication_type) {
+    case NoAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeNone);
+      break;
+    case X509Authentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeCert);
+      break;
+    case TokenAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeToken);
+      break;
+    case UndefinedAuthentication:
+    default:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeUndefined);
+      break;
   }
 
   if (opt.debug.empty() && !usercfg.Verbosity().empty())

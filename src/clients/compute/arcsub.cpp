@@ -168,45 +168,25 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
   }
 
   DelegationType delegation_type = UndefinedDelegation;
-  if(opt.no_delegation) {
-    if(delegation_type != UndefinedDelegation) {
-      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
-      return 1;
-    }
-    delegation_type = NoDelegation;
-  }
-  if(opt.x509_delegation) {
-    if(delegation_type != UndefinedDelegation) {
-      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
-      return 1;
-    }
-    delegation_type = X509Delegation;
-  }
-  if(opt.token_delegation) {
-    if(delegation_type != UndefinedDelegation) {
-      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
-      return 1;
-    }
-    delegation_type = TokenDelegation;
-  }
-
-  // If delegation is not specified try to guess it
-  if(delegation_type == UndefinedDelegation) {
-    if(!usercfg.OToken().empty()) {
-      delegation_type = TokenDelegation;
-    } else {
-      delegation_type = X509Delegation;
-    }
-  }
-
-  if(delegation_type == X509Delegation) {
-    if (!checkproxy(usercfg)) {
-      return 1;
-    }
-  } else if(delegation_type == TokenDelegation) {
-    if (!checktoken(usercfg)) {
-      return 1;
-    }
+  if(!opt.getDelegationType(logger, usercfg, delegation_type))
+    return 1;
+  AuthenticationType authentication_type = UndefinedAuthentication;
+  if(!opt.getAuthenticationType(logger, usercfg, authentication_type))
+    return 1;
+  switch(authentication_type) {
+    case NoAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeNone);
+      break;
+    case X509Authentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeCert);
+      break;
+    case TokenAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeToken);
+      break;
+    case UndefinedAuthentication:
+    default:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeUndefined);
+      break;
   }
 
   if ( opt.isARC6TargetSelectionOptions(logger) ) {

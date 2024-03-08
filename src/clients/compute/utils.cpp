@@ -434,6 +434,9 @@ ClientOptions::ClientOptions(Client_t c,
     no_delegation(false),
     x509_delegation(false),
     token_delegation(false),
+    no_authentication(false),
+    x509_authentication(false),
+    token_authentication(false),
     testjobid(-1),
     runtime(5),
     timeout(-1)
@@ -737,4 +740,102 @@ ClientOptions::ClientOptions(Client_t c,
   AddOption('v', "version", istring("print version information"),
             showversion);
 
+  /* --- Common options below --- */
+
+  GroupAddOption("tuning", '\0', "no-authentication",
+              istring("do not perform any authentication for opened connections"),
+              no_authentication);
+
+  GroupAddOption("tuning", '\0', "x509-authentication",
+              istring("perform X.509 authentication for opened connections"),
+              x509_authentication);
+
+  GroupAddOption("tuning", '\0', "token-authentication",
+              istring("perform token authentication for opened connections"),
+              token_authentication);
+
 }
+
+bool ClientOptions::getDelegationType(Arc::Logger& logger, Arc::UserConfig const& usercfg, DelegationType& delegation_type) const {
+  delegation_type = UndefinedDelegation;
+  if(no_delegation) {
+    if(delegation_type != UndefinedDelegation) {
+      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
+      return false;
+    }
+    delegation_type = NoDelegation;
+  }
+  if(x509_delegation) {
+    if(delegation_type != UndefinedDelegation) {
+      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
+      return false;
+    }
+    delegation_type = X509Delegation;
+  }
+  if(token_delegation) {
+    if(delegation_type != UndefinedDelegation) {
+      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
+      return false;
+    }
+    delegation_type = TokenDelegation;
+  }
+
+  // If delegation is not specified try to guess it
+  if(delegation_type == UndefinedDelegation) {
+    if(!usercfg.OToken().empty()) {
+      delegation_type = TokenDelegation;
+    } else {
+      delegation_type = X509Delegation;
+    }
+  }
+
+  if(delegation_type == X509Delegation) {
+    if (!checkproxy(usercfg)) {
+      return 1;
+    }
+  } else if(delegation_type == TokenDelegation) {
+    if (!checktoken(usercfg)) {
+      return 1;
+    }
+  }
+
+  return true;
+}
+
+bool ClientOptions::getAuthenticationType(Arc::Logger& logger, Arc::UserConfig const& usercfg, AuthenticationType& authentication_type) const {
+  authentication_type = UndefinedAuthentication;
+  if(no_authentication) {
+    if(authentication_type != UndefinedAuthentication) {
+      logger.msg(Arc::ERROR, "Conflicting authentication types specified.");
+      return false;
+    }
+    authentication_type = NoAuthentication;
+  }
+  if(x509_authentication) {
+    if(authentication_type != UndefinedAuthentication) {
+      logger.msg(Arc::ERROR, "Conflicting authentication types specified.");
+      return false;
+    }
+    authentication_type = X509Authentication;
+  }
+  if(token_authentication) {
+    if(authentication_type != UndefinedAuthentication) {
+      logger.msg(Arc::ERROR, "Conflicting authentication types specified.");
+      return false;
+    }
+    authentication_type = TokenAuthentication;
+  }
+
+  if(authentication_type == X509Authentication) {
+    if (!checkproxy(usercfg)) {
+      return 1;
+    }
+  } else if(authentication_type == TokenAuthentication) {
+    if (!checktoken(usercfg)) {
+      return 1;
+    }
+  }
+
+  return true;
+}
+
