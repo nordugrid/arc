@@ -249,6 +249,8 @@ private:
 %}
 %include "../src/hed/libs/common/JobPerfLog.h"
 
+#endif // SWIGIMPORTED
+
 
 // Wrap contents of $(top_srcdir)/src/hed/libs/common/Thread.h
 %{
@@ -257,5 +259,3 @@ private:
 %ignore Arc::ThreadId;
 %include "../src/hed/libs/common/Thread.h"
 %template(SimpleConditionList) std::list<Arc::SimpleCondition*>;
-
-#endif // SWIGIMPORTED
