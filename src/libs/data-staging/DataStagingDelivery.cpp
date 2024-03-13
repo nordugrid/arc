@@ -178,7 +178,7 @@ int main(int argc,char* argv[]) {
         source_cred_path = o->substr(p+1);
       } else if(name == "ca") {
         source_ca_path = o->substr(p+1);
-      } else if(name == "defaultca") {
+      } else if(name == "cadefault") {
 	source_ca_default = (o->substr(p+1) == "1");
       } else {
         source_url.AddOption(*o);
@@ -196,7 +196,7 @@ int main(int argc,char* argv[]) {
         dest_cred_path = o->substr(p+1);
       } else if(name == "ca") {
         dest_ca_path = o->substr(p+1);
-      } else if(name == "defaultca") {
+      } else if(name == "cadefault") {
 	dest_ca_default = (o->substr(p+1) == "1");
       } else {
         dest_url.AddOption(*o);

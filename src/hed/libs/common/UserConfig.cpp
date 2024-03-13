@@ -460,7 +460,15 @@ namespace Arc {
   }
 
   bool UserConfig::InitializeCredentials(initializeCredentialsType initializeCredentials) {
+    std::string ca_policy = GetEnv("X509_CERT_POLICY");
+    if (ca_policy == "globus") {
+      caUseDefault = false;
+    } else if(ca_policy == "system") {
+      caUseDefault = true;
+    }
+
     if(initializeCredentials == initializeCredentialsType::SkipCredentials) return true;
+
     bool res = true;
     bool require =
             ((initializeCredentials == initializeCredentialsType::RequireCredentials) ||
@@ -636,12 +644,6 @@ namespace Arc {
       }
     }
 
-    std::string ca_policy = GetEnv("X509_CERT_POLICY");
-    if (ca_policy == "globus") {
-      caUseDefault = false;
-    } else if(ca_policy == "system") {
-      caUseDefault = true;
-    }
     if(!noca) {
       if (!caUseDefault) {
         std::string ca_dir = GetEnv("X509_CERT_DIR");
