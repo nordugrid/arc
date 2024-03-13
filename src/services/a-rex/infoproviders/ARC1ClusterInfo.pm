@@ -1652,7 +1652,7 @@ sub collect($) {
 
             my %healthissues;
 
-            if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
+            if ($config->{x509_host_cert}) {
                 if (     $host_info->{hostcert_expired}) {
                     push @{$healthissues{critical}}, "Host credentials expired";
                 } elsif ($host_info->{issuerca_expired}) {
@@ -1794,7 +1794,7 @@ sub collect($) {
 
             my %healthissues;
 
-            if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
+            if ($config->{x509_host_cert}) {
                 if (     $host_info->{hostcert_expired}) {
                     push @{$healthissues{critical}}, "Host credentials expired";
                 } elsif ($host_info->{issuerca_expired}) {
@@ -1931,7 +1931,7 @@ sub collect($) {
 
             my %healthissues;
 
-            if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
+            if ($config->{x509_host_cert}) {
                 if (     $host_info->{hostcert_expired}) {
                     push @{$healthissues{critical}}, "Host credentials expired";
                 } elsif ($host_info->{issuerca_expired}) {
@@ -2065,7 +2065,7 @@ sub collect($) {
             # TODO: inherit health infos from arex endpoints
             my %healthissues;
 
-            if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
+            if ($config->{x509_host_cert}) {
                 if (     $host_info->{hostcert_expired}) {
                     push @{$healthissues{critical}}, "Host credentials expired";
                 } elsif ($host_info->{issuerca_expired}) {
@@ -2164,7 +2164,7 @@ sub collect($) {
 
             my %healthissues;
 
-            if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
+            if ($config->{x509_host_cert}) {
                 if (     $host_info->{hostcert_expired}) {
                     push @{$healthissues{critical}}, "Host credentials expired";
                 } elsif ($host_info->{issuerca_expired}) {
@@ -2293,7 +2293,7 @@ sub collect($) {
             # TODO: inherit health infos from arex endpoints
             my %healthissues;
 
-            if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
+            if ($config->{x509_host_cert}) {
                 if (     $host_info->{hostcert_expired}) {
                     push @{$healthissues{critical}}, "Host credentials expired";
                 } elsif ($host_info->{issuerca_expired}) {
@@ -2388,7 +2388,7 @@ sub collect($) {
 
             my %healthissues;
 
-            if ($config->{x509_host_cert} and $config->{x509_cert_dir}) {
+            if ($config->{x509_host_cert}) {
                 if (     $host_info->{hostcert_expired}) {
                     push @{$healthissues{critical}}, "Host credentials expired";
                 } elsif ($host_info->{issuerca_expired}) {
