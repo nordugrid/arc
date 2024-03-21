@@ -216,7 +216,7 @@ bool SoftwareRequirement::isSatisfiedSelect(const std::list<Software>& swList, S
     if(currentSelectedSoftware != NULL) currentSelectedSoftware->addOptions(itSW->getOptions());
   }
 
-  logger.msg(VERBOSE, "All requirements satisfied.");
+  logger.msg(VERBOSE, "All software requirements satisfied.");
   return true;
 }
 
