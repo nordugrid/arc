@@ -180,7 +180,7 @@ namespace Arc {
           logger.msg(VERBOSE, "Matchmaking, ComputingShare (%s) does not match requested queue (%s): skipping", t.ComputingShare->MappingQueue, j.Resources.QueueName);
           return false;
         }
-        else (t.ComputingShare->MappingQueue == j.Resources.QueueName){
+        else {
           logger.msg(VERBOSE, "Matchmaking, ComputingShare (%s) matches requested queue (%s)", t.ComputingShare->MappingQueue, j.Resources.QueueName);
         }
       }
