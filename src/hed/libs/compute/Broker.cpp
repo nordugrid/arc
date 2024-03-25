@@ -168,17 +168,20 @@ namespace Arc {
     if (!j.Resources.QueueName.empty()) {
       if (t.ComputingShare->MappingQueue.empty()) {
         if (t.ComputingShare->Name.empty()) {
-          logger.msg(VERBOSE, "ComputingShareName of ExecutionTarget (%s) is not defined", t.ComputingEndpoint->URLString);
+          logger.msg(VERBOSE, "Matchmaking, ComputingShareName of ExecutionTarget (%s) is not defined, but requested queue is (%s)", t.ComputingEndpoint->URLString, j.Resources.QueueName);
           return false;
         }
         if (t.ComputingShare->Name != j.Resources.QueueName) {
-          logger.msg(VERBOSE, "ComputingShare (%s) does not match selected queue (%s)", t.ComputingShare->Name, j.Resources.QueueName);
+          logger.msg(VERBOSE, "Matchmaking, ComputingShare (%s) does not match requested queue (%s): skipping", t.ComputingShare->Name, j.Resources.QueueName);
           return false;
         }
       } else {
         if (t.ComputingShare->MappingQueue != j.Resources.QueueName) {
-          logger.msg(VERBOSE, "ComputingShare (%s) does not match selected queue (%s)", t.ComputingShare->MappingQueue, j.Resources.QueueName);
+          logger.msg(VERBOSE, "Matchmaking, ComputingShare (%s) does not match requested queue (%s): skipping", t.ComputingShare->MappingQueue, j.Resources.QueueName);
           return false;
+        }
+        else {
+          logger.msg(VERBOSE, "Matchmaking, ComputingShare (%s) matches requested queue (%s)", t.ComputingShare->MappingQueue, j.Resources.QueueName);
         }
       }
     }
