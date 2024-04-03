@@ -128,6 +128,7 @@ namespace Arc {
       STAGEINDIR,
       STAGEOUTDIR,
       SESSIONDIR,
+      LOGDIR,
       JOBLOG,
       JOBDESCRIPTION
     };
