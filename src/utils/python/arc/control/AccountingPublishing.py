@@ -488,7 +488,6 @@ class APELAMSDirectSender(object):
         # some hardcode matching APEL AMS publishing via SSM
         # introducing arc.conf parameters is overkill at this point
         self.ams_authport = 8443
-        self.ams_project = 'accounting'
         # auth token
         self.ams_token = None
         # publish error flag
@@ -556,7 +555,7 @@ class APELAMSDirectSender(object):
             return False
 
         publish_path = '/v1/projects/{0}/topics/{1}:publish?key={2}'.format(
-            self.ams_project, self.conf['topic'], self.ams_token
+            self.conf['project'], self.conf['topic'], self.ams_token
         )
         utcnow = datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")
         empaid = "{0}/{1}".format(utcnow[:8], utcnow)

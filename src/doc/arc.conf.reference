@@ -1728,6 +1728,11 @@
 ## default: gLite-APEL
 #topic=/queue/global.accounting.test.cpu.central
 
+
+## project = project_name - Sets the name of the APEL project to use 
+## default: accounting
+#project=accounting-nl
+
 ## *gocdb_name = name - Can be used to specify the GOCDB name of the resource.
 ## This value would be seen as Site attribute in the generated APEL records.
 ## default: undefined
