@@ -485,6 +485,8 @@ class APELAMSDirectSender(object):
         self.logger = logging.getLogger('ARC.Accounting.AMS')
         self.conf = targetconf
         self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 500
+        # AMS project
+        self.ams_project = self.conf['project'] if 'project' in self.conf else 'accounting'
         # some hardcode matching APEL AMS publishing via SSM
         # introducing arc.conf parameters is overkill at this point
         self.ams_authport = 8443
@@ -555,7 +557,7 @@ class APELAMSDirectSender(object):
             return False
 
         publish_path = '/v1/projects/{0}/topics/{1}:publish?key={2}'.format(
-            self.conf['project'], self.conf['topic'], self.ams_token
+            self.ams_project, self.conf['topic'], self.ams_token
         )
         utcnow = datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")
         empaid = "{0}/{1}".format(utcnow[:8], utcnow)
