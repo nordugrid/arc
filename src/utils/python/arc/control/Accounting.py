@@ -318,6 +318,11 @@ class AccountingControl(ComponentControl):
             targetconf['apel_messages'] = args.apel_messages
         elif required:
             targetconf['apel_messages'] = 'summaries'
+        # configurable APEL project
+        if args.apel_project is not None:
+            targetconf['project'] = args.apel_project
+        elif required:
+            targetconf['project'] = 'accounting'
         # gocdb is mandatory (if not specified, check will fail in __check_target_confdict during republish)
         if args.gocdb_name is not None:
             targetconf['gocdb_name'] = args.gocdb_name
@@ -510,6 +515,7 @@ class AccountingControl(ComponentControl):
         apel_options.add_argument('--apel-messages', required=False,
                                   help='Define APEL messages (default is summaries)',
                                   choices=['urs', 'summaries'])
+        apel_options.add_argument('--apel-project', required=False, help='Define APEL project (default is "accounting")')
         apel_options.add_argument('--gocdb-name', required=False, help='(Re)define GOCDB site name')
 
         sgas_options = accounting_republish.add_argument_group(title='SGAS',
