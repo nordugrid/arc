@@ -3,9 +3,9 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.19.0   09.04.2024
+Release Notes for NorduGrid ARC  6.19.0   10.04.2024
 =======================================================
-This release comes with a critical bugfix, but also includes a set of other useful smaller improvements and fixes, like ensuring that logs are transferred when submitting HTTPS (EMIES or REST), see  Bugzilla 4143, and some fixes related to swig in Fedora 40. 
+This release comes with a critical bugfix (Bugzilla 4147 and 4148), but also includes a set of other useful smaller improvements and fixes, like ensuring that logs are transferred when submitting HTTPS (EMIES or REST), see  Bugzilla 4143, some fixes related to swig in Fedora 40, in addition to project name now being configurable for Apel accounting. 
 
 See the list of Bugzilla tickets for more details. 
 
@@ -21,6 +21,7 @@ The following Bugzilla tickets have been resolved:
 * 4147  Unlimited recursion in data cache handling code
 * 4144  Test failures on Fedora 40, likely due to swig 4.2 update
 * 4143  Arcget for jobs submitted via HTTPS doesn't transfer gmlog
+* 4139  Please make ARGO project configurable in arc.conf
 * 4138  Failed to shut down SSL: SSL error, "shutdown while in init", at "SSL routines" library, with "unknown" alert 
 
 
@@ -66,6 +67,7 @@ Getting in touch
 If you need help with the configuration file or have any other questions related to ARC 6, please contact us via
 * Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
 * Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
+* Report a bug: https://bugzilla.nordugrid.org/
 
 
 Future support of ARC 5-series
@@ -85,10 +87,6 @@ To install ARC 6 from EPEL7 the package-names are of type: nordugrid-arc6-*
 
 Known issues
 ==============
-* In Centos8 the openldap server is not installable because slapd is not available in the RHEL8 release (Bugzilla 3944).
-  As a consequence, the LDAP-based server-side information system interface of the ARC-CE will not be available either.
-  If interaction with the ARC-CE relies on LDAP-based information schemas (glue1.3 or nordugrid schema),
-  then we recommend that you stay with Centos7 for the time being.
 * Related to the new accounting system introduded in release 6.4.0: 
   * Accounting records created by ARC 6.4.0 are affected by a bug causing missing benchmark values:
    https://bugzilla.nordugrid.org./show_bug.cgi?id=3921#c3
