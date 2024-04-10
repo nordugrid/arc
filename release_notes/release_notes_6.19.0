@@ -75,10 +75,6 @@ Future support of ARC 5-series
 As of June 2020 no more security updates are provided to ARC 5.
 Also since the release of ARC 6 in June 2019, no more development on the ARC 5 code base has been provided.
 
-Production Sites already running ARC 5 will still get operational site support in form of
-deployment and configuration troubleshooting help via GGUS until end June 2021.
-However, we may recommend upgrading to ARC 6 depending on the issues the site is facing. 
-
 ARC5 is available in EPEL7 and will stay there. EPEL8 will only contain ARC 6.
 To install ARC 6 from EPEL7 the package-names are of type: nordugrid-arc6-* 
 
