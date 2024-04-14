@@ -76,7 +76,7 @@ namespace Arc {
     static Logger logger;
 
   public:
-    /** Example contructor - MCC takes at least it's configuration subtree */
+    /** Example constructor - MCC takes at least it's configuration subtree */
     MCC(Config *, PluginArgument* arg);
 
     virtual ~MCC();

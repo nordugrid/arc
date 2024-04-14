@@ -441,7 +441,7 @@ namespace Arc {
       }
 
       /* We wait for the preferred result object. The wait returns in two cases:
-       * 1. one sub-thread was succesful
+       * 1. one sub-thread was successful
        * 2. all the sub-threads failed
        * Now check which case happens.
        */

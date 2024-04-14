@@ -146,7 +146,7 @@ namespace Arc {
           // success - for filesystems with hardlinks 
           remove(tmpfile.c_str());
         }
-        // succes creating lock file - check it's really there with the correct pid and hostname
+        // success creating lock file - check it's really there with the correct pid and hostname
         if (check(true) != 0) {
           logger.msg(ERROR, "Error in lock file %s, even though linking did not return an error", lock_file);
           return false;

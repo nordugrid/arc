@@ -17307,7 +17307,7 @@ msgid "Failed to read database schema file at %s"
 msgstr "Misslyckades med att läsa databasschemafil på %s"
 
 #: src/services/a-rex/grid-manager/accounting/AccountingDBSQLite.cpp:63
-msgid "Accounting database initialized succesfully"
+msgid "Accounting database initialized successfully"
 msgstr "Bokföringsdatabas initierad"
 
 #: src/services/a-rex/grid-manager/accounting/AccountingDBSQLite.cpp:65
@@ -19685,12 +19685,12 @@ msgid "OptimizedInformationContainer failed to parse XML"
 msgstr "OptimizedInformationContainer misslyckades med att tolka XML"
 
 #: src/services/a-rex/information_collector.cpp:242
-msgid "OptimizedInformationContainer failed to rename temprary file"
+msgid "OptimizedInformationContainer failed to rename temporary file"
 msgstr ""
 "OptimizedInformationContainer misslyckades med att byta namn på temporär fil"
 
 #: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:36
-msgid "Default INTERNAL client contructor"
+msgid "Default INTERNAL client constructor"
 msgstr "Förvald INTERNAL klient-konstruktor"
 
 #: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:39
