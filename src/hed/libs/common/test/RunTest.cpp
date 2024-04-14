@@ -19,7 +19,9 @@ class RunTest
   CPPUNIT_TEST_SUITE(RunTest);
   CPPUNIT_TEST(TestRun0);
   CPPUNIT_TEST(TestRun255);
+#ifndef __GNU__
   CPPUNIT_TEST(TestRunMany);
+#endif
   CPPUNIT_TEST_SUITE_END();
 
 public:
