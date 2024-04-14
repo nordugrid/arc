@@ -803,7 +803,7 @@ namespace Arc {
   /// Job description parsing or assembly result
   /**
    * This structure holds boolean value and a string. The boolean indicates
-   * whether parsing or assembling a job description was succesful, while the
+   * whether parsing or assembling a job description was successful, while the
    * string gives an explanation in human readable text.
    * 
    * \ingroup compute

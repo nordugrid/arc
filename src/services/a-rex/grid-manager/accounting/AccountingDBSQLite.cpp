@@ -60,7 +60,7 @@ namespace ARex {
                 closeDB();
                 return;
             }
-            AccountingDBSQLite::logger.msg(Arc::INFO, "Accounting database initialized succesfully");
+            AccountingDBSQLite::logger.msg(Arc::INFO, "Accounting database initialized successfully");
         }
         AccountingDBSQLite::logger.msg(Arc::DEBUG, "Accounting database connection has been established");
     }

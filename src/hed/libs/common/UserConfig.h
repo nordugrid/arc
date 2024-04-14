@@ -300,7 +300,7 @@ namespace Arc {
      *   X509_USER_PROXY. If value is set and corresponding file does
      *   not exist it considered to be an error and no other locations
      *   are tried.  If found no more proxy paths are tried.
-     * - Current proxy path as passed to the contructor, explicitly set
+     * - Current proxy path as passed to the constructor, explicitly set
      *   using the setter method ProxyPath(const std::string&) or read
      *   from configuration by constructor or LoadConfiguartionFile()
      *   method. If value is set and corresponding file does not exist
@@ -315,7 +315,7 @@ namespace Arc {
      *   corresponding files do not exist it considered to be an error
      *   and no other locations are tried. Error message is suppressed
      *   if proxy was previously found.
-     * - Current key/certificate paths passed to the contructor or
+     * - Current key/certificate paths passed to the constructor or
      *   explicitly set using the setter methods KeyPath(const std::string&)
      *   and CertificatePath(const std::string&) or read from configuration
      *   by constructor or LoadConfiguartionFile() method. If values
