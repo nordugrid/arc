@@ -16762,7 +16762,7 @@ msgid "Failed to read database schema file at %s"
 msgstr "Сбой чтения файла схемы базы данных в %s"
 
 #: src/services/a-rex/grid-manager/accounting/AccountingDBSQLite.cpp:63
-msgid "Accounting database initialized succesfully"
+msgid "Accounting database initialized successfully"
 msgstr "Успешно инициализирована база данных учёта задач"
 
 #: src/services/a-rex/grid-manager/accounting/AccountingDBSQLite.cpp:65
@@ -18938,11 +18938,11 @@ msgid "OptimizedInformationContainer failed to parse XML"
 msgstr "OptimizedInformationContainer не смог разобрать XML"
 
 #: src/services/a-rex/information_collector.cpp:242
-msgid "OptimizedInformationContainer failed to rename temprary file"
+msgid "OptimizedInformationContainer failed to rename temporary file"
 msgstr "OptimizedInformationContainer не смог переименовать временный файл"
 
 #: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:36
-msgid "Default INTERNAL client contructor"
+msgid "Default INTERNAL client constructor"
 msgstr "Конструктор по умолчанию клиента INTERNAL"
 
 #: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:39

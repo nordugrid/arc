@@ -189,7 +189,7 @@ Daemon::Daemon(const std::string& pid_file_, const std::string& log_file_, bool 
         }; break;
         default: // original parent
             if(!watchdog) init_parent(pid,pid_file);
-            /* succesful exit from parent */
+            /* successful exit from parent */
             _exit(0);
     }
 }

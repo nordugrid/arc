@@ -211,7 +211,7 @@ handle_commentfile () {
     save_commentfile "$uid" "${sessiondir}.comment" "${basenames[$localid]}/errors"
 }
 
-# This function is called after a successfull call to handle_diag_file.
+# This function is called after a successful call to handle_diag_file.
 # It fetches the exitcode from SLURM and inserts the code into the $localid/lrms_done file
 # The kicklist is updated to include the $localid of this job
 #

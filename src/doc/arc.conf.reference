@@ -894,7 +894,7 @@
 ##   "timeout"
 ##      defines the timeout in seconds to wait for plugin execution ("timeout=" can be omitted).
 ##   "onsuccess", "onfailure", "ontimeout"
-##      defines the action that A-REX should take on succesfull execution (exit code 0),
+##      defines the action that A-REX should take on successful execution (exit code 0),
 ##      failed execution (exit code is not 0) or execution timeout respectively.
 ## Possible actions are:
 ##   - "pass" - continue executing job,
