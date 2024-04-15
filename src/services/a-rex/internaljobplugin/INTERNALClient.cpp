@@ -33,7 +33,7 @@ namespace ARexINTERNAL {
 
   INTERNALClient::INTERNALClient(void) : config(NULL), arexconfig(NULL) {
 
-    logger.msg(Arc::DEBUG,"Default INTERNAL client contructor");
+    logger.msg(Arc::DEBUG,"Default INTERNAL client constructor");
 
     if(!SetAndLoadConfig()){
       logger.msg(Arc::ERROR,"Failed to load grid-manager configfile");

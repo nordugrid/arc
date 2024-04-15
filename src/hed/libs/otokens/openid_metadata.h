@@ -53,7 +53,7 @@ namespace Arc {
     //! Parse metadata as simple string.
     OpenIDMetadata(std::string const& jwseCompact);
 
-    //! Default contructor creates empty metadata.
+    //! Default constructor creates empty metadata.
     OpenIDMetadata();    
 
     //! Ordinary destructor

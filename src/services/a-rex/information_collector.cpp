@@ -239,7 +239,7 @@ void OptimizedInformationContainer::Assign(const std::string& xml, const std::st
   } else {
     if(::rename(tmpfilename.c_str(), filename.c_str()) != 0) {
       olock_.unlock();
-      Arc::Logger::getRootLogger().msg(Arc::ERROR,"OptimizedInformationContainer failed to rename temprary file");
+      Arc::Logger::getRootLogger().msg(Arc::ERROR,"OptimizedInformationContainer failed to rename temporary file");
       return;
     };
     // Do not delete old file if same name requested - it is removed by rename()
