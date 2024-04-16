@@ -53,18 +53,53 @@ static void get_word(std::string& s,std::string& word) {
   w_s=s.find_first_not_of(" \t");
   if(w_s == std::string::npos) { s.resize(0); return; };
   if(s[w_s] == '\'') {
-    w_e=s.find('\'',++w_s);
+    // Globus way - till ' with \ escape.
+    ++w_s;
+    bool escape = false;
+    while(w_s < s.length()) {
+      if(!escape) {
+        if(s[w_s] == '\'') {
+           ++w_s;
+          break;
+        }
+      } else {
+        escape = false;
+      }
+      if(s[w_s] == '\\') {
+        escape = true;
+        ++w_s;
+        continue;
+      }
+      word.append(1, s[w_s]);
+      ++w_s;
+    }
+    w_e = w_s;
+    if(w_e >= s.length()) w_e = std::string::npos;
   } else if(s[w_s] == '"') {
+    // Simple way - till "
     w_e=s.find('"',++w_s);
+    if(w_e == std::string::npos) {
+      word=s.substr(w_s);
+    } else {
+      word=s.substr(w_s,w_e-w_s);
+      ++w_e;
+    }
   } else {
+    // No quotes - till separator (empty space)
     w_e=s.find_first_of(" \t",w_s);
-  };
-  if(w_e == std::string::npos) w_e=s.length();
-  word=s.substr(w_s,w_e-w_s);
-  if((s[w_e] == '\'') || (s[w_e] == '"')) ++w_e;
-  w_s=s.find_first_not_of(" \t",w_e);
-  if(w_s == std::string::npos) w_s=w_e;
-  s=s.substr(w_s);
+    if(w_e == std::string::npos) {
+      word=s.substr(w_s);
+    } else {
+      word=s.substr(w_s,w_e-w_s);
+    }
+  }
+  if(w_e == std::string::npos) {
+    s.resize(0);
+  } else {
+    w_s=s.find_first_not_of(" \t",w_e);
+    if(w_s == std::string::npos) w_s=w_e;
+    s=s.substr(w_s);
+  }
   return;
 }
 
