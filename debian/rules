@@ -106,7 +106,8 @@ override_dh_auto_configure:
 		    --with-systemd-units-location=/lib/systemd/system \
 		    --with-sysv-scripts-location=/etc/init.d \
 		    --with-python=python$(PYVER) \
-		    $(WITH_ALT_PYTHON)
+		    $(WITH_ALT_PYTHON) \
+		    --disable-pylint
 
 override_dh_auto_clean:
 	dh_auto_clean
