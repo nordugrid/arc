@@ -5,6 +5,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <string>
+#include <cstring>
 #include <fstream>
 #include <unistd.h>
 #include <fcntl.h>
