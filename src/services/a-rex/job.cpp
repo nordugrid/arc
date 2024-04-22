@@ -109,6 +109,7 @@ ARexConfigContext* ARexConfigContext::GetRutimeConfiguration(Arc::Message& inmsg
     // Try tokens if TLS has no information about user identity
     logger.msg(Arc::INFO, "TLS provides no identity, going for OTokens");
     grid_name = inmsg.Attributes()->get("OTOKENS:IDENTITYDN");
+
     /*
     Below is an example on how obtained token can be exchanged.
 
@@ -778,6 +779,14 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
       job_.voms.push_back(forced_voms);
     };
   };
+  // Pull token claims if available
+  for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
+    if(*a) {
+      Arc::SecAttr* sattr = (*a)->get("OTOKENS");
+      if(sattr) job_.tokenclaim = sattr->getAll();
+      if(!job_.tokenclaim.empty()) break;
+    }
+  }
   // Write local file
   if(!job_local_write_file(job,config_.GmConfig(),job_)) {
     delete_job_id();

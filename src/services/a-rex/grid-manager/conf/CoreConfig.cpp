@@ -550,6 +550,18 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             config.job_log->SetCredentials("", "", jobreport_cadir);
           }
         }
+        else if (command == "authtokenmap") {
+          if (config.job_log) {
+            std::list<std::string> pairs;
+            Arc::tokenize(rest, pairs, ",");
+            for(std::list<std::string>::iterator pair = pairs.begin(); pair != pairs.end(); ++pair) {
+              std::string::size_type seppos = pair->find(':');
+              if(seppos != std::string::npos) {
+                config.job_log->AddTokenMap(pair->substr(0,seppos),pair->substr(seppos+1));
+              }
+            }
+          }
+        }
       };
       continue;
     };

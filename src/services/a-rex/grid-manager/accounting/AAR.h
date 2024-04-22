@@ -93,7 +93,7 @@ class AAR {
     std::map <std::string, std::string> extrainfo;
 
     /// Fetch info from the job's controldir files and fill AAR data structures
-    bool FetchJobData(const GMJob &job,const GMConfig& config);
+    bool FetchJobData(const GMJob &job,const GMConfig& config,std::map<std::string,std::list<std::string> > const& tokenmap);
   private:
     static Arc::Logger logger;
 };

@@ -120,6 +120,27 @@ std::list<std::string> OTokensSecAttr::getAll(const std::string& id) const {
     items.push_back(issuer + "/" + subject);
     return items;
   };
+  /*
+  if(id == "*") { // special name for returning all claims in name=value format
+    std::set<std::string> claimnames = jwse_.ClaimNames();
+    for(std::set<std::string>::iterator claimname = claimnames.begin(); claimname != claimnames.end(); ++claimname) {
+      cJSON const * obj = jwse_.Claim(claimname->c_str());
+      if(obj) {
+        if(obj->type == cJSON_String) {
+          if(obj->valuestring) items.push_back(*claimname+"="+obj->valuestring);
+        }
+        else if(obj->type == cJSON_Array) {
+          obj = obj->child;
+          for( ;obj; obj = obj->next) {
+            if(obj->type == cJSON_String) {
+              if(obj->valuestring) items.push_back(*claimname+"="+obj->valuestring);
+            }
+          }
+        }
+      }
+    }
+  };
+  */
   cJSON const * obj = jwse_.Claim(id.c_str());
   if(obj) {
     if(obj->type == cJSON_String) {

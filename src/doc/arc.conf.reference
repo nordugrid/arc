@@ -1507,6 +1507,11 @@
 ## x509_cert_dir = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_cert_dir}
 #x509_cert_dir=/etc/grid-security/certificates
+
+## authtokenmap = claim:attrname[,...]
+## multivalued
+## default: name:name,email:email,preferred_username:username,wlcg_groups:group
+#authtokenmap=sub:user
 ##
 ##
 ### end of the [arex/jura] block ########################################
