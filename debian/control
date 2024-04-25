@@ -28,7 +28,6 @@ Build-Depends:
  openssl,
  swig,
  libnss3-dev,
- pylint,
  libjson-xs-perl,
  libxml-simple-perl,
  libdbi-perl,
