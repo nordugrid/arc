@@ -437,6 +437,8 @@ ClientOptions::ClientOptions(Client_t c,
     no_authentication(false),
     x509_authentication(false),
     token_authentication(false),
+    force_default_ca(false),
+    force_grid_ca(false),
     testjobid(-1),
     runtime(5),
     timeout(-1)
@@ -753,6 +755,14 @@ ClientOptions::ClientOptions(Client_t c,
   GroupAddOption("tuning", '\0', "token-authentication",
               istring("perform token authentication for opened connections"),
               token_authentication);
+
+  GroupAddOption("tuning", '\0', "defaultca",
+              istring("force using CA certificates configuration provided by OpenSSL"),
+              force_default_ca);
+
+  GroupAddOption("tuning", '\0', "gridca",
+              istring("force using CA certificates configuration for Grid services (typically IGTF)"),
+              force_grid_ca);
 
 }
 

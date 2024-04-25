@@ -65,7 +65,9 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
-  
+  if (opt.force_default_ca) usercfg.CAUseDefault(true);
+  if (opt.force_grid_ca) usercfg.CAUseDefault(false);
+ 
   if (opt.list_configured_services) {
     std::map<std::string, Arc::ConfigEndpoint> allServices = usercfg.GetAllConfiguredServices();
     std::cout << "Configured registries:" << std::endl;
