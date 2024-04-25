@@ -58,7 +58,7 @@ namespace ARex {
         return owner;
     }
 
-    bool AAR::FetchJobData(const GMJob &job,const GMConfig& config) {
+    bool AAR::FetchJobData(const GMJob &job,const GMConfig& config,std::map<std::string,std::list<std::string> > const& tokenmap) {
         // jobid
         jobid = job.get_id();
 
@@ -95,6 +95,17 @@ namespace ARex {
                 authtokenattrs.push_back(aar_authtoken_t(attrname, (*it)));
                 attrname = "vomsfqan";
             }
+        }
+        // token claims to auth attributes
+        for(std::map<std::string,std::list<std::string> >::const_iterator it = tokenmap.cbegin(); it != tokenmap.cend(); ++it) {
+          std::map<std::string,std::list<std::string> >::const_iterator claims = local.tokenclaim.find(it->first);
+          if(claims != local.tokenclaim.end()) {
+            for(std::list<std::string>::const_iterator destattr = it->second.cbegin(); destattr != it->second.cend(); ++destattr) {
+              for(std::list<std::string>::const_iterator claim = claims->second.cbegin(); claim != claims->second.cend(); ++claim) {
+                authtokenattrs.emplace_back(*destattr, *claim);
+              }
+            }
+          }
         }
         // submittime
         submittime = local.starttime;

@@ -72,9 +72,9 @@ class JobLocalDescription {
                            jobname(""),jobreport(),
                            cleanuptime((time_t)(-1)),expiretime((time_t)(-1)),
                            failedstate(""),failedcause(""),
-                           credentialserver(""),freestagein(false),gsiftpthreads(1),
+                           credentialserver(""),freestagein(false)/*,gsiftpthreads(1)*/,
                            dryrun(false),diskspace(0),
-                           transfershare(JobLocalDescription::transfersharedefault)                        
+                           transfershare(JobLocalDescription::transfersharedefault)
   {}
 
   JobLocalDescription& operator=(const Arc::JobDescription& arc_job_desc);
@@ -131,17 +131,19 @@ class JobLocalDescription {
   /* attributes taken from job description */
   std::list<std::string> rte; /* runtime environments */
   std::string action;        /* what to do - must be 'request' */
-  std::string rc;            /* url to contact replica collection */
+  //std::string rc;            /* url to contact replica collection */
   std::string stdin_;         /* file name for stdin handle */
   std::string stdout_;        /* file name for stdout handle */
   std::string stderr_;        /* file name for stderr handle */
-  std::string cache;         /* cache default, yes/no */
-  int    gsiftpthreads;      /* number of parallel connections to use 
-                                during gsiftp down/uploads */
+  //std::string cache;         /* cache default, yes/no */
+  //int    gsiftpthreads;      /* number of parallel connections to use 
+  //                              during gsiftp down/uploads */
   bool   dryrun;             /* if true, this is test job */
   unsigned long long int diskspace;  /* anount of requested space on disk (unit bytes) */
 
   std::list<std::string> activityid;     /* ID of activity */
+
+  std::map<std::string, std::list<std::string> > tokenclaim;
 
   std::string transfershare; /* share assigned to job for transfer fair share */
 
