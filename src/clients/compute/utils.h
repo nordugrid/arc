@@ -190,6 +190,8 @@ public:
   bool no_authentication;
   bool x509_authentication;
   bool token_authentication;
+  bool force_default_ca;
+  bool force_grid_ca;
 
   int testjobid;
   int runtime;

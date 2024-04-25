@@ -127,6 +127,16 @@ static int runmain(int argc, char **argv) {
               istring("perform token authentication for opened connections"),
               token_authentication);
 
+  bool force_default_ca = false;
+  options.AddOption('\0', "defaultca",
+              istring("force using CA certificates configuration provided by OpenSSL"),
+              force_default_ca);
+
+  bool force_grid_ca = false;
+  options.AddOption('\0', "gridca",
+              istring("force using CA certificates configuration for Grid services (typically IGTF)"),
+              force_grid_ca);
+    
   std::string debug;
   options.AddOption('d', "debug",
                     istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
@@ -174,6 +184,8 @@ static int runmain(int argc, char **argv) {
   }
   usercfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY());
   usercfg.Timeout(timeout);
+  if (force_default_ca) usercfg.CAUseDefault(true);
+  if (force_grid_ca) usercfg.CAUseDefault(false);
 
   AuthenticationType authentication_type = UndefinedAuthentication;
   switch(authentication_type) {

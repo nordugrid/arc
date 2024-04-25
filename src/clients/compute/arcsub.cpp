@@ -66,6 +66,8 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
+  if (opt.force_default_ca) usercfg.CAUseDefault(true);
+  if (opt.force_grid_ca) usercfg.CAUseDefault(false);
 
   if (opt.show_plugins) {
     std::list<std::string> types;
