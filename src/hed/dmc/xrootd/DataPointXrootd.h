@@ -18,7 +18,7 @@ namespace ArcDMCXrootd {
    public:
     XrootdProgressHandler(DataPoint::TransferCallback callback);
     void JobProgress(uint16_t jobNum, uint64_t bytesProcessed, uint64_t bytesTotal);
-    bool ShouldCancel(uint64_t jobNum);
+    bool ShouldCancel(uint16_t jobNum);
    private:
     DataPoint::TransferCallback cb;
     bool cancel;
