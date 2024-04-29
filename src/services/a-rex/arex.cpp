@@ -459,13 +459,6 @@ Arc::MCC_Status ARexService::preProcessSecurity(Arc::Message& inmsg,Arc::Message
   if(!config) {
     // Service is not operational except public information.
     // But public information also has own authorization rules
-    if(!config_.PublicInformationEnabled()) {
-      logger_.msg(Arc::VERBOSE, "Can't obtain configuration. Public information is disabled.");
-      char const* fault = "User can't be assigned configuration";
-      return is_soap ?
-        make_soap_fault(outmsg, fault) :
-        make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, fault);
-    };
     // Check additional authorization rules
     std::list<std::pair<bool,std::string> > const & groups = config_.MatchingGroupsPublicInformation();
     if(!groups.empty()) {

@@ -191,8 +191,6 @@ public:
   bool EMIESInterfaceEnabled() const { return enable_emies_interface; }
   /// GridFTP job interface endpoint
   const std::string & GridFTPEndpoint() const { return gridftp_endpoint; }
-  /// Whether public information interface is enabled
-  bool PublicInformationEnabled() const { return enable_publicinfo; }
   /// A-REX WS-interface job submission endpoint
   const std::string & AREXEndpoint() const { return arex_endpoint; }
 
@@ -358,8 +356,6 @@ private:
   bool enable_arc_interface;
   /// Whether EMI-ES interface is enabled
   bool enable_emies_interface;
-  /// Whether public information interface is enabled
-  bool enable_publicinfo;
   /// GridFTP job endpoint
   std::string gridftp_endpoint;
   /// WS-interface endpoint
