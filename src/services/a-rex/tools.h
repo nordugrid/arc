@@ -8,11 +8,9 @@ namespace ARex {
 
 void convertActivityStatus(const std::string& gm_state,std::string& bes_state,std::string& arex_state,bool failed = false,bool pending = false);
 
-Arc::XMLNode addActivityStatus(Arc::XMLNode pnode,const std::string& gm_state,Arc::XMLNode glue_xml = Arc::XMLNode(),bool failed = false,bool pending = false);
-
 void convertActivityStatusES(const std::string& gm_state,std::string& primary_state,std::list<std::string>& state_attributes,bool failed,bool pending,const std::string& failedstate,const std::string& failedcause);
 
-Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,const std::string& gm_state,Arc::XMLNode glue_xml = Arc::XMLNode(),bool failed = false,bool pending = false,const std::string& failedstate = "",const std::string& failedcause = "");
+Arc::XMLNode addActivityStatus(Arc::XMLNode pnode,const std::string& gm_state,Arc::XMLNode glue_xml = Arc::XMLNode(),bool failed = false,bool pending = false);
 
 class JobIDGenerator {
  public:
@@ -26,24 +24,6 @@ class JobIDGenerator {
   virtual std::string GetHostname(void) = 0;
   virtual std::string GetInterface(void) = 0;
 };
-
-/*
-class JobIDGeneratorARC:public JobIDGenerator {
- public:
-  JobIDGeneratorARC(const std::string& endpoint);
-  virtual ~JobIDGeneratorARC() { };
-  virtual void SetLocalID(const std::string& id);
-  virtual Arc::XMLNode GetGlobalID(Arc::XMLNode& pnode);
-  virtual std::string GetGlobalID(void);
-  virtual std::string GetJobURL(void);
-  virtual std::string GetManagerURL(void);
-  virtual std::string GetHostname(void);
-  virtual std::string GetInterface(void);
- private:
-  std::string endpoint_;
-  std::string id_;
-};
-*/
 
 class JobIDGeneratorES:public JobIDGenerator {
  public:
