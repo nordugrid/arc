@@ -29,7 +29,7 @@ namespace ArcDMCXrootd {
     cb(bytesProcessed);
   }
 
-  bool XrootdProgressHandler::ShouldCancel(uint64_t jobNum) {
+  bool XrootdProgressHandler::ShouldCancel(uint16_t jobNum) {
     return cancel;
   }
 
