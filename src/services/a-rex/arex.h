@@ -99,21 +99,6 @@ class ARexService: public Arc::Service {
   /** Update credentials for specified job through A-REX own interface */
   Arc::MCC_Status UpdateCredentials(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& credentials);
 
-  // EMI ES operations
-  Arc::MCC_Status ESOperations(ARexConfigContext* config, std::string const & clientid, Arc::XMLNode op, Arc::PayloadSOAP* inpayload, Arc::Message& outmsg, bool& processed, bool& passed);
-  Arc::MCC_Status ESCreateActivities(ARexGMConfig& config,Arc::XMLNode in,Arc::XMLNode out,const std::string& clientid);
-  AREXOP(ESGetResourceInfo);
-  AREXOP(ESQueryResourceInfo);
-  AREXOP(ESPauseActivity);
-  AREXOP(ESResumeActivity);
-  AREXOP(ESNotifyService);
-  AREXOP(ESCancelActivity);
-  AREXOP(ESWipeActivity);
-  AREXOP(ESRestartActivity);
-  AREXOP(ESListActivities);
-  AREXOP(ESGetActivityStatus);
-  AREXOP(ESGetActivityInfo);
-
   // HTTP operations
   Arc::MCC_Status GetJob(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
   Arc::MCC_Status GetLogs(Arc::Message& inmsg,Arc::Message& outmsg,ARexGMConfig& config,std::string const& id,std::string const& subpath);
