@@ -353,15 +353,6 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
                 'yum-url': 'http://repository.egi.eu/sw/production/cas/1/current/repo-files/egi-trustanchors.repo'
             }
             pmobj.deploy_repository(repoconf)
-        elif repo == 'nordugrid':
-            print('Nordugrid repository is the general purpose repo that contains binary packages of Nordugid ARC ' \
-                  'and as a bonus includes third-party packages like IGTF CA certitificates.\n' \
-                  'Repositories installation depends on which version of Nordugrid ARC you want to use.\n' \
-                  'Please follow the http://download.nordugrid.org/repos.html and install \'nordugrid-release\' ' \
-                  'package for chosen version.\n' \
-                  'If you do not want to install Nordugrid ARC packages from the nordugrid repos ' \
-                  'consider the other sources of IGTF CA certificates.')
-            sys.exit(0)
         else:
             self.logger.error('Unsupported CA certificates repository %s', repo)
             sys.exit(1)
@@ -494,7 +485,7 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         igtf_ca.add_argument('bundle', help='IGTF CA bundle name', nargs='+',
                              choices=['classic', 'iota', 'mics', 'slcs'])
         igtf_ca.add_argument('-i', '--installrepo', help='Add specified repository that contains IGTF CA certificates',
-                             choices=['igtf', 'egi-trustanchors', 'nordugrid'])
+                             choices=['igtf', 'egi-trustanchors'])
 
         deploy_vomses = deploy_actions.add_parser('vomses', help='Deploy VOMS client configuration files')
         deploy_vomses.add_argument('vo', help='VO Name')
