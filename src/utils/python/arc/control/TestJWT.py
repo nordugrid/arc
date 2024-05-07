@@ -19,18 +19,18 @@ try:
 except ImportError:
     jwt = None
 
+import base64
+import gzip
+try:
+    import cStringIO as StringIO
+except ImportError:
+    try:
+        import io as StringIO
+    except ImportError:
+        import StringIO
+
+# defaults
 default_token_validity = 12
-
-arc_conf_snippet = """[authgroup:testjwt]
-authtokens = * {0} arc * *
-
-
-[mapping]
-map_to_user = testjwt nobody:nobody
-
-[arex/ws/jobs]
-allowaccess = testjwt
-"""
 
 def default_jwk_dir():
     if os.getuid() == 0:
@@ -39,13 +39,60 @@ def default_jwk_dir():
 
 class JWTIssuer(object):
     """Object to store public information about the JWT issuer"""
+    logger = logging.getLogger('ARCCTL.JWTIssuer')
+
     def __init__(self, iss):
-        self.logger = logging.getLogger('ARCCTL.JWTIssuer')
         self.iss = iss
         self.isshash = crc32_id(iss)
         self.jwks = {}
         self.metadata = {}
         self.logger.info('JWT issuer: %s', self.iss)
+
+    @classmethod
+    def from_dump(cls, dump):
+        """Init object from dump"""
+        try:
+            stream = StringIO.BytesIO(base64.b64decode(dump))
+            compressor = gzip.GzipFile(fileobj=stream, mode='rb')
+            data = json.loads(compressor.read().decode('utf-8'))
+        except IOError as err:
+            cls.logger.error('Failed to read the JWT issuer dump. Error: %s', str(err))
+            sys.exit(1)
+        except ValueError as err:
+            cls.logger.error('Failed to decode JWT issuer dump as JSON. Error: %s', str(err))
+            sys.exit(1)
+        try:
+            obj = cls(data['metadata']['issuer'])
+            obj.define_metadata(data['metadata'])
+            obj.define_jwks(data['jwks'])
+            return obj
+        except KeyError as err:
+            cls.logger.error('Information is missing in the JWT issuer dump. Key: %s', str(err))
+            sys.exit(1)
+
+    @classmethod
+    def parse_json(cls, jsonstr):
+        if not isinstance(jsonstr, str):
+            jsonstr = jsonstr.decode('utf-8', 'ignore')
+        try:
+            data = json.loads(jsonstr)
+        except ValueError as err:
+            cls.logger.error('Failed to decode data as JSON. Error: %s', str(err))
+            sys.exit(1)
+        return data
+
+    def dump(self):
+        """Dump data for another JWT object init"""
+        stream = StringIO.BytesIO()
+        compressor = gzip.GzipFile(fileobj=stream, mode='wb')
+        compressor.write(bytes(json.dumps({
+            'metadata': self.metadata,
+            'jwks': self.jwks
+        }, separators=(',', ':')), 'utf-8'))
+        compressor.close()
+        data = base64.b64encode(stream.getvalue()).decode('utf-8')
+        stream.close()
+        return data
 
     def __json_dump(self, dst_file=None, data={}, description=''):
         """Save json to file"""
@@ -78,21 +125,19 @@ class JWTIssuer(object):
             sys.exit(1)
 
     # metadata
-    def define_metadata(self):
+    def define_metadata(self, metadata=None):
         """Define basic metadata based on issuer URL"""
-        self.metadata = {
-            'issuer': self.iss,
-            'token_endpoint': self.iss + '/token',
-            'userinfo_endpoint': self.iss + '/userinfo',
-            'introspection_endpoint': self.iss + '/introspect',
-            'authorization_endpoint': self.iss + '/authorize',
-            'jwks_uri': self.iss + '/jwks'
-        }
-
-    def fetch_metadata(self):
-        """Fetch issuer metadata from well-known URL"""
-        # TODO: implement
-        pass
+        if metadata is None:
+            self.metadata = {
+                'issuer': self.iss,
+                'token_endpoint': self.iss + '/token',
+                'userinfo_endpoint': self.iss + '/userinfo',
+                'introspection_endpoint': self.iss + '/introspect',
+                'authorization_endpoint': self.iss + '/authorize',
+                'jwks_uri': self.iss + '/jwks'
+            }
+        else:
+            self.metadata = metadata
 
     def save_metadata(self, dst_file=None):
         """Save issuer metadata to file"""
@@ -106,11 +151,6 @@ class JWTIssuer(object):
     def define_jwks(self, jwks={}):
         """Define JWKS"""
         self.jwks = jwks
-
-    def fetch_jwks(self):
-        """Fetch data from JWKS URL"""
-        # TODO: implement
-        pass
 
     def save_jwks(self, dst_file=None):
         """Save JWKS to file"""
@@ -147,6 +187,22 @@ class JWTIssuer(object):
         print('JWKS:')
         print(json.dumps(self.jwks, indent=2))
 
+    def arc_conf(self, name='jwt', aud='*'):
+        """Return arc.conf example snippet to authorize issuer"""
+        conf = [
+            "[authgroup:{name}]",
+            "authtokens = * {iss} {aud} * *",
+            "\n[mapping]",
+            "map_to_user = {name} nobody:nobody",
+            "\n[arex/ws/jobs]",
+            "allowaccess = {name}"
+        ]
+        return '\n'.join(conf).format(**{
+            'name': name,
+            'iss': self.iss,
+            'aud': aud
+        })
+
     def url(self):
         """Return issuer URL"""
         return self.iss
@@ -175,7 +231,7 @@ class JWTIssuer(object):
         if arcconfig is None:
             self.logger.critical('Deploying issuer trust files to controldir is not possible without valid arc.conf')
             sys.exit(1)
-        return os.path.join(arcconfig.get_value('controldir', 'arex'), 'tokenissuers/test-jwt-{0}'.format(self.isshash))
+        return os.path.join(arcconfig.get_value('controldir', 'arex'), 'tokenissuers/{0}'.format(self.isshash))
 
 
 class TestJWTControl(ComponentControl):
@@ -367,25 +423,27 @@ class TestJWTControl(ComponentControl):
         self.iss.define_jwks(json.loads(jwkset.export(private_keys=False)))
         self.iss.define_metadata()
         self.iss.save(self.iss_dir)
-        # install issuer files into controldir
-        # TODO: make deploy configurable
-        # TODO: provide export/import instruction instead
-        if arcctl_server_mode() and os.getuid() == 0:
-            self.iss.controldir_save(self.arcconfig)
         # print information to end-user
         self.issuer_info()
+        # export for trust establishment
+        self.issuer_export()
 
-    def issuer_info(self, arc_conf=False):
+    def issuer_info(self):
         """Print information about token issuer"""
         # check init is done and key exists
         if self.jwk is None:
             self.load_jwk()
         # print general info about issuer
         self.iss.info()
-        # print arc.conf snippet
-        if arc_conf:
-            print('To make A-REX authorize issued tokens add the following to "arc.conf":')
-            print(arc_conf_snippet.format(self.iss.url()))
+
+    def issuer_export(self):
+        """Export JWT issuer data to be imported by ARC CE"""
+        # check init is done and key exists
+        if self.jwk is None:
+            self.load_jwk()
+        # dump data
+        print('Run the following command on ARC CE to trust the Test JWT issuer:\narcctl -d INFO deploy jwt-issuer test-jwt://', end='')
+        print(self.iss.dump())
 
     def cleanup_files(self):
         """Cleanup test JWT files for issuer"""
@@ -485,11 +543,9 @@ class TestJWTControl(ComponentControl):
         elif args.action == 'cleanup':
             self.cleanup_files()
         elif args.action == 'info':
-            self.issuer_info(args.arc_conf)
+            self.issuer_info()
         elif args.action == 'export':
-            # TODO: export functionality (along with deployment)
-            self.logger.error('Not implemented')
-            pass
+            self.issuer_export()
         elif args.action == 'config-get':
             self.jwt_conf_get(args)
         elif args.action == 'config-set':
@@ -518,7 +574,6 @@ class TestJWTControl(ComponentControl):
         testjwt_init.add_argument('-f', '--force', action='store_true', help='Overwrite files if exist')
 
         testjwt_issuer = testjwt_actions.add_parser('info', help='Show information about Test JWT issuer')
-        testjwt_issuer.add_argument('-a', '--arc-conf', action='store_true', help='Show arc.conf snippet for using issuer')
 
         testjwt_export = testjwt_actions.add_parser('export', help='Export JWT issuer information to be imported to ARC CE')
 

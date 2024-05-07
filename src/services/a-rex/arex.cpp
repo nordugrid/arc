@@ -1136,15 +1136,15 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
           if(!issuer.empty() && !metadata.empty() && !keys.empty()) {
             // Assign validity enough to the future
             if(Arc::JWSE::SetIssuerInfo(Arc::Time(time(nullptr) + Arc::Time::YEAR*10), true, issuer, metadata, keys, logger_)) {
-              logger_.msg(Arc::INFO, "Created entry for fake issuer %s", d->d_name);
+              logger_.msg(Arc::INFO, "Created entry for JWT issuer %s", d->d_name);
 	    } else {
-              logger_.msg(Arc::ERROR, "Failed to create entry for fake issuer %s", d->d_name);
+              logger_.msg(Arc::ERROR, "Failed to create entry for JWT issuer %s", d->d_name);
             }
           } else {
-            logger_.msg(Arc::ERROR, "Empty data for fake issuer %s", d->d_name);
+            logger_.msg(Arc::ERROR, "Empty data for JWT issuer %s", d->d_name);
           }
         } else {
-          logger_.msg(Arc::ERROR, "Failed to read data for fake issuer %s", d->d_name);
+          logger_.msg(Arc::ERROR, "Failed to read data for JWT issuer %s", d->d_name);
         }
       }
       closedir(dir);

@@ -1,6 +1,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+from .ControlCommon import HTTPSClientAuthConnection
 from .AccountingDB import AccountingDB, AAR
 from arc.paths import ARC_VERSION, ARC_RUN_DIR
 
@@ -10,14 +11,6 @@ import logging
 import re
 import datetime
 import calendar
-
-# SGASSender and AMSDirectSender dependencies:
-import socket
-import ssl
-try:
-    import httplib
-except ImportError:
-    import http.client as httplib
 
 # AMSDirectSender dependencies
 import json
@@ -385,43 +378,6 @@ class RecordsPublisher(object):
                 self.logger.info('Accounting data for jobs finished before %s '
                                  'have been successfully published to [%s] target',
                                  datetime.datetime.utcfromtimestamp(latest), target)
-
-
-class HTTPSClientAuthConnection(httplib.HTTPSConnection):
-    """ Class to make a HTTPS connection, with support for full client-based SSL Authentication"""
-
-    def __init__(self, host, port, key_file, cert_file, cacerts_path=None, timeout=None):
-        httplib.HTTPSConnection.__init__(self, host, port, key_file=key_file, cert_file=cert_file)
-        self.key_file = key_file
-        self.cert_file = cert_file
-        self.cacerts_path = cacerts_path
-        self.timeout = timeout
-
-    def connect(self):
-        """ Connect to a host on a given (SSL) port.
-            If ca_certs_path is pointing somewhere, use it to check Server Certificate.
-            This is needed to pass ssl.CERT_REQUIRED as parameter to SSLContext for Python 2.6+
-            which forces SSL to check server certificate against CA certificates in the defined location
-        """
-        sock = socket.create_connection((self.host, self.port), self.timeout)
-        if self._tunnel_host:
-            self.sock = sock
-            self._tunnel()
-        if self.cacerts_path and hasattr(ssl, 'SSLContext'):
-            protocol = ssl.PROTOCOL_SSLv23
-            if hasattr(ssl, 'PROTOCOL_TLS'):
-                protocol = ssl.PROTOCOL_TLS
-            # create SSL context with CA certificates verification
-            ssl_ctx = ssl.SSLContext(protocol)
-            ssl_ctx.load_verify_locations(capath=self.cacerts_path)
-            ssl_ctx.verify_mode = ssl.CERT_REQUIRED
-            ssl_ctx.load_cert_chain(self.cert_file, self.key_file)
-            ssl_ctx.check_hostname = True
-            self.sock = ssl_ctx.wrap_socket(sock, server_hostname=self.host)
-        else:
-            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file,
-                                        cert_reqs=ssl.CERT_NONE)
-
 
 class SGASSender(object):
     """Send messages to SGAS server"""
