@@ -4,22 +4,13 @@ from __future__ import absolute_import
 from .ControlCommon import *
 import sys
 import os
-try:
-    from urllib.request import Request, urlopen
-    from urllib.error import URLError
-except ImportError:
-    from urllib2 import Request, urlopen
-    from urllib2 import URLError
-try:
-    import httplib
-except ImportError:
-    import http.client as httplib
 import socket
 import ssl
 import re
 import subprocess
 import xml.etree.ElementTree as ET
 from .OSPackage import OSPackageManagement
+from .TestJWT import JWTIssuer
 
 
 class ThirdPartyControl(ComponentControl):
@@ -41,20 +32,7 @@ class ThirdPartyControl(ComponentControl):
         self.logger.info('Fetching information about VO %s from EGI Database', vo)
         dburl = 'http://operations-portal.egi.eu/xml/voIDCard/public/voname/{0}'.format(vo)
         # query database
-        req = Request(dburl)
-        try:
-            self.logger.debug('Contacting EGI VO Database at %s', dburl)
-            response = urlopen(req)
-        except URLError as e:
-            if hasattr(e, 'reason'):
-                self.logger.error('Failed to reach EGI VO Database server. Error: %s', e.reason)
-            else:
-                self.logger.error('EGI VO Database server failed to process the request. Error code: %s', e.code)
-            sys.exit(1)
-        # get response
-        rcontent = response.read()
-        if not isinstance(rcontent, str):
-            rcontent = rcontent.decode('utf-8', 'ignore')
+        rcontent = fetch_url(dburl, err_description='EGI VO Database server')
         if not rcontent.startswith('<?xml'):
             self.logger.error('VO %s is not found in EGI database', vo)
             sys.exit(1)
@@ -85,27 +63,13 @@ class ThirdPartyControl(ComponentControl):
                 vomses.append('"{0}" "{1}" "{2}" "{3}" "{0}"'.format(vo, host, port, dn))
         return vomses
 
-    def __get_socket_from_url(self, url):
-        port = 443
-        __uri_re = re.compile(r'^(?:(?:voms|http)s?://)?(?P<host>[^:/]+)(?::(?P<port>[0-9]+))?/*.*')
-        voms_re = __uri_re.match(url)
-        if voms_re:
-            url_params = voms_re.groupdict()
-            hostname = url_params['host']
-            if url_params['port'] is not None:
-                port = int(url_params['port'])
-        else:
-            self.logger.error('Failed to parse URL %s', url)
-            sys.exit(1)
-        return hostname, port
-
     def __vomsadmin_get_vomses(self, url, vo, secure=False):
-        (hostname, port) = self.__get_socket_from_url(url)
+        (hostname, port, _) = tokenize_url(url)
         vomsadmin_url = 'https://{0}:{1}/voms/{2}/configuration/configuration.action'.format(hostname, port, vo)
-        vomsadmin_path = '/voms/{0}/configuration/configuration.action'.format(vo)
-
         self.logger.debug('Contacting VOMS-Admin at %s', vomsadmin_url)
 
+        cert = None
+        key = None
         if secure:
             # try client cert
             if 'X509_USER_CERT' in os.environ and 'X509_USER_KEY' in os.environ:
@@ -121,48 +85,8 @@ class ThirdPartyControl(ComponentControl):
             if not os.path.exists(key):
                 self.logger.error('Cannon find any client certificate/key installed.')
                 sys.exit(1)
-
-            conn = HTTPSClientAuthConnection(hostname, port, key, cert)
-            try:
-                conn.request('GET', vomsadmin_path)
-                response = conn.getresponse()
-            except Exception as err:
-                self.logger.error('Failed to reach VOMS-Admin server. Error: %s', str(err))
-                sys.exit(1)
-            else:
-                if response.status != 200:
-                    conn.close()
-                    self.logger.error('VOMS-Admin server failed to process the request. '
-                                      'Error code %s (%s)', str(response.status), str(response.reason))
-                    sys.exit(1)
-                # get response
-                rcontent = response.read()
-                if not isinstance(rcontent, str):
-                    rcontent = rcontent.decode('utf-8', 'ignore')
-                conn.close()
-        else:
-            try:
-                req = Request(vomsadmin_url)
-                if hasattr(ssl, '_create_unverified_context'):
-                    # Python 2.7.9+ has SSL verification turned on and introduce context
-                    context = ssl._create_unverified_context()
-                    response = urlopen(req, context=context)
-                else:
-                    response = urlopen(req)
-            except URLError as e:
-                if hasattr(e, 'reason'):
-                    self.logger.error('Failed to reach VOMS-Admin server. Error: %s', e.reason)
-                else:
-                    self.logger.error('VOMS-Admin server failed to process the request. Error code: %s', e.code)
-                self.logger.error('Try to contact VOMS-Admin with client certificate '
-                                  '(using --use-client-cert option)')
-                sys.exit(1)
-            else:
-                # get response
-                rcontent = response.read()
-                if not isinstance(rcontent, str):
-                    rcontent = rcontent.decode('utf-8', 'ignore')
-
+        # fetch URL content
+        rcontent = fetch_url(vomsadmin_url, key, cert, err_description='VOMS-Admin server')
         # parse vomses from the response
         _re_vomses_header = re.compile(r'VOMSES')
         _re_vomses_content = re.compile(r'class="configurationInfo">(.*)$')
@@ -191,7 +115,7 @@ class ThirdPartyControl(ComponentControl):
 
     def __get_ssl_cert_openssl(self, url, compat=False):
         # parse connection parameters
-        (hostname, port) = self.__get_socket_from_url(url)
+        (hostname, port, _) = tokenize_url(url)
         # try to connect using openssl
         try:
             cmd = ['openssl', 's_client', '-connect'] + ['{0}:{1}'.format(hostname, port)]
@@ -236,7 +160,7 @@ class ThirdPartyControl(ComponentControl):
         return attr
 
     def __get_ssl_cert(self, url):
-        (hostname, port) = self.__get_socket_from_url(url)
+        (hostname, port, _) = tokenize_url(url)
         # try to establish connection with socket/ssl directly
         try:
             context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
@@ -381,6 +305,42 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
                               'Make sure you have repositories installed (see --help for options).')
             sys.exit(exitcode)
 
+    def jwt_deploy(self, url, ca):
+        if url.startswith('test-jwt://'):
+            iss = JWTIssuer.from_dump(url[11:])
+            arc_conf = iss.arc_conf('testjwt', 'arc')
+        elif url.startswith('https://'):
+            if not url.endswith('/.well-known/openid-configuration'):
+                url = url + '/.well-known/openid-configuration'
+            # define CA bundle
+            if ca == 'system':
+                capath = system_ca_bundle()
+            elif ca == 'grid':
+                capath = self.x509_cert_dir
+            elif ca == 'insecure':
+                capath = None
+            else:
+                self.logger.error('Failed to define CA bundle. %s is not a valid option', ca)
+                sys.exit(1)
+            # fetch metadata
+            jwt_metadata = JWTIssuer.parse_json(
+                fetch_url(url, cacerts_path=capath, err_description='JWT Issuer metadata'))
+            try:
+                iss = JWTIssuer(jwt_metadata['issuer'])
+                iss.define_metadata(jwt_metadata)
+                iss.define_jwks(JWTIssuer.parse_json(
+                    fetch_url(jwt_metadata['jwks_uri'], cacerts_path=capath, err_description='JWKS URI')
+                ))
+            except KeyError as err:
+                self.logger.error('Failed to process JWT issuer metadata. Error: %s', str(err))
+                sys.exit(1)
+            arc_conf = iss.arc_conf('jwt-{0}'.format(iss.hash()))
+        self.logger.info('Establishing trust with JWT Issuer: %s', iss.url())
+        iss.controldir_save(self.arcconfig)
+        print('ARC CE now trust JWT signatures of {0} issuer.\n'.format(iss.url()))
+        print('To allow users to submit jobs, arc.conf needs auth configuration like this:')
+        print(arc_conf)
+
     def __globus_port_range(self, ports, proto, conf, iptables_config, subsys='data transfer'):
         if ports is None:
             self.logger.warning('Globus %s port range for %s is not configured! '
@@ -475,6 +435,8 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             self.vomses_deploy(args)
         elif args.action == 'igtf-ca':
             self.igtf_deploy(args.bundle, args.installrepo)
+        elif args.action == 'jwt-issuer':
+            self.jwt_deploy(args.url, args.ca)
         elif args.action == 'iptables-config':
             self.iptables_config(args.multiport, args.any_state)
         else:
@@ -518,6 +480,11 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
                                      help='Use Python SSL module to establish TLS connection '
                                           '(default is to call external OpenSSL binary)')
         if arcctl_server_mode():
+            jwt_iss = deploy_actions.add_parser('jwt-issuer', help='Deploy JWT Issuer trust data')
+            jwt_iss.add_argument('url', help='Issuer metadata URL (.well-known/configuration or test-jwt://)')
+            jwt_iss.add_argument('--ca', help='PKI CA Bundle (default is %(default)s)', action='store', default='system',
+                                choices=['system', 'grid', 'insecure'])
+
             iptables = deploy_actions.add_parser('iptables-config',
                                                  help='Generate iptables config to allow ARC CE configured services')
             iptables.add_argument('--any-state', action='store_true',
@@ -525,33 +492,3 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             iptables.add_argument('--multiport', action='store_true',
                                   help='Use one-line multiport filter instead of per-service entries')
 
-
-class HTTPSClientAuthConnection(httplib.HTTPSConnection):
-    """ Class to make a HTTPS connection, with support for full client-based SSL Authentication"""
-
-    def __init__(self, host, port, key_file, cert_file, ca_file=None, timeout=None):
-        httplib.HTTPSConnection.__init__(self, host, port, key_file=key_file, cert_file=cert_file)
-        self.key_file = key_file
-        self.cert_file = cert_file
-        self.ca_file = ca_file
-        self.timeout = timeout
-
-    def connect(self):
-        """ Connect to a host on a given (SSL) port.
-            If ca_file is pointing somewhere, use it to check Server Certificate.
-
-            Redefined/copied and extended from httplib.py:1105 (Python 2.6.x).
-            This is needed to pass cert_reqs=ssl.CERT_REQUIRED as parameter to ssl.wrap_socket(),
-            which forces SSL to check server certificate against our client certificate.
-        """
-        sock = socket.create_connection((self.host, self.port), self.timeout)
-        if self._tunnel_host:
-            self.sock = sock
-            self._tunnel()
-        # If there's no CA File, don't force Server Certificate Check
-        if self.ca_file:
-            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file,
-                                        ca_certs=self.ca_file, cert_reqs=ssl.CERT_REQUIRED)
-        else:
-            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file,
-                                        cert_reqs=ssl.CERT_NONE)

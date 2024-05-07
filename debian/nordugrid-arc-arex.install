@@ -6,8 +6,6 @@ debian/tmp/usr/lib/arc/inputcheck
 debian/tmp/usr/lib/arc/jura-ng
 debian/tmp/usr/lib/arc/smtp-send
 debian/tmp/usr/lib/arc/smtp-send.sh
-debian/tmp/usr/lib/arc/maketoken
-debian/tmp/usr/lib/arc/makeissuer
 
 debian/tmp/usr/share/arc/cancel-*-job
 debian/tmp/usr/share/arc/scan-*-job
