@@ -28,7 +28,6 @@
 ## The arc.conf configuration file consists of the following blocks: 
 ##
 ##  [common]
-##  [authtokens]
 ##  [authgroup:groupname]
 ##  [mapping]
 ##  [lrms]
@@ -233,16 +232,6 @@
 ##
 ##
 ### end of the [common] block ##############################################
-
-
-### The [authtokens] block ##############################################
-## This block activates processing of OIDC tokens as defined in WLCG profile.
-## TODO: remove when it is actually always enabled in the code
-##
-#[authtokens]
-##
-##
-### end of the [authtokens] block ##############################################
 
 
 ### The [authgroup:groupname] blocks ##########################
