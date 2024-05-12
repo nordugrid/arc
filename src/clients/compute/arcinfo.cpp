@@ -122,11 +122,12 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
       break;
   }
 
-  std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
+  if (!opt.canonicalizeARC6InterfaceTypes(logger)) return 1;
+  std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.submit_types.front(), opt.info_types.front());
 
   std::set<std::string> preferredInterfaceNames;
   if (usercfg.InfoInterface().empty()) {
-    preferredInterfaceNames.insert("org.nordugrid.ldapglue2");
+    preferredInterfaceNames.insert("org.nordugrid.arcrest");
   } else {
     preferredInterfaceNames.insert(usercfg.InfoInterface());
   }

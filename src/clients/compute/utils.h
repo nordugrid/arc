@@ -153,9 +153,6 @@ public:
                 const std::string& summary = "",
                 const std::string& description = "");
 
-  /// Returns the boolean value indication whether new ARC6 set of target selection options are in use
-  bool isARC6TargetSelectionOptions(Arc::Logger& logger, bool allow_cluster = false);
-
   /// Implement ARC consistent info/submission endpoint types logic
   bool canonicalizeARC6InterfaceTypes(Arc::Logger& logger);
 
