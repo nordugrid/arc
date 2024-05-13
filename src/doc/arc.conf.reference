@@ -37,7 +37,6 @@
 ##  [arex/data-staging]
 ##  [arex/ws]
 ##  [arex/ws/jobs]
-##  [arex/ws/publicinfo]
 ##  [arex/ws/cache]
 ##  [arex/ws/candypond]
 ##  [arex/jura]
@@ -50,6 +49,7 @@
 ##  [infosys/glue2]
 ##  [infosys/glue2/ldap]
 ##  [infosys/cluster]
+##  [infosys/accesscontrol]
 ##  [queue:name]
 ##  [datadelivery-service]
 ##  [custom:blockname]
@@ -1367,28 +1367,6 @@
 ### end of the [arex/ws/jobs] block ##############################
 
 
-### The [arex/ws/publicinfo] block ################################
-## AREX allows access to public informaton for non-authorized users.
-## Presence of this block enables such feature.
-## TODO: remove when implicitly enabled in code
-#[arex/ws/publicinfo]
-
-## allowaccess = authgroup - Defines that the specified authgroup members are authorized to access
-## public information. For more information see similar configuration option in [arex/ws/jobs] block.
-## default: undefined
-## multivalued
-#allowaccess=monitors
-
-## denyaccess = authgroup - Defines that the specified authgroup members are REJECTED, not authorized
-## to access public information. For more information see similar configuration option in [arex/ws/jobs] block.
-## default: undefined
-## multivalued
-#denyaccess=badactors
-##
-##
-### end of the [arex/ws/publicinfo] block ####################
-
-
 ### The [arex/ws/cache] block ################################
 ## The content of the A-REX cache can be accessed via a WS-interface.
 ## Configuring this block will allow reading cache files through a special URL.
@@ -2112,6 +2090,27 @@
 ##
 ##
 ### end of the [infosys/cluster] block #####################
+
+
+### The [infosys/accesscontrol] block ################################
+## AREX allows to control access to public informaton for non-authorized users.
+## If this block contains no entries public information is available to anyone.
+#[infosys/accesscontrol]
+
+## allowaccess = authgroup - Defines that only the specified authgroup members are authorized to access
+## public information. For more information see similar configuration option in [arex/ws/jobs] block.
+## default: undefined
+## multivalued
+#allowaccess=monitors
+
+## denyaccess = authgroup - Defines that the specified authgroup members are REJECTED, not authorized
+## to access public information. For more information see similar configuration option in [arex/ws/jobs] block.
+## default: undefined
+## multivalued
+#denyaccess=badactors
+##
+##
+### end of the [infosys/accesscontrol] block ####################
 
 
 ### The [queue:name] blocks #######################################
