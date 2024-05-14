@@ -99,7 +99,6 @@ void GMConfig::SetDefaults() {
 
   enable_arc_interface = false;
   enable_emies_interface = false;
-  enable_publicinfo = false;
 
   cert_dir = Arc::GetEnv("X509_CERT_DIR");
   voms_dir = Arc::GetEnv("X509_VOMS_DIR");

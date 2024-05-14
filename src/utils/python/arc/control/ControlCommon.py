@@ -81,6 +81,25 @@ def ensure_path_writable(path):
         logger.error("The path '%s' is not writable for user running arcctl", path)
         sys.exit(1)
 
+def write_conf_d(name, content, overwrite=True):
+    """Write configuration to arc.conf.d directory"""
+    conf_d = ARC_CONF + '.d'
+    try:
+        # make sure we have conf.d
+        if not os.path.isdir(conf_d):
+            os.mkdir(conf_d, 0o755)
+        ensure_path_writable(conf_d)
+        # write configuration file
+        conf_f = os.path.join(conf_d, name)
+        if os.path.exists(conf_f) and not overwrite:
+            logger.errro('File %s is already exists and overwrite is not allowed.', name)
+            sys.exit(1)
+        with open(conf_f, 'w') as cf:
+            cf.write(content + '\n')
+        return conf_f
+    except IOError as err:
+        logger.error('Failed to write %s configuration file. Error %s', name, str(err))
+        sys.exit(1)
 
 def get_parsed_arcconf(conf_f):
     """Return parsed arc.conf (taking into account defaults and cached running config if applicable"""
@@ -128,6 +147,10 @@ def get_parsed_arcconf(conf_f):
         logger.debug('Getting ARC configuration (config file: %s)', conf_f)
         if runconf_load:
             arcconf_mtime = os.path.getmtime(conf_f)
+            for conf_d_f in config.get_arc_conf_d(conf_f):
+                confd_mtime = os.path.getmtime(conf_d_f)
+                if confd_mtime > arcconf_mtime:
+                    arcconf_mtime = confd_mtime
             default_mtime = os.path.getmtime(config.defaults_defpath())
             runconf_mtime = os.path.getmtime(arcctl_runtime_config)
             if runconf_mtime < arcconf_mtime or runconf_mtime < default_mtime:
@@ -167,7 +190,6 @@ def control_path(control_dir, job_id, file_type):
         logger.error('The jobid "%s" does not have the right format/length', job_id)
         return ''
     return '{0}/jobs/{1}/{2}'.format(control_dir, job_path, file_type)
-
 class ComponentControl(object):
     """ Common abstract class to ensure all implicit calls to methods are defined """
     def control(self, args):
