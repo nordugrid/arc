@@ -140,6 +140,8 @@ def is_multivalued(reference_f, reqblock, reqoption):
     for line in get_option_description(reference_f, reqblock, reqoption):
         if line.startswith('## multivalued'):
             return True
+        if line.startswith('## sequenced'):
+            return True
     return False
 
 

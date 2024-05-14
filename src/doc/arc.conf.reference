@@ -54,6 +54,10 @@
 ##  [datadelivery-service]
 ##  [custom:blockname]
 ##
+## If "arc.conf.d" directory exists next to "arc.conf" file, all files in this directory
+## ending with ".conf" will be read in alphabetical order and their content merged with
+## the arc.conf file.
+##
 ## A block configures an ARC service, a service interface, a utility or a subsystem.
 ## Enabling (turning on) a functionality, a service or an interface requires the presence of the
 ## appropriate configuration block. To disable a service or an interface, simply delete or
@@ -118,14 +122,19 @@
 ## they are missing (or commented out). Configuration parameters with "undefined" defaults takes
 ## no values. Furthermore, configuration options within disabled blocks takes no values either.
 ##
-## Configuration blocks are ORDER-DEPENDENT. To be safe, please use the order as indicated in the list
-## of blocks in this reference. This is especially important for configuration blocks related to
-## authorization and mapping. The order dependency is also honoured within options inside a certain block.
-##
+## Configuration blocks are ORDER-DEPENDENT. The order dependency is also honoured within options
+## inside a certain block.
 ## This means for instance that configuration blocks related to authorization MUST appear before used in
 ## the blocks such as [mapping], [arex/ws/jobs] or [gridftp/jobs]. Order dependency within a block is
 ## for instance important when it comes to authorization decisions, as the first matching rule is used.
-## For more details see the specific block reference.
+##
+## ARC configuration parser makes sure that blocks are AUTOMATICALLY RE-ORDERED in accordance to the
+## defaults-defined order of block keywords. Several blocks with the same keyword but different
+## identifiers (named blocks) will be sorted in according to read-out order.
+##
+## When the same block is defined in the several files in "arc.conf.d" directory, configuration options
+## inside this block are appended in the read-out order. Complex logic (like overrides) is not supported.
+## It is advised to use "arcctl config dump" to verify the desired running configuration after merge.
 ##
 ## Below we give a detailed description of all the configuration options of the
 ## different configuration blocks. Every configuration option is described
@@ -339,6 +348,7 @@
 ##  - "()" - brackets are used to control priority of evaluation, without brackets all operators have same priority
 ##  - '' or "" - strings can be enclosd in quotes to allow special symbols in strings
 ## All empty spaces are optional. This functionality is experimental.
+## sequenced
 ## default: undefined
 #authtokensgen = (sub=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0) & (iss="https://wlcg.cloud.cnaf.infn.it/")
 ## CHANGE: NEW in 7.0.0.
