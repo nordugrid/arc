@@ -296,10 +296,10 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
                               'Make sure you have repositories installed (see --help for options).')
             sys.exit(exitcode)
 
-    def jwt_deploy(self, url, ca):
+    def jwt_deploy(self, url, ca, deploy_conf=False):
         if url.startswith('test-jwt://'):
             iss = JWTIssuer.from_dump(url[11:])
-            arc_conf = iss.arc_conf('testjwt', 'arc')
+            arc_conf = iss.arc_conf('testjwt-{0}'.format(iss.hash()), 'arc')
         elif url.startswith('https://'):
             if not url.endswith('/.well-known/openid-configuration'):
                 url = url + '/.well-known/openid-configuration'
@@ -329,8 +329,13 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         self.logger.info('Establishing trust with JWT Issuer: %s', iss.url())
         iss.controldir_save(self.arcconfig)
         print('ARC CE now trust JWT signatures of {0} issuer.\n'.format(iss.url()))
-        print('To allow users to submit jobs, arc.conf needs auth configuration like this:')
-        print(arc_conf)
+        if deploy_conf:
+            conf_d_f = write_conf_d('10-jwt-{0}.conf'.format(iss.hash()), arc_conf)
+            print('Auth configuration for issuer tokens has been written to {0}'.format(conf_d_f))
+            print('ARC restart is needed to apply configuration.')
+        else:
+            print('To allow users to submit jobs, arc.conf needs auth configuration like this:')
+            print(arc_conf)
 
     def __globus_port_range(self, ports, proto, conf, iptables_config, subsys='data transfer'):
         if ports is None:
@@ -427,7 +432,7 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         elif args.action == 'igtf-ca':
             self.igtf_deploy(args.bundle, args.installrepo)
         elif args.action == 'jwt-issuer':
-            self.jwt_deploy(args.url, args.ca)
+            self.jwt_deploy(args.url, args.ca, args.deploy_conf)
         elif args.action == 'iptables-config':
             self.iptables_config(args.multiport, args.any_state)
         else:
@@ -475,6 +480,8 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             jwt_iss.add_argument('url', help='Issuer metadata URL (.well-known/configuration or test-jwt://)')
             jwt_iss.add_argument('--ca', help='PKI CA Bundle (default is %(default)s)', action='store', default='system',
                                 choices=['system', 'grid', 'insecure'])
+            jwt_iss.add_argument('-i', '--deploy-conf', help='Automatically add atuh configuration snipped to arc.conf.d',
+                                 action='store_true')
 
             iptables = deploy_actions.add_parser('iptables-config',
                                                  help='Generate iptables config to allow ARC CE configured services')

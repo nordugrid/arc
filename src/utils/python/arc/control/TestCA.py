@@ -27,6 +27,35 @@ class TestCAControl(ComponentControl):
     __test_hostkey = '/etc/grid-security/testCA-hostkey.pem'
     __test_authfile = '/etc/grid-security/testCA.allowed-subjects'
 
+    __conf_d_access = '10-testCA-access.conf'
+    __conf_d_hostcert = '00-testCA-hostcert.conf'
+
+    def __arc_conf_access(self):
+        """Template for arc.conf: allow access to testCA issued certs"""
+        conf = [
+            "#\n# Allow testCA issued certificates to submit jobs\n#",
+            "\n[authgroup:testCA]",
+            "file = {0}",
+            "\n[mapping]",
+            "map_to_user = testCA nobody:nobody",
+            "\n[arex/ws/jobs]",
+            "allowaccess = testCA"
+        ]
+        return '\n'.join(conf).format(self.__test_authfile)
+
+    def __arc_conf_hostcert(self):
+        """Template for arc.conf: hostcerts from testCA"""
+        conf = [
+            "#\n# Use host certificate signed by testCA\n#",
+            "\n[common]",
+            "x509_host_key = {0}",
+            "x509_host_cert = {1}"
+        ]
+        return '\n'.join(conf).format(
+            self.__test_hostkey,
+            self.__test_hostcert
+        )
+
     def __define_CA_ID(self, caid=None):
         """Internal function to define CA ID and file paths"""
         if caid is None:
@@ -89,6 +118,8 @@ class TestCAControl(ComponentControl):
         # CA name from hostname
         cg = CertificateGenerator(self.x509_cert_dir)
         cg.generateCA(self.caName, validityperiod=args.validity, messagedigest=args.digest, force=args.force)
+        # add arc.conf to authorize testCA users
+        write_conf_d(self.__conf_d_access, self.__arc_conf_access())
 
     def cleanup_files(self):
         # CA certificates dir
@@ -98,8 +129,8 @@ class TestCAControl(ComponentControl):
         # CA files cleanup
         cg = CertificateGenerator(self.x509_cert_dir)
         cg.cleanupCAfiles(self.caName)
-        # hostcert/key and auth files cleanup
-        for f in (self.__test_hostcert, self.__test_hostkey, self.__test_authfile):
+        # hostcert/key, auth and conf.d files cleanup
+        for f in (self.__test_hostcert, self.__test_hostkey, self.__test_authfile, self.__conf_d_access, self.__conf_d_hostcert):
             if os.path.exists(f):
                 self.logger.debug('Removing the file: %s', f)
                 os.unlink(f)
@@ -159,6 +190,8 @@ class TestCAControl(ComponentControl):
             shutil.move(hostcertfiles.certLocation, self.__test_hostcert)
             logger.info('Installing generated host key to %s', self.__test_hostkey)
             shutil.move(hostcertfiles.keyLocation, self.__test_hostkey)
+            conf_d = write_conf_d(self.__conf_d_hostcert, self.__arc_conf_hostcert())
+            logger.info('Hostcert location configuration written to %s', conf_d)
         shutil.rmtree(tmpdir)
 
     @staticmethod

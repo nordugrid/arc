@@ -442,7 +442,7 @@ class TestJWTControl(ComponentControl):
         if self.jwk is None:
             self.load_jwk()
         # dump data
-        print('Run the following command on ARC CE to trust the Test JWT issuer:\narcctl -d INFO deploy jwt-issuer test-jwt://', end='')
+        print('Run the following command on ARC CE to trust the Test JWT issuer:\narcctl deploy jwt-issuer --deploy-conf test-jwt://', end='')
         print(self.iss.dump())
 
     def cleanup_files(self):
