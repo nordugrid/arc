@@ -427,16 +427,15 @@ ClientOptions::ClientOptions(Client_t c,
   DefineOptionsGroup("filtering", istring("Brokering and filtering"));
   DefineOptionsGroup("format", istring("Output format modifiers"));
   DefineOptionsGroup("tuning", istring("Behaviour tuning"));
-  DefineOptionsGroup("arc6-target", istring("ARC6 submission endpoint selection"));
-  DefineOptionsGroup("legacy-target", istring("Legacy options set for defining targets"));
+  DefineOptionsGroup("arc-target", istring("Target endpoint selection"));
 
-  if ( c == CO_SUB || c == CO_TEST || c == CO_SYNC ) {
-    GroupAddOption("arc6-target", 'C', "computing-element",
-            istring("specify computing element hostname or a complete endpoint URL"),
+  if ( c == CO_SUB || c == CO_TEST || c == CO_SYNC || c == CO_INFO ) {
+    GroupAddOption("arc-target", 'C', "computing-element",
+            istring("computing element hostname or a complete endpoint URL"),
             istring("ce"),
             computing_elements);
 
-    GroupAddOption("arc6-target", 'Y', "registry",
+    GroupAddOption("arc-target", 'Y', "registry",
             istring("registry service URL with optional specification of protocol"),
             istring("registry"),
             registries);
@@ -448,7 +447,7 @@ ClientOptions::ClientOptions(Client_t c,
   }
 
   if ( c == CO_SUB || c == CO_TEST ) {
-    GroupAddOption("arc6-target", 'T', "submission-endpoint-type",
+    GroupAddOption("arc-target", 'T', "submission-endpoint-type",
             istring("require the specified endpoint type for job submission.\n"
                     "\tAllowed values are: arcrest, emies, gridftp or gridftpjob and internal."),
             istring("type"),
@@ -461,7 +460,7 @@ ClientOptions::ClientOptions(Client_t c,
             istring("URL"),
             rejectdiscovery);
 
-    GroupAddOption("arc6-target", 'Q', "info-endpoint-type",
+    GroupAddOption("arc-target", 'Q', "info-endpoint-type",
           istring("require information query using the specified information endpoint type.\n"
                   "\tSpecial value 'NONE' will disable all resource information queries and the following brokering.\n"
                   "\tAllowed values are: ldap.nordugrid, ldap.glue2, emies, arcrest and internal."),
@@ -470,7 +469,7 @@ ClientOptions::ClientOptions(Client_t c,
   }
 
   if (c == CO_INFO) {
-    GroupAddOption("arc6-target", 'T', "submission-endpoint-type",
+    GroupAddOption("arc-target", 'T', "submission-endpoint-type",
           istring("only get information about executon targets that support this job submission endpoint type.\n"
                   "\tAllowed values are: arcrest, emies, gridftp or gridftpjob and internal."),
           istring("type"),
