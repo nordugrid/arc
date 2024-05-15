@@ -207,7 +207,6 @@ public:
   std::string requestedSubmissionInterfaceName;
   std::string infointerface;
 
-  std::list<std::string> indexurls;
   std::list<std::string> jobdescriptionstrings;
   std::list<std::string> jobdescriptionfiles;
   std::list<std::string> jobidinfiles;
