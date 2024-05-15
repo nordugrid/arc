@@ -178,7 +178,6 @@ public:
   bool show_json;
   bool usejobname;
   bool forcedownload;
-  bool list_configured_services;
   bool direct_submission;
   bool show_unavailable;
   bool no_delegation;

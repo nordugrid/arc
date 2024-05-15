@@ -406,7 +406,6 @@ ClientOptions::ClientOptions(Client_t c,
     show_json(false),
     usejobname(false),
     forcedownload(false),
-    list_configured_services(false),
     direct_submission(false),
     show_unavailable(false),
     no_delegation(false),
@@ -500,12 +499,6 @@ ClientOptions::ClientOptions(Client_t c,
     GroupAddOption("format", 'l', "long",
               istring("long format (more information)"),
               longlist);
-  }
-
-  if (c == CO_INFO) {
-    GroupAddOption("xaction", 'L', "list-configured-services",
-              istring("print a list of services configured in the client.conf"),
-              list_configured_services);
   }
 
   if (c == CO_CAT) {
