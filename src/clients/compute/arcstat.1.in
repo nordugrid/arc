@@ -3,14 +3,14 @@
 
 .SH NAME
 
-arcstat \- ARC Status
+arcstat \- ARC Job Status
 
 .SH DESCRIPTION
 
 The
 .B arcstat
 command is used for obtaining the status of jobs that have been
-submitted to grid enabled resources.
+submitted to ARC CEs.
 
 .SH SYNOPSIS
 
@@ -21,11 +21,11 @@ submitted to grid enabled resources.
 .IP "\fB-a\fR, \fB--all\fR"
 all jobs
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
-the file storing information about active jobs (default ~/.arc/jobs.xml)
+the file storing information about active jobs (default ~/.arc/jobs.dat)
 .IP "\fB-i\fR, \fB--jobids-from-file\fR=\fIfilename\fR"
 a file containing a list of jobIDs
-.IP "\fB-c\fR, \fB--cluster\fR=\fIname\fR"
-select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
+.IP "\fB-C\fR, \fB--computing-element\fR=\fIname\fR"
+select one or more computing elements
 .IP "\fB-r\fR, \fB--rejectmanagement\fR=\fIURL\fR"
 skip jobs which are on a computing element with a given URL
 .IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"
@@ -66,8 +66,8 @@ list of jobids and/or jobnames
 
 The
 .B arcstat
-command gives the status of a job submitted to a ARC enabled
-resource. The job can be referred to either by the jobid that was
+command gives the status of a job submitted to a ARC CE. 
+The job can be referred to either by the jobid that was
 returned by
 .BR arcsub (1)
 at submission time or by its jobname if the job description that was
@@ -151,33 +151,17 @@ and
 cannot be used at the same time.
 
 The
-.B --cluster
-option can be used to select or reject jobs at specific clusters. See
-.BR arcsub (1)
-for a discussion of the format of arguments to this option. The
+.B --computing-element
+option can be used to select or reject jobs at specific clusters. The
 .B --status
 option can be used to select jobs in a specific state. These options
-can be repeated several times.
-
-The
-.B arcstat
-command locates the available clusters by querying information index
-servers. Which servers to query can be specified by giving the
-.B --index
-option to the command. See
-.BR arcsub (1)
-for a discussion of the format of arguments to this option.
+can be repeated several times. See
+.BR arcstat (1)
+for possible state values.
 
 Also in this case the
 .B --long
 option can be used to obtain more detailed information.
-
-Previously the
-.B arcstat
-command was also used to query information of clusters and/or index servers.
-This functionality have been moved to the new command
-.B arcinfo
-.
 
 .SH FILES
 
@@ -189,35 +173,15 @@ ARC client configuration file. By using the
 option a different configuration file can be used than the default.
 
 .TP
-.B ~/.arc/jobs.xml
-This a local list of the user's active jobs. When a job is
-successfully submitted it is added to this list and when it is removed
-from the remote cluster it is removed from this list. This list is
+.B ~/.arc/jobs.dat
+This a local database of the user's active jobs. When a job is
+successfully submitted it is added to database and when it is removed
+from the remote CE it is removed from this list. This database is
 used as the list of all active jobs when the user specifies the
 .B --all
 option to the various NorduGrid ARC user interface commands. By using the
 .B --joblist
 option a different file can be used than the default.
-
-.SH ENVIRONMENT VARIABLES
-
-.TP
-.B X509_USER_PROXY
-The location of the user's Grid proxy file. Shouldn't be set unless
-the proxy is in a non-standard location.
-
-.TP
-.B ARC_LOCATION
-The location where ARC is installed can be specified by this variable. If not
-specified the install location will be determined from the path to the
-command being executed, and if this fails a WARNING will be given stating the
-location which will be used.
-
-.TP
-.B ARC_PLUGIN_PATH
-The location of ARC plugins can be specified by this variable. Multiple
-locations can be specified by separating them by : (; in Windows). The
-default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
 
 .SH COPYRIGHT
 
