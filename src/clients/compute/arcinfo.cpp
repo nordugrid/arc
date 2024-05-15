@@ -38,7 +38,7 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
 
   {
     std::list<std::string> clusterstmp = opt.Parse(argc, argv);
-    opt.clusters.insert(opt.clusters.end(), clusterstmp.begin(), clusterstmp.end());
+    opt.computing_elements.insert(opt.computing_elements.end(), clusterstmp.begin(), clusterstmp.end());
   }
 
   if (opt.showversion) {
@@ -123,7 +123,7 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
   }
 
   if (!opt.canonicalizeARC6InterfaceTypes(logger)) return 1;
-  std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.submit_types.front(), opt.info_types.front());
+  std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.computing_elements, opt.submit_types.front(), opt.info_types.front());
 
   std::set<std::string> preferredInterfaceNames;
   if (usercfg.InfoInterface().empty()) {

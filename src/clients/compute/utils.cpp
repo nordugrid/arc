@@ -444,7 +444,7 @@ ClientOptions::ClientOptions(Client_t c,
     GroupAddOption("filtering", 'C', "computing-element",
             istring("only select jobs that were submitted to this computing element"),
             istring("ce"),
-            clusters);
+            computing_elements);
   }
 
   if ( c == CO_SUB || c == CO_TEST ) {
