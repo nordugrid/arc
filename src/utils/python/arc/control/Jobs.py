@@ -428,6 +428,7 @@ class JobsControl(ComponentControl):
 
     def control(self, args):
         self.cache_ttl = args.cachettl
+        canonicalize_args_jobid(args)
         if args.action == 'list':
             self.list(args)
         elif args.action == 'killall':

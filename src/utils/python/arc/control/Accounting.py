@@ -297,6 +297,7 @@ class AccountingControl(ComponentControl):
             print('No stage-out data transfers (uploads) performed by A-REX.')
 
     def jobcontrol(self, args):
+        canonicalize_args_jobid(args)
         if args.jobaction == 'info':
             self.jobinfo(args)
         elif args.jobaction == 'events':
@@ -392,7 +393,7 @@ class AccountingControl(ComponentControl):
     def control(self, args):
         if args.action == 'stats':
             self.stats(args)
-        elif args.action == 'job':
+        elif args.action == 'job' or 'jobaction' in args:
             self.jobcontrol(args)
         elif args.action == 'republish':
             self.republish(args)
