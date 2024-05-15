@@ -1260,6 +1260,7 @@ sub collect($) {
     my @cepIDs = ();
     push(@cepIDs,$ARCgftpjobcepID) if ($config->{gridftpd}{enabled});
     push(@cepIDs,$EMIEScepIDp) if ($emiesenabled);
+    push(@cepIDs,$ARCRESTcepIDp) if ($emiesenabled);
     
     my $cactIDp = "urn:caid:$hostname"; # ComputingActivity ID prefix
     my $cshaIDp = "urn:ogf:ComputingShare:$hostname"; # ComputingShare ID prefix
