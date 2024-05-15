@@ -94,7 +94,12 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
   }
 
   if (!opt.canonicalizeARC6InterfaceTypes(logger)) return 1;
-  std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.registries, opt.computing_elements, opt.submit_types.front(), opt.info_types.front());
+  std::string req_sub_iface;
+  std::string req_info_iface;
+  if (!opt.submit_types.empty()) req_sub_iface = opt.submit_types.front();
+  if (!opt.info_types.empty()) req_info_iface = opt.info_types.front();
+
+  std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.registries, opt.computing_elements, req_sub_iface, req_info_iface);
 
   std::set<std::string> preferredInterfaceNames;
   if (usercfg.InfoInterface().empty()) {
