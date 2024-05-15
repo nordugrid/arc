@@ -190,6 +190,19 @@ def control_path(control_dir, job_id, file_type):
         logger.error('The jobid "%s" does not have the right format/length', job_id)
         return ''
     return '{0}/jobs/{1}/{2}'.format(control_dir, job_path, file_type)
+
+def canonicalize_args_jobid(args):
+    """Extract jobID from job-URL"""
+    if 'jobid' not in args:
+        return
+    if isinstance(args.jobid, list):
+        jobids = []
+        for j in args.jobid:
+            jobids.append(j.rsplit('/', 1)[-1])
+        args.jobid = jobids
+    else:
+        args.jobid = args.jobid.rsplit('/', 1)[-1]
+
 class ComponentControl(object):
     """ Common abstract class to ensure all implicit calls to methods are defined """
     def control(self, args):

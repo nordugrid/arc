@@ -730,6 +730,7 @@ class DataStagingControl(ComponentControl):
             self.show_summary_files(args)
         
     def jobcontrol(self,args):
+        canonicalize_args_jobid(args)
         if args.jobaction == 'get-totaltime':
             self.show_job_time(args)
         elif args.jobaction == 'get-details':
@@ -738,13 +739,15 @@ class DataStagingControl(ComponentControl):
             
 
     def control(self, args):
-        if args.action == 'job':
+        if args.action == 'job' or 'jobaction' in args:
             self.jobcontrol(args)
         elif args.action == 'summary':
             self.summarycontrol(args)
         elif args.action == 'dtr':
             self.show_dtrstates(args)
-
+        else:
+            self.logger.critical('Unsupported datastaging action %s', args.action)
+            sys.exit(1)
 
     @staticmethod
     def register_job_parser(dds_job_ctl):
