@@ -10,6 +10,7 @@ import socket
 import stat
 import sys
 import shutil
+import glob
 import random
 import uuid
 import json
@@ -452,8 +453,9 @@ class TestJWTControl(ComponentControl):
             shutil.rmtree(self.iss_dir)
         # remove trust when running on server-side
         if arcctl_server_mode():
-            arc_conf_access = os.path.join(ARC_CONF+'.d','10-testjwt-{0}.conf'.format(self.iss.hash()))
-            os.unlink(arc_conf_access)
+            arc_conf_access = os.path.join(ARC_CONF+'.d','10-testjwt-*.conf')
+            for f in glob.glob(arc_conf_access):
+                os.unlink (f)
 
     def issue_token(self, args):
         """Issue signed token"""
