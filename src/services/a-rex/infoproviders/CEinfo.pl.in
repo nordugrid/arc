@@ -211,13 +211,12 @@ sub main {
 
     # setup output to logfile before parsing the complete config file
 
-    # C134
     my $infosysloglevel = ConfigCentral::getValueOf($configfile,'infosys','loglevel');
-    $log->error("Can\'t determine loglevel. Probably the [infosys] block is missing. Exiting...") if ($infosysloglevel eq '');
+    $log->error("Cannot determine loglevel. Probably the [infosys] block is missing. Exiting...") if ($infosysloglevel eq '');
     # Change level for root logger (affects all loggers from now on)
-    #C 134
+
     LogUtils::level($infosysloglevel);
-    #C 133
+
     my $providerlog = ConfigCentral::getValueOf($configfile,'infosys','logfile');
 
     $log->info("Redirecting further messages to $providerlog");
@@ -240,7 +239,7 @@ sub main {
 
     if ($dumpconfig) {
         $log->info("Dumping configuration and exiting");
-        ConfigCentral::dumpInternalDatastructure($config);
+        ConfigCentral::dumpInternalDatastructure($configfile);
         $log->info("############## A-REX infoprovider finished ##############");
         exit 0;
     };
@@ -342,20 +341,28 @@ sub collect($) {
 # uncomment for a dump of the whole config hash
 # print Dumper($config);
 
-    # get all local users from grid-map. Sort unique
-    $log->verbose("Reading grid-mapfiles. These are obsolete, one should use other methods, this message can be ignored.");
+#TODO: check that this entire locausers block can be removed
+#TODO: @localusers parsed by:
+#      - hostinfo to provide stats for storage usage
+#      - lrms_info to ??
+#TODO: maybe use a default user?
+#TODO: no more per-user stats? Needs different code to handle new mapping
+#    # get all local users from grid-map. Sort unique
+#    $log->verbose("Reading grid-mapfiles. These are obsolete, one should use other methods, this message can be ignored.");
+#    my @localusers;
+#    my $usermap = {};
+#    if ($config->{gridmap}) {
+#        my %saw = ();
+#        $usermap = read_grid_mapfile($config->{gridmap});
+#        @localusers = grep !$saw{$_}++, values %$usermap;
+#    } else {
+#        $log->verbose("gridmap not configured. Gridmap files are obsolete, this message can be ignored");
+#        my $defaultuser = $config->{defaultLocalName};
+#        @localusers = ($defaultuser) if $defaultuser;
+#    }
+#    $log->verbose("Cannot determine local users from gridmapfile or config. This approach is obsolete, this message can be discarded.") unless @localusers;
+#TODO: Placeholder for localusers, before removal of the above block
     my @localusers;
-    my $usermap = {};
-    if ($config->{gridmap}) {
-        my %saw = ();
-        $usermap = read_grid_mapfile($config->{gridmap});
-        @localusers = grep !$saw{$_}++, values %$usermap;
-    } else {
-        $log->verbose("gridmap not configured. Gridmap files are obsolete, this message can be ignored");
-        my $defaultuser = $config->{defaultLocalName};
-        @localusers = ($defaultuser) if $defaultuser;
-    }
-    $log->verbose("Cannot determine local users from gridmapfile or config. This approach is obsolete, this message can be discarded.") unless @localusers;
 
     $log->info("Fetching job information from control directory (GMJobsInfo.pm)");
     my $gmjobs_info = get_gmjobs_info($config);
@@ -372,9 +379,11 @@ sub collect($) {
     # build hash with all the input necessary for the renderers
     my $data = {};
     $data->{config} = $config;
-    $data->{usermap} = $usermap;
+    #TODO: check if this is still useful
+    #$data->{usermap} = $usermap;
 
     $log->info("Updating frontend information (HostInfo.pm)");
+    #TODO: check if we need localusers still
     $data->{host_info} = get_host_info($config,\@localusers);
 
     $log->info("Updating RTE information (RTEInfo.pm)");
@@ -401,9 +410,8 @@ sub get_host_info($$) {
 
     my $host_opts = {};
     $host_opts->{localusers} = $localusers;
-    $host_opts->{processes} = ['arched', 'gridftpd','slapd'];
+    $host_opts->{processes} = ['arched', 'slapd'];
     $host_opts->{ports}{'arched'} = ['443'];
-    $host_opts->{ports}{'gridftpd'} = [$config->{gridftpd}{port}] if $config->{gridftpd}{enabled};
     $host_opts->{ports}{'slapd'} = [$config->{infosys}{ldap}{port}] if $config->{infosys}{ldap}{enabled};
     $host_opts->{x509_host_cert} = $config->{x509_host_cert};
     $host_opts->{x509_cert_dir} = $config->{x509_cert_dir};
@@ -411,6 +419,7 @@ sub get_host_info($$) {
     $host_opts->{wakeupperiod} = $config->{wakeupperiod};
     $host_opts->{sessiondir} = $config->{sessiondir};
     $host_opts->{control} = $config->{control};
+    # TODO: attempt to remove this and see what happens
     $host_opts->{remotegmdirs} = $config->{remotegmdirs};
 
     return timed 'HostInfo', sub { HostInfo::collect($host_opts) };
