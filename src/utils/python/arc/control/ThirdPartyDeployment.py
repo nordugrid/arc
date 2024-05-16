@@ -329,7 +329,7 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         # installing metadata and keys to controldir
         self.logger.info('Establishing trust with JWT Issuer: %s', iss.url())
         iss.controldir_save(self.arcconfig)
-        print('ARC CE now trust JWT signatures of {0} issuer.\n'.format(iss.url()))
+        print_info(self.logger, 'ARC CE now trust JWT signatures of %s issuer.', iss.url())
         # deploy or inform about arc.conf changes needed
         iss.arc_conf(arc_conf_name_prefix, conf_d=deploy_conf)
 

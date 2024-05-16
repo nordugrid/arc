@@ -29,6 +29,19 @@ except ImportError:
     def remove_runtime_config():
         pass
 
+def print_info(logger_obj, *args, **kwargs):
+    """Output logger info message regardless of current loglevel"""
+    current_level = logger_obj.getEffectiveLevel()
+    logger_obj.setLevel(logging.INFO)
+    logger_obj.info(*args, **kwargs)
+    logger_obj.setLevel(current_level)
+
+def print_warn(logger_obj, *args, **kwargs):
+    """Output logger warning message regardless of current loglevel"""
+    current_level = logger_obj.getEffectiveLevel()
+    logger_obj.setLevel(logging.WARNING)
+    logger_obj.warning(*args, **kwargs)
+    logger_obj.setLevel(current_level)
 
 def valid_datetime_type(arg_datetime_str):
     """Argparse datetime-as-an-argument helper"""

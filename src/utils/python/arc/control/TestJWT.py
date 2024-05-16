@@ -183,8 +183,7 @@ class JWTIssuer(object):
 
     def info(self):
         """Print issuer info to end-user"""
-        print('Issuer URL: {0}'.format(self.iss))
-        print('JWKS:')
+        print_info(self.logger, 'Showing the JWKS for JWT Issuer %s', self.iss)
         print(json.dumps(self.jwks, indent=2))
 
     def arc_conf(self, name='jwt', conf_d=False):
@@ -204,12 +203,11 @@ class JWTIssuer(object):
             'iss': self.iss
         })
         if conf_d:
-            conf_d_f = write_conf_d('10-{0}.conf'.format(authgroup_name))
-            # TODO: try to replace printts with something better
-            print("Auth configuration for issuer tokens has been written to {0}".format(conf_d_f))
-            print('ARC restart is needed to apply configuration.')
+            conf_d_f = write_conf_d('10-{0}.conf'.format(authgroup_name), conf_content)
+            print_info(self.logger, 'Auth configuration for JWT issuer %s has been written to %s', self.iss, conf_d_f) 
+            print_warn(self.logger, 'ARC services restart is needed to apply configuration changes.')
         else:
-            print('To allow users to submit jobs, arc.conf needs auth configuration like this:')
+            print_info(self.logger, 'ARC CE needs configuratio to allow job submission using JWT tokens from the issuer. Printing out example configuration.')
             print(conf_content)
 
     def url(self):
@@ -451,7 +449,8 @@ class TestJWTControl(ComponentControl):
         if self.jwk is None:
             self.load_jwk()
         # dump data
-        print('Run the following command on ARC CE to trust the Test JWT issuer:\narcctl deploy jwt-issuer --deploy-conf test-jwt://', end='')
+        print_info(self.logger, 'Generating deployment command to be executed on ARC CE to trust the Test JWT issuer %s', self.iss)
+        print('arcctl deploy jwt-issuer --deploy-conf test-jwt://', end='')
         print(self.iss.dump())
 
     def cleanup_files(self):
