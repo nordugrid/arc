@@ -10,7 +10,6 @@ import socket
 import stat
 import sys
 import shutil
-import glob
 import random
 import uuid
 import json
@@ -188,21 +187,30 @@ class JWTIssuer(object):
         print('JWKS:')
         print(json.dumps(self.jwks, indent=2))
 
-    def arc_conf(self, name='jwt', aud='*'):
-        """Return arc.conf example snippet to authorize issuer"""
+    def arc_conf(self, name='jwt', conf_d=False):
+        """Print/deploy arc.conf example snippet to authorize issuer"""
         conf = [
+            "#\n# Allow tokens issued by {iss} to submit jobs\n#",
             "[authgroup:{name}]",
-            "authtokens = * {iss} {aud} * *",
+            "authtokens = * {iss} * * *",
             "\n[mapping]",
             "map_to_user = {name} nobody:nobody",
             "\n[arex/ws/jobs]",
             "allowaccess = {name}"
         ]
-        return '\n'.join(conf).format(**{
-            'name': name,
-            'iss': self.iss,
-            'aud': aud
+        authgroup_name = '{0}-{1}'.format(name, self.isshash)
+        conf_content = '\n'.join(conf).format(**{
+            'name': authgroup_name,
+            'iss': self.iss
         })
+        if conf_d:
+            conf_d_f = write_conf_d('10-{0}.conf'.format(authgroup_name))
+            # TODO: try to replace printts with something better
+            print("Auth configuration for issuer tokens has been written to {0}".format(conf_d_f))
+            print('ARC restart is needed to apply configuration.')
+        else:
+            print('To allow users to submit jobs, arc.conf needs auth configuration like this:')
+            print(conf_content)
 
     def url(self):
         """Return issuer URL"""
@@ -212,7 +220,7 @@ class JWTIssuer(object):
         """Return issuer URL hash"""
         return self.isshash
 
-    # Controldir operations
+    # Controldir operations (to use from arcctl deploy)
     def controldir_save(self, arcconfig=None):
         if not arcctl_server_mode():
             raise Exception("Deployment to controldir cannot run in arcctl client mode")
@@ -451,11 +459,6 @@ class TestJWTControl(ComponentControl):
         if os.path.exists(self.iss_dir):
             self.logger.info('Removing issuer JWK directory: %s', self.iss_dir)
             shutil.rmtree(self.iss_dir)
-        # remove trust when running on server-side
-        if arcctl_server_mode():
-            arc_conf_access = os.path.join(ARC_CONF+'.d','10-testjwt-*.conf')
-            for f in glob.glob(arc_conf_access):
-                os.unlink (f)
 
     def issue_token(self, args):
         """Issue signed token"""

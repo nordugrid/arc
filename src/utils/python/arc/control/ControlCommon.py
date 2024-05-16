@@ -81,6 +81,11 @@ def ensure_path_writable(path):
         logger.error("The path '%s' is not writable for user running arcctl", path)
         sys.exit(1)
 
+def conf_d(name):
+    """Return full path of config file in arc.conf.d directory"""
+    conf_d = ARC_CONF + '.d'
+    return os.path.join(conf_d, name)
+
 def write_conf_d(name, content, overwrite=True):
     """Write configuration to arc.conf.d directory"""
     conf_d = ARC_CONF + '.d'

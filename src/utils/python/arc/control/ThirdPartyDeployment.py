@@ -297,11 +297,10 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             sys.exit(exitcode)
 
     def jwt_deploy(self, url, ca, deploy_conf=False):
-        is_testjwt = False
+        arc_conf_name_prefix = 'jwt'
         if url.startswith('test-jwt://'):
             iss = JWTIssuer.from_dump(url[11:])
-            arc_conf = iss.arc_conf('testjwt-{0}'.format(iss.hash()), 'arc')
-            if_testjwt = True
+            arc_conf_name_prefix = 'testjwt'
         elif url.startswith('https://'):
             if not url.endswith('/.well-known/openid-configuration'):
                 url = url + '/.well-known/openid-configuration'
@@ -327,21 +326,12 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             except KeyError as err:
                 self.logger.error('Failed to process JWT issuer metadata. Error: %s', str(err))
                 sys.exit(1)
-            arc_conf = iss.arc_conf('jwt-{0}'.format(iss.hash()))
+        # installing metadata and keys to controldir
         self.logger.info('Establishing trust with JWT Issuer: %s', iss.url())
         iss.controldir_save(self.arcconfig)
         print('ARC CE now trust JWT signatures of {0} issuer.\n'.format(iss.url()))
-        if deploy_conf:
-            conf_d_f = ''
-            if is_testjwt:
-                conf_d_f = write_conf_d('10-testjwt-{0}.conf'.format(iss.hash()), arc_conf)
-            else:
-                conf_d_f = write_conf_d('10-jwt-{0}.conf'.format(iss.hash()), arc_conf)
-            print('Auth configuration for issuer tokens has been written to {0}'.format(conf_d_f))
-            print('ARC restart is needed to apply configuration.')
-        else:
-            print('To allow users to submit jobs, arc.conf needs auth configuration like this:')
-            print(arc_conf)
+        # deploy or inform about arc.conf changes needed
+        iss.arc_conf(arc_conf_name_prefix, conf_d=deploy_conf)
 
     def __globus_port_range(self, ports, proto, conf, iptables_config, subsys='data transfer'):
         if ports is None:
