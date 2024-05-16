@@ -130,7 +130,7 @@ class TestCAControl(ComponentControl):
         cg = CertificateGenerator(self.x509_cert_dir)
         cg.cleanupCAfiles(self.caName)
         # hostcert/key, auth and conf.d files cleanup
-        for f in (self.__test_hostcert, self.__test_hostkey, self.__test_authfile, self.__conf_d_access, self.__conf_d_hostcert):
+        for f in (self.__test_hostcert, self.__test_hostkey, self.__test_authfile, os.path.join(ARC_CONF + '.d',self.__conf_d_access), os.path.join(ARC_CONF + '.d',self.__conf_d_hostcert)):
             if os.path.exists(f):
                 self.logger.debug('Removing the file: %s', f)
                 os.unlink(f)
