@@ -522,32 +522,33 @@ sub fix_jobs {
 }
 
 
+# TODO: remove
 # reads grid-mapfile. Returns a ref to a DN => uid hash
 
-sub read_grid_mapfile($) {
-    my $gridmapfile = shift;
-    my $usermap = {};
+#sub read_grid_mapfile($) {
+#    my $gridmapfile = shift;
+#    my $usermap = {};
+#
+#    unless (open MAPFILE, "<$gridmapfile") {
+#        $log->warning("can't open gridmapfile at $gridmapfile");
+#        return;
+#    }
+#    while (my $line = <MAPFILE>) {
+#        chomp($line);
+#        if ( $line =~ m/\"([^\"]+)\"\s+(\S+)/ ) {
+#            my $subject = $1;
+#            eval {
+#                $subject = decode("utf8", $subject, 1);
+#            };
+#            $usermap->{$subject} = $2;
+#        }
+#    }
+#    close MAPFILE;
+#
+#    return $usermap;
+#}
 
-    unless (open MAPFILE, "<$gridmapfile") {
-        $log->warning("can't open gridmapfile at $gridmapfile");
-        return;
-    }
-    while (my $line = <MAPFILE>) {
-        chomp($line);
-        if ( $line =~ m/\"([^\"]+)\"\s+(\S+)/ ) {
-            my $subject = $1;
-            eval {
-                $subject = decode("utf8", $subject, 1);
-            };
-            $usermap->{$subject} = $2;
-        }
-    }
-    close MAPFILE;
-
-    return $usermap;
-}
-
-## CHECK: This probably belongs here, info from HostInfo.pm and LRMS modules is required
+## This routine belongs here as info from HostInfo.pm and LRMS modules is required
 # Replaces 'adotf' in config options with autodetected values
 
 sub fix_adotf {

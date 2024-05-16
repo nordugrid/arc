@@ -3,11 +3,6 @@ package ConfigCentral;
 # Builds an intermediate config structure used by infoproviders.
 # OBS: the structure is NOT the same as arc.conf.
 
-## RESTRUCTURING PHASE ################
-## changes are identified by the tags
-## #C changenumber
-#######################################
-
 use strict;
 use warnings;
 use File::Basename;
@@ -34,7 +29,6 @@ our $log = LogUtils->getLogger(__PACKAGE__);
 #######################################################################
 
 my $blockdependencies = {
-    'gridftpd/jobs' => ['gridftpd'],
     'infosys/cluster' => ['infosys'],
     'infosys/ldap' => ['infosys'],
     'infosys/nordugrid' => ['infosys/ldap'],
@@ -128,7 +122,6 @@ my $gmuser_options = {
 my $gmcommon_options = {
     arcversion => '',
     arexhostport => '',
-    # lrms => '', C 10 removed from here to the lrms hash
     gmconfig => '*',
     endpoint => '*',
     hostname => '*',
@@ -136,10 +129,8 @@ my $gmcommon_options = {
     maxload => '*',
     maxloadshare => '*',
     wakeupperiod => '*',
-    #x509_user_key => '*',  # C 5
-    x509_host_key => '*',   # C 5
-    #x509_user_cert => '*', # C 6
-    x509_host_cert => '*',  # C 6
+    x509_host_key => '*', 
+    x509_host_cert => '*',
     x509_cert_dir => '*',
     runtimedir => '*',
     shared_filesystem => '*',
@@ -155,7 +146,6 @@ my $sshcommon_options = {
     private_key => '*',
 };
 
-# C 141
 my $ldap_infosys_options = {
     enabled => '',
     port => '*',
@@ -168,7 +158,8 @@ my $ldap_infosys_options = {
     bdii_tmp_dir => '*',
     bdii_var_dir => '*',
     bdii_update_pid_file => '*'
-    ## TODO: fix this elsewere, the value should be set according to the formula below
+    ## TODO: Check if this below was fixed.
+    ## fix this elsewere, the value should be set according to the formula below
     ## not used directly by infoproviders, maybe by bdii config?
     ## this is probably done in the startup script, is called max_cycle
     ## bdii_read_timeout = number - Sets BDII_READ_TIMEOUT in bdii configuration file
@@ -176,26 +167,18 @@ my $ldap_infosys_options = {
     #bdii_read_timeout=300
 };
 
-# C 125-130 renaming these properly direcly in the gridftpd block
-#my $gridftpd_options = {
-#    GridftpdEnabled => '*',
-#    GridftpdPort => '*',
-#    GridftpdMountPoint => '*',
-#    GridftpdAllowNew => '*',
-#    GridftpdPidFile => '*',
-#};
-
 # [arex] subblocks
-my $wsemies_options = { # C 71
-    allownew => '*',     # C 72
+# TODO: add REST related things if needed, remove EMIES
+my $wsemies_options = { 
+    allownew => '*',    
     enabled => ''
 }; 
 
-# C 66
+# TODO: add REST related things if needed, remove EMIES
 my $ws_options = {
     enabled => '',
     wsurl => '*',
-    emies => { %$wsemies_options } # C 71
+    emies => { %$wsemies_options } 
 };
 
 my $admindomain_options = {
@@ -207,10 +190,9 @@ my $admindomain_options = {
     OtherInfo => '*',
 };
 
-# C 156
 my $glue2_options = {
     enabled => '',
-    computingservice_qualitylevel => '*' # 157
+    computingservice_qualitylevel => '*'
 };
 
 
@@ -218,18 +200,15 @@ my $glue2_options = {
 
 my $config_schema = {
     
-    #ProviderLog => '*', #C 133
     ttl => '*',
 
     admindomain => { %$admindomain_options },   
     
     %$gmcommon_options,
+    
     %$sshcommon_options,
-    # moved all these to their own subtrees to be in sync with new config
-    # %$gridftpd_options,
-    # %$ldap_infosys_options,
-    # %$lrms_options,
-    # %$lrms_share_options,    
+    
+    # TODO: check gmuser functionality or remove
     control => {
         '*' => {
             %$gmuser_options
@@ -247,9 +226,9 @@ my $config_schema = {
         AdvertisedVO => [ '*' ],
         LocalSE => [ '*' ],
         InteractiveContactstring => [ '*' ],
-        # TODO: This causes odd/unsupported options to pass the checks
-        %$xenv_options,
-        %$share_options,
+        # TODO: This causes odd/unsupported options to pass the checks, review InfoChecker
+        %$xenv_options, # TODO: Double copy: is this supposed to be here?  DC1
+        %$share_options, # TODO: Double copy: is this supposed to be here?  DC2
         QualityLevel => ''
     },
     location => {
@@ -288,7 +267,7 @@ my $config_schema = {
                 Command => [ '*' ],
                 Tag => [ '*' ],
             },
-            %$xenv_options,
+            %$xenv_options, # TODO: Double copy: is this supposed to be here?  DC1
         }
     },
     shares => {
@@ -297,12 +276,11 @@ my $config_schema = {
             OtherInfo => [ '*' ],
             MappingQueue => '',
             ExecutionEnvironmentName => [ '' ],
-            %$share_options,
+            %$share_options, # TODO: Double copy: is this supposed to be here?  DC2
             %$lrms_share_options,
         }
     },
-    # start of newly added items for arcconf restructuring
-    # C 10
+
     lrms => {
         lrms => '',
         defaultqueue => '*',
@@ -314,16 +292,16 @@ my $config_schema = {
         enabled => '',
         nordugrid => {
             enabled => ''
-        }, # C 155
-        logfile => '*',  #C 133
-        loglevel => '*', #C 134, replaces ProviderLog
+        }, 
+        logfile => '*',  
+        loglevel => '*',
         validity_ttl => '*',
-        ldap => { # C141
-            %$ldap_infosys_options, # C 141
+        ldap => { 
+            %$ldap_infosys_options,
         },
-        glue2 => { # C 156
+        glue2 => {
            %$glue2_options,
-           ldap => { # C158
+           ldap => {
                 enabled => '',
                 showactivities => '*'
            }
@@ -333,19 +311,12 @@ my $config_schema = {
         enabled => '',
         defaultttl => '*',
         logfile => '*',
-        loglevel => '*', # replaces $config_schema->{debugLevel}, C 37
-        infoproviders_timelimit => '*', # C 42
+        loglevel => '*', 
+        infoproviders_timelimit => '*',
         port => '*',
         shared_filesystem => '*',
-        ws => { %$ws_options } # C 66
+        ws => { %$ws_options }
     },
-    gridftpd => {
-        enabled => '',
-        port => '*',
-        mountpoint => '*',
-        allownew => '*',
-        pidfile => '*'
-    }
 };
 
 # TODO: remove some or change because of the enable-by-block strategy
@@ -528,7 +499,7 @@ sub build_config_from_json {
     my $config ||= {};
     $config->{service} ||= {};
     $config->{control} ||= {};
-    ## TODO: maybe move all glue2 stuff into some GLUE2 subset?
+    ## This below is mostly GLUE2, but we decided not to create a dedicated block.
     $config->{location} ||= {};
     $config->{contacts} ||= [];
     $config->{accesspolicies} ||= {};   
@@ -545,35 +516,32 @@ sub build_config_from_json {
     
 
     my $common = $jsonconf->{'common'};    
-    ## TODO: remove everything that should not be in $config
+    ## TODO: remove everything that should not be in $config - 2024 is this done?
     move_keys $common, $config, [keys %$gmcommon_options];
 
-    # TODO: create a mapping hash eventually
+    # TODO: create a mapping hash eventually - 2024 is this done?
     # new mapping block (just move to the top config as it was before)
     my $mapping = $jsonconf->{'mapping'};
     move_keys $mapping, $config, [keys %$gmcommon_options];
     
-    # C 10 new lrms block
     my $lrms = $jsonconf->{'lrms'};
     # some options in lrms, moved to $config for  backward compatibility, 
-    # should be moved to {lrms} instead
+    # should be moved to {lrms} instead - 2024 is this done?
     #move_keys $lrms, $config, [keys %$lrms_options, keys %$lrms_share_options];
     move_keys $lrms, $config->{'lrms'}, [keys %$lrms];
     move_keys $lrms, $config->{'lrms'}, [keys %$lrms_options, keys %$lrms_share_options];
     
     # Parsing for default queue
-    my ($lrmsname, $defaultqueue) = split /\s+/, $config->{lrms}{lrms} || ''; # C 10
+    my ($lrmsname, $defaultqueue) = split /\s+/, $config->{lrms}{lrms} || '';
     $config->{'lrms'}{'lrms'} = $lrmsname; 
     $config->{'lrms'}{'defaultqueue'} = $defaultqueue if defined $defaultqueue;
 
-    # C 173
     my $arex = $jsonconf->{'arex'};
     move_keys $arex, $config, [keys %$gmcommon_options];
     
     my $ssh = $jsonconf->{'ssh'};
     move_keys $ssh, $config, [keys %$sshcommon_options];
         
-    #C 133 134
     my $infosys = $jsonconf->{'infosys'};
         
     move_keys $infosys, $config->{'infosys'}, [keys %$infosys];
@@ -584,10 +552,8 @@ sub build_config_from_json {
     # only one grid manager user, formerly represented by a dot
     $config->{control}{'.'} ||= {};
     move_keys $arex, $config->{control}{'.'}, [keys %$gmuser_options];
-    # C 173
+
     move_keys $arex, $config->{arex}, [keys %$arex];
-    # use service for first implementation
-    #move_keys $arex, $config->{service}, [keys %$service];
 
     # check that the above generated required information
     $log->error("No control directory configured") unless %{$config->{control}} or $config->{remotegmdirs};
@@ -598,9 +564,7 @@ sub build_config_from_json {
         $log->error("No session directory configured for user $user") unless $control->{sessiondir};
     }
 
-
-    # NEW: arex subblocks
-    # C 71
+    # TODO: use for REST instead of EMIES
     if (defined $jsonconf->{'arex/ws'}) {
        my $arexws = $jsonconf->{'arex/ws'};
        $config->{arex}{ws} ||= {};
@@ -616,14 +580,15 @@ sub build_config_from_json {
         $config->{arex}{port} = $port;
         $config->{arexhostport} = "$host:$port";
     } 
-    
+
+    # TODO: remove or substitute with REST    
     $config->{arex}{ws}{emies} ||= {};
     if (defined $jsonconf->{'arex/ws/jobs'}) {
         my $arexwsemies = $jsonconf->{'arex/ws/jobs'};
         move_keys $arexwsemies, $config->{arex}{ws}{emies}, [keys %$wsemies_options];
         $config->{arex}{ws}{emies}{enabled} = 1;
     } else {
-        ## TODO: find a better strategy for the "enabled" defaults, blocks/hashes can't be used.
+        ## TODO: find a better strategy for the "enabled" defaults, blocks/hashes can't be used. - 2024 is this done? I think it's solved via checking numbers
         $config->{arex}{ws}{emies}{enabled} = 0;
     }
 
@@ -639,17 +604,6 @@ sub build_config_from_json {
        my $cacheopts = $jsonconf->{'arex/cache/cleaner'};
        # moved to control for legacy reasons
        move_keys $cacheopts, $config->{control}{'.'}, [keys %$cache_options];
-    }
-
-    # gridftpd config
-    if ((defined $jsonconf->{'gridftpd/jobs'}) || (defined $jsonconf->{'gridftpd'})) {
-        $config->{gridftpd} ||= {};
-        my $gconf = $jsonconf->{'gridftpd'};
-        my $gjconf = $jsonconf->{'gridftpd/jobs'};
-        move_keys $gconf, $config->{gridftpd}, [keys %{$config_schema->{gridftpd}}];
-        move_keys $gjconf, $config->{gridftpd}, [keys %{$config_schema->{gridftpd}}];
-    } else {
-        $log->verbose("[gridftpd/jobs] block not found in arc.conf. Disabling gridftpd job interface information generation.");
     }
 
     # TODO: review BDII config, block disappeared but maybe options not moved back.
@@ -831,7 +785,7 @@ sub build_config_from_json {
     }
 
     
-
+    ## TODO: still valid in 2024/ARC7, take decision
     ## TODO: Check that this code below is currently not used. Access/mapping policies are currently
     #        generated in ARC1ClusterInfo.pm, but this information is mostly static and
     #        can be generated already now, simplifying ARC1ClusterInfo.pm. However simplification is not much.
@@ -889,7 +843,7 @@ sub build_config_from_json {
         #};
     #}
 
-
+    ## Final cleanup of the config datastructure
 
     # Create a list with all multi-valued options based on $config_schema.
     my @multival = ();
@@ -929,7 +883,6 @@ sub parseConfig {
 
     #print Dumper($config);
 
-    # C 134
     LogUtils::level($config->{infosys}{loglevel}) if $config->{infosys}{loglevel};
 
     my $checker = InfoChecker->new($config_schema);
@@ -970,7 +923,6 @@ sub set_defaults {
     my @blocknames = ('arex',
                       'arex/ws',
                       'arex/ws/jobs',
-                      'gridftpd',
                       'infosys',
                       'infosys/cluster',
                       'infosys/glue2',
@@ -979,7 +931,7 @@ sub set_defaults {
                       'infosys/nordugrid'
                       );
 
-    ## TODO: change logic to scan config and add enabled to all enabled blocks, then do checks
+    ## TODO: change logic to scan config and add enabled to all enabled blocks, then do checks - 2024 still valid?
     for my $block (@blocknames) {
         $config->{$block}{enabled} = (defined $config->{$block}) ? 1 : 0;
     };
@@ -992,30 +944,15 @@ sub set_defaults {
         subblock_check_required($config,$block);
     }
     
-    ## Other defaults not covered by arcconfig-parser. Might be done with an hash at some point
+    ## Other defaults not covered by arcconfig-parser. Might be done with an hash at some point - TODO: 2024 has it been done?
 
     #default ARC version taken from build. Artificiously placed in common
     $config->{common}{arcversion}='@VERSION@';
-
-    # gridftpd hardcoded defaults
-    $config->{gridftpd}{port} = '2811' if ($config->{'gridftpd'}{enabled});
-    $config->{gridftpd}{mountpoint} = '/jobs' if ($config->{'gridftpd'}{enabled});
-
     
     # force ldap defaults if ldap renderings are enabled in config
     $config->{infosys}{ldap}{port}='2135' if ($config->{'infosys/ldap'}{enabled});
-    
-    ## TODO after Andrii changes, might be removed
-    ## force BDII defaults if LDAP configured    
-    #if (defined $config->{'infosys/ldap'}) {
-        #$log->verbose("[infosys/ldap/bdii] block not found in arc.conf, using default values") unless (defined $config->{'infosys/ldap/bdii'});
-        #$config->{'infosys/ldap/bdii'} ||= {};
-    #}
-    
-    # Set default hostname
-    #$confdefaults->{common}{hostname} = (defined $config->{common}{hostname}) ? $config->{common}{hostname} : hostname();
-    #$confdefaults->{'infosys/ldap'}{hostname} = (defined $config->{'infosys/ldap'}{hostname}) ? $config->{'infosys/ldap'}{hostname} : hostname();
-    
+        
+    ## TODO: use REST
     # Define a-rex endpoint. Hardcoded after ARC6.
     if (defined $config->{'arex/ws'}) {
         $config->{'arex/ws'}{wsurl} ||= 'https://'.$config->{common}{hostname}.':443/arex';
@@ -1025,15 +962,6 @@ sub set_defaults {
     
     ### end of default blocks creation
     
-    
-    #for (keys %$confdefaults) {
-        #if (defined $config->{$_}) {
-            #$config->{$_} ||= {};
-            #merge_hash_values($config->{$_},$confdefaults->{$_});
-        #} else {
-          #$log->debug("\[$_\] block missing, defaults not applied.");
-        #}
-    #}
 }
 
 ## getValueOf: Cherry picks arc.conf values
@@ -1079,6 +1007,7 @@ sub isBlockPresent ($$) {
     if (defined $jsonconf->{$block}) { return 1 } else { return 0 } ;
 }
 
+## Todo: review, this doesn't work anymore
 sub dumpInternalDatastructure ($){
     my ($config) = @_;
     print Dumper($config);
