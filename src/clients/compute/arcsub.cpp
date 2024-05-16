@@ -191,44 +191,29 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
       break;
   }
 
-  if ( opt.isARC6TargetSelectionOptions(logger) ) {
-    // canonicalize endpoint types
-    if (!opt.canonicalizeARC6InterfaceTypes(logger)) return 1;
+  // canonicalize endpoint types
+  if (!opt.canonicalizeARC6InterfaceTypes(logger)) return 1;
 
-    // get endpoint batches according to ARC6 target selection logic
-    std::list<std::list<Arc::Endpoint> > endpoint_batches;
-    bool info_discovery = prepare_submission_endpoint_batches(usercfg, opt, endpoint_batches);
-  
-    // add rejectdiscovery if defined
-    if (!opt.rejectdiscovery.empty()) usercfg.AddRejectDiscoveryURLs(opt.rejectdiscovery);
+  // get endpoint batches according to ARC6 target selection logic
+  std::list<std::list<Arc::Endpoint> > endpoint_batches;
+  bool info_discovery = prepare_submission_endpoint_batches(usercfg, opt, endpoint_batches);
 
-    // action: dumpjobdescription
-    if (opt.dumpdescription) {
-        if (!info_discovery) {
-          logger.msg(Arc::ERROR,"Cannot adapt job description to the submission target when information discovery is turned off");
-          return 1;
-        }
-        // dump description only for priority submission interface, no fallbacks
-        std::list<Arc::Endpoint> services = endpoint_batches.front();
-        std::string req_sub_iface;
-        if (!opt.submit_types.empty()) req_sub_iface = opt.submit_types.front();
-        return dumpjobdescription(usercfg, jobdescriptionlist, services, req_sub_iface);
-    }
+  // add rejectdiscovery if defined
+  if (!opt.rejectdiscovery.empty()) usercfg.AddRejectDiscoveryURLs(opt.rejectdiscovery);
 
-    // default action: start submission cycle
-    return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist, delegation_type);
-  } else {
-    // Legacy target selection submission logic
-    std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
-
-    if (!opt.direct_submission) {
-      usercfg.AddRejectDiscoveryURLs(opt.rejectdiscovery);
-    }
-
-    if (opt.dumpdescription) {
-      return dumpjobdescription(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName);
-    }
-
-    return legacy_submit(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName, opt.jobidoutfile, opt.direct_submission, delegation_type);
+  // action: dumpjobdescription
+  if (opt.dumpdescription) {
+      if (!info_discovery) {
+        logger.msg(Arc::ERROR,"Cannot adapt job description to the submission target when information discovery is turned off");
+        return 1;
+      }
+      // dump description only for priority submission interface, no fallbacks
+      std::list<Arc::Endpoint> services = endpoint_batches.front();
+      std::string req_sub_iface;
+      if (!opt.submit_types.empty()) req_sub_iface = opt.submit_types.front();
+      return dumpjobdescription(usercfg, jobdescriptionlist, services, req_sub_iface);
   }
+
+  // default action: start submission cycle
+  return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist, delegation_type);
 }

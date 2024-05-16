@@ -153,9 +153,6 @@ public:
                 const std::string& summary = "",
                 const std::string& description = "");
 
-  /// Returns the boolean value indication whether new ARC6 set of target selection options are in use
-  bool isARC6TargetSelectionOptions(Arc::Logger& logger, bool allow_cluster = false);
-
   /// Implement ARC consistent info/submission endpoint types logic
   bool canonicalizeARC6InterfaceTypes(Arc::Logger& logger);
 
@@ -181,7 +178,6 @@ public:
   bool show_json;
   bool usejobname;
   bool forcedownload;
-  bool list_configured_services;
   bool direct_submission;
   bool show_unavailable;
   bool no_delegation;
@@ -210,8 +206,6 @@ public:
   std::string requestedSubmissionInterfaceName;
   std::string infointerface;
 
-  std::list<std::string> clusters;
-  std::list<std::string> indexurls;
   std::list<std::string> jobdescriptionstrings;
   std::list<std::string> jobdescriptionfiles;
   std::list<std::string> jobidinfiles;
