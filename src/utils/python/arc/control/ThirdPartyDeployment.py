@@ -297,9 +297,11 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             sys.exit(exitcode)
 
     def jwt_deploy(self, url, ca, deploy_conf=False):
+        is_testjwt = False
         if url.startswith('test-jwt://'):
             iss = JWTIssuer.from_dump(url[11:])
             arc_conf = iss.arc_conf('testjwt-{0}'.format(iss.hash()), 'arc')
+            if_testjwt = True
         elif url.startswith('https://'):
             if not url.endswith('/.well-known/openid-configuration'):
                 url = url + '/.well-known/openid-configuration'
@@ -330,7 +332,11 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         iss.controldir_save(self.arcconfig)
         print('ARC CE now trust JWT signatures of {0} issuer.\n'.format(iss.url()))
         if deploy_conf:
-            conf_d_f = write_conf_d('10-jwt-{0}.conf'.format(iss.hash()), arc_conf)
+            conf_d_f = ''
+            if is_testjwt:
+                conf_d_f = write_conf_d('10-testjwt-{0}.conf'.format(iss.hash()), arc_conf)
+            else:
+                conf_d_f = write_conf_d('10-jwt-{0}.conf'.format(iss.hash()), arc_conf)
             print('Auth configuration for issuer tokens has been written to {0}'.format(conf_d_f))
             print('ARC restart is needed to apply configuration.')
         else:
