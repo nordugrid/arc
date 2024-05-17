@@ -130,7 +130,11 @@ class TestCAControl(ComponentControl):
         cg = CertificateGenerator(self.x509_cert_dir)
         cg.cleanupCAfiles(self.caName)
         # hostcert/key, auth and conf.d files cleanup
-        for f in (self.__test_hostcert, self.__test_hostkey, self.__test_authfile, self.__conf_d_access, self.__conf_d_hostcert):
+        for f in (self.__test_hostcert,
+                  self.__test_hostkey,
+                  self.__test_authfile,
+                  conf_d(self.__conf_d_access),
+                  conf_d(self.__conf_d_hostcert)):
             if os.path.exists(f):
                 self.logger.debug('Removing the file: %s', f)
                 os.unlink(f)
@@ -179,19 +183,20 @@ class TestCAControl(ComponentControl):
             shutil.move(hostcertfiles.certLocation, os.path.join(workdir, certfname))
             shutil.move(hostcertfiles.keyLocation, os.path.join(workdir, keyfname))
             os.chmod(os.path.join(workdir, keyfname), stat.S_IRUSR | stat.S_IWUSR)
-            print('Host certificate and key are saved to {0} and {1} respectively.'.format(certfname, keyfname))
+            print_info(self.logger, 'Host certificate written to %s', certfname)
+            print_info(self.logger, 'Host key written to %s', keyfname)
         else:
             if not args.force:
                 if os.path.exists(self.__test_hostcert) or os.path.exists(self.__test_hostkey):
                     logger.error('Host certificate already exists.')
                     shutil.rmtree(tmpdir)
                     sys.exit(1)
-            logger.info('Installing generated host certificate to %s', self.__test_hostcert)
+            print_info(self.logger, 'Installing generated host certificate to %s', self.__test_hostcert)
             shutil.move(hostcertfiles.certLocation, self.__test_hostcert)
-            logger.info('Installing generated host key to %s', self.__test_hostkey)
+            print_info(self.logger, 'Installing generated host key to %s', self.__test_hostkey)
             shutil.move(hostcertfiles.keyLocation, self.__test_hostkey)
             conf_d = write_conf_d(self.__conf_d_hostcert, self.__arc_conf_hostcert())
-            logger.info('Hostcert location configuration written to %s', conf_d)
+            print_info(self.logger, 'TestCA hostcert ARC CE configuration written to %s', conf_d)
         shutil.rmtree(tmpdir)
 
     @staticmethod
@@ -242,8 +247,8 @@ class TestCAControl(ComponentControl):
             self.logger.debug('Installing user certificate and key')
             os.chown(usercertsdir + '/usercert.pem', pw.pw_uid, pw.pw_gid)
             os.chown(usercertsdir + '/userkey.pem', pw.pw_uid, pw.pw_gid)
-            print('User certificate and key are installed to default {0} location for user {1}.'
-                  .format(usercertsdir, args.install_user))
+            print_info(self.logger, 'Certificate and key for user %s are installed to default location: %s',
+                       args.install_user, usercertsdir)
         elif args.export_tar:
             workdir = os.getcwd()
             tarball = 'usercert-{0}.tar.gz'.format(username.replace(' ', '-'))
@@ -269,21 +274,21 @@ class TestCAControl(ComponentControl):
             # make a tarball
             with closing(tarfile.open(os.path.join(workdir, tarball), 'w:gz')) as tarf:
                 tarf.add(export_dir)
-            print('User certificate and key are exported to {0}.\n'
-                  'To use it with arc* tools on the other machine, copy the tarball and run the following commands:\n'
-                  '  tar xzf {0}\n'
-                  '  source {1}/setenv.sh'.format(tarball, export_dir))
+            print_info(self.logger, 'Certificate and key for user %s are exported to %s', username, tarball)
+            print_info(self.logger, 'Printing usage instructions for tarball')
+            print('tar xzf {0}\n'
+                  'source {1}/setenv.sh'.format(tarball, export_dir))
             # cleanup
             os.chdir(workdir)
             shutil.rmtree(tmpdir)
         else:
-            print('User certificate and key are saved to {0} and {1} respectively.\n'
-                  'To use test cert with arc* tools export the following variables:\n'
-                  '  export X509_USER_CERT="{2}/{0}"\n'
-                  '  export X509_USER_KEY="{2}/{1}"'.format(
-                        usercertfiles.certLocation,
-                        usercertfiles.keyLocation,
-                        os.getcwd()))
+            usercertpath = os.path.join(os.getcwd(), usercertfiles.certLocation)
+            userkeypath = os.path.join(os.getcwd(), usercertfiles.keyLocation)
+            print_info(self.logger, 'User certificate written to %s',usercertpath)
+            print_info(self.logger, 'User key written to %s', userkeypath)
+            print_info(self.logger, 'Printing usage instructions')
+            print('export X509_USER_CERT="{0}"\n'
+                  'export X509_USER_KEY="{1}"'.format(usercertpath, userkeypath))
         # add subject to allowed list
         if arcctl_server_mode():
             if not args.no_auth:

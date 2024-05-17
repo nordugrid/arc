@@ -29,6 +29,19 @@ except ImportError:
     def remove_runtime_config():
         pass
 
+def print_info(logger_obj, *args, **kwargs):
+    """Output logger info message regardless of current loglevel"""
+    current_level = logger_obj.getEffectiveLevel()
+    logger_obj.setLevel(logging.INFO)
+    logger_obj.info(*args, **kwargs)
+    logger_obj.setLevel(current_level)
+
+def print_warn(logger_obj, *args, **kwargs):
+    """Output logger warning message regardless of current loglevel"""
+    current_level = logger_obj.getEffectiveLevel()
+    logger_obj.setLevel(logging.WARNING)
+    logger_obj.warning(*args, **kwargs)
+    logger_obj.setLevel(current_level)
 
 def valid_datetime_type(arg_datetime_str):
     """Argparse datetime-as-an-argument helper"""
@@ -80,6 +93,11 @@ def ensure_path_writable(path):
     if not os.access(path, mode):
         logger.error("The path '%s' is not writable for user running arcctl", path)
         sys.exit(1)
+
+def conf_d(name):
+    """Return full path of config file in arc.conf.d directory"""
+    conf_d = ARC_CONF + '.d'
+    return os.path.join(conf_d, name)
 
 def write_conf_d(name, content, overwrite=True):
     """Write configuration to arc.conf.d directory"""
