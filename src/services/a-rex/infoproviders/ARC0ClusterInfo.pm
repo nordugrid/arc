@@ -261,7 +261,10 @@ sub collect($) {
         $c->{'issuerca-hash'} = $host_info->{issuerca_hash} if $host_info->{issuerca_hash};
         $c->{credentialexpirationtime} = mds_date($credenddate) if $credenddate;
         $c->{trustedca} = $host_info->{trustedcas} if $host_info->{trustedcas};
-        $c->{contactstring} = "gsiftp://$hostname:".$config->{gridftpd}{port}.$config->{gridftpd}{mountpoint} if ($config->{gridftpd}{enabled});
+        # TODO: Cleanup of gridftp: remove attributes that cannot be computed
+        # Solution: use contactstring from REST?
+        # $c->{contactstring} = "gsiftp://$hostname:".$config->{gridftpd}{port}.$config->{gridftpd}{mountpoint} if ($config->{gridftpd}{enabled});
+        # TODO: what is InteractiveContactstring? Might be removed?
         $c->{'interactive-contactstring'} = $config->{service}{InteractiveContactstring}
             if $config->{service}{InteractiveContactstring};
         $c->{support} = [ @supportmails ] if @supportmails;
@@ -338,6 +341,8 @@ sub collect($) {
 
             $q->{'name'} = $share;
             
+            # TODO: take decision for this: allownew just for arex? a different value?
+            # TODO: solution: "This a-rex only accepts jobs via REST"
             if ( defined $config->{GridftpdAllowNew} and $config->{GridftpdAllowNew} == 0 ) {
                 $q->{status} = 'inactive, grid-manager does not accept new jobs';
             } elsif ( $host_info->{gm_alive} ne 'all' ) {
@@ -427,6 +432,8 @@ sub collect($) {
                 my $j = {};
 
                 $j->{name} = $jobid;
+                # TODO: how to publish jobs not submitted via gridftp if contactstring is gone?
+                # Solution: use REST URL?
                 $j->{globalid} = $c->{contactstring}."/$jobid";
                 # Starting from ARC 6.10 we out a hash here for GDPR compliance.
                 $j->{globalowner} = sha512sum($gmjob->{subject},$dnhashes) if $gmjob->{subject};

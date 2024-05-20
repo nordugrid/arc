@@ -225,6 +225,7 @@ my $config_schema = {
         Middleware => [ '*' ],
         AdvertisedVO => [ '*' ],
         LocalSE => [ '*' ],
+        # TODO: what is this field? Can it be removed?
         InteractiveContactstring => [ '*' ],
         # TODO: This causes odd/unsupported options to pass the checks, review InfoChecker
         %$xenv_options, # TODO: Double copy: is this supposed to be here?  DC1

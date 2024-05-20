@@ -54,7 +54,7 @@ sub local_state {
     # TODO: probably add $failure_state taken from somewhere
     my ($gm_state,$lrms_state,$failure_state) = @_;
     my $loc_state = {
-	'State' => ''
+    'State' => ''
     };
     if ($gm_state eq "ACCEPTED") {
         $loc_state->{State} = [ "accepted" ];
@@ -1078,6 +1078,7 @@ sub collect($) {
             }
         }
         
+        # TODO: change default to REST
         # fills efficiently %jobs_by_endpoint, defaults to gridftp
         my $jobinterface = $job->{interface} || 'org.nordugrid.gridftpjob';
         
@@ -1102,6 +1103,7 @@ sub collect($) {
     my $ldapngendpoint = '';
     my $ldapglue2endpoint = '';
 
+    # TODO: remove gridftp
     my $gridftphostport = '';
 
     # TODO: calculate capabilities in a more efficient way. Maybe set
@@ -1128,7 +1130,8 @@ sub collect($) {
     
     ## Endpoints initialization.
     # checks for defined paths and enabled features, sets GLUE2 capabilities.
-        
+
+    # TODO: remove gridftpjob related stuff
     # for org.nordugrid.gridftpjob
     if ($config->{gridftpd}{enabled}) { 
     $gridftphostport = "$hostname:$config->{gridftpd}{port}";
@@ -1147,7 +1150,8 @@ sub collect($) {
                 )
                 ];
     };
-        
+    
+    # TODO: remove all EMI-ES and define appropriate for REST
     # The following are for EMI-ES
     my $emieshostport = '';
     if ($emiesenabled) {
@@ -1182,6 +1186,8 @@ sub collect($) {
                                                 'security.delegation'
                                                 ];
     }
+
+    # TODO: REST capabilities
 
     # for the org.nordugrid.internal submission endpoint (files created directly in the controldir)
     $csvendpointsnum = $csvendpointsnum + 1;
@@ -1255,8 +1261,10 @@ sub collect($) {
     my $cmgrID = "urn:ogf:ComputingManager:$hostname:$lrmsname"; # ComputingManager ID
     
     # Computing Endpoints IDs
+    # TODO: remove gridftpjob
     my $ARCgftpjobcepID;
     $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:gsiftp://$gridftphostport".$config->{gridftpd}{mountpoint} if ($config->{gridftpd}{enabled}); # ARCGridFTPComputingEndpoint ID
+    # TODO: remove emies 
     my $EMIEScepIDp;
     $EMIEScepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$wsendpoint" if $emiesenabled; # EMIESComputingEndpoint ID
     my $ARCRESTcepIDp;
@@ -1266,6 +1274,7 @@ sub collect($) {
     # the following is needed to publish in shares. Must be modified
     # if we support share-per-endpoint configurations.
     my @cepIDs = ();
+    # TODO: remove gridftp and emies
     push(@cepIDs,$ARCgftpjobcepID) if ($config->{gridftpd}{enabled});
     push(@cepIDs,$EMIEScepIDp) if ($emiesenabled);
     push(@cepIDs,$ARCRESTcepIDp) if ($emiesenabled);
@@ -1608,8 +1617,9 @@ sub collect($) {
         # Computing Endpoints ########
           
         # Here comes a list of endpoints we support.
-        # GridFTPd job execution endpoint - org.nordugrid.gridfptjob
-        # EMI-ES one endpoint per port-type
+        # TODO: remove: GridFTPd job execution endpoint - org.nordugrid.gridfptjob
+        # TODO: remove: EMI-ES one endpoint per port-type
+        # TODO: verify: REST - org.nordugrid.arcrest
         # LDAP endpoints one per schema
 
         # these will contain only endpoints with URLs defined
@@ -1620,6 +1630,7 @@ sub collect($) {
 
         # A-REX ComputingEndpoints
         
+        # TODO: REMOVE all below
         # ARC GridFTPd job submission interface 
           
         my $getARCGFTPdComputingEndpoint = sub {
@@ -1754,6 +1765,7 @@ sub collect($) {
         # Don't publish if there is no endpoint URL
         $arexceps->{ARCGFRPdComputingEndpoint} = $getARCGFTPdComputingEndpoint if $gridftphostport ne '';
 
+        # TODO: remove all EMI-ES endpoints
         # EMI-ES port types
         # TODO: understand if it's possible to choose only a set of portTypes to publish
 
@@ -2353,6 +2365,7 @@ sub collect($) {
         
         $arexceps->{EMIESDelegationEndpoint} = $getEMIESDelegationEndpoint if ($emiesenabled);
 
+        # TODO: review that the content is consistent with GLUE2
         # ARCREST 
 
         my $getARCRESTComputingEndpoint = sub {
@@ -2427,7 +2440,7 @@ sub collect($) {
 
             $cep->{ServingState} = $servingstate;
 
-            # StartTime: get it from hed
+            # TODO: StartTime: get it from hed or from Sysinfo.pm processes
 
             $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
             $cep->{TrustedCA} = $host_info->{trustedcas}; # array
