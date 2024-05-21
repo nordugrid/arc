@@ -97,7 +97,6 @@ BEGIN {
 
         # TODO: update according to new config
 
-        # C134
         my $infosysloglevel = ConfigCentral::getValueOf($configfile,'infosys','loglevel');
         $log->error("Can\'t determine loglevel. Probably the [infosys] block is missing. Exiting...") if ($infosysloglevel eq '');
         #C 134
