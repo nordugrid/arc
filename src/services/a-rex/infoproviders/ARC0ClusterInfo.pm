@@ -264,7 +264,7 @@ sub collect($) {
         # TODO: Cleanup of gridftp: remove attributes that cannot be computed
         # Solution: use contactstring from REST?
         # $c->{contactstring} = "gsiftp://$hostname:".$config->{gridftpd}{port}.$config->{gridftpd}{mountpoint} if ($config->{gridftpd}{enabled});
-        # TODO: what is InteractiveContactstring? Might be removed?
+        # TODO: what is InteractiveContactstring? Removed from ConfigCentral. Find equivalent and substitute
         $c->{'interactive-contactstring'} = $config->{service}{InteractiveContactstring}
             if $config->{service}{InteractiveContactstring};
         $c->{support} = [ @supportmails ] if @supportmails;
@@ -307,7 +307,6 @@ sub collect($) {
         $c->{runtimeenvironment} = [ sort keys %$rte_info ];
         push @{$c->{middleware}}, "nordugrid-arc-".$config->{arcversion};
         push @{$c->{middleware}}, "globus-$host_info->{globusversion}" if $host_info->{globusversion};
-        push @{$c->{middleware}}, @{$config->{service}{Middleware}} if $config->{service}{Middleware};
 
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
