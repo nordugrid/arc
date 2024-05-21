@@ -113,17 +113,16 @@ my $cache_options = {
    cachedir => [ '*' ],
    cachesize => '*'
 };
-my $gmuser_options = {
+# TODO: remove legacy gm stuff back into arex
+my $gm_options = {
     controldir => '',
     sessiondir => [ '' ],
     defaultttl => '*',
     %$cache_options
 };
-my $gmcommon_options = {
+my $common_options = {
     arcversion => '',
     arexhostport => '',
-    gmconfig => '*',
-    endpoint => '*',
     hostname => '*',
     maxjobs => '*',
     maxload => '*',
@@ -158,7 +157,7 @@ my $ldap_infosys_options = {
     bdii_tmp_dir => '*',
     bdii_var_dir => '*',
     bdii_update_pid_file => '*'
-    ## TODO: Check if this below was fixed.
+    ## TODO: Do the infosys need to know this number? check InfosysHelper.
     ## fix this elsewere, the value should be set according to the formula below
     ## not used directly by infoproviders, maybe by bdii config?
     ## this is probably done in the startup script, is called max_cycle
@@ -168,17 +167,17 @@ my $ldap_infosys_options = {
 };
 
 # [arex] subblocks
-# TODO: add REST related things if needed, remove EMIES
-my $wsemies_options = { 
+# TODO: add REST related things if needed
+my $wsjobs_options = { 
     allownew => '*',    
     enabled => ''
 }; 
 
-# TODO: add REST related things if needed, remove EMIES
+# TODO: add REST related things if needed
 my $ws_options = {
     enabled => '',
     wsurl => '*',
-    emies => { %$wsemies_options } 
+    jobs => { %$wsjobs_options } 
 };
 
 my $admindomain_options = {
@@ -204,16 +203,17 @@ my $config_schema = {
 
     admindomain => { %$admindomain_options },   
     
-    %$gmcommon_options,
+    %$common_options,
     
     %$sshcommon_options,
     
-    # TODO: check gmuser functionality or remove
+    # TODO: C2A: move these inside arex where they belong now 
     control => {
         '*' => {
-            %$gmuser_options
+            %$gm_options
         }
     },
+    # TODO: service is a mix of nordugrid "cluster" and glue2 concepts, plus arex. Translate/copy just what is needed from infosys/cluster
     service => {
         OtherInfo => [ '*' ],
         StatusInfo => [ '*' ],
@@ -222,15 +222,14 @@ my $config_schema = {
         ClusterAlias => '*',
         ClusterComment => '*',
         ClusterOwner => [ '*' ],
-        Middleware => [ '*' ],
         AdvertisedVO => [ '*' ],
         LocalSE => [ '*' ],
-        # TODO: what is this field? Can it be removed?
-        InteractiveContactstring => [ '*' ],
-        # TODO: This causes odd/unsupported options to pass the checks, review InfoChecker
-        %$xenv_options, # TODO: Double copy: is this supposed to be here?  DC1
-        %$share_options, # TODO: Double copy: is this supposed to be here?  DC2
-        QualityLevel => ''
+        QualityLevel => '',
+        # TODO: such hashes might make odd options may pass the checks, review InfoChecker
+        # These below are repeated here to implement infosys/cluster level options that
+        # apply to all xenvs and shares
+        %xenv_options,
+        %$share_options
     },
     location => {
         Name => '*',
@@ -268,7 +267,7 @@ my $config_schema = {
                 Command => [ '*' ],
                 Tag => [ '*' ],
             },
-            %$xenv_options, # TODO: Double copy: is this supposed to be here?  DC1
+            %$xenv_options
         }
     },
     shares => {
@@ -277,8 +276,8 @@ my $config_schema = {
             OtherInfo => [ '*' ],
             MappingQueue => '',
             ExecutionEnvironmentName => [ '' ],
-            %$share_options, # TODO: Double copy: is this supposed to be here?  DC2
-            %$lrms_share_options,
+            %$share_options,
+            %$lrms_share_options
         }
     },
 
@@ -291,6 +290,9 @@ my $config_schema = {
     },
     infosys => {
         enabled => '',
+        allowaccess => {
+          enabled => ''
+          }
         nordugrid => {
             enabled => ''
         }, 
@@ -320,7 +322,6 @@ my $config_schema = {
     },
 };
 
-# TODO: remove some or change because of the enable-by-block strategy
 my $allbools = [ qw(
                  Homogeneous VirtualMachine
                  ConnectivityIn ConnectivityOut Preemption
@@ -498,7 +499,9 @@ sub build_config_from_json {
     # Those values that are the same as in arc.conf will 
     # be copied and checked.
     my $config ||= {};
+    # service is an aggregation of the contents of infosys/cluster and GLUE2 relevant info
     $config->{service} ||= {};
+    # TODO: C2A move into arex all that is here - OBS many changes in all infoproviders!
     $config->{control} ||= {};
     ## This below is mostly GLUE2, but we decided not to create a dedicated block.
     $config->{location} ||= {};
@@ -510,20 +513,20 @@ sub build_config_from_json {
 
     # start of restructured pieces of information
     $config->{infosys} ||= {};
-    # use service for first implementation
     $config->{arex} ||= {};
     $config->{lrms} ||= {};
     #  end of restructured pieces of information
     
 
     my $common = $jsonconf->{'common'};    
-    ## TODO: remove everything that should not be in $config - 2024 is this done?
-    move_keys $common, $config, [keys %$gmcommon_options];
+    # Add to config only entries defined in common
+    move_keys $common, $config, [keys %$common_options];
 
-    # TODO: create a mapping hash eventually - 2024 is this done?
+    # TODO: not for arc7.0. Create a mapping hash eventually if we need 
+    # mapped users info.
     # new mapping block (just move to the top config as it was before)
-    my $mapping = $jsonconf->{'mapping'};
-    move_keys $mapping, $config, [keys %$gmcommon_options];
+    #my $mapping = $jsonconf->{'mapping'};
+    #move_keys $mapping, $config, [keys %$common_options];
     
     my $lrms = $jsonconf->{'lrms'};
     # some options in lrms, moved to $config for  backward compatibility, 
@@ -538,7 +541,8 @@ sub build_config_from_json {
     $config->{'lrms'}{'defaultqueue'} = $defaultqueue if defined $defaultqueue;
 
     my $arex = $jsonconf->{'arex'};
-    move_keys $arex, $config, [keys %$gmcommon_options];
+    # TODO: why move these in common instead of putting them in a common block?
+    move_keys $arex, $config, [keys %$common_options];
     
     my $ssh = $jsonconf->{'ssh'};
     move_keys $ssh, $config, [keys %$sshcommon_options];
@@ -552,20 +556,13 @@ sub build_config_from_json {
     
     # only one grid manager user, formerly represented by a dot
     $config->{control}{'.'} ||= {};
-    move_keys $arex, $config->{control}{'.'}, [keys %$gmuser_options];
+    move_keys $arex, $config->{control}{'.'}, [keys %$gm_options];
 
     move_keys $arex, $config->{arex}, [keys %$arex];
 
     # check that the above generated required information
-    $log->error("No control directory configured") unless %{$config->{control}} or $config->{remotegmdirs};
+    $log->error("No control directory configured") unless %{$config->{control}};
     
-    # TODO: remove multiple control dirs feature
-    while (my ($user, $control) = each %{$config->{control}}) {
-        $log->error("No control directory configured for user $user") unless $control->{controldir};
-        $log->error("No session directory configured for user $user") unless $control->{sessiondir};
-    }
-
-    # TODO: use for REST instead of EMIES
     if (defined $jsonconf->{'arex/ws'}) {
        my $arexws = $jsonconf->{'arex/ws'};
        $config->{arex}{ws} ||= {};
@@ -582,27 +579,27 @@ sub build_config_from_json {
         $config->{arexhostport} = "$host:$port";
     } 
 
-    # TODO: remove or substitute with REST    
-    $config->{arex}{ws}{emies} ||= {};
+    $config->{arex}{ws}{jobs} ||= {};
     if (defined $jsonconf->{'arex/ws/jobs'}) {
-        my $arexwsemies = $jsonconf->{'arex/ws/jobs'};
-        move_keys $arexwsemies, $config->{arex}{ws}{emies}, [keys %$wsemies_options];
-        $config->{arex}{ws}{emies}{enabled} = 1;
+        my $arexwsjobs = $jsonconf->{'arex/ws/jobs'};
+        move_keys $arexwsjobs, $config->{arex}{ws}{jobs}, [keys %$wsjobs_options];
+        $config->{arex}{ws}{jobs}{enabled} = 1;
     } else {
-        ## TODO: find a better strategy for the "enabled" defaults, blocks/hashes can't be used. - 2024 is this done? I think it's solved via checking numbers
-        $config->{arex}{ws}{emies}{enabled} = 0;
+        $config->{arex}{ws}{jobs}{enabled} = 0;
     }
 
    # cache handling, mixes info from different blocks into control
    $config->{arex}{cache} ||= {};
     if (defined $jsonconf->{'arex/cache'}) {
        my $cacheopts = $jsonconf->{'arex/cache'};
+       # TODO: move out of 'control' and in arex, fix rest of infoproviders
        # moved to control for legacy reasons
        move_keys $cacheopts, $config->{control}{'.'}, [keys %$cache_options];
     }
     $config->{arex}{cache}{cleaner} ||= {};
     if (defined $jsonconf->{'arex/cache/cleaner'}) {
        my $cacheopts = $jsonconf->{'arex/cache/cleaner'};
+       # TODO: move out of 'control' and in arex, fix rest of infoproviders
        # moved to control for legacy reasons
        move_keys $cacheopts, $config->{control}{'.'}, [keys %$cache_options];
     }
@@ -680,10 +677,8 @@ sub build_config_from_json {
                 $config->{service}{ConnectivityOut} = 1 if lc $_ eq 'outbound';
             }
         }
-        # TODO: this causes possibly unsupported values like OSName, OSVersion to be moved and not renamed
+        # TODO: this causes possibly unsupported values like OSName, OSVersion to be moved and not renamed - fix with infochecker
         move_keys $cluster, $config->{service}, [keys %$share_options, keys %$xenv_options];
-        # TODO: check if this is needed
-        move_keys $cluster, $config->{lrms}, [keys %$lrms_options, keys %$lrms_share_options];
     }
 
     ## use hostname as cluster alias if not defined
