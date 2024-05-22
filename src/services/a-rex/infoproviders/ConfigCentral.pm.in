@@ -113,30 +113,25 @@ my $cache_options = {
    cachedir => [ '*' ],
    cachesize => '*'
 };
-# TODO: remove legacy gm stuff back into arex
-my $gm_options = {
-    controldir => '',
-    sessiondir => [ '' ],
-    defaultttl => '*',
-    %$cache_options
+# ONGOING: remove legacy gm stuff back into arex
+# TODO: check that gm_options is now arex
+#my $gm_options = {
+#    controldir => '',
+#    sessiondir => [ '' ],
+#    defaultttl => '*',
+#    %$cache_options
 };
+# TODO: Cleanup what doesn't belong here, move to arex
 my $common_options = {
     arcversion => '',
-    arexhostport => '',
     hostname => '*',
-    maxjobs => '*',
-    maxload => '*',
-    maxloadshare => '*',
-    wakeupperiod => '*',
     x509_host_key => '*', 
     x509_host_cert => '*',
     x509_cert_dir => '*',
-    runtimedir => '*',
-    shared_filesystem => '*',
-    shared_scratch => '*',
-    scratchdir => '*',
     enable_perflog_reporting => '*',
     perflogdir => '*'
+    # TODO: what is this for? Check in ARC1ClusterInfo.pm
+    maxload => '*',
 };
 my $sshcommon_options = {
     remote_user => '*',
@@ -194,6 +189,24 @@ my $glue2_options = {
     computingservice_qualitylevel => '*'
 };
 
+my $arex_options = {
+    enabled => '',
+    defaultttl => '*',
+    logfile => '*',
+    loglevel => '*', 
+    infoproviders_timelimit => '*',
+    port => '*',
+    arexhostport => '',
+    controldir => '',
+    sessiondir => [ '' ],
+    defaultttl => '*',
+    runtimedir => '*',
+    shared_filesystem => '*',
+    shared_scratch => '*',
+    scratchdir => '*',
+    maxjobs => '*',
+    wakeupperiod => '*',
+}
 
 # # # # # # # # # # # # # #
 
@@ -203,16 +216,18 @@ my $config_schema = {
 
     admindomain => { %$admindomain_options },   
     
-    %$common_options,
+    common => { %$common_options },
     
+    # TODO: what to do with these? add ssh block?
     %$sshcommon_options,
     
     # TODO: C2A: move these inside arex where they belong now 
-    control => {
-        '*' => {
-            %$gm_options
-        }
-    },
+    #control => {
+    #    '*' => {
+    #        %$gm_options
+    #    }
+    #},
+    
     # TODO: service is a mix of nordugrid "cluster" and glue2 concepts, plus arex. Translate/copy just what is needed from infosys/cluster
     service => {
         OtherInfo => [ '*' ],
@@ -311,14 +326,10 @@ my $config_schema = {
         }
     },
     arex => {
-        enabled => '',
-        defaultttl => '*',
-        logfile => '*',
-        loglevel => '*', 
-        infoproviders_timelimit => '*',
-        port => '*',
-        shared_filesystem => '*',
+        %$arex_options,
+        # TODO: fix cache as inside arex!
         ws => { %$ws_options }
+        cache => { %$cache_options }
     },
 };
 
@@ -502,7 +513,7 @@ sub build_config_from_json {
     # service is an aggregation of the contents of infosys/cluster and GLUE2 relevant info
     $config->{service} ||= {};
     # TODO: C2A move into arex all that is here - OBS many changes in all infoproviders!
-    $config->{control} ||= {};
+    #$config->{control} ||= {}; # moved to {arex} - TODO: fix in all infoproviders
     ## This below is mostly GLUE2, but we decided not to create a dedicated block.
     $config->{location} ||= {};
     $config->{contacts} ||= [];
@@ -512,15 +523,15 @@ sub build_config_from_json {
     $config->{shares} ||= {};
 
     # start of restructured pieces of information
+    $config->{common} ||= {};
     $config->{infosys} ||= {};
     $config->{arex} ||= {};
     $config->{lrms} ||= {};
     #  end of restructured pieces of information
     
 
-    my $common = $jsonconf->{'common'};    
-    # Add to config only entries defined in common
-    move_keys $common, $config, [keys %$common_options];
+    my $common = $jsonconf->{'common'};
+    move_keys $common, $config->{'common'}, [keys %$common_options];
 
     # TODO: not for arc7.0. Create a mapping hash eventually if we need 
     # mapped users info.
@@ -541,24 +552,16 @@ sub build_config_from_json {
     $config->{'lrms'}{'defaultqueue'} = $defaultqueue if defined $defaultqueue;
 
     my $arex = $jsonconf->{'arex'};
-    # TODO: why move these in common instead of putting them in a common block?
-    move_keys $arex, $config, [keys %$common_options];
+    move_keys $arex, $config->{'arex'}, [keys %$arex];
     
     my $ssh = $jsonconf->{'ssh'};
     move_keys $ssh, $config, [keys %$sshcommon_options];
         
     my $infosys = $jsonconf->{'infosys'};
-        
     move_keys $infosys, $config->{'infosys'}, [keys %$infosys];
         
     rename_keys $infosys, $config, {port => 'SlapdPort'};
     move_keys $infosys, $config, [keys %$ldap_infosys_options];
-    
-    # only one grid manager user, formerly represented by a dot
-    $config->{control}{'.'} ||= {};
-    move_keys $arex, $config->{control}{'.'}, [keys %$gm_options];
-
-    move_keys $arex, $config->{arex}, [keys %$arex];
 
     # check that the above generated required information
     $log->error("No control directory configured") unless %{$config->{control}};
@@ -576,7 +579,7 @@ sub build_config_from_json {
         $port ||= 80 if $proto eq "http";
         $port ||= 443 if $proto eq "https";
         $config->{arex}{port} = $port;
-        $config->{arexhostport} = "$host:$port";
+        $config->{arex}{arexhostport} = "$host:$port";
     } 
 
     $config->{arex}{ws}{jobs} ||= {};
@@ -593,16 +596,17 @@ sub build_config_from_json {
     if (defined $jsonconf->{'arex/cache'}) {
        my $cacheopts = $jsonconf->{'arex/cache'};
        # TODO: move out of 'control' and in arex, fix rest of infoproviders
-       # moved to control for legacy reasons
-       move_keys $cacheopts, $config->{control}{'.'}, [keys %$cache_options];
+       move_keys $cacheopts, $config->{arex}{cache}, [keys %$cache_options];
     }
-    $config->{arex}{cache}{cleaner} ||= {};
-    if (defined $jsonconf->{'arex/cache/cleaner'}) {
-       my $cacheopts = $jsonconf->{'arex/cache/cleaner'};
-       # TODO: move out of 'control' and in arex, fix rest of infoproviders
-       # moved to control for legacy reasons
-       move_keys $cacheopts, $config->{control}{'.'}, [keys %$cache_options];
-    }
+    
+    # TODO: this is probably not used anymore, remove? Comment for now
+    #$config->{arex}{cache}{cleaner} ||= {};
+    #if (defined $jsonconf->{'arex/cache/cleaner'}) {
+    #   my $cacheopts = $jsonconf->{'arex/cache/cleaner'};
+    #   # TODO: move out of 'control' and in arex, fix rest of infoproviders
+    #   # moved to control for legacy reasons
+    #   move_keys $cacheopts, $config->{arex}{cache}, [keys %$cache_options];
+    #}
 
     # TODO: review BDII config, block disappeared but maybe options not moved back.
     # LDAP config
@@ -682,7 +686,7 @@ sub build_config_from_json {
     }
 
     ## use hostname as cluster alias if not defined
-    my $hostname = $config->{hostname};
+    my $hostname = $config->{common}{hostname};
      
     my @dns = split /\./, $hostname;
     my $shorthost = shift @dns;
