@@ -8,7 +8,6 @@ import socket
 import ssl
 import re
 import subprocess
-import xml.etree.ElementTree as ET
 from .OSPackage import OSPackageManagement
 from .TestJWT import JWTIssuer
 
@@ -28,39 +27,20 @@ class ThirdPartyControl(ComponentControl):
             if x509_cert_dir:
                 self.x509_cert_dir = x509_cert_dir
 
-    def __egi_get_voms_xml(self, vo):
-        self.logger.info('Fetching information about VO %s from EGI Database', vo)
-        dburl = 'http://operations-portal.egi.eu/xml/voIDCard/public/voname/{0}'.format(vo)
-        # query database
-        rcontent = fetch_url(dburl, err_description='EGI VO Database server')
-        if not rcontent.startswith('<?xml'):
-            self.logger.error('VO %s is not found in EGI database', vo)
-            sys.exit(1)
-        xml = ET.fromstring(rcontent)
-        return xml
+    def __egi_show_url(self, vo):
+        print_warn(self.logger, 'EGI API is not publicly accessible any longer. Printing URL to EGI Database web page with information about VO %s', vo)
+        dburl = 'https://operations-portal.egi.eu/vo/view/voname/{0}#VOV_section'.format(vo)
+        print(dburl)
+        sys.exit(1)
 
     def __egi_get_vomslsc(self, vo):
         vomslsc = {}
-        xml = self.__egi_get_voms_xml(vo)
-        # parse XML
-        for voms in xml.findall('.//VOMS_Server'):
-            host = voms.find('hostname').text
-            dn = voms.find('X509Cert/DN').text
-            ca = voms.find('X509Cert/CA_DN').text
-            vomslsc[host] = {'dn': dn, 'ca': ca}
+        self.__egi_show_url(vo)
         return vomslsc
 
     def __egi_get_vomses(self, vo):
         vomses = []
-        xml = self.__egi_get_voms_xml(vo)
-        for voms in xml.findall('.//VOMS_Server'):
-            port = None
-            if 'VomsesPort' in voms.attrib:
-                port = voms.attrib['VomsesPort']
-            host = voms.find('hostname').text
-            dn = voms.find('X509Cert/DN').text
-            if port is not None and host and dn:
-                vomses.append('"{0}" "{1}" "{2}" "{3}" "{0}"'.format(vo, host, port, dn))
+        self.__egi_show_url(vo)
         return vomses
 
     def __vomsadmin_get_vomses(self, url, vo, secure=False):
@@ -454,7 +434,7 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         deploy_vomses.add_argument('vo', help='VO Name')
         deploy_vomses_sources = deploy_vomses.add_mutually_exclusive_group(required=True)
         deploy_vomses_sources.add_argument('-v', '--voms', help='VOMS-Admin URL', action='append')
-        deploy_vomses_sources.add_argument('-e', '--egi-vo', help='NOTE: BROKEN due to an EGI server change. Fetch information from EGI VOs database',
+        deploy_vomses_sources.add_argument('-e', '--egi-vo', help='Print URL to EGI VOs database',
                                          action='store_true')
         deploy_vomses.add_argument('-u', '--user', help='Install to user\'s home instead of /etc',
                                    action='store_true')
@@ -466,7 +446,7 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         deploy_voms_lsc.add_argument('vo', help='VO Name')
         deploy_voms_sources = deploy_voms_lsc.add_mutually_exclusive_group(required=True)
         deploy_voms_sources.add_argument('-v', '--voms', help='VOMS-Admin URL', action='append')
-        deploy_voms_sources.add_argument('-e', '--egi-vo', help='NOTE: BROKEN due to an EGI server change. Fetch information from EGI VOs database',
+        deploy_voms_sources.add_argument('-e', '--egi-vo', help='Print URL to EGI VOs database',
                                          action='store_true')
         deploy_voms_lsc.add_argument('--pythonssl', action='store_true',
                                      help='Use Python SSL module to establish TLS connection '
