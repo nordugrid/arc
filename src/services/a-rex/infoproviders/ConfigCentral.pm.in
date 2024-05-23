@@ -120,7 +120,7 @@ my $cache_options = {
 #    sessiondir => [ '' ],
 #    defaultttl => '*',
 #    %$cache_options
-};
+#};
 # TODO: Cleanup what doesn't belong here, move to arex
 my $common_options = {
     arcversion => '',
@@ -129,7 +129,7 @@ my $common_options = {
     x509_host_cert => '*',
     x509_cert_dir => '*',
     enable_perflog_reporting => '*',
-    perflogdir => '*'
+    perflogdir => '*',
     # TODO: what is this for? Check in ARC1ClusterInfo.pm
     maxload => '*',
 };
