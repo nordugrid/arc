@@ -24,14 +24,18 @@ our $host_options_schema = {
            '*' => [ '*' ] #process name, ports
         },
         localusers     => [ '' ],
-        control => {
-            '*' => {
-                sessiondir => [ '' ],
+        # TODO: change the old control logic into something just for multiple sessiondirs.
+        arex => {
+            controldir => '',
+            sessiondir => [ '' ],
+            cache => {
                 cachedir => [ '*' ],
                 cachesize => '*'
             }
+        }
         },
-        remotegmdirs   => [ '*' ]
+        # TODO: this can be removed and the code that handles it as well
+        #remotegmdirs   => [ '*' ]
 };
 
 our $host_info_schema = {
@@ -321,22 +325,23 @@ sub get_host_info {
     $host_info = {%$host_info, %$osinfo, %$cpuinfo, %$meminfo, %$certinfo};
 
     my @controldirs;
-    my $control = $options->{control};
+    my $control = $options->{arex};
     push @controldirs, $_->{controldir} for values %$control;
 
     # Considering only common session disk space (not including per-user session directoires)
     my (%commongridareas, $commonfree);
-    if ($control->{'.'}) {
-        $commongridareas{$_} = 1 for map { my ($path, $drain) = split /\s+/, $_; $path; } @{$control->{'.'}{sessiondir}};
+    if ($control) {
+        $commongridareas{$_} = 1 for map { my ($path, $drain) = split /\s+/, $_; $path; } @{$control->{sessiondir}};
     }
+    # TODO: this can be removed. Commenting out for now.
     # Also include remote session directoires.
-    if (my $remotes = $options->{remotegmdirs}) {
-        for my $remote (@$remotes) {
-            my ($ctrldir, @sessions) = split ' ', $remote;
-            $commongridareas{$_} = 1 for grep { $_ ne 'drain' } @sessions;
-            push @controldirs, $ctrldir;
-        }
-    }
+    #if (my $remotes = $options->{remotegmdirs}) {
+    #    for my $remote (@$remotes) {
+    #        my ($ctrldir, @sessions) = split ' ', $remote;
+    #        $commongridareas{$_} = 1 for grep { $_ ne 'drain' } @sessions;
+    #        push @controldirs, $ctrldir;
+    #    }
+    #}
     if (%commongridareas) {
         my %res = Sysinfo::diskspaces(keys %commongridareas);
         if ($res{errors}) {
@@ -347,11 +352,13 @@ sub get_host_info {
         }
     }
 
+    # TODO: this is broken since many years, commenting out. Needs better handling in CEinfo.pl and ConfigCentral.pm 
     # calculate free space on the sessionsirs of each local user.
     my $user = $host_info->{localusers} = {};
 
     foreach my $u (@{$options->{localusers}}) {
 
+        # TODO: this can be reengineered for user-based sessiondirs
         # Are there grid-manager settings applying for this local user?
         if ($control->{$u}) {
             my $sessiondirs = [ map { my ($path, $drain) = split /\s+/, $_; $path; } @{$control->{$u}{sessiondir}} ];
@@ -370,9 +377,9 @@ sub get_host_info {
     }
 
     # Considering only common cache disk space (not including per-user caches)
-    if ($control->{'.'}) {
-        my $cachedirs = $control->{'.'}{cachedir} || [];
-        my ($cachemax, $cachemin) = split " ", $control->{'.'}{cachesize} if defined $control->{'.'}{cachesize};
+    if ($control->{'cache'}) {
+        my $cachedirs = $control->{'cache'}{cachedir} || [];
+        my ($cachemax, $cachemin) = split " ", $control->{'cache'}{cachesize} if defined $control->{'cache'}{cachesize};
         my @paths = map { my @pair = split " ", $_; $pair[0] } @$cachedirs;
         if (@paths) {
             my %res = Sysinfo::diskspaces(@paths);
@@ -426,15 +433,12 @@ sub get_host_info {
 sub test {
     my $options = { x509_host_cert => '/etc/grid-security/testCA-hostcert.pem',
                     x509_cert_dir => '/etc/grid-security/certificates',
-                    control => {
-                        '.' => {
-                            sessiondir => [ '/home', '/boot' ],
-                            cachedir => [ '/home' ],
-                            cachesize => '60 80',
+                    arex => {
+                        sessiondir => [ '/home', '/boot', '*', ],
+                        cache => { 
+                           cachedir => [ '/home' ],
+                           cachesize => '60 80',
                         },
-                        'daemon' => {
-                            sessiondir => [ '/home', '/tmp' ],
-                        }
                     },
                     remotegmdirs => [ '/dummy/control /home',
                                       '/dummy/control /boot' ],
