@@ -2,12 +2,6 @@
 
 package CEInfo;
 
-## RESTRUCTURING PHASE ################
-## changes are identified by the tags
-## #C changenumber
-#######################################
-
-
 ########################################################
 # Driver for information collection
 ########################################################
@@ -417,9 +411,9 @@ sub get_host_info($$) {
     $host_opts->{x509_cert_policy} = $config->{x509_cert_policy};
     $host_opts->{wakeupperiod} = $config->{wakeupperiod};
     $host_opts->{sessiondir} = $config->{sessiondir};
-    $host_opts->{control} = $config->{control};
+    $host_opts->{arex} = $config->{arex};
     # TODO: attempt to remove this and see what happens
-    $host_opts->{remotegmdirs} = $config->{remotegmdirs};
+    #$host_opts->{remotegmdirs} = $config->{remotegmdirs};
 
     return timed 'HostInfo', sub { HostInfo::collect($host_opts) };
 }
