@@ -216,7 +216,7 @@ my $config_schema = {
 
     admindomain => { %$admindomain_options },   
     
-    common => { %$common_options },
+    %$common_options,
     
     # TODO: what to do with these? add ssh block?
     %$sshcommon_options,
@@ -523,15 +523,14 @@ sub build_config_from_json {
     $config->{shares} ||= {};
 
     # start of restructured pieces of information
-    $config->{common} ||= {};
     $config->{infosys} ||= {};
     $config->{arex} ||= {};
     $config->{lrms} ||= {};
     #  end of restructured pieces of information
     
-
+    # [common] options can be retrieved directly using $config->{optionname}
     my $common = $jsonconf->{'common'};
-    move_keys $common, $config->{'common'}, [keys %$common_options];
+    move_keys $common, $config, [keys %$common_options];
 
     # TODO: not for arc7.0. Create a mapping hash eventually if we need 
     # mapped users info.
@@ -686,7 +685,7 @@ sub build_config_from_json {
     }
 
     ## use hostname as cluster alias if not defined
-    my $hostname = $config->{common}{hostname};
+    my $hostname = $config->{hostname};
      
     my @dns = split /\./, $hostname;
     my $shorthost = shift @dns;
@@ -947,7 +946,7 @@ sub set_defaults {
     ## Other defaults not covered by arcconfig-parser. Might be done with an hash at some point - TODO: 2024 has it been done?
 
     #default ARC version taken from build. Artificiously placed in common
-    $config->{common}{arcversion}='@VERSION@';
+    $config->{arcversion}='@VERSION@';
     
     # force ldap defaults if ldap renderings are enabled in config
     $config->{infosys}{ldap}{port}='2135' if ($config->{'infosys/ldap'}{enabled});
@@ -955,7 +954,7 @@ sub set_defaults {
     ## TODO: use REST
     # Define a-rex endpoint. Hardcoded after ARC6.
     if (defined $config->{'arex/ws'}) {
-        $config->{'arex/ws'}{wsurl} ||= 'https://'.$config->{common}{hostname}.':443/arex';
+        $config->{'arex/ws'}{wsurl} ||= 'https://'.$config->{hostname}.':443/arex';
     } else {
         $log->verbose("WS interface disabled. Add [arex/ws] block to enable");
     }
