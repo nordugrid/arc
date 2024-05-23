@@ -241,12 +241,12 @@ class HTTPSClientAuthConnection(httplib.HTTPSConnection):
         self.ca_file = None
         self.ca_path = None
         self.cert_required = False
-        if os.path.isdir(cacerts_path):
-            self.ca_path = cacerts_path
+        if cacerts_path is not None:
             self.cert_required = True
-        else:
-            self.ca_file = cacerts_path
-            self.cert_required = True
+            if os.path.isdir(cacerts_path):
+                self.ca_path = cacerts_path
+            else:
+                self.ca_file = cacerts_path
         self.timeout = timeout
 
     def connect(self):
