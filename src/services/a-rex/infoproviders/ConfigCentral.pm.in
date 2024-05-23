@@ -206,7 +206,7 @@ my $arex_options = {
     scratchdir => '*',
     maxjobs => '*',
     wakeupperiod => '*',
-}
+};
 
 # # # # # # # # # # # # # #
 
