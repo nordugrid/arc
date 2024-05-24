@@ -303,6 +303,9 @@ class Validator(object):
         if not os.path.exists(x509_host_cert):
             self.error("%s does not exist" % x509_host_cert)
         else:
+            # Warn about testCA
+            if 'testCA' in x509_host_cert:
+                self.warning("TestCA signed certificate is used as host certificate: %s" % x509_host_cert)
             # Verify cert
             try:
                 if x509_cert_dir == '':

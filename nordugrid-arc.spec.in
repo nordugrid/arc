@@ -1029,11 +1029,13 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/arcctl.1*
 
 %files arcctl-service
+%{python3_sitearch}/%{pkgdir}/control/Cleanup.py
 %{python3_sitearch}/%{pkgdir}/control/Config.py
 %{python3_sitearch}/%{pkgdir}/control/ServiceCommon.py
 %{python3_sitearch}/%{pkgdir}/control/Services.py
 %{python3_sitearch}/%{pkgdir}/control/OSService.py
 %{python3_sitearch}/%{pkgdir}/control/Validator.py
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/Cleanup.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Config.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/ServiceCommon.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Services.*

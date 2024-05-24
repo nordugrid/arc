@@ -44,6 +44,7 @@ class JWTIssuer(object):
     def __init__(self, iss):
         self.iss = iss
         self.isshash = crc32_id(iss)
+        self.testjwt = '/arc/testjwt/' in self.iss
         self.jwks = {}
         self.metadata = {}
         self.logger.info('JWT issuer: %s', self.iss)
@@ -186,7 +187,16 @@ class JWTIssuer(object):
         print_info(self.logger, 'Showing the JWKS for JWT Issuer %s', self.iss)
         print(json.dumps(self.jwks, indent=2))
 
-    def arc_conf(self, name='jwt', conf_d=False):
+    def url(self):
+        """Return issuer URL"""
+        return self.iss
+
+    def hash(self):
+        """Return issuer URL hash"""
+        return self.isshash
+
+    # arc.conf operations (server side deploy/cleanup)
+    def arc_conf(self, conf_d=False):
         """Print/deploy arc.conf example snippet to authorize issuer"""
         conf = [
             "#\n# Allow tokens issued by {iss} to submit jobs\n#",
@@ -197,6 +207,7 @@ class JWTIssuer(object):
             "\n[arex/ws/jobs]",
             "allowaccess = {name}"
         ]
+        name = 'testjwt' if self.testjwt else 'jwt'
         authgroup_name = '{0}-{1}'.format(name, self.isshash)
         conf_content = '\n'.join(conf).format(**{
             'name': authgroup_name,
@@ -210,15 +221,29 @@ class JWTIssuer(object):
             print_info(self.logger, 'ARC CE needs configuratio to allow job submission using JWT tokens from the issuer. Printing out example configuration.')
             print(conf_content)
 
-    def url(self):
-        """Return issuer URL"""
-        return self.iss
+    def cleanup_conf_d(self):
+        """Cleanup auth file in arc.conf.d for this iseeur"""
+        name = 'testjwt' if self.testjwt else 'jwt'
+        conf_d_f = conf_d('10-{0}-{1}.conf'.format(name, self.isshash))
+        if os.path.exists(conf_d_f):
+                self.logger.info('Removing the file: %s', conf_d_f)
+                os.unlink(conf_d_f)
 
-    def hash(self):
-        """Return issuer URL hash"""
-        return self.isshash
+    # controldir operations (server side deploy/cleanup)
+    @staticmethod
+    def list_jwt_issuers(arcconfig):
+        """Return list of issuers configured inside controldir"""
+        issuers = []
+        tokenissuers_dir = os.path.join(arcconfig.get_value('controldir', 'arex'), 'tokenissuers')
+        if not os.path.isdir(tokenissuers_dir):
+            return issuers
+        for path, _, files in os.walk(tokenissuers_dir):
+            if 'issuer' in files:
+                with open(os.path.join(path, 'issuer'), 'r') as issuer_f:
+                    issuers.append(issuer_f.read().strip())
+                continue
+        return issuers
 
-    # Controldir operations (to use from arcctl deploy)
     def controldir_save(self, arcconfig=None):
         if not arcctl_server_mode():
             raise Exception("Deployment to controldir cannot run in arcctl client mode")
@@ -449,7 +474,7 @@ class TestJWTControl(ComponentControl):
         if self.jwk is None:
             self.load_jwk()
         # dump data
-        print_info(self.logger, 'Generating deployment command to be executed on ARC CE to trust the Test JWT issuer %s', self.iss)
+        print_info(self.logger, 'Generating deployment command to be executed on ARC CE to trust the Test JWT issuer %s', self.iss.url())
         print('arcctl deploy jwt-issuer --deploy-conf test-jwt://', end='')
         print(self.iss.dump())
 
@@ -582,7 +607,7 @@ class TestJWTControl(ComponentControl):
 
         testjwt_export = testjwt_actions.add_parser('export', help='Export JWT issuer information to be imported to ARC CE')
 
-        testjwt_cleanup = testjwt_actions.add_parser('cleanup', help='Cleanup TestJWT files')
+        testjwt_cleanup = testjwt_actions.add_parser('cleanup', help='Cleanup TestJWT Issuer files')
 
         testjwt_conf_get = testjwt_actions.add_parser('config-get', help='Get JWT token generation config')
         testjwt_conf_get.add_argument('-p', '--profile', action='store', default='default',

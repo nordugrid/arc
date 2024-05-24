@@ -277,10 +277,8 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             sys.exit(exitcode)
 
     def jwt_deploy(self, url, ca, deploy_conf=False):
-        arc_conf_name_prefix = 'jwt'
         if url.startswith('test-jwt://'):
             iss = JWTIssuer.from_dump(url[11:])
-            arc_conf_name_prefix = 'testjwt'
         elif url.startswith('https://'):
             if not url.endswith('/.well-known/openid-configuration'):
                 url = url + '/.well-known/openid-configuration'
@@ -311,7 +309,7 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         iss.controldir_save(self.arcconfig)
         print_info(self.logger, 'ARC CE now trust JWT signatures of %s issuer.', iss.url())
         # deploy or inform about arc.conf changes needed
-        iss.arc_conf(arc_conf_name_prefix, conf_d=deploy_conf)
+        iss.arc_conf(conf_d=deploy_conf)
 
     def __globus_port_range(self, ports, proto, conf, iptables_config, subsys='data transfer'):
         if ports is None:

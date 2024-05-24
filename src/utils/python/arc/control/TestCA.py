@@ -142,7 +142,7 @@ class TestCAControl(ComponentControl):
                   conf_d(self.__conf_d_access),
                   conf_d(self.__conf_d_hostcert)):
             if os.path.exists(f):
-                self.logger.debug('Removing the file: %s', f)
+                self.logger.info('Removing the file: %s', f)
                 os.unlink(f)
 
     def signhostcert(self, args):
@@ -311,7 +311,7 @@ class TestCAControl(ComponentControl):
         # define CA dir if provided
         if args.ca_dir is not None:
             self.__define_ca_dir(args.ca_dir)
-        # no need to go further if it CA dir is not writable
+        # no need to go further if CA dir is not writable
         ensure_path_writable(self.x509_cert_dir)
         # define CA ID if provided
         if args.ca_id is not None:
