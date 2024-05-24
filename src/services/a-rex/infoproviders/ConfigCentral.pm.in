@@ -563,7 +563,7 @@ sub build_config_from_json {
     move_keys $infosys, $config, [keys %$ldap_infosys_options];
 
     # check that the above generated required information
-    $log->error("No control directory configured") unless %{$config->{control}};
+    $log->error("No control directory configured") unless $config->{arex}{controldir};
     
     if (defined $jsonconf->{'arex/ws'}) {
        my $arexws = $jsonconf->{'arex/ws'};
