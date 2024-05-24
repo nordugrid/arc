@@ -87,6 +87,8 @@ sub collect {
     my ($controls, $remotegmdirs, $nojobs) = @_;
 
     my $gmjobs = {};
+    # TODO: there is no more user control thing, remove the user part
+    # How was this working until now? switchEffectiveUser defaults to root.
     while (my ($user, $control) = each %$controls) {
         switchEffectiveUser($user);
         my $controldir = $control->{controldir};
