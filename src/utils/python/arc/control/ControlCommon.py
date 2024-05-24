@@ -6,6 +6,7 @@ import datetime
 import argparse
 import zlib
 import re
+import subprocess
 from arc.utils import config
 # HTTPS
 import socket
@@ -42,6 +43,40 @@ def print_warn(logger_obj, *args, **kwargs):
     logger_obj.setLevel(logging.WARNING)
     logger_obj.warning(*args, **kwargs)
     logger_obj.setLevel(current_level)
+
+def run_subprocess(*args, exit_on_failure=True):
+    """Run subprocess with error wrapping. Returns command stdout."""
+    cmd = list(args)
+    cmd_str = ' '.join(cmd)
+    if not cmd:
+        logger.critical('Internal error: command to run was not provided')
+        sys.exit(1)
+    try:
+        logger.debug('Running the subprocess: %s', cmd_str)
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if result.stdout:
+            logger.debug('Output of %s: %s', cmd_str, result.stdout.decode('utf-8'))
+        if result.returncode != 0:
+            logger.error('Command "%s" failed with exit code %s', cmd_str, result.returncode)
+            if exit_on_failure:
+                sys.exit(result.returncode)
+    except OSError as err:
+        logger.error('Error occured trying to run "%s": %s', cmd_str, str(err))
+        if exit_on_failure:
+            sys.exit(1)
+    return result.stdout
+
+def ask_yes_no(question, default_yes=False):
+    """Interactively ask for confirmation. Returns True if yes."""
+    yes_no = ' (YES/no): ' if default_yes else ' (yes/NO): '
+    reply = str(input(question + yes_no)).lower().strip()
+    if reply == 'yes':
+        return True
+    if reply == 'no':
+        return False
+    if reply == '':
+        return default_yes
+    return ask_yes_no("Please type 'yes' or 'no'", default_yes)
 
 def valid_datetime_type(arg_datetime_str):
     """Argparse datetime-as-an-argument helper"""

@@ -327,21 +327,6 @@ class CommunityRTEControl(ComponentControl):
         shutil.rmtree(cdir)
         sys.exit(exitcode)
 
-    def __ask_yes_no(self, question, default_yes=False):
-        """Interactively ask for confirmation"""
-        yes_no = ' (YES/no): ' if default_yes else ' (yes/NO): '
-        try:
-            reply = str(raw_input(question + yes_no)).lower().strip()
-        except NameError:
-            reply = str(input(question + yes_no)).lower().strip()
-        if reply == 'yes':
-            return True
-        if reply == 'no':
-            return False
-        if reply == '':
-            return default_yes
-        return self.__ask_yes_no("Please type 'yes' or 'no'", default_yes)
-
     def __load_community_config(self, c):
         """Load community configuration"""
         cdir = os.path.join(self.community_rte_dir, c)
@@ -568,7 +553,7 @@ class CommunityRTEControl(ComponentControl):
                 print('The imported community public key data is:')
                 print('  ' + keyuid)
                 print('  Fingerprint: ' + ' '.join([vfp[i:i+4] for i in range(0, len(vfp), 4)]))
-                if not self.__ask_yes_no('Is the community key fingerprint correct?'):
+                if not ask_yes_no('Is the community key fingerprint correct?'):
                     self.logger.info('Removing community %s from trusted.', c)
                     self.__cdir_cleanup(c)
         else:
@@ -898,7 +883,7 @@ class CommunityRTEControl(ComponentControl):
                         ditem['filename'] = ditem['url'].split('/')[-1]
                     if 'checksum_type' not in ditem:
                         self.logger.warning('No checksum defined for URL %s. Software download will be insecure!')
-                        if not self.__ask_yes_no('Are you want to continue?'):
+                        if not ask_yes_no('Are you want to continue?'):
                             self.rte_remove(args)
                             sys.exit(1)
                     downloads.append(ditem)
