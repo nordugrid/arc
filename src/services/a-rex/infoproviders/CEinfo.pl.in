@@ -410,7 +410,6 @@ sub get_host_info($$) {
     $host_opts->{x509_cert_dir} = $config->{x509_cert_dir};
     $host_opts->{x509_cert_policy} = $config->{x509_cert_policy};
     $host_opts->{wakeupperiod} = $config->{wakeupperiod};
-    $host_opts->{sessiondir} = $config->{sessiondir};
     $host_opts->{arex} = $config->{arex};
     # TODO: attempt to remove this and see what happens
     #$host_opts->{remotegmdirs} = $config->{remotegmdirs};
@@ -422,7 +421,7 @@ sub get_rte_info($) {
     my ($config) = @_;
 
     my $rte_opts;
-    $rte_opts->{controldir} = $config->{control}{'.'}{controldir} if $config->{control}{'.'}{controldir};
+    $rte_opts->{controldir} = $config->{arex}{controldir} if $config->{arex}{controldir};
 
     return timed 'RTEInfo', sub { RTEInfo::collect($rte_opts) };
 }
@@ -437,7 +436,7 @@ sub get_lrms_info($$$) {
     my $lrms_opts = Storable::dclone($config->{lrms});
     
     # Additional info used by LRMS modules
-    $lrms_opts->{controldir} = $config->{control}{'.'}{controldir};
+    $lrms_opts->{controldir} = $config->{arex}{controldir};
     $lrms_opts->{loglevel} = $config->{infosys}{loglevel};
     
     # TODO: double check this cleanup, if needed
@@ -457,7 +456,7 @@ sub get_lrms_info($$$) {
 sub get_gmjobs_info($) {
     my $config = shift;
 
-    my $gmjobs_info = timed 'GMJobsInfo', sub { GMJobsInfo::collect($config->{control},
+    my $gmjobs_info = timed 'GMJobsInfo', sub { GMJobsInfo::collect($config->{arex},
                                                                     $config->{remotegmdirs},
                                                                     $nojobs) };
     return fix_jobs($config, $gmjobs_info);
