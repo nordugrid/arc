@@ -199,7 +199,6 @@ my $arex_options = {
     arexhostport => '',
     controldir => '',
     sessiondir => [ '' ],
-    defaultttl => '*',
     runtimedir => '*',
     shared_filesystem => '*',
     shared_scratch => '*',
