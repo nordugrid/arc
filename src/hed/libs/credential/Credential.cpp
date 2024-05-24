@@ -949,10 +949,20 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
   Credential::Credential(const UserConfig& usercfg, PasswordSource& passphrase4key) {
     if (usercfg.CredentialString().empty()) {
-      InitCredential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
-                     !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
-                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseDefault(),
-                     passphrase4key, true);
+      std::string certpath = usercfg.ProxyPath();
+      if(certpath.empty()) certpath = usercfg.CertificatePath();
+      std::string keypath = usercfg.ProxyPath();
+      if(keypath.empty()) keypath = usercfg.KeyPath();
+      // Skip attempt to initialize credentials if no credentials are specified.
+      if(!certpath.empty()) {
+        InitCredential(certpath, keypath,
+                       usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseDefault(),
+                       passphrase4key, true);
+      } else {
+        // That is not exactly an error because UserConfig may be set to use different type of credentials.
+        CredentialLogger.msg(INFO, "Certificate/Proxy path is empty");
+        InitEmpty();
+      }
     } else {
       InitCredential(usercfg.CredentialString(), "",
                      usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseDefault(),
@@ -970,16 +980,48 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       pass = new PasswordSourceString(passphrase4key);
     }
     if (usercfg.CredentialString().empty()) {
-      InitCredential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
-                     !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
-                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseDefault(),
-                     *pass, true);
+      std::string certpath = usercfg.ProxyPath();
+      if(certpath.empty()) certpath = usercfg.CertificatePath();
+      std::string keypath = usercfg.ProxyPath();
+      if(keypath.empty()) keypath = usercfg.KeyPath();
+      // Skip attempt to initialize credentials if no credentials are specified.
+      if(!certpath.empty()) {
+        InitCredential(certpath, keypath,
+                       usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseDefault(),
+                       *pass, true);
+      } else {
+        // That is not exactly an error because UserConfig may be set to use different type of credentials.
+        CredentialLogger.msg(INFO, "Certificate/Proxy path is empty");
+        InitEmpty();
+      }
     } else {
       InitCredential(usercfg.CredentialString(), "",
                      usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseDefault(),
                      *pass, false);
     }
     delete pass;
+  }
+
+  void Credential::InitEmpty() {
+    initialized_ = false;
+    cacertfile_ = "";
+    cacertdir_ = "";
+    certfile_ = "";
+    keyfile_ = "";
+    verification_valid_ = false;
+    cert_ = NULL;
+    pkey_ = NULL;
+    cert_chain_ = NULL;
+    proxy_cert_info_ = NULL;
+    req_ = NULL;
+    rsa_key_ = NULL;
+    signing_alg_ = NULL;
+    keybits_ = 0;
+    proxyver_ = 0;
+    pathlength_ = 0;
+    extensions_ = NULL;
+
+    OpenSSLInit();
   }
 
   void Credential::InitCredential(const std::string& certfile, const std::string& keyfile,
