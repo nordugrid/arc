@@ -31,8 +31,7 @@ our $host_options_schema = {
             cache => {
                 cachedir => [ '*' ],
                 cachesize => '*'
-            }
-        }
+            },
         },
         # TODO: this can be removed and the code that handles it as well
         #remotegmdirs   => [ '*' ]
@@ -326,7 +325,8 @@ sub get_host_info {
 
     my @controldirs;
     my $control = $options->{arex};
-    push @controldirs, $_->{controldir} for values %$control;
+    # Leaving this array here in case we have still multiple controldirs of some kind
+    push @controldirs, $control->{controldir};
 
     # Considering only common session disk space (not including per-user session directoires)
     my (%commongridareas, $commonfree);
