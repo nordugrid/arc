@@ -3090,8 +3090,8 @@ sub collect($) {
 
             if (defined $host_info->{session_total}) {
                 my $sharedsession = "true";
-                $sharedsession = "false" if lc($config->{shared_filesystem}) eq "no"
-                                         or lc($config->{shared_filesystem}) eq "false";
+                $sharedsession = "false" if lc($config->{arex}{shared_filesystem}) eq "no"
+                                         or lc($config->{arex}{shared_filesystem}) eq "false";
                 $cmgr->{WorkingAreaShared} = $sharedsession;
                 $cmgr->{WorkingAreaGuaranteed} = "false";
 
@@ -3107,7 +3107,7 @@ sub collect($) {
                 #$cmgr->{WorkingAreaMPILifeTime} = $sessionlifetime;
             }
             
-            my ($sessionlifetime) = (split ' ', $config->{control}{'.'}{defaultttl});
+            my ($sessionlifetime) = (split ' ', $config->{arex}{defaultttl});
             $sessionlifetime ||= 7*24*60*60;
             $cmgr->{WorkingAreaLifeTime} = $sessionlifetime;
             
