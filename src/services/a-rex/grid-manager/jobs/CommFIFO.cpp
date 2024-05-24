@@ -207,7 +207,7 @@ CommFIFO::add_result CommFIFO::take_pipe(const std::string& dir_path, elem_t& el
 void CommFIFO::kick(void) {
   if(kick_in >= 0) {
     char c = '\0';
-    write(kick_in,&c,1);
+    (void)write(kick_in,&c,1);
   };
 }
 
@@ -219,7 +219,7 @@ CommFIFO::add_result CommFIFO::add(const std::string& dir_path) {
     fds.push_back(el);
     if(kick_in != -1) {
       char c = '\0';
-      write(kick_in,&c,1);
+      (void)write(kick_in,&c,1);
     };
     lock.unlock();
   };
@@ -247,6 +247,30 @@ bool CommFIFO::Signal(const std::string& dir_path, const std::string& id) {
       close(fd); return false;
     };
     pos += l;
+  };
+  close(fd);
+  return true;
+}
+
+bool CommFIFO::Signal(const std::string& dir_path, const std::vector<std::string>& ids) {
+  if(ids.empty()) return true;
+  std::string path = dir_path + fifo_file;
+  int fd = OpenFIFO(path);
+  if(fd == -1) return false;
+  for(std::size_t idx = 0; idx<ids.size(); ++idx) {
+    std::string id = ids[idx];
+    for(std::string::size_type pos = 0; pos <= id.length(); ++pos) {
+      ssize_t l = write(fd, id.c_str()+pos, id.length()+1-pos);
+      if(l == -1) {
+        if((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+          sleep(1); // todo: select/poll
+          continue; // retry
+        };
+        close(fd);
+        return false;
+      };
+      pos += l;
+    };
   };
   close(fd);
   return true;

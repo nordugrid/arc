@@ -226,6 +226,55 @@ namespace Arc {
     return protocol.empty() || (protocol == "http") || (protocol == "ftp") || (protocol == "ldap");
   }
 
+  SubmissionStatus SubmitterPluginREST::PostProcessInternal(Arc::URL const& baseUrl, Arc::URL const& submissionUrl, std::string const& delegationId,
+                                                            JobDescription const& jobdesc, Arc::XMLNode job_item, EntityConsumer<Job>& jc) {
+    SubmissionStatus retval;
+
+    std::string code = job_item["status-code"];
+    std::string reason = job_item["reason"];
+    std::string id = job_item["id"];
+    std::string state = job_item["state"];
+    if((code != "201") || id.empty()) {
+      logger.msg(INFO, "Failed to submit all jobs: %s %s", code, reason);
+      retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+      retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
+      return retval;
+    }
+    URL jobid(submissionUrl);
+    jobid.RemoveHTTPOption("action");
+    jobid.ChangePath(jobid.Path()+"/"+id);
+    URL sessionUrl = jobid;
+    sessionUrl.ChangePath(sessionUrl.Path()+"/session");
+    // compensate for time between request and response on slow networks
+    sessionUrl.AddOption("encryption=optional",false);
+    // TODO: implement multi job PutFiles or run multiple in parallel
+    if (!PutFiles(jobdesc, sessionUrl)) {
+      logger.msg(INFO, "Failed uploading local input files");
+      retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+      retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
+      // TODO: send job cancel request to let server know files are not coming
+      return retval;
+    }
+
+    Job j;
+    AddJobDetails(jobdesc, j);
+    // Proposed mandatory attributes for ARC 3.0
+    j.JobID = jobid.fullstr();
+    j.ServiceInformationURL = baseUrl;
+    j.ServiceInformationInterfaceName = "org.nordugrid.arcrest";
+    j.JobStatusURL = baseUrl;
+    j.JobStatusInterfaceName = "org.nordugrid.arcrest";
+    j.JobManagementURL = baseUrl;
+    j.JobManagementInterfaceName = "org.nordugrid.arcrest";
+    j.IDFromEndpoint = id;
+    j.DelegationID.push_back(delegationId);
+    j.LogDir = "/diagnose";
+      
+    jc.addEntity(j);
+
+    return retval;
+  }
+
   SubmissionStatus SubmitterPluginREST::SubmitInternal(const std::list<JobDescription>& jobdescs,
                                            const ExecutionTarget* et, const std::string& endpoint,
                          EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted) {
@@ -234,11 +283,8 @@ namespace Arc {
             URL(et->ComputingEndpoint->URLString) :
             URL((endpoint.find("://") == std::string::npos ? "https://" : "") + endpoint, false, 443, "/arex"));
 
-    Arc::URL submissionUrl(url);
     Arc::URL delegationX509Url(url);
     Arc::URL delegationTokenUrl(url);
-    submissionUrl.ChangePath(submissionUrl.Path()+"/rest/1.0/jobs");
-    submissionUrl.AddHTTPOption("action","new");
     delegationX509Url.ChangePath(delegationX509Url.Path()+"/rest/1.0/delegations");
     delegationX509Url.AddHTTPOption("action","new");
     delegationTokenUrl.ChangePath(delegationTokenUrl.Path()+"/rest/1.1/delegations"); // Token delegation appears in 1.1 version
@@ -249,6 +295,8 @@ namespace Arc {
     if(jobdescs.empty()) 
       return retval;
 
+    int instances_min = 1;
+    int instances_max = 1;
     std::string fullProduct;
     if(jobdescs.size() > 1) fullProduct = "<ActivityDescriptions>";
     std::list< std::pair<JobDescription,std::list<JobDescription>::const_iterator> > preparedjobdescs;
@@ -270,6 +318,15 @@ namespace Arc {
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         continue;
       }
+
+      if((jobdescs.size() > 1) && ((preparedjobdesc.InstancesMin > 1) || (preparedjobdesc.InstancesMax > 1))) {
+        logger.msg(INFO, "Can't submit multiple instances for multiple job descriptions. Not implemented yet.");
+        notSubmitted.push_back(&*it);
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+        continue;
+      }
+      if(preparedjobdesc.InstancesMin > 1) instances_min = preparedjobdesc.InstancesMin;
+      if(preparedjobdesc.InstancesMax > 1) instances_max = preparedjobdesc.InstancesMax;
 
       if(delegationId.empty()) {
         if(preparedjobdesc.X509Delegation) {
@@ -306,6 +363,16 @@ namespace Arc {
       return retval;
     }
 
+    Arc::URL submissionUrl(url);
+    submissionUrl.AddHTTPOption("action","new");
+    if(instances_max > 1) {
+      submissionUrl.ChangePath(submissionUrl.Path()+"/rest/1.1/jobs");
+      if(instances_min > 1) submissionUrl.AddHTTPOption("instances_min",Arc::tostring(instances_min));
+      submissionUrl.AddHTTPOption("instances",Arc::tostring(instances_max));
+    } else {
+      submissionUrl.ChangePath(submissionUrl.Path()+"/rest/1.0/jobs");
+    }
+
     Arc::MCCConfig cfg;
     usercfg->ApplyToConfig(cfg);
     Arc::ClientHTTP client(cfg, submissionUrl);
@@ -315,6 +382,8 @@ namespace Arc {
     Arc::HTTPClientInfo info;
     std::multimap<std::string,std::string> attributes;
     attributes.insert(std::pair<std::string, std::string>("Accept", "text/xml"));
+    submissionUrl.RemoveHTTPOption("instances_min");
+    submissionUrl.RemoveHTTPOption("instances");
 
     // TODO: paging, size limit
     Arc::MCC_Status res = client.process(std::string("POST"), attributes, &request, &info, &response);
@@ -351,55 +420,39 @@ namespace Arc {
       return retval;
     }
     Arc::XMLNode job_item = jobs_list["job"];
-    for (std::list< std::pair<JobDescription,std::list<JobDescription>::const_iterator> >::const_iterator it = preparedjobdescs.begin(); it != preparedjobdescs.end(); ++it) {
-      if(!job_item) { // no more jobs returned 
-        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-        for (; it != preparedjobdescs.end(); ++it) notSubmitted.push_back(&(*(it->second)));
-        break;
+    if(jobdescs.size() > 1) {
+      for (std::list< std::pair<JobDescription,std::list<JobDescription>::const_iterator> >::const_iterator it = preparedjobdescs.begin(); it != preparedjobdescs.end(); ++it) {
+        if(!job_item) { // no more jobs returned 
+          retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
+          for (; it != preparedjobdescs.end(); ++it) notSubmitted.push_back(&(*(it->second)));
+          break;
+        }
+        SubmissionStatus retval2 = PostProcessInternal(url, submissionUrl, delegationId, it->first, job_item, jc);
+        ++job_item;
+        if(!retval2) {
+          notSubmitted.push_back(&(*(it->second)));
+          retval |= retval2;
+          continue;
+        }
       }
-      std::string code = job_item["status-code"];
-      std::string reason = job_item["reason"];
-      std::string id = job_item["id"];
-      std::string state = job_item["state"];
-      if((code != "201") || id.empty()) {
-        logger.msg(INFO, "Failed to submit all jobs: %s %s", code, reason);
+    } else {
+      std::list< std::pair<JobDescription,std::list<JobDescription>::const_iterator> >::const_iterator it = preparedjobdescs.begin();
+      if(!job_item) { // no jobs returned 
+        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         notSubmitted.push_back(&(*(it->second)));
-        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
-        continue;
+      } else {
+        bool is_submitted = false;
+        while(job_item) {
+          SubmissionStatus retval2 = PostProcessInternal(url, submissionUrl, delegationId, it->first, job_item, jc);
+          ++job_item;
+          if(!retval2) {
+            retval |= retval2;
+          } else {
+            is_submitted = true;
+          }
+        }
+        if(!is_submitted) notSubmitted.push_back(&(*(it->second)));
       }
-      URL jobid(submissionUrl);
-      jobid.RemoveHTTPOption("action");
-      jobid.ChangePath(jobid.Path()+"/"+id);
-      URL sessionUrl = jobid;
-      sessionUrl.ChangePath(sessionUrl.Path()+"/session");
-      // compensate for time between request and response on slow networks
-      sessionUrl.AddOption("encryption=optional",false);
-      // TODO: implement multi job PutFiles or run multiple in parallel
-      if (!PutFiles(it->first, sessionUrl)) {
-        logger.msg(INFO, "Failed uploading local input files");
-        notSubmitted.push_back(&(*(it->second)));
-        retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
-        retval |= SubmissionStatus::ERROR_FROM_ENDPOINT;
-        // TODO: send job cancel request to let server know files are not coming
-        continue;
-      }
-
-      Job j;
-      AddJobDetails(it->first, j);
-      // Proposed mandatory attributes for ARC 3.0
-      j.JobID = jobid.fullstr();
-      j.ServiceInformationURL = url;
-      j.ServiceInformationInterfaceName = "org.nordugrid.arcrest";
-      j.JobStatusURL = url;
-      j.JobStatusInterfaceName = "org.nordugrid.arcrest";
-      j.JobManagementURL = url;
-      j.JobManagementInterfaceName = "org.nordugrid.arcrest";
-      j.IDFromEndpoint = id;
-      j.DelegationID.push_back(delegationId);
-      j.LogDir = "/diagnose";
-      
-      jc.addEntity(j);
     }
   
     return retval;

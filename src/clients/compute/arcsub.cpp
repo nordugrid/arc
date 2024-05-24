@@ -216,7 +216,7 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     }
 
     // default action: start submission cycle
-    return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist, delegation_type);
+    return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist, delegation_type, opt.instances_min, opt.instances_max);
   } else {
     // Legacy target selection submission logic
     std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
@@ -229,6 +229,6 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
       return dumpjobdescription(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName);
     }
 
-    return legacy_submit(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName, opt.jobidoutfile, opt.direct_submission, delegation_type);
+    return legacy_submit(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName, opt.jobidoutfile, opt.direct_submission, delegation_type, opt.instances_min, opt.instances_max);
   }
 }

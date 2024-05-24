@@ -69,6 +69,7 @@ class CommFIFO {
 
   /// Signal to A-REX job id which changed. Or generic kick if id is not set.
   static bool Signal(const std::string& dir_path, const std::string& id = "");
+  static bool Signal(const std::string& dir_path, const std::vector<std::string>& ids);
 
   /// Check if A-REX is listening to signals (without sending any signal).
   static bool Ping(const std::string& dir_path);

@@ -105,7 +105,7 @@ void check_missing_plugins(Arc::Submitter s, int is_error) {
   // TODO: What to do when failing to load other plugins.
 }
 
-int legacy_submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface, const std::string& jobidfile, bool direct_submission, DelegationType delegation_type) {
+int legacy_submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface, const std::string& jobidfile, bool direct_submission, DelegationType delegation_type, int instances_min, int instances_max) {
 
   HandleSubmittedJobs hsj(jobidfile, usercfg);
   Arc::Submitter s(usercfg);
@@ -117,10 +117,14 @@ int legacy_submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescri
                   it != w_jobdescriptionlist.end(); ++it) {
     it->X509Delegation = (delegation_type == X509Delegation);
     it->TokenDelegation = (delegation_type == TokenDelegation);
+    it->InstancesMin = instances_min;
+    it->InstancesMax = instances_max;
     for(std::list<Arc::JobDescription>::iterator itAlt = it->GetAlternatives().begin();
                     itAlt != it->GetAlternatives().end(); ++itAlt) {
       itAlt->X509Delegation = (delegation_type == X509Delegation);
       itAlt->TokenDelegation = (delegation_type == TokenDelegation);
+      itAlt->InstancesMin = instances_min;
+      itAlt->InstancesMax = instances_max;
     }
   }
 
@@ -398,7 +402,7 @@ bool prepare_submission_endpoint_batches(const Arc::UserConfig& usercfg, const C
   return info_discovery;
 }
 
-int submit_jobs(const Arc::UserConfig& usercfg, const std::list<std::list<Arc::Endpoint> >& endpoint_batches, bool info_discovery, const std::string& jobidfile, const std::list<Arc::JobDescription>& jobdescriptionlist, DelegationType delegation_type) {
+int submit_jobs(const Arc::UserConfig& usercfg, const std::list<std::list<Arc::Endpoint> >& endpoint_batches, bool info_discovery, const std::string& jobidfile, const std::list<Arc::JobDescription>& jobdescriptionlist, DelegationType delegation_type, int instances_min, int instances_max) {
 
     HandleSubmittedJobs hsj(jobidfile, usercfg);
     Arc::Submitter submitter(usercfg);
@@ -410,10 +414,14 @@ int submit_jobs(const Arc::UserConfig& usercfg, const std::list<std::list<Arc::E
                     it != w_jobdescriptionlist.end(); ++it) {
       it->X509Delegation = (delegation_type == X509Delegation);
       it->TokenDelegation = (delegation_type == TokenDelegation);
+      it->InstancesMin = instances_min;
+      it->InstancesMax = instances_max;
       for(std::list<Arc::JobDescription>::iterator itAlt = it->GetAlternatives().begin();
                       itAlt != it->GetAlternatives().end(); ++itAlt) {
         itAlt->X509Delegation = (delegation_type == X509Delegation);
         itAlt->TokenDelegation = (delegation_type == TokenDelegation);
+        itAlt->InstancesMin = instances_min;
+        itAlt->InstancesMax = instances_max;
       }
     }
 

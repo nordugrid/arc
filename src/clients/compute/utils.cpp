@@ -441,7 +441,9 @@ ClientOptions::ClientOptions(Client_t c,
     force_grid_ca(false),
     testjobid(-1),
     runtime(5),
-    timeout(-1)
+    timeout(-1),
+    instances_min(1),
+    instances_max(1)
 {
   bool cIsJobMan = (c == CO_CAT || c == CO_CLEAN || c == CO_GET || c == CO_KILL || c == CO_RENEW || c == CO_RESUME || c == CO_STAT || c == CO_ACL);
 
@@ -668,6 +670,14 @@ ClientOptions::ClientOptions(Client_t c,
     GroupAddOption("tuning", 'K', "token-delegation",
               istring("perform token delegation for submitted jobs"),
               token_delegation);
+
+    GroupAddOption("tuning", '\0', "instances-max",
+              istring("request at most this number of job instances submitted in single submit request"),
+              "", instances_max);
+
+    GroupAddOption("tuning", '\0', "instances-min",
+              istring("request at least this number of job instances submitted in single submit request"),
+              "", instances_min);
   }
   
   if (c == CO_SUB || c == CO_TEST || c == CO_INFO) {
