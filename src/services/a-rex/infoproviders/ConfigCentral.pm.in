@@ -63,14 +63,14 @@ my $lrms_options = {
     boinc_db_port => '*',
     boinc_db_name => '*',
     boinc_db_user => '*',
-    boinc_db_pass => '*',
+    boinc_db_pass => '*'
 };
 my $lrms_share_options = {
     queue_node_string => '*',
     condor_requirements => '*',
     sge_jobopts => '*',
     lsf_architecture => '*',
-    ll_consumable_resources => '*',
+    ll_consumable_resources => '*'
 };
 my $xenv_options = {
     Platform => '*',
@@ -243,7 +243,7 @@ my $config_schema = {
         # TODO: such hashes might make odd options may pass the checks, review InfoChecker
         # These below are repeated here to implement infosys/cluster level options that
         # apply to all xenvs and shares
-        %xenv_options,
+        %$xenv_options,
         %$share_options
     },
     location => {
@@ -307,7 +307,7 @@ my $config_schema = {
         enabled => '',
         allowaccess => {
           enabled => ''
-          }
+          },
         nordugrid => {
             enabled => ''
         }, 
@@ -328,7 +328,7 @@ my $config_schema = {
     arex => {
         %$arex_options,
         # TODO: fix cache as inside arex!
-        ws => { %$ws_options }
+        ws => { %$ws_options },
         cache => { %$cache_options }
     },
 };
@@ -1008,7 +1008,8 @@ sub isBlockPresent ($$) {
 
 ## Todo: review, this doesn't work anymore
 sub dumpInternalDatastructure ($){
-    my ($config) = @_;
+    my ($configfile) = @_;
+    my $config = parseConfig($configfile);
     print Dumper($config);
 }
 
