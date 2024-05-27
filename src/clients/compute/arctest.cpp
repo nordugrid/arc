@@ -226,96 +226,34 @@ int RUNMAIN(arctest)(int argc, char **argv) {
       }
   }
 
-  // ARC6 target selection submission logic (same as arcsub)
-  if ( opt.isARC6TargetSelectionOptions(logger) ) {
-    // arctest only works with single test job in jobdescription list
-    std::list<Arc::JobDescription> jobdescriptionlist;
-    jobdescriptionlist.push_back(testJob);
-    // canonicalize endpoint types
-    if (!opt.canonicalizeARC6InterfaceTypes(logger)) return 1;
+  // arctest only works with single test job in jobdescription list
+  std::list<Arc::JobDescription> jobdescriptionlist;
+  jobdescriptionlist.push_back(testJob);
+  // canonicalize endpoint types
+  if (!opt.canonicalizeARC6InterfaceTypes(logger)) return 1;
 
-    // get endpoint batches according to ARC6 target selection logic
-    std::list<std::list<Arc::Endpoint> > endpoint_batches;
-    bool info_discovery = prepare_submission_endpoint_batches(usercfg, opt, endpoint_batches);
+  // get endpoint batches according to ARC6 target selection logic
+  std::list<std::list<Arc::Endpoint> > endpoint_batches;
+  bool info_discovery = prepare_submission_endpoint_batches(usercfg, opt, endpoint_batches);
 
-    // add rejectdiscovery if defined
-    if (!opt.rejectdiscovery.empty()) usercfg.AddRejectDiscoveryURLs(opt.rejectdiscovery);
+  // add rejectdiscovery if defined
+  if (!opt.rejectdiscovery.empty()) usercfg.AddRejectDiscoveryURLs(opt.rejectdiscovery);
 
-    // action: dumpjobdescription
-    if (opt.dumpdescription) {
-        if (!info_discovery) {
-          logger.msg(Arc::ERROR,"Cannot adapt job description to the submission target when information discovery is turned off");
-          return 1;
-        }
-        // dump description only for priority submission interface, no fallbacks
-        std::list<Arc::Endpoint> services = endpoint_batches.front();
-        std::string req_sub_iface;
-        if (!opt.submit_types.empty()) req_sub_iface = opt.submit_types.front();
-        return dumpjobdescription(usercfg, jobdescriptionlist, services, req_sub_iface);
-    }
-
-    // default action: start submission cycle
-    return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist, delegation_type, opt.instances_min, opt.instances_max);
-  // legacy code that implements submission logic in arctest
-  } else {
-    Arc::Broker broker(usercfg, testJob, usercfg.Broker().first);
-    if (!broker.isValid()) {
-      logger.msg(Arc::ERROR, "Unable to load broker %s", usercfg.Broker().first);
-      return 1;
-    }
-    logger.msg(Arc::INFO, "Broker %s loaded", usercfg.Broker().first);
-
-    std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
-    std::set<std::string> preferredInterfaceNames;
-    if (usercfg.InfoInterface().empty()) {
-      preferredInterfaceNames.insert("org.nordugrid.ldapglue2");
-    } else {
-      preferredInterfaceNames.insert(usercfg.InfoInterface());
-    }
-
-    Arc::ExecutionTargetSorter ets(broker);
-
-    std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
-    Arc::ComputingServiceRetriever csr(usercfg, std::list<Arc::Endpoint>(), rejectDiscoveryURLs, preferredInterfaceNames);
-    csr.addConsumer(ets);
-    for (std::list<Arc::Endpoint>::const_iterator it = services.begin(); it != services.end(); ++it) {
-      csr.addEndpoint(*it);
-    }
-    csr.wait();
-
-    if (csr.empty()) {
-      if (!opt.dumpdescription) {
-        std::cout << Arc::IString("Test aborted because no resource returned any information") << std::endl;
-      } else {
-        std::cout << Arc::IString("Unable to adapt job description to any resource, no resource information could be obtained.") << std::endl;
-        std::cout << Arc::IString("Original job description is listed below:") << std::endl;
-        std::string descOutput;
-        testJob.UnParse(descOutput, testJob.GetSourceLanguage());
-        std::cout << descOutput << std::endl;
+  // action: dumpjobdescription
+  if (opt.dumpdescription) {
+      if (!info_discovery) {
+        logger.msg(Arc::ERROR,"Cannot adapt job description to the submission target when information discovery is turned off");
+        return 1;
       }
-      return 1;
-    }
-
-    if (ets.getMatchingTargets().empty()) {
-      if (!opt.dumpdescription) {
-        std::cout << Arc::IString("ERROR: Test aborted because no suitable resources were found for the test-job") << std::endl;
-      } else {
-        std::cout << Arc::IString("ERROR: Dumping job description aborted because no suitable resources were found for the test-job") << std::endl;
-      }
-      return 1;
-    }
-
-    if (opt.dumpdescription) {
-       return dumpjobdescription_arctest_legacy(usercfg, ets, testJob);
-    }
-  
-    std::cout << Arc::IString("Submitting test-job %d:", opt.testjobid) << std::endl;
-    std::string testJobXRSL;
-    testJob.UnParse(testJobXRSL, "nordugrid:xrsl");
-    std::cout << testJobXRSL << std::endl;
-    std::cout << Arc::IString("Client version: nordugrid-arc-%s", VERSION) << std::endl;
-    return test(usercfg, ets, testJob, opt.jobidoutfile);
+      // dump description only for priority submission interface, no fallbacks
+      std::list<Arc::Endpoint> services = endpoint_batches.front();
+      std::string req_sub_iface;
+      if (!opt.submit_types.empty()) req_sub_iface = opt.submit_types.front();
+      return dumpjobdescription(usercfg, jobdescriptionlist, services, req_sub_iface);
   }
+
+  // default action: start submission cycle
+  return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist, delegation_type, opt.instances_min, opt.instances_max);
 }
 
 void printjobid(const std::string& jobid, const std::string& jobidfile) {

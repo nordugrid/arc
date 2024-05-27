@@ -67,10 +67,10 @@ class CertificateGenerator(object):
     def cleanupCAfiles(self, name="Test CA"):
         cafiles = self.getCAfiles(name)
         for (fpath, linkto) in cafiles['links']:
-            logger.debug('Removing the CA link: %s -> %s', fpath, linkto)
+            logger.info('Removing the CA link: %s -> %s', fpath, linkto)
             os.unlink(fpath)
         for fpath in cafiles['files']:
-            logger.debug('Removing the CA file: %s', fpath)
+            logger.info('Removing the CA file: %s', fpath)
             os.unlink(fpath)
 
     def generateCA(self, name="Test CA", validityperiod=30, messagedigest="sha1", use_for_signing=True, force=False):

@@ -44,24 +44,6 @@ static const std::string BES_ARC_NAMESPACE("http://www.nordugrid.org/schemas/a-r
 static const std::string DELEG_ARC_NPREFIX("arcdeleg");
 static const std::string DELEG_ARC_NAMESPACE("http://www.nordugrid.org/schemas/delegation");
 
-static const std::string ES_TYPES_NPREFIX("estypes");
-static const std::string ES_TYPES_NAMESPACE("http://www.eu-emi.eu/es/2010/12/types");
-
-static const std::string ES_CREATE_NPREFIX("escreate");
-static const std::string ES_CREATE_NAMESPACE("http://www.eu-emi.eu/es/2010/12/creation/types");
-
-static const std::string ES_DELEG_NPREFIX("esdeleg");
-static const std::string ES_DELEG_NAMESPACE("http://www.eu-emi.eu/es/2010/12/delegation/types");
-
-static const std::string ES_RINFO_NPREFIX("esrinfo");
-static const std::string ES_RINFO_NAMESPACE("http://www.eu-emi.eu/es/2010/12/resourceinfo/types");
-
-static const std::string ES_MANAG_NPREFIX("esmanag");
-static const std::string ES_MANAG_NAMESPACE("http://www.eu-emi.eu/es/2010/12/activitymanagement/types");
-
-static const std::string ES_AINFO_NPREFIX("esainfo");
-static const std::string ES_AINFO_NAMESPACE("http://www.eu-emi.eu/es/2010/12/activity/types");
-
 char const* ARexService::InfoPath = "*info";
 char const* ARexService::LogsPath = "*logs";
 char const* ARexService::NewPath = "*new";
@@ -120,70 +102,6 @@ ARexSecAttr::ARexSecAttr(const Arc::XMLNode op) {
     } else if(MatchXMLName(op,"UpdateCredentials")) {
       id_=JOB_POLICY_OPERATION_URN;
       action_=JOB_POLICY_OPERATION_MODIFY;
-    }
-  } else if(MatchXMLNamespace(op,ES_CREATE_NAMESPACE)) {
-    if(MatchXMLName(op,"CreateActivity")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_CREATE;
-    }
-  } else if(MatchXMLNamespace(op,ES_DELEG_NAMESPACE)) {
-    if(MatchXMLName(op,"InitDelegation")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_CREATE;
-    } else if(MatchXMLName(op,"PutDelegation")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_MODIFY;
-    } else if(MatchXMLName(op,"GetDelegationInfo")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_READ;
-    }
-  } else if(MatchXMLNamespace(op,ES_RINFO_NAMESPACE)) {
-    if(MatchXMLName(op,"GetResourceInfo")) {
-      id_=AREX_POLICY_OPERATION_URN;
-      action_=AREX_POLICY_OPERATION_INFO;
-    } else if(MatchXMLName(op,"QueryResourceInfo")) {
-      id_=AREX_POLICY_OPERATION_URN;
-      action_=AREX_POLICY_OPERATION_INFO;
-    }
-  } else if(MatchXMLNamespace(op,ES_MANAG_NAMESPACE)) {
-    if(MatchXMLName(op,"PauseActivity")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_MODIFY;
-    } else if(MatchXMLName(op,"ResumeActivity")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_MODIFY;
-    } else if(MatchXMLName(op,"ResumeActivity")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_MODIFY;
-    } else if(MatchXMLName(op,"NotifyService")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_MODIFY;
-    } else if(MatchXMLName(op,"CancelActivity")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_MODIFY;
-    } else if(MatchXMLName(op,"WipeActivity")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_MODIFY;
-    } else if(MatchXMLName(op,"RestartActivity")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_MODIFY;
-    } else if(MatchXMLName(op,"GetActivityStatus")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_READ;
-    } else if(MatchXMLName(op,"GetActivityInfo")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_READ;
-    }
-  } else if(MatchXMLNamespace(op,ES_AINFO_NAMESPACE)) {
-    if(MatchXMLName(op,"ListActivities")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_READ;
-    } else if(MatchXMLName(op,"GetActivityStatus")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_READ;
-    } else if(MatchXMLName(op,"GetActivityInfo")) {
-      id_=JOB_POLICY_OPERATION_URN;
-      action_=JOB_POLICY_OPERATION_READ;
     }
   }
 }
@@ -459,13 +377,6 @@ Arc::MCC_Status ARexService::preProcessSecurity(Arc::Message& inmsg,Arc::Message
   if(!config) {
     // Service is not operational except public information.
     // But public information also has own authorization rules
-    if(!config_.PublicInformationEnabled()) {
-      logger_.msg(Arc::VERBOSE, "Can't obtain configuration. Public information is disabled.");
-      char const* fault = "User can't be assigned configuration";
-      return is_soap ?
-        make_soap_fault(outmsg, fault) :
-        make_http_fault(outmsg, HTTP_ERR_FORBIDDEN, fault);
-    };
     // Check additional authorization rules
     std::list<std::pair<bool,std::string> > const & groups = config_.MatchingGroupsPublicInformation();
     if(!groups.empty()) {
@@ -654,51 +565,11 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
             // ARC delegation is done per job but stored under
             // own id. So storing must be done outside processing code.
             UpdateCredentials(*config,op,outpayload->Child(),credentials);
-          } else if(MatchXMLNamespace(op,ES_DELEG_NAMESPACE)) {
-            // ES has delegations assigned their own ids and are
-            // already updated in delegation_stores_.Process()
-#if 1
-            // But for compatibility during intermediate period store delegations in
-            // per-job proxy file too.
-            if(op.Name() == "PutDelegation") {
-              // PutDelegation
-              //   DelegationID
-              //   Credential
-              std::string id = op["DelegationId"];
-              if(!id.empty()) {
-                DelegationStore& delegation_store(delegation_stores_[config->GmConfig().DelegationDir()]);
-                std::list<std::string> job_ids;
-                if(delegation_store.GetLocks(id,config->GridName(),job_ids)) {
-                  for(std::list<std::string>::iterator job_id = job_ids.begin(); job_id != job_ids.end(); ++job_id) {
-                    // check if that is main delegation for this job
-                    std::string delegationid;
-                    if(job_local_read_delegationid(*job_id,config->GmConfig(),delegationid)) {
-                      if(id == delegationid) {
-                        std::string credentials;
-                        if(delegation_store.GetCred(id,config->GridName(),credentials)) {
-                          if(!credentials.empty()) {
-                            GMJob job(*job_id,Arc::User(config->User().get_uid()));
-                            (void)job_proxy_write_file(job,config->GmConfig(),credentials);
-                          };
-                        };
-                      };
-                    };
-                  }; 
-                };
-              };
-            };
-#endif
           };
         };
         outmsg.Payload(outpayload);
       } else {
-        bool processed = false;
-        bool passed = false;
-        Arc::MCC_Status sret = ESOperations(config, clientid, op, inpayload, outmsg, processed, passed);
-        if (!processed) {
-          SOAP_NOT_SUPPORTED;
-        };
-        if(!passed) return sret;
+        SOAP_NOT_SUPPORTED;
       };
       if(logger_.getThreshold() <= Arc::VERBOSE) {
         std::string str;
@@ -979,12 +850,6 @@ class ArexServiceNamespaces: public Arc::NS {
     Arc::NS& ns_(*this);
     ns_[BES_ARC_NPREFIX]=BES_ARC_NAMESPACE;
     ns_[DELEG_ARC_NPREFIX]=DELEG_ARC_NAMESPACE;
-    ns_[ES_TYPES_NPREFIX]=ES_TYPES_NAMESPACE;
-    ns_[ES_CREATE_NPREFIX]=ES_CREATE_NAMESPACE;
-    ns_[ES_DELEG_NPREFIX]=ES_DELEG_NAMESPACE;
-    ns_[ES_RINFO_NPREFIX]=ES_RINFO_NAMESPACE;
-    ns_[ES_MANAG_NPREFIX]=ES_MANAG_NAMESPACE;
-    ns_[ES_AINFO_NPREFIX]=ES_AINFO_NAMESPACE;
     ns_["wsa"]="http://www.w3.org/2005/08/addressing";
     ns_["jsdl"]="http://schemas.ggf.org/jsdl/2005/11/jsdl";
     ns_["wsrf-bf"]="http://docs.oasis-open.org/wsrf/bf-2";
@@ -1136,15 +1001,15 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
           if(!issuer.empty() && !metadata.empty() && !keys.empty()) {
             // Assign validity enough to the future
             if(Arc::JWSE::SetIssuerInfo(Arc::Time(time(nullptr) + Arc::Time::YEAR*10), true, issuer, metadata, keys, logger_)) {
-              logger_.msg(Arc::INFO, "Created entry for fake issuer %s", d->d_name);
+              logger_.msg(Arc::INFO, "Created entry for JWT issuer %s", d->d_name);
 	    } else {
-              logger_.msg(Arc::ERROR, "Failed to create entry for fake issuer %s", d->d_name);
+              logger_.msg(Arc::ERROR, "Failed to create entry for JWT issuer %s", d->d_name);
             }
           } else {
-            logger_.msg(Arc::ERROR, "Empty data for fake issuer %s", d->d_name);
+            logger_.msg(Arc::ERROR, "Empty data for JWT issuer %s", d->d_name);
           }
         } else {
-          logger_.msg(Arc::ERROR, "Failed to read data for fake issuer %s", d->d_name);
+          logger_.msg(Arc::ERROR, "Failed to read data for JWT issuer %s", d->d_name);
         }
       }
       closedir(dir);

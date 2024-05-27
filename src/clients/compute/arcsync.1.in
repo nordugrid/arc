@@ -7,8 +7,8 @@ arcsync \- ARC Synchronize
 
 .SH DESCRIPTION
 
-The \fBarcsync\fR command synchronizes your local jobs list with the
-information at a given cluster or index server.
+The \fBarcsync\fR command synchronizes your local jobs database with the
+information at a given CE or registry.
 
 .SH SYNOPSIS
 
@@ -16,12 +16,12 @@ information at a given cluster or index server.
 
 .SH OPTIONS
 
-.IP "\fB-c\fR, \fB--cluster\fR=\fIname\fR"
-select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
-.IP "\fB-g\fR, \fB--index\fR=\fIname\fR"
-select one or more registries: \fIname\fR can be an alias for a single registry, a group of registries or a URL
+.IP "\fB-C\fR, \fB--computing-element\fR=\fIname\fR"
+select one or more computing elements
+.IP "\fB-Y\fR, \fB--registry\fR=\fIname\fR"
+select one or more registries
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
-the file storing information about active jobs (default ~/.arc/jobs.xml)
+the file storing information about active jobs (default ~/.arc/jobs.dat)
 .IP "\fB-f\fR, \fB--force\fR"
 don't ask for verification
 .IP "\fB-T\fR, \fB--truncate\fR"
@@ -47,24 +47,16 @@ print help
 
 .SH EXTENDED DESCRIPTION
 
-The ARC user interface keeps a local list of active jobs in the users
+The ARC CLI keeps a local database of active jobs in the users
 home directory (see \fBarcsub\fR(1)). If this file is lost, or the user
-wants to recreate the file on a different computer,the \fBarcsync\fR
+wants to recreate the file on a different computer, the \fBarcsync\fR
 command can be used to recreate the file from the information available
-the specified cluster or index server.
+at the specified computing element or registry.
 
-Since the information about a job retrieved from a cluster can be
+Since the information about a job retrieved from a CE can be
 slightly out of date if the user very recently submitted or removed a
 job a warning is issued when this command is run. The \fB--force\fR
 option disables this warning.
-
-The
-.B --cluster
-options can be used to select or reject clusters that should be
-considered in the synchronization. This options can be repeated several
-times.  See
-.BR arcsub (1)
-for a discussion of the format of arguments to this option.
 
 If the joblist is not empty when invoking synchronization the old jobs
 will be merged with the new jobs, unless the
@@ -82,35 +74,15 @@ ARC client configuration file. By using the
 option a different configuration file can be used than the default.
 
 .TP
-.B ~/.arc/jobs.xml
-This is a local list of the user's active jobs. When a job is
-successfully submitted it is added to this list and when it is removed
-from the remote cluster it is removed from this list. This list is
+.B ~/.arc/jobs.dat
+This a local database of the user's active jobs. When a job is
+successfully submitted it is added to database and when it is removed
+from the remote CE it is removed from this list. This database is
 used as the list of all active jobs when the user specifies the
 .B --all
 option to the various NorduGrid ARC user interface commands. By using the
 .B --joblist
 option a different file can be used than the default.
-
-.SH ENVIRONMENT VARIABLES
-
-.TP
-.B X509_USER_PROXY
-The location of the user's Grid proxy file. Shouldn't be set unless
-the proxy is in a non-standard location.
-
-.TP
-.B ARC_LOCATION
-The location where ARC is installed can be specified by this variable. If not
-specified the install location will be determined from the path to the
-command being executed, and if this fails a WARNING will be given stating the
-location which will be used.
-
-.TP
-.B ARC_PLUGIN_PATH
-The location of ARC plugins can be specified by this variable. Multiple
-locations can be specified by separating them by : (; in Windows). The
-default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
 
 .SH COPYRIGHT
 

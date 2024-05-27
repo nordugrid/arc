@@ -1,29 +1,25 @@
 from __future__ import absolute_import
 
 #
-# arcctl controllers for all installations
+# arcctl controllers always present for both client and server
 #
 
 # arcctl deploy
 from .ThirdPartyDeployment import ThirdPartyControl
 # arcctl test-ca
 from .TestCA import TestCAControl
+# arcclt test-jwt
+from .TestJWT import TestJWTControl
 
 CTL_COMPONENTS = [
     ThirdPartyControl,
-    TestCAControl
+    TestCAControl,
+    TestJWTControl
 ]
 
-# arcclt test JWT
-try:
-    from .TestJWT import TestJWTControl
-except ImportError:
-    pass
-else:
-    CTL_COMPONENTS.append(TestJWTControl)
 
 #
-# arcctl controllers for ARC services
+# arcctl controllers for server side
 #
 
 # arcctl config
@@ -86,3 +82,11 @@ except ImportError:
     pass
 else:
     CTL_COMPONENTS.append(DataStagingControl)
+
+# arcctl cleanup
+try:
+    from .Cleanup import CleanupControl
+except ImportError:
+    pass
+else:
+    CTL_COMPONENTS.append(CleanupControl)

@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from socket import socket, getfqdn, AF_INET, SOCK_DGRAM
 import glob
 import logging
@@ -151,6 +150,10 @@ class Validator(object):
 
                 if not isinstance(value, list):
                     value = [value]
+                elif self.arcconfref:
+                    # check multivalued is allowed
+                    if not reference.is_multivalued(self.arcconfref, block, option):
+                        self.error("%s option in [%s] block is not multivalued but specified multiple times" % (option, block))
 
                 for val in value:
                     if re.match(r'".*"', val) or re.match(r"'.*'", val):
@@ -158,20 +161,6 @@ class Validator(object):
                                    (option, val, block))
 
                     self._check_config_option(block, option, val, config_defaults)
-
-        # Check block order
-        if self.arcconfref:
-            block_order = reference.blocks_ordered(self.arcconfref)
-            # Make a unique set of blocks excluding unknown and stripping dynamic blocks
-            config_blocks = [b.split(':')[0] for b in config_blocks if b.split(':')[0] in block_order]
-            # Remove duplicates preserving order
-            config_blocks_uniq = list(OrderedDict.fromkeys(config_blocks))
-            # Sort the conf blocks according to the reference order and then compare
-            config_blocks_sorted = sorted(config_blocks_uniq, key=lambda x: block_order.index(x))
-            if config_blocks_sorted != config_blocks_uniq:
-                self.error("Configuration blocks are not in the correct order:\n%s\nShould be:\n%s" %
-                           (config_blocks_uniq, config_blocks_sorted))
-
 
     def _check_config_option(self, block, option, value, config_defaults):
 
@@ -186,18 +175,12 @@ class Validator(object):
         # Check allowed values
         if self.arcconfref:
             allowed_values = reference.allowed_values(self.arcconfref, block, option)
+
             if allowed_values and value not in allowed_values:
                 self.error("Value '%s' for option '%s' in [%s] is not in allowed values (%s)" %
                            (value, option, block, ','.join(allowed_values)))
 
         # Extra checks for certain options
-        if option == 'benchmark':
-            # Benchmark values have different syntax in different blocks
-            if block == 'lrms' and not re.match(r'\w+:\d+(\.\d*)?|\.\d+', value):
-                self.error("benchmark option '%s' in [lrms] has incorrect syntax" % value)
-            if block == 'queue' and not re.match(r'\w+ \d+(\.\d*)?|\.\d+', value):
-                self.error("benchmark option '%s' in [queue] has incorrect syntax" % value)
-
         if block == 'arex/cache' and option == 'cachedir':
             if not value.split()[0].startswith('/'):
                 self.error("cachedir must specify an absolute path")
@@ -298,18 +281,21 @@ class Validator(object):
         lrms = config_dict['lrms']['lrms'].split()[0]
         lrms_submit = os.path.join(ARC_DATA_DIR, 'submit-%s-job' % lrms)
         if not os.path.exists(lrms_submit):
-            # Special exception for slurm/SLURM - maybe remove in ARC 7
+            # LRMS-contrib
+            lrms_contrib = ['ll', 'lsf', 'sge']
+            if lrms in lrms_contrib:
+                self.error("%s lrms requires installing nordugrid-arc-arex-lrms-contrib package" % lrms)
+            # Special exception for slurm/SLURM
             if lrms.lower() != 'slurm':
                 self.error("%s is not an allowed lrms name" % lrms)
 
     def validate_certificates(self):
         """Check the certificate setup is ok"""
-        config_dict = self.arcconf.get_config_dict()
-        x509_host_cert = config_dict['common']['x509_host_cert']
-        x509_host_key = config_dict['common']['x509_host_key']
-        x509_cert_policy = config_dict['common']['x509_cert_policy']
+        x509_host_cert = self.arcconf.get_value('x509_host_cert', 'common', force_list=True)[0]
+        x509_host_key = self.arcconf.get_value('x509_host_key', 'common', force_list=True)[0]
+        x509_cert_policy = self.arcconf.get_value('x509_cert_policy', 'common', force_list=True)[0]
         if x509_cert_policy == 'globus':
-            x509_cert_dir = config_dict['common']['x509_cert_dir']
+            x509_cert_dir = self.arcconf.get_value('x509_cert_dir', 'common', force_list=True)[0]
         else:
             x509_cert_dir = ''
 
@@ -317,6 +303,9 @@ class Validator(object):
         if not os.path.exists(x509_host_cert):
             self.error("%s does not exist" % x509_host_cert)
         else:
+            # Warn about testCA
+            if 'testCA' in x509_host_cert:
+                self.warning("TestCA signed certificate is used as host certificate: %s" % x509_host_cert)
             # Verify cert
             try:
                 if x509_cert_dir == '':
@@ -327,25 +316,25 @@ class Validator(object):
                     result = subprocess.run(["openssl", "verify", "-CApath", x509_cert_dir,
                                              x509_host_cert], stdout=subprocess.PIPE,
                                              stderr=subprocess.STDOUT)
-            except Exception as e:
-                self.error("Host certificate verification failed: %s" % str(e))
-                return
-            if result.returncode != 0:
-                self.error("Host certificate verification failed: %s" % result.stdout.decode('utf-8'))
-            else:
-                # Check expiration date, warn if less than one week away
-                result = subprocess.run(["openssl", "x509", "-enddate", "-noout", "-in",
-                                         x509_host_cert], stdout=subprocess.PIPE,
-                                         stderr=subprocess.STDOUT)
-                enddate = result.stdout.decode('utf-8').strip().split('=')[-1]
-                # Redirect output (-noout doesn't work in openssl1.1.1)
-                result = subprocess.run(["openssl", "x509", "-checkend", "604800", "-noout",
-                                         "-in", x509_host_cert], stdout=subprocess.DEVNULL,
-                                         stderr=subprocess.DEVNULL)
                 if result.returncode != 0:
-                    self.warning("Host certificate will expire on %s" % enddate)
+                    self.warning("Host certificate verification failed: %s" % result.stdout.decode('utf-8'))
                 else:
-                    self.logger.info("Host certificate will expire on %s" % enddate)
+                    # Check expiration date, warn if less than one week away
+                    result = subprocess.run(["openssl", "x509", "-enddate", "-noout", "-in",
+                                            x509_host_cert], stdout=subprocess.PIPE,
+                                            stderr=subprocess.STDOUT)
+                    enddate = result.stdout.decode('utf-8').strip().split('=')[-1]
+                    # Redirect output (-noout doesn't work in openssl1.1.1)
+                    result = subprocess.run(["openssl", "x509", "-checkend", "604800", "-noout",
+                                            "-in", x509_host_cert], stdout=subprocess.DEVNULL,
+                                            stderr=subprocess.DEVNULL)
+                    if result.returncode != 0:
+                        self.warning("Host certificate will expire on %s" % enddate)
+                    else:
+                        self.logger.info("Host certificate will expire on %s" % enddate)
+            except Exception as e:
+                self.error("Attempt to verify host certificate failed: %s" % str(e))
+                return
 
         # Check key
         if not os.path.exists(x509_host_key):

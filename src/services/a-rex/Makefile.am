@@ -30,15 +30,12 @@ sbin_SCRIPTS = a-rex-backtrace-collect
 
 man_MANS = a-rex-backtrace-collect.8
 
-dist_pkglibexec_SCRIPTS = makeissuer maketoken
-
 EXTRA_DIST = arc.zero.conf
 
 GRIDMANAGER_LIBS = grid-manager/libgridmanager.la delegation/libdelegation.la rest/libarexrest.la
 
-libarex_la_SOURCES  = arex.cpp emies.cpp authop.cpp job.cpp \
+libarex_la_SOURCES  = arex.cpp authop.cpp job.cpp \
 	create_activity.cpp \
-	get_activity_statuses.cpp \
 	change_activity_status.cpp \
 	update_credentials.cpp faults.cpp \
 	get.cpp put.cpp PayloadFile.cpp FileChunks.cpp \

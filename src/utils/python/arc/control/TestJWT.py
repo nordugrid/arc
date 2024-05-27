@@ -19,18 +19,18 @@ try:
 except ImportError:
     jwt = None
 
+import base64
+import gzip
+try:
+    import cStringIO as StringIO
+except ImportError:
+    try:
+        import io as StringIO
+    except ImportError:
+        import StringIO
+
+# defaults
 default_token_validity = 12
-
-arc_conf_snippet = """[authgroup:testjwt]
-authtokens = * {0} arc * *
-
-
-[mapping]
-map_to_user = testjwt nobody:nobody
-
-[arex/ws/jobs]
-allowaccess = testjwt
-"""
 
 def default_jwk_dir():
     if os.getuid() == 0:
@@ -39,13 +39,61 @@ def default_jwk_dir():
 
 class JWTIssuer(object):
     """Object to store public information about the JWT issuer"""
+    logger = logging.getLogger('ARCCTL.JWTIssuer')
+
     def __init__(self, iss):
-        self.logger = logging.getLogger('ARCCTL.JWTIssuer')
         self.iss = iss
         self.isshash = crc32_id(iss)
+        self.testjwt = '/arc/testjwt/' in self.iss
         self.jwks = {}
         self.metadata = {}
         self.logger.info('JWT issuer: %s', self.iss)
+
+    @classmethod
+    def from_dump(cls, dump):
+        """Init object from dump"""
+        try:
+            stream = StringIO.BytesIO(base64.b64decode(dump))
+            compressor = gzip.GzipFile(fileobj=stream, mode='rb')
+            data = json.loads(compressor.read().decode('utf-8'))
+        except IOError as err:
+            cls.logger.error('Failed to read the JWT issuer dump. Error: %s', str(err))
+            sys.exit(1)
+        except ValueError as err:
+            cls.logger.error('Failed to decode JWT issuer dump as JSON. Error: %s', str(err))
+            sys.exit(1)
+        try:
+            obj = cls(data['metadata']['issuer'])
+            obj.define_metadata(data['metadata'])
+            obj.define_jwks(data['jwks'])
+            return obj
+        except KeyError as err:
+            cls.logger.error('Information is missing in the JWT issuer dump. Key: %s', str(err))
+            sys.exit(1)
+
+    @classmethod
+    def parse_json(cls, jsonstr):
+        if not isinstance(jsonstr, str):
+            jsonstr = jsonstr.decode('utf-8', 'ignore')
+        try:
+            data = json.loads(jsonstr)
+        except ValueError as err:
+            cls.logger.error('Failed to decode data as JSON. Error: %s', str(err))
+            sys.exit(1)
+        return data
+
+    def dump(self):
+        """Dump data for another JWT object init"""
+        stream = StringIO.BytesIO()
+        compressor = gzip.GzipFile(fileobj=stream, mode='wb')
+        compressor.write(bytes(json.dumps({
+            'metadata': self.metadata,
+            'jwks': self.jwks
+        }, separators=(',', ':')), 'utf-8'))
+        compressor.close()
+        data = base64.b64encode(stream.getvalue()).decode('utf-8')
+        stream.close()
+        return data
 
     def __json_dump(self, dst_file=None, data={}, description=''):
         """Save json to file"""
@@ -78,21 +126,19 @@ class JWTIssuer(object):
             sys.exit(1)
 
     # metadata
-    def define_metadata(self):
+    def define_metadata(self, metadata=None):
         """Define basic metadata based on issuer URL"""
-        self.metadata = {
-            'issuer': self.iss,
-            'token_endpoint': self.iss + '/token',
-            'userinfo_endpoint': self.iss + '/userinfo',
-            'introspection_endpoint': self.iss + '/introspect',
-            'authorization_endpoint': self.iss + '/authorize',
-            'jwks_uri': self.iss + '/jwks'
-        }
-
-    def fetch_metadata(self):
-        """Fetch issuer metadata from well-known URL"""
-        # TODO: implement
-        pass
+        if metadata is None:
+            self.metadata = {
+                'issuer': self.iss,
+                'token_endpoint': self.iss + '/token',
+                'userinfo_endpoint': self.iss + '/userinfo',
+                'introspection_endpoint': self.iss + '/introspect',
+                'authorization_endpoint': self.iss + '/authorize',
+                'jwks_uri': self.iss + '/jwks'
+            }
+        else:
+            self.metadata = metadata
 
     def save_metadata(self, dst_file=None):
         """Save issuer metadata to file"""
@@ -106,11 +152,6 @@ class JWTIssuer(object):
     def define_jwks(self, jwks={}):
         """Define JWKS"""
         self.jwks = jwks
-
-    def fetch_jwks(self):
-        """Fetch data from JWKS URL"""
-        # TODO: implement
-        pass
 
     def save_jwks(self, dst_file=None):
         """Save JWKS to file"""
@@ -143,8 +184,7 @@ class JWTIssuer(object):
 
     def info(self):
         """Print issuer info to end-user"""
-        print('Issuer URL: {0}'.format(self.iss))
-        print('JWKS:')
+        print_info(self.logger, 'Showing the JWKS for JWT Issuer %s', self.iss)
         print(json.dumps(self.jwks, indent=2))
 
     def url(self):
@@ -155,7 +195,55 @@ class JWTIssuer(object):
         """Return issuer URL hash"""
         return self.isshash
 
-    # Controldir operations
+    # arc.conf operations (server side deploy/cleanup)
+    def arc_conf(self, conf_d=False):
+        """Print/deploy arc.conf example snippet to authorize issuer"""
+        conf = [
+            "#\n# Allow tokens issued by {iss} to submit jobs\n#",
+            "[authgroup:{name}]",
+            "authtokens = * {iss} * * *",
+            "\n[mapping]",
+            "map_to_user = {name} nobody:nobody",
+            "\n[arex/ws/jobs]",
+            "allowaccess = {name}"
+        ]
+        name = 'testjwt' if self.testjwt else 'jwt'
+        authgroup_name = '{0}-{1}'.format(name, self.isshash)
+        conf_content = '\n'.join(conf).format(**{
+            'name': authgroup_name,
+            'iss': self.iss
+        })
+        if conf_d:
+            conf_d_f = write_conf_d('10-{0}.conf'.format(authgroup_name), conf_content)
+            print_info(self.logger, 'Auth configuration for JWT issuer %s has been written to %s', self.iss, conf_d_f) 
+            print_warn(self.logger, 'ARC services restart is needed to apply configuration changes.')
+        else:
+            print_info(self.logger, 'ARC CE needs configuratio to allow job submission using JWT tokens from the issuer. Printing out example configuration.')
+            print(conf_content)
+
+    def cleanup_conf_d(self):
+        """Cleanup auth file in arc.conf.d for this iseeur"""
+        name = 'testjwt' if self.testjwt else 'jwt'
+        conf_d_f = conf_d('10-{0}-{1}.conf'.format(name, self.isshash))
+        if os.path.exists(conf_d_f):
+                self.logger.info('Removing the file: %s', conf_d_f)
+                os.unlink(conf_d_f)
+
+    # controldir operations (server side deploy/cleanup)
+    @staticmethod
+    def list_jwt_issuers(arcconfig):
+        """Return list of issuers configured inside controldir"""
+        issuers = []
+        tokenissuers_dir = os.path.join(arcconfig.get_value('controldir', 'arex'), 'tokenissuers')
+        if not os.path.isdir(tokenissuers_dir):
+            return issuers
+        for path, _, files in os.walk(tokenissuers_dir):
+            if 'issuer' in files:
+                with open(os.path.join(path, 'issuer'), 'r') as issuer_f:
+                    issuers.append(issuer_f.read().strip())
+                continue
+        return issuers
+
     def controldir_save(self, arcconfig=None):
         if not arcctl_server_mode():
             raise Exception("Deployment to controldir cannot run in arcctl client mode")
@@ -175,7 +263,7 @@ class JWTIssuer(object):
         if arcconfig is None:
             self.logger.critical('Deploying issuer trust files to controldir is not possible without valid arc.conf')
             sys.exit(1)
-        return os.path.join(arcconfig.get_value('controldir', 'arex'), 'tokenissuers/test-jwt-{0}'.format(self.isshash))
+        return os.path.join(arcconfig.get_value('controldir', 'arex'), 'tokenissuers/{0}'.format(self.isshash))
 
 
 class TestJWTControl(ComponentControl):
@@ -367,34 +455,34 @@ class TestJWTControl(ComponentControl):
         self.iss.define_jwks(json.loads(jwkset.export(private_keys=False)))
         self.iss.define_metadata()
         self.iss.save(self.iss_dir)
-        # install issuer files into controldir
-        # TODO: make deploy configurable
-        # TODO: provide export/import instruction instead
-        if arcctl_server_mode() and os.getuid() == 0:
-            self.iss.controldir_save(self.arcconfig)
         # print information to end-user
         self.issuer_info()
+        # export for trust establishment
+        self.issuer_export()
 
-    def issuer_info(self, arc_conf=False):
+    def issuer_info(self):
         """Print information about token issuer"""
         # check init is done and key exists
         if self.jwk is None:
             self.load_jwk()
         # print general info about issuer
         self.iss.info()
-        # print arc.conf snippet
-        if arc_conf:
-            print('To make A-REX authorize issued tokens add the following to "arc.conf":')
-            print(arc_conf_snippet.format(self.iss.url()))
+
+    def issuer_export(self):
+        """Export JWT issuer data to be imported by ARC CE"""
+        # check init is done and key exists
+        if self.jwk is None:
+            self.load_jwk()
+        # dump data
+        print_info(self.logger, 'Generating deployment command to be executed on ARC CE to trust the Test JWT issuer %s', self.iss.url())
+        print('arcctl deploy jwt-issuer --deploy-conf test-jwt://', end='')
+        print(self.iss.dump())
 
     def cleanup_files(self):
         """Cleanup test JWT files for issuer"""
         if os.path.exists(self.iss_dir):
             self.logger.info('Removing issuer JWK directory: %s', self.iss_dir)
             shutil.rmtree(self.iss_dir)
-        # remove trust when running on server-side
-        if arcctl_server_mode():
-            self.iss.controldir_cleanup(self.arcconfig)
 
     def issue_token(self, args):
         """Issue signed token"""
@@ -485,11 +573,9 @@ class TestJWTControl(ComponentControl):
         elif args.action == 'cleanup':
             self.cleanup_files()
         elif args.action == 'info':
-            self.issuer_info(args.arc_conf)
+            self.issuer_info()
         elif args.action == 'export':
-            # TODO: export functionality (along with deployment)
-            self.logger.error('Not implemented')
-            pass
+            self.issuer_export()
         elif args.action == 'config-get':
             self.jwt_conf_get(args)
         elif args.action == 'config-set':
@@ -518,11 +604,10 @@ class TestJWTControl(ComponentControl):
         testjwt_init.add_argument('-f', '--force', action='store_true', help='Overwrite files if exist')
 
         testjwt_issuer = testjwt_actions.add_parser('info', help='Show information about Test JWT issuer')
-        testjwt_issuer.add_argument('-a', '--arc-conf', action='store_true', help='Show arc.conf snippet for using issuer')
 
         testjwt_export = testjwt_actions.add_parser('export', help='Export JWT issuer information to be imported to ARC CE')
 
-        testjwt_cleanup = testjwt_actions.add_parser('cleanup', help='Cleanup TestJWT files')
+        testjwt_cleanup = testjwt_actions.add_parser('cleanup', help='Cleanup TestJWT Issuer files')
 
         testjwt_conf_get = testjwt_actions.add_parser('config-get', help='Get JWT token generation config')
         testjwt_conf_get.add_argument('-p', '--profile', action='store', default='default',

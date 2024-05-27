@@ -105,64 +105,6 @@ void check_missing_plugins(Arc::Submitter s, int is_error) {
   // TODO: What to do when failing to load other plugins.
 }
 
-int legacy_submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface, const std::string& jobidfile, bool direct_submission, DelegationType delegation_type, int instances_min, int instances_max) {
-
-  HandleSubmittedJobs hsj(jobidfile, usercfg);
-  Arc::Submitter s(usercfg);
-  s.addConsumer(hsj);
-
-  std::list<Arc::JobDescription> w_jobdescriptionlist(jobdescriptionlist);
-
-  for(std::list<Arc::JobDescription>::iterator it = w_jobdescriptionlist.begin();
-                  it != w_jobdescriptionlist.end(); ++it) {
-    it->X509Delegation = (delegation_type == X509Delegation);
-    it->TokenDelegation = (delegation_type == TokenDelegation);
-    it->InstancesMin = instances_min;
-    it->InstancesMax = instances_max;
-    for(std::list<Arc::JobDescription>::iterator itAlt = it->GetAlternatives().begin();
-                    itAlt != it->GetAlternatives().end(); ++itAlt) {
-      itAlt->X509Delegation = (delegation_type == X509Delegation);
-      itAlt->TokenDelegation = (delegation_type == TokenDelegation);
-      itAlt->InstancesMin = instances_min;
-      itAlt->InstancesMax = instances_max;
-    }
-  }
-
-  Arc::SubmissionStatus status;
-  if (!direct_submission) {
-    std::list<std::string> rsi;
-    if (!requestedSubmissionInterface.empty()) rsi.push_back(requestedSubmissionInterface);
-    status = s.BrokeredSubmit(services, w_jobdescriptionlist, rsi);
-  }
-  else {
-    if (!requestedSubmissionInterface.empty()) {
-      for (std::list<Arc::Endpoint>::iterator it = services.begin(); it != services.end();) {
-        // Remove endpoint - it has an unrequested interface name.
-        if (!it->InterfaceName.empty() && it->InterfaceName != requestedSubmissionInterface) {
-          logger.msg(Arc::INFO, "Removing endpoint %s: It has an unrequested interface (%s).", it->URLString, it->InterfaceName);
-          it = services.erase(it);
-          continue;
-        }
-
-        it->InterfaceName = requestedSubmissionInterface;
-        ++it;
-      }
-    }
-    status = s.Submit(services, w_jobdescriptionlist);
-  }
-  hsj.write();
-
-  int error_check = process_submission_status(status, usercfg);
-  if (error_check == 2) return 1;
-
-  if (status.isSet(Arc::SubmissionStatus::SUBMITTER_PLUGIN_NOT_LOADED))
-    check_missing_plugins(s, error_check);
-
-  hsj.printsummary(w_jobdescriptionlist, s.GetDescriptionsNotSubmitted());
-
-  return error_check;
-}
-
 int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface) {
   int retval = 0;
 

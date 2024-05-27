@@ -1029,11 +1029,13 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/arcctl.1*
 
 %files arcctl-service
+%{python3_sitearch}/%{pkgdir}/control/Cleanup.py
 %{python3_sitearch}/%{pkgdir}/control/Config.py
 %{python3_sitearch}/%{pkgdir}/control/ServiceCommon.py
 %{python3_sitearch}/%{pkgdir}/control/Services.py
 %{python3_sitearch}/%{pkgdir}/control/OSService.py
 %{python3_sitearch}/%{pkgdir}/control/Validator.py
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/Cleanup.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Config.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/ServiceCommon.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Services.*
@@ -1058,8 +1060,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/smtp-send.sh
 %{_libexecdir}/%{pkgdir}/inputcheck
 %{_libexecdir}/%{pkgdir}/arc-blahp-logger
-%{_libexecdir}/%{pkgdir}/makeissuer
-%{_libexecdir}/%{pkgdir}/maketoken
 %{_datadir}/%{pkgdir}/cancel-*-job
 %{_datadir}/%{pkgdir}/scan-*-job
 %{_datadir}/%{pkgdir}/submit-*-job
@@ -1108,6 +1108,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/PerfData.pl
 %{_datadir}/%{pkgdir}/arc-arex-start
 %{_datadir}/%{pkgdir}/arc-arex-ws-start
+%dir %{_datadir}/%{pkgdir}/sql-schema
 %{_datadir}/%{pkgdir}/sql-schema/arex_accounting_db_schema_v1.sql
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
