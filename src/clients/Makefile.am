@@ -16,8 +16,8 @@ else
 COMPUTE_CLIENT =
 endif
 
-SUBDIRS = $(DATA_CLIENT) $(CREDENTIALS_CLIENT) $(COMPUTE_CLIENT) 
-DIST_SUBDIRS = data credentials compute
+SUBDIRS = $(DATA_CLIENT) $(CREDENTIALS_CLIENT) $(COMPUTE_CLIENT) pyarcrest
+DIST_SUBDIRS = data credentials compute pyarcrest
 
 arcsysconfdir = $(sysconfdir)/arc
 arcsysconf_DATA = client.conf

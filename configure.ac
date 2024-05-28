@@ -2013,6 +2013,7 @@ AC_CONFIG_FILES([Makefile
                  src/clients/compute/arcrenew.1
                  src/clients/compute/arcresume.1
                  src/clients/compute/arctest.1
+                 src/clients/pyarcrest/Makefile
                  src/tests/Makefile
                  src/tests/echo/Makefile
                  src/tests/echo/perftest.1

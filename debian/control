@@ -33,6 +33,9 @@ Build-Depends:
  libldns-dev,
  libsystemd-dev [linux-any] | debhelper (<< 9.20150101) [linux-any],
  bash-completion,
+ python3-pip,
+ python3-setuptools,
+ python3-wheel,
  python3-dev
 Standards-Version: 4.4.1
 Homepage: http://www.nordugrid.org
@@ -306,7 +309,7 @@ Provides:
  nordugrid-arc-plugins-arcrest
 Replaces:
  nordugrid-arc-plugins-arcrest (<< 7.0.0~)
-Conflifts:
+Conflicts:
  nordugrid-arc-plugins-arcrest (<< 7.0.0~)
 Depends:
  ${shlibs:Depends},
@@ -550,3 +553,18 @@ Description: ARC optional worker nodes components
  .
  This package contains the optional components that provide new job
  management features on the worker nodes (WN).
+
+Package: python3-arcrest
+Provides:
+ ${python3:Provides}
+Architecture: all
+Section: python
+Depends:
+ ${misc:Depends},
+ ${python3:Depends}
+Description: ARC REST client
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ This package contains the ARC REST client.
