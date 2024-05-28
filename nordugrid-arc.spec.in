@@ -169,6 +169,9 @@ BuildRequires:	systemd-devel
 BuildRequires:	libuuid-devel
 BuildRequires:	gettext-devel
 BuildRequires:	python%{python3_pkgversion}-devel
+BuildRequires:	python%{python3_pkgversion}-pip
+BuildRequires:	python%{python3_pkgversion}-setuptools
+BuildRequires:	python%{python3_pkgversion}-wheel
 %if %{with_pylint}
 BuildRequires:	pylint
 %endif
@@ -677,6 +680,21 @@ Connector (ARC).
 
 This package contains the optional components that provide new job
 management features on the worker nodes (WN).
+
+%package -n python%{python3_pkgversion}-arcrest
+Summary:	ARC REST client
+Group:		Applications/Internet
+%{?python_provide:%python_provide python%{python3_pkgversion}-arcrest}
+%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
+BuildArch:	noarch
+%endif
+
+%description -n python%{python3_pkgversion}-arcrest
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains the ARC REST client.
 
 %prep
 %setup @fedorasetupopts@
@@ -1284,3 +1302,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %attr(4755,root,root) %{_bindir}/arc-job-cgroup
 
+%files -n python%{python3_pkgversion}-arcrest
+%defattr(-,root,root,-)
+%{python3_sitelib}/pyarcrest
+%{python3_sitelib}/pyarcrest-*.*-info
+%{_bindir}/arcrest
