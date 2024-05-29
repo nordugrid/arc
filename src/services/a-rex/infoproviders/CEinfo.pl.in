@@ -457,7 +457,6 @@ sub get_gmjobs_info($) {
     my $config = shift;
 
     my $gmjobs_info = timed 'GMJobsInfo', sub { GMJobsInfo::collect($config->{arex},
-                                                                    $config->{remotegmdirs},
                                                                     $nojobs) };
     return fix_jobs($config, $gmjobs_info);
 }

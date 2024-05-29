@@ -84,7 +84,7 @@ sub switchEffectiveUser {
 }
 
 sub collect {
-    my ($controls, $remotegmdirs, $nojobs) = @_;
+    my ($controls, $nojobs) = @_;
 
     my $gmjobs = {};
     # TODO: there is no more user control thing, remove the user part
@@ -100,13 +100,14 @@ sub collect {
     # switch to root or to gridftpd user?
     switchEffectiveUser('.');
 
-    if ($remotegmdirs) {
-        for my $pair (@$remotegmdirs) {
-            my ($controldir, $sessiondir) = split ' ', $pair;
-            my $newjobs = get_gmjobs($controldir, $nojobs);
-            $gmjobs->{$_} = $newjobs->{$_} for keys %$newjobs;
-        }
-    }
+    # TODO: remove this and check that everything still works
+    #if ($remotegmdirs) {
+    #    for my $pair (@$remotegmdirs) {
+    #        my ($controldir, $sessiondir) = split ' ', $pair;
+    #        my $newjobs = get_gmjobs($controldir, $nojobs);
+    #        $gmjobs->{$_} = $newjobs->{$_} for keys %$newjobs;
+    #    }
+    #}
     
     # switch back to root
     switchEffectiveUser('.');

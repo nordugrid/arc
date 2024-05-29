@@ -33,8 +33,6 @@ our $host_options_schema = {
                 cachesize => '*'
             },
         },
-        # TODO: this can be removed and the code that handles it as well
-        #remotegmdirs   => [ '*' ]
 };
 
 our $host_info_schema = {
@@ -440,8 +438,6 @@ sub test {
                            cachesize => '60 80',
                         },
                     },
-                    remotegmdirs => [ '/dummy/control /home',
-                                      '/dummy/control /boot' ],
                     libexecdir => '/usr/libexec/arc',
                     runtimedir => '/home/grid/runtime',
                     processes => [ qw(bash ps init grid-manager bogous cupsd slapd) ],
