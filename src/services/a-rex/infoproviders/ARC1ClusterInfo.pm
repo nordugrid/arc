@@ -288,7 +288,7 @@ sub jobXmlFileWriter {
     # for the WS interface.
     # TODO: remote arex functionality being removed. The above comment can be removed.
     return 0 unless defined $gmuser;
-    my $controldir = $config->{control}{$gmuser}{controldir};
+    my $controldir = $config->{arex}{controldir};
     $log->debug("XML writer in $controldir.");
     my $xml_file = control_path($controldir, $jobid, "xml");
     $log->debug("XML writer to $xml_file.");
@@ -1011,7 +1011,7 @@ sub collect($) {
     # drain state too
     
     my $servingstate = 'draining';
-    my ($sessiondirs) = ($config->{control}{'.'}{sessiondir});
+    my ($sessiondirs) = ($config->{arex}{sessiondir});
     foreach my $sd (@$sessiondirs) {
         my @hasdrain = split(' ',$sd);
         if ($hasdrain[-1] ne 'drain') {
