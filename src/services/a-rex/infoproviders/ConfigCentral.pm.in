@@ -309,7 +309,7 @@ my $config_schema = {
           enabled => '*'
           },
         nordugrid => {
-            enabled => '*'
+          enabled => '*'
         }, 
         logfile => '*',  
         loglevel => '*',
