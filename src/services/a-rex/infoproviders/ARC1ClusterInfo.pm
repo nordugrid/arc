@@ -1080,8 +1080,8 @@ sub collect($) {
         }
         
         # TODO: change default to REST
-        # fills efficiently %jobs_by_endpoint, defaults to gridftp
-        my $jobinterface = $job->{interface} || 'org.nordugrid.gridftpjob';
+        # fills efficiently %jobs_by_endpoint, defaults to arcrest
+        my $jobinterface = $job->{interface} || 'org.nordugrid.arcrest';
         
         $jobs_by_endpoint->{$jobinterface}{$jobid} = {};
 
