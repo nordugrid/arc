@@ -1104,9 +1104,6 @@ sub collect($) {
     my $ldapngendpoint = '';
     my $ldapglue2endpoint = '';
 
-    # TODO: remove gridftp
-    my $gridftphostport = '';
-
     # TODO: calculate capabilities in a more efficient way. Maybe set
     # them here for each endpoint and then copy them later?
     # here we run the risk of having them not in synch with the 
@@ -1131,27 +1128,7 @@ sub collect($) {
     
     ## Endpoints initialization.
     # checks for defined paths and enabled features, sets GLUE2 capabilities.
-
-    # TODO: remove gridftpjob related stuff
-    # for org.nordugrid.gridftpjob
-    if ($config->{gridftpd}{enabled}) { 
-    $gridftphostport = "$hostname:$config->{gridftpd}{port}";
-    $csvendpointsnum++;
-    $epscapabilities->{'org.nordugrid.gridftpjob'} = [ 
-                'executionmanagement.jobexecution',
-                'executionmanagement.jobmanager', 
-                'executionmanagement.jobdescription'
-                ];
-    $epscapabilities->{'common'} = [ 
-                @{$epscapabilities->{'common'}},
-                (
-                'data.access.sessiondir.gridftp',
-                'data.access.stageindir.gridftp',
-                'data.access.stageoutdir.gridftp'
-                )
-                ];
-    };
-    
+   
     # TODO: remove all EMI-ES and define appropriate for REST
     # The following are for EMI-ES
     my $emieshostport = '';
@@ -1210,10 +1187,6 @@ sub collect($) {
               'data.access.stageoutdir.file'
               )
               ];
-
-    # The following is for the Stagein interface
-    my $stageinhostport = '';
-   
     
     # ARIS LDAP endpoints
     
@@ -1262,21 +1235,16 @@ sub collect($) {
     my $cmgrID = "urn:ogf:ComputingManager:$hostname:$lrmsname"; # ComputingManager ID
     
     # Computing Endpoints IDs
-    # TODO: remove gridftpjob
-    my $ARCgftpjobcepID;
-    $ARCgftpjobcepID = "urn:ogf:ComputingEndpoint:$hostname:gridftpjob:gsiftp://$gridftphostport".$config->{gridftpd}{mountpoint} if ($config->{gridftpd}{enabled}); # ARCGridFTPComputingEndpoint ID
     # TODO: remove emies 
     my $EMIEScepIDp;
     $EMIEScepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$wsendpoint" if $emiesenabled; # EMIESComputingEndpoint ID
     my $ARCRESTcepIDp;
     $ARCRESTcepIDp = "urn:ogf:ComputingEndpoint:$hostname:rest:$wsendpoint" if $emiesenabled; # ARCRESTComputingEndpoint ID
     my $NGLScepIDp = "urn:ogf:ComputingEndpoint:$hostname:ngls"; # NorduGridLocalSubmissionEndpoint ID
-    my $StageincepID = "urn:ogf:ComputingEndpoint:$hostname:gridftp:$stageinhostport"; # StageinComputingEndpoint ID
     # the following is needed to publish in shares. Must be modified
     # if we support share-per-endpoint configurations.
     my @cepIDs = ();
-    # TODO: remove gridftp and emies
-    push(@cepIDs,$ARCgftpjobcepID) if ($config->{gridftpd}{enabled});
+    # TODO: remove emies
     push(@cepIDs,$EMIEScepIDp) if ($emiesenabled);
     push(@cepIDs,$ARCRESTcepIDp) if ($emiesenabled);
     
@@ -1618,7 +1586,6 @@ sub collect($) {
         # Computing Endpoints ########
           
         # Here comes a list of endpoints we support.
-        # TODO: remove: GridFTPd job execution endpoint - org.nordugrid.gridfptjob
         # TODO: remove: EMI-ES one endpoint per port-type
         # TODO: verify: REST - org.nordugrid.arcrest
         # LDAP endpoints one per schema
@@ -1631,141 +1598,6 @@ sub collect($) {
 
         # A-REX ComputingEndpoints
         
-        # TODO: REMOVE all below
-        # ARC GridFTPd job submission interface 
-          
-        my $getARCGFTPdComputingEndpoint = sub {
-
-            # check if gridftpd interface is actually configured
-            return undef unless ( $gridftphostport ne '');
-            my $cep = {};
-
-            $cep->{CreationTime} = $creation_time;
-            $cep->{Validity} = $validity_ttl;
-
-            # Name not necessary -- why? added back
-            $cep->{Name} = "ARC GridFTP job execution interface";
-
-            $cep->{URL} = "gsiftp://$gridftphostport".$config->{gridftpd}{mountpoint};
-            $cep->{ID} = $ARCgftpjobcepID;
-            $cep->{Capability} = [ @{$epscapabilities->{'org.nordugrid.gridftpjob'}}, @{$epscapabilities->{'common'}} ];
-            $cep->{Technology} = 'gridftp';
-            $cep->{InterfaceName} = 'org.nordugrid.gridftpjob';
-            $cep->{InterfaceVersion} = [ '1.0' ];
-            # InterfaceExtension should return the same as BESExtension attribute of BES-Factory.
-            # value is taken from services/a-rex/get_factory_attributes_document.cpp, line 56.
-            $cep->{InterfaceExtension} = [ 'http://www.nordugrid.org/schemas/gridftpd' ];
-            # Wrong type, should be URI
-            $cep->{Semantics} = [ "http://www.nordugrid.org/documents/gridfptd.pdf" ];
-            $cep->{Implementor} = "NorduGrid";
-            $cep->{ImplementationName} = "nordugrid-arc";
-            $cep->{ImplementationVersion} = $config->{arcversion};
-
-            $cep->{QualityLevel} = "production";
-
-            my %healthissues;
-
-            if ($config->{x509_host_cert}) {
-                if (     $host_info->{hostcert_expired}) {
-                    push @{$healthissues{critical}}, "Host credentials expired";
-                } elsif ($host_info->{issuerca_expired}) {
-                    push @{$healthissues{critical}}, "Host CA credentials expired";
-                } elsif (not $host_info->{hostcert_enddate}) {
-                    push @{$healthissues{critical}}, "Host credentials missing";
-	        } elsif (not $host_info->{issuerca_enddate}) {
-                    push @{$healthissues{warning}}, "Host CA credentials missing";
-                } else {
-                    if (     $host_info->{hostcert_enddate} - time < 48*3600) {
-                        push @{$healthissues{warning}}, "Host credentials will expire soon";
-                    } elsif ($host_info->{issuerca_enddate} - time < 48*3600) {
-                        push @{$healthissues{warning}}, "Host CA credentials will expire soon";
-                    }
-                }
-            }
-
-            if ( $host_info->{gm_alive} ne 'all' ) {
-              if ($host_info->{gm_alive} eq 'some') {
-                push @{$healthissues{warning}}, 'One or more grid managers are down';
-              } else {
-                  push @{$healthissues{critical}},
-                        $config->{remotegmdirs} ? 'All grid managers are down'
-                        : 'Grid manager is down';
-              }
-            }
-
-            # check if gridftpd is running, by checking pidfile existence
-            push @{$healthissues{critical}}, 'gridfptd pidfile does not exist' unless (-e $config->{gridftpd}{pidfile});
-
-            # check health status by using port probe in hostinfo
-            my $gridftpdport = $config->{gridftpd}{port};
-            if (defined $host_info->{ports}{gridftpd}{$gridftpdport} and @{$host_info->{ports}{gridftpd}{$gridftpdport}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{gridftpd}{$gridftpdport}}[0]}} , @{$host_info->{ports}{gridftpd}{$gridftpdport}}[1];
-            }
-
-            if (%healthissues) {
-            my @infos;
-            for my $level (qw(critical warning other)) {
-                next unless $healthissues{$level};
-                $cep->{HealthState} ||= $level;
-                push @infos, @{$healthissues{$level}};
-            }
-            $cep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-            $cep->{HealthState} = 'ok';
-            }
-
-            if ( (not defined $config->{gridftpd}{allownew}) or ($config->{gridftpd}{allownew} == 0 ) ) {
-                $cep->{ServingState} = 'draining';
-            } else {
-                $cep->{ServingState} = $servingstate;
-            }
-
-            # StartTime: get it from hed
-
-            $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
-            $cep->{TrustedCA} = $host_info->{trustedcas}; # array
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            $cep->{Staging} =  'staginginout';
-
-            $cep->{JobDescription} = [ 'nordugrid:xrsl' ];
-
-            $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
-
-            $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
-            $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
-            $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
-
-            $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
-                    + ( $gmtotalcount{finishing} || 0 );
-
-            $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
-
-            $cep->{AccessPolicies} = sub { &{$getAccessPolicies}($cep->{ID}) };
-            
-            $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-
-            # ComputingActivities
-            if ($nojobs) {
-              $cep->{ComputingActivities} = undef;
-            } else {
-              # this complicated thing here creates a specialized getComputingActivities
-              # version of sub with a builtin parameter!
-              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.nordugrid.gridftpjob'); };
-            }
-
-            # Associations
-
-            $cep->{ComputingShareID} = [ values %cshaIDs ];
-            $cep->{ComputingServiceID} = $csvID;
-
-            return $cep;
-        };
-
-        # Don't publish if there is no endpoint URL
-        $arexceps->{ARCGFRPdComputingEndpoint} = $getARCGFTPdComputingEndpoint if $gridftphostport ne '';
-
         # TODO: remove all EMI-ES endpoints
         # EMI-ES port types
         # TODO: understand if it's possible to choose only a set of portTypes to publish
