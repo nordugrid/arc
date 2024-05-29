@@ -149,178 +149,9 @@ sub local_state {
     }
 }
 
-# TODO: Stage-in and Stage-out are substates of what?
-sub bes_state {
-    my ($gm_state,$lrms_state) = @_;
-    my $is_pending = 0;
-    if ($gm_state =~ /^PENDING:/) {
-      $is_pending = 1;
-      $gm_state = substr $gm_state, 7
-    }
-    if ($gm_state eq "ACCEPTED") {
-        return [ "Pending", "Accepted" ];
-    } elsif ($gm_state eq "PREPARING") {
-        return [ "Running", "Stage-in" ];
-    } elsif ($gm_state eq "SUBMIT") {
-        return [ "Running", "Submitting" ];
-    } elsif ($gm_state eq "INLRMS") {
-        if (not defined $lrms_state) {
-            return [ "Running" ];
-        } elsif ($lrms_state eq 'Q') {
-            return [ "Running", "Queuing" ];
-        } elsif ($lrms_state eq 'R') {
-            return [ "Running", "Executing" ];
-        } elsif ($lrms_state eq 'EXECUTED'
-              or $lrms_state eq '') {
-            return [ "Running", "Executed" ];
-        } elsif ($lrms_state eq 'S') {
-            return [ "Running", "Suspended" ];
-        } else {
-            return [ "Running", "LRMSOther" ];
-        }
-    } elsif ($gm_state eq "FINISHING") {
-        return [ "Running", "Stage-out" ];
-    } elsif ($gm_state eq "CANCELING") {
-        return [ "Running", "Cancelling" ];
-    } elsif ($gm_state eq "KILLED") {
-        return [ "Cancelled" ];
-    } elsif ($gm_state eq "FAILED") {
-        return [ "Failed" ];
-    } elsif ($gm_state eq "FINISHED") {
-        return [ "Finished" ];
-    } elsif ($gm_state eq "DELETED") {
-        # Cannot map to BES state
-        return [ ];
-    } else {
-        return [ ];
-    }
-}
 
-# this sub evaluates also failure states and changes
-# emies attributes accordingly.
-sub emies_state {
-    # TODO: probably add $failure_state taken from somewhere
-    my ($gm_state,$lrms_state,$failure_state) = @_;
-    my $es_state = {
-                    'State' => '',
-                    'Attributes' => ''
-                   };
-
-    my $is_pending = 0;
-    if ($gm_state =~ /^PENDING:/) {
-      $is_pending = 1;
-      $gm_state = substr $gm_state, 8
-    }
-
-    if ($gm_state eq "ACCEPTED") {
-        $es_state->{State} = [ "accepted" ];
-        $es_state->{Attributes} = [ "client-stagein-possible" ];
-    } elsif ($gm_state eq "PREPARING") {
-        $es_state->{State} = [ "preprocessing" ];
-        $es_state->{Attributes} = [ "client-stagein-possible", "server-stagein" ];
-    } elsif ($gm_state eq "SUBMIT") {
-        $es_state->{State} = [ "processing-accepting" ];
-    } elsif ($gm_state eq "INLRMS") {
-        # TODO: check hot to map these!
-        if (not defined $lrms_state) {
-            $es_state->{State} = [ "processing-running" ];
-            $es_state->{Attributes} = [ "app-running" ];
-        } elsif ($lrms_state eq 'Q') {
-            $es_state->{State} = [ "processing-queued" ];
-            $es_state->{Attributes} = '';
-        } elsif ($lrms_state eq 'R') {
-            $es_state->{State} = [ "processing-running" ];
-            $es_state->{Attributes} = [ "app-running" ];
-        } elsif ($lrms_state eq 'EXECUTED'
-              or $lrms_state eq '') {
-            $es_state->{State} = [ "processing-running" ];
-            $es_state->{Attributes} = '';
-        } elsif ($lrms_state eq 'S') {
-            $es_state->{State} = [ "processing-running" ];
-            $es_state->{Attributes} = [ "batch-suspend" ];
-        } else {
-            $es_state->{State} = [ "processing-running" ];
-            $es_state->{Attributes} = '';
-        }
-    } elsif ($gm_state eq "FINISHING") {
-            $es_state->{State} = [ "postprocessing" ];
-            $es_state->{Attributes} = [ "client-stageout-possible", "server-stageout" ];
-    } elsif ($gm_state eq "CANCELING") {
-            $es_state->{State} = [ "processing" ];
-            $es_state->{Attributes} = [ "processing-cancel" ];
-    } elsif ($gm_state eq "KILLED") {
-            $es_state->{State} = [ "terminal" ];
-            if (! defined($failure_state)) {
-                $log->debug('EMIES Failure state attribute cannot be determined.');
-            } else {
-                if ($failure_state eq "ACCEPTED")  {                
-                    $es_state->{Attributes} = ["validation-failure"];
-                } elsif ($failure_state eq "PREPARING") {
-                    $es_state->{Attributes} = ["preprocessing-cancel"];
-                } elsif ($failure_state eq "SUBMIT") {
-                    $es_state->{Attributes} = ["processing-cancel"];
-                } elsif ($failure_state eq "INLRMS") {
-                    $es_state->{Attributes} = ["processing-cancel"];
-                } elsif ($failure_state eq "FINISHING") {
-                    $es_state->{Attributes} = ["postprocessing-cancel"];
-                } elsif ($failure_state eq "FINISHED") {
-                    # TODO: $es_state->{Attributes} = '';
-                } elsif ($failure_state eq "DELETED") {
-                    # TODO: $es_state->{Attributes} = '';
-                } elsif ($failure_state eq "CANCELING") {
-                    # TODO: $es_state->{Attributes} = '';
-                } else {
-                    # Nothing
-                }
-            }
-    } elsif ($gm_state eq "FAILED") {
-            $es_state->{State} = [ "terminal" ];
-            # introduced for bug #3036
-            if (! defined($failure_state)) {
-                $log->debug('EMIES Failure state attribute cannot be determined.');
-            } else {
-                if ($failure_state eq "ACCEPTED")  {                
-                    $es_state->{Attributes} = ["validation-failure"];
-                } elsif ($failure_state eq "PREPARING") {
-                    $es_state->{Attributes} = ["preprocessing-failure"];
-                } elsif ($failure_state eq "SUBMIT") {
-                    $es_state->{Attributes} = ["processing-failure"];
-                } elsif ($failure_state eq "INLRMS") {
-                    if ( $lrms_state eq "R" ) {
-                        $es_state->{Attributes} = ["processing-failure","app-failure"];
-                    } else {
-                        $es_state->{Attributes} = ["processing-failure"];
-                    }                
-                } elsif ($failure_state eq "FINISHING") {
-                    $es_state->{Attributes} = ["postprocessing-failure"];
-                } elsif ($failure_state eq "FINISHED") {
-                    # TODO: $es_state->{Attributes} = '';
-                } elsif ($failure_state eq "DELETED") {
-                    # TODO: $es_state->{Attributes} = '';
-                } elsif ($failure_state eq "CANCELING") {
-                    # TODO: $es_state->{Attributes} = '';
-                } else {
-                    # Nothing
-                }
-            }
-    } elsif ($gm_state eq "FINISHED") {
-            $es_state->{State} = [ "terminal" ];
-            $es_state->{Attributes} = [ "client-stageout-possible" ];
-    } elsif ($gm_state eq "DELETED") {
-            $es_state->{State} = [ "terminal" ];
-            $es_state->{Attributes} = [ "expired" ];
-    } elsif ($gm_state) { # this is the "pending" case
-        $es_state->{Attributes} = ["server-paused"];
-    } else {
-        # No idea
-    }
-
-    if ( $is_pending ) {
-      push @{$es_state->{Attributes}}, "server-paused";
-    }
-    return $es_state;
-}
-
+# TODO: verify: this sub evaluates also failure states and changes
+# rest attributes accordingly.
 sub rest_state {
     my ($gm_state,$lrms_state,$failure_state) = @_;
     my $state = [ "None" ];
@@ -414,16 +245,8 @@ sub glueState {
     my $status = [ "nordugrid:".join(':',@ng_status) ];
     my $local_state = local_state(@ng_status);
     push @$status, "file:".@{$local_state->{State}}[0] if $local_state->{State};#try to fix so I have the full state here
-    my $bes_state = bes_state(@ng_status);
-    push @$status, "bes:".$bes_state->[0] if @$bes_state;
     my $rest_state = rest_state(@ng_status); 
     push @$status, "arcrest:".$rest_state->[0] if $rest_state;
-    my $emies_state = emies_state(@ng_status);
-    push @$status, "emies:".@{$emies_state->{State}}[0] if $emies_state->{State};
-    if ($emies_state->{Attributes}) {
-        foreach my $attribs (@{$emies_state->{Attributes}}) {
-            push @$status, "emiesattr:".$attribs;
-        }
     }
     return $status;
 }
@@ -802,7 +625,7 @@ sub collect($) {
     my $hostname = $config->{hostname} || $host_info->{hostname};
     
     my $wsenabled =  (defined $config->{arex}{ws}) ? 1 : 0;
-    my $emiesenabled = $config->{arex}{ws}{emies}{enabled};
+    my $restenabled = $config->{arex}{ws}{jobs}{enabled};
     
     my $wsendpoint = $config->{arex}{ws}{wsurl};
 
@@ -1110,7 +933,7 @@ sub collect($) {
     # endpoints.
     
     # data push/pull capabilities.
-    # TODO: scan datalib patch to searc for .apd
+    # Is it still possible to scan datalib patch to search for .apd to fill these?
     $epscapabilities->{'common'} = [
                     'data.transfer.cepull.ftp',
                     'data.transfer.cepull.http',
@@ -1124,36 +947,19 @@ sub collect($) {
                     'data.transfer.cepush.httpg',
                     'data.transfer.cepush.gridftp',
                     'data.transfer.cepush.srm',
+                    'data.access.sessiondir.file',
+                    'data.access.stageindir.file',
+                    'data.access.stageoutdir.file'
                     ];
     
     ## Endpoints initialization.
     # checks for defined paths and enabled features, sets GLUE2 capabilities.
    
-    # TODO: remove all EMI-ES and define appropriate for REST
-    # The following are for EMI-ES
-    my $emieshostport = '';
-    if ($emiesenabled) {
-        $emieshostport = $config->{arexhostport};
-        $csvendpointsnum = $csvendpointsnum + 5;
-        $epscapabilities->{'org.ogf.glue.emies.activitycreation'} = [
-                                                'executionmanagement.jobcreation',
-                                                'executionmanagement.jobdescription'
-                                                ];
-        $epscapabilities->{'org.ogf.glue.emies.activitymanagement'} = [
-                                                'executionmanagement.jobmanagement',
-                                                'information.lookup.job'                                                
-                                                ];
-        $epscapabilities->{'org.ogf.glue.emies.resourceinfo'} = [
-                                                'information.discovery.resource',
-                                                'information.query.xpath1'
-                                                ];
-        $epscapabilities->{'org.ogf.glue.emies.activityinfo'} = [
-                                                'information.discovery.job',
-                                                'information.lookup.job'
-                                                ];
-        $epscapabilities->{'org.ogf.glue.emies.delegation'} = [
-                                                'security.delegation'
-                                                ];
+    # REST capabilities
+    my $resthostport = '';
+    if ($restenabled) {
+        $resthostport = $config->{arexhostport};
+        $csvendpointsnum = $csvendpointsnum + 1;
         $epscapabilities->{'org.nordugrid.arcrest'} = [
                                                 'executionmanagement.jobcreation',
                                                 'executionmanagement.jobdescription',
@@ -1164,8 +970,6 @@ sub collect($) {
                                                 'security.delegation'
                                                 ];
     }
-
-    # TODO: REST capabilities
 
     # for the org.nordugrid.internal submission endpoint (files created directly in the controldir)
     $csvendpointsnum = $csvendpointsnum + 1;
@@ -1179,14 +983,6 @@ sub collect($) {
                                   'information.lookup.job',
                                   'security.delegation'
                                   ];  
-    $epscapabilities->{'common'} = [
-              @{$epscapabilities->{'common'}},
-              (
-              'data.access.sessiondir.file',
-              'data.access.stageindir.file',
-              'data.access.stageoutdir.file'
-              )
-              ];
     
     # ARIS LDAP endpoints
     
@@ -1235,18 +1031,13 @@ sub collect($) {
     my $cmgrID = "urn:ogf:ComputingManager:$hostname:$lrmsname"; # ComputingManager ID
     
     # Computing Endpoints IDs
-    # TODO: remove emies 
-    my $EMIEScepIDp;
-    $EMIEScepIDp = "urn:ogf:ComputingEndpoint:$hostname:emies:$wsendpoint" if $emiesenabled; # EMIESComputingEndpoint ID
     my $ARCRESTcepIDp;
-    $ARCRESTcepIDp = "urn:ogf:ComputingEndpoint:$hostname:rest:$wsendpoint" if $emiesenabled; # ARCRESTComputingEndpoint ID
+    $ARCRESTcepIDp = "urn:ogf:ComputingEndpoint:$hostname:rest:$wsendpoint" if $restenabled; # ARCRESTComputingEndpoint ID
     my $NGLScepIDp = "urn:ogf:ComputingEndpoint:$hostname:ngls"; # NorduGridLocalSubmissionEndpoint ID
-    # the following is needed to publish in shares. Must be modified
+    # the following array is needed to publish in shares. Must be modified
     # if we support share-per-endpoint configurations.
     my @cepIDs = ();
-    # TODO: remove emies
-    push(@cepIDs,$EMIEScepIDp) if ($emiesenabled);
-    push(@cepIDs,$ARCRESTcepIDp) if ($emiesenabled);
+    push(@cepIDs,$ARCRESTcepIDp) if ($restenabled);
     
     my $cactIDp = "urn:caid:$hostname"; # ComputingActivity ID prefix
     my $cshaIDp = "urn:ogf:ComputingShare:$hostname"; # ComputingShare ID prefix
@@ -1308,6 +1099,7 @@ sub collect($) {
     # calculate union of the advertisedvos in shares - a hash is used as a set
     # and add it to the cluster accepted advertisedvos
     
+    # TODO: this code could be generalized and moved to configcentral.
     my @clusteradvertisedvos;
     if ($config->{service}{AdvertisedVO}) { @clusteradvertisedvos = @{$config->{service}{AdvertisedVO}}; }
     my $unionadvertisedvos;
@@ -1586,7 +1378,6 @@ sub collect($) {
         # Computing Endpoints ########
           
         # Here comes a list of endpoints we support.
-        # TODO: remove: EMI-ES one endpoint per port-type
         # TODO: verify: REST - org.nordugrid.arcrest
         # LDAP endpoints one per schema
 
@@ -1598,613 +1389,13 @@ sub collect($) {
 
         # A-REX ComputingEndpoints
         
-        # TODO: remove all EMI-ES endpoints
-        # EMI-ES port types
-        # TODO: understand if it's possible to choose only a set of portTypes to publish
-
-        # EMIES ActivityCreation
-
-        my $getEMIESActivityCreationComputingEndpoint = sub {
-
-            # don't publish if no endpoint URL
-            return undef unless $emiesenabled;
-
-            my $cep = {};
-
-            $cep->{CreationTime} = $creation_time;
-            $cep->{Validity} = $validity_ttl;
-
-            $cep->{ID} = "$EMIEScepIDp:ac";
-
-            # Name not necessary -- why? added back
-            $cep->{Name} = "ARC CE EMI-ES ActivityCreation Port Type";
-
-            # OBS: ideally HED should be asked for the URL
-            $cep->{URL} = $wsendpoint;
-            # TODO: define a strategy to add data capabilites
-            $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activitycreation'};
-            $cep->{Technology} = 'webservice';
-            $cep->{InterfaceName} = 'org.ogf.glue.emies.activitycreation';
-            $cep->{InterfaceVersion} = [ '1.16' ];
-            $cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
-            # What is profile for EMIES?
-            #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-            #              ];
-            $cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
-            $cep->{Implementor} = "NorduGrid";
-            $cep->{ImplementationName} = "nordugrid-arc";
-            $cep->{ImplementationVersion} = $config->{arcversion};
-
-            $cep->{QualityLevel} = "production";
-
-            my %healthissues;
-
-            if ($config->{x509_host_cert}) {
-                if (     $host_info->{hostcert_expired}) {
-                    push @{$healthissues{critical}}, "Host credentials expired";
-                } elsif ($host_info->{issuerca_expired}) {
-                    push @{$healthissues{critical}}, "Host CA credentials expired";
-                } elsif (not $host_info->{hostcert_enddate}) {
-                    push @{$healthissues{critical}}, "Host credentials missing";
-	        } elsif (not $host_info->{issuerca_enddate}) {
-                    push @{$healthissues{warning}}, "Host CA credentials missing";
-                } else {
-                    if (     $host_info->{hostcert_enddate} - time < 48*3600) {
-                        push @{$healthissues{warning}}, "Host credentials will expire soon";
-                    } elsif ($host_info->{issuerca_enddate} - time < 48*3600) {
-                        push @{$healthissues{warning}}, "Host CA credentials will expire soon";
-                    }
-                }
-            }
-
-            if ( $host_info->{gm_alive} ne 'all' ) {
-            if ($host_info->{gm_alive} eq 'some') {
-                push @{$healthissues{warning}}, 'One or more grid managers are down';
-            } else {
-                push @{$healthissues{critical}},
-                  $config->{remotegmdirs} ? 'All grid managers are down'
-                              : 'Grid manager is down';
-            }
-            }
-            
-            # check health status by using port probe in hostinfo
-            my $arexport = $config->{arex}{port};
-            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
-            }
-
-            if (%healthissues) {
-            my @infos;
-            for my $level (qw(critical warning other)) {
-                next unless $healthissues{$level};
-                $cep->{HealthState} ||= $level;
-                push @infos, @{$healthissues{$level}};
-            }
-            $cep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-            $cep->{HealthState} = 'ok';
-            }
-
-            # OBS: Do 'queueing' and 'closed' states apply for a-rex?
-            if ( $config->{arex}{ws}{emies}{allownew} == 0 ) {
-                $cep->{ServingState} = 'draining';
-            } else {
-                $cep->{ServingState} = $servingstate;
-            }
-
-            # StartTime: get it from hed
-
-            $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
-            $cep->{TrustedCA} = $host_info->{trustedcas}; # array
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'nordugrid:xrsl', 'emies:adl' ];
-
-            $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
-
-            $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
-            $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
-            $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
-
-            $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
-                    + ( $gmtotalcount{finishing} || 0 );
-
-            $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
-
-            $cep->{AccessPolicies} = sub { &{$getAccessPolicies}($cep->{ID}) };
-            
-            $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-
-            # ComputingActivities
-            if ($nojobs) {
-              $cep->{ComputingActivities} = undef;
-            } else {
-              # this complicated thing here creates a specialized getComputingActivities
-              # version of sub with a builtin parameter!
-              #TODO: change interfacename for jobs?
-              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.ogf.glue.emies.activitycreation'); };
-            }
-
-            # Associations
-
-            $cep->{ComputingShareID} = [ values %cshaIDs ];
-            $cep->{ComputingServiceID} = $csvID;
-
-            return $cep;
-        };
-
-        # don't publish if no EMIES endpoint configured
-        $arexceps->{EMIESActivityCreationComputingEndpoint} = $getEMIESActivityCreationComputingEndpoint if ($emiesenabled);
-
-        # EMI-ES ActivityManagement port type
-        
-        my $getEMIESActivityManagementComputingEndpoint = sub {
-
-            # don't publish if no endpoint URL
-            return undef unless $emiesenabled;
-
-            my $cep = {};
-
-            $cep->{CreationTime} = $creation_time;
-            $cep->{Validity} = $validity_ttl;
-
-            $cep->{ID} = "$EMIEScepIDp:am";
-
-            # Name not necessary -- why? added back
-            $cep->{Name} = "ARC CE EMI-ES ActivityManagement Port Type";
-
-            # OBS: ideally HED should be asked for the URL
-            $cep->{URL} = $wsendpoint;
-            # TODO: define a strategy to add data capabilites
-            $cep->{Capability} = [ @{$epscapabilities->{'org.ogf.glue.emies.activitymanagement'}}, @{$epscapabilities->{'common'}} ];
-            $cep->{Technology} = 'webservice';
-            $cep->{InterfaceName} = 'org.ogf.glue.emies.activitymanagement';
-            $cep->{InterfaceVersion} = [ '1.16' ];
-            $cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
-            # What is profile for EMIES?
-            #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-            #              ];
-            $cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
-            $cep->{Implementor} = "NorduGrid";
-            $cep->{ImplementationName} = "nordugrid-arc";
-            $cep->{ImplementationVersion} = $config->{arcversion};
-
-            $cep->{QualityLevel} = "production";
-
-            my %healthissues;
-
-            if ($config->{x509_host_cert}) {
-                if (     $host_info->{hostcert_expired}) {
-                    push @{$healthissues{critical}}, "Host credentials expired";
-                } elsif ($host_info->{issuerca_expired}) {
-                    push @{$healthissues{critical}}, "Host CA credentials expired";
-                } elsif (not $host_info->{hostcert_enddate}) {
-                    push @{$healthissues{critical}}, "Host credentials missing";
-	        } elsif (not $host_info->{issuerca_enddate}) {
-                    push @{$healthissues{warning}}, "Host CA credentials missing";
-                } else {
-                    if (     $host_info->{hostcert_enddate} - time < 48*3600) {
-                        push @{$healthissues{warning}}, "Host credentials will expire soon";
-                    } elsif ($host_info->{issuerca_enddate} - time < 48*3600) {
-                        push @{$healthissues{warning}}, "Host CA credentials will expire soon";
-                    }
-                }
-            }
-
-            if ( $host_info->{gm_alive} ne 'all' ) {
-            if ($host_info->{gm_alive} eq 'some') {
-                push @{$healthissues{warning}}, 'One or more grid managers are down';
-            } else {
-                push @{$healthissues{critical}},
-                  $config->{remotegmdirs} ? 'All grid managers are down'
-                              : 'Grid manager is down';
-            }
-            }
-
-            # check health status by using port probe in hostinfo
-            my $arexport = $config->{arex}{port};
-            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
-            }
-
-            if (%healthissues) {
-            my @infos;
-            for my $level (qw(critical warning other)) {
-                next unless $healthissues{$level};
-                $cep->{HealthState} ||= $level;
-                push @infos, @{$healthissues{$level}};
-            }
-            $cep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-            $cep->{HealthState} = 'ok';
-            }
-
-            # OBS: Do 'queueing' and 'closed' states apply for a-rex?
-            $cep->{ServingState} = $servingstate;
-
-            # StartTime: get it from hed
-
-            $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
-            $cep->{TrustedCA} = $host_info->{trustedcas}; # array
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'nordugrid:xrsl', 'emies:adl' ];
-
-            $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
-
-            $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
-            $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
-            $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
-
-            $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
-                    + ( $gmtotalcount{finishing} || 0 );
-
-            $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
-
-            $cep->{AccessPolicies} = sub { &{$getAccessPolicies}($cep->{ID}) };
-            
-            $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-
-            # ComputingActivities
-            if ($nojobs) {
-              $cep->{ComputingActivities} = undef;
-            } else {
-              # this complicated thing here creates a specialized getComputingActivities
-              # version of sub with a builtin parameter!
-              #TODO: change interfacename for jobs?
-              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.ogf.glue.emies.activitycreation'); };
-            }
-
-            # Associations
-
-            $cep->{ComputingShareID} = [ values %cshaIDs ];
-            $cep->{ComputingServiceID} = $csvID;
-
-            return $cep;
-        };
-
-        # don't publish if no EMIES endpoint configured
-        $arexceps->{EMIESActivityManagementComputingEndpoint} = $getEMIESActivityManagementComputingEndpoint if ($emiesenabled);
-
-
-        # EMI-ES ResourceInfo port type
-
-        my $getEMIESResourceInfoEndpoint = sub {
-
-            my $ep = {};
-
-            $ep->{CreationTime} = $creation_time;
-            $ep->{Validity} = $validity_ttl;
-
-            # Name not necessary -- why? plan was to have it configurable.
-            $ep->{Name} = "ARC CE EMI-ES ResourceInfo Port Type";
-
-            # Configuration parser does not contain ldap port!
-            # must be updated
-            # port hardcoded for tests 
-            $ep->{URL} = $wsendpoint;
-            # TODO: put only the port here
-            $ep->{ID} = "$EMIEScepIDp:ri";
-            $ep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.resourceinfo'};;
-            $ep->{Technology} = 'webservice';
-            $ep->{InterfaceName} = 'org.ogf.glue.emies.resourceinfo';
-            $ep->{InterfaceVersion} = [ '1.16' ];
-            # Wrong type, should be URI
-            #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-            #              ];
-            # TODO: put EMIES spec URL here
-            #$ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
-            $ep->{Implementor} = "NorduGrid";
-            $ep->{ImplementationName} = "nordugrid-arc";
-            $ep->{ImplementationVersion} = $config->{arcversion};
-
-            $ep->{QualityLevel} = "production";
-
-            # How to calculate health for this interface?
-            # TODO: inherit health infos from arex endpoints
-            my %healthissues;
-
-            if ($config->{x509_host_cert}) {
-                if (     $host_info->{hostcert_expired}) {
-                    push @{$healthissues{critical}}, "Host credentials expired";
-                } elsif ($host_info->{issuerca_expired}) {
-                    push @{$healthissues{critical}}, "Host CA credentials expired";
-                } elsif (not $host_info->{hostcert_enddate}) {
-                    push @{$healthissues{critical}}, "Host credentials missing";
-	        } elsif (not $host_info->{issuerca_enddate}) {
-                    push @{$healthissues{warning}}, "Host CA credentials missing";
-                } else {
-                    if (     $host_info->{hostcert_enddate} - time < 48*3600) {
-                        push @{$healthissues{warning}}, "Host credentials will expire soon";
-                    } elsif ($host_info->{issuerca_enddate} - time < 48*3600) {
-                        push @{$healthissues{warning}}, "Host CA credentials will expire soon";
-                    }
-                }
-            }            
-
-            # check health status by using port probe in hostinfo
-            my $arexport = $config->{arex}{port};
-            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
-            }
-            
-            if (%healthissues) {
-            my @infos;
-            for my $level (qw(critical warning other unknown)) {
-                next unless $healthissues{$level};
-                $ep->{HealthState} ||= $level;
-                push @infos, @{$healthissues{$level}};
-            }
-            $ep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-            $ep->{HealthState} = 'ok';
-            }
-
-            $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
-            $ep->{TrustedCA} = $host_info->{trustedcas}; # array
-            
-            $ep->{ServingState} = 'production';
-
-            # TODO: StartTime: get it from hed?
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            # AccessPolicies
-            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
-            
-            $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-                   
-            # Associations
-
-            $ep->{ComputingServiceID} = $csvID;
-
-            return $ep;
-        };
-        
-        $arexceps->{EMIESResourceInfoEndpoint} = $getEMIESResourceInfoEndpoint if ($emiesenabled);
-
-        # TODO: add EMIES Delegation, ActivityInfo, ActivityManagement
-        
-        # EMI-ES ActivityInfo
-        
-        my $getEMIESActivityInfoComputingEndpoint = sub {
-
-            # don't publish if no endpoint URL
-            return undef unless $emiesenabled;
-
-            my $cep = {};
-
-            $cep->{CreationTime} = $creation_time;
-            $cep->{Validity} = $validity_ttl;
-
-            $cep->{ID} = "$EMIEScepIDp:ai";
-
-            # Name not necessary -- why? added back
-            $cep->{Name} = "ARC CE EMI-ES ActivtyInfo Port Type";
-
-            # OBS: ideally HED should be asked for the URL
-            $cep->{URL} = $wsendpoint;
-            # TODO: define a strategy to add data capabilites
-            $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activityinfo'};
-            $cep->{Technology} = 'webservice';
-            $cep->{InterfaceName} = 'org.ogf.glue.emies.activityinfo';
-            $cep->{InterfaceVersion} = [ '1.16' ];
-            $cep->{WSDL} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
-            # What is profile for EMIES?
-            #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-            #              ];
-            $cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
-            $cep->{Implementor} = "NorduGrid";
-            $cep->{ImplementationName} = "nordugrid-arc";
-            $cep->{ImplementationVersion} = $config->{arcversion};
-
-            $cep->{QualityLevel} = "production";
-
-            my %healthissues;
-
-            if ($config->{x509_host_cert}) {
-                if (     $host_info->{hostcert_expired}) {
-                    push @{$healthissues{critical}}, "Host credentials expired";
-                } elsif ($host_info->{issuerca_expired}) {
-                    push @{$healthissues{critical}}, "Host CA credentials expired";
-                } elsif (not $host_info->{hostcert_enddate}) {
-                    push @{$healthissues{critical}}, "Host credentials missing";
-	        } elsif (not $host_info->{issuerca_enddate}) {
-                    push @{$healthissues{warning}}, "Host CA credentials missing";
-                } else {
-                    if (     $host_info->{hostcert_enddate} - time < 48*3600) {
-                        push @{$healthissues{warning}}, "Host credentials will expire soon";
-                    } elsif ($host_info->{issuerca_enddate} - time < 48*3600) {
-                        push @{$healthissues{warning}}, "Host CA credentials will expire soon";
-                    }
-                }
-            }
-
-            if ( $host_info->{gm_alive} ne 'all' ) {
-            if ($host_info->{gm_alive} eq 'some') {
-                push @{$healthissues{warning}}, 'One or more grid managers are down';
-            } else {
-                push @{$healthissues{critical}},
-                  $config->{remotegmdirs} ? 'All grid managers are down'
-                              : 'Grid manager is down';
-            }
-            }
-
-            # check health status by using port probe in hostinfo
-            my $arexport = $config->{arex}{port};
-            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
-            }
-
-            if (%healthissues) {
-            my @infos;
-            for my $level (qw(critical warning other)) {
-                next unless $healthissues{$level};
-                $cep->{HealthState} ||= $level;
-                push @infos, @{$healthissues{$level}};
-            }
-            $cep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-            $cep->{HealthState} = 'ok';
-            }
-
-            $cep->{ServingState} = 'production';
-
-            # StartTime: get it from hed
-
-            $cep->{IssuerCA} = $host_info->{issuerca}; # scalar
-            $cep->{TrustedCA} = $host_info->{trustedcas}; # array
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            $cep->{Staging} =  'staginginout';
-            $cep->{JobDescription} = [ 'nordugrid:xrsl', 'emies:adl' ];
-
-            $cep->{TotalJobs} = $gmtotalcount{notfinished} || 0;
-
-            $cep->{RunningJobs} = $inlrmsjobstotal{running} || 0;
-            $cep->{SuspendedJobs} = $inlrmsjobstotal{suspended} || 0;
-            $cep->{WaitingJobs} = $inlrmsjobstotal{queued} || 0;
-
-            $cep->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
-                    + ( $gmtotalcount{finishing} || 0 );
-
-            $cep->{PreLRMSWaitingJobs} = $pendingtotal || 0;
-
-            $cep->{AccessPolicies} = sub { &{$getAccessPolicies}($cep->{ID}) };
-            
-            $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-
-            # ComputingActivities
-            if ($nojobs) {
-              $cep->{ComputingActivities} = undef;
-            } else {
-              # this complicated thing here creates a specialized getComputingActivities
-              # version of sub with a builtin parameter!
-              #TODO: change interfacename for jobs?
-              $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.ogf.glue.emies.activitycreation'); };
-            }
-
-            # Associations
-
-            $cep->{ComputingShareID} = [ values %cshaIDs ];
-            $cep->{ComputingServiceID} = $csvID;
-
-            return $cep;
-        };
-
-        # don't publish if no EMIES endpoint configured
-        $arexceps->{EMIESActivityInfoComputingEndpoint} = $getEMIESActivityInfoComputingEndpoint if ($emiesenabled);
-        
-        
-        # EMIES Delegation port type
-        
-        my $getEMIESDelegationEndpoint = sub {
-
-            my $ep = {};
-
-            $ep->{CreationTime} = $creation_time;
-            $ep->{Validity} = $validity_ttl;
-
-            # Name not necessary -- why? plan was to have it configurable.
-            $ep->{Name} = "ARC CE EMI-ES Delegation Port Type";
-
-            $ep->{URL} = $wsendpoint;
-            $ep->{ID} = "$EMIEScepIDp:d";
-            $ep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.delegation'};;
-            $ep->{Technology} = 'webservice';
-            $ep->{InterfaceName} = 'org.ogf.glue.emies.delegation';
-            $ep->{InterfaceVersion} = [ '1.16' ];
-            # Wrong type, should be URI
-            #$ep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
-            #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
-            #              ];
-            # TODO: put EMIES spec URL here
-            #$ep->{Semantics} = [ "http://www.nordugrid.org/documents/arc_infosys.pdf" ];
-            $ep->{Implementor} = "NorduGrid";
-            $ep->{ImplementationName} = "nordugrid-arc";
-            $ep->{ImplementationVersion} = $config->{arcversion};
-
-            $ep->{QualityLevel} = "production";
-
-            # How to calculate health for this interface?
-            # TODO: inherit health infos from arex endpoints
-            my %healthissues;
-
-            if ($config->{x509_host_cert}) {
-                if (     $host_info->{hostcert_expired}) {
-                    push @{$healthissues{critical}}, "Host credentials expired";
-                } elsif ($host_info->{issuerca_expired}) {
-                    push @{$healthissues{critical}}, "Host CA credentials expired";
-                } elsif (not $host_info->{hostcert_enddate}) {
-                    push @{$healthissues{critical}}, "Host credentials missing";
-	        } elsif (not $host_info->{issuerca_enddate}) {
-                    push @{$healthissues{warning}}, "Host CA credentials missing";
-                } else {
-                    if (     $host_info->{hostcert_enddate} - time < 48*3600) {
-                        push @{$healthissues{warning}}, "Host credentials will expire soon";
-                    } elsif ($host_info->{issuerca_enddate} - time < 48*3600) {
-                        push @{$healthissues{warning}}, "Host CA credentials will expire soon";
-                    }
-                }
-            }            
-
-            # check health status by using port probe in hostinfo
-            my $arexport = $config->{arex}{port};
-            if (defined $host_info->{ports}{arched}{$arexport} and @{$host_info->{ports}{arched}{$arexport}}[0] ne 'ok') {
-                push @{$healthissues{@{$host_info->{ports}{arched}{$arexport}}[0]}} , @{$host_info->{ports}{arched}{$arexport}}[1];
-            }
-            
-            if (%healthissues) {
-            my @infos;
-            for my $level (qw(critical warning other unknown)) {
-                next unless $healthissues{$level};
-                $ep->{HealthState} ||= $level;
-                push @infos, @{$healthissues{$level}};
-            }
-            $ep->{HealthStateInfo} = join "; ", @infos;
-            } else {
-            $ep->{HealthState} = 'ok';
-            }
-
-            $ep->{IssuerCA} = $host_info->{issuerca}; # scalar
-            $ep->{TrustedCA} = $host_info->{trustedcas}; # array
-            
-            $ep->{ServingState} = 'production';
-
-            # TODO: StartTime: get it from hed?
-
-            # TODO: Downtime, is this necessary, and how should it work?
-
-            # AccessPolicies
-            $ep->{AccessPolicies} = sub { &{$getAccessPolicies}($ep->{ID}) };
-            
-            $ep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
-                   
-            # Associations
-
-            $ep->{ComputingServiceID} = $csvID;
-
-            return $ep;
-        };
-        
-        $arexceps->{EMIESDelegationEndpoint} = $getEMIESDelegationEndpoint if ($emiesenabled);
-
         # TODO: review that the content is consistent with GLUE2
         # ARCREST 
 
         my $getARCRESTComputingEndpoint = sub {
 
             # don't publish if no endpoint URL
-            return undef unless $emiesenabled;
+            return undef unless $restenabled;
 
             my $cep = {};
 
@@ -2213,25 +1404,26 @@ sub collect($) {
 
             $cep->{ID} = "$ARCRESTcepIDp";
 
-            # Name not necessary -- why? added back
             $cep->{Name} = "ARC REST";
 
             # OBS: ideally HED should be asked for the URL
             $cep->{URL} = $wsendpoint;
-            # TODO: define a strategy to add data capabilites
             $cep->{Capability} = $epscapabilities->{'org.nordugrid.arcrest'};
             $cep->{Technology} = 'rest';
             $cep->{InterfaceName} = 'org.nordugrid.arcrest';
-            $cep->{InterfaceVersion} = [ '0.1' ];
+            # TODO: add different interface versions that we currently support. How to discover?
+            $cep->{InterfaceVersion} = [ '0.1', '1.0', '1.1' ];
+            # TODO: link to ARC documentation
             #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
             #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
             #              ];
+            # TODO: link to ARC documentation
             #$cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
             $cep->{Implementor} = "NorduGrid";
             $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
 
-            $cep->{QualityLevel} = "testing";
+            $cep->{QualityLevel} = "production";
 
             my %healthissues;
 
@@ -2296,7 +1488,8 @@ sub collect($) {
 
             $cep->{AccessPolicies} = sub { &{$getAccessPolicies}($cep->{ID}) };
             
-            $cep->{OtherInfo} = $host_info->{EMIversion} if ($host_info->{EMIversion}); # array
+            # No OtherInfo at the moment, but should be an array
+            #$cep->{OtherInfo} = [] # array
 
             # ComputingActivities
             if ($nojobs) {
@@ -2304,7 +1497,6 @@ sub collect($) {
             } else {
               # this complicated thing here creates a specialized getComputingActivities
               # version of sub with a builtin parameter!
-              #TODO: change interfacename for jobs?
               $cep->{ComputingActivities} = sub { &{$getComputingActivities}('org.nordugrid.arcrest'); };
             }
 
@@ -2316,8 +1508,8 @@ sub collect($) {
             return $cep;
         };
 
-        # don't publish if no EMIES endpoint configured
-        $arexceps->{ARCRESTComputingEndpoint} = $getARCRESTComputingEndpoint if ($emiesenabled);
+        # don't publish if no arex/ws/jobs configured
+        $arexceps->{ARCRESTComputingEndpoint} = $getARCRESTComputingEndpoint if ($restenabled);
 
         #
         ## NorduGrid local submission
@@ -2424,7 +1616,7 @@ sub collect($) {
         $arexceps->{NorduGridLocalSubmissionEndpoint} = $getNorduGridLocalSubmissionEndpoint;
 
         ### ARIS endpoints are now part of the A-REX service. 
-        # TODO: change ComputingService code in printers to scan for Endpoints - this might be no longer relevant
+        # TODO: verify: change ComputingService code in printers to scan for Endpoints - this might be no longer relevant
 
         my $getArisLdapNGEndpoint = sub {
 
@@ -2433,12 +1625,8 @@ sub collect($) {
             $ep->{CreationTime} = $creation_time;
             $ep->{Validity} = $validity_ttl;
 
-            # Name not necessary -- why? plan was to have it configurable.
             $ep->{Name} = "ARC CE ARIS LDAP NorduGrid Schema Local Information System";
 
-            # Configuration parser does not contain ldap port!
-            # must be updated
-            # port hardcoded for tests 
             $ep->{URL} = $ldapngendpoint;
             $ep->{ID} = "$ARISepIDp:ldapng:$config->{infosys}{ldap}{port}";
             $ep->{Capability} = $epscapabilities->{'org.nordugrid.ldapng'};
@@ -2503,12 +1691,8 @@ sub collect($) {
             $ep->{CreationTime} = $creation_time;
             $ep->{Validity} = $validity_ttl;
 
-            # Name not necessary -- why? plan was to have it configurable.
             $ep->{Name} = "ARC CE ARIS LDAP GLUE2 Schema Local Information System";
 
-            # Configuration parser does not contain ldap port!
-            # must be updated
-            # port hardcoded for tests 
             $ep->{URL} = $ldapglue2endpoint;
             $ep->{ID} = "$ARISepIDp:ldapglue2:$config->{infosys}{ldap}{port}";
             $ep->{Capability} = $epscapabilities->{'org.nordugrid.ldapglue2'};
