@@ -254,8 +254,7 @@ sub main {
     $log->info("Generating LDIF renderings");
     my $ngdata;
     if ( defined $config->{infosys}{nordugrid} ) {
-            $ngdata = timed 'ARC0ClusterInfo', sub { ARC0ClusterInfo::collect($data) } if ( defined $config->{infosys}{nordugrid} );
-        }
+            $ngdata = timed 'ARC0ClusterInfo', sub { ARC0ClusterInfo::collect($data) }
     }   
     
     # Write out LDIF document(s)
