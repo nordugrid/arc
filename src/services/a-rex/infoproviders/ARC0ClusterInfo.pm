@@ -264,8 +264,9 @@ sub collect($) {
         # TODO: Cleanup of gridftp: remove attributes that cannot be computed
         # Solution: use contactstring from REST?
         # $c->{contactstring} = "gsiftp://$hostname:".$config->{gridftpd}{port}.$config->{gridftpd}{mountpoint} if ($config->{gridftpd}{enabled});
+        $c->{contactstring} = $config->{arex}{ws}{wsurl};
         # TODO: what is InteractiveContactstring? Removed from ConfigCentral. Find equivalent and substitute
-        $c->{'interactive-contactstring'} = $config->{service}{InteractiveContactstring}
+        #$c->{'interactive-contactstring'} = $config->{service}{InteractiveContactstring}
             if $config->{service}{InteractiveContactstring};
         $c->{support} = [ @supportmails ] if @supportmails;
         $c->{'lrms-type'} = $lrms_info->{cluster}{lrms_type};
@@ -343,8 +344,8 @@ sub collect($) {
             # TODO: take decision for this: allownew just for arex? a different value?
             # TODO: solution: "This a-rex only accepts jobs via REST"
             # TODO: remove remotegmdirs functionality and revise gm_alive meaning
-            if ( defined $config->{GridftpdAllowNew} and $config->{GridftpdAllowNew} == 0 ) {
-                $q->{status} = 'inactive, grid-manager does not accept new jobs';
+            if ( defined $config->{arex}{ws}{jobs} and $config->{arex}{ws}{jobs}{enabled} == 1 and $config->{arex}{ws}{jobs}{allownew} == 0 ) {
+                $q->{status} = 'inactive, a-rex does not accept new jobs';
             } elsif ( $host_info->{gm_alive} ne 'all' ) {
                 if ($host_info->{gm_alive} eq 'some') {
                     $q->{status} = 'degraded, one or more grid-managers are down';
@@ -352,8 +353,6 @@ sub collect($) {
                     $q->{status} = $config->{remotegmdirs} ? 'inactive, all grid managers are down'
                                                            : 'inactive, grid-manager is down';
                 }
-            } elsif (not $host_info->{processes}{'gridftpd'}) {
-                $q->{status} = 'inactive, gridftpd is down';   
             } elsif (not $host_info->{hostcert_enddate} or not $host_info->{issuerca_enddate}) {
                 $q->{status} = 'inactive, host credentials missing';
             } elsif ($host_info->{hostcert_expired} or $host_info->{issuerca_expired}) {
