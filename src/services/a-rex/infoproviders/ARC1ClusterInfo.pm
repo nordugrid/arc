@@ -463,6 +463,7 @@ sub jobXmlFileWriter {
     # distributing jobs to remote grid-managers is only
     # implemented by gridftd, remote jobs are not of interest
     # for the WS interface.
+    # TODO: remote arex functionality being removed. The above comment can be removed.
     return 0 unless defined $gmuser;
     my $controldir = $config->{control}{$gmuser}{controldir};
     $log->debug("XML writer in $controldir.");

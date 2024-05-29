@@ -342,6 +342,7 @@ sub collect($) {
             
             # TODO: take decision for this: allownew just for arex? a different value?
             # TODO: solution: "This a-rex only accepts jobs via REST"
+            # TODO: remove remotegmdirs functionality and revise gm_alive meaning
             if ( defined $config->{GridftpdAllowNew} and $config->{GridftpdAllowNew} == 0 ) {
                 $q->{status} = 'inactive, grid-manager does not accept new jobs';
             } elsif ( $host_info->{gm_alive} ne 'all' ) {
