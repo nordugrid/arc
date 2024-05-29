@@ -247,7 +247,7 @@ sub glueState {
     push @$status, "file:".@{$local_state->{State}}[0] if $local_state->{State};#try to fix so I have the full state here
     my $rest_state = rest_state(@ng_status); 
     push @$status, "arcrest:".$rest_state->[0] if $rest_state;
-    }
+
     return $status;
 }
 

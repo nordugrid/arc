@@ -267,7 +267,7 @@ sub collect($) {
         $c->{contactstring} = $config->{arex}{ws}{wsurl};
         # TODO: what is InteractiveContactstring? Removed from ConfigCentral. Find equivalent and substitute
         #$c->{'interactive-contactstring'} = $config->{service}{InteractiveContactstring}
-            if $config->{service}{InteractiveContactstring};
+        #if $config->{service}{InteractiveContactstring};
         $c->{support} = [ @supportmails ] if @supportmails;
         $c->{'lrms-type'} = $lrms_info->{cluster}{lrms_type};
         $c->{'lrms-version'} = $lrms_info->{cluster}{lrms_version} if $lrms_info->{cluster}{lrms_version};
