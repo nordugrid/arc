@@ -192,6 +192,7 @@ my $glue2_options = {
 
 my $arex_options = {
     enabled => '',
+    user => '',
     defaultttl => '*',
     logfile => '*',
     loglevel => '*', 

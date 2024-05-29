@@ -9,6 +9,7 @@ use strict;
 
 # The returned hash looks something like this:
 
+# TODO: review this schema, there is a lot of legacy stuff to fix.
 our $j = { 'jobID' => {
             gmuser             => '*',
             # from .local
@@ -84,21 +85,20 @@ sub switchEffectiveUser {
 }
 
 sub collect {
-    my ($controls, $nojobs) = @_;
+    my ($arex, $nojobs) = @_;
 
     my $gmjobs = {};
-    # TODO: there is no more user control thing, remove the user part
-    # How was this working until now? switchEffectiveUser defaults to root.
-    while (my ($user, $control) = each %$controls) {
-        switchEffectiveUser($user);
-        my $controldir = $control->{controldir};
-        my $newjobs = get_gmjobs($controldir, $nojobs);
-        $newjobs->{$_}{gmuser} = $user for keys %$newjobs;
-        $gmjobs->{$_} = $newjobs->{$_} for keys %$newjobs;
-    }
+    my $user = $arex->{user};
+    # Disabling user switching for now, runs as the same user as a-rex
+    #switchEffectiveUser($user);
+    my $controldir = $arex->{controldir};
+    my $newjobs = get_gmjobs($controldir, $nojobs);
+    # What is this one fetching exaclty?
+    $newjobs->{$_}{gmuser} = $user for keys %$newjobs;
+    $gmjobs->{$_} = $newjobs->{$_} for keys %$newjobs;
 
-    # switch to root or to gridftpd user?
-    switchEffectiveUser('.');
+    # switch back to root 
+    #switchEffectiveUser('.');
 
     # TODO: remove this and check that everything still works
     #if ($remotegmdirs) {
@@ -110,7 +110,7 @@ sub collect {
     #}
     
     # switch back to root
-    switchEffectiveUser('.');
+    #switchEffectiveUser('.');
 
     return $gmjobs;
 }
