@@ -128,6 +128,7 @@ my $common_options = {
     x509_host_key => '*', 
     x509_host_cert => '*',
     x509_cert_dir => '*',
+    x509_cert_policy => '',
     enable_perflog_reporting => '*',
     perflogdir => '*',
     # TODO: what is this for? Check in ARC1ClusterInfo.pm
@@ -305,10 +306,10 @@ my $config_schema = {
     infosys => {
         enabled => '',
         allowaccess => {
-          enabled => ''
+          enabled => '*'
           },
         nordugrid => {
-            enabled => ''
+            enabled => '*'
         }, 
         logfile => '*',  
         loglevel => '*',
