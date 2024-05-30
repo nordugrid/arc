@@ -2,6 +2,7 @@
 #define GM_COMMFIFO_H
 
 #include <list>
+#include <vector>
 
 #include <arc/Thread.h>
 
