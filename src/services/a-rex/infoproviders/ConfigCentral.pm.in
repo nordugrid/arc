@@ -113,15 +113,7 @@ my $cache_options = {
    cachedir => [ '*' ],
    cachesize => '*'
 };
-# ONGOING: remove legacy gm stuff back into arex
-# TODO: check that gm_options is now arex
-#my $gm_options = {
-#    controldir => '',
-#    sessiondir => [ '' ],
-#    defaultttl => '*',
-#    %$cache_options
-#};
-# TODO: Cleanup what doesn't belong here, move to arex
+
 my $common_options = {
     arcversion => '',
     hostname => '*',
@@ -163,7 +155,7 @@ my $ldap_infosys_options = {
 };
 
 # [arex] subblocks
-# TODO: add REST related things if needed
+# TODO: add REST specific things if needed
 my $wsjobs_options = { 
     allownew => '*',    
     enabled => ''
@@ -221,15 +213,9 @@ my $config_schema = {
     
     # TODO: what to do with these? add ssh block?
     %$sshcommon_options,
-    
-    # TODO: C2A: move these inside arex where they belong now 
-    #control => {
-    #    '*' => {
-    #        %$gm_options
-    #    }
-    #},
-    
-    # TODO: service is a mix of nordugrid "cluster" and glue2 concepts, plus arex. Translate/copy just what is needed from infosys/cluster
+
+    # service is a mix of nordugrid "cluster" and glue2 concepts, taking info from different sources.
+    # Translate/copy just what is needed from infosys/cluster
     service => {
         OtherInfo => [ '*' ],
         StatusInfo => [ '*' ],
@@ -513,8 +499,7 @@ sub build_config_from_json {
     my $config ||= {};
     # service is an aggregation of the contents of infosys/cluster and GLUE2 relevant info
     $config->{service} ||= {};
-    # TODO: C2A move into arex all that is here - OBS many changes in all infoproviders!
-    #$config->{control} ||= {}; # moved to {arex} - TODO: fix in all infoproviders
+    
     ## This below is mostly GLUE2, but we decided not to create a dedicated block.
     $config->{location} ||= {};
     $config->{contacts} ||= [];
@@ -591,25 +576,20 @@ sub build_config_from_json {
         $config->{arex}{ws}{jobs}{enabled} = 0;
     }
 
-   # cache handling, mixes info from different blocks into control
    $config->{arex}{cache} ||= {};
     if (defined $jsonconf->{'arex/cache'}) {
        my $cacheopts = $jsonconf->{'arex/cache'};
-       # TODO: move out of 'control' and in arex, fix rest of infoproviders
        move_keys $cacheopts, $config->{arex}{cache}, [keys %$cache_options];
     }
     
-    # TODO: this is probably not used anymore, remove? Comment for now
-    #$config->{arex}{cache}{cleaner} ||= {};
-    #if (defined $jsonconf->{'arex/cache/cleaner'}) {
-    #   my $cacheopts = $jsonconf->{'arex/cache/cleaner'};
-    #   # TODO: move out of 'control' and in arex, fix rest of infoproviders
-    #   # moved to control for legacy reasons
-    #   move_keys $cacheopts, $config->{arex}{cache}, [keys %$cache_options];
-    #}
+    $config->{arex}{cache}{cleaner} ||= {};
+    if (defined $jsonconf->{'arex/cache/cleaner'}) {
+       my $cacheopts = $jsonconf->{'arex/cache/cleaner'};
+       # move everything into arex->cache. TODO: check rest of infoproviders use arex hash
+       move_keys $cacheopts, $config->{arex}{cache}, [keys %$cache_options];
+    }
 
-    # TODO: review BDII config, block disappeared but maybe options not moved back.
-    # LDAP config
+    # LDAP and BDII config
     if (defined $jsonconf->{'infosys/ldap'}) {
         $config->{infosys}{ldap} ||= {};
         my $ldapconf = $jsonconf->{'infosys/ldap'};
@@ -741,7 +721,7 @@ sub build_config_from_json {
                                       benchmark => 'Benchmark'};
         move_keys $queue, $xeconf, [keys %$xenv_options];
         
-        # TODO: possibly remove. This option was meant to select a group of nodes for a queue 
+        # This unsupported option was meant to select a group of nodes for a queue 
         # Since arc 6.6 this is autodiscovered from the batch system for some LRMS.
         # It may be useful in cloud context, so kept for now
         $xeconf->{NodeSelection} = {};
@@ -786,14 +766,13 @@ sub build_config_from_json {
 
     
     ## TODO: still valid in 2024/ARC7, take decision
-    ## TODO: Check that this code below is currently not used. Access/mapping policies are currently
+    ## TODO: This code below is currently not used. Access/mapping policies are currently
     #        generated in ARC1ClusterInfo.pm, but this information is mostly static and
     #        can be generated already now, simplifying ARC1ClusterInfo.pm. However simplification is not much.
     #        Also, this is strictly GLUE2, so maybe it should be confined in ARC1ClusterInfo.pm after all...
-    # TODO: move this below to check_config
     # TODO: create shares based on configured VOs in ConfigCentral? Is this possible/good?)
-    # why are these checks not done by InfoChecker?
-    # Cross-check MappingPolicy references and move them to the share wehre they belong
+    #        Can these these checks be done by InfoChecker?
+    # Cross-check MappingPolicy references and move them to the share where they belong
     
     # Initialize policies data based on authorization information.
     # This might be extended in the future for more complex scenarios. For now
@@ -931,7 +910,7 @@ sub set_defaults {
                       'infosys/nordugrid'
                       );
 
-    ## TODO: change logic to scan config and add enabled to all enabled blocks, then do checks - 2024 still valid?
+    ## Fix for Perl problem with nested hashes: add an enabled item to all blocks that can be enabled and add 0 or 1 values
     for my $block (@blocknames) {
         $config->{$block}{enabled} = (defined $config->{$block}) ? 1 : 0;
     };
@@ -952,10 +931,9 @@ sub set_defaults {
     # force ldap defaults if ldap renderings are enabled in config
     $config->{infosys}{ldap}{port}='2135' if ($config->{'infosys/ldap'}{enabled});
         
-    ## TODO: use REST
-    # Define a-rex endpoint. Hardcoded after ARC6.
+    # Define a-rex endpoint. Hardcoded after ARC6. TODO: comment this on a deployment and check if still needed
     if (defined $config->{'arex/ws'}) {
-        $config->{'arex/ws'}{wsurl} ||= 'https://'.$config->{hostname}.':443/arex';
+       $config->{'arex/ws'}{wsurl} ||= 'https://'.$config->{hostname}.':443/arex';
     } else {
         $log->verbose("WS interface disabled. Add [arex/ws] block to enable");
     }

@@ -24,7 +24,7 @@ our $host_options_schema = {
            '*' => [ '*' ] #process name, ports
         },
         localusers     => [ '' ],
-        # TODO: change the old control logic into something just for multiple sessiondirs.
+        # TODO: Test use case of multiple sessiondirs live.
         arex => {
             controldir => '',
             sessiondir => [ '' ],
@@ -350,13 +350,13 @@ sub get_host_info {
         }
     }
 
-    # TODO: this is broken since many years, commenting out. Needs better handling in CEinfo.pl and ConfigCentral.pm 
-    # calculate free space on the sessionsirs of each local user.
+    # TODO: this is broken since many years. Needs better handling in CEinfo.pl and ConfigCentral.pm 
+    # calculate free space on the sessionsirs of each "local user".
     my $user = $host_info->{localusers} = {};
 
     foreach my $u (@{$options->{localusers}}) {
 
-        # TODO: this can be reengineered for user-based sessiondirs
+        # TODO: this can be reengineered for user-based sessiondirs ('*' parameter)
         # Are there grid-manager settings applying for this local user?
         if ($control->{$u}) {
             my $sessiondirs = [ map { my ($path, $drain) = split /\s+/, $_; $path; } @{$control->{$u}{sessiondir}} ];

@@ -179,9 +179,8 @@ sub get_gmjobs {
         # parse the content of the job.ID.local into the %gmjobs hash
         foreach my $line (@local_allines) {
             if ($line=~m/^(\w+)=(.+)$/) {
-                # TODO: multiple activityid support. 
-                # is this still used? if not, remove the code.
-                # looking at trunk it doesn't seem to exist anymore.
+                # multiple activityid support. 
+                # Still in CPP codebase, see grid-manager/files/ControlFileContent.cpp, so keeping it here.
                 if ($1 eq "activityid") {
                     push @{$job->{activityid}}, $2;
                 } else {

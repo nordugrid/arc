@@ -509,7 +509,7 @@ sub fix_jobs {
 }
 
 
-# TODO: remove
+# TODO: reuse for map_with_file if still needed.
 # reads grid-mapfile. Returns a ref to a DN => uid hash
 
 #sub read_grid_mapfile($) {
