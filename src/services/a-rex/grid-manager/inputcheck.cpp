@@ -98,7 +98,7 @@ int main(int argc,char* argv[]) {
   ARex::JobLocalDescription job;
   Arc::JobDescription arc_job_desc;
 
-  if(job_desc_handler.parse_job_req(job,arc_job_desc,desc) != ARex::JobReqSuccess) return 1;
+  if(job_desc_handler.parse_job_req_from_file(job,arc_job_desc,desc) != ARex::JobReqSuccess) return 1;
 
   if(!proxy.empty()) {
     Arc::SetEnv("X509_USER_PROXY",proxy,true);

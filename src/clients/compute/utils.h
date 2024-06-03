@@ -192,6 +192,8 @@ public:
   int testjobid;
   int runtime;
   int timeout;
+  int instances_min;
+  int instances_max;
 
   std::string show_file;
 

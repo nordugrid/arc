@@ -37,7 +37,9 @@ namespace Arc {
     bool AddDelegation(std::string& product, std::string const& delegationId);
     SubmissionStatus SubmitInternal(const std::list<JobDescription>& jobdescs, const ExecutionTarget* et, const std::string& endpoint,
                          EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted);
-
+    SubmissionStatus PostProcessInternal(Arc::URL const& baseUrl, Arc::URL const& submissionUrl, std::string const& delegationId,
+                                         JobDescription const& jobdesc, Arc::XMLNode job_item, EntityConsumer<Job>& jc);
+  
     static Logger logger;
   };
 

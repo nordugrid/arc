@@ -94,14 +94,36 @@ bool JobDescriptionHandler::process_job_req(const GMJob &job,JobLocalDescription
   return true;
 }
 
-JobReqResult JobDescriptionHandler::parse_job_req(JobLocalDescription &job_desc,Arc::JobDescription& arc_job_desc,const std::string &fname,bool check_acl) const {
+JobReqResult JobDescriptionHandler::parse_job_req_from_mem(JobLocalDescription &job_desc,Arc::JobDescription& arc_job_desc,const std::string &desc_str,bool check_acl) const {
+  {
+    std::list<Arc::JobDescription> descs;
+    Arc::JobDescriptionResult r = Arc::JobDescription::Parse(desc_str, descs, "", "GRIDMANAGER");
+    if (!r) {
+      std::string failure = r.str();
+      if(failure.empty()) failure = "Unable to parse job description.";
+      return JobReqResult(JobReqInternalFailure, "", failure);
+    }
+    if(descs.size() != 1) {
+      return JobReqResult(JobReqInternalFailure, "", "Multiple job descriptions not supported");
+    }
+    arc_job_desc = descs.front();
+  }
+
+  return parse_job_req_internal(job_desc, arc_job_desc, check_acl);
+}
+
+JobReqResult JobDescriptionHandler::parse_job_req_from_file(JobLocalDescription &job_desc,Arc::JobDescription& arc_job_desc,const std::string &fname,bool check_acl) const {
   Arc::JobDescriptionResult arc_job_res = get_arc_job_description(fname, arc_job_desc);
   if (!arc_job_res) {
     std::string failure = arc_job_res.str();
     if(failure.empty()) failure = "Unable to read or parse job description.";
     return JobReqResult(JobReqInternalFailure, "", failure);
   }
+  return parse_job_req_internal(job_desc, arc_job_desc, check_acl);
+}
 
+
+JobReqResult JobDescriptionHandler::parse_job_req_internal(JobLocalDescription &job_desc,Arc::JobDescription const& arc_job_desc,bool check_acl) const {
   if (!arc_job_desc.Resources.RunTimeEnvironment.isResolved()) {
     return JobReqResult(JobReqInternalFailure, "", "Runtime environments have not been resolved.");
   }
@@ -155,7 +177,7 @@ JobReqResult JobDescriptionHandler::parse_job_req(const JobId &job_id,JobLocalDe
 
 JobReqResult JobDescriptionHandler::parse_job_req(const JobId &job_id,JobLocalDescription &job_desc,Arc::JobDescription& arc_job_desc,bool check_acl) const {
   std::string fname = job_control_path(config.ControlDir(),job_id,sfx_desc);
-  return parse_job_req(job_desc,arc_job_desc,fname,check_acl);
+  return parse_job_req_from_file(job_desc,arc_job_desc,fname,check_acl);
 }
 
 std::string JobDescriptionHandler::get_local_id(const JobId &job_id) const {

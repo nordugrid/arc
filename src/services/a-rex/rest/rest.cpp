@@ -1051,11 +1051,19 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
   } else if(context.method == "POST") {
     std::string action = context["action"];
     if(action == "new") {
+      unsigned int all_jobs_count = all_jobs_count_;
       std::string errmsg;
       if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobCreate, config, errmsg))
         return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed",errmsg.c_str());
-      if((config->GmConfig().MaxTotal() > 0) && (all_jobs_count_ >= config->GmConfig().MaxTotal()))
+      if((config->GmConfig().MaxTotal() > 0) && (all_jobs_count >= config->GmConfig().MaxTotal()))
         return HTTPFault(inmsg,outmsg,500,"No more jobs allowed");
+      int can_accept_jobs = -1; // stands for no limit
+      if(config->GmConfig().MaxTotal() > 0) {
+        if(config->GmConfig().MaxTotal() > all_jobs_count)
+          can_accept_jobs = config->GmConfig().MaxTotal() - all_jobs_count;
+        else
+          can_accept_jobs = 0;
+      }
       // Fetch HTTP content to pass it as job description
       std::string desc_str;
       Arc::MCC_Status res = extract_content(inmsg,desc_str,100*1024*1024);
@@ -1073,9 +1081,21 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
 
       std::string default_queue;
       std::string default_delegation_id;
+      int instances_min = 1;
+      int instances_max = 1;
       if(context.version >= ProcessingContext::Version_1_1) {
         default_queue = context["queue"];
         default_delegation_id = context["delegation_id"];
+        Arc::stringto(context["instances"], instances_max);
+        Arc::stringto(context["instances_min"], instances_min);
+        if((instances_max < 1) || (instances_min > instances_max))
+          return HTTPFault(inmsg,outmsg,500,"Wrong number of instances specified");
+        if(config->GmConfig().MaxTotal() > 0) {
+          if ((all_jobs_count+instances_min) > config->GmConfig().MaxTotal())
+            return HTTPFault(inmsg,outmsg,403,"Number of requested instances exceeds allowed limit");
+          if ((all_jobs_count+instances_max) > config->GmConfig().MaxTotal())
+            instances_max = config->GmConfig().MaxTotal()-all_jobs_count;
+        }
       }
       XMLNode listXml("<jobs/>");
       // TODO: Split to separate functions
@@ -1084,67 +1104,15 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
           Arc::XMLNode jobs_desc_xml(desc_str);
           if (jobs_desc_xml.Name() == "ActivityDescriptions") {
             // multi
+            if(instances_max > 1) 
+              return HTTPFault(inmsg,outmsg,403,"No multiple descriptions and multiple instances simultaneously");
             for(int idx = 0;;++idx) {
               Arc::XMLNode job_desc_xml = jobs_desc_xml.Child(idx);
               if(!job_desc_xml)
                 break;
               XMLNode jobXml = listXml.NewChild("job");
-              ARexJob job(job_desc_xml,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
-              if(!job) {
-                jobXml.NewChild("status-code") = "500";
-                jobXml.NewChild("reason") = job.Failure();
-              } else {
-                jobXml.NewChild("status-code") = "201";
-                jobXml.NewChild("reason") = "Created";
-                jobXml.NewChild("id") = job.ID();
-                jobXml.NewChild("state") = "ACCEPTING";
-              } 
-            }
-          } else {
-            // maybe single
-            XMLNode jobXml = listXml.NewChild("job");
-            ARexJob job(jobs_desc_xml,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
-            if(!job) {
-              jobXml.NewChild("status-code") = "500";
-              jobXml.NewChild("reason") = job.Failure();
-            } else {
-              jobXml.NewChild("status-code") = "201";
-              jobXml.NewChild("reason") = "Created";
-              jobXml.NewChild("id") = job.ID();
-              jobXml.NewChild("state") = "ACCEPTING";
-            } 
-          }
-        }; break;
-
-        case '&': { // single-xRSL
-          XMLNode jobXml = listXml.NewChild("job");
-          ARexJob job(desc_str,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
-          if(!job) {
-            jobXml.NewChild("status-code") = "500";
-            jobXml.NewChild("reason") = job.Failure();
-          } else {
-            jobXml.NewChild("status-code") = "201";
-            jobXml.NewChild("reason") = "Created";
-            jobXml.NewChild("id") = job.ID();
-            jobXml.NewChild("state") = "ACCEPTING";
-          } 
-        }; break;
-
-        case '+': { // multi-xRSL
-          std::list<JobDescription> jobdescs;
-          Arc::JobDescriptionResult result = Arc::JobDescription::Parse(desc_str, jobdescs, "nordugrid:xrsl", "GRIDMANAGER");
-          if (!result) {
-            return HTTPFault(inmsg,outmsg,500,result.str().c_str());
-          } else {
-            for(std::list<JobDescription>::iterator jobdesc = jobdescs.begin(); jobdesc != jobdescs.end(); ++jobdesc) {
-              XMLNode jobXml = listXml.NewChild("job");
-              std::string jobdesc_str;
-              result = jobdesc->UnParse(jobdesc_str, "nordugrid:xrsl", "GRIDMANAGER");
-              if (!result) {
-                jobXml.NewChild("status-code") = "500";
-                jobXml.NewChild("reason") = result.str();
-              } else {
-                ARexJob job(jobdesc_str,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
+              if(can_accept_jobs != 0) {
+                ARexJob job(job_desc_xml,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
                 if(!job) {
                   jobXml.NewChild("status-code") = "500";
                   jobXml.NewChild("reason") = job.Failure();
@@ -1154,7 +1122,137 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
                   jobXml.NewChild("id") = job.ID();
                   jobXml.NewChild("state") = "ACCEPTING";
                 } 
+              } else {
+                jobXml.NewChild("status-code") = "500";
+                jobXml.NewChild("reason") = "No more jobs allowed";
               }
+              if(can_accept_jobs > 0) --can_accept_jobs;
+            }
+          } else {
+            // maybe single
+            if(instances_max <= 1) {
+              if(can_accept_jobs == 0)
+                return HTTPFault(inmsg,outmsg,500,"No more jobs allowed");
+              XMLNode jobXml = listXml.NewChild("job");
+              ARexJob job(jobs_desc_xml,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
+              if(!job) {
+                jobXml.NewChild("status-code") = "500";
+                jobXml.NewChild("reason") = job.Failure();
+              } else {
+                jobXml.NewChild("status-code") = "201";
+                jobXml.NewChild("reason") = "Created";
+                jobXml.NewChild("id") = job.ID();
+                jobXml.NewChild("state") = "ACCEPTING";
+              } 
+            } else {
+              if(can_accept_jobs >= 0) {
+                if(can_accept_jobs < instances_min)
+                  return HTTPFault(inmsg,outmsg,500,"No more jobs allowed");
+                if(can_accept_jobs < instances_max)
+                  instances_max = can_accept_jobs;
+              }
+              std::string failure;
+              std::vector<std::string> ids;
+              if(!ARexJob::Generate(jobs_desc_xml,instances_min,instances_max,*config,
+                                    default_delegation_id,default_queue,clientid,logger_,idgenerator,
+                                    ids,failure)) {
+                if(instances_max < instances_min) {
+                  return HTTPFault(inmsg,outmsg,403,"Can't create requested number of job instances");
+                }
+                XMLNode jobXml = listXml.NewChild("job");
+                jobXml.NewChild("status-code") = "500";
+                jobXml.NewChild("reason") = failure;
+              } else {
+                for(std::size_t idx = 0; idx<ids.size(); ++idx) {
+                  XMLNode jobXml = listXml.NewChild("job");
+                  jobXml.NewChild("status-code") = "201";
+                  jobXml.NewChild("reason") = "Created";
+                  jobXml.NewChild("id") = ids[idx];
+                  jobXml.NewChild("state") = "ACCEPTING";
+                }
+              }
+            }
+          }
+        }; break;
+
+        case '&': { // single-xRSL
+          if(instances_max <= 1) {
+            if(can_accept_jobs == 0)
+              return HTTPFault(inmsg,outmsg,500,"No more jobs allowed");
+            XMLNode jobXml = listXml.NewChild("job");
+            ARexJob job(desc_str,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
+            if(!job) {
+              jobXml.NewChild("status-code") = "500";
+              jobXml.NewChild("reason") = job.Failure();
+            } else {
+              jobXml.NewChild("status-code") = "201";
+              jobXml.NewChild("reason") = "Created";
+              jobXml.NewChild("id") = job.ID();
+              jobXml.NewChild("state") = "ACCEPTING";
+            } 
+          } else {
+            if(can_accept_jobs >= 0) {
+              if(can_accept_jobs < instances_min)
+                return HTTPFault(inmsg,outmsg,500,"No more jobs allowed");
+              if(can_accept_jobs < instances_max)
+                instances_max = can_accept_jobs;
+            }
+            std::string failure;
+            std::vector<std::string> ids;
+            if(!ARexJob::Generate(desc_str,instances_min,instances_max,*config,
+                                  default_delegation_id,default_queue,clientid,logger_,idgenerator,
+                                  ids,failure)) {
+              if(instances_max < instances_min) {
+                return HTTPFault(inmsg,outmsg,403,"Can't create requested number of job instances");
+              }
+              XMLNode jobXml = listXml.NewChild("job");
+              jobXml.NewChild("status-code") = "500";
+              jobXml.NewChild("reason") = failure;
+            } else {
+              for(std::size_t idx = 0; idx<ids.size(); ++idx) {
+                XMLNode jobXml = listXml.NewChild("job");
+                jobXml.NewChild("status-code") = "201";
+                jobXml.NewChild("reason") = "Created";
+                jobXml.NewChild("id") = ids[idx];
+                jobXml.NewChild("state") = "ACCEPTING";
+              }
+            }
+          }
+        }; break;
+
+        case '+': { // multi-xRSL
+          if(instances_max > 1) 
+            return HTTPFault(inmsg,outmsg,403,"No multiple descriptions and multiple instances simultaneously");
+          std::list<JobDescription> jobdescs;
+          Arc::JobDescriptionResult result = Arc::JobDescription::Parse(desc_str, jobdescs, "nordugrid:xrsl", "GRIDMANAGER");
+          if (!result) {
+            return HTTPFault(inmsg,outmsg,500,result.str().c_str());
+          } else {
+            for(std::list<JobDescription>::iterator jobdesc = jobdescs.begin(); jobdesc != jobdescs.end(); ++jobdesc) {
+              XMLNode jobXml = listXml.NewChild("job");
+              if(can_accept_jobs != 0) {
+                std::string jobdesc_str;
+                result = jobdesc->UnParse(jobdesc_str, "nordugrid:xrsl", "GRIDMANAGER");
+                if (!result) {
+                  jobXml.NewChild("status-code") = "500";
+                  jobXml.NewChild("reason") = result.str();
+                } else {
+                  ARexJob job(jobdesc_str,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
+                  if(!job) {
+                    jobXml.NewChild("status-code") = "500";
+                    jobXml.NewChild("reason") = job.Failure();
+                  } else {
+                    jobXml.NewChild("status-code") = "201";
+                    jobXml.NewChild("reason") = "Created";
+                    jobXml.NewChild("id") = job.ID();
+                    jobXml.NewChild("state") = "ACCEPTING";
+                  } 
+                }
+              } else {
+                jobXml.NewChild("status-code") = "500";
+                jobXml.NewChild("reason") = "No more jobs allowed";
+              }
+              if(can_accept_jobs > 0) --can_accept_jobs;
             }
           }
         }; break;

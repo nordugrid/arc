@@ -40,7 +40,11 @@ public:
   /// Parse the job description at the given file into job_desc and
   /// arc_job_desc. Optionally check acl file and put result into
   /// returned object
-  JobReqResult parse_job_req(JobLocalDescription &job_desc,Arc::JobDescription& arc_job_desc,const std::string &fname,bool check_acl=false) const;
+  JobReqResult parse_job_req_from_file(JobLocalDescription &job_desc,Arc::JobDescription& arc_job_desc,const std::string &fname,bool check_acl=false) const;
+  /// Parse the job description from the given string into job_desc and
+  /// arc_job_desc. Optionally check acl file and put result into
+  /// returned object
+  JobReqResult parse_job_req_from_mem(JobLocalDescription &job_desc,Arc::JobDescription& arc_job_desc,const std::string &desc_str,bool check_acl=false) const;
   /// Parse the job description for job_id into job_desc. Optionally check
   /// acl file and put result into returned object
   JobReqResult parse_job_req(const JobId &job_id,JobLocalDescription &job_desc,bool check_acl=false) const;
@@ -59,6 +63,8 @@ public:
   bool set_execs(const GMJob &job) const;
 
 private:
+  JobReqResult parse_job_req_internal(JobLocalDescription &job_desc,Arc::JobDescription const& arc_job_desc,bool check_acl=false) const;
+
   /// Read and parse job description from file and update the job description reference.
   /** @param fname filename of the job description file.
    * @param desc a reference to a Arc::JobDescription which is filled on success,

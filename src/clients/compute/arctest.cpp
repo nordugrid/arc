@@ -253,7 +253,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
   }
 
   // default action: start submission cycle
-  return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist, delegation_type);
+  return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist, delegation_type, opt.instances_min, opt.instances_max);
 }
 
 void printjobid(const std::string& jobid, const std::string& jobidfile) {
