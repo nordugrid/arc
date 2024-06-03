@@ -66,7 +66,6 @@ sub local_state {
         $loc_state->{State} = [ "submit" ];
         return $loc_state;
     } elsif ($gm_state eq "INLRMS") {
-        # TODO: check hot to map these!
         if (not defined $lrms_state) {
             $loc_state->{State} = [ "inlrms" ];
             return $loc_state;
@@ -281,12 +280,7 @@ sub jobXmlFileWriter {
     $log->debug("XML writer for $jobid.");
     # If this is defined, then it's a job managed by local A-REX.
     my $gmuser = $gmjob->{gmuser};
-    # Skip for now jobs managed by remote A-REX.
-    # These are still published in ldap-infosys. As long as
-    # distributing jobs to remote grid-managers is only
-    # implemented by gridftd, remote jobs are not of interest
-    # for the WS interface.
-    # TODO: remote arex functionality being removed. The above comment can be removed.
+    # This below is to avoid any processing for remote grid managers, a removed feature
     return 0 unless defined $gmuser;
     my $controldir = $config->{arex}{controldir};
     $log->debug("XML writer in $controldir.");
@@ -599,8 +593,6 @@ sub prioritizedvalues {
    return undef;
 }
 
-# TODO: add VOs information
-
 
 ############################################################################
 # Combine info from all sources to prepare the final representation
@@ -643,7 +635,8 @@ sub collect($) {
     # generate one additional share for each VO.
     #
     # TODO: refactorize this to apply to cluster and queue VOs
-    # with a single subroutine
+    # with a single subroutine, even better do everything in ConfigCentral.pm if possible
+    # what is needed to make it possible? new schema in configcentral for policies?
     #
     ## for each share(queue)
     for my $currentshare (@allshares) { 
@@ -664,7 +657,7 @@ sub collect($) {
                 # remove VOs from that share, substitute with default VO
                 $GLUE2shares->{$share_vo}{AdvertisedVO} = $queueadvertvo;
                 # Add supported policies 
-                # TODO: use config elements for this
+                # ARC5 could use XML config elements for this, but now that configuration is gone, so just placing a default here.
                 $GLUE2shares->{$share_vo}{MappingPolicies} = { 'BasicMappingPolicy' => ''};
             }
         } else {
@@ -680,7 +673,7 @@ sub collect($) {
                     $GLUE2shares->{$share_vo}{MappingQueue} = $currentshare;
                     # remove VOs from that share, substitute with default VO
                     $GLUE2shares->{$share_vo}{AdvertisedVO} = $clusteradvertvo; 
-                    # TODO: use config elements for this
+                    # ARC5 could use XML config elements for this, but now that configuration is gone, so just placing a default here.
                     $GLUE2shares->{$share_vo}{MappingPolicies} = { 'BasicMappingPolicy' => '' };
                 }    
             }
@@ -783,6 +776,8 @@ sub collect($) {
         # take only the first VO for now.
         # TODO: problem. A job gets assigned to the default
         # queue that is not assigned to that VO. How to solve?
+        # This can only be solved with a better job<->vo mapping definition.
+        # So it boils down to what to do when $job->{vomsvo} is not defined.
         my $vomsvo = $job->{vomsvo} if defined $job->{vomsvo};
         my $sharevomsvo = $share.'_'.$vomsvo if defined $vomsvo;
 
@@ -902,7 +897,6 @@ sub collect($) {
             }
         }
         
-        # TODO: change default to REST
         # fills efficiently %jobs_by_endpoint, defaults to arcrest
         my $jobinterface = $job->{interface} || 'org.nordugrid.arcrest';
         
@@ -926,12 +920,7 @@ sub collect($) {
     my $ldaphostport = "ldap://$hostname:$config->{infosys}{ldap}{port}/" if ($config->{infosys}{ldap}{enabled});
     my $ldapngendpoint = '';
     my $ldapglue2endpoint = '';
-
-    # TODO: calculate capabilities in a more efficient way. Maybe set
-    # them here for each endpoint and then copy them later?
-    # here we run the risk of having them not in synch with the 
-    # endpoints.
-    
+   
     # data push/pull capabilities.
     # Is it still possible to scan datalib patch to search for .apd to fill these?
     $epscapabilities->{'common'} = [
@@ -1019,7 +1008,7 @@ sub collect($) {
         }
     }
 
-    # TODO: userdomain
+    # TODO: userdomain - maybe use mapping concepts. Not a prio.
     my $userdomain='';
 
     # Global IDs
@@ -1269,12 +1258,10 @@ sub collect($) {
           $cact->{Validity} = $validity_ttl;
 
           my $share = $gmjob->{share};
-          # TODO: this here is never used! What was here for?
-          #my $gridid = $wsendpoint."/$jobid";
 
           $cact->{Type} = 'single';
+          # TODO: this is currently not universal
           $cact->{ID} = $cactIDs{$share}{$jobid};
-          # TODO: check where is this taken
           $cact->{IDFromEndpoint} = "urn:idfe:$jobid" if $jobid;
           $cact->{Name} = $gmjob->{jobname} if $gmjob->{jobname};
           # Set job specification language based on description
@@ -1329,14 +1316,14 @@ sub collect($) {
               $cact->{SubmissionHost} = $external_address if $external_address;
           }
           # TODO: this in not fetched by GMJobsInfo at all. .local does not contain name.
-          $cact->{SubmissionClientName} = $gmjob->{clientsoftware} if $gmjob->{clientsoftware};
+          #$cact->{SubmissionClientName} = $gmjob->{clientsoftware} if $gmjob->{clientsoftware};
 
           # Added for the client to know what was the original interface the job was submitted
           $cact->{OtherInfo} = ["SubmittedVia=$interface"];
 
           # Computing Activity Associations
 
-          # TODO: add link
+          # TODO: add link, is this even possible? needs share where the job is running.
           #$cact->{ExecutionEnvironmentID} = ;
           $cact->{ActivityID} = $gmjob->{activityid} if $gmjob->{activityid};
           $cact->{ComputingShareID} = $cshaIDs{$share} || 'UNDEFINEDVALUE';
@@ -1411,14 +1398,12 @@ sub collect($) {
             $cep->{Capability} = $epscapabilities->{'org.nordugrid.arcrest'};
             $cep->{Technology} = 'rest';
             $cep->{InterfaceName} = 'org.nordugrid.arcrest';
-            # TODO: add different interface versions that we currently support. How to discover?
-            $cep->{InterfaceVersion} = [ '0.1', '1.0', '1.1' ];
-            # TODO: link to ARC documentation
+            # REST interface versions that we currently support. In LDAP only the first entry will be shown.
+            $cep->{InterfaceVersion} = [ '1.1', '1.0'  ];
             #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
             #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
             #              ];
-            # TODO: link to ARC documentation
-            #$cep->{Semantics} = [ "https://twiki.cern.ch/twiki/pub/EMI/EmiExecutionService/" ];
+            $cep->{Semantics} = [ "https://www.nordugrid.org/arc/arc7/tech/rest/rest.html" ];
             $cep->{Implementor} = "NorduGrid";
             $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
@@ -1532,8 +1517,6 @@ sub collect($) {
 
             # OBS: ideally HED should be asked for the URL
             $cep->{URL} = $wsendpoint;
-            # TODO: define a strategy to add data capabilites
-            # $cep->{Capability} = $epscapabilities->{'org.ogf.glue.emies.activitycreation'};
             $cep->{Technology} = 'direct';
             $cep->{InterfaceName} = 'org.nordugrid.internal';
             $cep->{InterfaceVersion} = [ '1.0' ];
@@ -1616,7 +1599,7 @@ sub collect($) {
         $arexceps->{NorduGridLocalSubmissionEndpoint} = $getNorduGridLocalSubmissionEndpoint;
 
         ### ARIS endpoints are now part of the A-REX service. 
-        # TODO: verify: change ComputingService code in printers to scan for Endpoints - this might be no longer relevant
+        # TODO: verify: change ComputingService code in printers to scan for Endpoints - this might be no longer relevant - check live
 
         my $getArisLdapNGEndpoint = sub {
 
@@ -1809,7 +1792,7 @@ sub collect($) {
 
         # use limits from LRMS
         $csha->{MaxCPUTime} = prioritizedvalues($sconfig->{maxcputime},$qinfo->{maxcputime});
-        # TODO: implement in backends
+        # TODO: implement in backends - has this been done?
         $csha->{MaxTotalCPUTime} = $qinfo->{maxtotalcputime} if defined $qinfo->{maxtotalcputime};
         $csha->{MinCPUTime} = prioritizedvalues($sconfig->{mincputime},$qinfo->{mincputime});
         $csha->{DefaultCPUTime} = $qinfo->{defaultcput} if defined $qinfo->{defaultcput};
