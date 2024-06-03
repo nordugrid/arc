@@ -167,11 +167,12 @@ process_log_file () {
     if [ -z "$gridid" ]; then
       gridid=`find_by_grami`
     fi
-    ctrdir=`echo "${gridid}" | sed -n 's/^[^ ]* \(.*\)/\1/p'
-    gridid=`echo "${gridid}" | sed -n 's/^\([^ ]*\) .*/\1/p'
+    ctrdir=`echo "${gridid}" | sed -n 's/^[^ ]* \(.*\)/\1/p'`
+    gridid=`echo "${gridid}" | sed -n 's/^\([^ ]*\) .*/\1/p'`
+
     if [ -z "$gridid" ]; then continue; fi
     if [ -z "$ctrdir" ]; then continue; fi
-    statusfile="${ctrdir}/processing/${id}.status"
+    statusfile="${ctrdir}/processing/${gridid}.status"
     lrmsfile=$(control_path "${ctrdir}" "${gridid}" "lrms_done")
     localfile=$(control_path "${ctrdir}" "${gridid}" "local")
     errorsfile=$(control_path "${ctrdir}" "${gridid}" "errors")
