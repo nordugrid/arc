@@ -1938,6 +1938,7 @@
 ## multivalued
 ## default: undefined
 #interactive_contactstring=gsissh://frontend.cluster:2200
+## CHANGE: REMOVED obsoleted in ARC 7.0.0
 
 ## comment = text - Free text field for additional comments on the cluster in a single
 ## line, no newline character is allowed!
