@@ -224,7 +224,13 @@ sub osinfo {
             $id = 'fedoracore' if $descr =~ m/^Fedora/i;
             $id = 'scientificlinux' if $descr =~ m/^Scientific Linux/i;
             $id = 'scientificlinuxcern' if $descr =~ m/^Scientific Linux CERN/i;
-            $id = 'redhatenterpriseas' if $descr =~ m/^Red Hat Enterprise/i and not $id;
+            $id = 'redhatenterpriseas' if $descr =~ m/^Red Hat Enterprise/i;
+            # If all the above fail, a generic solution that looks GLUE2 compliant
+            if (not $id) {
+               $id = lc($descr);
+               $id = join '', split ' ', $id;
+            }
+
         }
         $info->{osname} = $id if $id;
         $info->{osversion} = $version if $version;
