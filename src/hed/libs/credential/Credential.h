@@ -225,6 +225,7 @@ class Credential {
     void InitCredential(const std::string& cert, const std::string& key,
 		        const std::string& cadir, const std::string& cafile, bool causedefault,
 			PasswordSource& passphrase4key, const bool is_file);
+    void InitEmpty();
 
     /**load key from argument keybio, and put key information into argument pkey */
     //void loadKeyString(const std::string& key, EVP_PKEY* &pkey, const std::string& passphrase = "");

@@ -846,7 +846,7 @@ namespace Arc {
   class JobDescription {
   public:
     friend class JobDescriptionParserPlugin;
-    JobDescription() : alternatives(), current(alternatives.begin()), X509Delegation(true), TokenDelegation(false) {};
+    JobDescription() : alternatives(), current(alternatives.begin()), X509Delegation(true), TokenDelegation(false), InstancesMin(1), InstancesMax(1) {};
 
     JobDescription(const JobDescription& j, bool withAlternatives = true);
 
@@ -1045,6 +1045,10 @@ namespace Arc {
     bool X509Delegation;
     /// Special purpose attribute. If set to true delegation should be performed for job. Default is false.
     bool TokenDelegation;
+    /// Special purpose attribute. Min number of instances of job to submit (1 by default).
+    int InstancesMin;
+    /// Special purpose attribute. Max number of instances of job to submit (1 by default).
+    int InstancesMax;
 
   private:
     bool Prepare(const ExecutionTarget* et);

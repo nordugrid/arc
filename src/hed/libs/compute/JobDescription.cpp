@@ -98,6 +98,8 @@ namespace Arc {
     OtherAttributes = j.OtherAttributes;
     X509Delegation = j.X509Delegation;
     TokenDelegation = j.TokenDelegation;
+    InstancesMin = j.InstancesMin;
+    InstancesMax = j.InstancesMax;
     sourceLanguage = j.sourceLanguage;
   }
 

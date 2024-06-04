@@ -99,7 +99,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   static const int emies_secnum       = 3;
   cf.AddSection("arex/ws/jobs");
   static const int publicinfo_secnum  = 4;
-  cf.AddSection("arex/ws/publicinfo");
+  cf.AddSection("infosys/accesscontrol");
   static const int ws_secnum          = 5;
   cf.AddSection("arex/ws");
   static const int jura_secnum        = 6;
@@ -489,7 +489,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
 
     if (cf.SectionNum() == publicinfo_secnum) { // arex/ws/publicinfo
       if (cf.SubSection()[0] == '\0') {
-        config.enable_publicinfo = true;
         if (command == "allowaccess") {
           while(!rest.empty()) {
             std::string str = Arc::ConfigIni::NextArg(rest);

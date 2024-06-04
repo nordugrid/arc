@@ -38,7 +38,7 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
 
   {
     std::list<std::string> clusterstmp = opt.Parse(argc, argv);
-    opt.clusters.insert(opt.clusters.end(), clusterstmp.begin(), clusterstmp.end());
+    opt.computing_elements.insert(opt.computing_elements.end(), clusterstmp.begin(), clusterstmp.end());
   }
 
   if (opt.showversion) {
@@ -67,35 +67,6 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
   }
   if (opt.force_default_ca) usercfg.CAUseDefault(true);
   if (opt.force_grid_ca) usercfg.CAUseDefault(false);
- 
-  if (opt.list_configured_services) {
-    std::map<std::string, Arc::ConfigEndpoint> allServices = usercfg.GetAllConfiguredServices();
-    std::cout << "Configured registries:" << std::endl;
-    for (std::map<std::string, Arc::ConfigEndpoint>::const_iterator it = allServices.begin(); it != allServices.end(); ++it) {
-      if (it->second.type == Arc::ConfigEndpoint::REGISTRY) {
-        std::cout << "  " << it->first << ": " << it->second.URLString;
-        if (!it->second.InterfaceName.empty()) {
-          std::cout << " (" << it->second.InterfaceName << ")";
-        }
-        std::cout << std::endl;
-      }
-    }
-    std::cout << "Configured computing elements:" << std::endl;
-    for (std::map<std::string, Arc::ConfigEndpoint>::const_iterator it = allServices.begin(); it != allServices.end(); ++it) {
-      if (it->second.type == Arc::ConfigEndpoint::COMPUTINGINFO) {
-        std::cout << "  " << it->first << ": " << it->second.URLString;
-        if (!it->second.InterfaceName.empty() || !it->second.RequestedSubmissionInterfaceName.empty()) {
-          std::cout << " (" << it->second.InterfaceName;
-          if (!it->second.InterfaceName.empty() && !it->second.RequestedSubmissionInterfaceName.empty()) {
-            std::cout << " / ";
-          }
-          std::cout << it->second.RequestedSubmissionInterfaceName + ")";
-        }
-        std::cout << std::endl;
-      }
-    }
-    return 0;
-  }
 
   if (opt.debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(usercfg.Verbosity()));
@@ -122,11 +93,17 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
       break;
   }
 
-  std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
+  if (!opt.canonicalizeARC6InterfaceTypes(logger)) return 1;
+  std::string req_sub_iface;
+  std::string req_info_iface;
+  if (!opt.submit_types.empty()) req_sub_iface = opt.submit_types.front();
+  if (!opt.info_types.empty()) req_info_iface = opt.info_types.front();
+
+  std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.registries, opt.computing_elements, req_sub_iface, req_info_iface);
 
   std::set<std::string> preferredInterfaceNames;
   if (usercfg.InfoInterface().empty()) {
-    preferredInterfaceNames.insert("org.nordugrid.ldapglue2");
+    preferredInterfaceNames.insert("org.nordugrid.arcrest");
   } else {
     preferredInterfaceNames.insert(usercfg.InfoInterface());
   }

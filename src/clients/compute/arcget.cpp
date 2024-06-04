@@ -109,17 +109,17 @@ int RUNMAIN(arcget)(int argc, char **argv) {
       break;
   }
 
-  if ((!opt.joblist.empty() || !opt.status.empty()) && jobidentifiers.empty() && opt.clusters.empty())
+  if ((!opt.joblist.empty() || !opt.status.empty()) && jobidentifiers.empty() && opt.computing_elements.empty())
     opt.all = true;
 
-  if (jobidentifiers.empty() && opt.clusters.empty() && !opt.all) {
+  if (jobidentifiers.empty() && opt.computing_elements.empty() && !opt.all) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;
   }
 
   std::list<std::string> selectedURLs;
-  if (!opt.clusters.empty()) {
-    selectedURLs = getSelectedURLsFromUserConfigAndCommandLine(usercfg, opt.clusters);
+  if (!opt.computing_elements.empty()) {
+    selectedURLs = getSelectedURLsFromUserConfigAndCommandLine(usercfg, opt.computing_elements);
   }
   std::list<std::string> rejectManagementURLs = getRejectManagementURLsFromUserConfigAndCommandLine(usercfg, opt.rejectmanagement);
 

@@ -169,6 +169,9 @@ BuildRequires:	systemd-devel
 BuildRequires:	libuuid-devel
 BuildRequires:	gettext-devel
 BuildRequires:	python%{python3_pkgversion}-devel
+BuildRequires:	python%{python3_pkgversion}-pip
+BuildRequires:	python%{python3_pkgversion}-setuptools
+BuildRequires:	python%{python3_pkgversion}-wheel
 %if %{with_pylint}
 BuildRequires:	pylint
 %endif
@@ -678,6 +681,21 @@ Connector (ARC).
 This package contains the optional components that provide new job
 management features on the worker nodes (WN).
 
+%package -n python%{python3_pkgversion}-arcrest
+Summary:	ARC REST client
+Group:		Applications/Internet
+%{?python_provide:%python_provide python%{python3_pkgversion}-arcrest}
+%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
+BuildArch:	noarch
+%endif
+
+%description -n python%{python3_pkgversion}-arcrest
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains the ARC REST client.
+
 %prep
 %setup @fedorasetupopts@
 
@@ -1029,11 +1047,13 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %doc %{_mandir}/man1/arcctl.1*
 
 %files arcctl-service
+%{python3_sitearch}/%{pkgdir}/control/Cleanup.py
 %{python3_sitearch}/%{pkgdir}/control/Config.py
 %{python3_sitearch}/%{pkgdir}/control/ServiceCommon.py
 %{python3_sitearch}/%{pkgdir}/control/Services.py
 %{python3_sitearch}/%{pkgdir}/control/OSService.py
 %{python3_sitearch}/%{pkgdir}/control/Validator.py
+%{python3_sitearch}/%{pkgdir}/control/__pycache__/Cleanup.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Config.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/ServiceCommon.*
 %{python3_sitearch}/%{pkgdir}/control/__pycache__/Services.*
@@ -1106,6 +1126,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/PerfData.pl
 %{_datadir}/%{pkgdir}/arc-arex-start
 %{_datadir}/%{pkgdir}/arc-arex-ws-start
+%dir %{_datadir}/%{pkgdir}/sql-schema
 %{_datadir}/%{pkgdir}/sql-schema/arex_accounting_db_schema_v1.sql
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
@@ -1281,3 +1302,8 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %attr(4755,root,root) %{_bindir}/arc-job-cgroup
 
+%files -n python%{python3_pkgversion}-arcrest
+%defattr(-,root,root,-)
+%{python3_sitelib}/pyarcrest
+%{python3_sitelib}/pyarcrest-*.*-info
+%{_bindir}/arcrest

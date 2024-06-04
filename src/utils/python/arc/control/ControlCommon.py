@@ -6,6 +6,7 @@ import datetime
 import argparse
 import zlib
 import re
+import subprocess
 from arc.utils import config
 # HTTPS
 import socket
@@ -29,6 +30,53 @@ except ImportError:
     def remove_runtime_config():
         pass
 
+def print_info(logger_obj, *args, **kwargs):
+    """Output logger info message regardless of current loglevel"""
+    current_level = logger_obj.getEffectiveLevel()
+    logger_obj.setLevel(logging.INFO)
+    logger_obj.info(*args, **kwargs)
+    logger_obj.setLevel(current_level)
+
+def print_warn(logger_obj, *args, **kwargs):
+    """Output logger warning message regardless of current loglevel"""
+    current_level = logger_obj.getEffectiveLevel()
+    logger_obj.setLevel(logging.WARNING)
+    logger_obj.warning(*args, **kwargs)
+    logger_obj.setLevel(current_level)
+
+def run_subprocess(*args, exit_on_failure=True):
+    """Run subprocess with error wrapping. Returns command stdout."""
+    cmd = list(args)
+    cmd_str = ' '.join(cmd)
+    if not cmd:
+        logger.critical('Internal error: command to run was not provided')
+        sys.exit(1)
+    try:
+        logger.debug('Running the subprocess: %s', cmd_str)
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if result.stdout:
+            logger.debug('Output of %s: %s', cmd_str, result.stdout.decode('utf-8'))
+        if result.returncode != 0:
+            logger.error('Command "%s" failed with exit code %s', cmd_str, result.returncode)
+            if exit_on_failure:
+                sys.exit(result.returncode)
+    except OSError as err:
+        logger.error('Error occured trying to run "%s": %s', cmd_str, str(err))
+        if exit_on_failure:
+            sys.exit(1)
+    return result.stdout
+
+def ask_yes_no(question, default_yes=False):
+    """Interactively ask for confirmation. Returns True if yes."""
+    yes_no = ' (YES/no): ' if default_yes else ' (yes/NO): '
+    reply = str(input(question + yes_no)).lower().strip()
+    if reply == 'yes':
+        return True
+    if reply == 'no':
+        return False
+    if reply == '':
+        return default_yes
+    return ask_yes_no("Please type 'yes' or 'no'", default_yes)
 
 def valid_datetime_type(arg_datetime_str):
     """Argparse datetime-as-an-argument helper"""
@@ -81,6 +129,30 @@ def ensure_path_writable(path):
         logger.error("The path '%s' is not writable for user running arcctl", path)
         sys.exit(1)
 
+def conf_d(name):
+    """Return full path of config file in arc.conf.d directory"""
+    conf_d = ARC_CONF + '.d'
+    return os.path.join(conf_d, name)
+
+def write_conf_d(name, content, overwrite=True):
+    """Write configuration to arc.conf.d directory"""
+    conf_d = ARC_CONF + '.d'
+    try:
+        # make sure we have conf.d
+        if not os.path.isdir(conf_d):
+            os.mkdir(conf_d, 0o755)
+        ensure_path_writable(conf_d)
+        # write configuration file
+        conf_f = os.path.join(conf_d, name)
+        if os.path.exists(conf_f) and not overwrite:
+            logger.errro('File %s is already exists and overwrite is not allowed.', name)
+            sys.exit(1)
+        with open(conf_f, 'w') as cf:
+            cf.write(content + '\n')
+        return conf_f
+    except IOError as err:
+        logger.error('Failed to write %s configuration file. Error %s', name, str(err))
+        sys.exit(1)
 
 def get_parsed_arcconf(conf_f):
     """Return parsed arc.conf (taking into account defaults and cached running config if applicable"""
@@ -128,6 +200,10 @@ def get_parsed_arcconf(conf_f):
         logger.debug('Getting ARC configuration (config file: %s)', conf_f)
         if runconf_load:
             arcconf_mtime = os.path.getmtime(conf_f)
+            for conf_d_f in config.get_arc_conf_d(conf_f):
+                confd_mtime = os.path.getmtime(conf_d_f)
+                if confd_mtime > arcconf_mtime:
+                    arcconf_mtime = confd_mtime
             default_mtime = os.path.getmtime(config.defaults_defpath())
             runconf_mtime = os.path.getmtime(arcctl_runtime_config)
             if runconf_mtime < arcconf_mtime or runconf_mtime < default_mtime:
@@ -168,6 +244,18 @@ def control_path(control_dir, job_id, file_type):
         return ''
     return '{0}/jobs/{1}/{2}'.format(control_dir, job_path, file_type)
 
+def canonicalize_args_jobid(args):
+    """Extract jobID from job-URL"""
+    if 'jobid' not in args:
+        return
+    if isinstance(args.jobid, list):
+        jobids = []
+        for j in args.jobid:
+            jobids.append(j.rsplit('/', 1)[-1])
+        args.jobid = jobids
+    else:
+        args.jobid = args.jobid.rsplit('/', 1)[-1]
+
 class ComponentControl(object):
     """ Common abstract class to ensure all implicit calls to methods are defined """
     def control(self, args):
@@ -188,12 +276,12 @@ class HTTPSClientAuthConnection(httplib.HTTPSConnection):
         self.ca_file = None
         self.ca_path = None
         self.cert_required = False
-        if os.path.isdir(cacerts_path):
-            self.ca_path = cacerts_path
+        if cacerts_path is not None:
             self.cert_required = True
-        else:
-            self.ca_file = cacerts_path
-            self.cert_required = True
+            if os.path.isdir(cacerts_path):
+                self.ca_path = cacerts_path
+            else:
+                self.ca_file = cacerts_path
         self.timeout = timeout
 
     def connect(self):

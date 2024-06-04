@@ -9,7 +9,7 @@ arcclean \- ARC Clean
 
 The
 .B arcclean
-command removes a job from the remote cluster.
+command removes a job from the computing element.
 
 .SH SYNOPSIS
 
@@ -20,11 +20,11 @@ command removes a job from the remote cluster.
 .IP "\fB-a\fR, \fB--all\fR"
 all jobs
 .IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
-the file storing information about active jobs (default ~/.arc/jobs.xml)
+the file storing information about active jobs (default ~/.arc/jobs.dat)
 .IP "\fB-i\fR, \fB--jobids-from-file\fR=\fIfilename\fR"
 a file containing a list of jobIDs
-.IP "\fB-c\fR, \fB--cluster\fR=\fIname\fR"
-select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
+.IP "\fB-C\fR, \fB--computing-element\fR=\fIname\fR"
+select one or more computing elements
 .IP "\fB-r\fR, \fB--rejectmanagement\fR=\fIURL\fR"
 skip jobs which are on a computing element with a given URL
 .IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"
@@ -56,7 +56,7 @@ list of jobids and/or jobnames
 
 The
 .B arcclean
-command removes a job from the remote cluster. Only jobs that have
+command removes a job from the computing element. Only jobs that have
 finished can be removed. The job can be referred to either by the
 jobid that was returned by
 .BR arcsub (1)
@@ -72,22 +72,20 @@ specified filename. By specifying the
 option, all active jobs can be removed.
 
 The
-.B --cluster
-option can be used to select or reject jobs at specific clusters. See
-.BR arcsub (1)
-for a discussion of the format of arguments to this option. The
+.B --computing-element
+option can be used to select or reject jobs at specific clusters. The
 .B --status
 option can be used to select jobs in a specific state. These options
 can be repeated several times. See
-.BR arstat (1)
+.BR arcstat (1)
 for possible state values.
 
 The
 .B --force
-option removes the job from your local list of jobs even if the job
+option removes the job from your local database of jobs even if the job
 can not be found in the remote information system. Jobs not
 appearing in the remote information system can also be
-removed from the local list by specifying the
+removed from the local database by specifying the
 .B --status
 option with value \fBUndefined\fR.
 
@@ -102,35 +100,15 @@ ARC client configuration file. By using the
 option a different configuration file can be used than the default.
 
 .TP
-.B ~/.arc/jobs.xml
-This a local list of the user's active jobs. When a job is
-successfully submitted it is added to this list and when it is removed
-from the remote cluster it is removed from this list. This list is
+.B ~/.arc/jobs.dat
+This a local database of the user's active jobs. When a job is
+successfully submitted it is added to database and when it is removed
+from the remote CE it is removed from this list. This database is
 used as the list of all active jobs when the user specifies the
 .B --all
 option to the various NorduGrid ARC user interface commands. By using the
 .B --joblist
 option a different file can be used than the default.
-
-.SH ENVIRONMENT VARIABLES
-
-.TP
-.B X509_USER_PROXY
-The location of the user's Grid proxy file. Shouldn't be set unless
-the proxy is in a non-standard location.
-
-.TP
-.B ARC_LOCATION
-The location where ARC is installed can be specified by this variable. If not
-specified the install location will be determined from the path to the
-command being executed, and if this fails a WARNING will be given stating the
-location which will be used.
-
-.TP
-.B ARC_PLUGIN_PATH
-The location of ARC plugins can be specified by this variable. Multiple
-locations can be specified by separating them by : (; in Windows). The
-default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
 
 .SH COPYRIGHT
 

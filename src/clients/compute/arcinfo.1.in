@@ -9,28 +9,24 @@ arcinfo \- ARC Info
 
 The
 .B arcinfo
-command is used for obtaining status and information of clusters on the
-grid.
+command is used for obtaining status and information about computing elements.
 
 .SH SYNOPSIS
 
-.B arcinfo [options] [cluster ...]
+.B arcinfo [options] [CE ...]
 
 .SH OPTIONS
 
-.IP "\fB-c\fR, \fB--cluster\fR=\fIname\fR"
-select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
-.IP "\fB-I\fR, \fB--infointerface\fR=\fIInterfaceName\fR"
-the computing element specified by URL at the command line should be
-queried using this information interface (possible options:
-org.nordugrid.ldapng, org.nordugrid.ldapglue2,
-org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo)
-.IP "\fB-g\fR, \fB--index\fR=\fIname\fR"
-select one or more registries: \fIname\fR can be an alias for a single registry, a group of registries or a URL
+.IP "\fB-C\fR, \fB--computing-element\fR=\fIname\fR"
+select one or more computing elements
+.IP "\fB-Y\fR, \fB--registry\fR=\fIname\fR"
+select one or more registries
 .IP "\fB-R\fR, \fB--rejectdiscovery\fR=\fIURL\fR"
 skip the service with the given URL during service discovery
-.IP "\fB-S\fR, \fB--submissioninterface\fR=\fIInterfaceName\fR"
-only get information about executon targets which supports this job submission interface (e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.nordugrid.xbes)
+.IP "\fB-Q\fR, \fB--info-endpoint-type\fR=\fItype\fR"
+select cluster/resource information retrieval interface type
+.IP "\fB-T\fR, \fB--submission-endpoint-type\fR=\fItype\fR"
+select executon targets which supports this job submission interface type
 .IP "\fB-l\fR, \fB--long\fR"
 long format (more information)
 .IP "\fB-L\fR, \fB--list-configured-services\fR"
@@ -53,28 +49,19 @@ print help
 
 The
 .B arcinfo
-command is used to get the status and information of clusters and queues
-available on the grid. You can specify the URLs of cluster with the
-.B --cluster
+command is used to get the status and information about computing elements.
+You can specify the URLs of CE endpoint with the
+.B --computing-element
 option, or by just listing them as arguments.
 The
-.B --index
-flag can be used to specify an index server which should be queried for
-clusters. Both of these flags take a service endpoint as argument.
-See
-.BR arcsub (1)
-for a discussion of this format.
+.B --registry
+flag can be used to specify an registry server which should be queried for
+CEs endpoints.
 
 Detailed information about queried computing services can be obtained by
 specifying the
 .B --long
 flag.
-
-When specifying the
-.B --index
-flag, the information about the computing services registered at the
-index server will be queried rather than the status of the index
-server itself. Currently no command exists to query a index server.
 
 .SH FILES
 
@@ -84,28 +71,6 @@ Some options can be given default values by specifying them in the
 ARC client configuration file. By using the
 .B --conffile
 option a different configuration file can be used than the default.
-
-.SH ENVIRONMENT VARIABLES
-
-.TP
-.B X509_USER_PROXY
-The location of the user's Grid proxy file. Shouldn't be set unless
-the proxy is in a non-standard location. Note that this could also be
-set in the client configuration file, however the environment variable
-overrides the settings in configuration.
-
-.TP
-.B ARC_LOCATION
-The location where ARC is installed can be specified by this variable. If not
-specified the install location will be determined from the path to the
-command being executed, and if this fails a WARNING will be given stating the
-location which will be used.
-
-.TP
-.B ARC_PLUGIN_PATH
-The location of ARC plugins can be specified by this variable. Multiple
-locations can be specified by separating them by : (; in Windows). The
-default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
 
 .SH COPYRIGHT
 

@@ -139,7 +139,7 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
   ClientOptions opt(ClientOptions::CO_SYNC, " ",
                     istring("The arcsync command synchronizes your "
                             "local job list with the information at\n"
-                            "the given resources or index servers."));
+                            "the given CEs or registry servers."));
 
   std::list<std::string> params = opt.Parse(argc, argv);
 
@@ -242,28 +242,20 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
     }
   }
 
-  // legacy options => new options
-  for (std::list<std::string>::const_iterator it = opt.clusters.begin(); it != opt.clusters.end(); ++it) {
-    opt.computing_elements.push_back(*it); 
-  }
-  for (std::list<std::string>::const_iterator it = opt.indexurls.begin(); it != opt.indexurls.end(); ++it) {
-    opt.registries.push_back(*it);
-  }
-
   std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.registries, opt.computing_elements);
 
   std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
 
   if (endpoints.empty()) {
     logger.msg(Arc::ERROR, "No services specified. Please configure default services in the client configuration, "
-                           "or specify a cluster or index (-c or -g options, see arcsync -h).");
+                           "or specify a cluster or refistry (-C or -Y options, see arcsync -h).");
     return 1;
   }
 
 
   std::set<std::string> preferredInterfaceNames;
   if (usercfg.InfoInterface().empty()) {
-    preferredInterfaceNames.insert("org.nordugrid.ldapglue2");
+    preferredInterfaceNames.insert("org.nordugrid.arcrest");
   } else {
     preferredInterfaceNames.insert(usercfg.InfoInterface());
   }
