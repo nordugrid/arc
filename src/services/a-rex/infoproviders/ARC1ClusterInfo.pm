@@ -961,7 +961,8 @@ sub collect($) {
     }
 
     # for the org.nordugrid.internal submission endpoint (files created directly in the controldir)
-    $csvendpointsnum = $csvendpointsnum + 1;
+    # Currently not advertised, so we will not count it
+    #$csvendpointsnum = $csvendpointsnum + 1;
     $epscapabilities->{'org.nordugrid.internal'} = [
                                   'executionmanagement.jobcreation',
                                   'executionmanagement.jobexecution',
