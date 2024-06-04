@@ -261,9 +261,12 @@ sub collect($) {
         $c->{'issuerca-hash'} = $host_info->{issuerca_hash} if $host_info->{issuerca_hash};
         $c->{credentialexpirationtime} = mds_date($credenddate) if $credenddate;
         $c->{trustedca} = $host_info->{trustedcas} if $host_info->{trustedcas};
-        $c->{contactstring} = "gsiftp://$hostname:".$config->{gridftpd}{port}.$config->{gridftpd}{mountpoint} if ($config->{gridftpd}{enabled});
-        $c->{'interactive-contactstring'} = $config->{service}{InteractiveContactstring}
-            if $config->{service}{InteractiveContactstring};
+        # Solution: use contactstring from REST?
+        # $c->{contactstring} = "gsiftp://$hostname:".$config->{gridftpd}{port}.$config->{gridftpd}{mountpoint} if ($config->{gridftpd}{enabled});
+        $c->{contactstring} = $config->{arex}{ws}{wsurl};
+        # TODO: what is InteractiveContactstring? Removed from ConfigCentral. Find equivalent and substitute
+        #$c->{'interactive-contactstring'} = $config->{service}{InteractiveContactstring}
+        #if $config->{service}{InteractiveContactstring};
         $c->{support} = [ @supportmails ] if @supportmails;
         $c->{'lrms-type'} = $lrms_info->{cluster}{lrms_type};
         $c->{'lrms-version'} = $lrms_info->{cluster}{lrms_version} if $lrms_info->{cluster}{lrms_version};
@@ -304,7 +307,6 @@ sub collect($) {
         $c->{runtimeenvironment} = [ sort keys %$rte_info ];
         push @{$c->{middleware}}, "nordugrid-arc-".$config->{arcversion};
         push @{$c->{middleware}}, "globus-$host_info->{globusversion}" if $host_info->{globusversion};
-        push @{$c->{middleware}}, @{$config->{service}{Middleware}} if $config->{service}{Middleware};
 
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -338,8 +340,9 @@ sub collect($) {
 
             $q->{'name'} = $share;
             
-            if ( defined $config->{GridftpdAllowNew} and $config->{GridftpdAllowNew} == 0 ) {
-                $q->{status} = 'inactive, grid-manager does not accept new jobs';
+            # TODO: check that this works after remotegmdirs removal, live
+            if ( defined $config->{arex}{ws}{jobs} and $config->{arex}{ws}{jobs}{enabled} == 1 and $config->{arex}{ws}{jobs}{allownew} == 0 ) {
+                $q->{status} = 'inactive, a-rex does not accept new jobs';
             } elsif ( $host_info->{gm_alive} ne 'all' ) {
                 if ($host_info->{gm_alive} eq 'some') {
                     $q->{status} = 'degraded, one or more grid-managers are down';
@@ -347,8 +350,6 @@ sub collect($) {
                     $q->{status} = $config->{remotegmdirs} ? 'inactive, all grid managers are down'
                                                            : 'inactive, grid-manager is down';
                 }
-            } elsif (not $host_info->{processes}{'gridftpd'}) {
-                $q->{status} = 'inactive, gridftpd is down';   
             } elsif (not $host_info->{hostcert_enddate} or not $host_info->{issuerca_enddate}) {
                 $q->{status} = 'inactive, host credentials missing';
             } elsif ($host_info->{hostcert_expired} or $host_info->{issuerca_expired}) {
@@ -427,7 +428,10 @@ sub collect($) {
                 my $j = {};
 
                 $j->{name} = $jobid;
-                $j->{globalid} = $c->{contactstring}."/$jobid";
+                # TODO: how to publish jobs not submitted via gridftp if contactstring is gone?
+                #$j->{globalid} = $c->{contactstring}."/$jobid";
+                # Solution: use GLUE2 IDFromEndpoint
+                $j->{globalid} = "urn:idfe:$jobid";
                 # Starting from ARC 6.10 we out a hash here for GDPR compliance.
                 $j->{globalowner} = sha512sum($gmjob->{subject},$dnhashes) if $gmjob->{subject};
                 $j->{jobname} = $gmjob->{jobname} if $gmjob->{jobname};
