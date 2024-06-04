@@ -117,13 +117,6 @@ build_el7:
     variables:
         BUILD_IMAGE: maikenp/arc-build-centos7
     
-#####################
-#    CENTOS STREAM 8
-####################
-build_el8:
-    extends: .template_build_rhel
-    variables:
-        BUILD_IMAGE: maikenp/arc-build-cs8
 
 ####################
 #    CENTOS STREAM 9
@@ -241,24 +234,6 @@ deploy_el7:
     - deploy
   needs:
     - job: build_el7
-      artifacts: true
-
-
-#####################
-#    CENTOS STREAM 8
-#####################
-deploy_el8:
-  extends: .deploy
-  variables:
-    OS_V: el8
-    ARC_IMAGE: maikenp/arc-deploy-cs8
-    BUILD_VOL: /rpmbuild
-    BUILD_DIR: $CI_PROJECT_DIR/$BUILD_VOL/* 
-  tags:
-    - 158.39.201.179
-    - deploy
-  needs:
-    - job: build_el8
       artifacts: true
 
 
@@ -422,41 +397,6 @@ arcconf_el7_deploytest:
     - job: deploy_el7
       artifacts: true
     
-############################
-##### EL8 DEPLOY CHECK
-############################
-gridftp_el8_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'gridftp'
-  needs:
-    - job: deploy_el8
-      artifacts: true
-
-emies_el8_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'emies'
-  needs:
-    - job: deploy_el8
-      artifacts: true
-    
-arcrest_el8_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcrest'
-  needs:
-    - job: deploy_el8
-      artifacts: true
-
-arcconf_el8_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcconf'
-  needs:
-    - job: deploy_el8
-      artifacts: true
-
 
 ############################
 ##### EL9 DEPLOY CHECK
