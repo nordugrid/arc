@@ -109,7 +109,7 @@ def get_option_description(reference_f, reqblock, reqoption):
     if ':' in reqblock:
         reqblock = reqblock.split(':')[0].strip()
 
-    option_re_start = re.compile(r'^##\s+{0}\s+=\s+'.format(reqoption))
+    option_re_start = re.compile(r'^##\s+\*?{0}\s+=\s+'.format(reqoption))
 
     with open(reference_f, 'rt') as referecnce:
         in_correct_block = False
