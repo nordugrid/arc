@@ -1245,6 +1245,7 @@
 
 ## deliveryservice = URL - The URL to a remote data delivery service which can perform remote
 ## data staging.
+## multivalued
 ## default: undefined
 #deliveryservice=https://myhost.org:443/datadeliveryservice
 
