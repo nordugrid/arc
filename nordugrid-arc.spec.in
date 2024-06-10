@@ -433,6 +433,23 @@ staging, data caching, software environment provisioning, information
 collection and exposure, accounting information gathering and
 publishing.
 
+%package arex-lrms-contrib
+Summary:	ARC Resource-coupled EXecution service - conributed LRMS backends
+Requires:	%{name}-arex = %{version}-%{release}
+%if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
+BuildArch:	noarch
+%endif
+#		Split from AREX package
+Obsoletes:	%{name}-arex < 7.0.0
+
+%description arex-lrms-contrib
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+The AREX contributed LRMS backends package contains additional LRMS
+support script contributed by the ARC user community.
+
 %package community-rtes
 Summary:	ARC Community defined RTEs support
 Group:		System Environment/Libraries
@@ -1078,27 +1095,26 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_libexecdir}/%{pkgdir}/smtp-send.sh
 %{_libexecdir}/%{pkgdir}/inputcheck
 %{_libexecdir}/%{pkgdir}/arc-blahp-logger
-%{_datadir}/%{pkgdir}/cancel-*-job
-%{_datadir}/%{pkgdir}/scan-*-job
-%{_datadir}/%{pkgdir}/submit-*-job
 %{_libdir}/%{pkgdir}/libarex.so
 %{_libdir}/%{pkgdir}/libarex.apd
 %{_libdir}/%{pkgdir}/libcandypond.so
 %{_libdir}/%{pkgdir}/libcandypond.apd
+%{_datadir}/%{pkgdir}/cancel-condor-job
+%{_datadir}/%{pkgdir}/cancel-fork-job
+%{_datadir}/%{pkgdir}/cancel-SLURM-job
+%{_datadir}/%{pkgdir}/scan-condor-job
+%{_datadir}/%{pkgdir}/scan-fork-job
+%{_datadir}/%{pkgdir}/scan-SLURM-job
+%{_datadir}/%{pkgdir}/submit-condor-job
+%{_datadir}/%{pkgdir}/submit-fork-job
+%{_datadir}/%{pkgdir}/submit-SLURM-job
 %{_datadir}/%{pkgdir}/CEinfo.pl
 %{_datadir}/%{pkgdir}/ARC0mod.pm
-%{_datadir}/%{pkgdir}/FORKmod.pm
-%{_datadir}/%{pkgdir}/Fork.pm
-%{_datadir}/%{pkgdir}/SGEmod.pm
-%{_datadir}/%{pkgdir}/SGE.pm
-%{_datadir}/%{pkgdir}/LL.pm
-%{_datadir}/%{pkgdir}/LSF.pm
-%{_datadir}/%{pkgdir}/PBS.pm
-%{_datadir}/%{pkgdir}/PBSPRO.pm
 %{_datadir}/%{pkgdir}/Condor.pm
-%{_datadir}/%{pkgdir}/SLURMmod.pm
+%{_datadir}/%{pkgdir}/Fork.pm
+%{_datadir}/%{pkgdir}/FORKmod.pm
 %{_datadir}/%{pkgdir}/SLURM.pm
-%{_datadir}/%{pkgdir}/Boinc.pm
+%{_datadir}/%{pkgdir}/SLURMmod.pm
 %{_datadir}/%{pkgdir}/XmlPrinter.pm
 %{_datadir}/%{pkgdir}/InfosysHelper.pm
 %{_datadir}/%{pkgdir}/LdifPrinter.pm
@@ -1164,6 +1180,34 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/rte/ENV/CONDOR/DOCKER
 %{_sbindir}/a-rex-backtrace-collect
 %config(noreplace) %{_sysconfdir}/arc.conf
+
+%files arex-lrms-contrib
+%defattr(-,root,root,-)
+%{_datadir}/%{pkgdir}/cancel-boinc-job
+%{_datadir}/%{pkgdir}/cancel-ll-job
+%{_datadir}/%{pkgdir}/cancel-lsf-job
+%{_datadir}/%{pkgdir}/cancel-pbs-job
+%{_datadir}/%{pkgdir}/cancel-pbspro-job
+%{_datadir}/%{pkgdir}/cancel-sge-job
+%{_datadir}/%{pkgdir}/scan-boinc-job
+%{_datadir}/%{pkgdir}/scan-ll-job
+%{_datadir}/%{pkgdir}/scan-lsf-job
+%{_datadir}/%{pkgdir}/scan-pbs-job
+%{_datadir}/%{pkgdir}/scan-pbspro-job
+%{_datadir}/%{pkgdir}/scan-sge-job
+%{_datadir}/%{pkgdir}/submit-boinc-job
+%{_datadir}/%{pkgdir}/submit-ll-job
+%{_datadir}/%{pkgdir}/submit-lsf-job
+%{_datadir}/%{pkgdir}/submit-pbs-job
+%{_datadir}/%{pkgdir}/submit-pbspro-job
+%{_datadir}/%{pkgdir}/submit-sge-job
+%{_datadir}/%{pkgdir}/Boinc.pm
+%{_datadir}/%{pkgdir}/LL.pm
+%{_datadir}/%{pkgdir}/LSF.pm
+%{_datadir}/%{pkgdir}/PBS.pm
+%{_datadir}/%{pkgdir}/PBSPRO.pm
+%{_datadir}/%{pkgdir}/SGE.pm
+%{_datadir}/%{pkgdir}/SGEmod.pm
 
 %files community-rtes
 %defattr(-,root,root,-)
