@@ -285,6 +285,25 @@ Description: ARC Resource-coupled EXecution service
  collection and exposure, accounting information gathering and
  publishing.
 
+Package: nordugrid-arc-arex-lrms-contrib
+Replaces:
+ nordugrid-arc-arex (<< 7.0.0~)
+Breaks:
+ nordugrid-arc-arex (<< 7.0.0~)
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${perl:Depends},
+ ${python3:Depends},
+ nordugrid-arc-arex (= ${binary:Version})
+Description: ARC Resource-coupled EXecution service - conributed LRMS backends
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ The AREX contributed LRMS backends package contains additional LRMS
+ support script contributed by the ARC user community.
+
 Package: nordugrid-arc-community-rtes
 Architecture: all
 Depends:
