@@ -1,6 +1,6 @@
 [Unit]
 Description=ARC HED service
-After=local_fs.target remote_fs.target
+After=local-fs.target remote-fs.target
 
 [Service]
 Type=forking
