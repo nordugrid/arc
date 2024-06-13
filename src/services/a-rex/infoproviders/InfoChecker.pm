@@ -12,7 +12,8 @@ use strict;
 # the schema matches all unmatched keys in the data (if any). Arrays in the
 # schema should have exactly one element, and this element will be matched
 # against all elements in the corresponding array in the data.
-# TODO-CHECK: Attempt to make optional a named hash reference with content: 
+# To make a named hash reference optional, but still write all the hash 
+# keys in the schema, use:
 #  enable => '*' means the whole hash is optional
 
 # Constructor

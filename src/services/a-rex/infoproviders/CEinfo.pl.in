@@ -89,11 +89,9 @@ BEGIN {
         my $perflognytprofdir;
         my $perflognytproffilepath;
 
-        # TODO: update according to new config
-
         my $infosysloglevel = ConfigCentral::getValueOf($configfile,'infosys','loglevel');
         $log->error("Can\'t determine loglevel. Probably the [infosys] block is missing. Exiting...") if ($infosysloglevel eq '');
-        #C 134
+
         LogUtils::level($infosysloglevel);
 
         my $enable_perflog_reporting = ConfigCentral::isBlockPresent($configfile,'monitoring/perflog');
@@ -330,11 +328,11 @@ sub collect($) {
 # uncomment for a dump of the whole config hash
 # print Dumper($config);
 
-#TODO: check that this entire locausers block can be removed
+#TODO: Everything works without the locausers block, but we may reuse it in the future, so keeping the code here.
 #TODO: @localusers parsed by:
 #      - hostinfo to provide stats for storage usage
 #      - lrms_info to ??
-#TODO: maybe use a default user?
+#TODO: maybe use a default user e.g. root?
 #TODO: no more per-user stats? Needs different code to handle new mapping
 #    # get all local users from grid-map. Sort unique
 #    $log->verbose("Reading grid-mapfiles. These are obsolete, one should use other methods, this message can be ignored.");
@@ -368,11 +366,12 @@ sub collect($) {
     # build hash with all the input necessary for the renderers
     my $data = {};
     $data->{config} = $config;
-    #TODO: check if this is still useful
+    #TODO: this is not used, but may come handy if we implement mapping info.
+    # Used in ARC0 and ARC1 ClusterInfo
     #$data->{usermap} = $usermap;
 
     $log->info("Updating frontend information (HostInfo.pm)");
-    #TODO: check if we need localusers still
+    # @localusers seems not needed, but might be if we go non-root, so keeping code here.
     $data->{host_info} = get_host_info($config,\@localusers);
 
     $log->info("Updating RTE information (RTEInfo.pm)");
@@ -407,8 +406,6 @@ sub get_host_info($$) {
     $host_opts->{x509_cert_policy} = $config->{x509_cert_policy};
     $host_opts->{wakeupperiod} = $config->{wakeupperiod};
     $host_opts->{arex} = $config->{arex};
-    # TODO: attempt to remove this and see what happens
-    #$host_opts->{remotegmdirs} = $config->{remotegmdirs};
 
     return timed 'HostInfo', sub { HostInfo::collect($host_opts) };
 }
@@ -425,8 +422,9 @@ sub get_rte_info($) {
 sub get_lrms_info($$$) {
     my ($config,$localusers,$jobids) = @_;
 
-    # TODO: possibly any options from config are needed, but they should be
-    # moved into the lrms block if required.
+    # NOTE: possibly any options from config are needed, but they should be
+    # moved into the lrms block if required. I see no point in moving all of them
+    # if not needed.
 
     # this conforms to LRMSInfo.pm specification
     my $lrms_opts = Storable::dclone($config->{lrms});
@@ -509,7 +507,7 @@ sub fix_jobs {
 }
 
 
-# TODO: reuse for map_with_file if still needed.
+# TODO: reuse for map_with_file if still needed. Should probably be moved to configcentral eventually.
 # reads grid-mapfile. Returns a ref to a DN => uid hash
 
 #sub read_grid_mapfile($) {

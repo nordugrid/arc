@@ -123,8 +123,8 @@ my $common_options = {
     x509_cert_policy => '',
     enable_perflog_reporting => '*',
     perflogdir => '*',
-    # TODO: what is this for? Check in ARC1ClusterInfo.pm
-    maxload => '*',
+    # TODO: Maxload is about max downloadable streams. Most likely this is now configured via datastaging. Used for MaxStageIn|OutStreams.
+    #maxload => '*',
 };
 my $sshcommon_options = {
     remote_user => '*',
@@ -155,13 +155,11 @@ my $ldap_infosys_options = {
 };
 
 # [arex] subblocks
-# TODO: add REST specific things if needed
 my $wsjobs_options = { 
     allownew => '*',    
     enabled => ''
 }; 
 
-# TODO: add REST related things if needed
 my $ws_options = {
     enabled => '',
     wsurl => '*',
@@ -227,7 +225,7 @@ my $config_schema = {
         AdvertisedVO => [ '*' ],
         LocalSE => [ '*' ],
         QualityLevel => '',
-        # TODO: such hashes might make odd options may pass the checks, review InfoChecker
+        # TODO: such hashes might make odd options bypass the checks, review InfoChecker
         # These below are repeated here to implement infosys/cluster level options that
         # apply to all xenvs and shares
         %$xenv_options,
@@ -314,7 +312,6 @@ my $config_schema = {
     },
     arex => {
         %$arex_options,
-        # TODO: fix cache as inside arex!
         ws => { %$ws_options },
         cache => { %$cache_options }
     },
@@ -585,7 +582,6 @@ sub build_config_from_json {
     $config->{arex}{cache}{cleaner} ||= {};
     if (defined $jsonconf->{'arex/cache/cleaner'}) {
        my $cacheopts = $jsonconf->{'arex/cache/cleaner'};
-       # move everything into arex->cache. TODO: check rest of infoproviders use arex hash
        move_keys $cacheopts, $config->{arex}{cache}, [keys %$cache_options];
     }
 
@@ -765,7 +761,7 @@ sub build_config_from_json {
     }
 
     
-    ## TODO: still valid in 2024/ARC7, take decision
+    ## TODO: still valid in 2024/ARC7 - this should be done together with [mapping] user stuff if needed
     ## TODO: This code below is currently not used. Access/mapping policies are currently
     #        generated in ARC1ClusterInfo.pm, but this information is mostly static and
     #        can be generated already now, simplifying ARC1ClusterInfo.pm. However simplification is not much.
@@ -923,7 +919,7 @@ sub set_defaults {
         subblock_check_required($config,$block);
     }
     
-    ## Other defaults not covered by arcconfig-parser. Might be done with an hash at some point - TODO: 2024 has it been done?
+    ## Other defaults not covered by arcconfig-parser. Might be done with an hash if more are missing. We keep it as a safety measure.
 
     #default ARC version taken from build. Artificiously placed in common
     $config->{arcversion}='@VERSION@';
@@ -931,7 +927,7 @@ sub set_defaults {
     # force ldap defaults if ldap renderings are enabled in config
     $config->{infosys}{ldap}{port}='2135' if ($config->{'infosys/ldap'}{enabled});
         
-    # Define a-rex endpoint. Hardcoded after ARC6. TODO: comment this on a deployment and check if still needed
+    # Define a-rex endpoint. Hardcoded after ARC6. Still valid for ARC7.
     if (defined $config->{'arex/ws'}) {
        $config->{'arex/ws'}{wsurl} ||= 'https://'.$config->{hostname}.':443/arex';
     } else {
@@ -965,12 +961,6 @@ sub getValueOf ($$$){
     $value =~ s/^\s+|\s+$//g;
     # strip trailing newline
     chomp $value;
-
-    # TODO: this should be removed after Andrii's default in place
-    # get defaults
-    #if ( !(defined $value) || $value eq 'None') {
-    #    $value = $confdefaults->{$block}{$option} if (defined $confdefaults->{$block}{$option});
-    #}
   
     return $value;
 
