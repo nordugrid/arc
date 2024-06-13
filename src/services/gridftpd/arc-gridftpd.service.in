@@ -1,7 +1,7 @@
 [Unit]
 Description=ARC gridftpd
 Documentation=man:gridftpd(8)
-After=local_fs.target remote_fs.target
+After=local-fs.target remote-fs.target
 
 [Service]
 ExecStart=@prefix@/@pkgdatasubdir@/arc-gridftpd-start -F
