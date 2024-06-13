@@ -104,8 +104,8 @@ attributes depending on how the mapping should be done.
       <tls:KeyPath inisections="datadelivery-service common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
       <tls:CertificatePath inisections="datadelivery-service common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
       <tls:CACertificatesDir inisections="datadelivery-service common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
-      <tls:DefaultCA initokenenables="common#x509_cert_policy=system">true</DefaultCA>
-      <tls:DefaultCA initokenenables="datadelivery-service#x509_cert_policy=system">true</DefaultCA>
+      <tls:DefaultCA initokenenables="common#x509_cert_policy=system">true</tls:DefaultCA>
+      <tls:DefaultCA initokenenables="datadelivery-service#x509_cert_policy=system">true</tls:DefaultCA>
       <tls:VOMSCertTrustDNChain>
         <tls:VOMSCertTrustRegex>.*</tls:VOMSCertTrustRegex>
       </tls:VOMSCertTrustDNChain>
