@@ -515,7 +515,7 @@ class AccountingControl(ComponentControl):
                                   choices=['gLite-APEL', '/queue/global.accounting.test.cpu.central'])
         apel_options.add_argument('--apel-messages', required=False,
                                   help='Define APEL messages (default is summaries)',
-                                  choices=['urs', 'summaries'])
+                                  choices=['urs', 'summaries', 'summaries-v04'])
         apel_options.add_argument('--apel-project', required=False, help='Define APEL project (default is "accounting")')
         apel_options.add_argument('--gocdb-name', required=False, help='(Re)define GOCDB site name')
 
