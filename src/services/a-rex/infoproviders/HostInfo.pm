@@ -17,7 +17,7 @@ use InfoChecker;
 our $host_options_schema = {
         x509_host_cert => '*',
         x509_cert_dir  => '*',
-        x509_cert_policy  => '*',
+        x509_grid_policy  => '*',
         wakeupperiod   => '*',
         processes      => [ '' ],
         ports => {
@@ -220,7 +220,7 @@ sub get_cert_info {
         $log->warning("Host certificate is expired in file: $hostcert") if $?;
     }
 
-    if (not $options->{x509_cert_dir} or $options->{x509_cert_policy} eq 'system') {
+    if (not $options->{x509_cert_dir} or $options->{x509_grid_policy} eq 'system') {
         $log->info("x509_cert_dir not configured");
         $host_info->{issuerca_enddate} = $host_info->{hostcert_enddate};
         $host_info->{issuerca_expired} = 0;

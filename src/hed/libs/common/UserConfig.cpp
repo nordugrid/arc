@@ -460,7 +460,7 @@ namespace Arc {
   }
 
   bool UserConfig::InitializeCredentials(initializeCredentialsType initializeCredentials) {
-    std::string ca_policy = GetEnv("X509_CERT_POLICY");
+    std::string ca_policy = GetEnv("X509_GRID_POLICY");
     if (ca_policy == "globus") {
       caUseDefault = false;
     } else if(ca_policy == "system") {
@@ -1288,18 +1288,18 @@ static std::string cert_file_fix(const std::string& old_file,std::string& new_fi
     GET_OLD_VAR("X509_USER_CERT",x509_user_cert_old,x509_user_cert_set);
     GET_OLD_VAR("X509_USER_PROXY",x509_user_proxy_old,x509_user_proxy_set);
     GET_OLD_VAR("X509_CERT_DIR",ca_cert_dir_old,ca_cert_dir_set);
-    GET_OLD_VAR("X509_CERT_POLICY",ca_cert_policy_old,ca_cert_policy_set);
+    GET_OLD_VAR("X509_GRID_POLICY",ca_cert_policy_old,ca_cert_policy_set);
     SET_NEW_VAR_FILE("X509_USER_KEY",cfg.KeyPath(),x509_user_key_new);
     SET_NEW_VAR_FILE("X509_USER_CERT",cfg.CertificatePath(),x509_user_cert_new);
     SET_NEW_VAR_FILE("X509_USER_PROXY",cfg.ProxyPath(),x509_user_proxy_new);
     SET_NEW_VAR("X509_CERT_DIR",cfg.CACertificatesDirectory());
-    SET_NEW_VAR("X509_CERT_POLICY",(cfg.CAUseDefault()?"system":"globus"));
+    SET_NEW_VAR("X509_GRID_POLICY",(cfg.CAUseDefault()?"system":"globus"));
     EnvLockWrap(false);
   }
 
   CertEnvLocker::~CertEnvLocker(void) {
     EnvLockUnwrap(false);
-    SET_OLD_VAR("X509_CERT_POLICY",ca_cert_policy_old,ca_cert_policy_set);
+    SET_OLD_VAR("X509_GRID_POLICY",ca_cert_policy_old,ca_cert_policy_set);
     SET_OLD_VAR("X509_CERT_DIR",ca_cert_dir_old,ca_cert_dir_set);
     SET_OLD_VAR("X509_USER_PROXY",x509_user_proxy_old,x509_user_proxy_set);
     SET_OLD_VAR("X509_USER_CERT",x509_user_cert_old,x509_user_cert_set);

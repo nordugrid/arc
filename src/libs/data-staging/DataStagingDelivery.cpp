@@ -298,7 +298,7 @@ int main(int argc,char* argv[]) {
   if (!source_cfg.ProxyPath().empty()) {
     SetEnv("X509_USER_PROXY", source_cfg.ProxyPath());
     if (!source_cfg.CACertificatesDirectory().empty()) SetEnv("X509_CERT_DIR", source_cfg.CACertificatesDirectory());
-    if (source_cfg.CAUseDefault()) SetEnv("X509_CERT_POLICY", "system");
+    if (source_cfg.CAUseDefault()) SetEnv("X509_GRID_POLICY", "system");
     // those tools also use hostcert by default if the user is root...
     if (getuid() == 0) {
       SetEnv("X509_USER_CERT", source_cfg.ProxyPath());

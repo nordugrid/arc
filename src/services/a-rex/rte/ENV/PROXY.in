@@ -1,7 +1,7 @@
 # description: copy proxy certificate to the job session directory
 # param:COPY_CACERT_DIR:Yes,No:Yes:If set to Yes, CA certificate dir will be copied to the session directory along with proxy certificate
 # param:USE_DELEGATION_DB:Yes,No:No:If set to Yes RTE will try to extract proxy certificate from A-REX delegation DB (works in limited number of cases)
-# param:X509_CERT_DIR:string:/etc/pki/tls/certs:CAdir to use (either /etc/grid-security/certificates or system folder depending on x509_cert_policy globus or system)
+# param:X509_CERT_DIR:string:/etc/pki/tls/certs:CAdir to use (either /etc/grid-security/certificates or system folder depending on x509_grid_policy globus or system)
 
 COPY_CACERT_DIR="${COPY_CACERT_DIR:-Yes}"
 USE_DELEGATION_DB="${USE_DELEGATION_DB:-No}"

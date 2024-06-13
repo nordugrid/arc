@@ -404,7 +404,7 @@ sub get_host_info($$) {
     $host_opts->{ports}{'slapd'} = [$config->{infosys}{ldap}{port}] if $config->{infosys}{ldap}{enabled};
     $host_opts->{x509_host_cert} = $config->{x509_host_cert};
     $host_opts->{x509_cert_dir} = $config->{x509_cert_dir};
-    $host_opts->{x509_cert_policy} = $config->{x509_cert_policy};
+    $host_opts->{x509_grid_policy} = $config->{x509_grid_policy};
     $host_opts->{wakeupperiod} = $config->{wakeupperiod};
     $host_opts->{arex} = $config->{arex};
     # TODO: attempt to remove this and see what happens

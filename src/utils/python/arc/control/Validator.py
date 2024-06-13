@@ -293,8 +293,8 @@ class Validator(object):
         """Check the certificate setup is ok"""
         x509_host_cert = self.arcconf.get_value('x509_host_cert', 'common', force_list=True)[0]
         x509_host_key = self.arcconf.get_value('x509_host_key', 'common', force_list=True)[0]
-        x509_cert_policy = self.arcconf.get_value('x509_cert_policy', 'common', force_list=True)[0]
-        if x509_cert_policy == 'globus':
+        x509_grid_policy = self.arcconf.get_value('x509_grid_policy', 'common', force_list=True)[0]
+        if x509_grid_policy == 'globus':
             x509_cert_dir = self.arcconf.get_value('x509_cert_dir', 'common', force_list=True)[0]
         else:
             x509_cert_dir = ''
