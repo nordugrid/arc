@@ -44,18 +44,27 @@ def print_warn(logger_obj, *args, **kwargs):
     logger_obj.warning(*args, **kwargs)
     logger_obj.setLevel(current_level)
 
-def run_subprocess(*args, exit_on_failure=True):
+def run_subprocess(*args, exit_on_failure=True, dry_run=False):
     """Run subprocess with error wrapping. Returns command stdout."""
     cmd = list(args)
-    cmd_str = ' '.join(cmd)
+    cmd_str = repr(' '.join(cmd))
+    stdout = ''
     if not cmd:
         logger.critical('Internal error: command to run was not provided')
         sys.exit(1)
+    if dry_run:
+        logger.debug('Without dry-run the running subproess will be: %s', cmd_str)
+        return stdout
     try:
         logger.debug('Running the subprocess: %s', cmd_str)
         result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if result.stdout:
-            logger.debug('Output of %s: %s', cmd_str, result.stdout.decode('utf-8'))
+            stdout = result.stdout.decode('utf-8')
+            logger_stdout = stdout
+            # limit the output printed to debug log
+            if len(logger_stdout) > 256:
+                logger_stdout = stdout[0:256] + '...<output omitted>'
+            logger.debug('Output of %s: %s', cmd_str, logger_stdout)
         if result.returncode != 0:
             logger.error('Command "%s" failed with exit code %s', cmd_str, result.returncode)
             if exit_on_failure:
@@ -64,7 +73,8 @@ def run_subprocess(*args, exit_on_failure=True):
         logger.error('Error occured trying to run "%s": %s', cmd_str, str(err))
         if exit_on_failure:
             sys.exit(1)
-    return result.stdout
+    else:
+        return stdout
 
 def ask_yes_no(question, default_yes=False):
     """Interactively ask for confirmation. Returns True if yes."""
@@ -242,7 +252,7 @@ def control_path(control_dir, job_id, file_type):
     if not job_path:
         logger.error('The jobid "%s" does not have the right format/length', job_id)
         return ''
-    return '{0}/jobs/{1}/{2}'.format(control_dir, job_path, file_type)
+    return '{0}/jobs/{1}/{2}'.format(control_dir, job_path, file_type).rstrip('/')
 
 def canonicalize_args_jobid(args):
     """Extract jobID from job-URL"""
