@@ -90,8 +90,8 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
-  if (opt.force_default_ca) usercfg.CAUseDefault(true);
-  if (opt.force_grid_ca) usercfg.CAUseDefault(false);
+  if (opt.force_system_ca) usercfg.CAUseSystem(true);
+  if (opt.force_grid_ca) usercfg.CAUseSystem(false);
 
   if (opt.show_plugins) {
     std::list<std::string> types;
@@ -116,7 +116,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     if (usercfg.CertificatePath().empty()) {
       std::cout << "  " << Arc::IString("No user-certificate found") << std::endl << std::endl;
     } else {
-      Arc::Credential holder(usercfg.CertificatePath(), "", usercfg.CACertificatesDirectory(), "", usercfg.CAUseDefault());
+      Arc::Credential holder(usercfg.CertificatePath(), "", usercfg.CACertificatesDirectory(), "", usercfg.CAUseSystem());
       std::cout << "  " << Arc::IString("Certificate: %s", usercfg.CertificatePath()) << std::endl;
       if (!holder.GetDN().empty()) {
         std::cout << "  " << Arc::IString("Subject name: %s", holder.GetDN()) << std::endl;
@@ -132,7 +132,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     if (usercfg.ProxyPath().empty()) {
       std::cout << "  " << Arc::IString("No proxy found") << std::endl << std::endl;
     } else {
-      Arc::Credential holder(usercfg.ProxyPath(), "", usercfg.CACertificatesDirectory(), "", usercfg.CAUseDefault());
+      Arc::Credential holder(usercfg.ProxyPath(), "", usercfg.CACertificatesDirectory(), "", usercfg.CAUseSystem());
       std::cout << "  " << Arc::IString("Proxy: %s", usercfg.ProxyPath()) << std::endl;
       std::cout << "  " << Arc::IString("Proxy-subject: %s", holder.GetDN()) << std::endl;
       if (holder.GetEndTime() < now) {

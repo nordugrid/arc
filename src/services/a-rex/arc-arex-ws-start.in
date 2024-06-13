@@ -223,7 +223,7 @@ prepare() {
     else
        X509_CERT_DIR=""
        X509_GRID_POLICY='system'
-       x509_cert_config="<DefaultCA>true</DefaultCA>"
+       x509_cert_config="<SystemCA>true</SystemCA>"
     fi
     GLOBUS_TCP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_tcp_port_range arex/data-staging`
     GLOBUS_UDP_PORT_RANGE=`readconfigvar "$ARC_RUNTIME_CONFIG" globus_udp_port_range arex/data-staging`

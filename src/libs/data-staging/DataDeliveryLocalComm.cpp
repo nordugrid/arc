@@ -130,9 +130,9 @@ namespace DataStaging {
         args.push_back(std::string("ca=")+dtr->get_usercfg().CACertificatesDirectory());
       }
       args.push_back("--sopt");
-      args.push_back(std::string("cadefault=")+Arc::tostring((int)dtr->get_usercfg().CAUseDefault()));
+      args.push_back(std::string("casystem=")+Arc::tostring((int)dtr->get_usercfg().CAUseSystem()));
       args.push_back("--dopt");
-      args.push_back(std::string("cadefault=")+Arc::tostring((int)dtr->get_usercfg().CAUseDefault()));
+      args.push_back(std::string("casystem=")+Arc::tostring((int)dtr->get_usercfg().CAUseSystem()));
       args.push_back("--topt");
       args.push_back(std::string("minspeed=")+Arc::tostring(transfer_params.min_current_bandwidth));
       args.push_back("--topt");

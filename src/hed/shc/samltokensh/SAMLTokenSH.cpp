@@ -147,7 +147,7 @@ bool SAMLAssertionSecAttr::Import(Arc::SecAttrFormat format, const XMLNode& val)
   return false;
 }
 
-SAMLTokenSH::SAMLTokenSH(Config *cfg,ChainContext*,Arc::PluginArgument* parg):SecHandler(cfg,parg),default_ca_(false),valid_(false){
+SAMLTokenSH::SAMLTokenSH(Config *cfg,ChainContext*,Arc::PluginArgument* parg):SecHandler(cfg,parg),system_ca_(false),valid_(false){
   if(!init_xmlsec()) return;
   process_type_=process_none;
   std::string process_type = (std::string)((*cfg)["Process"]);
@@ -164,8 +164,8 @@ SAMLTokenSH::SAMLTokenSH(Config *cfg,ChainContext*,Arc::PluginArgument* parg):Se
     };
     ca_file_=(std::string)((*cfg)["CACertificatePath"]);
     ca_dir_=(std::string)((*cfg)["CACertificatesDir"]);
-    default_ca_ = (((std::string)((*cfg)["DefaultCA"])) == "true");
-    if(ca_file_.empty() && ca_dir_.empty() && !default_ca_) {
+    system_ca_ = (((std::string)((*cfg)["SystemCA"])) == "true");
+    if(ca_file_.empty() && ca_dir_.empty() && !system_ca_) {
       logger.msg(WARNING,"Both of CACertificatePath and CACertificatesDir elements missing or empty");
     };
     aa_service_ = (std::string)((*cfg)["AAService"]);
@@ -177,8 +177,8 @@ SAMLTokenSH::SAMLTokenSH(Config *cfg,ChainContext*,Arc::PluginArgument* parg):Se
     //trusted ca.
     ca_file_=(std::string)((*cfg)["CACertificatePath"]);
     ca_dir_=(std::string)((*cfg)["CACertificatesDir"]);
-    default_ca_ = (((std::string)((*cfg)["DefaultCA"])) == "true");
-    if(ca_file_.empty() && ca_dir_.empty() && !default_ca_) {
+    system_ca_ = (((std::string)((*cfg)["SystemCA"])) == "true");
+    if(ca_file_.empty() && ca_dir_.empty() && !system_ca_) {
       logger.msg(INFO,"Missing or empty CertificatePath or CACertificatesDir element; will only check the signature, will not do message authentication");
     };
     process_type_=process_extract;
@@ -187,7 +187,7 @@ SAMLTokenSH::SAMLTokenSH(Config *cfg,ChainContext*,Arc::PluginArgument* parg):Se
     return;
   };
   if(!cert_file_.empty()) {
-    Arc::Credential cred(cert_file_, key_file_, ca_dir_, ca_file_, default_ca_);
+    Arc::Credential cred(cert_file_, key_file_, ca_dir_, ca_file_, system_ca_);
     local_dn_ = convert_to_rdn(cred.GetDN());
   }
   valid_ = true;
@@ -212,7 +212,7 @@ SecHandlerStatus SAMLTokenSH::Handle(Arc::Message* msg) const {
         return false;
       };
 */
-      if((!ca_file_.empty() || !ca_dir_.empty()) && !st.Authenticate(ca_file_, ca_dir_, default_ca_)) {
+      if((!ca_file_.empty() || !ca_dir_.empty()) && !st.Authenticate(ca_file_, ca_dir_, system_ca_)) {
         logger.msg(ERROR, "Failed to authenticate SAML Token inside the incoming SOAP");
         return false;
       };
@@ -274,7 +274,7 @@ SecHandlerStatus SAMLTokenSH::Handle(Arc::Message* msg) const {
         if (!key_file_.empty()) cfg.AddPrivateKey(key_file_);
         if (!ca_file_.empty()) cfg.AddCAFile(ca_file_);
         if (!ca_dir_.empty()) cfg.AddCADir(ca_dir_);
-	cfg.SetDefaultCA(default_ca_);
+	cfg.SetSystemCA(system_ca_);
 
         Arc::ClientSOAP client(cfg, aa_service_url);
         Arc::PayloadSOAP *response = NULL;
@@ -304,7 +304,7 @@ SecHandlerStatus SAMLTokenSH::Handle(Arc::Message* msg) const {
 
         std::string resp_idname = "ID";
         Arc::XMLSecNode attr_resp_secnode(attr_resp);
-        if(attr_resp_secnode.VerifyNode(resp_idname, ca_file_, ca_dir_, default_ca_, true)) {
+        if(attr_resp_secnode.VerifyNode(resp_idname, ca_file_, ca_dir_, system_ca_, true)) {
           logger.msg(Arc::INFO, "Succeeded to verify the signature under <samlp:Response/>");
         }
         else {
@@ -325,7 +325,7 @@ SecHandlerStatus SAMLTokenSH::Handle(Arc::Message* msg) const {
         Arc::XMLNode assertion = attr_resp["saml:Assertion"];
         std::string assertion_idname = "ID";
         Arc::XMLSecNode assertion_secnode(assertion);
-        if(assertion_secnode.VerifyNode(assertion_idname, ca_file_, ca_dir_, default_ca_, true)) {
+        if(assertion_secnode.VerifyNode(assertion_idname, ca_file_, ca_dir_, system_ca_, true)) {
           logger.msg(Arc::INFO, "Succeeded to verify the signature under <saml:Assertion/>");
         }
         else {

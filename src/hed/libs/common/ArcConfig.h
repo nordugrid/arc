@@ -125,7 +125,7 @@ namespace Arc {
      * \since Added in 7.0.0.
      **/
     /// Either default system-wide CA configuration to be used
-    bool defaultca;
+    bool systemca;
     /// Authentication token
     std::string otoken;
     /// Either otoken can be used for authentication (must be set explicitely)
@@ -170,7 +170,7 @@ namespace Arc {
      **/
     /// Add authentication token
     void AddOToken(const std::string& token);
-    void SetDefaultCA(bool use_default);
+    void SetSystemCA(bool use_default);
   };
 
 } // namespace Arc
