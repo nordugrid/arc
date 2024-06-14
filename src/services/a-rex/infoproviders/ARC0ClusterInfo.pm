@@ -264,9 +264,8 @@ sub collect($) {
         # Solution: use contactstring from REST?
         # $c->{contactstring} = "gsiftp://$hostname:".$config->{gridftpd}{port}.$config->{gridftpd}{mountpoint} if ($config->{gridftpd}{enabled});
         $c->{contactstring} = $config->{arex}{ws}{wsurl};
-        # TODO: what is InteractiveContactstring? Removed from ConfigCentral. Find equivalent and substitute
-        #$c->{'interactive-contactstring'} = $config->{service}{InteractiveContactstring}
-        #if $config->{service}{InteractiveContactstring};
+        # Removed from ConfigCentral. Left here in case it still makes sense.
+        #$c->{'interactive-contactstring'} = $config->{service}{InteractiveContactstring} if $config->{service}{InteractiveContactstring};
         $c->{support} = [ @supportmails ] if @supportmails;
         $c->{'lrms-type'} = $lrms_info->{cluster}{lrms_type};
         $c->{'lrms-version'} = $lrms_info->{cluster}{lrms_version} if $lrms_info->{cluster}{lrms_version};
@@ -340,7 +339,6 @@ sub collect($) {
 
             $q->{'name'} = $share;
             
-            # TODO: check that this works after remotegmdirs removal, live
             if ( defined $config->{arex}{ws}{jobs} and $config->{arex}{ws}{jobs}{enabled} == 1 and $config->{arex}{ws}{jobs}{allownew} == 0 ) {
                 $q->{status} = 'inactive, a-rex does not accept new jobs';
             } elsif ( $host_info->{gm_alive} ne 'all' ) {
@@ -428,9 +426,9 @@ sub collect($) {
                 my $j = {};
 
                 $j->{name} = $jobid;
-                # TODO: how to publish jobs not submitted via gridftp if contactstring is gone?
+                # Old globalid code used gridftp URL, should it be needed for backward compatibility it is left here
                 #$j->{globalid} = $c->{contactstring}."/$jobid";
-                # Solution: use GLUE2 IDFromEndpoint
+                # ARC7 contactstring for job: use GLUE2 IDFromEndpoint
                 $j->{globalid} = "urn:idfe:$jobid";
                 # Starting from ARC 6.10 we out a hash here for GDPR compliance.
                 $j->{globalowner} = sha512sum($gmjob->{subject},$dnhashes) if $gmjob->{subject};

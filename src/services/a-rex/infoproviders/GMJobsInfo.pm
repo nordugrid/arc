@@ -93,24 +93,9 @@ sub collect {
     #switchEffectiveUser($user);
     my $controldir = $arex->{controldir};
     my $newjobs = get_gmjobs($controldir, $nojobs);
-    # What is this one fetching exaclty?
+    # TODO: can this be removed? What is this one fetching exaclty?
     $newjobs->{$_}{gmuser} = $user for keys %$newjobs;
     $gmjobs->{$_} = $newjobs->{$_} for keys %$newjobs;
-
-    # switch back to root 
-    #switchEffectiveUser('.');
-
-    # TODO: remove this and check that everything still works
-    #if ($remotegmdirs) {
-    #    for my $pair (@$remotegmdirs) {
-    #        my ($controldir, $sessiondir) = split ' ', $pair;
-    #        my $newjobs = get_gmjobs($controldir, $nojobs);
-    #        $gmjobs->{$_} = $newjobs->{$_} for keys %$newjobs;
-    #    }
-    #}
-    
-    # switch back to root
-    #switchEffectiveUser('.');
 
     return $gmjobs;
 }
