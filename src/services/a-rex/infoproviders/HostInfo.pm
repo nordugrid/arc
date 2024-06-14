@@ -343,7 +343,7 @@ sub get_host_info {
     if (%commongridareas) {
         my %res = Sysinfo::diskspaces(keys %commongridareas);
         if ($res{errors}) {
-            $log->warning("Failed checking disk space available in session directories");
+            $log->warning("Failed checking disk space available in session directories. The check is skipped if sessiondir=* present in arc.conf");
         } else {
             $host_info->{session_free} = $commonfree = $res{freesum};
             $host_info->{session_total} = $res{totalsum};
