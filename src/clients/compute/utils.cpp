@@ -416,6 +416,7 @@ ClientOptions::ClientOptions(Client_t c,
     token_authentication(false),
     force_system_ca(false),
     force_grid_ca(false),
+    allow_insecure_connection(false),
     testjobid(-1),
     runtime(5),
     timeout(-1),
@@ -658,6 +659,7 @@ ClientOptions::ClientOptions(Client_t c,
   
   if (c == CO_TEST) {
     GroupAddOption("xaction", 'E', "certificate", istring("prints info about installed user- and CA-certificates"), show_credentials);
+    GroupAddOption("tuning", '\0', "allowinsecureconnection", istring("allow TLS connection which failed verification"), allow_insecure_connection);
   }
 
   if (c != CO_INFO) {

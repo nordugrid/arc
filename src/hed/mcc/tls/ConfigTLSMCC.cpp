@@ -53,6 +53,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   curve_nid_ = NID_undef; // so far best seems to be NID_X25519, but let OpenSSL choose by default
   client_authn_ = true;
   system_ca_ = (((std::string)(cfg["SystemCA"])) == "true");
+  allow_insecure_ = (((std::string)(cfg["AllowInsecure"])) == "true");
   if(!system_ca_) {
     ca_file_ = (std::string)(cfg["CACertificatePath"]);
     ca_dir_ = (std::string)(cfg["CACertificatesDir"]);

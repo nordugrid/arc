@@ -169,6 +169,9 @@ namespace Arc {
       } else {
         comp.NewChild("SystemCA") = "true";
       };
+      if(cfg.tlsallowinsecure) {
+        comp.NewChild("AllowInsecure") = "true";
+      };
       comp.NewAttribute("entry") = "tls";
       if (sec.sec == SSL3Sec) comp.NewChild("Handshake") = "SSLv3";
       else if (sec.sec == TLS10Sec) comp.NewChild("Handshake") = "TLSv1.0";

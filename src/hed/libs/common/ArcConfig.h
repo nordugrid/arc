@@ -126,6 +126,8 @@ namespace Arc {
      **/
     /// Either default system-wide CA configuration to be used
     bool systemca;
+    /// Either TLS connections with failed verification are allowed (dangerous)
+    bool tlsallowinsecure;
     /// Authentication token
     std::string otoken;
     /// Either otoken can be used for authentication (must be set explicitely)
@@ -171,6 +173,7 @@ namespace Arc {
     /// Add authentication token
     void AddOToken(const std::string& token);
     void SetSystemCA(bool use_default);
+    void SetTLSAllowInsecure(bool allow_insecure);
   };
 
 } // namespace Arc

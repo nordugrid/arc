@@ -92,6 +92,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
   }
   if (opt.force_system_ca) usercfg.CAUseSystem(true);
   if (opt.force_grid_ca) usercfg.CAUseSystem(false);
+  if (opt.allow_insecure_connection) usercfg.TLSAllowInsecure(true);
 
   if (opt.show_plugins) {
     std::list<std::string> types;

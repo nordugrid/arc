@@ -27,6 +27,7 @@ class ConfigTLSMCC {
   bool globus_gsi_;
   bool globusio_gsi_;
   bool system_ca_;
+  bool allow_insecure_;
   enum {
     tls_handshake, // default
     ssl3_handshake,
@@ -66,6 +67,7 @@ class ConfigTLSMCC {
   bool GlobusGSI(void) const { return globus_gsi_; };
   bool GlobusIOGSI(void) const { return globusio_gsi_; };
   bool SystemCA(void) const { return system_ca_; };
+  bool AllowInsecureConnection(void) const { return allow_insecure_; };
   const std::vector<std::string>& VOMSCertTrustDN(void) { return vomscert_trust_dn_; };
   bool Set(SSL_CTX* sslctx);
   bool IfClientAuthn(void) const { return client_authn_; };

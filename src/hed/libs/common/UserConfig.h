@@ -952,6 +952,9 @@ namespace Arc {
      **/
     bool CAUseSystem() const { return caUseSystem; }
 
+    bool TLSAllowInsecure(bool newTLSAllowInsecure) { tlsAllowInsecure = newTLSAllowInsecure; return true; }
+    bool TLSAllowInsecure() const { return tlsAllowInsecure; }
+
     enum AuthType {
       AuthTypeUndefined = 0, /// No restrictions, use whatever authentication avaialble (default)
       AuthTypeNone = 1,      /// Do not use any credentials (anonymous)
@@ -1389,6 +1392,7 @@ namespace Arc {
     std::string caCertificatePath;
     std::string caCertificatesDirectory;
     bool caUseSystem;
+    bool tlsAllowInsecure;
     AuthType authType;
     Period certificateLifeTime;
 
