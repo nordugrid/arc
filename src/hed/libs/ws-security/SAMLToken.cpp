@@ -154,13 +154,13 @@ bool SAMLToken::Authenticate(void) {
   return true;
 }
 
-bool SAMLToken::Authenticate(const std::string& cafile, const std::string& capath, bool defaultca) {
+bool SAMLToken::Authenticate(const std::string& cafile, const std::string& capath, bool systemca) {
   xmlSecKeysMngr* keys_manager = NULL;
   xmlSecDSigCtx *dsigCtx;
 
   /*****************************************/
   //Verify the signature under saml:assertion
-  if((bool)x509data && defaultca) {
+  if((bool)x509data && systemca) {
     keys_manager = load_trusted_certs(&keys_manager, NULL, NULL);
     if(keys_manager == NULL) { std::cerr<<"Can not load default certificates"<<std::endl; return false; } 
   }

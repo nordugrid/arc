@@ -442,10 +442,10 @@ static int runmain(int argc, char *argv[]) {
                     istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
                     istring("debuglevel"), debug);
 
-  bool force_default_ca = false;
-  options.AddOption('\0', "defaultca",
+  bool force_system_ca = false;
+  options.AddOption('\0', "systemca",
                     istring("force using CA certificates configuration provided by OpenSSL"),
-                    force_default_ca);
+                    force_system_ca);
     
   bool force_grid_ca = false;
   options.AddOption('\0', "gridca",
@@ -493,8 +493,8 @@ static int runmain(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  if (force_default_ca) usercfg.CAUseDefault(true);
-  if (force_grid_ca) usercfg.CAUseDefault(false);
+  if (force_system_ca) usercfg.CAUseSystem(true);
+  if (force_grid_ca) usercfg.CAUseSystem(false);
 
   if(use_nssdb) {
     usercfg.CertificatePath("");;
@@ -1201,8 +1201,8 @@ static int runmain(int argc, char *argv[]) {
       logger.msg(Arc::ERROR, "Failed configuration initialization.");
       return EXIT_FAILURE;
     }
-    if (force_default_ca) usercfg.CAUseDefault(true);
-    if (force_grid_ca) usercfg.CAUseDefault(false);
+    if (force_system_ca) usercfg.CAUseSystem(true);
+    if (force_grid_ca) usercfg.CAUseSystem(false);
     if(proxy_path.empty()) proxy_path = usercfg.ProxyPath();
     usercfg.ProxyPath(proxy_path);
     std::string cert_file = "cert.pem";

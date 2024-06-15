@@ -250,7 +250,7 @@ namespace Arc {
   }
 
   UserConfig::UserConfig(initializeCredentialsType initializeCredentials)
-    : timeout(0), keySize(0), ok(false), caUseDefault(false), initializeCredentials(initializeCredentials), authType(AuthTypeUndefined) {
+    : timeout(0), keySize(0), ok(false), caUseSystem(false), tlsAllowInsecure(false), initializeCredentials(initializeCredentials), authType(AuthTypeUndefined) {
     if (!InitializeCredentials(initializeCredentials)) {
       return;
     }
@@ -263,7 +263,7 @@ namespace Arc {
   UserConfig::UserConfig(const std::string& conffile,
                          initializeCredentialsType initializeCredentials,
                          bool loadSysConfig)
-    : timeout(0), keySize(0), ok(false), caUseDefault(false), initializeCredentials(initializeCredentials), authType(AuthTypeUndefined)  {
+    : timeout(0), keySize(0), ok(false), caUseSystem(false), tlsAllowInsecure(false), initializeCredentials(initializeCredentials), authType(AuthTypeUndefined)  {
     setDefaults();
     if (loadSysConfig) {
       if (Glib::file_test(SYSCONFIG(), Glib::FILE_TEST_IS_REGULAR)) {
@@ -309,7 +309,7 @@ namespace Arc {
 
   UserConfig::UserConfig(const std::string& conffile, const std::string& jfile,
                          initializeCredentialsType initializeCredentials, bool loadSysConfig)
-    : timeout(0), keySize(0), ok(false), caUseDefault(false), initializeCredentials(initializeCredentials), authType(AuthTypeUndefined)  {
+    : timeout(0), keySize(0), ok(false), caUseSystem(false), tlsAllowInsecure(false), initializeCredentials(initializeCredentials), authType(AuthTypeUndefined)  {
     // If job list file have been specified, try to initialize it, and
     // if it fails then this object is non-valid (ok = false).
     setDefaults();
@@ -378,8 +378,9 @@ namespace Arc {
         ccfg.AddPrivateKey(keyPath);
       }
     }
-    ccfg.SetDefaultCA(caUseDefault);
-    if(!caUseDefault)
+    ccfg.SetSystemCA(caUseSystem);
+    ccfg.SetTLSAllowInsecure(tlsAllowInsecure);
+    if(!caUseSystem)
       ccfg.AddCADir(caCertificatesDirectory);
 
     switch(authType) {
@@ -460,11 +461,11 @@ namespace Arc {
   }
 
   bool UserConfig::InitializeCredentials(initializeCredentialsType initializeCredentials) {
-    std::string ca_policy = GetEnv("X509_CERT_POLICY");
+    std::string ca_policy = GetEnv("X509_GRID_POLICY");
     if (ca_policy == "globus") {
-      caUseDefault = false;
+      caUseSystem = false;
     } else if(ca_policy == "system") {
-      caUseDefault = true;
+      caUseSystem = true;
     }
 
     if(initializeCredentials == initializeCredentialsType::SkipCredentials) return true;
@@ -645,7 +646,7 @@ namespace Arc {
     }
 
     if(!noca) {
-      if (!caUseDefault) {
+      if (!caUseSystem) {
         std::string ca_dir = GetEnv("X509_CERT_DIR");
         //std::cerr<<"-- ca_dir = "<<ca_dir<<std::endl;
         if (!ca_dir.empty()) {
@@ -859,7 +860,7 @@ namespace Arc {
           }
           HANDLESTRATT("cacertificatepath", CACertificatePath)
           HANDLESTRATT("cacertificatesdirectory", CACertificatesDirectory)
-	  HANDLESTRATT("causedefault", CAUseDefault)
+	  HANDLESTRATT("causesystem", CAUseSystem)
           if (common["certificatelifetime"]) {
             certificateLifeTime = Period((std::string)common["certificatelifetime"]);
             common["certificatelifetime"].Destroy();
@@ -995,7 +996,7 @@ namespace Arc {
       file << "cacertificatepath = " << caCertificatePath << std::endl;
     if (!caCertificatesDirectory.empty())
       file << "cacertificatesdirectory = " << caCertificatesDirectory << std::endl;
-    file << "causedefalt = " << (caUseDefault?1:0) << std::endl;
+    file << "causesystem = " << (caUseSystem?1:0) << std::endl;
     if (certificateLifeTime > 0)
       file << "certificatelifetime = " << certificateLifeTime << std::endl;
     if (slcs)
@@ -1288,18 +1289,18 @@ static std::string cert_file_fix(const std::string& old_file,std::string& new_fi
     GET_OLD_VAR("X509_USER_CERT",x509_user_cert_old,x509_user_cert_set);
     GET_OLD_VAR("X509_USER_PROXY",x509_user_proxy_old,x509_user_proxy_set);
     GET_OLD_VAR("X509_CERT_DIR",ca_cert_dir_old,ca_cert_dir_set);
-    GET_OLD_VAR("X509_CERT_POLICY",ca_cert_policy_old,ca_cert_policy_set);
+    GET_OLD_VAR("X509_GRID_POLICY",ca_cert_policy_old,ca_cert_policy_set);
     SET_NEW_VAR_FILE("X509_USER_KEY",cfg.KeyPath(),x509_user_key_new);
     SET_NEW_VAR_FILE("X509_USER_CERT",cfg.CertificatePath(),x509_user_cert_new);
     SET_NEW_VAR_FILE("X509_USER_PROXY",cfg.ProxyPath(),x509_user_proxy_new);
     SET_NEW_VAR("X509_CERT_DIR",cfg.CACertificatesDirectory());
-    SET_NEW_VAR("X509_CERT_POLICY",(cfg.CAUseDefault()?"system":"globus"));
+    SET_NEW_VAR("X509_GRID_POLICY",(cfg.CAUseSystem()?"system":"globus"));
     EnvLockWrap(false);
   }
 
   CertEnvLocker::~CertEnvLocker(void) {
     EnvLockUnwrap(false);
-    SET_OLD_VAR("X509_CERT_POLICY",ca_cert_policy_old,ca_cert_policy_set);
+    SET_OLD_VAR("X509_GRID_POLICY",ca_cert_policy_old,ca_cert_policy_set);
     SET_OLD_VAR("X509_CERT_DIR",ca_cert_dir_old,ca_cert_dir_set);
     SET_OLD_VAR("X509_USER_PROXY",x509_user_proxy_old,x509_user_proxy_set);
     SET_OLD_VAR("X509_USER_CERT",x509_user_cert_old,x509_user_cert_set);

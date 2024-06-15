@@ -159,7 +159,7 @@ namespace Arc {
         if (!cfg.proxy.empty()) comp.NewChild("ProxyPath") = cfg.proxy;
         if (!cfg.credential.empty()) comp.NewChild("Credential") = cfg.credential;
       };
-      if(!cfg.defaultca) {
+      if(!cfg.systemca) {
         if (!cfg.cafile.empty()) comp.NewChild("CACertificatePath") = cfg.cafile;
         if (!cfg.cadir.empty()) {
           XMLNode cadir = comp.NewChild("CACertificatesDir");
@@ -167,7 +167,10 @@ namespace Arc {
           cadir.NewAttribute("PolicyGlobus") = "true";
         };
       } else {
-        comp.NewChild("DefaultCA") = "true";
+        comp.NewChild("SystemCA") = "true";
+      };
+      if(cfg.tlsallowinsecure) {
+        comp.NewChild("AllowInsecure") = "true";
       };
       comp.NewAttribute("entry") = "tls";
       if (sec.sec == SSL3Sec) comp.NewChild("Handshake") = "SSLv3";

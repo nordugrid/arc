@@ -22,7 +22,7 @@ class SAMLTokenSH : public SecHandler {
   std::string key_file_;
   std::string ca_file_;
   std::string ca_dir_;
-  bool default_ca_;
+  bool system_ca_;
   std::string local_dn_;
   std::string aa_service_;
   mutable Arc::XMLNode saml_assertion_;
