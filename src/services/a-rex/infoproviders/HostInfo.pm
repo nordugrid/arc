@@ -343,7 +343,7 @@ sub get_host_info {
     if (%commongridareas) {
         my %res = Sysinfo::diskspaces(keys %commongridareas);
         if ($res{errors}) {
-            $log->warning("Failed checking disk space available in session directories");
+            $log->warning("Failed checking disk space available in session directories. The check is skipped if sessiondir=* present in arc.conf");
         } else {
             $host_info->{session_free} = $commonfree = $res{freesum};
             $host_info->{session_total} = $res{totalsum};
@@ -380,6 +380,7 @@ sub get_host_info {
         my ($cachemax, $cachemin) = split " ", $control->{'cache'}{cachesize} if defined $control->{'cache'}{cachesize};
         my @paths = map { my @pair = split " ", $_; $pair[0] } @$cachedirs;
         if (@paths) {
+            # TODO: treat cache the same way as sessiondir, avoid double counting sizes in in same filesystem
             my %res = Sysinfo::diskspaces(@paths);
             if ($res{errors}) {
                 $log->warning("Failed checking disk space available in common cache directories")
