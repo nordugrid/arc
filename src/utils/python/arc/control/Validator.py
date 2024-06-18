@@ -188,10 +188,12 @@ class Validator(object):
                 self.warning("cachedir doesn't exist at %s" % value.split()[0])
 
         if block == 'arex' and option == 'sessiondir':
-            if not value.split()[0].startswith('/'):
-                self.error("sessiondir must specify an absolute path")
-            elif not os.path.exists(value.split()[0]):
-                self.warning("sessiondir doesn't exist at %s" % value.split()[0])
+            sessiondir = value.split()[0]
+            if sessiondir != '*':
+                if not sessiondir.startswith('/'):
+                    self.error("sessiondir %s is not an absolute path" % sessiondir)
+                elif not os.path.exists(sessiondir):
+                    self.warning("sessiondir doesn't exist at %s" % sessiondir)
             if len(value.split()) == 2 and value.split()[1] != 'drain':
                 self.error("Second option in sessiondir must be 'drain' or empty")
 
