@@ -44,10 +44,11 @@ class AccountingControl(ComponentControl):
         self.logger = logging.getLogger('ARCCTL.Accounting')
         # arc config
         if arcconfig is None:
-            self.logger.error('Failed to parse arc.conf. Jura configuration is unavailable.')
+            self.logger.error('Failed to parse arc.conf. Accounting configuration is unavailable.')
             sys.exit(1)
         self.arcconfig = arcconfig
         # accounting db
+        self.db_file = None
         self.adb = None  # type: AccountingDB
 
     def __del__(self):
@@ -55,12 +56,16 @@ class AccountingControl(ComponentControl):
             del self.adb
             self.adb = None
 
+    def __set_db_location(self, db_location):
+        self.db_file = db_location
+
     def __init_adb(self):
         """DB connection on-demand initialization"""
         if self.adb is not None:
             return
-        adb_file = self.arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting/accounting.db'
-        self.adb = AccountingDB(adb_file)
+        if self.db_file is None:
+            self.db_file = self.arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting/accounting.db'
+        self.adb = AccountingDB(self.db_file)
 
     def __add_adb_filters(self, args):
         """apply optional query filters in the right order"""
@@ -390,9 +395,22 @@ class AccountingControl(ComponentControl):
             args.end_from, args.end_till, targettype.upper(), targetid
         ))
 
+    def backup(self, location):
+        self.__init_adb()
+        # TODO: check there is enough space
+        self.logger.info('Starting accounting database backup to %s', location)
+        backup_adb = AccountingDB(location, must_exists=False)
+        self.adb.backup(backup_adb)
+
     def control(self, args):
+        # optional custom database location (e.g. backup copy)
+        if args.database_file:
+            self.__set_db_location(args.database_file)
+        # action-based routines
         if args.action == 'stats':
             self.stats(args)
+        elif args.action == 'backup':
+            self.backup(args.location)
         elif args.action == 'job' or 'jobaction' in args:
             self.jobcontrol(args)
         elif args.action == 'republish':
@@ -451,10 +469,15 @@ class AccountingControl(ComponentControl):
     def register_parser(root_parser):
         accounting_ctl = root_parser.add_parser('accounting', help='A-REX Accounting records management')
         accounting_ctl.set_defaults(handler_class=AccountingControl)
+        accounting_ctl.add_argument('--database-file', help='Set custom location of accounting database file to work with')
 
         accounting_actions = accounting_ctl.add_subparsers(title='Accounting Actions', dest='action',
                                                            metavar='ACTION', help='DESCRIPTION')
         accounting_actions.required = True
+
+        # database-level operations
+        accounting_backup = accounting_actions.add_parser('backup', help='Run online backup of accounting database')
+        accounting_backup.add_argument('location', help='Database backup file path')
 
         # stats from accounting database
         accounting_stats = accounting_actions.add_parser('stats', help='Show A-REX AAR statistics')

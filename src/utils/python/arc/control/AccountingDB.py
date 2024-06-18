@@ -42,15 +42,15 @@ class SQLFilter(object):
 
 class AccountingDB(object):
     """A-REX Accounting Records database interface for python tools"""
-    def __init__(self, db_file):
+    def __init__(self, db_file, must_exists=True):
         """Try to init connection in constructor to ensure database is accessible"""
         self.logger = logging.getLogger('ARC.AccountingDB')
         self.db_file = db_file
         self.con = None
         self.pub_con = None
         # don't try to initialize database if not exists
-        if not os.path.exists(db_file):
-            self.logger.error('Accounting database file is not exists at %s', db_file)
+        if must_exists and not os.path.exists(db_file):
+            self.logger.error('Accounting database file does not exists at %s', db_file)
             sys.exit(1)
         # try to make a connection
         self.adb_connect()
@@ -83,7 +83,7 @@ class AccountingDB(object):
         """Initialize database connection"""
         if self.con is not None:
             self.logger.debug('Using already established SQLite connection to accounting database %s', self.db_file)
-            return
+            return self.con
         try:
             self.con = sqlite3.connect(self.db_file)
         except sqlite3.Error as e:
@@ -91,6 +91,7 @@ class AccountingDB(object):
             sys.exit(1)
         if self.con is not None:
             self.logger.debug('Connection to accounting database (%s) has been established successfully', self.db_file)
+            return self.con
 
     def adb_close(self):
         """Terminate database connection"""
@@ -98,6 +99,29 @@ class AccountingDB(object):
             self.logger.debug('Closing connection to accounting database')
             self.con.close()
             self.con = None
+
+    def _backup_progress(self, status, remaining, total):
+        """Log database backup progress"""
+        progress = ( total - remaining ) * 100 // total
+        if progress >= self._backup_progress_log_threshold:
+            self.logger.info('Backup progress: %s%% database pages copied...', progress)
+            self._backup_progress_log_threshold += 10
+        else:
+            self.logger.debug('Backup progress: %s%% database pages copied...', progress)
+
+    def backup(self, backup_adb):
+        """Backup database to another database defined as AccountingDB object"""
+        self.adb_connect()
+        backup_con = backup_adb.adb_connect()
+        try:
+            self._backup_progress_log_threshold = 0
+            self.con.backup(backup_con, pages=1, progress=self._backup_progress)
+        except sqlite3.Error as e:
+            self.logger.error('Failed to backup accounting database to %s. Error %s', backup_adb.db_file, str(e))
+            sys.exit(1)
+        backup_adb.adb_close()
+        self.adb_close()
+        del self._backup_progress_log_threshold
 
     def __del__(self):
         self.adb_close()
