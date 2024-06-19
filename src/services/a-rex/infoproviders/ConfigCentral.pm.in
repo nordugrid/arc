@@ -120,7 +120,7 @@ my $common_options = {
     x509_host_key => '*', 
     x509_host_cert => '*',
     x509_cert_dir => '*',
-    x509_grid_policy => '',
+    x509_cert_policy => '',
     enable_perflog_reporting => '*',
     perflogdir => '*',
     # TODO: Maxload is about max downloadable streams. Most likely this is now configured via datastaging. Used for MaxStageIn|OutStreams.
