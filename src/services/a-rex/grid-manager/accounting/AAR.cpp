@@ -239,7 +239,7 @@ namespace ARex {
         }
         // Insert default LRMS benchmark if missing in the .diag file
         if (!is_benchmark) {
-            benchmark = value;
+            benchmark = config.DefaultBenchmark();
             // extrainfo.insert(
             //     std::pair <std::string, std::string>("benchmark", config.DefaultBenchmark())
             // );
