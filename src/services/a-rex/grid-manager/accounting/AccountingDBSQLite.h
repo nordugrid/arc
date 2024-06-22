@@ -31,6 +31,7 @@ namespace ARex {
         name_id_map_t db_queue;
         name_id_map_t db_users;
         name_id_map_t db_wlcgvos;
+        name_id_map_t db_benchmarks;
         name_id_map_t db_status;
         // AAR specific structures representation
         std::map <aar_endpoint_t, unsigned int> db_endpoints;
@@ -90,6 +91,8 @@ namespace ARex {
         unsigned int getDBUserId(const std::string& userdn);
         /// Get database ID for the specified WLCG VO name
         unsigned int getDBWLCGVOId(const std::string& voname);
+        /// Get database ID for the specified benchmark
+        unsigned int getDBBenchmarkId(const std::string& benchmark);
         /// Get database ID for the specified status string
         unsigned int getDBStatusId(const std::string& status);
 

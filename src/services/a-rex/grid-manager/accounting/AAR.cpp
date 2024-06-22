@@ -230,17 +230,19 @@ namespace ARex {
                     );
                 } else if (key == "benchmark" ) {
                     is_benchmark = true;
-                    extrainfo.insert(
-                        std::pair <std::string, std::string>("benchmark", value)
-                    );
+                    benchmark = value;
+                    // extrainfo.insert(
+                    //     std::pair <std::string, std::string>("benchmark", value)
+                    // );
                 }
             }
         }
         // Insert default LRMS benchmark if missing in the .diag file
         if (!is_benchmark) {
-            extrainfo.insert(
-                std::pair <std::string, std::string>("benchmark", config.DefaultBenchmark())
-            );
+            benchmark = value;
+            // extrainfo.insert(
+            //     std::pair <std::string, std::string>("benchmark", config.DefaultBenchmark())
+            // );
         }
         // Memory: use max if available, otherwise use avarage as a fallback
         usedmemory = mem_max_resident ? mem_max_resident : mem_avg_resident;

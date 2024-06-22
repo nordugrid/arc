@@ -52,7 +52,7 @@ class GMConfig;
 
 class AAR {
   public:
-    AAR(void): jobid(""), localid(""), queue(""), userdn(""), wlcgvo(""), status(""), 
+    AAR(void): jobid(""), localid(""), queue(""), userdn(""), wlcgvo(""), status(""), benchmark(""),
                exitcode(1), submittime((time_t)(0)), endtime((time_t)(0)),
                nodecount(1), cpucount(1), usedmemory(0), usedvirtmemory(0),
                usedwalltime(0), usedcpuusertime(0), usedcpukerneltime(0),
@@ -67,6 +67,7 @@ class AAR {
     std::string wlcgvo;             // WLCG VO name
     /* Completion data */
     std::string status;             // Job completion status
+    std::string benchmark;          // Job's node benchmark
     int exitcode;                   // Job exit code
     /* Main accounting times to search jobs */
     Arc::Time submittime;           // Job submission time

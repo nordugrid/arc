@@ -11,7 +11,7 @@
 
 #include "AccountingDBSQLite.h"
 
-#define DB_SCHEMA_FILE "arex_accounting_db_schema_v1.sql"
+#define DB_SCHEMA_FILE "arex_accounting_db_schema_v2.sql"
 
 namespace ARex {
     Arc::Logger AccountingDBSQLite::logger(Arc::Logger::getRootLogger(), "AccountingDBSQLite");
@@ -270,6 +270,10 @@ namespace ARex {
         return QueryAndInsertNameID("WLCGVOs", voname, &db_wlcgvos);
     }
 
+    unsigned int AccountingDBSQLite::getDBBenchmarkId(const std::string& benchmark) {
+        return QueryAndInsertNameID("Benchmarks", benchmark, &db_benchmarks);
+    }
+
     unsigned int AccountingDBSQLite::getDBStatusId(const std::string& status) {
         return QueryAndInsertNameID("Status", status, &db_status);
     }
@@ -378,11 +382,13 @@ namespace ARex {
         if (!userid) return false;
         unsigned int wlcgvoid = getDBWLCGVOId(aar.wlcgvo);
         if (!wlcgvoid) return false;
+        unsigned int benchmarkid = getDBBenchmarkId(aar.benchmark);
+        if (!benchmarkid) return false;
         unsigned int statusid = getDBStatusId(aar.status);
         if (!statusid) return false;
         // construct insert statement
         std::string sql = "INSERT INTO AAR ("
-            "JobID, LocalJobID, EndpointID, QueueID, UserID, VOID, StatusID, ExitCode, "
+            "JobID, LocalJobID, EndpointID, QueueID, UserID, VOID, StatusID, ExitCode, BenchmarkID, "
             "SubmitTime, EndTime, NodeCount, CPUCount, UsedMemory, UsedVirtMem, UsedWalltime, "
             "UsedCPUUserTime, UsedCPUKernelTime, UsedScratch, StageInVolume, StageOutVolume ) "
             "VALUES ('" +
@@ -394,6 +400,7 @@ namespace ARex {
                 sql_escape(wlcgvoid) + ", " + 
                 sql_escape(statusid) + ", " +
                 sql_escape(aar.exitcode) + ", " +
+                sql_escape(benchmarkid) + ", " +
                 sql_escape(aar.submittime.GetTime()) + ", " + 
                 sql_escape(aar.endtime.GetTime()) + ", " +
                 sql_escape(aar.nodecount) + ", " + 
@@ -435,6 +442,7 @@ namespace ARex {
         }
         // get the corresponding IDs in connected tables
         unsigned int statusid = getDBStatusId(aar.status);
+        unsigned int benchmarkid = getDBBenchmarkId(aar.benchmark);
         
         // construct update statement 
         // NOTE: it only make sense update the dynamic information not available on submission time
@@ -442,6 +450,7 @@ namespace ARex {
             "LocalJobID = '" + sql_escape(aar.localid) + "', " +
             "StatusID = " + sql_escape(statusid) + ", " +
             "ExitCode = " + sql_escape(aar.exitcode) + ", " +
+            "BenchmarkID = " + sql_escape(benchmarkid) + ", " +
             "EndTime = " + sql_escape(aar.endtime.GetTime()) + ", " +
             "NodeCount = " + sql_escape(aar.nodecount) + ", " + 
             "CPUCount = " + sql_escape(aar.cpucount) + ", " + 

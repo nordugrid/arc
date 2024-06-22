@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS AAR (
   /* Completion data */
   StatusID          INTEGER NOT NULL,
   ExitCode          INTEGER NOT NULL,
+  BenchmarkID       INTEGER NOT NULL,
   /* Main accounting times to search jobs (as unix timestamp) */
   SubmitTime        INTEGER NOT NULL,
   EndTime           INTEGER NOT NULL,
@@ -40,9 +41,11 @@ CREATE INDEX IF NOT EXISTS AAR_LocalJobID_IDX ON AAR(LocalJobID);
 CREATE INDEX IF NOT EXISTS AAR_EndpointID_IDX ON AAR(EndpointID);
 CREATE INDEX IF NOT EXISTS AAR_QueueID_IDX ON AAR(QueueID);
 CREATE INDEX IF NOT EXISTS AAR_UserID_IDX ON AAR(UserID);
+CREATE INDEX IF NOT EXISTS AAR_VOID_IDX ON AAR(VOID);
 CREATE INDEX IF NOT EXISTS AAR_StatusID_IDX ON AAR(StatusID);
 CREATE INDEX IF NOT EXISTS AAR_SubmitTime_IDX ON AAR(SubmitTime);
 CREATE INDEX IF NOT EXISTS AAR_EndTime_IDX ON AAR(EndTime);
+CREATE INDEX IF NOT EXISTS AAR_Benchmark_IDX ON AAR(BenchmarkID);
 
 /*
  * Extra tables for AAR normalization
@@ -77,6 +80,13 @@ CREATE TABLE IF NOT EXISTS WLCGVOs (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS WLCGVOs_Name_IDX ON WLCGVOs(Name);
 
+/* Benchmark */
+CREATE TABLE IF NOT EXISTS Benchmarks (
+  ID            INTEGER PRIMARY KEY AUTOINCREMENT,
+  Name          TEXT NOT NULL UNIQUE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS Benchmarks_Name_IDX ON Benchmarks(Name);
+
 /* Status */
 CREATE TABLE IF NOT EXISTS Status (
   ID            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -93,7 +103,7 @@ CREATE TABLE IF NOT EXISTS AuthTokenAttributes (
   RecordID      INTEGER NOT NULL,
   AttrKey       TEXT NOT NULL,
   AttrValue     TEXT,
-  FOREIGN KEY(RecordID) REFERENCES AAR(RecordID)
+  FOREIGN KEY(RecordID) REFERENCES AAR(RecordID) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS AuthTokenAttributes_RecordID_IDX ON AuthTokenAttributes(RecordID);
 CREATE INDEX IF NOT EXISTS AuthTokenAttributes_AttrKey_IDX ON AuthTokenAttributes(AttrKey);
@@ -103,7 +113,7 @@ CREATE TABLE IF NOT EXISTS JobEvents (
   RecordID      INTEGER NOT NULL,
   EventKey      TEXT NOT NULL, -- including: submit, stageinstart, stageinstop, lrmssubmit, lrmsstart, lrmsend, stageoutstart, stageoutend, finish
   EventTime     TEXT NOT NULL,
-  FOREIGN KEY(RecordID) REFERENCES AAR(RecordID)
+  FOREIGN KEY(RecordID) REFERENCES AAR(RecordID) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS JobEvents_RecordID_IDX ON JobEvents(RecordID);
 CREATE INDEX IF NOT EXISTS JobEvents_EventKey_IDX ON JobEvents(EventKey);
@@ -112,7 +122,7 @@ CREATE INDEX IF NOT EXISTS JobEvents_EventKey_IDX ON JobEvents(EventKey);
 CREATE TABLE IF NOT EXISTS RunTimeEnvironments (
   RecordID      INTEGER NOT NULL,
   RTEName       TEXT NOT NULL, -- TODO: should we record arguments, versions, default/enabled?
-  FOREIGN KEY(RecordID) REFERENCES AAR(RecordID)
+  FOREIGN KEY(RecordID) REFERENCES AAR(RecordID) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS RunTimeEnvironments_RecordID_IDX ON RunTimeEnvironments(RecordID);
 CREATE INDEX IF NOT EXISTS RunTimeEnvironments_RTEName_IDX ON RunTimeEnvironments(RTEName);
@@ -125,7 +135,7 @@ CREATE TABLE IF NOT EXISTS DataTransfers (
   TransferStart INTEGER NOT NULL,
   TransferEnd   INTEGER NOT NULL,
   TransferType  INTEGER NOT NULL, -- download, download from cahce, upload
-  FOREIGN KEY(RecordID) REFERENCES AAR(RecordID)
+  FOREIGN KEY(RecordID) REFERENCES AAR(RecordID) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS DataTransfers_RecordID_IDX ON DataTransfers(RecordID);
 CREATE INDEX IF NOT EXISTS DataTransfers_URL_IDX ON DataTransfers(URL);
@@ -135,7 +145,7 @@ CREATE TABLE IF NOT EXISTS JobExtraInfo (
   RecordID      INTEGER NOT NULL,
   InfoKey       TEXT NOT NULL, -- including: jobname, lrms, nodename, clienthost, localuser, projectname, systemsoftware, wninstance, benchmark
   InfoValue     TEXT,
-  FOREIGN KEY(RecordID) REFERENCES AAR(RecordID)
+  FOREIGN KEY(RecordID) REFERENCES AAR(RecordID) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS JobExtraInfo_RecordID_IDX ON JobExtraInfo(RecordID);
 CREATE INDEX IF NOT EXISTS JobExtraInfo_InfoKey_IDX ON JobExtraInfo(InfoKey);
@@ -147,4 +157,4 @@ CREATE TABLE IF NOT EXISTS DBConfig (
    KeyName      TEXT PRIMARY KEY, 
    KeyValue     TEXT NOT NULL
 );
-INSERT INTO DBConfig VALUES ('DBSCHEMA_VERSION', '1');
+INSERT INTO DBConfig VALUES ('DBSCHEMA_VERSION', '2');
