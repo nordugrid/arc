@@ -59,6 +59,20 @@ If you need help with the configuration file or have any other questions related
 * Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
 * Report a bug: https://bugzilla.nordugrid.org/
 
+
+
+
+Coming ARC 7 release
+=====================
+Start getting ready for ARC 7. We expect a release after summer. You can already now install the testing version of ARC following: http://www.nordugrid.org/arc/arc7/common/repos/testing-repository.html. For upgrade instructions, please see: http://www.nordugrid.org/arc/arc7/admins/migrating6to7.html.
+
+The support policy of ARC 6 will follow the same policy we had for ARC 5: 1 year security updates, no more development of ARC 6 once ARC 7 is out.
+
+Installing from EPEL:
+----------------------
+Once the release is out, it can be installed from EPEL using package-name types: nordugrid-arc7-*
+
+
 Future support of ARC 5-series
 ===============================
 As of June 2020 no more security updates are provided to ARC 5.
