@@ -21,8 +21,9 @@ The following Bugzilla tickets have been adressed or solved
 ------------------------------------------------------------
 
 * 4184  APEL v0.2 and v0.4 support
-* 4168  fails to start, with multiple 'cachedir' in '[arex/cache]'
+* 4168  "arcctl service restart -a" fails to start, with multiple 'cachedir' in '[arex/cache]'
 * 4166  Misspelling of special targets in unit files
+* 4167  Missing dependency ordering on nss-lookup.target for arc-infosys-ldap-slapd.service 
 * 4149  Escaping apostrophe in signing policy
 * 4116  GLUE2 info system is inconsistent between ARC6 and ARC7 wrt to existing and published ForeignKeys
 
