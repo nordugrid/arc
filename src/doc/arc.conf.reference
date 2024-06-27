@@ -986,6 +986,12 @@
 #tokenscopes=jobinfo=compute.read,jobcreate=compute.create,jobcancel=compute.cancel,jobdelete=compute.cancel
 #tokenscopes=datainfo=compute.read,datawrite=compute.modify,dataread=compute.read
 ## CHANGE: NEW in 7.0.0.
+
+## authtokenmap = claim:attrname[,...]
+## multivalued
+## default: name:name,email:email,preferred_username:username,wlcg_groups:group
+#authtokenmap=sub:user
+## CHANGE: NEW in 7.0.0.
 ##
 ##
 ### end of the [arex] block ###################################
@@ -1485,11 +1491,6 @@
 ## x509_cert_dir = path - Optional parameter to overwrite [common] block values.
 ## default: $VAR{[common]x509_cert_dir}
 #x509_cert_dir=/etc/grid-security/certificates
-
-## authtokenmap = claim:attrname[,...]
-## multivalued
-## default: name:name,email:email,preferred_username:username,wlcg_groups:group
-#authtokenmap=sub:user
 ##
 ##
 ### end of the [arex/jura] block ########################################
