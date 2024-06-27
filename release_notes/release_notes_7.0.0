@@ -17,7 +17,7 @@ Highlights in this release
   - Added support for using JWT compute scopes for token-based authorization via allowaccess arc.conf parameter authtokens (http://www.nordugrid.org/arc/arc7/admins/reference.html#authtokens)
   - Token information is part of the accounting records
 
-- The ARC server can use operating system provided CA bundles via configurable x509_cert_policy in the common block  in arc.conf. An ARC-CE must use *either* the default globus option *or* the system option. 
+- The ARC server can use operating system provided CA bundles via configurable x509_cert_policy in the common block  in arc.conf. An ARC-CE must use *either* the default grid option *or* the system option. 
 
 - REST 1.1 (http://www.nordugrid.org/arc/arc7/tech/rest/rest.html)
   - A new optional delegation parameter type extension to support tokens

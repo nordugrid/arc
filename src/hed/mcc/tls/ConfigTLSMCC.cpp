@@ -52,8 +52,9 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   protocol_options_ = 0;
   curve_nid_ = NID_undef; // so far best seems to be NID_X25519, but let OpenSSL choose by default
   client_authn_ = true;
-  default_ca_ = (((std::string)(cfg["DefaultCA"])) == "true");
-  if(!default_ca_) {
+  system_ca_ = (((std::string)(cfg["SystemCA"])) == "true");
+  allow_insecure_ = (((std::string)(cfg["AllowInsecure"])) == "true");
+  if(!system_ca_) {
     ca_file_ = (std::string)(cfg["CACertificatePath"]);
     ca_dir_ = (std::string)(cfg["CACertificatesDir"]);
     globus_policy_ = (((std::string)(cfg["CACertificatesDir"].Attribute("PolicyGlobus"))) == "true");
@@ -217,7 +218,7 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
     //side should not require client authentication
     if(cert_file_.empty() && proxy_file_.empty()) client_authn_ = false;
   };
-  if(!default_ca_ && ca_dir_.empty() && ca_file_.empty()) ca_dir_= gridSecurityDir + G_DIR_SEPARATOR_S + "certificates";
+  if(!system_ca_ && ca_dir_.empty() && ca_file_.empty()) ca_dir_= gridSecurityDir + G_DIR_SEPARATOR_S + "certificates";
   if(voms_dir_.empty()) voms_dir_= gridSecurityDir + G_DIR_SEPARATOR_S + "vomsdir";
   if(!proxy_file_.empty()) { key_file_=proxy_file_; cert_file_=proxy_file_; };
 }
@@ -243,7 +244,7 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
   }
   if(!credential_.empty()) {
     // First try to use in-memory credential
-    Credential cred(credential_, credential_, ca_dir_, ca_file_, default_ca_, Credential::NoPassword(), false);
+    Credential cred(credential_, credential_, ca_dir_, ca_file_, system_ca_, Credential::NoPassword(), false);
     if (!cred) {
       failure_ = "Failed to read in-memory credentials";
       return false;

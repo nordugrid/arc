@@ -77,7 +77,13 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
       default: {
         //std::cerr<<"+++ verify_callback: error: "<<X509_verify_cert_error_string(err)<<std::endl;
         if(it) {
-          it->SetFailure((std::string)X509_verify_cert_error_string(err));
+          if(it->Config().AllowInsecureConnection()) {
+            ok=1;
+            X509_STORE_CTX_set_error(sctx,X509_V_OK);
+            Logger::getRootLogger().msg(WARNING,"Ignoring verification error due to insecure connection allowed: %s",X509_verify_cert_error_string(err));
+          } else {
+            it->SetFailure((std::string)X509_verify_cert_error_string(err));
+          }
         } else {
           Logger::getRootLogger().msg(ERROR,"%s",X509_verify_cert_error_string(err));
         }
@@ -96,6 +102,8 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
       //std::cerr<<"+++ additional verification: subject "<<subject_name<<std::endl;
       if(it == NULL) {
         Logger::getRootLogger().msg(WARNING,"Failed to retrieve link to TLS stream. Additional policy matching is skipped.");
+      } else if(it->Config().AllowInsecureConnection()) {
+        Logger::getRootLogger().msg(WARNING,"Skipping additional policy matching due to insecure connections allowed.");
       } else {
         // Globus signing policy
         //std::cerr<<"+++ additional verification: - "<<it->Config().GlobusPolicy()<<" - "<<it->Config().CADir()<<std::endl;

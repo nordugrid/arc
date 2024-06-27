@@ -106,7 +106,7 @@ bool XMLSecNode::SignNode(const std::string& privkey_file, const std::string& ce
   return true;
 }
 
-bool XMLSecNode::VerifyNode(const std::string& id_name, const std::string& ca_file, const std::string& ca_path, bool defaultca, bool verify_trusted) {
+bool XMLSecNode::VerifyNode(const std::string& id_name, const std::string& ca_file, const std::string& ca_path, bool systemca, bool verify_trusted) {
   xmlNodePtr node = this->node_;
   xmlDocPtr docPtr = node->doc;
   xmlChar* id = xmlGetProp(node, (xmlChar *)(id_name.c_str()));
@@ -125,7 +125,7 @@ bool XMLSecNode::VerifyNode(const std::string& id_name, const std::string& ca_fi
   
   if(verify_trusted) {
     //Verify the signature under the signature node (this node) 
-    if((bool)x509data && defaultca) {
+    if((bool)x509data && systemca) {
       keys_manager = load_trusted_certs(&keys_manager, NULL, NULL);
       if(keys_manager == NULL) { std::cerr<<"Can not load default certificates"<<std::endl; return false; }
     }

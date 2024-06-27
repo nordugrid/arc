@@ -414,8 +414,9 @@ ClientOptions::ClientOptions(Client_t c,
     no_authentication(false),
     x509_authentication(false),
     token_authentication(false),
-    force_default_ca(false),
+    force_system_ca(false),
     force_grid_ca(false),
+    allow_insecure_connection(false),
     testjobid(-1),
     runtime(5),
     timeout(-1),
@@ -658,6 +659,7 @@ ClientOptions::ClientOptions(Client_t c,
   
   if (c == CO_TEST) {
     GroupAddOption("xaction", 'E', "certificate", istring("prints info about installed user- and CA-certificates"), show_credentials);
+    GroupAddOption("tuning", '\0', "allowinsecureconnection", istring("allow TLS connection which failed verification"), allow_insecure_connection);
   }
 
   if (c != CO_INFO) {
@@ -701,9 +703,9 @@ ClientOptions::ClientOptions(Client_t c,
               istring("perform token authentication for opened connections"),
               token_authentication);
 
-  GroupAddOption("tuning", '\0', "defaultca",
+  GroupAddOption("tuning", '\0', "systemca",
               istring("force using CA certificates configuration provided by OpenSSL"),
-              force_default_ca);
+              force_system_ca);
 
   GroupAddOption("tuning", '\0', "gridca",
               istring("force using CA certificates configuration for Grid services (typically IGTF)"),

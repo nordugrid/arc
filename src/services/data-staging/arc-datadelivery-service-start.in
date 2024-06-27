@@ -52,11 +52,11 @@ fi
 
 # GLOBUS_LOCATION
 GLOBUS_LOCATION=${GLOBUS_LOCATION:-@DEFAULT_GLOBUS_LOCATION@}
-if [ ! -d "$GLOBUS_LOCATION" ]; then
-    log_failure_msg "GLOBUS_LOCATION ($GLOBUS_LOCATION) not found"
-    exit 1
+if [ -d "$GLOBUS_LOCATION" ]; then
+    export GLOBUS_LOCATION
+else
+    GLOBUS_LOCATION=
 fi
-export GLOBUS_LOCATION
 
 # ARC_LOCATION
 ARC_LOCATION=${ARC_LOCATION:-@prefix@}
@@ -132,7 +132,9 @@ prepare() {
     # Assuming ini style config
     CMD="$CMD -i $ARC_CONFIG -p $PID_FILE -l $LOG_FILE"
 
-    add_library_path "$GLOBUS_LOCATION"
+    if [ "x$GLOBUS_LOCATION" != "x" ]; then
+        add_library_path "$GLOBUS_LOCATION"
+    fi
     if [ "x$LD_LIBRARY_PATH" = "x" ]; then
         LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@
     else

@@ -205,11 +205,11 @@
 #x509_host_cert=/etc/grid-security/hostcert.pem
 
 ## x509_cert_policy = keyword  - layout of CA certificates.
-## The following keywords are supported: globus, system.
-## This varaible defines either server is going to use Globus layout of
+## The following keywords are supported: grid, system.
+## This varaible defines either server is going to use Globus (igtf) layout of
 ## CA certifiactes or just let OpenSSL handle that.
-## default: globus
-#x509_cert_policy=globus
+## default: grid
+#x509_cert_policy=grid
 
 ## x509_cert_dir = path  - Location of trusted CA certificates.
 ## This variable is similar to the GSI enviroment variable "X509_CERT_DIR"
@@ -1570,9 +1570,10 @@
 
 ## apel_messages = type - Define what kind of records JURA
 ## will send to APEL services during regular publishing process.
-## Possible cases are: per-job EMI CAR records ("urs"), APEL summary records ("summaries").
+## Possible cases are: per-job EMI CAR records ("urs"), APEL summary records ("summaries")
+## or APEL summary records v0.4 ("summaries-v04")
 ## APEL Sync messages are always generated.
-## allowedvalues: urs summaries
+## allowedvalues: urs summaries summaries-v04
 ## default: summaries
 #apel_messages=urs
 

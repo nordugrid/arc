@@ -297,7 +297,7 @@ Arc::MCC_Status CandyPond::CacheLink(Arc::XMLNode in, Arc::XMLNode out, const Ar
   std::string dn;
   Arc::Time exp_time;
   try {
-    Arc::Credential ci(usercfg.ProxyPath(), usercfg.ProxyPath(), usercfg.CACertificatesDirectory(), "", usercfg.CAUseDefault());
+    Arc::Credential ci(usercfg.ProxyPath(), usercfg.ProxyPath(), usercfg.CACertificatesDirectory(), "", usercfg.CAUseSystem());
     dn = ci.GetIdentityName();
     exp_time = ci.GetEndTime();
   } catch (Arc::CredentialError& e) {

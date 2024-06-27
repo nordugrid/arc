@@ -163,7 +163,7 @@ class Credential {
     *    are supposed to be from string. default is from file
     */
     Credential(const std::string& cert, const std::string& key,
-               const std::string& cadir, const std::string& cafile, bool causedefault,
+               const std::string& cadir, const std::string& cafile, bool causesystem,
 	       const std::string& passphrase4key = "", const bool is_file = true);
 
     /** Same as previuos constructor but allows password to be
@@ -171,7 +171,7 @@ class Credential {
     * \since Added in 4.0.0.
     */
     Credential(const std::string& cert, const std::string& key,
-               const std::string& cadir, const std::string& cafile, bool causedefault,
+               const std::string& cadir, const std::string& cafile, bool causesystem,
 	       PasswordSource& passphrase4key, const bool is_file = true);
 
     /**Constructor, specific constructor for usual certificate, constructing from
@@ -223,7 +223,7 @@ class Credential {
     Credential(const Credential&);
 
     void InitCredential(const std::string& cert, const std::string& key,
-		        const std::string& cadir, const std::string& cafile, bool causedefault,
+		        const std::string& cadir, const std::string& cafile, bool causesystem,
 			PasswordSource& passphrase4key, const bool is_file);
     void InitEmpty();
 

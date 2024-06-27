@@ -363,7 +363,7 @@ class EndpointFilterType(EndpointFilter):
     _resourseinfo_endpoint_types = [
         'org.nordugrid.ldapglue2',
         'org.nordugrid.ldapng',
-        'org.ogf.glue.emies.resourceinfo'
+        'org.ogf.glue.emies.resourceinfo',
         'org.nordugrid.arcrest'
     ]
 
@@ -655,7 +655,7 @@ def get_file_celist(fpath):
     return ce_list
 
 
-def get_egiis_celist(egiis_uri, ldap_timeout=_fetch_timeout):
+def get_egiis_celist(egiis_uri, conn_timeout=_fetch_timeout):
     """Fetch CE hostnames from EGIIS (for migration)"""
     ce_list = []
     ldap_uri_re = re.compile(r'^(?P<uri>ldap://[^:/]+(?::[0-9]+))/(?P<basedn>.*)')
@@ -671,8 +671,8 @@ def get_egiis_celist(egiis_uri, ldap_timeout=_fetch_timeout):
 
     try:
         ldap_conn = ldap.initialize(ldap_uri)
-        ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, ldap_timeout)
-        ldap_conn.set_option(ldap.OPT_TIMEOUT, ldap_timeout)
+        ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, conn_timeout)
+        ldap_conn.set_option(ldap.OPT_TIMEOUT, conn_timeout)
         ldap_conn.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3)
 
         logger.debug('Querying EGIIS: %s', egiis_uri)
@@ -687,7 +687,7 @@ def get_egiis_celist(egiis_uri, ldap_timeout=_fetch_timeout):
                 ce_list.append(egiis_entry['Mds-Service-hn'][0].decode())
             else:
                 ce_list += get_egiis_celist('ldap://{Mds-Service-hn[0]}:2135/'
-                                            '{Mds-Service-Ldap-suffix[0]}'.format(**egiis_entry), ldap_timeout)
+                                            '{Mds-Service-Ldap-suffix[0]}'.format(**egiis_entry), conn_timeout)
 
     except ldap.LDAPError as err:
         logger.warning('Failed to query EGIIS %s. Error: %s', egiis_uri, LDAPStrError(err))
@@ -697,7 +697,69 @@ def get_egiis_celist(egiis_uri, ldap_timeout=_fetch_timeout):
 #
 # INFO ENDPOINTS PROCESSING FUNCTION
 #
-def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, ldap_timeout=_fetch_timeout, filters=None):
+def get_arc_ce_endpoints_arcrest(hostname, port=443, conn_timeout=_fetch_timeout, filters=None):
+    """Get ARC CE endpoints by querying ARC REST info endpoint"""
+    # define filters
+    fetch_vos = False
+    if filters is None:
+        filters = []
+    else:
+        for f in filters:
+            if f.type() == 'vo':
+                fetch_vos = True
+                break
+    endpoints = []
+    # Query REST info endpoint
+    req_path = '/arex/rest/1.0/info?schema=glue2'
+    req_headers = {'Accept': 'application/xml'}
+    conn = HTTPSInsecureConnection(hostname, port, timeout=conn_timeout)
+    try:
+        # fetch the data
+        conn.request('GET', req_path, headers=req_headers)
+        response = conn.getresponse()
+        if response.status != 200:
+            logger.error('Failed to get info from ARC REST API at http://%s:%s%s. HTTP reason: %s',
+                         hostname, port, req_path, response.reason)
+        else:
+            # parse the XML
+            try:
+                info_xml = ElementTree.fromstring(response.read())
+                for e in info_xml.findall(".//*[@BaseType='Endpoint']"):
+                    e_id = e.find('{*}ID').text
+                    e_url = e.find('{*}URL').text
+                    e_type = e.find('{*}InterfaceName').text
+                    e_entry = {'id': e_id, 'u': e_url, 't': e_type}
+                    if e.find('{*}HealthState').text.upper() != 'OK':
+                        e_entry['s'] = '0'
+                    # fetch access policy if VO filtering is requested
+                    if fetch_vos:
+                        e_vos = []
+                        for policy_rule in e.findall('{*}AccessPolicy/{*}Rule'):
+                            e_vos.append(policy_rule.text.split(':', 1)[1])
+                        if e_vos:
+                            e_entry['vos'] = e_vos
+                    # apply filters if any
+                    for fo in filters:
+                        if fo.on_fetch():
+                            if fo.filter(e_entry):
+                                break
+                    else:
+                        # add endpoint if not filtered
+                        logger.debug('Found endpoint %s (type %s) for ARC CE %s', e_url, e_type, hostname)
+                        endpoints.append(e_entry)
+            except ElementTree.ParseError as err:
+                logger.error('Failed to parse info XML. Error: %s', str(err))
+    except Exception as e:
+        logger.error('Failed to query ARC REST API at http://%s:%s%s. Error: %s',
+                     hostname, port, req_path, e)
+    # fallback to LDAP GLUE2 for ARC CEs without REST enabled
+    if not endpoints:
+        logger.warning('There are no endpoints fetched for %s using ARC REST. Falling back to LDAP GLUE2.', hostname)
+        endpoints = get_arc_ce_endpoints_ldapglue2(hostname, 2135, conn_timeout, filters)
+    return endpoints
+
+
+def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, conn_timeout=_fetch_timeout, filters=None):
     """Get ARC CE endpoints by querying LDAP GLUE2 (fallback to LDAP NG query)"""
     # define filters
     fetch_vos = False
@@ -718,8 +780,8 @@ def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, ldap_timeout=_fetch_time
 
     try:
         ldap_conn = ldap.initialize(ldap_uri)
-        ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, ldap_timeout)
-        ldap_conn.set_option(ldap.OPT_TIMEOUT, ldap_timeout)
+        ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, conn_timeout)
+        ldap_conn.set_option(ldap.OPT_TIMEOUT, conn_timeout)
         ldap_conn.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3)
 
         ldap_endpoints_list = ldap_conn.search_s(ldap_basedn, ldap.SCOPE_SUBTREE, ldap_filter, ldap_attrs)
@@ -740,7 +802,7 @@ def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, ldap_timeout=_fetch_time
             e_entry = {'id': e_id, 'u': e_url, 't': e_type}
             if ldap_ee['GLUE2EndpointHealthState'][0].decode().upper() != 'OK':
                 e_entry['s'] = '0'
-                # fetch access policy if VO filtering is requested
+            # fetch access policy if VO filtering is requested
             if fetch_vos:
                 ldap_vo_filter = '(&(objectClass=GLUE2AccessPolicy)' \
                                  '(GLUE2AccessPolicyEndpointForeignKey={0}))'.format(e_id)
@@ -770,11 +832,11 @@ def get_arc_ce_endpoints_ldapglue2(hostname, port=2135, ldap_timeout=_fetch_time
     # fallback to LDAP NG for classic legacy ARC CEs without GLUE2 support
     if not endpoints:
         logger.warning('There are no endpoints fetched for %s using LDAP GLUE2. Falling back to LDAP NG.', hostname)
-        endpoints = get_arc_ce_endpoints_ldapng(hostname, port, ldap_timeout, filters)
+        endpoints = get_arc_ce_endpoints_ldapng(hostname, port, conn_timeout, filters)
     return endpoints
 
 
-def get_arc_ce_endpoints_ldapng(hostname, port=2135, ldap_timeout=_fetch_timeout, filters=None):
+def get_arc_ce_endpoints_ldapng(hostname, port=2135, conn_timeout=_fetch_timeout, filters=None):
     """Get ARC CE endpoints by querying Legacy LDAP NorduGrid Schema"""
     if filters is None:
         filters = []
@@ -788,8 +850,8 @@ def get_arc_ce_endpoints_ldapng(hostname, port=2135, ldap_timeout=_fetch_timeout
 
     try:
         ldap_conn = ldap.initialize(ldap_uri)
-        ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, ldap_timeout)
-        ldap_conn.set_option(ldap.OPT_TIMEOUT, ldap_timeout)
+        ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, conn_timeout)
+        ldap_conn.set_option(ldap.OPT_TIMEOUT, conn_timeout)
         ldap_conn.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3)
 
         ldap_endpoints_list = ldap_conn.search_s(ldap_basedn, ldap.SCOPE_SUBTREE, ldap_filter, ldap_attrs)
@@ -844,7 +906,7 @@ def _ldap_uri_dict(uri):
     return ldap_uri_dict
 
 
-def get_sitebdii_endpoints_ldapglue1(uri, ldap_timeout=_fetch_timeout, filters=None):
+def get_sitebdii_endpoints_ldapglue1(uri, conn_timeout=_fetch_timeout, filters=None):
     """Get services and their endpoints by querying Site-BDII LDAP GLUE1"""
     ldap_uri_dict = _ldap_uri_dict(uri)
     if ldap_uri_dict is None:
@@ -860,8 +922,8 @@ def get_sitebdii_endpoints_ldapglue1(uri, ldap_timeout=_fetch_timeout, filters=N
 
     try:
         ldap_conn = ldap.initialize(ldap_uri)
-        ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, ldap_timeout)
-        ldap_conn.set_option(ldap.OPT_TIMEOUT, ldap_timeout)
+        ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, conn_timeout)
+        ldap_conn.set_option(ldap.OPT_TIMEOUT, conn_timeout)
         ldap_conn.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3)
 
         # Query info (3 completely different kind of objects in Glue1: Serive, CE and SE)
@@ -955,7 +1017,7 @@ def get_sitebdii_endpoints_ldapglue1(uri, ldap_timeout=_fetch_timeout, filters=N
     return services.values()
 
 
-def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=_fetch_timeout, filters=None):
+def get_sitebdii_endpoints_ldapglue2(uri, conn_timeout=_fetch_timeout, filters=None):
     """Get services and their endpoints by querying Site-BDII LDAP GLUE2"""
     ldap_uri_dict = _ldap_uri_dict(uri)
     if ldap_uri_dict is None:
@@ -986,8 +1048,8 @@ def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=_fetch_timeout, filters=N
 
     try:
         ldap_conn = ldap.initialize(ldap_uri)
-        ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, ldap_timeout)
-        ldap_conn.set_option(ldap.OPT_TIMEOUT, ldap_timeout)
+        ldap_conn.set_option(ldap.OPT_NETWORK_TIMEOUT, conn_timeout)
+        ldap_conn.set_option(ldap.OPT_TIMEOUT, conn_timeout)
         ldap_conn.set_option(ldap.OPT_PROTOCOL_VERSION, ldap.VERSION3)
 
         # Query services info
@@ -1071,11 +1133,12 @@ def get_sitebdii_endpoints_ldapglue2(uri, ldap_timeout=_fetch_timeout, filters=N
     if not services and glue1_fallback:
         logger.warning('There are no service endpoints fetched for LDAP GLUE2 URI %s. '
                        'Falling back to LDAP GLUE1 site-bdii query.', ldap_uri)
-        return get_sitebdii_endpoints_ldapglue1(uri, ldap_timeout, filters)
+        return get_sitebdii_endpoints_ldapglue1(uri, conn_timeout, filters)
 
     return services.values()
 
 _fetch_data_map = {
+    'arc-rest': get_arc_ce_endpoints_arcrest,
     'arc-ldapglue2': get_arc_ce_endpoints_ldapglue2,
     'arc-ldapng': get_arc_ce_endpoints_ldapng,
     'sitebdii': get_sitebdii_endpoints_ldapglue2,
@@ -1225,7 +1288,7 @@ def get_arcce_topology(ce_list, rr_owner=''):
         }
         service_object['rr_owner'] = dns_rr_owner_name(service_object, rr_owner)
         service_object['endpoints_fetch'] = {
-            'arc-ldapglue2':  ce
+            'arc-rest':  ce
         }
         archery_object['contains'].append(service_object)
 

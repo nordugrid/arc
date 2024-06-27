@@ -135,7 +135,7 @@ namespace Arc {
    * - proxypath / ProxyPath(const std::string&)
    * - cacertificatesdirectory / CACertificatesDirectory(const std::string&)
    * - cacertificatepath / CACertificatePath(const std::string&)
-   * - causedefault / CAUseDefault(bool)
+   * - causesystem / CAUseSystem(bool)
    * - timeout / Timeout(int)
    * - joblist / JobListFile(const std::string&)
    * - joblisttype / JobListType(const std::string&)
@@ -388,7 +388,7 @@ namespace Arc {
      **/
     bool CredentialsFound() const {
       return !((proxyPath.empty() && (certificatePath.empty() || keyPath.empty())) ||
-               (caCertificatesDirectory.empty() && !caUseDefault));
+               (caCertificatesDirectory.empty() && !caUseSystem));
     }
 
     /// Load specified configuration file
@@ -928,19 +928,19 @@ namespace Arc {
      * Specifies if system wide CA-certificates are used.
      *
      * The attribute associated with this setter method is
-     * 'causedefault'.
+     * 'causesystem'.
      *
-     * @param newCAUseDefault if system wide CA-certificates are used.
+     * @param newCAUseSystem if system wide CA-certificates are used.
      * @return This method always returns \c true.
      * @see InitializeCredentials()
      * @see CredentialsFound() const
      **/
-    bool CAUseDefault(bool newCAUseDefault) { caUseDefault = newCAUseDefault; return true; }
-    bool CAUseDefault(const std::string& newCAUseDefault) {
-      if((newCAUseDefault == "true") || (newCAUseDefault == "1"))
-        return CAUseDefault(true);
-      if((newCAUseDefault == "false") || (newCAUseDefault == "0"))
-        return CAUseDefault(false);
+    bool CAUseSystem(bool newCAUseSystem) { caUseSystem = newCAUseSystem; return true; }
+    bool CAUseSystem(const std::string& newCAUseSystem) {
+      if((newCAUseSystem == "true") || (newCAUseSystem == "1"))
+        return CAUseSystem(true);
+      if((newCAUseSystem == "false") || (newCAUseSystem == "0"))
+        return CAUseSystem(false);
       return false;
     }
     /**
@@ -950,7 +950,10 @@ namespace Arc {
      * @see InitializeCredentials()
      * @see CredentialsFound() const
      **/
-    bool CAUseDefault() const { return caUseDefault; }
+    bool CAUseSystem() const { return caUseSystem; }
+
+    bool TLSAllowInsecure(bool newTLSAllowInsecure) { tlsAllowInsecure = newTLSAllowInsecure; return true; }
+    bool TLSAllowInsecure() const { return tlsAllowInsecure; }
 
     enum AuthType {
       AuthTypeUndefined = 0, /// No restrictions, use whatever authentication avaialble (default)
@@ -1388,7 +1391,8 @@ namespace Arc {
     int keySize;
     std::string caCertificatePath;
     std::string caCertificatesDirectory;
-    bool caUseDefault;
+    bool caUseSystem;
+    bool tlsAllowInsecure;
     AuthType authType;
     Period certificateLifeTime;
 

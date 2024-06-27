@@ -44,31 +44,72 @@ class CleanupControl(ComponentControl):
                                   'Running cleanup with running A-REX is not supported and can break the system. '
                                   'If you whant to do it anyway, override with --force.')
                 sys.exit(1)
-            if not args.yes:
-                print('This action will do the cleanup of the control directly that cannot be undone!')
-                print('It is advised to have a backups.')
-                if not ask_yes_no('Do you want to continue?'):
-                    return
+        print_warn(self.logger, 'Controldir cleanup will remove job metadata only! Session directories will remain intact.')
+        if not args.yes and not args.dry_run:
+            print('This action will do the cleanup of the control directly that cannot be undone!')
+            print('It is advised to have a backups.')
+            if not ask_yes_no('Do you want to continue?'):
+                return
+        # remove all jobs metadata (keep accounting, rtes, etc)
         if args.wipe:
-            for d in ['accepting', 'finished', 'processing', 'restarting', 'jobs']:
+            for d in ['accepting', 'finished', 'processing', 'restarting', 'jobs', 'delegations']:
                 dpath = os.path.join(self.control_dir, d)
                 if os.path.exists(dpath):
                     print_info(self.logger, 'Recursively removing the directory: %s', dpath)
-                    run_subprocess('rm', '-rf', dpath)
+                    run_subprocess('rm', '-rf', dpath, dry_run=args.dry_run)
+        # garbage collection (orphaned directories and jobs cleanup)
         elif args.gc:
             jobsdir = os.path.join(self.control_dir, 'jobs')
+            # erphaned empty directories in the jobs structure
             print_info(self.logger, 'Cleaning up empty job directories in %s', jobsdir)
-            run_subprocess('find', jobsdir, '-type', 'd', '-depth', '-empty', '-delete')
-            # TODO: threre should not be any jobs for which .status is missing
+            run_subprocess('find', jobsdir, '-depth', '-type', 'd', '-empty', '-delete', dry_run=args.dry_run)
+            # threre should not be any jobs for which .status is missing
+            print_info(self.logger, 'Indexing the jobs managed by A-REX in %s', jobsdir)
+            jobs_s = set()
+            for d in ['accepting', 'finished', 'processing', 'restarting']:
+                dpath = os.path.join(self.control_dir, d)
+                self.logger.debug('Indexing jobs in %s', dpath)
+                for j in run_subprocess('find', dpath, '-type', 'f', '-name', '*.status', '-printf', '%P\n').splitlines():
+                    jobs_s.add(j[:-7])
+            if '' in jobs_s:
+                jobs_s.remove('')
+            self.logger.debug('Found %s jobs managed by A-REX', len(jobs_s))
+            print_info(self.logger, 'Cleaning up files for orphaned jobs without the status in %s', jobsdir)
+            gc_jobs = 0
+            for j in run_subprocess('find', jobsdir, '-mindepth', '4', '-type', 'd', '-printf', '%P\n').splitlines():
+                j_split = j.split('/')
+                if len(j_split) != 4:
+                    self.logger.error('Malformed path found: %s', os.path.join(jobsdir, j))
+                    continue
+                jobid = ''.join(j_split)
+                if jobid not in jobs_s:
+                    orphaned_dir = os.path.join(jobsdir, j)
+                    print_info(self.logger, 'Removing job directory %s for orphaned job without status', orphaned_dir)
+                    run_subprocess('rm', '-rf', orphaned_dir, dry_run=args.dry_run)
+                    gc_jobs += 1
+            if not gc_jobs:
+                print_info(self.logger, 'No orphaned jobs found')
+            else:
+                print_info(self.logger, 'Cleaned up metadata for %s orphaned jobs', gc_jobs)
+                print_info(self.logger, 'Cleaning up empty orphaned jobs directories in %s', jobsdir)
+                run_subprocess('find', jobsdir, '-depth', '-type', 'd', '-empty', '-delete', dry_run=args.dry_run)
+        # cleanup old finished jobs (force-cleanup outside of A-REX ttl/ttr handling)
         elif args.finished_before is not None:
-            print_warn(self.logger, 'Controldir cleanup will remove job metadata only! Session directories remains intact.')
-            if not args.yes:
-                if not ask_yes_no('Do you want to continue?'):
-                    return
             print_info(self.logger, 'Cleaning up all jobs finished before %s', args.finished_before)
-            # TODO: implement finished cleanup
-            self.logger.error('Not implelemnted yet')
-            sys.exit(1)
+            jobsdir = os.path.join(self.control_dir, 'jobs')
+            finisheddir = os.path.join(self.control_dir, 'finished')
+            jobs_f = []
+            for j in run_subprocess('find', finisheddir, '!', '-newermt', str(args.finished_before),
+                                    '-type', 'f', '-name', '*.status', '-printf', '%P\n').splitlines():
+                jobs_f.append(j[:-7])
+            if not jobs_f:
+                print_info(self.logger, 'No jobs found to cleanup')
+                return
+            print_info(self.logger, 'Found %s jobs to clean up', len(jobs_f))
+            for j in jobs_f:
+                print_info(self.logger, 'Cleaning up job %s', j)
+                run_subprocess('rm', '-f', os.path.join(finisheddir, j + '.status'), dry_run=args.dry_run)
+                run_subprocess('rm', '-rf', control_path(self.control_dir, j, ''), dry_run=args.dry_run)
 
     def control(self, args):
         if args.action == 'controldir':
@@ -103,6 +144,7 @@ class CleanupControl(ComponentControl):
         cleanup_controldir = cleanup_actions.add_parser('controldir', help='Cleaup jobs metadata in controldir')
         cleanup_controldir.add_argument('--force', action='store_true', help='Override any safety checks')
         cleanup_controldir.add_argument('--yes', action='store_true', help='Answer yes to all questions')
+        cleanup_controldir.add_argument('--dry-run', action='store_true', help='Do not perform any actions, print the intended actions instead')
         controldir_actions = cleanup_controldir.add_mutually_exclusive_group()
         controldir_actions.required = True
         controldir_actions.add_argument('-g', '--gc', action='store_true', help='Cleanup leftovers in control directory')

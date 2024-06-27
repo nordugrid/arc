@@ -138,10 +138,10 @@ static int runmain(int argc, char **argv) {
               istring("perform token authentication for opened connections"),
               token_authentication);
 
-  bool force_default_ca = false;
-  options.AddOption('\0', "defaultca",
+  bool force_system_ca = false;
+  options.AddOption('\0', "systemca",
               istring("force using CA certificates configuration provided by OpenSSL"),
-              force_default_ca);
+              force_system_ca);
 
   bool force_grid_ca = false;
   options.AddOption('\0', "gridca",
@@ -194,8 +194,8 @@ static int runmain(int argc, char **argv) {
     return 1;
   }
   usercfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY());
-  if (force_default_ca) usercfg.CAUseDefault(true);
-  if (force_grid_ca) usercfg.CAUseDefault(false);
+  if (force_system_ca) usercfg.CAUseSystem(true);
+  if (force_grid_ca) usercfg.CAUseSystem(false);
 
   AuthenticationType authentication_type = UndefinedAuthentication;
   switch(authentication_type) {
