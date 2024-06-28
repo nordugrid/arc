@@ -880,7 +880,9 @@ namespace Arc {
 
     logger.msg(VERBOSE, "Downloading job: %s", JobID);
     
-    URL src, logsrc, dst(destination);
+    URL src;
+    URL logsrc;
+    URL dst(destination);
     if (!jc->GetURLToJobResource(*this, STAGEOUTDIR, src)) {
       logger.msg(ERROR, "Can't retrieve job files for job (%s) - unable to determine URL of stage out directory", JobID);
       return false;
@@ -917,7 +919,7 @@ namespace Arc {
         return false;
       }
       for(std::list<std::string>::iterator it = paths.begin(); it != paths.end(); ++it) {
-	URLLocation file(src, *it);
+        URLLocation file(src, *it);
         file.ChangePath(srcpath + *it);
         files.push_back(file);
       }
@@ -934,7 +936,7 @@ namespace Arc {
           return false;
         }
         for(std::list<std::string>::iterator it = paths.begin(); it != paths.end(); ++it) {
-	  URLLocation file(logsrc, *it+LogDir+"/");
+	  URLLocation file(logsrc, LogDir+"/"+*it);
           file.ChangePath(logsrcpath + *it);
           files.push_back(file);
         }
@@ -959,9 +961,11 @@ namespace Arc {
     }
 
     bool ok = true;
+    std::set<std::string> processed;
     for (std::list<URLLocation>::const_iterator it = files.begin(); it != files.end(); ++it) {
       src = *it;
       dst.ChangePath(dstpath + it->Name());
+      if(!processed.insert(it->Name()).second) continue; // skip already processed input files
       if (Glib::file_test(dst.Path(), Glib::FILE_TEST_EXISTS)) {
         if (!force) {
           logger.msg(ERROR, "Failed downloading %s to %s, destination already exist", src.str(), dst.Path());
