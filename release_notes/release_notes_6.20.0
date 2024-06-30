@@ -3,15 +3,16 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.20.0    25.06.2024
+Release Notes for NorduGrid ARC  6.20.0    30.06.2024
 =======================================================
 Several important updates in this release. See below in highlights and Bugzilla tickets.
 
 
 Highlights in this release
 --------------------------
-The most important change in this release is the configurable support of APEL version.
-The default is v0.2 which is the current APEL format version, while v0.4 can be configured in arc.conf.
+The most important changes in this release are the configurable support of APEL version (Bugzilla 4184), in addition to correcting an unintended side-effect of a fix to Bugzilla ticket 4143 where arcget for jobs submitted via HTTPS do not gransfer gmlog (Bugzilla 4161).
+
+For the APEL related bugifx: the default is now v0.2 which is the current APEL format version, while v0.4 can be configured in arc.conf.
 The configuration is done in the "[arex/jura/apel]" block and the "apel_messages" option. If you do not set the apel_messages option, the default "summaries" value corresponding to v0.2 is used. If you want to use v0.4 use the "summaries-v04" instead.
 
 Note that APEL does not yet support the v0.4 in their production instance. 
@@ -20,11 +21,11 @@ Note that APEL does not yet support the v0.4 in their production instance.
 
 The following Bugzilla tickets have been adressed or solved
 ------------------------------------------------------------
-
 * 4184  APEL v0.2 and v0.4 support
 * 4168  "arcctl service restart -a" fails to start, with multiple 'cachedir' in '[arex/cache]'
 * 4166  Misspelling of special targets in unit files
 * 4167  Missing dependency ordering on nss-lookup.target for arc-infosys-ldap-slapd.service 
+* 4161  arcget and gmlog WARNING messages and job failure in ARC 6.19.0
 * 4149  Escaping apostrophe in signing policy
 * 4116  GLUE2 info system is inconsistent between ARC6 and ARC7 wrt to existing and published ForeignKeys
 
