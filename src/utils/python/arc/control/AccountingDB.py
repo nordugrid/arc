@@ -74,6 +74,7 @@ class AccountingDB(object):
         self.users = {}
         self.wlcgvos = {}
         self.statuses = {}
+        self.benchmarks = {}
         self.endpoints = {}
 
         # select aggregate filtering
@@ -193,6 +194,11 @@ class AccountingDB(object):
             self.logger.debug('Fetching available job statuses from accounting database')
             self.statuses = self.__fetch_idname_table('Status')
 
+    def __fetch_benchmarks(self, force=False):
+        if not self.benchmarks or force:
+            self.logger.debug('Fetching available node benchmarks from accounting database')
+            self.benchmarks = self.__fetch_idname_table('Benchmarks')
+
     def __fetch_endpoints(self, force=False):
         if not self.endpoints or force:
             self.logger.debug('Fetching service endpoints from accounting database')
@@ -230,6 +236,10 @@ class AccountingDB(object):
     def get_statuses(self):
         self.__fetch_statuses()
         return self.statuses['byname'].keys()
+
+    def get_benchmarks(self):
+        self.__fetch_benchmarks()
+        return self.benchmarks['byname'].keys()
 
     def get_endpoint_types(self):
         self.__fetch_endpoints()
@@ -539,12 +549,14 @@ class AccountingDB(object):
             aars.append(aar)
         if resolve_ids:
             self.__fetch_statuses()
+            self.__fetch_benchmarks()
             self.__fetch_users()
             self.__fetch_wlcgvos()
             self.__fetch_queues()
             self.__fetch_endpoints()
             for a in aars:
                 a.aar['Status'] = self.statuses['byid'][a.aar['StatusID']]
+                a.aar['Benchmark'] = self.benchmarks['byid'][a.aar['BenchmarkID']]
                 a.aar['UserSN'] = self.users['byid'][a.aar['UserID']]
                 a.aar['WLCGVO'] = self.wlcgvos['byid'][a.aar['VOID']]
                 a.aar['Queue'] = self.queues['byid'][a.aar['QueueID']]
@@ -558,7 +570,6 @@ class AccountingDB(object):
         """Add info from extra tables to the list of AAR objects.
         This method assumes that the optional info will be queried just after basic info about AARs (when needed)
         The same query filtering object should be used! Do not clear filters between get_aars and enrich_aars"""
-        recordids = [a.recordid() for a in aars]
         auth_data = None
         events_data = None
         rtes_data = None
@@ -604,15 +615,12 @@ class AccountingDB(object):
         self.logger.debug('Will query extra table for the records in range [%s, %s]', record_start, record_end)
         # invoke heavy summary query with extra table pre-filtering
         sql = '''SELECT a.UserID, a.VOID, a.EndpointID, a.NodeCount, a.CPUCount,
-              t.AttrValue as AuthToken, e.InfoValue as RBenchmark,
+              t.AttrValue as AuthToken, a.BenchmarkID,
               COUNT(a.RecordID), SUM(a.UsedWalltime), SUM(a.UsedCPUTime), MIN(a.EndTime), MAX(a.EndTime),
               strftime("%Y-%m", a.endTime, "unixepoch") AS YearMonth
               FROM ( SELECT RecordID, UserID, VOID, EndpointID, NodeCount, CPUCount, SubmitTime, EndTime,
                             UsedWalltime, UsedCPUUserTime + UsedCPUKernelTime AS UsedCPUTime FROM AAR
                      WHERE 1=1 <FILTERS>) a
-              LEFT JOIN ( SELECT * FROM JobExtraInfo
-                          WHERE JobExtraInfo.RecordID >= {0} AND JobExtraInfo.RecordID <= {1}
-                          AND JobExtraInfo.InfoKey = "benchmark" ) e ON e.RecordID = a.RecordID
               LEFT JOIN ( SELECT * FROM AuthTokenAttributes
                           WHERE AuthTokenAttributes.RecordID >= {0} AND AuthTokenAttributes.RecordID <= {1}
                           AND AuthTokenAttributes.AttrKey = "mainfqan" ) t ON t.RecordID = a.RecordID
@@ -620,6 +628,7 @@ class AccountingDB(object):
                        a.NodeCount, a.CPUCount, RBenchmark'''.format(record_start, record_end)
         self.__fetch_users()
         self.__fetch_wlcgvos()
+        self.__fetch_benchmarks()
         self.__fetch_endpoints()
         self.logger.debug('Invoking query to fetch APEL summaries data from database')
         for res in self.__filtered_query(sql, errorstr='Failed to get APEL summary info from database'):
@@ -633,7 +642,7 @@ class AccountingDB(object):
                 'nodecount': res[3],
                 'cpucount': res[4],
                 'fqan': res[5],
-                'benchmark': res[6],
+                'benchmark': self.benchmarks['byid'][res[6]],
                 'count': res[7],
                 'walltime': res[8],
                 'cputime': res[9],
@@ -772,19 +781,21 @@ class AAR(object):
             'StatusID': res[7],
             'Status': None,
             'ExitCode': res[8],
-            'SubmitTime': datetime.datetime.utcfromtimestamp(res[9]),
-            'EndTime': datetime.datetime.utcfromtimestamp(res[10]),
-            'NodeCount': res[11],
-            'CPUCount': res[12],
-            'UsedMemory': res[13],
-            'UsedVirtMem': res[14],
-            'UsedWalltime': res[15],
-            'UsedCPUUserTime': res[16],
-            'UsedCPUKernelTime': res[17],
-            'UsedCPUTime': res[16] + res[17],
-            'UsedScratch': res[18],
-            'StageInVolume': res[19],
-            'StageOutVolume': res[20],
+            'BenchmarkID': res[9],
+            'Benchmark': None,
+            'SubmitTime': datetime.datetime.utcfromtimestamp(res[10]),
+            'EndTime': datetime.datetime.utcfromtimestamp(res[11]),
+            'NodeCount': res[12],
+            'CPUCount': res[13],
+            'UsedMemory': res[14],
+            'UsedVirtMem': res[15],
+            'UsedWalltime': res[16],
+            'UsedCPUUserTime': res[17],
+            'UsedCPUKernelTime': res[18],
+            'UsedCPUTime': res[17] + res[18],
+            'UsedScratch': res[19],
+            'StageInVolume': res[20],
+            'StageOutVolume': res[21],
             'AuthTokenAttributes': [],
             'JobEvents': [],
             'RunTimeEnvironments': [],
