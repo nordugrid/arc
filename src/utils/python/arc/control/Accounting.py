@@ -64,7 +64,7 @@ class AccountingControl(ComponentControl):
         if self.adb is not None:
             return
         if self.db_file is None:
-            self.db_file = self.arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting/accounting.db'
+            self.db_file = self.arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting/accounting_v2.db'
         self.adb = AccountingDB(self.db_file)
 
     def __add_adb_filters(self, args):
@@ -359,7 +359,8 @@ class AccountingControl(ComponentControl):
         targettype = None
         targetid = None
         confrequired = True
-        publisher = RecordsPublisher(self.arcconfig)
+        self.__init_adb()
+        publisher = RecordsPublisher(self.arcconfig, self.adb)
         if args.end_from > args.end_till:
             self.logger.error('Republishing timeframe specified incorrectly: "--end-from" cannot be later that "--end-till"')
             sys.exit(1)

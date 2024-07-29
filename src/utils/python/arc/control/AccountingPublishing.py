@@ -110,9 +110,8 @@ def get_apel_benchmark(logger, benchmark):
 #
 class RecordsPublisher(object):
     """Class for publishing accounting records to central network services"""
-    def __init__(self, arcconfig):
+    def __init__(self, arcconfig, adb=None):
         self.logger = logging.getLogger('ARC.Accounting.Publisher')
-        self.adb = None
         # arc config
         if arcconfig is None:
             self.logger.error('Failed to parse arc.conf. Accounting publishing is not possible.')
@@ -125,8 +124,10 @@ class RecordsPublisher(object):
         self.conf_targets += list(map(lambda t: ('apel', t), self.arcconfig.get_subblocks('arex/jura/apel')))
         # accounting database files and connection
         self.accounting_dir = arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting'
-        adb_file = self.accounting_dir + '/accounting.db'
-        self.adb = AccountingDB(adb_file)
+        self.adb = adb
+        if self.adb is None:
+            adb_file = self.accounting_dir + '/accounting_v2.db'
+            self.adb = AccountingDB(adb_file)
         # publishing state database file
         self.pdb_file = self.accounting_dir + '/publishing.db'
         self.logger.debug('Accounting records publisher had been initialized')
