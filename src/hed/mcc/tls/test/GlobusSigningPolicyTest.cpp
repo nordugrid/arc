@@ -16,7 +16,7 @@
 static char const policycontent1[] = {
 "access_id_CA  X509   /C=ca/O=subject\n"
 "pos_rights    globus CA:sign\n"
-"cond_subjects globus '\"/O=subject/CN=user1\" \"/O=subject/CN=user2/emailAddress=*\"'\n"
+"cond_subjects globus '\"/O=subject/CN=user1\" \"/O=subject/CN=user2/emailAddress=*\" \"/C=CH/ST=Gen\\xC3\\xA8ve/O=CERN Organisation Europ\\xC3\\xA9enne pour la Recherche Nucl\\xC3\\xA9aire/CN=www.cern.ch\"'\n"
 };
 
 static char const policycontent2[] = {
@@ -164,6 +164,12 @@ void GlobusSigningPolicyTest::CASubjectMatchTest() {
   X509_NAME_add_entry_by_txt(userGood2, "CN", MBSTRING_ASC, (unsigned char const *)"user2", -1, -1, 0);
   X509_NAME_add_entry_by_txt(userGood2, "emailAddress", MBSTRING_ASC, (unsigned char const *)"alt1", -1, -1, 0);
 
+  X509_NAME* userGood3 = X509_NAME_new();
+  X509_NAME_add_entry_by_txt(userGood3, "C", MBSTRING_ASC, (unsigned char const *)"CH", -1, -1, 0);
+  X509_NAME_add_entry_by_txt(userGood3, "ST", MBSTRING_UTF8, (unsigned char const *)"Gen" "\xC3" "\xA8" "ve", -1, -1, 0);
+  X509_NAME_add_entry_by_txt(userGood3, "O", MBSTRING_UTF8, (unsigned char const *)"CERN Organisation Europ" "\xC3" "\xA9" "enne pour la Recherche Nucl" "\xC3" "\xA9" "aire", -1, -1, 0);
+  X509_NAME_add_entry_by_txt(userGood3, "CN", MBSTRING_ASC, (unsigned char const *)"www.cern.ch", -1, -1, 0);
+
   X509_NAME* userBad1 = X509_NAME_new();
   X509_NAME_add_entry_by_txt(userBad1, "O", MBSTRING_ASC, (unsigned char const *)"subject", -1, -1, 0);
   X509_NAME_add_entry_by_txt(userBad1, "CN", MBSTRING_ASC, (unsigned char const *)"bad", -1, -1, 0);
@@ -172,6 +178,8 @@ void GlobusSigningPolicyTest::CASubjectMatchTest() {
   CPPUNIT_ASSERT(policy.match(caGood1, userGood1));
   CPPUNIT_ASSERT(policy.open(policyfilename1, capath));
   CPPUNIT_ASSERT(policy.match(caGood1, userGood2));
+  CPPUNIT_ASSERT(policy.open(policyfilename1, capath));
+  CPPUNIT_ASSERT(policy.match(caGood1, userGood3));
 
   CPPUNIT_ASSERT(policy.open(policyfilename2, capath));
   CPPUNIT_ASSERT(policy.match(caGood2, userGood1));
