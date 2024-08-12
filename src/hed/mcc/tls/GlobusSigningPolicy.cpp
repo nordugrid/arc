@@ -63,6 +63,10 @@ static void get_word(std::string& s,std::string& word) {
           break;
         }
       } else {
+        // pass on rfc1779 \xAA escape
+        if(s[w_s] == 'x') {
+          word.append(1, '\\');
+        }
         escape = false;
       }
       if(s[w_s] == '\\') {
@@ -197,6 +201,12 @@ static bool match_all(const std::string& issuer_subject,const std::string& subje
         p=pattern->find('*',p);
         if(p == std::string::npos) break;
         pattern->insert(p,"."); p+=2;
+      };
+      p = 0;
+      for(;;) {
+        p=pattern->find('\\',p);
+        if(p == std::string::npos) break;
+        pattern->insert(p,"\\"); p+=2;
       };
       (*pattern)="^"+(*pattern)+"$";
       RegularExpression re(*pattern);
