@@ -2,12 +2,11 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from .ControlCommon import *
-from .AccountingDB import AccountingDB
+from .AccountingDB import AccountingDB, ACCOUNTING_DB_FILE
 from .AccountingPublishing import RecordsPublisher
 
 import sys
 import json
-
 
 def complete_wlcgvo(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
@@ -56,7 +55,10 @@ class AccountingControl(ComponentControl):
             del self.adb
             self.adb = None
 
-    def __set_db_location(self, db_location):
+    def __set_db_location(self, db_location=ACCOUNTING_DB_FILE):
+        """Set the location of accounting database file"""
+        if not db_location.startswith('/'):
+            db_location = os.path.join(self.arcconfig.get_value('controldir', 'arex'), "accounting", db_location)
         self.db_file = db_location
 
     def __init_adb(self):
@@ -64,7 +66,7 @@ class AccountingControl(ComponentControl):
         if self.adb is not None:
             return
         if self.db_file is None:
-            self.db_file = self.arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting/accounting_v2.db'
+            self.__set_db_location()
         self.adb = AccountingDB(self.db_file)
 
     def __add_adb_filters(self, args):
@@ -205,6 +207,9 @@ class AccountingControl(ComponentControl):
                 print('  Following job properties are recorded:')
             for attr in extrainfo.keys():
                 print('    {0}: {1}'.format(attr.capitalize(), extrainfo[attr]))
+            # benchmark in v2
+            if self.adb.db_version >= 2:
+                print('    BENCHMARK: {0}'.format(aar.get()['Benchmark']))
         if args.output == 'resources' or all:
             # resource usage
             if all:

@@ -7,6 +7,7 @@ import sqlite3
 
 from .ControlCommon import get_human_readable_size
 
+ACCOUNTING_DB_FILE = "accounting_v2.db"
 
 class SQLFilter(object):
     """Helper object to aggregate SQL where statements"""
@@ -46,6 +47,7 @@ class AccountingDB(object):
         """Try to init connection in constructor to ensure database is accessible"""
         self.logger = logging.getLogger('ARC.AccountingDB')
         self.db_file = db_file
+        self.db_version = 0
         self.con = None
         self.pub_con = None
         # don't try to initialize database if not exists
@@ -54,6 +56,8 @@ class AccountingDB(object):
             sys.exit(1)
         # try to make a connection
         self.adb_connect()
+        # fetch database version
+        self.adb_version()
         # ensure Write-Ahead Logging mode
         jmode = self.__get_value('PRAGMA journal_mode=WAL', errstr='SQLite journal mode')
         if jmode != 'wal':
@@ -74,7 +78,7 @@ class AccountingDB(object):
         self.users = {}
         self.wlcgvos = {}
         self.statuses = {}
-        self.benchmarks = {}
+        self.benchmarks = {}  # v2
         self.endpoints = {}
 
         # select aggregate filtering
@@ -100,6 +104,13 @@ class AccountingDB(object):
             self.logger.debug('Closing connection to accounting database')
             self.con.close()
             self.con = None
+
+    def adb_version(self):
+        """Return accounting database version"""
+        if not self.db_version:
+            self.db_version = int(self.__get_value('SELECT KeyValue FROM DBConfig WHERE KeyName = "DBSCHEMA_VERSION"'))
+            self.logger.info('Accounting database schema version for %s is %s', self.db_file, self.db_version)
+        return self.db_version
 
     def _backup_progress(self, status, remaining, total):
         """Log database backup progress"""
@@ -195,6 +206,8 @@ class AccountingDB(object):
             self.statuses = self.__fetch_idname_table('Status')
 
     def __fetch_benchmarks(self, force=False):
+        if self.db_version < 2:
+            return
         if not self.benchmarks or force:
             self.logger.debug('Fetching available node benchmarks from accounting database')
             self.benchmarks = self.__fetch_idname_table('Benchmarks')
@@ -238,6 +251,8 @@ class AccountingDB(object):
         return self.statuses['byname'].keys()
 
     def get_benchmarks(self):
+        if self.db_version < 2:
+            return []
         self.__fetch_benchmarks()
         return self.benchmarks['byname'].keys()
 
@@ -544,25 +559,26 @@ class AccountingDB(object):
         self.logger.debug('Fetching AARs main data from database')
         aars = []
         for res in self.__filtered_query('SELECT * FROM AAR', errorstr='Failed to get AAR(s) from database'):
-            aar = AAR()
+            aar = AAR(version=self.db_version)
             aar.fromDB(res)
             aars.append(aar)
         if resolve_ids:
             self.__fetch_statuses()
-            self.__fetch_benchmarks()
             self.__fetch_users()
             self.__fetch_wlcgvos()
             self.__fetch_queues()
             self.__fetch_endpoints()
+            self.__fetch_benchmarks()
             for a in aars:
                 a.aar['Status'] = self.statuses['byid'][a.aar['StatusID']]
-                a.aar['Benchmark'] = self.benchmarks['byid'][a.aar['BenchmarkID']]
                 a.aar['UserSN'] = self.users['byid'][a.aar['UserID']]
                 a.aar['WLCGVO'] = self.wlcgvos['byid'][a.aar['VOID']]
                 a.aar['Queue'] = self.queues['byid'][a.aar['QueueID']]
                 endpoint = self.endpoints['byid'][a.aar['EndpointID']]
                 a.aar['Interface'] = endpoint[0]
                 a.aar['EndpointURL'] = endpoint[1]
+                if self.db_version >= 2:
+                    a.aar['Benchmark'] = self.benchmarks['byid'][a.aar['BenchmarkID']]
         self.adb_close()
         return aars
 
@@ -599,7 +615,70 @@ class AccountingDB(object):
                 a.aar['JobExtraInfo'] = extra_data[rid]
 
     def get_apel_summaries(self):
-        """Return info corresponding to APEL aggregated summary records"""
+        """Return data for APEL aggregated summary records"""
+        if self.db_version < 2:
+            return self.__get_apel_summaries_v1()
+        else:
+            return self.__get_apel_summaries_v2()
+
+    def __get_apel_summaries_v1(self):
+        """Query data for APEL aggregated summary records from v1 database"""
+        summaries = []
+        # get RecordID range to limit further filtering
+        record_start = None
+        record_end = None
+        for res in self.__filtered_query('SELECT min(RecordID), max(RecordID) FROM AAR',
+                                         errorstr='Failed to get records range from database'):
+            record_start = res[0]
+            record_end = res[1]
+        if record_start is None or record_end is None:
+            self.logger.error('Database query error. Failed to proceed with APEL summary generation')
+            self.adb_close()
+            return summaries
+        self.logger.debug('Will query extra table for the records in range [%s, %s]', record_start, record_end)
+        # invoke heavy summary query with extra table pre-filtering
+        sql = '''SELECT a.UserID, a.VOID, a.EndpointID, a.NodeCount, a.CPUCount,
+              t.AttrValue as AuthToken, e.InfoValue as RBenchmark,
+              COUNT(a.RecordID), SUM(a.UsedWalltime), SUM(a.UsedCPUTime), MIN(a.EndTime), MAX(a.EndTime),
+              strftime("%Y-%m", a.endTime, "unixepoch") AS YearMonth
+              FROM ( SELECT RecordID, UserID, VOID, EndpointID, NodeCount, CPUCount, SubmitTime, EndTime,
+                            UsedWalltime, UsedCPUUserTime + UsedCPUKernelTime AS UsedCPUTime FROM AAR
+                     WHERE 1=1 <FILTERS>) a
+              LEFT JOIN ( SELECT * FROM JobExtraInfo
+                          WHERE JobExtraInfo.RecordID >= {0} AND JobExtraInfo.RecordID <= {1}
+                          AND JobExtraInfo.InfoKey = "benchmark" ) e ON e.RecordID = a.RecordID
+              LEFT JOIN ( SELECT * FROM AuthTokenAttributes
+                          WHERE AuthTokenAttributes.RecordID >= {0} AND AuthTokenAttributes.RecordID <= {1}
+                          AND AuthTokenAttributes.AttrKey = "mainfqan" ) t ON t.RecordID = a.RecordID
+              GROUP BY YearMonth, a.UserID, a.VOID, a.EndpointID,
+                       a.NodeCount, a.CPUCount, RBenchmark'''.format(record_start, record_end)
+        self.__fetch_users()
+        self.__fetch_wlcgvos()
+        self.__fetch_endpoints()
+        self.logger.debug('Invoking query to fetch APEL summaries data from database')
+        for res in self.__filtered_query(sql, errorstr='Failed to get APEL summary info from v1 database'):
+            (year, month) = res[12].split('-')
+            summaries.append({
+                'year': year,
+                'month': month.lstrip('0'),
+                'userdn': self.users['byid'][res[0]],
+                'wlcgvo': self.wlcgvos['byid'][res[1]],
+                'endpoint': self.endpoints['byid'][res[2]][1],
+                'nodecount': res[3],
+                'cpucount': res[4],
+                'fqan': res[5],
+                'benchmark': res[6],
+                'count': res[7],
+                'walltime': res[8],
+                'cputime': res[9],
+                'timestart': res[10],
+                'timeend': res[11]
+            })
+        self.adb_close()
+        return summaries
+
+    def __get_apel_summaries_v2(self):
+        """Query data for APEL aggregated summary records from v2 database"""
         summaries = []
         # get RecordID range to limit further filtering
         record_start = None
@@ -757,14 +836,23 @@ class AccountingDB(object):
             updatetime = 0
         return updatetime
 
-
 class AAR(object):
     """AAR representation in Python"""
-    def __init__(self):
-        # define AAR dict structure
+    def __init__(self, version=2):
+        self.logger = logging.getLogger('ARC.AccountingDB.AAR')
         self.aar = {}
+        self.version = 2
 
     def fromDB(self, res):
+        if self.version == 2:
+            return self.__fromDB_v2(res)
+        elif self.version == 1:
+            return self.__fromDB_v1(res)
+        else:
+            self.logger.fatal('AAR version %s is not supported.', self.version)
+            sys.exit(1)
+
+    def __fromDB_v2(self, res):
         self.aar = {
             'RecordID': res[0],
             'JobID': res[1],
@@ -802,6 +890,44 @@ class AAR(object):
             'DataTransfers': [],
             'JobExtraInfo': {}
         }
+
+    def __fromDB_v1(self, res):
+        self.aar = {
+            'RecordID': res[0],
+            'JobID': res[1],
+            'LocalJobID': res[2],
+            'EndpointID': res[3],
+            'Interface': None,
+            'EndpointURL': None,
+            'QueueID': res[4],
+            'Queue': None,
+            'UserID': res[5],
+            'UserSN': None,
+            'VOID': res[6],
+            'WLCGVO': None,
+            'StatusID': res[7],
+            'Status': None,
+            'ExitCode': res[8],
+            'SubmitTime': datetime.datetime.utcfromtimestamp(res[9]),
+            'EndTime': datetime.datetime.utcfromtimestamp(res[10]),
+            'NodeCount': res[11],
+            'CPUCount': res[12],
+            'UsedMemory': res[13],
+            'UsedVirtMem': res[14],
+            'UsedWalltime': res[15],
+            'UsedCPUUserTime': res[16],
+            'UsedCPUKernelTime': res[17],
+            'UsedCPUTime': res[16] + res[17],
+            'UsedScratch': res[18],
+            'StageInVolume': res[19],
+            'StageOutVolume': res[20],
+            'AuthTokenAttributes': [],
+            'JobEvents': [],
+            'RunTimeEnvironments': [],
+            'DataTransfers': [],
+            'JobExtraInfo': {}
+        }
+
 
     def add_human_readable(self):
         for hrattr in ['UsedMemory', 'UsedVirtMem', 'UsedScratch', 'StageInVolume', 'StageOutVolume']:

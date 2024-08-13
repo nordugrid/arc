@@ -2,7 +2,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from .ControlCommon import HTTPSClientAuthConnection
-from .AccountingDB import AccountingDB, AAR
+from .AccountingDB import AccountingDB, AAR, ACCOUNTING_DB_FILE
 from arc.paths import ARC_VERSION, ARC_RUN_DIR
 
 import os
@@ -24,6 +24,8 @@ except ImportError:
         import io as StringIO
     except ImportError:
         import StringIO
+
+ACCOUNTING_PUBLISHING_DB_FILE = "publishing.db"
 
 # module regexes init
 __voms_fqan_re = re.compile(r'(?P<group>/[-\w.]+(?:/[-\w.]+)*)(?P<role>/Role=[-\w.]+)?(?P<cap>/Capability=[-\w.]+)?')
@@ -126,10 +128,10 @@ class RecordsPublisher(object):
         self.accounting_dir = arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting'
         self.adb = adb
         if self.adb is None:
-            adb_file = self.accounting_dir + '/accounting_v2.db'
+            adb_file = os.path.join(self.accounting_dir, ACCOUNTING_DB_FILE)
             self.adb = AccountingDB(adb_file)
         # publishing state database file
-        self.pdb_file = self.accounting_dir + '/publishing.db'
+        self.pdb_file = os.path.join(self.accounting_dir, ACCOUNTING_PUBLISHING_DB_FILE)
         self.logger.debug('Accounting records publisher had been initialized')
 
     def __del__(self):
