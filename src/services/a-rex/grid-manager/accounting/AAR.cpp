@@ -30,7 +30,7 @@ namespace ARex {
         return;
     }
 
-    static bool string_to_number(std::string& s, unsigned long long int& n) {
+    static bool string_to_number(std::string& s, long long int& n) {
         extract_integer(s);
         if(s.length() == 0) return false;
         if(!Arc::stringto(s,n)) return false;
@@ -164,10 +164,10 @@ namespace ARex {
         std::list<std::string> nodenames;
         // there are different memory metrics are avaiable from different sources
         // prefered is MAX memory, but use an AVARAGE metrics as fallback
-        unsigned long long int mem_avg_total = 0;
-        unsigned long long int mem_max_total = 0;
-        unsigned long long int mem_avg_resident = 0;
-        unsigned long long int mem_max_resident = 0;
+        long long int mem_avg_total = 0;
+        long long int mem_max_total = 0;
+        long long int mem_avg_resident = 0;
+        long long int mem_max_resident = 0;
         // benchmark is present
         bool is_benchmark = false;
         if (Arc::FileRead(fname_src, diag_data)) {
@@ -182,34 +182,34 @@ namespace ARex {
                 if (key == "nodename") {
                     nodenames.push_back(value);
                 } else if (key == "processors") {
-                    unsigned long long int n;
-                    if (string_to_number(value,n)) cpucount = (unsigned int) n;
+                    long long int n;
+                    if (string_to_number(value,n)) cpucount = n;
                 } else if (key == "exitcode") {
-                    unsigned long long int n;
-                    if (string_to_number(value,n)) exitcode = (unsigned int) n;
+                    long long int n;
+                    if (string_to_number(value,n)) exitcode = n;
                 } else if (key == "walltime" ) {
-                    unsigned long long int n;
+                    long long int n;
                     if (string_to_number(value,n)) usedwalltime = n;
                 } else if (key == "kerneltime" ) {
-                    unsigned long long int n;
+                    long long int n;
                     if (string_to_number(value,n)) usedcpukerneltime = n;
                 } else if (key == "usertime" ) {
-                    unsigned long long int n;
+                    long long int n;
                     if (string_to_number(value,n)) usedcpuusertime = n;
                 } else if (key == "maxresidentmemory" ) {
-                    unsigned long long int n;
+                    long long int n;
                     if (string_to_number(value,n)) mem_max_resident = n;
                 } else if (key == "averageresidentmemory" ) {
-                    unsigned long long int n;
+                    long long int n;
                     if (string_to_number(value,n)) mem_avg_resident = n;
                 } else if (key == "maxtotalmemory" ) {
-                    unsigned long long int n;
+                    long long int n;
                     if (string_to_number(value,n)) mem_max_total = n;
                 } else if (key == "averagetotalmemory" ) {
-                    unsigned long long int n;
+                    long long int n;
                     if (string_to_number(value,n)) mem_avg_total = n;
                 } else if (key == "usedscratch" ) {
-                    unsigned long long int n;
+                    long long int n;
                     if (string_to_number(value,n)) usedscratch = n;
                 } else if (key == "runtimeenvironments") {
                     // rtes are splited by semicolon
@@ -314,7 +314,7 @@ namespace ARex {
                     if (dkey == "url") {
                         dtrinfo.url = dval;
                     } else if (dkey == "size") {
-                        unsigned long long int n;
+                        long long int n;
                         if (string_to_number(dval,n)) dtrinfo.size = n;
                     } else if (dkey == "starttime") {
                         Arc::Time stime(dval);

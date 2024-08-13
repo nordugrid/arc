@@ -52,7 +52,7 @@ class GMConfig;
 
 class AAR {
   public:
-    AAR(void): jobid(""), localid(""), queue(""), userdn(""), wlcgvo(""), status(""), benchmark(""),
+    AAR(void): jobid(""), localid(""), queue(""), userdn(""), wlcgvo(""), status(""), benchmark(""), fqan(""),
                exitcode(1), submittime((time_t)(0)), endtime((time_t)(0)),
                nodecount(1), cpucount(1), usedmemory(0), usedvirtmemory(0),
                usedwalltime(0), usedcpuusertime(0), usedcpukerneltime(0),
@@ -72,17 +72,17 @@ class AAR {
     /* Main accounting times to search jobs */
     Arc::Time submittime;           // Job submission time
     Arc::Time endtime;              // Job completion time
-    /* Used resources */
-    unsigned int nodecount;
-    unsigned int cpucount;
-    unsigned long long int usedmemory;
-    unsigned long long int usedvirtmemory;
-    unsigned long long int usedwalltime;
-    unsigned long long int usedcpuusertime;
-    unsigned long long int usedcpukerneltime;
-    unsigned long long int usedscratch;
-    unsigned long long int stageinvolume;
-    unsigned long long int stageoutvolume;
+    /* Used resources (SQLite INT is signed 64-bit integer) */
+    long long int nodecount;
+    long long int cpucount;
+    long long int usedmemory;
+    long long int usedvirtmemory;
+    long long int usedwalltime;
+    long long int usedcpuusertime;
+    long long int usedcpukerneltime;
+    long long int usedscratch;
+    long long int stageinvolume;
+    long long int stageoutvolume;
     /* Complex extra data */
     std::list <aar_authtoken_t> authtokenattrs;     // auth token attributes
     std::list <aar_jobevent_t> jobevents;           // events of the job
