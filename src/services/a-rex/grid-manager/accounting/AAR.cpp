@@ -90,10 +90,14 @@ namespace ARex {
                 wlcgvo.erase(wlcgvo_slash, std::string::npos);
             }
             // authtokenattrs
-            std::string attrname = "mainfqan";
+            bool mainfqan = true;
             for(std::list<std::string>::const_iterator it=local.voms.begin(); it != local.voms.end(); ++it) {
-                authtokenattrs.push_back(aar_authtoken_t(attrname, (*it)));
-                attrname = "vomsfqan";
+                authtokenattrs.push_back(aar_authtoken_t("vomsfqan", (*it)));
+                if mainfqan {
+                    // add first FQAN to main AAR data
+                    fqan = (*it);
+                    mainfqan = false;
+                }
             }
         }
         // token claims to auth attributes
@@ -231,18 +235,12 @@ namespace ARex {
                 } else if (key == "benchmark" ) {
                     is_benchmark = true;
                     benchmark = value;
-                    // extrainfo.insert(
-                    //     std::pair <std::string, std::string>("benchmark", value)
-                    // );
                 }
             }
         }
-        // Insert default LRMS benchmark if missing in the .diag file
+        // Insert fallback LRMS benchmark if missing in the .diag file
         if (!is_benchmark) {
             benchmark = config.DefaultBenchmark();
-            // extrainfo.insert(
-            //     std::pair <std::string, std::string>("benchmark", config.DefaultBenchmark())
-            // );
         }
         // Memory: use max if available, otherwise use avarage as a fallback
         usedmemory = mem_max_resident ? mem_max_resident : mem_avg_resident;

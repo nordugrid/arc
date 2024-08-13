@@ -65,6 +65,7 @@ class AAR {
     std::string queue;              // queue
     std::string userdn;             // distinguished name of the job owner
     std::string wlcgvo;             // WLCG VO name
+    std::string fqan;               // main accounting FQAN
     /* Completion data */
     std::string status;             // Job completion status
     std::string benchmark;          // Job's node benchmark

@@ -270,6 +270,10 @@ namespace ARex {
         return QueryAndInsertNameID("WLCGVOs", voname, &db_wlcgvos);
     }
 
+    unsigned int AccountingDBSQLite::getDBFQANId(const std::string& fqan) {
+        return QueryAndInsertNameID("FQANs", fqan, &db_fqans);
+    }
+
     unsigned int AccountingDBSQLite::getDBBenchmarkId(const std::string& benchmark) {
         return QueryAndInsertNameID("Benchmarks", benchmark, &db_benchmarks);
     }
@@ -382,13 +386,15 @@ namespace ARex {
         if (!userid) return false;
         unsigned int wlcgvoid = getDBWLCGVOId(aar.wlcgvo);
         if (!wlcgvoid) return false;
+        unsigned int fqanid = getDBFQANId(aar.fqan);
+        if (!fqanid) return false;
         unsigned int benchmarkid = getDBBenchmarkId(aar.benchmark);
         if (!benchmarkid) return false;
         unsigned int statusid = getDBStatusId(aar.status);
         if (!statusid) return false;
         // construct insert statement
         std::string sql = "INSERT INTO AAR ("
-            "JobID, LocalJobID, EndpointID, QueueID, UserID, VOID, StatusID, ExitCode, BenchmarkID, "
+            "JobID, LocalJobID, EndpointID, QueueID, UserID, VOID, FQANID, StatusID, ExitCode, BenchmarkID, "
             "SubmitTime, EndTime, NodeCount, CPUCount, UsedMemory, UsedVirtMem, UsedWalltime, "
             "UsedCPUUserTime, UsedCPUKernelTime, UsedScratch, StageInVolume, StageOutVolume ) "
             "VALUES ('" +
@@ -398,6 +404,7 @@ namespace ARex {
                 sql_escape(queueid) + ", " + 
                 sql_escape(userid) + ", " + 
                 sql_escape(wlcgvoid) + ", " + 
+                sql_escape(fqanid) + ", " +
                 sql_escape(statusid) + ", " +
                 sql_escape(aar.exitcode) + ", " +
                 sql_escape(benchmarkid) + ", " +
