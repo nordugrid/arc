@@ -406,7 +406,13 @@ class DataStagingControl(ComponentControl):
                 words = re.split(' +', line)
                 words = [word.strip() for word in words]
 
-
+                if 'Started remote Delivery at' in line:
+                    """ Extract remote datadelivery host """
+                    
+                    url=re.split(' +',line)[-1]
+                    job_files_done[fileN]['remote_delivery']=url
+                    #[2024-08-14 12:29:56] [VERBOSE] [508263/32095] DTR 1504...4a5e: Connecting to Delivery service at http://10.2.1.96:33555/datadeliveryservice
+                    
                 if 'Scheduler received new DTR' in line:
                     
                     """ First instance of the new DTR """
@@ -476,11 +482,11 @@ class DataStagingControl(ComponentControl):
         """ TO-DO find a nice way to sort this, maybe removing the files that do not have all info provided? """
         downloads = False
         print('\nFine-grained details for files that have been staged-in by download (not cached):')
-        print('\t{0:<8}{1:<60}{2:<15}{3:<22}{4:<22}{5:<22}{6:<22}{7:<22}{8:<22}{9:<20}{10:<20}'.format('COUNTER','FILENAME','SIZE (MB)','START','END','SCHEDULER-START','DELIVERY-START','TRANSFER-DONE','ALL-DONE','DWLD-DURATION (s)','CALC AVG DWLD-SPEED MB/s'))
+        print(f"{'COUNT':<5.5} {'FILENAME':<15.15} {'SIZE (MB)':<15.15} {'START':<20.20} {'END':<20.20} {'SCHEDULER-START':<20.20} {'DELIVERY-START':<20.20} {'TRANSFER-DONE':<20.20} {'ALL-DONE':<20.20} {'DWLD-DUR (s)':<12} {'AVG DWLD-SPEED (MB/s)':<21.21} {'DELIVERY-SERVICE'}")
         idx = 1
         for key,val in job_files_done.items():
             if ('start_deliver' in val.keys() and 'start_sched' in val.keys() and 'return_gen' in val.keys() and 'speed' in val.keys()):
-                print("\t{0:<8}{1:<60}{2:<15.3f}{3:<22}{4:<22}{5:<22}{6:<22}{7:<22}{8:<22}{9:<20}{10:<20.3f}".format(idx,key,val['size'],val['start'],val['end'],val['start_sched'],val['start_deliver'],val['transf_done'],val['return_gen'],val['seconds'],val['speed']))
+                print(f"{idx:<5} {key:<15.15} {val['size']:<15.3f} {val['start']:<20.20} {val['end']:<20.20} {val['start_sched']:<20.20} {val['start_deliver']:<20.20} {val['transf_done']:<20.20} {val['return_gen']:<20.20} {val['seconds']:<12} {val['speed']:<21.3f} {val['remote_delivery'][:-len('datadeliveryservice')-2]}")
                 idx += 1
                 downloads = True
         if not downloads:
