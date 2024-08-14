@@ -519,6 +519,7 @@ class AccountingControl(ComponentControl):
         # republish
         accounting_republish = accounting_actions.add_parser('republish',
                                                              help='Republish accounting records to defined target')
+        # TODO: output sync/summaries without sending to APEL (dry-run mode)
         accounting_republish.add_argument('-b', '--end-from', type=valid_datetime_type, required=True,
                                           help='Define republishing timeframe start (YYYY-MM-DD [HH:mm[:ss]])')
         accounting_republish.add_argument('-e', '--end-till', type=valid_datetime_type, required=True,

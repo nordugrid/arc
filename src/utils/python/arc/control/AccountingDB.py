@@ -77,6 +77,7 @@ class AccountingDB(object):
         self.queues = {}
         self.users = {}
         self.wlcgvos = {}
+        self.fqans = {}  # v2
         self.statuses = {}
         self.benchmarks = {}  # v2
         self.endpoints = {}
@@ -200,6 +201,13 @@ class AccountingDB(object):
             self.logger.debug('Fetching WLCG VOs from accounting database')
             self.wlcgvos = self.__fetch_idname_table('WLCGVOs')
 
+    def __fetch_fqans(self, force=False):
+        if self.db_version < 2:
+            return
+        if not self.fqans or force:
+            self.logger.debug('Fetching FQANs from accounting database')
+            self.fqans = self.__fetch_idname_table('FQANs')
+
     def __fetch_statuses(self, force=False):
         if not self.statuses or force:
             self.logger.debug('Fetching available job statuses from accounting database')
@@ -245,6 +253,12 @@ class AccountingDB(object):
     def get_wlcgvos(self):
         self.__fetch_wlcgvos()
         return self.wlcgvos['byname'].keys()
+
+    def get_fqans(self):
+        if self.db_version < 2:
+            return []
+        self.__fetch_fqans()
+        return self.fqans['byname'].keys()
 
     def get_statuses(self):
         self.__fetch_statuses()
@@ -303,6 +317,13 @@ class AccountingDB(object):
         """Add WLCG VOs filtering to the select queries"""
         self.__fetch_wlcgvos()
         self.__filter_nameid(wlcgvos, self.wlcgvos, 'WLCG VO', 'VOID')
+
+    def filter_fqans(self, fqans):
+        """Add FQANs filtering to the select queries"""
+        if self.db_version < 2:
+            return
+        self.__fetch_fqans()
+        self.__filter_nameid(fqans, self.fqans, 'FQAN', 'FQANID')
 
     def filter_statuses(self, statuses):
         """Add job status filtering to the select queries"""
@@ -456,7 +477,7 @@ class AccountingDB(object):
         return []
 
     def get_job_wlcgvos(self):
-        """Return list of WLCG VOs jobs matching applied filters"""
+        """Return list of job owners WLCG VOs matching applied filters"""
         voids = []
         for res in self.__filtered_query('SELECT DISTINCT VOID FROM AAR',
                                          errorstr='Failed to get accounted WLCG VOs for jobs'):
@@ -465,6 +486,20 @@ class AccountingDB(object):
         if voids:
             self.__fetch_wlcgvos()
             return [self.wlcgvos['byid'][v] for v in voids]
+        return []
+
+    def get_job_fqan(self):
+        """Return list of job owners FQANs matching applied filters"""
+        if self.db_version < 2:
+            return []
+        fqanids = []
+        for res in self.__filtered_query('SELECT DISTINCT FQANID FROM AAR',
+                                         errorstr='Failed to get accounted WLCG VOs for jobs'):
+            fqanids.append(res[0])
+        self.adb_close()
+        if fqanids:
+            self.__fetch_fqans()
+            return [self.fqans['byid'][v] for v in fqanids]
         return []
 
     def get_job_ids(self):
@@ -566,6 +601,7 @@ class AccountingDB(object):
             self.__fetch_statuses()
             self.__fetch_users()
             self.__fetch_wlcgvos()
+            self.__fetch_fqans()
             self.__fetch_queues()
             self.__fetch_endpoints()
             self.__fetch_benchmarks()
@@ -579,6 +615,7 @@ class AccountingDB(object):
                 a.aar['EndpointURL'] = endpoint[1]
                 if self.db_version >= 2:
                     a.aar['Benchmark'] = self.benchmarks['byid'][a.aar['BenchmarkID']]
+                    a.aar['FQAN'] = self.fqans['byid'][a.aar['FQANID']]
         self.adb_close()
         return aars
 
@@ -680,38 +717,22 @@ class AccountingDB(object):
     def __get_apel_summaries_v2(self):
         """Query data for APEL aggregated summary records from v2 database"""
         summaries = []
-        # get RecordID range to limit further filtering
-        record_start = None
-        record_end = None
-        for res in self.__filtered_query('SELECT min(RecordID), max(RecordID) FROM AAR',
-                                         errorstr='Failed to get records range from database'):
-            record_start = res[0]
-            record_end = res[1]
-        if record_start is None or record_end is None:
-            self.logger.error('Database query error. Failed to proceed with APEL summary generation')
-            self.adb_close()
-            return summaries
-        self.logger.debug('Will query extra table for the records in range [%s, %s]', record_start, record_end)
-        # invoke heavy summary query with extra table pre-filtering
-        sql = '''SELECT a.UserID, a.VOID, a.EndpointID, a.NodeCount, a.CPUCount,
-              t.AttrValue as AuthToken, a.BenchmarkID,
-              COUNT(a.RecordID), SUM(a.UsedWalltime), SUM(a.UsedCPUTime), MIN(a.EndTime), MAX(a.EndTime),
-              strftime("%Y-%m", a.endTime, "unixepoch") AS YearMonth
-              FROM ( SELECT RecordID, UserID, VOID, EndpointID, NodeCount, CPUCount, SubmitTime, EndTime,
-                            UsedWalltime, UsedCPUUserTime + UsedCPUKernelTime AS UsedCPUTime FROM AAR
-                     WHERE 1=1 <FILTERS>) a
-              LEFT JOIN ( SELECT * FROM AuthTokenAttributes
-                          WHERE AuthTokenAttributes.RecordID >= {0} AND AuthTokenAttributes.RecordID <= {1}
-                          AND AuthTokenAttributes.AttrKey = "mainfqan" ) t ON t.RecordID = a.RecordID
-              GROUP BY YearMonth, a.UserID, a.VOID, a.EndpointID,
-                       a.NodeCount, a.CPUCount, RBenchmark'''.format(record_start, record_end)
+        # UserID(0), VOID(1), EndpointID(2), NodeCount(3), CPUCount(4), FQANID(5), BenchmarkID(6),
+        # COUNT(RecordID)(7), SUM(UsedWalltime)(8), SUM(UsedCPUUserTime)(9), SUM(UsedCPUKernelTime)(10),
+        # MIN(EndTime)(11), MAX(EndTime)(12), YearMonth(13)
+        sql = '''SELECT UserID, VOID, EndpointID, NodeCount, CPUCount, FQANID, BenchmarkID,
+              COUNT(RecordID), SUM(UsedWalltime), SUM(UsedCPUUserTime), SUM(UsedCPUKernelTime),
+              MIN(EndTime), MAX(EndTime), strftime("%Y-%m", endTime, "unixepoch") AS YearMonth
+              FROM AAR WHERE 1=1 <FILTERS>
+              GROUP BY YearMonth, UserID, VOID, EndpointID, NodeCount, CPUCount, FQANID, BenchmarkID'''
         self.__fetch_users()
         self.__fetch_wlcgvos()
+        self.__fetch_fqans()
         self.__fetch_benchmarks()
         self.__fetch_endpoints()
         self.logger.debug('Invoking query to fetch APEL summaries data from database')
         for res in self.__filtered_query(sql, errorstr='Failed to get APEL summary info from database'):
-            (year, month) = res[12].split('-')
+            (year, month) = res[13].split('-')
             summaries.append({
                 'year': year,
                 'month': month.lstrip('0'),
@@ -720,13 +741,13 @@ class AccountingDB(object):
                 'endpoint': self.endpoints['byid'][res[2]][1],
                 'nodecount': res[3],
                 'cpucount': res[4],
-                'fqan': res[5],
+                'fqan': self.fqans['byid'][res[5]],
                 'benchmark': self.benchmarks['byid'][res[6]],
                 'count': res[7],
                 'walltime': res[8],
-                'cputime': res[9],
-                'timestart': res[10],
-                'timeend': res[11]
+                'cputime': res[9] + res[10],
+                'timestart': res[11],
+                'timeend': res[12]
             })
         self.adb_close()
         return summaries
@@ -866,24 +887,26 @@ class AAR(object):
             'UserSN': None,
             'VOID': res[6],
             'WLCGVO': None,
-            'StatusID': res[7],
+            'FQANID': res[7],
+            'FQAN': None,
+            'StatusID': res[8],
             'Status': None,
-            'ExitCode': res[8],
-            'BenchmarkID': res[9],
+            'ExitCode': res[9],
+            'BenchmarkID': res[10],
             'Benchmark': None,
-            'SubmitTime': datetime.datetime.utcfromtimestamp(res[10]),
-            'EndTime': datetime.datetime.utcfromtimestamp(res[11]),
-            'NodeCount': res[12],
-            'CPUCount': res[13],
-            'UsedMemory': res[14],
-            'UsedVirtMem': res[15],
-            'UsedWalltime': res[16],
-            'UsedCPUUserTime': res[17],
-            'UsedCPUKernelTime': res[18],
-            'UsedCPUTime': res[17] + res[18],
-            'UsedScratch': res[19],
-            'StageInVolume': res[20],
-            'StageOutVolume': res[21],
+            'SubmitTime': datetime.datetime.utcfromtimestamp(res[11]),
+            'EndTime': datetime.datetime.utcfromtimestamp(res[12]),
+            'NodeCount': res[13],
+            'CPUCount': res[14],
+            'UsedMemory': res[15],
+            'UsedVirtMem': res[16],
+            'UsedWalltime': res[17],
+            'UsedCPUUserTime': res[18],
+            'UsedCPUKernelTime': res[19],
+            'UsedCPUTime': res[18] + res[19],
+            'UsedScratch': res[20],
+            'StageInVolume': res[21],
+            'StageOutVolume': res[22],
             'AuthTokenAttributes': [],
             'JobEvents': [],
             'RunTimeEnvironments': [],
@@ -927,7 +950,6 @@ class AAR(object):
             'DataTransfers': [],
             'JobExtraInfo': {}
         }
-
 
     def add_human_readable(self):
         for hrattr in ['UsedMemory', 'UsedVirtMem', 'UsedScratch', 'StageInVolume', 'StageOutVolume']:
