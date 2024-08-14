@@ -32,19 +32,6 @@ class DataStagingControl(ComponentControl):
             self.logger.critical('Jobs control is not possible without controldir.')
             sys.exit(1)
 
-    def _get_tstamp(self,line):
-        """ Extract timestamp from line of type 
-        [2016-08-22 15:17:49] [INFO] ......
-        """
-        
-        words = re.split(' +', line)
-        words = [word.strip() for word in words]
-        timestmp_str = words[0].strip('[') + ' ' + words[1].strip(']')
-        timestamp = datetime.datetime.strptime(timestmp_str,'%Y-%m-%d %H:%M:%S')
-
-        return timestmp_str, timestamp
-
-
     def _calc_timewindow(self,args):
         twindow = None
         if args.days:
@@ -73,13 +60,23 @@ class DataStagingControl(ComponentControl):
     def _get_tstamp(self,line):
         """ Extract timestamp from line of type 
         [2016-08-22 15:17:49] [INFO] ......
+        or of type
+        <Log>[2016-08-22 15:17:49] [INFO] ...... 
         """
         
-        words = re.split(' +', line)
-        words = [word.strip() for word in words]
-        timestmp_str = words[0].strip('[') + ' ' + words[1].strip(']')
+        timestmp_str = ''
+
+        if '<Log>' in line:
+            words = re.split('>',line)[-1]
+            words = re.split(' +', words)
+            words = [word.strip() for word in words]
+            timestmp_str = words[0].strip('[') + ' ' + words[1].strip(']')
+        else:
+            words = re.split(' +', line)
+            words = [word.strip() for word in words]
+            timestmp_str = words[0].strip('[') + ' ' + words[1].strip(']')
+            
         timestamp = datetime.datetime.strptime(timestmp_str,'%Y-%m-%d %H:%M:%S')
-        
         return timestmp_str, timestamp
 
 
@@ -431,10 +428,13 @@ class DataStagingControl(ComponentControl):
 
                 elif 'Delivery received new DTR' in line:
 
-                    #try:
+                    dtr_idx = 5
+                    if '<Log>' in line:
+                        dtr_idx = 6
+                                                
                     """ Delivery actually starting - waiting time over """
                     timestmp_str, timestmp_obj = self._get_tstamp(line)
-                    dtrid_short = words[5].replace(':','')
+                    dtrid_short = words[dtr_idx].replace(':','')
                     fileN = dtr_file[dtrid_short]
                     
                     job_files_done[fileN]['start_deliver']=timestmp_str
