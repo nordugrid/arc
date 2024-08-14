@@ -219,7 +219,7 @@ class DataStagingControl(ComponentControl):
                     cached = words[4].split('=')[-1]
                     atlasfile = False
 
-                    if 'panda' in fileN or 'pilot2' in fileN:
+                    if 'panda' in fileN or 'pilot' in fileN:
                         atlasfile = True
 
                     start_dtstr = datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%SZ')
@@ -227,6 +227,10 @@ class DataStagingControl(ComponentControl):
                     seconds = (end_dtstr - start_dtstr).seconds
 
                     job_files_done[fileN] = {'size':size,'source':source,'start':start,'end':end,'seconds':seconds,'cached':cached,'atlasfile':atlasfile}
+                    """ To also show <site>.all.json file that is uploaded with the job by the client """
+                    if fileN not in all_files and 'json' in fileN:
+                        all_files.append(fileN)
+                        
 
         return all_files, all_files_user, job_files_done
 
@@ -476,13 +480,13 @@ class DataStagingControl(ComponentControl):
         """ TO-DO find a nice way to sort this, maybe removing the files that do not have all info provided? """
         downloads = False
         print('\nFine-grained details for files that have been staged-in by download (not cached):')
-        print(f"{'COUNT':<5.5} {'FILENAME':<15.15} {'SIZE (MB)':<15.15} {'START':<20.20} {'END':<20.20} {'SCHEDULER-START':<20.20} {'DELIVERY-START':<20.20} {'TRANSFER-DONE':<20.20} {'ALL-DONE':<20.20} {'DWLD-DUR (s)':<12} {'AVG DWLD-SPEED (MB/s)':<21.21} {'DELIVERY-SERVICE'}")
+        print(f"{'COUNT':<5.5} {'FILENAME':<15.15} {'SIZE (MB)':<15.15} {'START':<20.20} {'END':<20.20} {'SCHEDULER-START':<20.20} {'DELIVERY-START':<20.20} {'TRANSFER-DONE':<20.20} {'ALL-DONE':<20.20} {'(s)':<6} {'(MB/s)':<10.10} {'DELIVERY-SERVICE'}")
         idx = 1
         for key,val in job_files_done.items():
             if 'remote_delivery' not in val:
                 val['remote_delivery'] = ''
             if ('start_deliver' in val.keys() and 'start_sched' in val.keys() and 'return_gen' in val.keys() and 'speed' in val.keys()):
-                print(f"{idx:<5} {key:<15.15} {val['size']:<15.3f} {val['start']:<20.20} {val['end']:<20.20} {val['start_sched']:<20.20} {val['start_deliver']:<20.20} {val['transf_done']:<20.20} {val['return_gen']:<20.20} {val['seconds']:<12} {val['speed']:<21.3f} {val['remote_delivery']}")
+                print(f"{idx:<5} {key:<15.15} {val['size']:<15.3f} {val['start']:<20.20} {val['end']:<20.20} {val['start_sched']:<20.20} {val['start_deliver']:<20.20} {val['transf_done']:<20.20} {val['return_gen']:<20.20} {val['seconds']:<6} {val['speed']:<10.1f} {val['remote_delivery']}")
                 idx += 1
                 downloads = True
         if not downloads:
