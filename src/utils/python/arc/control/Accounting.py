@@ -392,14 +392,15 @@ class AccountingControl(ComponentControl):
             self.__add_sgas_options(args, targetconf, required=confrequired)
         # run republishing
         if targetconf:
-            if not publisher.republish(targettype, targetconf, args.end_from, args.end_till):
+            if not publisher.republish(targettype, targetconf, args.end_from, args.end_till, args.dry_run):
                 self.logger.error('Failed to republish accounting data from {0} till {1} to {2} target {3}'.format(
                     args.end_from, args.end_till, targettype.upper(), targetid
                 ))
                 sys.exit(1)
-        self.logger.info('Accounting data from {0} till {1} to {2} target {3} has been republished.'.format(
-            args.end_from, args.end_till, targettype.upper(), targetid
-        ))
+        if not args.dry_run:
+            self.logger.info('Accounting data from {0} till {1} to {2} target {3} has been republished.'.format(
+                args.end_from, args.end_till, targettype.upper(), targetid
+            ))
 
     def backup(self, location):
         self.__init_adb()
@@ -519,7 +520,7 @@ class AccountingControl(ComponentControl):
         # republish
         accounting_republish = accounting_actions.add_parser('republish',
                                                              help='Republish accounting records to defined target')
-        # TODO: output sync/summaries without sending to APEL (dry-run mode)
+        accounting_republish.add_argument('--dry-run', help='Print out messages instead of sending them to target', action='store_true')
         accounting_republish.add_argument('-b', '--end-from', type=valid_datetime_type, required=True,
                                           help='Define republishing timeframe start (YYYY-MM-DD [HH:mm[:ss]])')
         accounting_republish.add_argument('-e', '--end-till', type=valid_datetime_type, required=True,
