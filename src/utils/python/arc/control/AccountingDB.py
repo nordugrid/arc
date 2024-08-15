@@ -321,7 +321,7 @@ class AccountingDB(object):
     def filter_fqans(self, fqans):
         """Add FQANs filtering to the select queries"""
         if self.db_version < 2:
-            self.logger.warning('FQAN filtering is only available for v2 accounting database. Use filter-extra instead on legacy data.')
+            self.logger.warning('FQAN filtering is only available for v2 accounting database. Use "--filter-extra mainfqan" instead on legacy data.')
             return
         self.__fetch_fqans()
         self.__filter_nameid(fqans, self.fqans, 'FQAN', 'FQANID')
@@ -381,7 +381,6 @@ class AccountingDB(object):
         """Filter additional job information for custom queries"""
         # predefined filters
         filters = {
-            # TODO: add OR
             'vomsfqan': "AND RecordID IN ( SELECT RecordID FROM AuthTokenAttributes "
                         "WHERE AttrKey IN ('vomsfqan', 'mainfqan') AND AttrValue IN ({0}))",
             'rte': "AND RecordID IN ( SELECT RecordID FROM RunTimeEnvironments WHERE RTEName IN ({0}) )",

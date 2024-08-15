@@ -13,6 +13,11 @@ def complete_wlcgvo(prefix, parsed_args, **kwargs):
     return AccountingControl(arcconf).complete_wlcgvo()
 
 
+def complete_fqan(prefix, parsed_args, **kwargs):
+    arcconf = get_parsed_arcconf(parsed_args.config)
+    return AccountingControl(arcconf).complete_fqan()
+
+
 def complete_userdn(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
     return AccountingControl(arcconf).complete_userdn()
@@ -82,6 +87,8 @@ class AccountingControl(ComponentControl):
             self.adb.filter_users(args.filter_user)
         if args.filter_vo:
             self.adb.filter_wlcgvos(args.filter_vo)
+        if args.filter_fqan:
+            self.adb.filter_fqans(args.filter_fqan)
         if args.filter_queue:
             self.adb.filter_queues(args.filter_queue)
         if args.filter_state:
@@ -431,6 +438,10 @@ class AccountingControl(ComponentControl):
         self.__init_adb()
         return self.adb.get_wlcgvos()
 
+    def complete_fqan(self):
+        self.__init_adb()
+        return self.adb.get_fqans()
+
     def complete_userdn(self):
         self.__init_adb()
         return self.adb.get_users()
@@ -496,6 +507,8 @@ class AccountingControl(ComponentControl):
                                       help='Define the job start time constraint (YYYY-MM-DD [HH:mm[:ss]])')
         accounting_stats.add_argument('--filter-vo', help='Account jobs owned by specified WLCG VO(s)',
                                      action='append').completer = complete_wlcgvo
+        accounting_stats.add_argument('--filter-fqan', help='Account jobs owned by users with specified FQAN(s)',
+                                     action='append').completer = complete_fqan
         accounting_stats.add_argument('--filter-user', help='Account jobs owned by specified user(s)',
                                      action='append').completer = complete_userdn
         accounting_stats.add_argument('--filter-state', help='Account jobs in the defined state(s)',
