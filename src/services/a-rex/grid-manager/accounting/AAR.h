@@ -52,7 +52,7 @@ class GMConfig;
 
 class AAR {
   public:
-    AAR(void): jobid(""), localid(""), queue(""), userdn(""), wlcgvo(""), status(""), benchmark(""), fqan(""),
+    AAR(void): jobid(""), localid(""), queue(""), userdn(""), wlcgvo(""), fqan(""), status(""), benchmark(""),
                exitcode(1), submittime((time_t)(0)), endtime((time_t)(0)),
                nodecount(1), cpucount(1), usedmemory(0), usedvirtmemory(0),
                usedwalltime(0), usedcpuusertime(0), usedcpukerneltime(0),

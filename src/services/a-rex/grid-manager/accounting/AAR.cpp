@@ -93,7 +93,7 @@ namespace ARex {
             bool mainfqan = true;
             for(std::list<std::string>::const_iterator it=local.voms.begin(); it != local.voms.end(); ++it) {
                 authtokenattrs.push_back(aar_authtoken_t("vomsfqan", (*it)));
-                if mainfqan {
+                if (mainfqan) {
                     // add first FQAN to main AAR data
                     fqan = (*it);
                     mainfqan = false;
