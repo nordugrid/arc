@@ -321,18 +321,6 @@ class AccountingControl(ComponentControl):
         else:
             print('No stage-out data transfers (uploads) performed by A-REX.')
 
-    def jobcontrol(self, args):
-        canonicalize_args_jobid(args)
-        if args.jobaction == 'info':
-            self.jobinfo(args)
-        elif args.jobaction == 'events':
-            self.jobevents(args.jobid)
-        elif args.jobaction == 'transfers':
-            self.jobtransfers(args.jobid)
-        else:
-            self.logger.critical('Unsupported job accounting action %s', args.jobaction)
-            sys.exit(1)
-
     def __add_apel_options(self, args, targetconf, required=False):
         # topic is mandatory and default exists
         if args.apel_topic is not None:
@@ -424,6 +412,25 @@ class AccountingControl(ComponentControl):
         backup_adb = AccountingDB(location, must_exists=False)
         self.adb.backup(backup_adb)
 
+    def jobcontrol(self, args):
+        canonicalize_args_jobid(args)
+        if args.jobaction == 'info':
+            self.jobinfo(args)
+        elif args.jobaction == 'events':
+            self.jobevents(args.jobid)
+        elif args.jobaction == 'transfers':
+            self.jobtransfers(args.jobid)
+        else:
+            self.logger.critical('Unsupported job accounting action %s', args.jobaction)
+            sys.exit(1)
+
+    def dbcontrol(self, args):
+        if args.dbaction == 'backup':
+            self.backup(args.location)
+        else:
+            self.logger.critical('Unsupported accounting database action %s', args.dbaction)
+            sys.exit(1)
+
     def control(self, args):
         # optional custom database location (e.g. backup copy)
         if args.database_file:
@@ -431,8 +438,8 @@ class AccountingControl(ComponentControl):
         # action-based routines
         if args.action == 'stats':
             self.stats(args)
-        elif args.action == 'backup':
-            self.backup(args.location)
+        elif args.action == 'database' or 'dbaction' in args:
+            self.dbcontrol(args)
         elif args.action == 'job' or 'jobaction' in args:
             self.jobcontrol(args)
         elif args.action == 'republish':
@@ -492,6 +499,16 @@ class AccountingControl(ComponentControl):
         accounting_dtr.add_argument('jobid', help='Job ID').completer = complete_accounting_jobid
 
     @staticmethod
+    def register_db_parser(job_db_ctl):
+        job_db_ctl.set_defaults(handler_class=AccountingControl)
+
+        db_actions = job_db_ctl.add_subparsers(title='Accounting Database Actions', dest='dbaction',
+                                               metavar='ACTION', help='DESCRIPTION')
+        db_actions.required = True
+        db_backup = db_actions.add_parser('backup', help='Run online backup of accounting database')
+        db_backup.add_argument('location', help='Database backup file path')
+
+    @staticmethod
     def register_parser(root_parser):
         accounting_ctl = root_parser.add_parser('accounting', help='A-REX Accounting records management')
         accounting_ctl.set_defaults(handler_class=AccountingControl)
@@ -500,10 +517,6 @@ class AccountingControl(ComponentControl):
         accounting_actions = accounting_ctl.add_subparsers(title='Accounting Actions', dest='action',
                                                            metavar='ACTION', help='DESCRIPTION')
         accounting_actions.required = True
-
-        # database-level operations
-        accounting_backup = accounting_actions.add_parser('backup', help='Run online backup of accounting database')
-        accounting_backup.add_argument('location', help='Database backup file path')
 
         # stats from accounting database
         accounting_stats = accounting_actions.add_parser('stats', help='Show A-REX AAR statistics')
@@ -537,6 +550,10 @@ class AccountingControl(ComponentControl):
         # per-job accounting information
         job_accounting_ctl = accounting_actions.add_parser('job', help='Show job accounting data')
         AccountingControl.register_job_parser(job_accounting_ctl)
+
+        # database-level operations
+        db_accounting_ctl = accounting_actions.add_parser('database', help='Accounting database operations')
+        AccountingControl.register_job_parser(db_accounting_ctl)
 
         # republish
         accounting_republish = accounting_actions.add_parser('republish',
