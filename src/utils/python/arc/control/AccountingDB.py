@@ -489,19 +489,35 @@ class AccountingDB(object):
             return [self.wlcgvos['byid'][v] for v in voids]
         return []
 
-    def get_job_fqan(self):
-        """Return list of job owners FQANs matching applied filters"""
-        if self.db_version < 2:
+    def get_job_authtokens(self, attributes=None):
+        """Return list of authoken attribute values matching job applied filters"""
+        if attributes is None:
             return []
-        fqanids = []
-        for res in self.__filtered_query('SELECT DISTINCT FQANID FROM AAR',
-                                         errorstr='Failed to get accounted WLCG VOs for jobs'):
-            fqanids.append(res[0])
-        self.adb_close()
-        if fqanids:
-            self.__fetch_fqans()
-            return [self.fqans['byid'][v] for v in fqanids]
-        return []
+        attrvalues = []
+        sql ='''SELECT DISTINCT AttrValue FROM AuthTokenAttributes
+                WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)
+                AND AttrKey IN ({0})'''.format(','.join(['?'] * len(attributes)))
+        for res in self.__filtered_query(sql, params=tuple(attributes),
+                                         errorstr='Failed to get accounted authtokens {0} for jobs'.format(','.join(attributes))):
+            attrvalues.append(res[0])
+        return attrvalues
+
+    def get_job_fqans(self):
+        """Return list of job owners FQANs matching applied filters"""
+        jobfqans = []
+        if self.db_version < 2:
+            jobfqans = self.get_job_authtokens(attributes=['mainfqan'])
+        else:
+            fqanids = []
+            for res in self.__filtered_query('SELECT DISTINCT FQANID FROM AAR',
+                                            errorstr='Failed to get accounted WLCG VOs for jobs'):
+                fqanids.append(res[0])
+            self.adb_close()
+            if fqanids:
+                self.__fetch_fqans()
+                for v in fqanids:
+                    jobfqans.append(self.fqans['byid'][v])
+        return jobfqans
 
     def get_job_ids(self):
         """Return list of JobIDs matching applied filters"""
@@ -863,7 +879,7 @@ class AAR(object):
     def __init__(self, version=2):
         self.logger = logging.getLogger('ARC.AccountingDB.AAR')
         self.aar = {}
-        self.version = 2
+        self.version = version
 
     def fromDB(self, res):
         if self.version == 2:
@@ -965,6 +981,11 @@ class AAR(object):
 
     def wlcgvo(self):
         return self.aar['WLCGVO']
+
+    def fqan(self):
+        if self.version < 2:
+            return None
+        return self.aar['FQAN']
 
     # dedicated lists with extra info
     def events(self):

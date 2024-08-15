@@ -134,6 +134,11 @@ class AccountingControl(ComponentControl):
             if out:
                 print(out)
             return
+        if args.output == 'fqans':
+            out = '\n'.join(self.adb.get_job_fqans())
+            if out:
+                print(out)
+            return
         # common stats query for other options
         stats = self.adb.get_stats()
         if stats['count'] == 0:
@@ -161,6 +166,7 @@ class AccountingControl(ComponentControl):
             stats['cputime'] = stats['cpuusertime'] + stats['cpukerneltime']
             stats['users'] = self.adb.get_job_owners()
             stats['wlcgvos'] = self.adb.get_job_wlcgvos()
+            stats['fqans'] = self.adb.get_job_fqans()
             print(json.dumps(stats))
 
     def jobinfo(self, args):
@@ -199,6 +205,8 @@ class AccountingControl(ComponentControl):
             voinfo = 'with no WLCG VO affiliation'
             if aar.wlcgvo():
                 voinfo = 'as a member of "{WLCGVO}" WLCG VO'
+                if aar.fqan():
+                    voinfo += ' ({FQAN})'
             if all:
                 print('Job description:')
             description = tab + \
@@ -524,7 +532,7 @@ class AccountingControl(ComponentControl):
         accounting_stats.add_argument('-o', '--output', default='brief',
                                       help='Define what kind of stats you want to output (default is %(default)s)',
                                       choices=['brief', 'jobcount', 'walltime', 'cputime', 'data-staged-in',
-                                               'data-staged-out', 'wlcgvos', 'users', 'jobids', 'json'])
+                                               'data-staged-out', 'wlcgvos', 'fqans', 'users', 'jobids', 'json'])
 
         # per-job accounting information
         job_accounting_ctl = accounting_actions.add_parser('job', help='Show job accounting data')
