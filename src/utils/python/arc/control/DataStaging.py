@@ -3,6 +3,7 @@ import subprocess
 import sys
 import re
 import glob
+import copy
 
 try:
     from .Jobs import *
@@ -80,10 +81,10 @@ class DataStagingControl(ComponentControl):
         return timestmp_str, timestamp
 
 
-    def _get_filecount_joblog(self,log_f,jobid,twindow_start=None):
+    def _get_filecount_joblog(self,log_f,arcid,twindow_start=None):
         pass
         
-    def _get_timestamps_joblog(self,log_f,jobid,twindow_start=None):
+    def _get_timestamps_joblog(self,log_f,arcid,twindow_start=None):
 
         """ 
         Get the total time from PREPARING to SUBMIT which is the total time in PREPARING.
@@ -93,10 +94,10 @@ class DataStagingControl(ComponentControl):
 
         has_udef_input = None
         ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':False}
-        has_udef_input = self._has_userdefined_inputfiles(jobid)
+        has_udef_input = self._has_userdefined_inputfiles(arcid)
 
         if has_udef_input is None:
-            print('The grami file for job with id: ', jobid, ' is no longer present. Skipping this job.')
+            print('The grami file for job with id: ', arcid, ' is no longer present. Skipping this job.')
         elif has_udef_input is False:
             ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':True}
         else:
@@ -153,8 +154,8 @@ class DataStagingControl(ComponentControl):
                 return None
         return ds_time
 
-    def _has_userdefined_inputfiles(self,jobid):
-        grami_file = control_path(self.control_dir, jobid, 'grami')
+    def _has_userdefined_inputfiles(self,arcid):
+        grami_file = control_path(self.control_dir, arcid, 'grami')
         try:
             with open(grami_file,'r') as f:
                 for line in f:
@@ -169,10 +170,12 @@ class DataStagingControl(ComponentControl):
         return False
 
 
-    def _get_inputfilenames(self,jobid):
-        """ The grami-info only contains filename, not URI"""
-        grami_file = control_path(self.control_dir, jobid, 'grami')
-        all_files = []
+
+    def _get_filesforjob(self,arcid):
+
+        """ The grami-info only contains filename, not URI
+        - grami files only contains user-defined input files """
+        grami_file = control_path(self.control_dir, arcid, 'grami')
         all_files_user = []
         try:
             with open(grami_file,'r') as f:
@@ -184,55 +187,173 @@ class DataStagingControl(ComponentControl):
                         
 
                         if len(fileN)>0:
-                            all_files.append(fileN)
                             all_files_user.append(fileN)
         except OSError:
             """ Will just then return empty all_files and all_files_user lists """
             pass
                             
-        return all_files, all_files_user
+        return all_files_user
 
-    def _get_filesforjob(self,args,jobid):
+    #def _get_ongoing_files_details(self,arcid,all_files=[],done_files_details):
 
-        """  Extracts information about the files already downloaded for a single job from its jobs statistics file """
-        job_files_done = {}
+    #    for _file in all_files:
+    #        if _file not in done_files_details.keys():
+    #            """ This file is not get downloaded """
+            
 
-        """ Get all files to download for job - uses grami file """
-        all_files, all_files_user = self._get_inputfilenames(jobid)
+    def _get_file_events_statistics(self, arcid, file_events):
 
-        """ Get files already downloaded """
-        stat_file = control_path(self.control_dir, jobid, 'statistics')
-        with open(stat_file,'r') as f:
-            for line in f:
-                line = line.strip()
+        client_uploads = []
+        """ Get files already downloaded from jobs statistics file """
+        """ This includes non-user defined inputfiles like pilot or json site files """
+        stat_file = control_path(self.control_dir, arcid, 'statistics')
+        try:
+            with open(stat_file,'r') as f:
+                for line in f:
+                    line = line.strip()
 
-                if line and 'inputfile' in line:
-                    words = re.split(',', line)
-                    words = [word.strip() for word in words]
-
-                    fileN = words[0].split('inputfile:')[-1].split('/')[-1]
-
-                    source = (words[0].split('inputfile:')[-1]).split('=')[-1][:-len(fileN)-1]
-                    size = int(words[1].split('=')[-1])/(1024*1024.)
-                    start = words[2].split('=')[-1]
-                    end = words[3].split('=')[-1]
-                    cached = words[4].split('=')[-1]
-                    atlasfile = False
-
-                    if 'panda' in fileN or 'pilot' in fileN:
-                        atlasfile = True
-
-                    start_dtstr = datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%SZ')
-                    end_dtstr = datetime.datetime.strptime(end, '%Y-%m-%dT%H:%M:%SZ')
-                    seconds = (end_dtstr - start_dtstr).seconds
-
-                    job_files_done[fileN] = {'size':size,'source':source,'start':start,'end':end,'seconds':seconds,'cached':cached,'atlasfile':atlasfile}
-                    """ To also show <site>.all.json file that is uploaded with the job by the client """
-                    if fileN not in all_files and 'json' in fileN:
-                        all_files.append(fileN)
+                    if line and 'inputfile' in line:
+                        words = re.split(',', line)
+                        words = [word.strip() for word in words]
                         
+                        fileN = words[0].split('inputfile:')[-1].split('/')[-1]
 
-        return all_files, all_files_user, job_files_done
+                        source = (words[0].split('inputfile:')[-1]).split('=')[-1][:-len(fileN)-1]
+                        size = int(words[1].split('=')[-1])/(1024*1024.)
+                        start = words[2].split('=')[-1]
+                        end = words[3].split('=')[-1]
+                        cached = words[4].split('=')[-1]
+                        atlasfile = False
+
+                        if 'panda' in fileN or 'pilot' in fileN:
+                            atlasfile = True
+
+                        start_dtstr = datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%SZ')
+                        end_dtstr = datetime.datetime.strptime(end, '%Y-%m-%dT%H:%M:%SZ')
+                        seconds = (end_dtstr - start_dtstr).seconds
+
+                        file_events[fileN] = {'size':size,'source':source,'start':start,'end':end,'seconds':seconds,'cached':cached,'atlasfile':atlasfile}
+                        #""" To also show <site>.all.json file that is uploaded with the job by the client """
+                        #if fileN not in all_files and 'json' in fileN:
+                        #    client_uploads.append(fileN)
+        except IOError:
+            """ TODO-error message/info message?"""
+            pass
+        return file_events#, client_uploads
+
+    def _get_file_events_errors(self,arcid,file_dict):
+        
+        """ Get more details about ongoing  transfers from jobs errors file"""
+        dtr_file = {}
+        file_dtr = {}
+
+        log_file = control_path(self.control_dir, arcid, 'errors')
+        with open(log_file,'r') as f:
+            for line in f:
+
+                words = re.split(' +', line)
+                words = [word.strip() for word in words]
+
+                    
+                if 'Scheduler received new DTR' in line:
+                    
+                    """ First instance of the new DTR """
+                    timestmp_str, timestmp_obj = self._get_tstamp(line)
+                    dtrid_short = words[5].replace(':','')
+                    fileN = words[13].split('/')[-1]
+                    fileN = fileN.replace(",","")
+
+                    dtr_file[dtrid_short]=fileN
+                    file_dtr[fileN]=dtrid_short
+
+                    """ 
+                    file_dict may or may not contain information already - 
+                    from statistics file - _get_file_details_statistics 
+                    But since this is the first occurence of datastaging events for this fileN recorded 
+                    in errors file I only need to check in this if-statement 
+                    whether the dictionary already contains the fileN
+                    """
+                    if fileN not in file_dict.keys():
+                        file_dict[fileN]={}
+                        
+                    file_dict[fileN]['dtrid_short']=dtrid_short
+                    file_dict[fileN]['start_sched']=timestmp_str
+
+                elif 'Started remote Delivery at' in line:
+                    """ Extract remote datadelivery host """
+
+                    dtrid_short = words[5].replace(':','')
+                    fileN = dtr_file[dtrid_short]
+                    url = words[-1]
+                    file_dict[fileN]['remote_dds']=url
+                    #[2024-08-14 12:29:56] [VERBOSE] [508263/32095] DTR 1504...4a5e: Connecting to Delivery service at http://10.2.1.96:33555/datadeliveryservice
+
+                elif 'Delivery received new DTR' in line:
+
+                    dtr_idx = 5
+                    if '<Log>' in line:
+                        dtr_idx = 6
+                                                
+                    """ Delivery actually starting - waiting time over """
+                    timestmp_str, timestmp_obj = self._get_tstamp(line)
+                    dtrid_short = words[dtr_idx].replace(':','')
+                    fileN = dtr_file[dtrid_short]
+                    
+                    file_dict[fileN]['start_deliver']=timestmp_str
+
+                elif 'Transfer finished' in line:
+
+                    """ Transfer done, file downloaded  """
+                    timestmp_str, timestmp_obj = self._get_tstamp(line)
+                    dtrid_short = words[5].replace(':','')
+                    fileN = dtr_file[dtrid_short]
+
+                    file_dict[fileN]['transf_done']=timestmp_str
+                    
+                    """ Calculated avg download speed """
+                    """ Calculated by diff in time between 'Delivery received new DTR' and 'Transfer finished 
+                    messages for the DTR. '"""
+                    
+                    if 'size' in file_dict[fileN].keys() and 'start_deliver' in file_dict[fileN].keys():
+                        start_dwnld = datetime.datetime.strptime(file_dict[fileN]['start_deliver'], "%Y-%m-%d %H:%M:%S")
+                        end_dwnld = datetime.datetime.strptime(file_dict[fileN]['transf_done'], "%Y-%m-%d %H:%M:%S")
+                        seconds = (end_dwnld - start_dwnld).seconds
+                        try:
+                            speed = float(file_dict[fileN]['size']/seconds)
+                        except ZeroDivisionError:
+                            speed = -1
+                        
+                        file_dict[fileN]['speed']=speed
+                        file_dict[fileN]['seconds']=seconds
+ 
+
+                elif 'Returning to generator' in line:
+
+                    """ DTR done """ 
+                    timestmp_str, timestmp_obj = self._get_tstamp(line)
+                    dtrid_short = words[5].replace(':','')
+                    fileN = dtr_file[dtrid_short]
+                    
+                    file_dict[fileN]['return_gen']=timestmp_str
+
+        return file_dict
+
+
+        
+    def _get_file_events(self,arcid):
+
+        all_userdef_inputs = self._get_filesforjob(arcid)
+        file_events = {}
+        file_events = dict.fromkeys(all_userdef_inputs, {})
+
+        """  Extracts information about the files already downloaded for a single job 
+        from its jobs statistics file 
+        includes download info for non-user defined file such as pilot or site json file """
+        file_events  = self._get_file_events_statistics(arcid, file_events)
+        """ Get more details about the transfers from jobs errors file"""
+        file_events = self._get_file_events_errors(arcid, file_events)
+                    
+        return file_events
 
 
     def _get_dtrstates(self,args):
@@ -274,6 +395,65 @@ class DataStagingControl(ComponentControl):
         return  state_counter
 
 
+    
+    def show_remote_delivery_hosts(self,args):
+        
+        deliveryservices = self.arcconfig.get_value('deliveryservice', 'arex/data-staging')
+        out,err=subprocess.Popen(['arcctl','job','list','-s','PREPARING'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
+        arcids_preparing = out.decode().split('\n')
+        """ Remove empty items """
+        arcids_preparing = [item for item in arcids_preparing if item]
+
+        """ Extract information about files being prepared including on what host """
+        remote_delivery = {}
+
+        """ Collect all files for jobs in PREPARING state that are logged as remotely downloaded 
+        Save this in a new dictionary for printing out """
+        for arcid in arcids_preparing:
+
+            print(f'debug arcid preparing: {arcid}')
+            """ For this arcid - get details about all files currently done in datastaging """
+
+            file_events = self._get_file_events(arcid)
+            for fileN,val in file_events.items():
+
+                if 'remote_dds' in val.keys():
+                    remote_dds =  val['remote_dds']
+                    if remote_dds not in remote_delivery.keys():
+                        remote_delivery[remote_dds]={}
+                        
+                    remote_delivery[remote_dds][fileN] = copy.deepcopy(val)
+                    remote_delivery[remote_dds][fileN]['arcid']=arcid
+
+
+        idx = 0
+        if remote_delivery:
+            print(f'Datadelivery services where files have currently been staged in for PREPARING jobs.')
+            print(f"\t{'COUNTER':<8} {'REMOTE-DELIVERY':<60} {'ARC-ID':<14.14} {'FILENAME':<60} {'SOURCE':<60} {'SIZE (MB)':<25} {'START':<25} {'END':<25} {'SECONDS':<7}")
+
+
+            for remote_dds,remote_delivery in remote_delivery.items():
+                print('\n')
+                for fileN,val in remote_delivery.items():
+                    idx += 1
+
+                    arcid = val['arcid']
+                    if 'source' not in val.keys():
+                        val['source'] = '-'
+                    if 'size' not in val.keys():
+                        val['size'] = -1
+                    if 'end' not in val.keys():
+                        val['end'] = '-'
+                    if 'seconds' not in val.keys():
+                        val['seconds'] = -1
+                    try:
+                        print(f"\t{idx:<8} {remote_dds:<60.60} {arcid:<14.14} {fileN:<60.60} {val['source']:<60.60} {val['size']:<25.1f} {val['start_deliver']:<25.25} {val['end']:<25.25} {val['seconds']:<7}")
+                    except Exception as e:
+                        print(f'Got an exception while printing out information for remote datadelivery sites for {fileN} and arcid: {arcid}: {e}')
+        else:
+            print(f'There are currently no files being staged by any remote datadelivery services')
+
+        
     def show_dtrstates(self,args):
 
         state_counter = self._get_dtrstates(args)
@@ -330,15 +510,14 @@ class DataStagingControl(ComponentControl):
         return
 
 
-    def show_job_time(self,args):
+    def show_job_time(self,arcid):
 
         datastaging_time={}
-        jobid = args.jobid
-        log_f = control_path(self.control_dir, jobid, 'errors')
-        datastaging_time=self._get_timestamps_joblog(log_f,jobid)
+        log_f = control_path(self.control_dir, arcid, 'errors')
+        datastaging_time=self._get_timestamps_joblog(log_f,arcid)
 
         if datastaging_time:
-            print('\nDatastaging durations for jobid {0:<50}'.format(args.jobid))
+            print('\nDatastaging durations for arcid {0:<50}'.format(args.arcid))
             if datastaging_time['noinput']:
                 print('\tThis job has no user-defined input-files, hence no datastaging needed/done.')
             else:
@@ -350,131 +529,40 @@ class DataStagingControl(ComponentControl):
                     print('\t{0:<21}\t{1:<12}'.format('Start','Duration'))
                     print("\t{0:<21}\t{1:<12}".format(datastaging_time['start'],datastaging_time['dt']))
         else:
-            print('No datastaging information for jobid {0:<50} - Try arcctl accounting instead - the job might be finished.'.format(args.jobid))
+            print('No datastaging information for arcid {0:<50} - Try arcctl accounting instead - the job might be finished.'.format(args.arcid))
 
 
 
-    def show_job_details(self,args):
+    def show_job_details(self,args,all_files,done_files_details):
         
-
-        all_files, all_files_user, job_files_done = self._get_filesforjob(args,args.jobid)
-    
         """ Collect remaining files to be downloaded """
         tobe_stagedin = []
         for fileN in all_files:
-            if fileN not in job_files_done.keys():
+            if fileN not in done_files_details.keys():
                 tobe_stagedin.append(fileN)
 
         """ General info """
-        print('\nInformation  about input-files for jobid {} '.format(args.jobid))
+        print('\nInformation  about input-files for arcid {} '.format(args.arcid))
         
         """  Print out a list of all files and if staged-in or not """
         print('\nState of input-files:')
         print('\t{0:<8}{1:<60}{2:<12}'.format('COUNTER','FILENAME','STAGED-IN'))
         for idx,fileN in enumerate(all_files):
             staged_in = 'no'
-            if fileN in job_files_done.keys():
+            if fileN in done_files_details.keys():
                 staged_in = 'yes'
             print('\t{0:<8}{1:<60}{2:<12}'.format(idx+1,fileN,staged_in))
         print('\tNote: files uploaded by the client appear to not be staged-in, ignore these as AREX does not handle the stage-in of these files.')
                 
         """ Print out information about files already downloaded """
-        sorted_dict = sorted(job_files_done.items(), key = lambda x: x[1]['end'])
+        sorted_dict = sorted(done_files_details.items(), key = lambda x: x[1]['end'])
         print('\nDetails for files that have been staged in - both downloaded and cached:')
         print('\t{0:<8}{1:<60}{2:<60}{3:<15}{4:<25}{5:<25}{6:<10}{7:<7}'.format('COUNTER','FILENAME','SOURCE','SIZE (MB)','START','END','SECONDS','CACHED'))
         for idx,item in enumerate(sorted_dict):
             print("\t{0:<8}{1:<60}{2:<60}{3:<15.3f}{4:<25}{5:<25}{6:<10}{7:<7}".format(idx+1,item[0],item[1]['source'],item[1]['size'],item[1]['start'],item[1]['end'],item[1]['seconds'],item[1]['cached']))
 
-        return job_files_done
-        
-
-    def show_job_finegrained(self,args,job_files_done):
-
-        dtr_file = {}
-        file_dtr = {}
-
-        log_file = control_path(self.control_dir, args.jobid, 'errors')
-        with open(log_file,'r') as f:
-            for line in f:
-
-                words = re.split(' +', line)
-                words = [word.strip() for word in words]
-
-                    
-                if 'Scheduler received new DTR' in line:
-                    
-                    """ First instance of the new DTR """
-                    timestmp_str, timestmp_obj = self._get_tstamp(line)
-                    dtrid_short = words[5].replace(':','')
-                    fileN = words[13].split('/')[-1]
-                    fileN = fileN.replace(",","")
-
-                    dtr_file[dtrid_short]=fileN
-                    file_dtr[fileN]=dtrid_short
-
-                    if fileN in job_files_done.keys():
-                        job_files_done[fileN]['dtrid_short']=dtrid_short
-                        job_files_done[fileN]['start_sched']=timestmp_str
-                    else:
-                        job_files_done[fileN]={}
-                        job_files_done[fileN]['dtrid_short']=dtrid_short
-                        job_files_done[fileN]['start_sched']=timestmp_str
-
-                elif 'Started remote Delivery at' in line:
-                    """ Extract remote datadelivery host """
-
-                    dtrid_short = words[5].replace(':','')
-                    fileN = dtr_file[dtrid_short]
-                    url = words[-1]
-                    #url=re.split(' +',line)[-1]
-                    job_files_done[fileN]['remote_delivery']=url
-                    #[2024-08-14 12:29:56] [VERBOSE] [508263/32095] DTR 1504...4a5e: Connecting to Delivery service at http://10.2.1.96:33555/datadeliveryservice
-
-                elif 'Delivery received new DTR' in line:
-
-                    dtr_idx = 5
-                    if '<Log>' in line:
-                        dtr_idx = 6
-                                                
-                    """ Delivery actually starting - waiting time over """
-                    timestmp_str, timestmp_obj = self._get_tstamp(line)
-                    dtrid_short = words[dtr_idx].replace(':','')
-                    fileN = dtr_file[dtrid_short]
-                    
-                    job_files_done[fileN]['start_deliver']=timestmp_str
-
-                elif 'Transfer finished' in line:
-
-                    """ Transfer done, file downloaded  """
-                    timestmp_str, timestmp_obj = self._get_tstamp(line)
-                    dtrid_short = words[5].replace(':','')
-                    fileN = dtr_file[dtrid_short]
-                    
-                    job_files_done[fileN]['transf_done']=timestmp_str
 
 
-                elif 'Returning to generator' in line:
-
-                    """ DTR done """ 
-                    timestmp_str, timestmp_obj = self._get_tstamp(line)
-                    dtrid_short = words[5].replace(':','')
-                    fileN = dtr_file[dtrid_short]
-                    
-                    job_files_done[fileN]['return_gen']=timestmp_str
-
-
-        """ Calculated avg download speed """
-        """ Calculated by diff in time between 'Delivery received new DTR' and 'Transfer finished 
-        messages for the DTR. '"""
-        for key,val in job_files_done.items():
-            if 'size' in val.keys() and 'start_deliver' in val.keys():
-                start_dwnld = datetime.datetime.strptime(val['start_deliver'], "%Y-%m-%d %H:%M:%S")
-                end_dwnld = datetime.datetime.strptime(val['transf_done'], "%Y-%m-%d %H:%M:%S")
-                seconds = (end_dwnld - start_dwnld).seconds
-                speed = float(val['size']/seconds)
-                job_files_done[key]['speed']=speed
-                job_files_done[key]['seconds']=seconds
-                
 
         """ Print out information about files already downloaded """
         """ TO-DO find a nice way to sort this, maybe removing the files that do not have all info provided? """
@@ -482,7 +570,7 @@ class DataStagingControl(ComponentControl):
         print('\nFine-grained details for files that have been staged-in by download (not cached):')
         print(f"{'COUNT':<5.5} {'FILENAME':<15.15} {'SIZE (MB)':<15.15} {'START':<20.20} {'END':<20.20} {'SCHEDULER-START':<20.20} {'DELIVERY-START':<20.20} {'TRANSFER-DONE':<20.20} {'ALL-DONE':<20.20} {'(s)':<6} {'(MB/s)':<10.10} {'DELIVERY-SERVICE'}")
         idx = 1
-        for key,val in job_files_done.items():
+        for key,val in done_files_details.items():
             if 'remote_delivery' not in val:
                 val['remote_delivery'] = ''
             if ('start_deliver' in val.keys() and 'start_sched' in val.keys() and 'return_gen' in val.keys() and 'speed' in val.keys()):
@@ -493,11 +581,16 @@ class DataStagingControl(ComponentControl):
             print('\tNo download info available, probably because all files for this jobs were already in the cache.')
 
 
+            
+        return done_files_details
+
+
+
 
     def show_summary_files(self,args):
         """ 
-        Total number and size of files downloaded in the chosen timewindow 
-        Uses the job.<jobid>.statistics file to extract files downloaded, as this gets updated file by file once a download is done.
+        Total number and size of files downloaded in the chosen timewindow for jobs in state PREPARING or INLRMS
+        Uses the job.<arcid>.statistics file to extract files downloaded, as this gets updated file by file once a download is done.
         """
 
         n_jobs = 0 
@@ -529,8 +622,19 @@ class DataStagingControl(ComponentControl):
 
         print('\nThis may take some time... Fetching the total number of files downloaded for jobs modified after {}'.format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S\n')))
 
-        log_all = glob.glob(self.control_dir + '/jobs/*/*/*/*/statistics')
-        for log_f in log_all:
+
+        out,err=subprocess.Popen(['arcctl','job','list','-s','PREPARING'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
+        arcids = out.decode().split('\n')
+
+
+        out,err=subprocess.Popen(['arcctl','job','list','-s','INLRMS'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
+        arcids.extend(out.decode().split('\n'))
+
+        """ Remove any empty items  """
+        arcids = [item for item in arcids if item]
+        
+        for arcid in arcids:
+            log_f = control_path(self.control_dir, arcid, 'statistics')
             mtime = None
             try:
                 mtime=datetime.datetime.fromtimestamp(os.path.getmtime(log_f))
@@ -542,16 +646,18 @@ class DataStagingControl(ComponentControl):
             if mtime < twindow_start:
                 continue
 
-            jobid = log_f.split('.')[-2]
-            all_files, all_files_user, job_files_done = self._get_filesforjob(args,jobid)
+            arcid = log_f.split('.')[-2]
+            #all_files, all_files_user = self._get_filesforjob(arcid)
+            #file_events = dict.fromkeys(all_files, {})
+            file_events = self._get_file_events(arcid,all_files)
 
             n_jobs += 1
-            n_files_all += len(all_files)
+            n_files_all += len(file_events.keys())
             n_files_all_user += len(all_files_user)
 
 
             """ Collecting information for files that are done in stage-in for this job """
-            for key, val in job_files_done.items():
+            for key, val in done_files_details.items():
                 """  Only files in active download during the timewindow are added """
                 end = datetime.datetime.strptime(val['end'], '%Y-%m-%dT%H:%M:%SZ')
                 if end < twindow_start:
@@ -650,7 +756,7 @@ class DataStagingControl(ComponentControl):
 
     def show_summary_jobs(self,args):
         
-        """ Overview over duration of all datastaging processes in the chosen timewindow 
+        """ Overview over duration of all datastaging processes for jobs in PREPARING or RUNNING in the chosen timewindow 
         Checks job errors files that have been modified during the timewindow. 
         Checks duration between ACCEPTED -> PREPARING to PREPARING -> FINISHING stages. 
         """
@@ -659,8 +765,15 @@ class DataStagingControl(ComponentControl):
 
         print('\nThis may take some time... Fetching summary of download times for jobs modified after {}'.format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S')))
 
-        log_all = glob.glob(self.control_dir + "/jobs/*/*/*/*/errors")
-        for log_f in log_all:
+
+        out,err=subprocess.Popen(['arcctl','job','list','-s','PREPARING'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
+        arcids = out.decode().split('\n')
+
+        out,err=subprocess.Popen(['arcctl','job','list','-s','INLRMS'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
+        arcids.extend(out.decode().split('\n'))
+
+        for arcid in arcids:
+            log_f = control_path(self.control_dir, arcid, 'errors')
             mtime = None
             try:
                 mtime=datetime.datetime.fromtimestamp(os.path.getmtime(log_f))
@@ -672,11 +785,10 @@ class DataStagingControl(ComponentControl):
             if mtime < twindow_start:
                 continue
 
-            jobid = log_f.split('.')[-2]
             try:
-                jobdict = self._get_timestamps_joblog(log_f,jobid,twindow_start)
+                jobdict = self._get_timestamps_joblog(log_f,arcid,twindow_start)
                 if jobdict:
-                    datastaging_jobs[jobid]=jobdict
+                    datastaging_jobs[arcid]=jobdict
             except:
                 continue
 
@@ -699,15 +811,15 @@ class DataStagingControl(ComponentControl):
         
         print('\nJobs where no user-defined input-data was defined (no datastaging done/needed): ')
         print('Number of jobs:  '+ str(len(noinput_list)))
-        for jobid in noinput_list:
-            print('\t{0:}'.format(jobid))
+        for arcid in noinput_list:
+            print('\t{0:}'.format(arcid))
             
 
         sorted_dict = sorted(done_dict.items(), key = lambda x: x[1]['dt'])
         print('\nSorted list of jobs where datastaging is done:')
         print('Number of jobs:  '+ str(len(sorted_dict)))
         if sorted_dict:
-            print('\t{0:<60}{1:<10}{2:<22}'.format('JOBID','DURATION','TIMESTAMP-DONE'))
+            print('\t{0:<60}{1:<10}{2:<22}'.format('ARCID','DURATION','TIMESTAMP-DONE'))
             for item in sorted_dict:
                 print('\t{0:<60}{1:<10}{2:<22}'.format(item[0],item[1]['dt'],item[1]['end']))
 
@@ -716,7 +828,7 @@ class DataStagingControl(ComponentControl):
         if ongoing_dict:
             print('\nSorted list of jobs where datastaging is ongoing:')
             print('Number of jobs:  ' + str(len(sorted_dict)))
-            print('\t{0:<60}{1:<10}'.format('JOBID','DURATION'))
+            print('\t{0:<60}{1:<10}'.format('ARCID','DURATION'))
             for item in sorted_dict:
                 print('\t{0:<60}{1:<10}'.format(item[0],item[1]['dt'].split('.')[0]))
 
@@ -725,7 +837,7 @@ class DataStagingControl(ComponentControl):
         if failed_dict:
             print('\nDatastaging used for failed jobs:')
             print('Number of jobs:  '+ str(len(sorted_dict)))
-            print('\t{0:<60}{1:<10}'.format('JOBID','DURATION'))
+            print('\t{0:<60}{1:<10}'.format('ARCID','DURATION'))
             for item in sorted_dict:
                 print('\t{0:<60}{1:<10}'.format(item[0],item[1]['dt'].split('.')[0]))
 
@@ -733,15 +845,22 @@ class DataStagingControl(ComponentControl):
         if args.summaryaction == 'jobs':
             self.show_summary_jobs(args)
         if args.summaryaction == 'files':
+            #all_files, all_files_user = self._get_filesforjob(args.arcid)
+            done_files_details = self._get_file_events(args.arcid,all_files)
             self.show_summary_files(args)
         
     def jobcontrol(self,args):
         canonicalize_args_jobid(args)
+
+        arcid = args.arcid
         if args.jobaction == 'get-totaltime':
-            self.show_job_time(args)
+            self.show_job_time(args.arcid)
         elif args.jobaction == 'get-details':
-            job_files_done = self.show_job_details(args)
-            self.show_job_finegrained(args,job_files_done)
+            #all_files, all_files_user  = self._get_filesforjob(arcid)
+            
+            done_files_details = self._get_file_events(arcid,all_files)
+            self.show_job_details(args,all_files,done_files_details)
+            #self.show_job_moredetails(args,done_files_details)
             
 
     def control(self, args):
@@ -751,6 +870,8 @@ class DataStagingControl(ComponentControl):
             self.summarycontrol(args)
         elif args.action == 'dtr':
             self.show_dtrstates(args)
+        elif args.action == 'remote_dds':
+            self.show_remote_delivery_hosts(args)
         else:
             self.logger.critical('Unsupported datastaging action %s', args.action)
             sys.exit(1)
@@ -762,10 +883,10 @@ class DataStagingControl(ComponentControl):
         dds_job_actions = dds_job_ctl.add_subparsers(title='Job Datastaging Menu', dest='jobaction',metavar='ACTION',help='DESCRIPTION')
         
         dds_job_total = dds_job_actions.add_parser('get-totaltime', help='Show the total time spent in the preparation stage for the selected job')
-        dds_job_total.add_argument('jobid',help='Job ID').completer = complete_job_id
+        dds_job_total.add_argument('arcid',help='Job ID').completer = complete_job_id
         
         dds_job_details = dds_job_actions.add_parser('get-details', help='Show details related to the  files downloaded for the selected job')
-        dds_job_details.add_argument('jobid',help='Job ID').completer = complete_job_id
+        dds_job_details.add_argument('arcid',help='Job ID').completer = complete_job_id
 
         #dds_job_details.add_argument('-d', '--details', help='Detailed info about jobs files', action='store_true')
 
@@ -782,7 +903,7 @@ class DataStagingControl(ComponentControl):
         dds_actions.required = True
         
        
-        """ Summary """
+        """ Summary for jobs in PREPARING or RUNNING """
         dds_summary_ctl = dds_actions.add_parser('summary',help='Job Datastaging Summary Information for jobs preparing or running.')
         dds_summary_ctl.set_defaults(handler_class=DataStagingControl)
         dds_summary_actions = dds_summary_ctl.add_subparsers(title='Job Datastaging Summary Menu',dest='summaryaction',metavar='ACTION',help='DESCRIPTION')
@@ -806,6 +927,11 @@ class DataStagingControl(ComponentControl):
         DataStagingControl.register_job_parser(dds_job_ctl)
 
 
+        """ Remote datadelivery services """
+        dds_remote_ctl = dds_actions.add_parser('remote_dds',help='Remote Datastaging file information for preparing jobs.')
+        DataStagingControl.register_parser(dds_remote_ctl)
+
+
         """ Data delivery processes """
         dds_dtr_ctl = dds_actions.add_parser('dtr',help='Data-delivery transfer (DTR) information')
         dds_dtr_ctl.set_defaults(handler_class=DataStagingControl)
@@ -814,6 +940,9 @@ class DataStagingControl(ComponentControl):
         dds_dtr_state = dds_dtr_actions.add_parser('state', help='Show summary of DTR state info')
         dds_dtr_state.add_argument('state',action='store_true')
 
+        
+
+        
 
 
 
