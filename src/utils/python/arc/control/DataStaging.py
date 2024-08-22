@@ -194,12 +194,6 @@ class DataStagingControl(ComponentControl):
                             
         return all_files_user
 
-    #def _get_ongoing_files_details(self,arcid,all_files=[],done_files_details):
-
-    #    for _file in all_files:
-    #        if _file not in done_files_details.keys():
-    #            """ This file is not get downloaded """
-            
 
     def _get_file_events_statistics(self, arcid, file_events):
 
@@ -411,9 +405,7 @@ class DataStagingControl(ComponentControl):
         Save this in a new dictionary for printing out """
         for arcid in arcids_preparing:
 
-            print(f'debug arcid preparing: {arcid}')
             """ For this arcid - get details about all files currently done in datastaging """
-
             file_events = self._get_file_events(arcid)
             for fileN,val in file_events.items():
 
@@ -424,11 +416,12 @@ class DataStagingControl(ComponentControl):
                         
                     remote_delivery[remote_dds][fileN] = copy.deepcopy(val)
                     remote_delivery[remote_dds][fileN]['arcid']=arcid
+                    
 
 
         idx = 0
         if remote_delivery:
-            print(f'Datadelivery services where files have currently been staged in for PREPARING jobs.')
+            print(f'Datadelivery service and file info for jobs in PREPARING state, which are currently been staged in or are in progress of being staged in at a remote datadelivery service.')
             print(f"\t{'COUNTER':<8} {'REMOTE-DELIVERY':<60} {'ARC-ID':<14.14} {'FILENAME':<60} {'SOURCE':<60} {'SIZE (MB)':<25} {'START':<25} {'END':<25} {'SECONDS':<7}")
 
 
@@ -622,10 +615,8 @@ class DataStagingControl(ComponentControl):
 
         print('\nThis may take some time... Fetching the total number of files downloaded for jobs modified after {}'.format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S\n')))
 
-
         out,err=subprocess.Popen(['arcctl','job','list','-s','PREPARING'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
         arcids = out.decode().split('\n')
-
 
         out,err=subprocess.Popen(['arcctl','job','list','-s','INLRMS'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
         arcids.extend(out.decode().split('\n'))
@@ -646,21 +637,28 @@ class DataStagingControl(ComponentControl):
             if mtime < twindow_start:
                 continue
 
-            arcid = log_f.split('.')[-2]
-            #all_files, all_files_user = self._get_filesforjob(arcid)
-            #file_events = dict.fromkeys(all_files, {})
-            file_events = self._get_file_events(arcid,all_files)
 
+            file_events = {}
+            file_events = self._get_file_events(arcid)
             n_jobs += 1
             n_files_all += len(file_events.keys())
-            n_files_all_user += len(all_files_user)
 
 
+            if not n_jobs:
+                print('\nNo active jobs were found in the selected timewindow --> exiting.')
+                return 
+
+            
             """ Collecting information for files that are done in stage-in for this job """
-            for key, val in done_files_details.items():
-                """  Only files in active download during the timewindow are added """
-                end = datetime.datetime.strptime(val['end'], '%Y-%m-%dT%H:%M:%SZ')
-                if end < twindow_start:
+            for key, val in file_events.items():
+                
+                #print(f'arcid: {arcid} fileN: {key} val: {val}')
+                try:
+                    """  Only files in active download during the timewindow are added """
+                    end = datetime.datetime.strptime(val['end'], '%Y-%m-%dT%H:%M:%SZ')
+                    if end < twindow_start:
+                        continue
+                except KeyError:
                     continue
                 
                 n_files += 1
@@ -695,16 +693,12 @@ class DataStagingControl(ComponentControl):
                         size_files_downloaded_user += val['size']/1024.
 
 
-        if not n_jobs:
-            print('\nNo active jobs were found in the selected timewindow --> exiting.')
-            return 
-
         
         print('\nTimewindow start: : '+ datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S'))
         print('\nALL JOBS')
         print('Number of jobs active since start of timewindow '+ str(n_jobs))
         print('\tTotal number of inputfiles for these jobs: ' + str(n_files_all))
-        print('\tOut of these, user-defined input-files amounted to: ' + str(n_files_all_user))
+        #print('\tOut of these, user-defined input-files amounted to: ' + str(n_files_all_user))
     
         if not n_files:
             print('\nNo files were done staging-in during the selected timewindow --> exiting.')
@@ -844,11 +838,12 @@ class DataStagingControl(ComponentControl):
     def summarycontrol(self,args):
         if args.summaryaction == 'jobs':
             self.show_summary_jobs(args)
-        if args.summaryaction == 'files':
-            #all_files, all_files_user = self._get_filesforjob(args.arcid)
-            done_files_details = self._get_file_events(args.arcid,all_files)
+        elif args.summaryaction == 'files':
             self.show_summary_files(args)
-        
+        else:
+            print('Usage ')
+
+                
     def jobcontrol(self,args):
         canonicalize_args_jobid(args)
 
@@ -858,7 +853,7 @@ class DataStagingControl(ComponentControl):
         elif args.jobaction == 'get-details':
             #all_files, all_files_user  = self._get_filesforjob(arcid)
             
-            done_files_details = self._get_file_events(arcid,all_files)
+            done_files_details = self._get_file_events(arcid)
             self.show_job_details(args,all_files,done_files_details)
             #self.show_job_moredetails(args,done_files_details)
             
@@ -902,11 +897,17 @@ class DataStagingControl(ComponentControl):
                                              metavar='ACTION', help='DESCRIPTION')
         dds_actions.required = True
         
-       
+               
+        """ Job """
+        dds_job_ctl = dds_actions.add_parser('job',help='Job Datastaging Information for a preparing or running job.')
+        DataStagingControl.register_job_parser(dds_job_ctl)
+
+
         """ Summary for jobs in PREPARING or RUNNING """
         dds_summary_ctl = dds_actions.add_parser('summary',help='Job Datastaging Summary Information for jobs preparing or running.')
         dds_summary_ctl.set_defaults(handler_class=DataStagingControl)
         dds_summary_actions = dds_summary_ctl.add_subparsers(title='Job Datastaging Summary Menu',dest='summaryaction',metavar='ACTION',help='DESCRIPTION')
+        dds_summary_actions.required = True
         
         dds_summary_jobs = dds_summary_actions.add_parser('jobs',help='Show overview of the duration of datastaging for jobs active in the chosen (or default=1hr) timewindow')
         dds_summary_jobs.add_argument('-d','--days',default=0,type=int,help='Modification time in days (default: %(default)s days)')
@@ -921,17 +922,12 @@ class DataStagingControl(ComponentControl):
         dds_summary_files.add_argument('-m','--minutes',default=0,type=int,help='Modification time in minutes (default: %(default)s minutes)')
         dds_summary_files.add_argument('-s','--seconds',default=0,type=int,help='Modification time in seconds (default: %(default)s seconds)')
         
-       
-        """ Job """
-        dds_job_ctl = dds_actions.add_parser('job',help='Job Datastaging Information for a preparing or running job.')
-        DataStagingControl.register_job_parser(dds_job_ctl)
-
 
         """ Remote datadelivery services """
         dds_remote_ctl = dds_actions.add_parser('remote_dds',help='Remote Datastaging file information for preparing jobs.')
-        DataStagingControl.register_parser(dds_remote_ctl)
+        dds_remote_ctl.set_defaults(handler_class=DataStagingControl)
 
-
+        
         """ Data delivery processes """
         dds_dtr_ctl = dds_actions.add_parser('dtr',help='Data-delivery transfer (DTR) information')
         dds_dtr_ctl.set_defaults(handler_class=DataStagingControl)
