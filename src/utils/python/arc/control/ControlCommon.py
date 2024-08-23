@@ -239,20 +239,28 @@ def get_parsed_arcconf(conf_f):
     return arcconfig
 
 def control_path(control_dir, job_id, file_type):
-    """Returns the fragmented controldir path to the job file"""
-    # variable split for consistency with shell function
-    job_path = ''
-    for n in range(3):
-        job_path += job_id[0:3] + '/'
-        job_id = job_id[3:]
-        if not job_id:
-            break
-    if job_id:
-        job_path += job_id + '/'
-    if not job_path:
-        logger.error('The jobid "%s" does not have the right format/length', job_id)
-        return ''
-    return '{0}/jobs/{1}/{2}'.format(control_dir, job_path, file_type).rstrip('/')
+    """Returns the fragmented controldir path to the job file for ARC 7 or non-fragmented path to the job file for ARC 6"""
+    if len(job_id) == 12:
+        """ ARC 7 """
+        # variable split for consistency with shell function
+        job_path = ''
+        for n in range(3):
+            job_path += job_id[0:3] + '/'
+            job_id = job_id[3:]
+            if not job_id:
+                break
+        if job_id:
+            job_path += job_id + '/'
+            if not job_path:
+                logger.error('The jobid "%s" does not have the right format/length', job_id)
+                return ''
+        return f"{control_dir}/jobs/{job_path}/{file_type}"
+    elif len(job_id) == 54:
+        """ ARC 6 """
+        return f"{control_dir}/job.{job_id}.{file_type}"
+        
+                
+ 
 
 def canonicalize_args_jobid(args):
     """Extract jobID from job-URL"""
