@@ -254,7 +254,8 @@ def control_path(control_dir, job_id, file_type):
             if not job_path:
                 logger.error('The jobid "%s" does not have the right format/length', job_id)
                 return ''
-        return f"{control_dir}/jobs/{job_path}/{file_type}"
+            
+        return f"{control_dir}/jobs/{job_path.strip('/')}/{file_type}"
     elif len(job_id) == 54:
         """ ARC 6 """
         return f"{control_dir}/job.{job_id}.{file_type}"
