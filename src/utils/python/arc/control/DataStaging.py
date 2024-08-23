@@ -226,7 +226,7 @@ class DataStagingControl(ComponentControl):
                         end_dtstr = datetime.datetime.strptime(end, '%Y-%m-%dT%H:%M:%SZ')
                         seconds = (end_dtstr - start_dtstr).seconds
 
-                        file_events[fileN] = {'size':size,'source':source,'start':start,'end':end,'seconds':seconds,'cached':cached,'atlasfile':atlasfile}
+                        file_events[fileN] = {'size':size,'source':source,'start':start,'end':end,'seconds':seconds,'cached':cached,'atlasfile':atlasfile, 'staged_in': 'yes'}
                         #""" To also show <site>.all.json file that is uploaded with the job by the client """
                         #if fileN not in all_files and 'json' in fileN:
                         #    client_uploads.append(fileN)
@@ -273,6 +273,7 @@ class DataStagingControl(ComponentControl):
                     file_dict[fileN]['dtrid_short']=dtrid_short
                     file_dict[fileN]['start_sched']=timestmp_str
 
+
                 elif 'Started remote Delivery at' in line:
                     """ Extract remote datadelivery host """
 
@@ -303,6 +304,7 @@ class DataStagingControl(ComponentControl):
                     fileN = dtr_file[dtrid_short]
 
                     file_dict[fileN]['transf_done']=timestmp_str
+                    file_dict[fileN]['staged_in']='yes'
                     
                     """ Calculated avg download speed """
                     """ Calculated by diff in time between 'Delivery received new DTR' and 'Transfer finished 
@@ -339,7 +341,9 @@ class DataStagingControl(ComponentControl):
         all_userdef_inputs = self._get_filesforjob(arcid)
         file_events = {}
         file_events = dict.fromkeys(all_userdef_inputs, {})
-
+        for fileN in file_events:
+            file_events[fileN]['staged_in'] = 'no'
+            
         """  Extracts information about the files already downloaded for a single job 
         from its jobs statistics file 
         includes download info for non-user defined file such as pilot or site json file """
@@ -510,7 +514,7 @@ class DataStagingControl(ComponentControl):
         datastaging_time=self._get_timestamps_joblog(log_f,arcid)
 
         if datastaging_time:
-            print('\nDatastaging durations for arcid {0:<50}'.format(args.arcid))
+            print('\nDatastaging durations for arcid {0:<50}'.format(arcid))
             if datastaging_time['noinput']:
                 print('\tThis job has no user-defined input-files, hence no datastaging needed/done.')
             else:
@@ -522,38 +526,33 @@ class DataStagingControl(ComponentControl):
                     print('\t{0:<21}\t{1:<12}'.format('Start','Duration'))
                     print("\t{0:<21}\t{1:<12}".format(datastaging_time['start'],datastaging_time['dt']))
         else:
-            print('No datastaging information for arcid {0:<50} - Try arcctl accounting instead - the job might be finished.'.format(args.arcid))
+            print('No datastaging information for arcid {0:<50} - Try arcctl accounting instead - the job might be finished.'.format(arcid))
 
 
 
-    def show_job_details(self,args,all_files,done_files_details):
+    def show_job_details(self,arcid,file_details):
+
+
+        done_stagedin = {k: v for k, v in file_details.items() if v.get('staged_in') == 'yes'}
+        tobe_stagedin = {k: v for k, v in file_details.items() if v.get('staged_in') == 'no'}
         
-        """ Collect remaining files to be downloaded """
-        tobe_stagedin = []
-        for fileN in all_files:
-            if fileN not in done_files_details.keys():
-                tobe_stagedin.append(fileN)
 
         """ General info """
-        print('\nInformation  about input-files for arcid {} '.format(args.arcid))
+        print('\nInformation  about input-files for arcid {} '.format(arcid))
         
         """  Print out a list of all files and if staged-in or not """
         print('\nState of input-files:')
         print('\t{0:<8}{1:<60}{2:<12}'.format('COUNTER','FILENAME','STAGED-IN'))
-        for idx,fileN in enumerate(all_files):
-            staged_in = 'no'
-            if fileN in done_files_details.keys():
-                staged_in = 'yes'
-            print('\t{0:<8}{1:<60}{2:<12}'.format(idx+1,fileN,staged_in))
+        for idx,fileN in enumerate(file_details.keys()):
+            print('\t{0:<8}{1:<60}{2:<12}'.format(idx+1,fileN,file_details[fileN]['staged_in']))
         print('\tNote: files uploaded by the client appear to not be staged-in, ignore these as AREX does not handle the stage-in of these files.')
                 
-        """ Print out information about files already downloaded """
-        sorted_dict = sorted(done_files_details.items(), key = lambda x: x[1]['end'])
+        """ Print out information about files already staged in """
+        sorted_dict = sorted(done_stagedin.items(), key = lambda x: x[1]['end'])
         print('\nDetails for files that have been staged in - both downloaded and cached:')
         print('\t{0:<8}{1:<60}{2:<60}{3:<15}{4:<25}{5:<25}{6:<10}{7:<7}'.format('COUNTER','FILENAME','SOURCE','SIZE (MB)','START','END','SECONDS','CACHED'))
         for idx,item in enumerate(sorted_dict):
             print("\t{0:<8}{1:<60}{2:<60}{3:<15.3f}{4:<25}{5:<25}{6:<10}{7:<7}".format(idx+1,item[0],item[1]['source'],item[1]['size'],item[1]['start'],item[1]['end'],item[1]['seconds'],item[1]['cached']))
-
 
 
 
@@ -563,7 +562,7 @@ class DataStagingControl(ComponentControl):
         print('\nFine-grained details for files that have been staged-in by download (not cached):')
         print(f"{'COUNT':<5.5} {'FILENAME':<15.15} {'SIZE (MB)':<15.15} {'START':<20.20} {'END':<20.20} {'SCHEDULER-START':<20.20} {'DELIVERY-START':<20.20} {'TRANSFER-DONE':<20.20} {'ALL-DONE':<20.20} {'(s)':<6} {'(MB/s)':<10.10} {'DELIVERY-SERVICE'}")
         idx = 1
-        for key,val in done_files_details.items():
+        for key,val in done_stagedin.items():
             if 'remote_delivery' not in val:
                 val['remote_delivery'] = ''
             if ('start_deliver' in val.keys() and 'start_sched' in val.keys() and 'return_gen' in val.keys() and 'speed' in val.keys()):
@@ -574,8 +573,6 @@ class DataStagingControl(ComponentControl):
             print('\tNo download info available, probably because all files for this jobs were already in the cache.')
 
 
-            
-        return done_files_details
 
 
 
@@ -849,17 +846,16 @@ class DataStagingControl(ComponentControl):
 
         arcid = args.arcid
         if args.jobaction == 'get-totaltime':
-            self.show_job_time(args.arcid)
+            self.show_job_time(arcid)
         elif args.jobaction == 'get-details':
-            #all_files, all_files_user  = self._get_filesforjob(arcid)
-            
-            done_files_details = self._get_file_events(arcid)
-            self.show_job_details(args,all_files,done_files_details)
+            file_details = self._get_file_events(arcid)
+            self.show_job_details(arcid,file_details)
             #self.show_job_moredetails(args,done_files_details)
             
 
     def control(self, args):
         if args.action == 'job' or 'jobaction' in args:
+            canonicalize_args_jobid(args)
             self.jobcontrol(args)
         elif args.action == 'summary':
             self.summarycontrol(args)
@@ -876,12 +872,15 @@ class DataStagingControl(ComponentControl):
 
         dds_job_ctl.set_defaults(handler_class=DataStagingControl)
         dds_job_actions = dds_job_ctl.add_subparsers(title='Job Datastaging Menu', dest='jobaction',metavar='ACTION',help='DESCRIPTION')
-        
+
+        dds_job_actions.required = True
+
         dds_job_total = dds_job_actions.add_parser('get-totaltime', help='Show the total time spent in the preparation stage for the selected job')
         dds_job_total.add_argument('arcid',help='Job ID').completer = complete_job_id
         
         dds_job_details = dds_job_actions.add_parser('get-details', help='Show details related to the  files downloaded for the selected job')
         dds_job_details.add_argument('arcid',help='Job ID').completer = complete_job_id
+
 
         #dds_job_details.add_argument('-d', '--details', help='Detailed info about jobs files', action='store_true')
 
@@ -902,6 +901,7 @@ class DataStagingControl(ComponentControl):
         dds_job_ctl = dds_actions.add_parser('job',help='Job Datastaging Information for a preparing or running job.')
         DataStagingControl.register_job_parser(dds_job_ctl)
 
+        
 
         """ Summary for jobs in PREPARING or RUNNING """
         dds_summary_ctl = dds_actions.add_parser('summary',help='Job Datastaging Summary Information for jobs preparing or running.')
