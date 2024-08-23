@@ -542,18 +542,19 @@ class DataStagingControl(ComponentControl):
         
         """  Print out a list of all files and if staged-in or not """
         print('\nState of input-files:')
-        print('\t{0:<8}{1:<60}{2:<12}'.format('COUNTER','FILENAME','STAGED-IN'))
+        print(f"{'COUNTER':<8} {'FILENAME':<60.60} {'STAGED-IN':<12}")
         for idx,fileN in enumerate(file_details.keys()):
-            print('\t{0:<8}{1:<60}{2:<12}'.format(idx+1,fileN,file_details[fileN]['staged_in']))
+            print(f"{idx+1:<8} {fileN:<60.60} {file_details[fileN]['staged_in']:<12}")
         print('\tNote: files uploaded by the client appear to not be staged-in, ignore these as AREX does not handle the stage-in of these files.')
                 
         """ Print out information about files already staged in """
         sorted_dict = sorted(done_stagedin.items(), key = lambda x: x[1]['end'])
         print('\nDetails for files that have been staged in - both downloaded and cached:')
-        print('\t{0:<8}{1:<60}{2:<60}{3:<15}{4:<25}{5:<25}{6:<10}{7:<7}'.format('COUNTER','FILENAME','SOURCE','SIZE (MB)','START','END','SECONDS','CACHED'))
+        print(f"{'COUNTER':<8} {'FILENAME':<60} {'SOURCE':<60} {'SIZE (MB)':<15} {'START':<25} {'END':<25} {'SECONDS':<10} {'CACHED':<7}")
         for idx,item in enumerate(sorted_dict):
-            print("\t{0:<8}{1:<60}{2:<60}{3:<15.3f}{4:<25}{5:<25}{6:<10}{7:<7}".format(idx+1,item[0],item[1]['source'],item[1]['size'],item[1]['start'],item[1]['end'],item[1]['seconds'],item[1]['cached']))
-
+            fileN = item[0]
+            filedict = item[1]
+            print(f"{idx+1:<8} {fileN:<60.60} {filedict['source']:<60} {filedict['size']:<15.3f} {filedict['start']:<25} {filedict['end']:<25} {filedict['seconds']:<10} {filedict['cached']:<7}")
 
 
         """ Print out information about files already downloaded """
@@ -563,10 +564,10 @@ class DataStagingControl(ComponentControl):
         print(f"{'COUNT':<5.5} {'FILENAME':<15.15} {'SIZE (MB)':<15.15} {'START':<20.20} {'END':<20.20} {'SCHEDULER-START':<20.20} {'DELIVERY-START':<20.20} {'TRANSFER-DONE':<20.20} {'ALL-DONE':<20.20} {'(s)':<6} {'(MB/s)':<10.10} {'DELIVERY-SERVICE'}")
         idx = 1
         for key,val in done_stagedin.items():
-            if 'remote_delivery' not in val:
-                val['remote_delivery'] = ''
+            if 'remote_dds' not in val:
+                val['remote_dds'] = '-'
             if ('start_deliver' in val.keys() and 'start_sched' in val.keys() and 'return_gen' in val.keys() and 'speed' in val.keys()):
-                print(f"{idx:<5} {key:<15.15} {val['size']:<15.3f} {val['start']:<20.20} {val['end']:<20.20} {val['start_sched']:<20.20} {val['start_deliver']:<20.20} {val['transf_done']:<20.20} {val['return_gen']:<20.20} {val['seconds']:<6} {val['speed']:<10.1f} {val['remote_delivery']}")
+                print(f"{idx:<5} {key:<15.15} {val['size']:<15.3f} {val['start']:<20.20} {val['end']:<20.20} {val['start_sched']:<20.20} {val['start_deliver']:<20.20} {val['transf_done']:<20.20} {val['return_gen']:<20.20} {val['seconds']:<6} {val['speed']:<10.1f} {val['remote_dds']}")
                 idx += 1
                 downloads = True
         if not downloads:
