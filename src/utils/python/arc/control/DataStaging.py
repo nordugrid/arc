@@ -212,6 +212,11 @@ class DataStagingControl(ComponentControl):
                         
                         fileN = words[0].split('inputfile:')[-1].split('/')[-1]
 
+                        """ The statistics file can contain files that are not listed in grami file - add these too and initialize """
+                        if fileN not in file_events.keys():
+                            file_events[fileN] = {}
+                            file_events[fileN]['staged_in'] = 'no'
+                            
                         source = (words[0].split('inputfile:')[-1]).split('=')[-1][:-len(fileN)-1]
                         size = int(words[1].split('=')[-1])/(1024*1024.)
                         start = words[2].split('=')[-1]
@@ -235,7 +240,7 @@ class DataStagingControl(ComponentControl):
             pass
         return file_events#, client_uploads
 
-    def _get_file_events_errors(self,arcid,file_dict):
+    def _get_file_events_errors(self,arcid,file_events):
         
         """ Get more details about ongoing  transfers from jobs errors file"""
         dtr_file = {}
@@ -261,17 +266,18 @@ class DataStagingControl(ComponentControl):
                     file_dtr[fileN]=dtrid_short
 
                     """ 
-                    file_dict may or may not contain information already - 
+                    file_events may or may not contain information already - 
                     from statistics file - _get_file_details_statistics 
                     But since this is the first occurence of datastaging events for this fileN recorded 
                     in errors file I only need to check in this if-statement 
                     whether the dictionary already contains the fileN
                     """
-                    if fileN not in file_dict.keys():
-                        file_dict[fileN]={}
+                    if fileN not in file_events.keys():
+                        file_events[fileN]={}
+                        file_events[fileN]['staged_in'] = 'no'
                         
-                    file_dict[fileN]['dtrid_short']=dtrid_short
-                    file_dict[fileN]['start_sched']=timestmp_str
+                    file_events[fileN]['dtrid_short']=dtrid_short
+                    file_events[fileN]['start_sched']=timestmp_str
 
 
                 elif 'Started remote Delivery at' in line:
@@ -280,7 +286,7 @@ class DataStagingControl(ComponentControl):
                     dtrid_short = words[5].replace(':','')
                     fileN = dtr_file[dtrid_short]
                     url = words[-1]
-                    file_dict[fileN]['remote_dds']=url
+                    file_events[fileN]['remote_dds']=url
                     #[2024-08-14 12:29:56] [VERBOSE] [508263/32095] DTR 1504...4a5e: Connecting to Delivery service at http://10.2.1.96:33555/datadeliveryservice
 
                 elif 'Delivery received new DTR' in line:
@@ -294,7 +300,7 @@ class DataStagingControl(ComponentControl):
                     dtrid_short = words[dtr_idx].replace(':','')
                     fileN = dtr_file[dtrid_short]
                     
-                    file_dict[fileN]['start_deliver']=timestmp_str
+                    file_events[fileN]['start_deliver']=timestmp_str
 
                 elif 'Transfer finished' in line:
 
@@ -303,24 +309,24 @@ class DataStagingControl(ComponentControl):
                     dtrid_short = words[5].replace(':','')
                     fileN = dtr_file[dtrid_short]
 
-                    file_dict[fileN]['transf_done']=timestmp_str
-                    file_dict[fileN]['staged_in']='yes'
+                    file_events[fileN]['transf_done']=timestmp_str
+                    file_events[fileN]['staged_in']='yes'
                     
                     """ Calculated avg download speed """
                     """ Calculated by diff in time between 'Delivery received new DTR' and 'Transfer finished 
                     messages for the DTR. '"""
                     
-                    if 'size' in file_dict[fileN].keys() and 'start_deliver' in file_dict[fileN].keys():
-                        start_dwnld = datetime.datetime.strptime(file_dict[fileN]['start_deliver'], "%Y-%m-%d %H:%M:%S")
-                        end_dwnld = datetime.datetime.strptime(file_dict[fileN]['transf_done'], "%Y-%m-%d %H:%M:%S")
+                    if 'size' in file_events[fileN].keys() and 'start_deliver' in file_events[fileN].keys():
+                        start_dwnld = datetime.datetime.strptime(file_events[fileN]['start_deliver'], "%Y-%m-%d %H:%M:%S")
+                        end_dwnld = datetime.datetime.strptime(file_events[fileN]['transf_done'], "%Y-%m-%d %H:%M:%S")
                         seconds = (end_dwnld - start_dwnld).seconds
                         try:
-                            speed = float(file_dict[fileN]['size']/seconds)
+                            speed = float(file_events[fileN]['size']/seconds)
                         except ZeroDivisionError:
                             speed = -1
                         
-                        file_dict[fileN]['speed']=speed
-                        file_dict[fileN]['seconds']=seconds
+                        file_events[fileN]['speed']=speed
+                        file_events[fileN]['seconds']=seconds
  
 
                 elif 'Returning to generator' in line:
@@ -330,9 +336,9 @@ class DataStagingControl(ComponentControl):
                     dtrid_short = words[5].replace(':','')
                     fileN = dtr_file[dtrid_short]
                     
-                    file_dict[fileN]['return_gen']=timestmp_str
+                    file_events[fileN]['return_gen']=timestmp_str
 
-        return file_dict
+        return file_events
 
 
         
