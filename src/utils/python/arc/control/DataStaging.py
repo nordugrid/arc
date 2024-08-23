@@ -457,16 +457,17 @@ class DataStagingControl(ComponentControl):
 
         """ TO-DO print in nice order """
         print_order = ['CACHE_WAIT','STAGING_PREPARING_WAIT','STAGE_PREPARE','TRANSFER_WAIT','TRANSFER','PROCESSING_CACHE']
+        
         if state_counter:
             print('Number of current datastaging processes (files):')
-            print('\t{0:<25}{1:<20}{2:<6}'.format('State','Data-delivery host', 'Number'))
+            print(f"\t{'State':<25} {'Data-delivery host':<20} {'Number':<6}")
             
             count_transferring = 0
 
             """ First print the most important states:"""
             for state in print_order:
                 try:
-                    print('\t{0:<25}{1:<20}{2:>6}'.format(state,'N/A',state_counter[state]))
+                    print(f"\t{state:<25}]{'N/A':<20}{state_counter['state']:>6}")
                 except KeyError:
                     pass
 
@@ -478,28 +479,27 @@ class DataStagingControl(ComponentControl):
                     count_transferring += val
                     if 'local' in host:
                         continue
-                    print('\t{0:<25}{1:<20}{2:>6}'.format(state,host,val))
+                    print(f"\t{state:<25}{host:<20}{val:>6}")
+
 
             """  Print out other states """
             for key, val in state_counter.items():
                 if 'TRANSFERRING' in key or key in print_order or 'local' in key or key in 'ARC_STAGING_TOTAL': continue
-                print('\t{0:<25}{1:<20}{2:>6}'.format(key,'N/A',val))
-                    
+                print(f"\t{key:<25} {'N/A':<20} {val:>6}")
 
             try:
                 count_transferring += state_counter['TRANSFERRING_local']
-                print('\t{0:<25}{1:<20}{2:>6}'.format('TRANSFERRING','local',state_counter['TRANSFERRING_local']))
+                print(f"\t{'TRANSFERRING':<25}{'local':<20}{state_counter['TRANSFERRING_local']:>6}")
             except KeyError:
                 pass
 
             """ Print out divider """
             print('-'*60)
             """ Sum up all TRANSFERRING slots """
-            print('\t{0:<25}{1:<20}{2:>6}'.format('TRANSFERRING TOTAL','N/A',count_transferring))
+            print(f"\t{'TRANSFERRING TOTAL':<25} {'N/A':<20} {count_transferring:>6}")
 
             """ Finally print the sum of all dtrs """
-            print('\t{0:<25}{1:<20}{2:>6}'.format('ARC_STAGING_TOTAL','N/A',state_counter['ARC_STAGING_TOTAL']))
-
+            print(f"\t{'ARC_STAGING_TOTAL':<25} {'N/A':<20} {state_counter['ARC_STAGING_TOTAL']:>6}")
                 
         else:
             print('No information in %s file: currently no datastaging processes running',dtrlog)
@@ -514,19 +514,19 @@ class DataStagingControl(ComponentControl):
         datastaging_time=self._get_timestamps_joblog(log_f,arcid)
 
         if datastaging_time:
-            print('\nDatastaging durations for arcid {0:<50}'.format(arcid))
+            print(f"\nTotal datastaging duration for arcid {arcid:<50}")
             if datastaging_time['noinput']:
                 print('\tThis job has no user-defined input-files, hence no datastaging needed/done.')
             else:
                 if datastaging_time['done']:
-                    print('\t{0:<21}\t{1:<21}\t{2:<12}'.format('Start','End','Duration'))
-                    print("\t{start:<21}\t{end:<21}\t{dt:<12}".format(**datastaging_time))
+                    print(f"\t{'Start':<21} \t{'End':<21} \t{'Duration':<12}")
+                    print(f"\t{datastaging_time['start']:<21} \t{datastaging_time['end']:<21} \t{datastaging_time['dt']:<12}")
                 else:
-                    print('\tDatastaging still ongoing')
-                    print('\t{0:<21}\t{1:<12}'.format('Start','Duration'))
-                    print("\t{0:<21}\t{1:<12}".format(datastaging_time['start'],datastaging_time['dt']))
+                    print("\tDatastaging still ongoing")
+                    print(f"\t{'Start':<21} \t{'Duration':<12}")
+                    print(f"\t{datastaging_time['start']:<21} \t{datastaging_time['dt']:<12}")
         else:
-            print('No datastaging information for arcid {0:<50} - Try arcctl accounting instead - the job might be finished.'.format(arcid))
+            print(f'No datastaging information for arcid {arcid:<50} - Try arcctl accounting instead - the job might be finished.')
 
 
 
@@ -538,7 +538,7 @@ class DataStagingControl(ComponentControl):
         
 
         """ General info """
-        print('\nInformation  about input-files for arcid {} '.format(arcid))
+        print(f'\nInformation  about input-files for arcid {arcid} ')
         
         """  Print out a list of all files and if staged-in or not """
         print('\nState of input-files:')
@@ -611,7 +611,7 @@ class DataStagingControl(ComponentControl):
         datastaging_files={}
         twindow_start = self._calc_timewindow(args)
 
-        print('\nThis may take some time... Fetching the total number of files downloaded for jobs modified after {}'.format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S\n')))
+        print(f"\nThis may take some time... Fetching the total number of files downloaded for jobs modified after {datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S')}")
 
         out,err=subprocess.Popen(['arcctl','job','list','-s','PREPARING'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
         arcids = out.decode().split('\n')
@@ -703,45 +703,43 @@ class DataStagingControl(ComponentControl):
             return
 
         print('\nFILES DONE IN STAGE-IN')
-        print('{0:<50}{1:<10}{2:<15}'.format('','NUMBER','SIZE [GB]'))
-        print('{0:<50}{1:<10}{2:<15.1f}'.format('Total',str(n_files),size_files))
+        print(f"{'':<50} {'NUMBER':<10} {'SIZE (GB)':<15}")
+        print(f"{'Total':<50} {str(n_files):<10} {size_files:<15.1f}")
+
+        if n_files_atlas:
+            print(f"{'    User-defined':<50} {str(n_files_user):<10} {size_files_user:<15.1f}")
+            print(f"{'    Atlas-files':<50} {str(n_files_atlas):<10} {size_files_atlas:<15.1f}")
+
+
+        print(f"{'Cached Total':<50} {str(n_files_cached):<10} {size_files_cached:<15.1f}")
+        if n_files_atlas:
+            print(f"{'    User-defined':<50} {str(n_files_cached_user):<10} {size_files_cached_user:<15.1f}")
+            print(f"{'    Atlas-files':<50} {str(n_files_cached_atlas):<10} {size_files_cached_atlas:<15.1f}")
         
-
+        print(f"{'Not-cached Total (downloaded)':<50} {str(n_files_downloaded):<10} {size_files_downloaded:<15.1f}")
         if n_files_atlas:
-            print('{0:<50}{1:<10}{2:<15.1f}'.format('    User-defined',str(n_files_user),size_files_user))
-            print('{0:<50}{1:<10}{2:<15.1f}'.format('    Atlas-files',str(n_files_atlas),size_files_atlas))
-
-
-        print('{0:<50}{1:<10}{2:<15.1f}'.format('Cached Total',str(n_files_cached),size_files_cached))
-        if n_files_atlas:
-            print('{0:<50}{1:<10}{2:<15.1f}'.format('    User-defined',str(n_files_cached_user),size_files_cached_user))
-            print('{0:<50}{1:<10}{2:<15.1f}'.format('    Atlas-files',str(n_files_cached_atlas),size_files_cached_atlas))
-
-        
-        print('{0:<50}{1:<10}{2:<15.1f}'.format('Not-cached Total (downloaded)',str(n_files_downloaded),size_files_downloaded))
-        if n_files_atlas:
-            print('{0:<50}{1:<10}{2:<15.1f}'.format('    User-defined',str(n_files_downloaded_user),size_files_downloaded_user))
-            print('{0:<50}{1:<10}{2:<15.1f}'.format('    Atlas-files',str(n_files_downloaded_atlas),size_files_downloaded_atlas))
+            print(f"{'    User-defined':<50} {str(n_files_downloaded_user):<10} {size_files_downloaded_user:<15.1f}")
+            print(f"{'    Atlas-files':<50} {str(n_files_downloaded_atlas):<10} {size_files_downloaded_atlas:<15.1f}")
 
 
         print('\n\nRATIOS')
-        print('{0:<50}{1:<20}{2:<20}'.format('','RATIO amount','RATIO size'))
+        print(f"{'':<50} {'RATIO amount':<20} {'RATIO size':<20}")
         if n_files_atlas:
             try:
-                print('{0:<50}{1:<20.4}{2:<20.4}'.format('Total User/Atlas',(float(n_files_user)/float(n_files_atlas)),float(size_files_user/size_files_atlas)))
+                print(f"{'Total User/Atlas':<50} {float(n_files_user)/float(n_files_atlas):<20.4} {float(size_files_user/size_files_atlas):<20.4}")
             except ZeroDivisionError:
                 pass
         try:
-            print('{0:<50}{1:<20.4}{2:<20.4}'.format('Total Cached/non-cached',(float(n_files_cached)/float(n_files_downloaded)),float(size_files_cached/size_files_downloaded)))
+            print(f"{'Total Cached/non-cached':<50} {float(n_files_cached)/float(n_files_downloaded):<20.4} {float(size_files_cached/size_files_downloaded):<20.4}")
         except ZeroDivisionError:
             pass
         if n_files_atlas:
             try:
-                print('{0:<50}{1:<20.4}{2:<20.4}'.format('Total Cached-user/Cached-atlas',(float(n_files_cached_user)/float(n_files_cached_atlas)),float(size_files_cached_user/size_files_cached_atlas)))
+                print(f"{'Total Cached-user/Cached-atlas':<50} {float(n_files_cached_user)/float(n_files_cached_atlas):<20.4} {float(size_files_cached_user/size_files_cached_atlas):<20.4}")
             except ZeroDivisionError:
                 pass
             try:
-                print('{0:<50}{1:<20.4}{2:<20.4}'.format('Total Downloaded-user/Downloaded-atlas',(float(n_files_downloaded_user)/float(n_files_downloaded_atlas)),float(size_files_downloaded_user/size_files_downloaded_atlas)))
+                print(f"{'Total Downloaded-user/Downloaded-atlas':<50} {float(n_files_downloaded_user)/float(n_files_downloaded_atlas):<20.4} {float(size_files_downloaded_user/size_files_downloaded_atlas):<20.4}")
             except ZeroDivisionError:
                 pass
 
@@ -755,9 +753,8 @@ class DataStagingControl(ComponentControl):
         datastaging_jobs={}
         twindow_start = self._calc_timewindow(args)
 
-        print('\nThis may take some time... Fetching summary of download times for jobs modified after {}'.format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S')))
-
-
+        print(f"\nThis may take some time... Fetching summary of download times for jobs modified after {format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S'))}")
+              
         out,err=subprocess.Popen(['arcctl','job','list','-s','PREPARING'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
         arcids = out.decode().split('\n')
 
@@ -804,34 +801,31 @@ class DataStagingControl(ComponentControl):
         print('\nJobs where no user-defined input-data was defined (no datastaging done/needed): ')
         print('Number of jobs:  '+ str(len(noinput_list)))
         for arcid in noinput_list:
-            print('\t{0:}'.format(arcid))
+            print(f"\t{arcid:}")
             
-
         sorted_dict = sorted(done_dict.items(), key = lambda x: x[1]['dt'])
         print('\nSorted list of jobs where datastaging is done:')
         print('Number of jobs:  '+ str(len(sorted_dict)))
         if sorted_dict:
-            print('\t{0:<60}{1:<10}{2:<22}'.format('ARCID','DURATION','TIMESTAMP-DONE'))
+            print(f"\t{'ARCID':<60} {'DURATION':<10} {'TIMESTAMP-DONE':<22}")
             for item in sorted_dict:
-                print('\t{0:<60}{1:<10}{2:<22}'.format(item[0],item[1]['dt'],item[1]['end']))
-
+                print(f"\t{item[0]:<60} {item[1]['dt']:<10} {item[1]['end']:<22}")
 
         sorted_dict = sorted(ongoing_dict.items(), key = lambda x: x[1]['dt']) 
         if ongoing_dict:
             print('\nSorted list of jobs where datastaging is ongoing:')
             print('Number of jobs:  ' + str(len(sorted_dict)))
-            print('\t{0:<60}{1:<10}'.format('ARCID','DURATION'))
+            print(f"\t{'ARCID':<60} {'DURATION':<10}")
             for item in sorted_dict:
-                print('\t{0:<60}{1:<10}'.format(item[0],item[1]['dt'].split('.')[0]))
-
+                print(f"\t{item[0]:<60} {item[1]['dt'].split('.')[0]:<10}")
 
         sorted_dict = sorted(failed_dict.items(), key = lambda x: x[1]['dt']) 
         if failed_dict:
             print('\nDatastaging used for failed jobs:')
             print('Number of jobs:  '+ str(len(sorted_dict)))
-            print('\t{0:<60}{1:<10}'.format('ARCID','DURATION'))
+            print(f"\t{'ARCID':<60} {'DURATION':<10}")
             for item in sorted_dict:
-                print('\t{0:<60}{1:<10}'.format(item[0],item[1]['dt'].split('.')[0]))
+                print(f"\t{item[0]:<60} {item[1]['dt'].split('.')[0]:<10}")
 
     def summarycontrol(self,args):
         if args.summaryaction == 'jobs':
@@ -851,7 +845,7 @@ class DataStagingControl(ComponentControl):
         elif args.jobaction == 'get-details':
             file_details = self._get_file_events(arcid)
             self.show_job_details(arcid,file_details)
-            #self.show_job_moredetails(args,done_files_details)
+            self.show_job_time(arcid)
             
 
     def control(self, args):
