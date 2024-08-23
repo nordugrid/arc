@@ -216,6 +216,7 @@ class DataStagingControl(ComponentControl):
                         if fileN not in file_events.keys():
                             file_events[fileN] = {}
                             file_events[fileN]['staged_in'] = 'no'
+                            file_events[fileN]['dtrid_short'] = '-'
                             
                         source = (words[0].split('inputfile:')[-1]).split('=')[-1][:-len(fileN)-1]
                         size = int(words[1].split('=')[-1])/(1024*1024.)
@@ -275,6 +276,7 @@ class DataStagingControl(ComponentControl):
                     if fileN not in file_events.keys():
                         file_events[fileN]={}
                         file_events[fileN]['staged_in'] = 'no'
+
                         
                     file_events[fileN]['dtrid_short']=dtrid_short
                     file_events[fileN]['start_sched']=timestmp_str
@@ -349,6 +351,7 @@ class DataStagingControl(ComponentControl):
         file_events = dict.fromkeys(all_userdef_inputs, {})
         for fileN in file_events:
             file_events[fileN]['staged_in'] = 'no'
+            file_events[fileN]['dtrid_short'] = '-'
             
         """  Extracts information about the files already downloaded for a single job 
         from its jobs statistics file 
@@ -473,7 +476,7 @@ class DataStagingControl(ComponentControl):
             """ First print the most important states:"""
             for state in print_order:
                 try:
-                    print(f"\t{state:<25}]{'N/A':<20}{state_counter['state']:>6}")
+                    print(f"\t{state:<25}] {'N/A':<20} {state_counter['state']:>6}")
                 except KeyError:
                     pass
 
@@ -485,7 +488,7 @@ class DataStagingControl(ComponentControl):
                     count_transferring += val
                     if 'local' in host:
                         continue
-                    print(f"\t{state:<25}{host:<20}{val:>6}")
+                    print(f"\t{state:<25} {host:<20} {val:>6}")
 
 
             """  Print out other states """
@@ -495,7 +498,7 @@ class DataStagingControl(ComponentControl):
 
             try:
                 count_transferring += state_counter['TRANSFERRING_local']
-                print(f"\t{'TRANSFERRING':<25}{'local':<20}{state_counter['TRANSFERRING_local']:>6}")
+                print(f"\t{'TRANSFERRING':<25} {'local':<20} {state_counter['TRANSFERRING_local']:>6}")
             except KeyError:
                 pass
 
@@ -548,32 +551,32 @@ class DataStagingControl(ComponentControl):
         
         """  Print out a list of all files and if staged-in or not """
         print('\nState of input-files:')
-        print(f"{'COUNTER':<8} {'FILENAME':<60.60} {'STAGED-IN':<12}")
+        print(f"\t{'COUNTER':<8} {'FILENAME':<60.60} {'DTR-ID':<20} {'STAGED-IN':<12}")
         for idx,fileN in enumerate(file_details.keys()):
-            print(f"{idx+1:<8} {fileN:<60.60} {file_details[fileN]['staged_in']:<12}")
-        print('\tNote: files uploaded by the client appear to not be staged-in, ignore these as AREX does not handle the stage-in of these files.')
+            print(f"\t{idx+1:<8} {fileN:<60.60} {file_details[fileN]['dtrid_short']:<20} {file_details[fileN]['staged_in']:<12}")
+        print('\tNote: files uploaded by the client appear to not be staged-in, ignore these as AREX does not handle the stage-in of these files. Examples for ATLAS: queudata.json pandaJobData.out runpilot2-wrapper.sh')
                 
         """ Print out information about files already staged in """
         sorted_dict = sorted(done_stagedin.items(), key = lambda x: x[1]['end'])
         print('\nDetails for files that have been staged in - both downloaded and cached:')
-        print(f"{'COUNTER':<8} {'FILENAME':<60} {'SOURCE':<60} {'SIZE (MB)':<15} {'START':<25} {'END':<25} {'SECONDS':<10} {'CACHED':<7}")
+        print(f"\t{'COUNTER':<8} {'FILENAME':<60} {'SOURCE':<60} {'SIZE (MB)':<15} {'START':<25} {'END':<25} {'SECONDS':<10} {'CACHED':<7}")
         for idx,item in enumerate(sorted_dict):
             fileN = item[0]
             filedict = item[1]
-            print(f"{idx+1:<8} {fileN:<60.60} {filedict['source']:<60} {filedict['size']:<15.3f} {filedict['start']:<25} {filedict['end']:<25} {filedict['seconds']:<10} {filedict['cached']:<7}")
+            print(f"\t{idx+1:<8} {fileN:<60.60} {filedict['source']:<60} {filedict['size']:<15.3f} {filedict['start']:<25} {filedict['end']:<25} {filedict['seconds']:<10} {filedict['cached']:<7}")
 
 
         """ Print out information about files already downloaded """
         """ TO-DO find a nice way to sort this, maybe removing the files that do not have all info provided? """
         downloads = False
         print('\nFine-grained details for files that have been staged-in by download (not cached):')
-        print(f"{'COUNT':<5.5} {'FILENAME':<15.15} {'SIZE (MB)':<15.15} {'START':<20.20} {'END':<20.20} {'SCHEDULER-START':<20.20} {'DELIVERY-START':<20.20} {'TRANSFER-DONE':<20.20} {'ALL-DONE':<20.20} {'(s)':<6} {'(MB/s)':<10.10} {'DELIVERY-SERVICE'}")
+        print(f"\t{'COUNT':<5.5} {'FILENAME':<15.15} {'SIZE (MB)':<15.15} {'START':<20.20} {'END':<20.20} {'SCHEDULER-START':<20.20} {'DELIVERY-START':<20.20} {'TRANSFER-DONE':<20.20} {'ALL-DONE':<20.20} {'(s)':<6} {'(MB/s)':<10.10} {'DELIVERY-SERVICE'}")
         idx = 1
         for key,val in done_stagedin.items():
             if 'remote_dds' not in val:
                 val['remote_dds'] = '-'
             if ('start_deliver' in val.keys() and 'start_sched' in val.keys() and 'return_gen' in val.keys() and 'speed' in val.keys()):
-                print(f"{idx:<5} {key:<15.15} {val['size']:<15.3f} {val['start']:<20.20} {val['end']:<20.20} {val['start_sched']:<20.20} {val['start_deliver']:<20.20} {val['transf_done']:<20.20} {val['return_gen']:<20.20} {val['seconds']:<6} {val['speed']:<10.1f} {val['remote_dds']}")
+                print(f"\t{idx:<5} {key:<15.15} {val['size']:<15.3f} {val['start']:<20.20} {val['end']:<20.20} {val['start_sched']:<20.20} {val['start_deliver']:<20.20} {val['transf_done']:<20.20} {val['return_gen']:<20.20} {val['seconds']:<6} {val['speed']:<10.1f} {val['remote_dds']}")
                 idx += 1
                 downloads = True
         if not downloads:
@@ -768,6 +771,9 @@ class DataStagingControl(ComponentControl):
         arcids.extend(out.decode().split('\n'))
 
         for arcid in arcids:
+            if not arcid:
+                """ Protect against empty string """
+                continue
             log_f = control_path(self.control_dir, arcid, 'errors')
             mtime = None
             try:
