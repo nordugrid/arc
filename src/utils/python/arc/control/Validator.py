@@ -188,10 +188,12 @@ class Validator(object):
                 self.warning("cachedir doesn't exist at %s" % value.split()[0])
 
         if block == 'arex' and option == 'sessiondir':
-            if not value.split()[0].startswith('/'):
-                self.error("sessiondir must specify an absolute path")
-            elif not os.path.exists(value.split()[0]):
-                self.warning("sessiondir doesn't exist at %s" % value.split()[0])
+            sessiondir = value.split()[0]
+            if sessiondir != '*':
+                if not sessiondir.startswith('/'):
+                    self.error("sessiondir %s is not an absolute path" % sessiondir)
+                elif not os.path.exists(sessiondir):
+                    self.warning("sessiondir doesn't exist at %s" % sessiondir)
             if len(value.split()) == 2 and value.split()[1] != 'drain':
                 self.error("Second option in sessiondir must be 'drain' or empty")
 
@@ -293,8 +295,8 @@ class Validator(object):
         """Check the certificate setup is ok"""
         x509_host_cert = self.arcconf.get_value('x509_host_cert', 'common', force_list=True)[0]
         x509_host_key = self.arcconf.get_value('x509_host_key', 'common', force_list=True)[0]
-        x509_grid_policy = self.arcconf.get_value('x509_grid_policy', 'common', force_list=True)[0]
-        if x509_grid_policy == 'globus':
+        x509_cert_policy = self.arcconf.get_value('x509_cert_policy', 'common', force_list=True)[0]
+        if x509_cert_policy == 'grid':
             x509_cert_dir = self.arcconf.get_value('x509_cert_dir', 'common', force_list=True)[0]
         else:
             x509_cert_dir = ''

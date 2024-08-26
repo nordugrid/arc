@@ -6,9 +6,11 @@ install:
 	if $(PYTHON) -m pip install --help | grep -q -- --no-build-isolation ; then \
 	    PIP_OPTIONS="$$PIP_OPTIONS --no-build-isolation" ; \
 	fi ; \
+	if [ -n "$(DESTDIR)" ] ; then \
+	    PIP_OPTIONS="$$PIP_OPTIONS --root $(DESTDIR)" ; \
+	fi ; \
 	echo PIP options: $$PIP_OPTIONS ; \
-	$(PYTHON) -m pip install $$PIP_OPTIONS \
-	    --root $(DESTDIR) --prefix $(prefix) $(srcdir)
+	$(PYTHON) -m pip install $$PIP_OPTIONS --prefix $(prefix) $(srcdir)
 
 EXTRA_DIST = \
 	README.md \
