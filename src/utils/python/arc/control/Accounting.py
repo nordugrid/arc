@@ -60,11 +60,15 @@ class AccountingControl(ComponentControl):
             del self.adb
             self.adb = None
 
+    def __db_location(self, db_path):
+        """Handle database default location in controldir/accounting"""
+        if '/' in db_path:
+            return db_path
+        return os.path.join(self.arcconfig.get_value('controldir', 'arex'), "accounting", db_path)
+
     def __set_db_location(self, db_location=ACCOUNTING_DB_FILE):
         """Set the location of accounting database file"""
-        if not db_location.startswith('/'):
-            db_location = os.path.join(self.arcconfig.get_value('controldir', 'arex'), "accounting", db_location)
-        self.db_file = db_location
+        self.db_file = self.__db_location(db_location)
 
     def __init_adb(self):
         """DB connection on-demand initialization"""
@@ -412,6 +416,22 @@ class AccountingControl(ComponentControl):
         backup_adb = AccountingDB(location, must_exists=False)
         self.adb.backup(backup_adb)
 
+    def db_migrate(self, args):
+        self.__init_adb()
+        adb_v1_file = self.__db_location(args.from_db)
+        adb_v1 = AccountingDB(adb_v1_file)
+        if adb_v1.adb_version() != 1:
+            self.logger.error('Migration only works from database schema v1. Database at %s has schema version %s.',
+                              adb_v1_file, adb_v1.adb_version())
+            sys.exit(1)
+        self.logger.info('Migrate records from %s for jobs finished after %s', adb_v1_file, str(args.end_from))
+        adb_v1.filter_endfrom(args.end_from)
+        if args.end_till:
+            adb_v1.filter_endtill(args.end_till)
+            self.logger.info('Only jobs finished before %s will be migrated', str(args.end_till))
+        self.logger.error('Not implemeneted yet')
+        sys.exit(1)
+
     def jobcontrol(self, args):
         canonicalize_args_jobid(args)
         if args.jobaction == 'info':
@@ -427,6 +447,12 @@ class AccountingControl(ComponentControl):
     def dbcontrol(self, args):
         if args.dbaction == 'backup':
             self.backup(args.location)
+        elif args.dbaction == 'migrate':
+            pass
+        elif args.dbaction == 'cleanup':
+            pass
+        elif args.dbaction == 'rotate':
+            pass
         else:
             self.logger.critical('Unsupported accounting database action %s', args.dbaction)
             sys.exit(1)
@@ -506,13 +532,34 @@ class AccountingControl(ComponentControl):
                                                metavar='ACTION', help='DESCRIPTION')
         db_actions.required = True
         db_backup = db_actions.add_parser('backup', help='Run online backup of accounting database')
-        db_backup.add_argument('location', help='Database backup file path')
+        db_backup.add_argument('--location', help='Database backup file path', required=True)
+
+        # TODO: implement
+        db_migrate = db_actions.add_parser('migrate', help='Migrate records from legacy ARC6 database')
+        db_migrate.add_argument('-f', '--from-db', help='Legacy database file (default is %(default)s)',
+                                default='accounting.db', required=True)
+        db_migrate.add_argument('-b', '--end-from', type=valid_datetime_type, required=True,
+                                help='Define from which point in time migrate records (YYYY-MM-DD [HH:mm[:ss]])')
+        db_migrate.add_argument('-e', '--end-till', type=valid_datetime_type, required=False,
+                                help='Optionally define to which point in time migrate records (YYYY-MM-DD [HH:mm[:ss]]).')
+
+        db_cleanup = db_actions.add_parser('cleanup', help='Delete old records from accounting database')
+        db_cleanup.add_argument('-e', '--end-till', type=valid_datetime_type, required=True,
+                                help='Cleanup records older than specified completion time (YYYY-MM-DD [HH:mm[:ss]])')
+        db_cleanup.add_argument('-b', '--end-from', type=valid_datetime_type, required=False,
+                                help='Optionally define from which point in time cleanup records (YYYY-MM-DD [HH:mm[:ss]]).')
+        db_cleanup.add_argument('--vacuum', help='Vacuum database (this is blocking action)', action='store_true')
+
+        db_rotate = db_actions.add_parser('rotate', help='Rotate accounting database')
+        db_rotate.add_argument('--date', type=valid_datetime_yymmdd, required=True,
+                                help='Rotate database at specified date (YYYY-MM-DD)')
+        db_rotate.add_argument('--vacuum', help='Vacuum database (this is blocking action)', action='store_true')
 
     @staticmethod
     def register_parser(root_parser):
         accounting_ctl = root_parser.add_parser('accounting', help='A-REX Accounting records management')
         accounting_ctl.set_defaults(handler_class=AccountingControl)
-        accounting_ctl.add_argument('--database-file', help='Set custom location of accounting database file to work with')
+        accounting_ctl.add_argument('--database-file', help='Set custom location of accounting database to work with. Path or file name inside controldir.')
 
         accounting_actions = accounting_ctl.add_subparsers(title='Accounting Actions', dest='action',
                                                            metavar='ACTION', help='DESCRIPTION')

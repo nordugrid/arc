@@ -403,20 +403,23 @@ class AccountingDB(object):
         """Remove all defined SQL query filters"""
         self.sqlfilter.clean()
 
-    def __filtered_query(self, sql, params=(), errorstr=''):
+    def __filtered_query(self, sql, params=(), errorstr='', exit_on_error=False):
         """Add defined filters to SQL query and execute it returning the results iterator"""
         # NOTE: this function does not close DB connection and return sqlite3.Cursor object on successful query
         if not self.sqlfilter.isresult():
             return []
-        if '<FILTERS>' in sql:
+        filters_count = sql.count('<FILTERS>')
+        if filters_count:
             # substitute filters to <FILTERS> placeholder if defined
             sql = sql.replace('<FILTERS>', self.sqlfilter.getsql())
+            for _ in range(filters_count):
+                params += self.sqlfilter.getparams()
         else:
             # add to the end of query otherwise
             if 'WHERE' not in sql:
                 sql += ' WHERE 1=1'  # verified that this does not affect performance
             sql += ' ' + self.sqlfilter.getsql()
-        params += self.sqlfilter.getparams()
+            params += self.sqlfilter.getparams()
         self.adb_connect()
         try:
             res = self.con.execute(sql, params)
@@ -429,8 +432,9 @@ class AccountingDB(object):
                 self.logger.error(errorstr + ' Something goes wrong during SQL query. '
                                              'Use DEBUG loglevel to troubleshoot.')
             self.adb_close()
+            if exit_on_error:
+                sys.exit(1)
             return []
-
     #
     # Testing 10M jobs SQLite database from legacy jura archive conversion (4 year of records from Andrej) shows that:
     #   a) using SQL functions works a bit faster that python post-processing
