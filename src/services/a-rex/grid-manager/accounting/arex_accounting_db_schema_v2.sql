@@ -59,8 +59,10 @@ CREATE INDEX IF NOT EXISTS AAR_Benchmark_IDX ON AAR(BenchmarkID);
 CREATE TABLE IF NOT EXISTS Endpoints (
   ID            INTEGER PRIMARY KEY AUTOINCREMENT,
   Interface     TEXT NOT NULL,
-  URL           TEXT NOT NULL
+  URL           TEXT NOT NULL,
+  UNIQUE(Interface, URL)
 );
+
 CREATE INDEX IF NOT EXISTS Endpoints_Interface_IDX ON Endpoints(Interface);
 
 /* Queues (limited enum on particular resource) */

@@ -403,23 +403,23 @@ class AccountingDB(object):
         """Remove all defined SQL query filters"""
         self.sqlfilter.clean()
 
-    def __filtered_query(self, sql, params=(), errorstr='', exit_on_error=False):
-        """Add defined filters to SQL query and execute it returning the results iterator"""
-        # NOTE: this function does not close DB connection and return sqlite3.Cursor object on successful query
-        if not self.sqlfilter.isresult():
-            return []
-        filters_count = sql.count('<FILTERS>')
-        if filters_count:
-            # substitute filters to <FILTERS> placeholder if defined
-            sql = sql.replace('<FILTERS>', self.sqlfilter.getsql())
-            for _ in range(filters_count):
+    def __sql_query(self, sql, params=(), errorstr='', filtered=True, exit_on_error=False):
+        """Execute SQL query, adding defined filters if requested. Does not close the connection and return sqlite3.Cursor"""
+        if filtered:
+            if not self.sqlfilter.isresult():
+                return []
+            filters_count = sql.count('<FILTERS>')
+            if filters_count:
+                # substitute filters to <FILTERS> placeholder if defined
+                sql = sql.replace('<FILTERS>', self.sqlfilter.getsql())
+                for _ in range(filters_count):
+                    params += self.sqlfilter.getparams()
+            else:
+                # add to the end of query otherwise
+                if 'WHERE' not in sql:
+                    sql += ' WHERE 1=1'  # verified that this does not affect performance
+                sql += ' ' + self.sqlfilter.getsql()
                 params += self.sqlfilter.getparams()
-        else:
-            # add to the end of query otherwise
-            if 'WHERE' not in sql:
-                sql += ' WHERE 1=1'  # verified that this does not affect performance
-            sql += ' ' + self.sqlfilter.getsql()
-            params += self.sqlfilter.getparams()
         self.adb_connect()
         try:
             res = self.con.execute(sql, params)
@@ -451,7 +451,7 @@ class AccountingDB(object):
             'count': 0, 'walltime': 0, 'cpuusertime': 0, 'cpukerneltime': 0,
             'stagein': 0, 'stageout': 0, 'rangestart': 0, 'rangeend': 0
         }
-        for res in self.__filtered_query('SELECT COUNT(RecordID), SUM(UsedWalltime), SUM(UsedCPUUserTime),'
+        for res in self.__sql_query('SELECT COUNT(RecordID), SUM(UsedWalltime), SUM(UsedCPUUserTime),'
                                          'SUM(UsedCPUKernelTime), SUM(StageInVolume), SUM(StageOutVolume),'
                                          'MIN(SubmitTime), MAX(EndTime) FROM AAR',
                                          errorstr='Failed to get accounting statistics'):
@@ -472,7 +472,7 @@ class AccountingDB(object):
     def get_job_owners(self):
         """Return list of job owners distinguished names that match applied filters"""
         userids = []
-        for res in self.__filtered_query('SELECT DISTINCT UserID FROM AAR',
+        for res in self.__sql_query('SELECT DISTINCT UserID FROM AAR',
                                          errorstr='Failed to get accounted job owners'):
             userids.append(res[0])
         self.adb_close()
@@ -484,7 +484,7 @@ class AccountingDB(object):
     def get_job_wlcgvos(self):
         """Return list of job owners WLCG VOs matching applied filters"""
         voids = []
-        for res in self.__filtered_query('SELECT DISTINCT VOID FROM AAR',
+        for res in self.__sql_query('SELECT DISTINCT VOID FROM AAR',
                                          errorstr='Failed to get accounted WLCG VOs for jobs'):
             voids.append(res[0])
         self.adb_close()
@@ -501,7 +501,7 @@ class AccountingDB(object):
         sql ='''SELECT DISTINCT AttrValue FROM AuthTokenAttributes
                 WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)
                 AND AttrKey IN ({0})'''.format(','.join(['?'] * len(attributes)))
-        for res in self.__filtered_query(sql, params=tuple(attributes),
+        for res in self.__sql_query(sql, params=tuple(attributes),
                                          errorstr='Failed to get accounted authtokens {0} for jobs'.format(','.join(attributes))):
             attrvalues.append(res[0])
         return attrvalues
@@ -513,7 +513,7 @@ class AccountingDB(object):
             jobfqans = self.get_job_authtokens(attributes=['mainfqan'])
         else:
             fqanids = []
-            for res in self.__filtered_query('SELECT DISTINCT FQANID FROM AAR',
+            for res in self.__sql_query('SELECT DISTINCT FQANID FROM AAR',
                                             errorstr='Failed to get accounted WLCG VOs for jobs'):
                 fqanids.append(res[0])
             self.adb_close()
@@ -526,7 +526,7 @@ class AccountingDB(object):
     def get_job_ids(self):
         """Return list of JobIDs matching applied filters"""
         jobids = []
-        for res in self.__filtered_query('SELECT JobID FROM AAR',
+        for res in self.__sql_query('SELECT JobID FROM AAR',
                                          errorstr='Failed to get JobIDs'):
             jobids.append(res[0])
         self.adb_close()
@@ -539,7 +539,7 @@ class AccountingDB(object):
         self.logger.debug('Fetching auth token attributes for AARs from database')
         sql = 'SELECT RecordID, AttrKey, AttrValue FROM AuthTokenAttributes ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
-        for row in self.__filtered_query(sql, errorstr='Failed to get AuthTokenAttributes for AAR(s) from database'):
+        for row in self.__sql_query(sql, errorstr='Failed to get AuthTokenAttributes for AAR(s) from database'):
             if row[0] not in result:
                 result[row[0]] = []
             result[row[0]].append((row[1], row[2]))
@@ -552,7 +552,7 @@ class AccountingDB(object):
         self.logger.debug('Fetching job events for AARs from database')
         sql = 'SELECT RecordID, EventKey, EventTime FROM JobEvents ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>) ORDER BY EventTime ASC'
-        for row in self.__filtered_query(sql, errorstr='Failed to get JobEvents for AAR(s) from database'):
+        for row in self.__sql_query(sql, errorstr='Failed to get JobEvents for AAR(s) from database'):
             if row[0] not in result:
                 result[row[0]] = []
             result[row[0]].append((row[1], row[2]))
@@ -565,7 +565,7 @@ class AccountingDB(object):
         self.logger.debug('Fetching used RTEs for AARs from database')
         sql = 'SELECT RecordID, RTEName FROM RunTimeEnvironments ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
-        for row in self.__filtered_query(sql, errorstr='Failed to get RTEs for AAR(s) from database'):
+        for row in self.__sql_query(sql, errorstr='Failed to get RTEs for AAR(s) from database'):
             if row[0] not in result:
                 result[row[0]] = []
             result[row[0]].append(row[1])
@@ -578,7 +578,7 @@ class AccountingDB(object):
         self.logger.debug('Fetching jobs datatransfer records for AARs from database')
         sql = 'SELECT RecordID, URL, FileSize, TransferStart, TransferEnd, TransferType FROM DataTransfers ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
-        for row in self.__filtered_query(sql, errorstr='Failed to get DataTransfers for AAR(s) from database'):
+        for row in self.__sql_query(sql, errorstr='Failed to get DataTransfers for AAR(s) from database'):
             if row[0] not in result:
                 result[row[0]] = []
             # in accordance to C++ enum values
@@ -603,7 +603,7 @@ class AccountingDB(object):
         result = {}
         sql = 'SELECT RecordID, InfoKey, InfoValue FROM JobExtraInfo ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
-        for row in self.__filtered_query(sql, errorstr='Failed to get DataTransfers for AAR(s) from database'):
+        for row in self.__sql_query(sql, errorstr='Failed to get DataTransfers for AAR(s) from database'):
             if row[0] not in result:
                 result[row[0]] = {}
             result[row[0]][row[1]] = row[2]
@@ -614,7 +614,7 @@ class AccountingDB(object):
         """Return list of AARs corresponding to filtered query"""
         self.logger.debug('Fetching AARs main data from database')
         aars = []
-        for res in self.__filtered_query('SELECT * FROM AAR', errorstr='Failed to get AAR(s) from database'):
+        for res in self.__sql_query('SELECT * FROM AAR', errorstr='Failed to get AAR(s) from database'):
             aar = AAR(version=self.db_version)
             aar.fromDB(res)
             aars.append(aar)
@@ -685,7 +685,7 @@ class AccountingDB(object):
         # get RecordID range to limit further filtering
         record_start = None
         record_end = None
-        for res in self.__filtered_query('SELECT min(RecordID), max(RecordID) FROM AAR',
+        for res in self.__sql_query('SELECT min(RecordID), max(RecordID) FROM AAR',
                                          errorstr='Failed to get records range from database'):
             record_start = res[0]
             record_end = res[1]
@@ -714,7 +714,7 @@ class AccountingDB(object):
         self.__fetch_wlcgvos()
         self.__fetch_endpoints()
         self.logger.debug('Invoking query to fetch APEL summaries data from database')
-        for res in self.__filtered_query(sql, errorstr='Failed to get APEL summary info from v1 database'):
+        for res in self.__sql_query(sql, errorstr='Failed to get APEL summary info from v1 database'):
             (year, month) = res[12].split('-')
             summaries.append({
                 'year': year,
@@ -752,7 +752,7 @@ class AccountingDB(object):
         self.__fetch_benchmarks()
         self.__fetch_endpoints()
         self.logger.debug('Invoking query to fetch APEL summaries data from database')
-        for res in self.__filtered_query(sql, errorstr='Failed to get APEL summary info from database'):
+        for res in self.__sql_query(sql, errorstr='Failed to get APEL summary info from database'):
             (year, month) = res[13].split('-')
             summaries.append({
                 'year': year,
@@ -779,7 +779,7 @@ class AccountingDB(object):
               FROM AAR WHERE 1=1 <FILTERS> GROUP BY YearMonth, EndpointID'''
         syncs = []
         self.__fetch_endpoints()
-        for res in self.__filtered_query(sql, errorstr='Failed to get APEL sync info from database'):
+        for res in self.__sql_query(sql, errorstr='Failed to get APEL sync info from database'):
             (year, month) = res[0].split('-')
             syncs.append({
                 'year': year,
@@ -794,7 +794,7 @@ class AccountingDB(object):
         """Return latest endtime for records matching defined filters"""
         endtime = None
         sql = 'SELECT MAX(EndTime) FROM AAR'
-        for res in self.__filtered_query(sql, errorstr='Failed to get latest endtime for records from database'):
+        for res in self.__sql_query(sql, errorstr='Failed to get latest endtime for records from database'):
             endtime = res[0]
             break
         self.adb_close()
@@ -1021,4 +1021,3 @@ class AAR(object):
         submithost = split_url[1][2:]  # http://[example.org]:443/jobs..
         submithost = submithost.split('/')[0]  # [exmple.org]/jobs...
         return submithost
-
