@@ -5,7 +5,7 @@ import calendar
 import datetime
 import sqlite3
 
-from .ControlCommon import get_human_readable_size
+from .ControlCommon import get_human_readable_size, print_info
 
 ACCOUNTING_DB_FILE = "accounting_v2.db"
 
@@ -106,6 +106,12 @@ class AccountingDB(object):
             self.con.close()
             self.con = None
 
+    def adb_commit(self):
+        """Commit transaction"""
+        if self.con is not None:
+            self.logger.debug('Commiting changes to accounting database')
+            self.con.commit()
+
     def adb_version(self):
         """Return accounting database version"""
         if not self.db_version:
@@ -135,6 +141,32 @@ class AccountingDB(object):
         backup_adb.adb_close()
         self.adb_close()
         del self._backup_progress_log_threshold
+
+    def migrate_to_v2(self, targetdb_path):
+        """Run queries to copy data from v1 database to v2"""
+        self.adb_connect()
+        # connect to v2 database
+        try:
+            self.con.execute("ATTACH DATABASE '{0}' AS v2".format(targetdb_path.replace("'","''")))
+        except sqlite3.Error as e:
+            self.logger.error('Failed to attach destination database at %s. '
+                              'Error: %s', targetdb_path, str(e))
+            sys.exit(1)
+        else:
+            self.con.commit()
+        self.logger.info('Starting database records migration from %s to %s', 
+                         self.db_file, targetdb_path)
+        # run transactions from migration playbook
+        for m in _MIGRATION_V1_TO_V2:
+            table = m['table']
+            sql = m['sql']
+            filtered = '<FILTERS>' in sql
+            self.logger.info('Migrating data to v2 %s table', table)
+            cursor = self.__sql_query(sql, errorstr='Failed to migrate data to v2 {0} table.'.format(table),
+                                      filtered=filtered, exit_on_error=True)
+            self.adb_commit()
+            print_info(self.logger,'Data migrated to v2 %s table. %s records inserted.', table, cursor.rowcount)
+        self.adb_close()
 
     def __del__(self):
         self.adb_close()
@@ -422,6 +454,7 @@ class AccountingDB(object):
                 params += self.sqlfilter.getparams()
         self.adb_connect()
         try:
+            self.logger.debug('Executing query: {0}'.format(sql.replace('%', '%%').replace('?', '%s')), *params)
             res = self.con.execute(sql, params)
             return res
         except sqlite3.Error as e:
@@ -1021,3 +1054,142 @@ class AAR(object):
         submithost = split_url[1][2:]  # http://[example.org]:443/jobs..
         submithost = submithost.split('/')[0]  # [exmple.org]/jobs...
         return submithost
+
+_MIGRATION_V1_TO_V2 = [
+    {
+        'table': 'Queues',
+        'sql': 'INSERT OR IGNORE INTO v2.Queues(Name) SELECT Name FROM main.Queues'
+    },
+    {
+        'table': 'Users',
+        'sql': 'INSERT OR IGNORE INTO v2.Users(Name) SELECT Name FROM main.Users'
+    },
+    {
+        'table': 'WLCGVOs',
+        'sql': 'INSERT OR IGNORE INTO v2.WLCGVOs(Name) SELECT Name FROM main.WLCGVOs'
+    },
+    {
+        'table': 'Status',
+        'sql': 'INSERT OR IGNORE INTO v2.Status(Name) SELECT Name FROM main.Status'
+    },
+    {
+        'table': 'Endpoints',
+        'sql': 'INSERT OR IGNORE INTO v2.Endpoints(Interface,URL) SELECT Interface,URL FROM main.Endpoints'
+    },
+    {
+        'table': 'Benchmarks',
+        'sql': '''INSERT OR IGNORE INTO v2.Benchmarks(Name)
+            SELECT DISTINCT InfoValue FROM main.JobExtraInfo
+            WHERE main.JobExtraInfo.RecordID IN (
+                SELECT main.AAR.RecordID FROM main.AAR WHERE 1=1 <FILTERS>
+            ) AND main.JobExtraInfo.InfoKey = "benchmark"'''
+    },
+    {
+        'table': 'FQANS',
+        'sql': '''INSERT OR IGNORE INTO v2.FQANs(Name)
+            SELECT DISTINCT AttrValue FROM main.AuthTokenAttributes
+            WHERE main.AuthTokenAttributes.RecordID IN (
+                SELECT main.AAR.RecordID FROM main.AAR WHERE 1=1 <FILTERS>
+            ) AND main.AuthTokenAttributes.AttrKey = "mainfqan"'''
+    },
+    {
+        'table': 'AAR',
+        'sql': '''INSERT OR IGNORE INTO v2.AAR(
+                    JobID,LocalJobID,EndpointID,QueueID,UserID,VOID,
+                    StatusID,ExitCode,SubmitTime,EndTime,NodeCount,CPUCount,
+                    UsedMemory,UsedVirtMem,UsedWalltime,UsedCPUUserTime,UsedCPUKernelTime,
+                    UsedScratch,StageInVolume,StageOutVolume,FQANID,BenchmarkID)
+            SELECT a.JobID,a.LocalJobID,v2.Endpoints.ID,v2.Queues.ID,v2.Users.ID,v2.WLCGVOs.ID,
+                    v2.Status.ID,a.ExitCode,a.SubmitTime,a.EndTime,a.NodeCount,a.CPUCount,
+                    a.UsedMemory,a.UsedVirtMem,a.UsedWalltime,a.UsedCPUUserTime,a.UsedCPUKernelTime,
+                    a.UsedScratch,a.StageInVolume,a.StageOutVolume,v2.FQANs.ID,v2.Benchmarks.ID
+            FROM ( SELECT * FROM AAR WHERE 1=1 <FILTERS> ) a
+            LEFT JOIN JobExtraInfo 
+                ON a.RecordID = JobExtraInfo.RecordID 
+                AND JobExtraInfo.InfoKey = "benchmark"
+            LEFT JOIN AuthTokenAttributes 
+                ON a.RecordID = AuthTokenAttributes.RecordID 
+                AND AuthTokenAttributes.AttrKey = "mainfqan" 
+            JOIN v2.Benchmarks 
+                ON COALESCE(JobExtraInfo.InfoValue, '') = v2.Benchmarks.Name
+            JOIN v2.FQANs 
+                ON COALESCE(AuthTokenAttributes.AttrValue, '') = v2.FQANs.Name
+            JOIN main.Users ON a.UserID = main.Users.ID
+            JOIN v2.Users ON main.Users.Name = v2.Users.Name
+            JOIN main.Queues ON a.QueueID = main.Queues.ID
+            JOIN v2.Queues ON main.Queues.Name = v2.Queues.Name
+            JOIN main.WLCGVOs ON a.VOID = main.WLCGVOs.ID
+            JOIN v2.WLCGVOs ON main.WLCGVOs.Name = v2.WLCGVOs.Name
+            JOIN main.Status ON a.StatusID = main.Status.ID
+            JOIN v2.Status ON main.Status.Name = v2.Status.Name
+            JOIN main.Endpoints ON a.EndpointID = main.Endpoints.ID
+            JOIN v2.Endpoints 
+                ON main.Endpoints.URL = v2.Endpoints.URL 
+                AND main.Endpoints.Interface = v2.Endpoints.Interface'''
+    },
+    {
+        'table': 'AuthTokenAttributes',
+        'sql': '''INSERT OR IGNORE INTO v2.AuthTokenAttributes(RecordID,AttrKey,AttrValue)
+            SELECT v2.AAR.RecordID, main.AuthTokenAttributes.AttrKey, main.AuthTokenAttributes.AttrValue
+            FROM (  SELECT RecordID, JobID
+                    FROM main.AAR
+                    WHERE 1=1 <FILTERS>
+            ) AS fAAR
+            JOIN main.AuthTokenAttributes
+                ON fAAR.RecordID = main.AuthTokenAttributes.RecordID
+            JOIN v2.AAR ON fAAR.JobID = v2.AAR.JobID'''
+    },
+    {
+        'table': 'JobEvents',
+        'sql': '''INSERT OR IGNORE INTO v2.JobEvents(RecordID,EventKey,EventTime)
+            SELECT v2.AAR.RecordID, main.JobEvents.EventKey, main.JobEvents.EventTime
+            FROM (  SELECT RecordID, JobID
+                    FROM main.AAR
+                    WHERE 1=1 <FILTERS>
+            ) AS fAAR
+            JOIN main.JobEvents
+                ON fAAR.RecordID = main.JobEvents.RecordID
+            JOIN v2.AAR ON fAAR.JobID = v2.AAR.JobID'''
+    },
+    {
+        'table': 'RunTimeEnvironments',
+        'sql': '''INSERT OR IGNORE INTO v2.RunTimeEnvironments(RecordID,RTEName)
+            SELECT v2.AAR.RecordID, main.RunTimeEnvironments.RTEName
+            FROM (  SELECT RecordID, JobID
+                    FROM main.AAR
+                    WHERE 1=1 <FILTERS>
+            ) AS fAAR
+            JOIN main.RunTimeEnvironments
+                ON fAAR.RecordID = main.RunTimeEnvironments.RecordID
+            JOIN v2.AAR ON fAAR.JobID = v2.AAR.JobID'''
+    },
+    {
+        'table': 'DataTransfers',
+        'sql': '''INSERT OR IGNORE INTO v2.DataTransfers(
+                RecordID, URL, FileSize,
+                TransferStart, TransferEnd, TransferType
+            )
+            SELECT v2.AAR.RecordID, main.DataTransfers.URL,
+                    main.DataTransfers.FileSize, main.DataTransfers.TransferStart,
+                    main.DataTransfers.TransferEnd, main.DataTransfers.TransferType
+            FROM (  SELECT RecordID, JobID
+                    FROM main.AAR
+                    WHERE 1=1 <FILTERS>
+            ) AS fAAR
+            JOIN main.DataTransfers
+                ON fAAR.RecordID = main.DataTransfers.RecordID
+            JOIN v2.AAR ON fAAR.JobID = v2.AAR.JobID'''
+    },
+    {
+        'table': 'JobExtraInfo',
+        'sql': '''INSERT OR IGNORE INTO v2.JobExtraInfo(RecordID,InfoKey,InfoValue)
+            SELECT v2.AAR.RecordID, main.JobExtraInfo.InfoKey, main.JobExtraInfo.InfoValue
+            FROM (  SELECT RecordID, JobID
+                    FROM main.AAR
+                    WHERE 1=1 <FILTERS>
+            ) AS fAAR
+            JOIN main.JobExtraInfo
+                ON fAAR.RecordID = main.JobExtraInfo.RecordID
+            JOIN v2.AAR ON fAAR.JobID = v2.AAR.JobID'''
+    }
+]

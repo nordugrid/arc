@@ -418,19 +418,21 @@ class AccountingControl(ComponentControl):
 
     def db_migrate(self, args):
         self.__init_adb()
+        # connect to specified v1 database
         adb_v1_file = self.__db_location(args.from_db)
         adb_v1 = AccountingDB(adb_v1_file)
         if adb_v1.adb_version() != 1:
             self.logger.error('Migration only works from database schema v1. Database at %s has schema version %s.',
                               adb_v1_file, adb_v1.adb_version())
             sys.exit(1)
+        # define timerange filters
         self.logger.info('Migrate records from %s for jobs finished after %s', adb_v1_file, str(args.end_from))
         adb_v1.filter_endfrom(args.end_from)
         if args.end_till:
             adb_v1.filter_endtill(args.end_till)
             self.logger.info('Only jobs finished before %s will be migrated', str(args.end_till))
-        self.logger.error('Not implemeneted yet')
-        sys.exit(1)
+        # run migration queries
+        adb_v1.migrate_to_v2(self.db_file)
 
     def jobcontrol(self, args):
         canonicalize_args_jobid(args)
@@ -448,7 +450,7 @@ class AccountingControl(ComponentControl):
         if args.dbaction == 'backup':
             self.backup(args.location)
         elif args.dbaction == 'migrate':
-            pass
+            self.db_migrate(args)
         elif args.dbaction == 'cleanup':
             pass
         elif args.dbaction == 'rotate':
@@ -600,7 +602,7 @@ class AccountingControl(ComponentControl):
 
         # database-level operations
         db_accounting_ctl = accounting_actions.add_parser('database', help='Accounting database operations')
-        AccountingControl.register_job_parser(db_accounting_ctl)
+        AccountingControl.register_db_parser(db_accounting_ctl)
 
         # republish
         accounting_republish = accounting_actions.add_parser('republish',
