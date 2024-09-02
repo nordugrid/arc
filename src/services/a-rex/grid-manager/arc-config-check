@@ -77,6 +77,7 @@ Path to openssl binary, will be found from PATH if not set.
 use strict;
 use warnings;
 use Getopt::Long;
+use IO::Socket::INET;
 use POSIX;
 
 my ($conffile,$printall,$skip_warnings,$help,$man)=("/etc/arc.conf",0,0,0,0);
@@ -197,24 +198,45 @@ shift higher than a maximally allowed maxtimediff results in an error.
 sub timecheck($$$) {
 	my ($timeserver, $maxtimediff, $maxtimediffwarn) = @_;
 	my $timeoffset = undef;
+	my $port = 123;
+	my $buf = 1024;
+	my $msg = "\x1b" . ("\0" x 47);
 
-	my $ntpdate = "/usr/sbin/ntpdate";
-	unless ( -x $ntpdate )  {
-		w("Could not find location of 'ntpdate'.\n");
+	# reference time (in seconds since 1900-01-01 00:00:00)
+	my $time1970 = 2208988800; # 1970-01-01 00:00:00
+
+	# connect to server
+	my $client = IO::Socket::INET->new(
+		PeerAddr => $timeserver,
+		PeerPort => $port,
+		Proto    => 'udp',
+		Timeout  => 10
+	);
+	unless ( $client ) {
+		w("Could not create NTP socket: $@\n");
 		return;
 	}
 
-	unless (open(NTPDATE, "$ntpdate -p 1 -q $timeserver |")) {
-		w("Could not properly invoke 'ntpdate'.\n");
+	unless ( $client->send($msg) == length($msg) ) {
+		w("Could not send NTP request: $!\n");
 		return;
 	}
-	while (<NTPDATE>) {
-		next unless m/^server/;
-		if (m/offset *[-+]?([0-9]*\.[0-9]*)/) {
-			$timeoffset = $1;
-		}
+
+	my $response;
+	unless ( $client->recv($response, $buf) ) {
+		w("NTP receive error: $!\n");
+		return;
 	}
-	close NTPDATE;
+
+	$client->close();
+
+	# parse NTP response
+	my @data = unpack("N12", $response);
+	my $ntp_t = $data[10];
+	if ( $ntp_t ) {
+		$ntp_t -= $time1970;
+		$timeoffset = time() - $ntp_t;
+	}
 
 	if (defined $timeoffset) {
 		if (abs($timeoffset)>=$maxtimediff) {
