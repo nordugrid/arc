@@ -161,8 +161,10 @@ fi
 bdii_database=${CONFIG_bdii_database:-$bdii_database}
 
 has_cachesize=
+db_grid_maxsize=
 if [ $bdii_database = 'mdb' ] ; then
     has_cachesize='# '
+    db_grid_maxsize="maxsize         104857600"
 fi
 
 find_ldap_database_module() {
@@ -355,6 +357,7 @@ cat <<-EOF >> $bdii_slapd_conf
 	rootdn          "o=grid"
 	rootpw          $pass
 	directory       $bdii_var_dir/db/arc
+	${db_grid_maxsize}
 
 	# ${bdii_database} database definitions for o=glue
 	database        ${bdii_database}
