@@ -81,10 +81,10 @@ class DataStagingControl(ComponentControl):
         return timestmp_str, timestamp
 
 
-    def _get_filecount_joblog(self,log_f,arcid,twindow_start=None):
+    def _get_filecount_joblog(self,log_f,jobid,twindow_start=None):
         pass
         
-    def _get_timestamps_joblog(self,log_f,arcid,twindow_start=None):
+    def _get_timestamps_joblog(self,log_f,jobid,twindow_start=None):
 
         """ 
         Get the total time from PREPARING to SUBMIT which is the total time in PREPARING.
@@ -94,10 +94,10 @@ class DataStagingControl(ComponentControl):
 
         has_udef_input = None
         ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':False}
-        has_udef_input = self._has_userdefined_inputfiles(arcid)
+        has_udef_input = self._has_userdefined_inputfiles(jobid)
 
         if has_udef_input is None:
-            print('The grami file for job with id: ', arcid, ' is no longer present. Skipping this job.')
+            print('The grami file for job with id: ', jobid, ' is no longer present. Skipping this job.')
         elif has_udef_input is False:
             ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':True}
         else:
@@ -154,8 +154,8 @@ class DataStagingControl(ComponentControl):
                 return None
         return ds_time
 
-    def _has_userdefined_inputfiles(self,arcid):
-        grami_file = control_path(self.control_dir, arcid, 'grami')
+    def _has_userdefined_inputfiles(self,jobid):
+        grami_file = control_path(self.control_dir, jobid, 'grami')
         try:
             with open(grami_file,'r') as f:
                 for line in f:
@@ -838,9 +838,9 @@ class DataStagingControl(ComponentControl):
                 continue
 
             try:
-                jobdict = self._get_timestamps_joblog(log_f,arcid,twindow_start)
+                jobdict = self._get_timestamps_joblog(log_f,jobid,twindow_start)
                 if jobdict:
-                    datastaging_jobs[arcid]=jobdict
+                    datastaging_jobs[jobid]=jobdict
             except:
                 continue
 
@@ -937,10 +937,10 @@ class DataStagingControl(ComponentControl):
         dds_job_actions.required = True
 
         dds_job_total = dds_job_actions.add_parser('get-totaltime', help='Show the total time spent in the preparation stage for the selected job')
-        dds_job_total.add_argument('arcid',help='Job ID').completer = complete_job_id
+        dds_job_total.add_argument('jobid',help='Job ID').completer = complete_job_id
         
         dds_job_details = dds_job_actions.add_parser('get-details', help='Show details related to the  files downloaded for the selected job')
-        dds_job_details.add_argument('arcid',help='Job ID').completer = complete_job_id
+        dds_job_details.add_argument('jobid',help='Job ID').completer = complete_job_id
 
 
 
