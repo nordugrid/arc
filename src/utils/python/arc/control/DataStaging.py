@@ -81,10 +81,10 @@ class DataStagingControl(ComponentControl):
         return timestmp_str, timestamp
 
 
-    def _get_filecount_joblog(self,log_f,arcid,twindow_start=None):
+    def _get_filecount_joblog(self,log_f,jobid,twindow_start=None):
         pass
         
-    def _get_timestamps_joblog(self,log_f,arcid,twindow_start=None):
+    def _get_timestamps_joblog(self,log_f,jobid,twindow_start=None):
 
         """ 
         Get the total time from PREPARING to SUBMIT which is the total time in PREPARING.
@@ -94,10 +94,10 @@ class DataStagingControl(ComponentControl):
 
         has_udef_input = None
         ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':False}
-        has_udef_input = self._has_userdefined_inputfiles(arcid)
+        has_udef_input = self._has_userdefined_inputfiles(jobid)
 
         if has_udef_input is None:
-            print('The grami file for job with id: ', arcid, ' is no longer present. Skipping this job.')
+            print('The grami file for job with id: ', jobid, ' is no longer present. Skipping this job.')
         elif has_udef_input is False:
             ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':True}
         else:
@@ -154,8 +154,8 @@ class DataStagingControl(ComponentControl):
                 return None
         return ds_time
 
-    def _has_userdefined_inputfiles(self,arcid):
-        grami_file = control_path(self.control_dir, arcid, 'grami')
+    def _has_userdefined_inputfiles(self,jobid):
+        grami_file = control_path(self.control_dir, jobid, 'grami')
         try:
             with open(grami_file,'r') as f:
                 for line in f:
@@ -171,11 +171,11 @@ class DataStagingControl(ComponentControl):
 
 
 
-    def _get_filesforjob(self,arcid):
+    def _get_filesforjob(self,jobid):
 
         """ The grami-info only contains filename, not URI
         - grami files only contains user-defined input files """
-        grami_file = control_path(self.control_dir, arcid, 'grami')
+        grami_file = control_path(self.control_dir, jobid, 'grami')
         all_files_user = []
         try:
             with open(grami_file,'r') as f:
@@ -195,12 +195,12 @@ class DataStagingControl(ComponentControl):
         return all_files_user
 
 
-    def _get_file_events_statistics(self, arcid, file_events):
+    def _get_file_events_statistics(self, jobid, file_events):
 
         client_uploads = []
         """ Get files already downloaded from jobs statistics file """
         """ This includes non-user defined inputfiles like pilot or json site files """
-        stat_file = control_path(self.control_dir, arcid, 'statistics')
+        stat_file = control_path(self.control_dir, jobid, 'statistics')
         try:
             with open(stat_file,'r') as f:
                 for line in f:
@@ -241,13 +241,13 @@ class DataStagingControl(ComponentControl):
             pass
         return file_events#, client_uploads
 
-    def _get_file_events_errors(self,arcid,file_events):
+    def _get_file_events_errors(self,jobid,file_events):
         
         """ Get more details about ongoing  transfers from jobs errors file"""
         dtr_file = {}
         file_dtr = {}
 
-        log_file = control_path(self.control_dir, arcid, 'errors')
+        log_file = control_path(self.control_dir, jobid, 'errors')
         with open(log_file,'r') as f:
             for line in f:
 
@@ -344,9 +344,9 @@ class DataStagingControl(ComponentControl):
 
 
         
-    def _get_file_events(self,arcid):
+    def _get_file_events(self,jobid):
 
-        all_userdef_inputs = self._get_filesforjob(arcid)
+        all_userdef_inputs = self._get_filesforjob(jobid)
         file_events = {}
         file_events = dict.fromkeys(all_userdef_inputs, {})
         for fileN in file_events:
@@ -356,9 +356,9 @@ class DataStagingControl(ComponentControl):
         """  Extracts information about the files already downloaded for a single job 
         from its jobs statistics file 
         includes download info for non-user defined file such as pilot or site json file """
-        file_events  = self._get_file_events_statistics(arcid, file_events)
+        file_events  = self._get_file_events_statistics(jobid, file_events)
         """ Get more details about the transfers from jobs errors file"""
-        file_events = self._get_file_events_errors(arcid, file_events)
+        file_events = self._get_file_events_errors(jobid, file_events)
                     
         return file_events
 
@@ -404,9 +404,9 @@ class DataStagingControl(ComponentControl):
     def show_preparing_jobs(self,args):
         
         out,err=subprocess.Popen(['arcctl','job','list','-s','PREPARING'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
-        arcids_preparing = out.decode().split('\n')
+        jobids_preparing = out.decode().split('\n')
         """ Remove empty items """
-        arcids_preparing = [item for item in arcids_preparing if item]
+        jobids_preparing = [item for item in jobids_preparing if item]
 
         """ Extract information about files being prepared including on what host """
         jobs_prep = {}
@@ -417,10 +417,10 @@ class DataStagingControl(ComponentControl):
         print(f'Datastaging information for jobs in PREPARING state, which are currently being staged in or are in progress or waiting to be staged.')
         print(f"\t{'COUNTER':<9} {'ARC-ID':<14.14} {'DTR-ID':<12.12} {'FILENAME':<60} {'SOURCE':<60}  {'REMOTE-DELIVERY':<60} {'SIZE (MB)':<15} {'SEC (s)':<7} {'START':<25} {'END':<25} ")
         counter = 1
-        for idx, arcid in enumerate(arcids_preparing):
+        for idx, jobid in enumerate(jobids_preparing):
 
-            """ For this arcid - get details about all files currently done in datastaging """
-            file_dict = self._get_file_events(arcid)
+            """ For this jobid - get details about all files currently done in datastaging """
+            file_dict = self._get_file_events(jobid)
             print('\n')
             for fileN,evts in file_dict.items():
 
@@ -439,9 +439,9 @@ class DataStagingControl(ComponentControl):
                     evts['start_deliver'] = '-'
                     
                 try:
-                    print(f"\t{idx+1:>4}-{counter:<4} {arcid:<14.14} {dtrid:<12.12} {fileN:<60.60} {evts['source']:<60.60} {evts['remote_dds']:<60.60}  {evts['size']:<15.1f} {evts['seconds']:<7} {evts['start_deliver']:<25.25} {evts['end']:<25.25} ")
+                    print(f"\t{idx+1:>4}-{counter:<4} {jobid:<14.14} {dtrid:<12.12} {fileN:<60.60} {evts['source']:<60.60} {evts['remote_dds']:<60.60}  {evts['size']:<15.1f} {evts['seconds']:<7} {evts['start_deliver']:<25.25} {evts['end']:<25.25} ")
                 except Exception as e:
-                    print(f'Got an exception while printing out information for preparing job {arcid} for {fileN}: {e}')
+                    print(f'Got an exception while printing out information for preparing job {jobid} for {fileN}: {e}')
                 counter += 1
 
         #else:
@@ -455,19 +455,19 @@ class DataStagingControl(ComponentControl):
         
         deliveryservices = self.arcconfig.get_value('deliveryservice', 'arex/data-staging')
         out,err=subprocess.Popen(['arcctl','job','list','-s','PREPARING'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
-        arcids_preparing = out.decode().split('\n')
+        jobids_preparing = out.decode().split('\n')
         """ Remove empty items """
-        arcids_preparing = [item for item in arcids_preparing if item]
+        jobids_preparing = [item for item in jobids_preparing if item]
 
         """ Extract information about files being prepared including on what host """
         remote_delivery = {}
 
         """ Collect all files for jobs in PREPARING state that are logged as remotely downloaded 
         Save this in a new dictionary for printing out """
-        for arcid in arcids_preparing:
+        for jobid in jobids_preparing:
 
-            """ For this arcid - get details about all files currently done in datastaging """
-            file_events = self._get_file_events(arcid)
+            """ For this jobid - get details about all files currently done in datastaging """
+            file_events = self._get_file_events(jobid)
             for fileN,val in file_events.items():
 
                 if 'remote_dds' in val.keys():
@@ -476,7 +476,7 @@ class DataStagingControl(ComponentControl):
                         remote_delivery[remote_dds]={}
                         
                     remote_delivery[remote_dds][fileN] = copy.deepcopy(val)
-                    remote_delivery[remote_dds][fileN]['arcid']=arcid
+                    remote_delivery[remote_dds][fileN]['jobid']=jobid
                     
 
 
@@ -492,7 +492,7 @@ class DataStagingControl(ComponentControl):
                 for fileN,val in remote_delivery.items():
                     idx += 1
 
-                    arcid = val['arcid']
+                    jobid = val['jobid']
                     dtrid = val['dtrid_short']
                     if 'source' not in val.keys():
                         val['source'] = '-'
@@ -503,9 +503,9 @@ class DataStagingControl(ComponentControl):
                     if 'seconds' not in val.keys():
                         val['seconds'] = -1
                     try:
-                        print(f"\t{idx:<8} {remote_dds:<60.60} {arcid:<14.14} {dtrid:<10.10} {fileN:<60.60} {val['source']:<60.60} {val['size']:<15.1f} {val['seconds']:<7} {val['start_deliver']:<25.25} {val['end']:<25.25} ")
+                        print(f"\t{idx:<8} {remote_dds:<60.60} {jobid:<14.14} {dtrid:<10.10} {fileN:<60.60} {val['source']:<60.60} {val['size']:<15.1f} {val['seconds']:<7} {val['start_deliver']:<25.25} {val['end']:<25.25} ")
                     except Exception as e:
-                        print(f'Got an exception while printing out information for remote datadelivery sites for {fileN} and arcid: {arcid}: {e}')
+                        print(f'Got an exception while printing out information for remote datadelivery sites for {fileN} and jobid: {jobid}: {e}')
 
         else:
             print(f'There are currently no files being staged by any remote datadelivery services')
@@ -567,14 +567,14 @@ class DataStagingControl(ComponentControl):
         return
 
 
-    def show_job_time(self,arcid):
+    def show_job_time(self,jobid):
 
         datastaging_time={}
-        log_f = control_path(self.control_dir, arcid, 'errors')
-        datastaging_time=self._get_timestamps_joblog(log_f,arcid)
+        log_f = control_path(self.control_dir, jobid, 'errors')
+        datastaging_time=self._get_timestamps_joblog(log_f,jobid)
 
         if datastaging_time:
-            print(f"\nTotal datastaging duration for arcid {arcid:<50}")
+            print(f"\nTotal datastaging duration for jobid {jobid:<50}")
             if datastaging_time['noinput']:
                 print('\tThis job has no user-defined input-files, hence no datastaging needed/done.')
             else:
@@ -586,11 +586,11 @@ class DataStagingControl(ComponentControl):
                     print(f"\t{'Start':<21} \t{'Duration':<12}")
                     print(f"\t{datastaging_time['start']:<21} \t{datastaging_time['dt']:<12}")
         else:
-            print(f'No datastaging information for arcid {arcid:<50} - Try arcctl accounting instead - the job might be finished.')
+            print(f'No datastaging information for jobid {jobid:<50} - Try arcctl accounting instead - the job might be finished.')
 
 
 
-    def show_job_details(self,arcid,file_details):
+    def show_job_details(self,jobid,file_details):
 
 
         done_stagedin = {k: v for k, v in file_details.items() if v.get('staged_in') == 'yes'}
@@ -598,7 +598,7 @@ class DataStagingControl(ComponentControl):
         
 
         """ General info """
-        print(f'\nInformation  about input-files for arcid {arcid} ')
+        print(f'\nInformation  about input-files for jobid {jobid} ')
         
         """  Print out a list of all files and if staged-in or not """
         print('\nState of input-files:')
@@ -641,7 +641,7 @@ class DataStagingControl(ComponentControl):
     def show_summary_files(self,args):
         """ 
         Total number and size of files downloaded in the chosen timewindow for jobs in state PREPARING or INLRMS
-        Uses the job.<arcid>.statistics file to extract files downloaded, as this gets updated file by file once a download is done.
+        Uses the job.<jobid>.statistics file to extract files downloaded, as this gets updated file by file once a download is done.
         """
 
         n_jobs = 0 
@@ -674,16 +674,16 @@ class DataStagingControl(ComponentControl):
         print(f"\nThis may take some time... Fetching the total number of files downloaded for jobs modified after {datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S')}")
 
         out,err=subprocess.Popen(['arcctl','job','list','-s','PREPARING'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
-        arcids = out.decode().split('\n')
+        jobids = out.decode().split('\n')
 
         out,err=subprocess.Popen(['arcctl','job','list','-s','INLRMS'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
-        arcids.extend(out.decode().split('\n'))
+        jobids.extend(out.decode().split('\n'))
 
         """ Remove any empty items  """
-        arcids = [item for item in arcids if item]
+        jobids = [item for item in jobids if item]
         
-        for arcid in arcids:
-            log_f = control_path(self.control_dir, arcid, 'statistics')
+        for jobid in jobids:
+            log_f = control_path(self.control_dir, jobid, 'statistics')
             mtime = None
             try:
                 mtime=datetime.datetime.fromtimestamp(os.path.getmtime(log_f))
@@ -697,7 +697,7 @@ class DataStagingControl(ComponentControl):
 
 
             file_events = {}
-            file_events = self._get_file_events(arcid)
+            file_events = self._get_file_events(jobid)
             n_jobs += 1
             n_files_all += len(file_events.keys())
 
@@ -710,7 +710,7 @@ class DataStagingControl(ComponentControl):
             """ Collecting information for files that are done in stage-in for this job """
             for key, val in file_events.items():
                 
-                #print(f'arcid: {arcid} fileN: {key} val: {val}')
+                #print(f'jobid: {jobid} fileN: {key} val: {val}')
                 try:
                     """  Only files in active download during the timewindow are added """
                     end = datetime.datetime.strptime(val['end'], '%Y-%m-%dT%H:%M:%SZ')
@@ -816,16 +816,16 @@ class DataStagingControl(ComponentControl):
         print(f"\nThis may take some time... Fetching summary of download times for jobs modified after {format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S'))}")
               
         out,err=subprocess.Popen(['arcctl','job','list','-s','PREPARING'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
-        arcids = out.decode().split('\n')
+        jobids = out.decode().split('\n')
 
         out,err=subprocess.Popen(['arcctl','job','list','-s','INLRMS'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
-        arcids.extend(out.decode().split('\n'))
+        jobids.extend(out.decode().split('\n'))
 
-        for arcid in arcids:
-            if not arcid:
+        for jobid in jobids:
+            if not jobid:
                 """ Protect against empty string """
                 continue
-            log_f = control_path(self.control_dir, arcid, 'errors')
+            log_f = control_path(self.control_dir, jobid, 'errors')
             mtime = None
             try:
                 mtime=datetime.datetime.fromtimestamp(os.path.getmtime(log_f))
@@ -838,9 +838,9 @@ class DataStagingControl(ComponentControl):
                 continue
 
             try:
-                jobdict = self._get_timestamps_joblog(log_f,arcid,twindow_start)
+                jobdict = self._get_timestamps_joblog(log_f,jobid,twindow_start)
                 if jobdict:
-                    datastaging_jobs[arcid]=jobdict
+                    datastaging_jobs[jobid]=jobdict
             except:
                 continue
 
@@ -863,8 +863,8 @@ class DataStagingControl(ComponentControl):
         
         print('\nJobs where no user-defined input-data was defined (no datastaging done/needed): ')
         print('Number of jobs:  '+ str(len(noinput_list)))
-        for arcid in noinput_list:
-            print(f"\t{arcid:}")
+        for jobid in noinput_list:
+            print(f"\t{jobid:}")
             
         sorted_dict = sorted(done_dict.items(), key = lambda x: x[1]['dt'])
         print('\nSorted list of jobs where datastaging is done:')
@@ -903,13 +903,13 @@ class DataStagingControl(ComponentControl):
         canonicalize_args_jobid(args)
 
         if args.jobaction == 'get-totaltime':
-            arcid = args.arcid
-            self.show_job_time(arcid)
+            jobid = args.jobid
+            self.show_job_time(jobid)
         elif args.jobaction == 'get-details':
-            arcid = args.arcid
-            file_details = self._get_file_events(arcid)
-            self.show_job_details(arcid,file_details)
-            self.show_job_time(arcid)
+            jobid = args.jobid
+            file_details = self._get_file_events(jobid)
+            self.show_job_details(jobid,file_details)
+            self.show_job_time(jobid)
         elif args.jobaction == 'get-all':
             self.show_preparing_jobs(args)
             
@@ -937,10 +937,10 @@ class DataStagingControl(ComponentControl):
         dds_job_actions.required = True
 
         dds_job_total = dds_job_actions.add_parser('get-totaltime', help='Show the total time spent in the preparation stage for the selected job')
-        dds_job_total.add_argument('arcid',help='Job ID').completer = complete_job_id
+        dds_job_total.add_argument('jobid',help='Job ID').completer = complete_job_id
         
         dds_job_details = dds_job_actions.add_parser('get-details', help='Show details related to the  files downloaded for the selected job')
-        dds_job_details.add_argument('arcid',help='Job ID').completer = complete_job_id
+        dds_job_details.add_argument('jobid',help='Job ID').completer = complete_job_id
 
 
         dds_job_all = dds_job_actions.add_parser('get-all', help='Show details related to datastaging for all preparing jobs')
