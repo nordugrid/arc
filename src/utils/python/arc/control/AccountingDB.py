@@ -487,9 +487,9 @@ class AccountingDB(object):
             'stagein': 0, 'stageout': 0, 'rangestart': 0, 'rangeend': 0
         }
         for res in self.__sql_query('SELECT COUNT(RecordID), SUM(UsedWalltime), SUM(UsedCPUUserTime),'
-                                         'SUM(UsedCPUKernelTime), SUM(StageInVolume), SUM(StageOutVolume),'
-                                         'MIN(SubmitTime), MAX(EndTime) FROM AAR',
-                                         errorstr='Failed to get accounting statistics'):
+                                    'SUM(UsedCPUKernelTime), SUM(StageInVolume), SUM(StageOutVolume),'
+                                    'MIN(SubmitTime), MAX(EndTime) FROM AAR',
+                                    errorstr='Failed to get accounting statistics'):
             if res[0] != 0:
                 stats = {
                     'count': res[0],
@@ -571,7 +571,7 @@ class AccountingDB(object):
         """Return list of JobIDs matching applied filters"""
         jobids = []
         for res in self.__sql_query('SELECT JobID FROM AAR',
-                                         errorstr='Failed to get JobIDs'):
+                                    errorstr='Failed to get JobIDs'):
             jobids.append(res[0])
         self.adb_close()
         return jobids
@@ -730,7 +730,7 @@ class AccountingDB(object):
         record_start = None
         record_end = None
         for res in self.__sql_query('SELECT min(RecordID), max(RecordID) FROM AAR',
-                                         errorstr='Failed to get records range from database'):
+                                    errorstr='Failed to get records range from database'):
             record_start = res[0]
             record_end = res[1]
         if record_start is None or record_end is None:
