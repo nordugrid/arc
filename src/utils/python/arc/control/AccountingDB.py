@@ -437,6 +437,7 @@ class AccountingDB(object):
 
     def __sql_query(self, sql, params=(), errorstr='', filtered=True, exit_on_error=False):
         """Execute SQL query, adding defined filters if requested. Does not close the connection and return sqlite3.Cursor"""
+        qparams = ()
         if filtered:
             if not self.sqlfilter.isresult():
                 return []
@@ -445,22 +446,23 @@ class AccountingDB(object):
                 # substitute filters to <FILTERS> placeholder if defined
                 sql = sql.replace('<FILTERS>', self.sqlfilter.getsql())
                 for _ in range(filters_count):
-                    params += self.sqlfilter.getparams()
+                    qparams += self.sqlfilter.getparams()
             else:
                 # add to the end of query otherwise
                 if 'WHERE' not in sql:
                     sql += ' WHERE 1=1'  # verified that this does not affect performance
                 sql += ' ' + self.sqlfilter.getsql()
-                params += self.sqlfilter.getparams()
+                qparams += self.sqlfilter.getparams()
+        qparams += params
         self.adb_connect()
         try:
-            self.logger.debug('Executing query: {0}'.format(sql.replace('%', '%%').replace('?', '%s')), *params)
-            res = self.con.execute(sql, params)
+            self.logger.debug('Executing query: {0}'.format(sql.replace('%', '%%').replace('?', '%s')), *qparams)
+            res = self.con.execute(sql, qparams)
             return res
         except sqlite3.Error as e:
-            params += (str(e),)
+            qparams += (str(e),)
             self.logger.debug('Failed to execute query: {0}. Error: %s'.format(
-                sql.replace('%', '%%').replace('?', '%s')), *params)
+                sql.replace('%', '%%').replace('?', '%s')), *qparams)
             if errorstr:
                 self.logger.error(errorstr + ' Something goes wrong during SQL query. '
                                              'Use DEBUG loglevel to troubleshoot.')
@@ -505,8 +507,10 @@ class AccountingDB(object):
     def get_job_owners(self):
         """Return list of job owners distinguished names that match applied filters"""
         userids = []
-        for res in self.__sql_query('SELECT DISTINCT UserID FROM AAR',
-                                         errorstr='Failed to get accounted job owners'):
+        sql = '''SELECT DISTINCT ID FROM Users
+                 JOIN ( SELECT UserID FROM AAR WHERE 1=1 <FILTERS> ) fAAR
+                 ON fAAR.UserID = Users.ID'''
+        for res in self.__sql_query(sql, errorstr='Failed to get accounted job owners'):
             userids.append(res[0])
         self.adb_close()
         if userids:
@@ -517,8 +521,10 @@ class AccountingDB(object):
     def get_job_wlcgvos(self):
         """Return list of job owners WLCG VOs matching applied filters"""
         voids = []
-        for res in self.__sql_query('SELECT DISTINCT VOID FROM AAR',
-                                         errorstr='Failed to get accounted WLCG VOs for jobs'):
+        sql = '''SELECT DISTINCT ID FROM WLCGVOs
+                 JOIN ( SELECT VOID FROM AAR WHERE 1=1 <FILTERS> ) fAAR
+                 ON fAAR.VOID = WLCGVOs.ID'''
+        for res in self.__sql_query(sql, errorstr='Failed to get accounted WLCG VOs for jobs'):
             voids.append(res[0])
         self.adb_close()
         if voids:
@@ -526,28 +532,33 @@ class AccountingDB(object):
             return [self.wlcgvos['byid'][v] for v in voids]
         return []
 
-    def get_job_authtokens(self, attributes=None):
+    def get_job_authtokens(self, attribute=None):
         """Return list of authoken attribute values matching job applied filters"""
-        if attributes is None:
+        if attribute is None:
             return []
         attrvalues = []
-        sql ='''SELECT DISTINCT AttrValue FROM AuthTokenAttributes
-                WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)
-                AND AttrKey IN ({0})'''.format(','.join(['?'] * len(attributes)))
-        for res in self.__sql_query(sql, params=tuple(attributes),
-                                         errorstr='Failed to get accounted authtokens {0} for jobs'.format(','.join(attributes))):
-            attrvalues.append(res[0])
+        sql ='''SELECT DISTINCT AttrValue
+                FROM ( SELECT RecordID FROM AAR WHERE 1=1 <FILTERS> ) a
+                LEFT JOIN AuthTokenAttributes
+                    ON a.RecordID = AuthTokenAttributes.RecordID
+                    AND AuthTokenAttributes.AttrKey = ?'''
+        for res in self.__sql_query(sql, params=(attribute,),
+                                    errorstr='Failed to get accounted authtokens {0} for jobs'.format(attribute)):
+            if res[0]:
+                attrvalues.append(res[0])
         return attrvalues
 
     def get_job_fqans(self):
         """Return list of job owners FQANs matching applied filters"""
         jobfqans = []
         if self.db_version < 2:
-            jobfqans = self.get_job_authtokens(attributes=['mainfqan'])
+            jobfqans = self.get_job_authtokens(attribute='mainfqan')
         else:
             fqanids = []
-            for res in self.__sql_query('SELECT DISTINCT FQANID FROM AAR',
-                                            errorstr='Failed to get accounted WLCG VOs for jobs'):
+            sql = '''SELECT DISTINCT ID FROM FQANs
+                    JOIN ( SELECT FQANID FROM AAR WHERE 1=1 <FILTERS> ) fAAR
+                    ON fAAR.FQANID = FQANs.ID'''
+            for res in self.__sql_query(sql, errorstr='Failed to get accounted WLCG VOs for jobs'):
                 fqanids.append(res[0])
             self.adb_close()
             if fqanids:
@@ -1079,18 +1090,20 @@ _MIGRATION_V1_TO_V2 = [
     {
         'table': 'Benchmarks',
         'sql': '''INSERT OR IGNORE INTO v2.Benchmarks(Name)
-            SELECT DISTINCT InfoValue FROM main.JobExtraInfo
-            WHERE main.JobExtraInfo.RecordID IN (
-                SELECT main.AAR.RecordID FROM main.AAR WHERE 1=1 <FILTERS>
-            ) AND main.JobExtraInfo.InfoKey = "benchmark"'''
+            SELECT DISTINCT main.JobExtraInfo.InfoValue
+            FROM ( SELECT main.AAR.RecordID FROM main.AAR WHERE 1=1 <FILTERS> ) a
+            LEFT JOIN main.JobExtraInfo
+                ON a.RecordID = main.JobExtraInfo.RecordID
+                AND main.JobExtraInfo.InfoKey = "benchmark"'''
     },
     {
         'table': 'FQANS',
         'sql': '''INSERT OR IGNORE INTO v2.FQANs(Name)
-            SELECT DISTINCT AttrValue FROM main.AuthTokenAttributes
-            WHERE main.AuthTokenAttributes.RecordID IN (
-                SELECT main.AAR.RecordID FROM main.AAR WHERE 1=1 <FILTERS>
-            ) AND main.AuthTokenAttributes.AttrKey = "mainfqan"'''
+            SELECT DISTINCT main.AuthTokenAttributes.AttrValue
+            FROM ( SELECT main.AAR.RecordID FROM main.AAR WHERE 1=1 <FILTERS> ) a
+            LEFT JOIN main.AuthTokenAttributes
+                ON a.RecordID = main.AuthTokenAttributes.RecordID
+                AND main.AuthTokenAttributes.AttrKey = "mainfqan"'''
     },
     {
         'table': 'AAR',
