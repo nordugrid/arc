@@ -177,8 +177,10 @@ class Validator(object):
             allowed_values = reference.allowed_values(self.arcconfref, block, option)
 
             if allowed_values and value not in allowed_values:
-                self.error("Value '%s' for option '%s' in [%s] is not in allowed values (%s)" %
-                           (value, option, block, ','.join(allowed_values)))
+                #lrms has separate checks later on 
+                if not (block == 'lrms' and option == 'lrms'):
+                    self.error("Value '%s' for option '%s' in [%s] is not in allowed values (%s)" %
+                               (value, option, block, ','.join(allowed_values)))
 
         # Extra checks for certain options
         if block == 'arex/cache' and option == 'cachedir':
@@ -290,6 +292,15 @@ class Validator(object):
             # Special exception for slurm/SLURM
             if lrms.lower() != 'slurm':
                 self.error("%s is not an allowed lrms name" % lrms)
+            # If optional defaultqueue - check that the queue is defined
+            lrms_options = config_dict['lrms']['lrms'].split()
+            if len(lrms_options) == 2:
+                   defaultqueue = lrms_options[1]
+                   try:
+                       self._check_config_blocks(config_dict,self.arcconf.get_default_config_dict(),config_dict['queue:'+defaultqueue])
+                   except KeyError:
+                       self.error(f"The default queue: {defaultqueue} specified in the lrms block is not defined in any queue blocks!")
+
 
     def validate_certificates(self):
         """Check the certificate setup is ok"""
