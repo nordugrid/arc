@@ -300,8 +300,8 @@ class Validator(object):
                     # Special exception for slurm/SLURM
                 if lrms.lower() != 'slurm':
                     self.error("%s is not an allowed lrms name" % lrms)
-                    # If optional defaultqueue - check that the queue is defined
-                    
+
+                # If optional defaultqueue - check that the queue is defined
                 lrms_options = config_dict['lrms']['lrms'].split()
                 if len(lrms_options) == 2:
                     defaultqueue = lrms_options[1]
