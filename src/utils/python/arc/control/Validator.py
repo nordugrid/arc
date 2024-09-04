@@ -172,6 +172,8 @@ class Validator(object):
             except ValueError:
                 return None
 
+
+
         # Check allowed values
         if self.arcconfref:
             allowed_values = reference.allowed_values(self.arcconfref, block, option)
@@ -282,24 +284,30 @@ class Validator(object):
                          "Interface will be open for all mapped users")
 
         # Check lrms name is correct
-        lrms = config_dict['lrms']['lrms'].split()[0]
-        lrms_submit = os.path.join(ARC_DATA_DIR, 'submit-%s-job' % lrms)
-        if not os.path.exists(lrms_submit):
-            # LRMS-contrib
-            lrms_contrib = ['ll', 'lsf', 'sge']
-            if lrms in lrms_contrib:
-                self.error("%s lrms requires installing nordugrid-arc-arex-lrms-contrib package" % lrms)
-            # Special exception for slurm/SLURM
-            if lrms.lower() != 'slurm':
-                self.error("%s is not an allowed lrms name" % lrms)
-            # If optional defaultqueue - check that the queue is defined
-            lrms_options = config_dict['lrms']['lrms'].split()
-            if len(lrms_options) == 2:
-                   defaultqueue = lrms_options[1]
-                   try:
-                       self._check_config_blocks(config_dict,self.arcconf.get_default_config_dict(),config_dict['queue:'+defaultqueue])
-                   except KeyError:
-                       self.error(f"The default queue: {defaultqueue} specified in the lrms block is not defined in any queue blocks!")
+        lrms_option_present = True
+        try:
+            lrms = config_dict['lrms']['lrms'].split()[0]
+        except KeyError:
+            lrms_option_present = False
+            self.error(f"Mandatory lrms option in the [lrms] block is missing.")
+        if lrms_option_present:
+            lrms_submit = os.path.join(ARC_DATA_DIR, 'submit-%s-job' % lrms)
+            if not os.path.exists(lrms_submit):
+                # LRMS-contrib
+                lrms_contrib = ['ll', 'lsf', 'sge']
+                if lrms in lrms_contrib:
+                    self.error("%s lrms requires installing nordugrid-arc-arex-lrms-contrib package" % lrms)
+                    # Special exception for slurm/SLURM
+                if lrms.lower() != 'slurm':
+                    self.error("%s is not an allowed lrms name" % lrms)
+                    # If optional defaultqueue - check that the queue is defined
+                    
+                lrms_options = config_dict['lrms']['lrms'].split()
+                if len(lrms_options) == 2:
+                    defaultqueue = lrms_options[1]
+                    #self._check_config_blocks(config_dict,self.arcconf.get_default_config_dict(),config_dict['queue:'+defaultqueue])
+                    if not self.arcconf.check_blocks(f'queue:{defaultqueue}'):
+                        self.error(f"The default queue: {defaultqueue} specified in the lrms block is not defined in any queue blocks!")
 
 
     def validate_certificates(self):
