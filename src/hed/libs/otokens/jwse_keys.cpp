@@ -82,9 +82,16 @@ namespace Arc {
    public:
     IssuerInfo() {
       validTill = time(nullptr) + DefaultValidTime;
+      isNonexpiring = false;
+    }
+
+    bool IsExpired() const {
+      if(isNonexpiring) return false;
+      return (static_cast< std::make_signed_t<time_t> >(time(nullptr) - validTill) > 0);
     }
 
     time_t validTill;
+    bool   isNonexpiring;
     bool   isSafe;
     Arc::AutoPointer<OpenIDMetadata> metadata;
     Arc::AutoPointer<JWSEKeyHolderList> keys;
@@ -355,8 +362,10 @@ namespace Arc {
         for(std::map<std::string, IssuerInfo>::iterator infoIt = issuersInfo.begin(); infoIt != issuersInfo.end();) {
           std::map<std::string, IssuerInfo>::iterator nextIt = infoIt;
           ++nextIt;
-          if(now > infoIt->second.validTill)
-          issuersInfo.erase(infoIt);
+          if(infoIt->second.IsExpired()) {
+            logger_.msg(DEBUG, "JWSE::ExtractPublicKey: deleting outdated info: %s", infoIt->first); 
+            issuersInfo.erase(infoIt);
+          }
           infoIt = nextIt;
         }
         std::map<std::string, IssuerInfo>::iterator infoIt = issuersInfo.find(issuerObj->valuestring);
@@ -407,7 +416,7 @@ namespace Arc {
           }
         }
       }
-      SetIssuerInfo(validTill, keyProtocolSafe, issuerObj->valuestring, serviceMetadata, keys);
+      SetIssuerInfo(&validTill, keyProtocolSafe, issuerObj->valuestring, serviceMetadata, keys);
       if(keyFound)
         return true;
     } else {
@@ -419,17 +428,21 @@ namespace Arc {
     return false;
   }
 
-  void JWSE::SetIssuerInfo(Time validTill, bool isSafe, std::string const& issuer, Arc::AutoPointer<OpenIDMetadata>& metadata, Arc::AutoPointer<JWSEKeyHolderList>& keys) {
+  void JWSE::SetIssuerInfo(Time* validTill, bool isSafe, std::string const& issuer, Arc::AutoPointer<OpenIDMetadata>& metadata, Arc::AutoPointer<JWSEKeyHolderList>& keys) {
     Arc::AutoLock<Glib::Mutex> lock(issuersInfoLock);
     IssuerInfo& info(issuersInfo[issuer]);
     info.isSafe = isSafe;
     info.metadata = metadata;
     info.keys = keys;
-    if(validTill < info.validTill)
-      info.validTill = validTill.GetTime();
+    if(validTill) {
+      if(*validTill < info.validTill)
+        info.validTill = validTill->GetTime();
+    } else {
+      info.isNonexpiring = true;
+    }
   }
 
-  bool JWSE::SetIssuerInfo(Time validTill, bool isSafe, std::string const& issuer, std::string const& metadataStr, std::string const& keysStr, Logger& logger) {
+  bool JWSE::SetIssuerInfo(Time* validTill, bool isSafe, std::string const& issuer, std::string const& metadataStr, std::string const& keysStr, Logger& logger) {
     AutoPointer<OpenIDMetadata> metadata(new OpenIDMetadata);
     if(!OpenIDMetadataFetcher::Import(metadataStr.c_str(), *metadata)) return false;
 
