@@ -511,25 +511,25 @@ namespace Arc {
 
   bool Time::operator<(const Time& othertime) const {
     if(gtime == othertime.gtime) return gnano < othertime.gnano;
-    return gtime < othertime.gtime;
+    return (CompareTime(gtime,othertime.gtime) < 0);
   }
 
 
   bool Time::operator>(const Time& othertime) const {
     if(gtime == othertime.gtime) return gnano > othertime.gnano;
-    return gtime > othertime.gtime;
+    return (CompareTime(gtime,othertime.gtime) > 0);
   }
 
 
   bool Time::operator<=(const Time& othertime) const {
     if(gtime == othertime.gtime) return gnano <= othertime.gnano;
-    return gtime <= othertime.gtime;
+    return (CompareTime(gtime,othertime.gtime) <= 0);
   }
 
 
   bool Time::operator>=(const Time& othertime) const {
     if(gtime == othertime.gtime) return gnano >= othertime.gnano;
-    return gtime >= othertime.gtime;
+    return (CompareTime(gtime,othertime.gtime) >= 0);
   }
 
 
