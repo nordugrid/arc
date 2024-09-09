@@ -22,57 +22,6 @@ static EVP_PKEY* X509_get_privkey(X509*) {
   return NULL;
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-
-static int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d) {
-  /* If the fields n and e in r are NULL, the corresponding input
-   * parameters MUST be non-NULL for n and e.  d may be
-   * left NULL (in case only the public key is used).
-   */
-  if ((r->n == NULL && n == NULL)
-      || (r->e == NULL && e == NULL))
-    return 0;
-
-  if (n != NULL) {
-    BN_free(r->n);
-    r->n = n;
-  }
-  if (e != NULL) {
-    BN_free(r->e);
-    r->e = e;
-  }
-  if (d != NULL) {
-    BN_free(r->d);
-    r->d = d;
-  }
-
-  return 1;
-}
-
-static RSA *EVP_PKEY_get0_RSA(EVP_PKEY *pkey) {
-  if(pkey)
-    if((pkey->type == EVP_PKEY_RSA) || (pkey->type == EVP_PKEY_RSA2))
-      return pkey->pkey.rsa;
-  return NULL;
-}
-
-void RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e, const BIGNUM **d) {
-  if(n) *n = NULL;
-  if(e) *e = NULL;
-  if(d) *d = NULL;
-  if(!r) return;
-  if(n) *n = r->n;
-  if(e) *e = r->e;
-  if(d) *d = r->d;
-}
-
-int EVP_PKEY_up_ref(EVP_PKEY *r) {
-    int i = CRYPTO_add(&r->references, 1, CRYPTO_LOCK_EVP_PKEY);
-    return ((i > 1) ? 1 : 0);
-}
-
-#endif
-
 
 namespace Arc {
  

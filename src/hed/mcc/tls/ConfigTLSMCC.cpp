@@ -7,6 +7,7 @@
 #include <openssl/dh.h> // For DH_* in newer OpenSSL
 
 #include <arc/credential/Credential.h>
+#include <arc/Utils.h>
 
 #include "PayloadTLSStream.h"
 
@@ -73,31 +74,18 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   server_ciphers_priority_ = (((std::string)(cfg["Ciphers"].Attribute("ServerPriority"))) == "true");
   dhparam_file_ = (std::string)(cfg["DHParamFile"]);
   if(cipher_list_.empty()) {
-    // Safest setup by default
-    if(client) {
-      cipher_list_ = "HIGH:!eNULL:!aNULL";
-      if(cfg["Encryption"] == "required") {
-      } else if(cfg["Encryption"] == "preferred") {
-        cipher_list_ = "HIGH:eNULL:!aNULL";
-      } else if(cfg["Encryption"] == "optional") {
-        cipher_list_ = "eNULL:HIGH:!aNULL";
-      } else if(cfg["Encryption"] == "off") {
-        cipher_list_ = "eNULL:!aNULL";
-      }
-    } else {
-      // For server disable DES and 3DES (https://www.openssl.org/blog/blog/2016/08/24/sweet32/)
-      // Do not use encryption in CBC mode (https://cve.mitre.org/cgi-bin/cvename.cgi?name=cve-2011-3389)
-      // Specific ! in this list is just in case we compile with older OpenSSL. Otherwise HIGH should be enough.
-      cipher_list_ = "HIGH:!3DES:!DES:!CBC:!RC4:!eNULL:!aNULL";
-      if(cfg["Encryption"] == "required") {
-      } else if(cfg["Encryption"] == "preferred") {
-        cipher_list_ = "HIGH:!3DES:!DES:!CBC:!RC4:eNULL:!aNULL";
-      } else if(cfg["Encryption"] == "optional") {
-        cipher_list_ = "eNULL:HIGH:!3DES:!CBC:!DES:!RC4:!aNULL";
-      } else if(cfg["Encryption"] == "off") {
-        cipher_list_ = "eNULL:!aNULL";
-      }
+    // Now we rely on system's security policy and do not set any ciphers by default.
+    // Explicitely set Cipher overwrites other security options.
+    // Encyption option now has limited functionality. Only option which is still
+    // supported is "off" to allow connection without encryption if strongly needed.
+    if(cfg["Encryption"] == "off") {
+      cipher_list_ = "eNULL:!aNULL";
+    } else if(client) {
+      // For clients allow env variable to set default ciphers
+      cipher_list_ = GetEnv("ARC_CIPHERS_STRING");
     }
+    // For TLSv1.3 ciphersuites we fully rely on system policy.
+    // There is no way to override anything here.
   }
   if(client) {
     protocol_options_ = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;
@@ -113,19 +101,11 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
       ++protocol_node;
     }
   } else {
-    protocol_options_ = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1; // default
+    // For enabled protocols we also rely on system policies by default.
     XMLNode protocol_node = cfg["Protocol"];
     if((bool)protocol_node) {
       // start from all disallowed (all we know about)
-#ifdef SSL_OP_NO_TLSv1_3
       protocol_options_ = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2 | SSL_OP_NO_TLSv1_3;
-#else
-#ifdef SSL_OP_NO_TLSv1_2
-      protocol_options_ = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2;
-#else
-      protocol_options_ = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1;
-#endif
-#endif
       while((bool)protocol_node) {
         std::string protocol = (std::string)protocol_node;
         std::list<std::string> tokens;
@@ -140,21 +120,14 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
             protocol_options_ &= ~SSL_OP_NO_TLSv1;
           } else if(str == "TLSv1.1") {
             protocol_options_ &= ~SSL_OP_NO_TLSv1_1;
-#ifdef SSL_OP_NO_TLSv1_2
           } else if(str == "TLSv1.2") {
             protocol_options_ &= ~SSL_OP_NO_TLSv1_2;
-#ifdef SSL_OP_NO_TLSv1_3
-          } else if(str == "TLSv1.3") {
-            protocol_options_ &= ~SSL_OP_NO_TLSv1_3;
-#endif
-#endif
           };
         };
         ++protocol_node;
       };
     };
 
-#if (OPENSSL_VERSION_NUMBER >= 0x10001000L)
     XMLNode curve_node = cfg["Curve"];
     if((bool)curve_node) {
       int nid = OBJ_sn2nid(((std::string)curve_node).c_str());
@@ -162,7 +135,6 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
         curve_nid_ = nid;
       }
     }
-#endif
     if(server_ciphers_priority_) {
       protocol_options_ |= SSL_OP_CIPHER_SERVER_PREFERENCE;
     }
@@ -325,7 +297,6 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
       };
     };
   };
-#if (OPENSSL_VERSION_NUMBER >= 0x10001000L)
   /*
   if(SSL_CTX_set1_curves_list(sslctx,"P-256:P-384:P-521")) {
     logger.msg(ERROR, "Failed to apply ECDH groups");
@@ -347,7 +318,6 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
       EC_KEY_free(ecdh);
     };
   };
-#endif
   if(!cipher_list_.empty()) {
     logger.msg(VERBOSE, "Using cipher list: %s",cipher_list_);
     if(!SSL_CTX_set_cipher_list(sslctx,cipher_list_.c_str())) {
@@ -367,13 +337,11 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
     };
   }
 #endif
-#if (OPENSSL_VERSION_NUMBER >= 0x10002000L)
   if(!protocols_.empty()) {
     if(SSL_CTX_set_alpn_protos(sslctx, (unsigned char const *)protocols_.c_str(), (unsigned int)protocols_.length()) != 0) {
       // TODO: add warning message
     };
   };
-#endif
   if(protocol_options_ != 0) {
     logger.msg(VERBOSE, "Using protocol options: 0x%x",protocol_options_);
     SSL_CTX_set_options(sslctx, protocol_options_);

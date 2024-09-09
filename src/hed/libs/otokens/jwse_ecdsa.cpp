@@ -12,19 +12,11 @@
 #include "otokens.h"
 #include "jwse_private.h"
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-#define EVP_MD_CTX_new EVP_MD_CTX_create
-#define EVP_MD_CTX_free EVP_MD_CTX_destroy
-#endif
 
 namespace Arc {
 
   bool JWSE::VerifyECDSA(char const* digestName, void const* message, unsigned int messageSize,
                                                  void const* signature, unsigned int signatureSize) {
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-    logger_.msg(DEBUG, "JWSE::VerifyECDSA: EC signature is not supported due to too old OpenSSL");
-    return false;
-#else
     if(!key_) {
       logger_.msg(DEBUG, "JWSE::VerifyECDSA: missing key");
       return false;
@@ -97,14 +89,9 @@ namespace Arc {
       return false;
     }
     return true;
-#endif
   }
   
   bool JWSE::SignECDSA(char const* digestName, void const* message, unsigned int messageSize, std::string& signature) const {
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-    logger_.msg(DEBUG, "JWSE::VerifyECDSA: EC signature is not supported due to too old OpenSSL");
-    return false;
-#else
     if(!key_) {
       logger_.msg(DEBUG, "JWSE::SignECDSA: missing key");
       return false;
@@ -170,7 +157,6 @@ namespace Arc {
       return false;
     }
     return true;
-#endif
   }
 
 } // namespace Arc

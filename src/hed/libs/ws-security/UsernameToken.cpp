@@ -25,23 +25,6 @@
 
 namespace Arc {
 
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-
-static EVP_MD_CTX* EVP_MD_CTX_new(void) {
-  EVP_MD_CTX* ctx = (EVP_MD_CTX*)std::malloc(sizeof(EVP_MD_CTX));
-  if(ctx) {
-    EVP_MD_CTX_init(ctx);
-  }
-  return ctx;
-}
-
-static void EVP_MD_CTX_free(EVP_MD_CTX* ctx) {
-  if(ctx) {
-    EVP_MD_CTX_cleanup(ctx);
-    std::free(ctx);
-  }
-}
-#endif
 
 #define WSSE_NAMESPACE   "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" 
 #define WSSE11_NAMESPACE "http://docs.oasis-open.org/wss/oasis-wss-wssecurity-secext-1.1.xsd"
