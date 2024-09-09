@@ -62,14 +62,14 @@ AuthResult AuthUser::match_otokens(const char* line) {
     logger.msg(Arc::DEBUG, "Match issuer: %s", v->issuer);
     if((issuer == "*") || (issuer == v->issuer)) {
       if((subject == "*") || (subject == v->subject)) {
-        if((audience == "*") || (audience == v->audience)) {
+        if((audience == "*") || (std::find(v->audiences.begin(),v->audiences.end(),audience) != v->audiences.end())) {
           if((scope == "*") || (std::find(v->scopes.begin(),v->scopes.end(),scope) != v->scopes.end())) {
             if((group == "*") || (std::find(v->groups.begin(),v->groups.end(),group) != v->groups.end())) {
-              logger.msg(Arc::VERBOSE, "Matched: %s %s %s",v->subject,v->issuer,v->audience,scope);
+              logger.msg(Arc::VERBOSE, "Matched: %s %s %s",v->subject,v->issuer,audience,scope);
               default_otokens_ = otokens_t();
               default_otokens_.subject = v->subject;
               default_otokens_.issuer = v->issuer;
-              default_otokens_.audience = v->audience;
+	      if(audience != "*") default_otokens_.audiences.push_back(audience);
               if(scope != "*") default_otokens_.scopes.push_back(scope);
               if(group != "*") default_otokens_.groups.push_back(group);
               return AAA_POSITIVE_MATCH;
