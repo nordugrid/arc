@@ -13,39 +13,6 @@
 #include <openssl/x509v3.h>
 
 
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-
-#define DEFINE_STACK_OF(S) \
-inline STACK_OF(S)* sk_##S##_new(int (*cmp) (const S* const *, const S* const *)) { return SKM_sk_new(S, (cmp)); } \
-inline STACK_OF(S)* sk_##S##_new_null() { return SKM_sk_new_null(S); } \
-inline int sk_##S##_is_sorted(STACK_OF(S) const *st) { return SKM_sk_is_sorted(S, st); } \
-inline void sk_##S##_free(STACK_OF(S)* st) { SKM_sk_free(S, st); } \
-inline int sk_##S##_num(STACK_OF(S) const* st) { return SKM_sk_num(S, st); } \
-inline int sk_##S##_push(STACK_OF(S)* st, S* val) { return SKM_sk_push(S, st, val); } \
-inline S* sk_##S##_value(STACK_OF(S) const* st, int i) { return SKM_sk_value(S, st, i); } \
-inline void sk_##S##_pop_free(STACK_OF(S)* st, void (*free_func)(S*)) { SKM_sk_pop_free(S, st, free_func); } \
-DECLARE_STACK_OF(S)
-/*
-# define sk_ASN1_GENERALSTRING_set(st, i, val) SKM_sk_set(ASN1_GENERALSTRING, (st), (i), (val))
-# define sk_ASN1_GENERALSTRING_zero(st) SKM_sk_zero(ASN1_GENERALSTRING, (st))
-# define sk_ASN1_GENERALSTRING_unshift(st, val) SKM_sk_unshift(ASN1_GENERALSTRING, (st), (val))
-# define sk_ASN1_GENERALSTRING_find(st, val) SKM_sk_find(ASN1_GENERALSTRING, (st), (val))
-# define sk_ASN1_GENERALSTRING_find_ex(st, val) SKM_sk_find_ex(ASN1_GENERALSTRING, (st), (val))
-# define sk_ASN1_GENERALSTRING_delete(st, i) SKM_sk_delete(ASN1_GENERALSTRING, (st), (i))
-# define sk_ASN1_GENERALSTRING_delete_ptr(st, ptr) SKM_sk_delete_ptr(ASN1_GENERALSTRING, (st), (ptr))
-# define sk_ASN1_GENERALSTRING_insert(st, val, i) SKM_sk_insert(ASN1_GENERALSTRING, (st), (val), (i))
-# define sk_ASN1_GENERALSTRING_set_cmp_func(st, cmp) SKM_sk_set_cmp_func(ASN1_GENERALSTRING, (st), (cmp))
-# define sk_ASN1_GENERALSTRING_dup(st) SKM_sk_dup(ASN1_GENERALSTRING, st)
-# define sk_ASN1_GENERALSTRING_deep_copy(st, copy_func, free_func) SKM_sk_deep_copy(ASN1_GENERALSTRING, (st),
- (copy_func), (free_func))
-# define sk_ASN1_GENERALSTRING_shift(st) SKM_sk_shift(ASN1_GENERALSTRING, (st))
-# define sk_ASN1_GENERALSTRING_pop(st) SKM_sk_pop(ASN1_GENERALSTRING, (st))
-# define sk_ASN1_GENERALSTRING_sort(st) SKM_sk_sort(ASN1_GENERALSTRING, (st))
-*/
-
-#endif
-
-
 #define VOMS_AC_HEADER "-----BEGIN VOMS AC-----"
 #define VOMS_AC_TRAILER "-----END VOMS AC-----"
 

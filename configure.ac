@@ -768,12 +768,11 @@ fi
 
 # check openssl
 if test "$enables_hed" = "yes"; then
-PKG_CHECK_MODULES(OPENSSL, [openssl >= 1.0.0])
-PKG_CHECK_MODULES(OPENSSL_1_1, [openssl >= 1.1.0], [
-  OPENSSL_CFLAGS="$OPENSSL_CFLAGS -DOPENSSL_API_COMPAT=0x10100000L"
-  AC_MSG_NOTICE([Forcing off deprecated functions for OpenSSL >= 1.1])
+PKG_CHECK_MODULES(OPENSSL, [openssl >= 1.1.1], [
+  OPENSSL_CFLAGS="$OPENSSL_CFLAGS -DOPENSSL_API_COMPAT=0x10101000L"
+  AC_MSG_NOTICE([Forcing off deprecated functions for OpenSSL])
 ], [
-  AC_MSG_NOTICE([OpenSSL is pre-1.1])
+  AC_MSG_ERROR([OpenSSL not found or is pre-1.1.1])
 ])
 AC_SUBST(OPENSSL_CFLAGS)
 AC_SUBST(OPENSSL_LIBS)
