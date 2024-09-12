@@ -117,6 +117,8 @@ build_el9:
     extends: .template_build_rhel9
     variables:
         BUILD_IMAGE: maikenp/arc-build-cs9
+    tags: 
+      - 158.39.75.211
 
 
 ###############
@@ -215,7 +217,7 @@ deploy_el9:
     BUILD_VOL: /rpmbuild
     BUILD_DIR: $CI_PROJECT_DIR/$BUILD_VOL/* 
   tags:
-    - 158.39.201.179
+    - 158.37.66.20
     - deploy
   needs:
     - job: build_el9
