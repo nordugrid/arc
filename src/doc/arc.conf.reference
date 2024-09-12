@@ -888,7 +888,7 @@
 ## statecallout = state options plugin_path [plugin_arguments] - Enables a callout feature 
 ## of A-REX: every time job goes to "state" A-REX will run "plugin_path" executable. 
 ## The following states are allowed:
-## ACCEPTED, PREPARING, SUBMIT, FINISHING, FINISHED and DELETED.
+## ACCEPTED, PREPARING, SUBMIT, INLRMS, FINISHING, FINISHED and DELETED.
 ## Options consist of "key=value" pairs separated by comma. Possible keys are:
 ##   "timeout"
 ##      defines the timeout in seconds to wait for plugin execution ("timeout=" can be omitted).
