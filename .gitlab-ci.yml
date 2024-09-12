@@ -217,7 +217,7 @@ deploy_el9:
     BUILD_VOL: /rpmbuild
     BUILD_DIR: $CI_PROJECT_DIR/$BUILD_VOL/* 
   tags:
-    - 158.37.66.20
+    - 158.37.66.243
     - deploy
   needs:
     - job: build_el9
