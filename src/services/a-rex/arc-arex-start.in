@@ -50,7 +50,7 @@ control_path () {
 update_control_dir() {
     controldir="$1"
     # convert files stored directly in control dir
-    find "$controldir" -regex '.*/job\.[0-9a-zA-Z]*\.[^.]*' -maxdepth 1 -printf '%f\n' | \
+    find "$controldir" -maxdepth 1 -regex '.*/job\.[0-9a-zA-Z]*\.[^.]*' -printf '%f\n' | \
     while true; do
         read file
         if [ $? -ne 0 ]; then break; fi
@@ -65,7 +65,7 @@ update_control_dir() {
     done
     # convert status files
     for subdir in accepting finished processing restarting; do
-        find "$controldir/$subdir" -regex '.*/job\.[0-9a-zA-Z]*\.[^.]*' -maxdepth 1 -printf '%f\n' | \
+        find "$controldir/$subdir" -maxdepth 1  -regex '.*/job\.[0-9a-zA-Z]*\.[^.]*' -printf '%f\n' | \
         while true; do
             read file
             if [ $? -ne 0 ]; then break; fi
