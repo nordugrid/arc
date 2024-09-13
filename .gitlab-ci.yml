@@ -109,14 +109,6 @@ variables:
   allow_failure: false
 
         
-###############
-#    CENTOS 7
-###############
-build_el7:
-    extends: .template_build_rhel
-    variables:
-        BUILD_IMAGE: maikenp/arc-build-centos7
-    
 
 ####################
 #    CENTOS STREAM 9
@@ -125,14 +117,9 @@ build_el9:
     extends: .template_build_rhel9
     variables:
         BUILD_IMAGE: maikenp/arc-build-cs9
+    tags: 
+      - 158.39.75.211
 
-###############
-#    DEBIAN 10
-###############
-build_deb10:
-    extends: .template_build_deb
-    variables:
-        BUILD_IMAGE: maikenp/arc-build-debian10
 
 ###############
 #    DEBIAN 11
@@ -219,24 +206,6 @@ build_ubuntu2204:
   allow_failure: true
 
 
-##################
-#    CENTOS 7
-##################
-deploy_el7:
-  extends: .deploy
-  variables: 
-    OS_V: el7
-    ARC_IMAGE: maikenp/arc-deploy-centos7
-    BUILD_VOL: /rpmbuild
-    BUILD_DIR: $CI_PROJECT_DIR/$BUILD_VOL/*
-  tags:
-    - 158.39.201.67
-    - deploy
-  needs:
-    - job: build_el7
-      artifacts: true
-
-
 #####################
 #    CENTOS STREAM 9
 #####################
@@ -248,29 +217,12 @@ deploy_el9:
     BUILD_VOL: /rpmbuild
     BUILD_DIR: $CI_PROJECT_DIR/$BUILD_VOL/* 
   tags:
-    - 158.39.201.179
+    - 158.37.66.139
     - deploy
   needs:
     - job: build_el9
       artifacts: true
 
-
-##################
-#    DEBIAN 10
-##################
-deploy_deb10:
-  extends: .deploy
-  variables:
-    OS_V: deb10
-    ARC_IMAGE: maikenp/arc-deploy-debian10
-    BUILD_VOL: /build
-    BUILD_DIR: $CI_PROJECT_DIR/*.deb    
-  tags:
-    - 158.39.75.5
-    - deploy
-  needs:
-    - job: build_deb10
-      artifacts: true
 
 ##################
 #    DEBIAN 11
@@ -362,26 +314,6 @@ deploy_ubuntu2204:
     - generic
 
 
-############################
-##### EL7 DEPLOY CHECK
-############################
-
-arcrest_el7_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcrest'
-  needs:
-    - job: deploy_el7
-      artifacts: true
-
-arcconf_el7_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcconf'
-  needs:
-    - job: deploy_el7
-      artifacts: true
-    
 
 ############################
 ##### EL9 DEPLOY CHECK
@@ -405,26 +337,7 @@ arcconf_el9_deploytest:
 
     
 
-############################
-##### DEB10 DEPLOY CHECK
-############################
-    
-arcrest_deb10_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcrest'
-  needs:
-    - job: deploy_deb10
-      artifacts: true
-
-arcconf_deb10_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcconf'
-  needs:
-    - job: deploy_deb10
-      artifacts: true
-
+#
 ############################
 ##### DEB11 DEPLOY CHECK
 ############################
@@ -470,24 +383,7 @@ arcconf_deb12_deploytest:
 
 ############################
 ##### UBUNTU DEPLOY CHECK
-############################
-gridftp_ubuntu2004_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'gridftp'
-  stage:  check_deploy
-  needs:
-    - job: deploy_ubuntu2004
-      artifacts: true
-
-emies_ubuntu2004_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'emies'
-  needs:
-    - job: deploy_ubuntu2004
-      artifacts: true
-    
+############################    
 arcrest_ubuntu2004_deploytest:
   extends: .job_template_assert
   variables:
@@ -508,23 +404,7 @@ arcconf_ubuntu2004_deploytest:
 ############################
 ##### UBUNTU DEPLOY CHECK
 ############################
-gridftp_ubuntu2204_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'gridftp'
-  stage:  check_deploy
-  needs:
-    - job: deploy_ubuntu2204
-      artifacts: true
 
-emies_ubuntu2204_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'emies'
-  needs:
-    - job: deploy_ubuntu2204
-      artifacts: true
-    
 arcrest_ubuntu2204_deploytest:
   extends: .job_template_assert
   variables:

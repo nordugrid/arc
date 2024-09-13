@@ -24,15 +24,6 @@
 
 namespace Arc {
 
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-
-#define X509_getm_notAfter X509_get_notAfter
-#define X509_getm_notBefore X509_get_notBefore
-#define X509_set1_notAfter X509_set_notAfter
-#define X509_set1_notBefore X509_set_notBefore
-
-#endif
-
 #define DELEGATION_NAMESPACE "http://www.nordugrid.org/schemas/delegation"
 #define GDS10_NAMESPACE "http://www.gridsite.org/ns/delegation.wsdl"
 //#define GDS20_NAMESPACE "http://www.gridsite.org/namespaces/delegation-2"

@@ -19,8 +19,12 @@ void AuthUser::add_auth_environment(Arc::Run& run) const {
     otokens_t const & token = otokens_data_[tokenIdx];
     if(!token.subject.empty()) run.AddEnvironment("BEARER_TOKEN_"+Arc::tostring(tokenIdx)+"_SUBJECT",token.subject);
     if(!token.issuer.empty()) run.AddEnvironment("BEARER_TOKEN_"+Arc::tostring(tokenIdx)+"_ISSUER",token.issuer);
-    if(!token.audience.empty()) run.AddEnvironment("BEARER_TOKEN_"+Arc::tostring(tokenIdx)+"_AUDIENCE",token.audience);
     int idx = 0;
+    for(std::list<std::string>::const_iterator it = token.audiences.begin(); it != token.audiences.end(); ++it) {
+      run.AddEnvironment("BEARER_TOKEN_"+Arc::tostring(tokenIdx)+"_AUDIENCE_"+Arc::tostring(idx),*it);
+      ++idx;
+    }
+    idx = 0;
     for(std::list<std::string>::const_iterator it = token.scopes.begin(); it != token.scopes.end(); ++it) {
       run.AddEnvironment("BEARER_TOKEN_"+Arc::tostring(tokenIdx)+"_SCOPE_"+Arc::tostring(idx),*it);
       ++idx;

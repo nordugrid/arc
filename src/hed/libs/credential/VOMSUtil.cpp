@@ -43,37 +43,6 @@ using namespace ArcCredential;
 
 namespace Arc {
 
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-static void X509_get0_uids(const X509 *x,
-                    const ASN1_BIT_STRING **piuid,
-                    const ASN1_BIT_STRING **psuid) {
-  if (x) {
-    if (piuid != NULL) {
-      if (x->cert_info) {
-        *piuid = x->cert_info->issuerUID;
-      }
-    }
-    if (psuid != NULL) {
-      if (x->cert_info) {
-        *psuid = x->cert_info->subjectUID;
-      }
-    }
-  }
-}
-
-static const X509_ALGOR *X509_get0_tbs_sigalg(const X509 *x) {
-  if(!x) return NULL;
-  if(!(x->cert_info)) return NULL;
-  return x->cert_info->signature;
-}
-#endif
-
-#if (OPENSSL_VERSION_NUMBER < 0x10002000L)
-static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const X509 *x) {
-    if (psig) *psig = x->signature;
-    if (palg) *palg = x->sig_alg;
-}
-#endif
 
 #if (OPENSSL_VERSION_NUMBER < 0x30000000L)
 #define OPENSSL_CONST
@@ -158,11 +127,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
   void InitVOMSAttribute(void) {
 
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-    #define OBJCREATE(c,n) { \
-      (void)OBJ_create(c,n,#c); \
-    }
-#else
     #define OBJCREATE(c,n) { \
       if(OBJ_create(c,n,#c) == 0) { \
         unsigned long __err = ERR_get_error(); \
@@ -174,7 +138,6 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
         }; \
       }; \
     }
-#endif
 
     #define OBJSETNID(v,n) { v = OBJ_txt2nid(n); if(v == NID_undef) CredentialLogger.msg(ERROR, "Failed to obtain OpenSSL identifier for %s", n); }
 
@@ -495,11 +458,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
     alg1 = (X509_ALGOR*)X509_get0_tbs_sigalg(issuer);
     if(alg1) alg1 = X509_ALGOR_dup(alg1);
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-    X509_get0_signature(NULL, &alg2, issuer);
-#else
     X509_get0_signature(NULL, (X509_ALGOR const**)&alg2, issuer);
-#endif
     if(alg2) alg2 = X509_ALGOR_dup(alg2);
 
     {

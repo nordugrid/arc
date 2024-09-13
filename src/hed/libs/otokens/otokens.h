@@ -106,7 +106,8 @@ namespace Arc {
     //! Assigns certificate to use for signing
     void Certificate(char const* certificate = NULL);
  
-    static bool SetIssuerInfo(Time validTill, bool isSafe, std::string const& issuer, std::string const& metadata, std::string const& keys, Logger& logger);
+    static bool SetIssuerInfo(Time* validTill, bool isSafe, std::string const& issuer, std::string const& metadata, std::string const& keys, Logger& logger);
+
    private:    
 
     static Logger logger_;
@@ -125,7 +126,7 @@ namespace Arc {
 
     void Cleanup();
 
-    static void SetIssuerInfo(Time validTill, bool isSafe, std::string const & issuer, AutoPointer<OpenIDMetadata>& metadata, AutoPointer<JWSEKeyHolderList>& keys);
+    static void SetIssuerInfo(Time* validTill, bool isSafe, std::string const & issuer, AutoPointer<OpenIDMetadata>& metadata, AutoPointer<JWSEKeyHolderList>& keys);
 
     // Propagate information in header_ into key_
     bool ExtractPublicKey(UserConfig& userconfig) const;

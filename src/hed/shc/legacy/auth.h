@@ -39,7 +39,7 @@ struct otokens_t {
   // Values from token which follow WLCG profile
   std::string subject; // first "sub" claim from token
   std::string issuer;  // first "iss" claim from token
-  std::string audience; // first "aud" claim from token
+  std::list<std::string> audiences; // first "aud" claim from token split by vector items
   std::list<std::string> scopes; // first "scope" claim from token split by empty spaces
   std::list<std::string> groups; // all "wlcg.groups" claims (from array) from token
   // Full collection of claims
