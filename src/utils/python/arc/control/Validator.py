@@ -305,7 +305,6 @@ class Validator(object):
                 lrms_options = config_dict['lrms']['lrms'].split()
                 if len(lrms_options) == 2:
                     defaultqueue = lrms_options[1]
-                    #self._check_config_blocks(config_dict,self.arcconf.get_default_config_dict(),config_dict['queue:'+defaultqueue])
                     if not self.arcconf.check_blocks(f'queue:{defaultqueue}'):
                         self.error(f"The default queue: {defaultqueue} specified in the lrms block is not defined in any queue blocks!")
 
