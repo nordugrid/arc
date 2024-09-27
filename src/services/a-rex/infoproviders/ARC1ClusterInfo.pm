@@ -2098,12 +2098,12 @@ sub collect($) {
 
 
 
-	    # Slots per state (ignoring share for now)
+	    # Slots per share and state
 	    my @slot_entries;
 	    foreach my $share (keys %state_slots) {
 		foreach my $state (keys %{$state_slots{$share}}) {
 		    my $value = $state_slots{$share}{$state};
-		    push @slot_entries, "$state:$value";
+		    push @slot_entries, "$share\_$state\=$value";
 		}
 	    }
 	    $cmgr->{OtherInfo} = join(',',@slot_entries);
