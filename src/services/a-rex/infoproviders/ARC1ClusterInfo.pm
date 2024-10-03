@@ -240,6 +240,7 @@ sub rest_state {
 # input is an array with (state, lrms_state, failure_state)
 sub glueState {
     my @ng_status = @_;
+
     return [ "UNDEFINEDVALUE" ] unless $ng_status[0];
     my $status = [ "nordugrid:".join(':',@ng_status) ];
     my $local_state = local_state(@ng_status);
@@ -767,6 +768,10 @@ sub collect($) {
     # each endpoint its list of jobids
     my $jobs_by_endpoint = {};
 
+    # corecount per internal AREX state
+    my %state_slots;
+
+
     # fills most of the above hashes
     for my $jobid (keys %$gmjobs_info) {
 
@@ -849,16 +854,34 @@ sub collect($) {
 
         # count grid jobs running and queued in LRMS for each share
 
-        if ($gmstatus eq 'INLRMS') {
+	
+	my $slots = $job->{count} || 1;
+	if ($gmstatus eq 'PREPARING'){
+
+	    #how should initialization be done - fix
+	    $state_slots{$share}{PREPARING} += $slots;
+	}
+	elsif ($gmstatus eq 'FINISHING'){
+	    #my $slots = $job->{count} || 1;
+	    $state_slots{$share}{FINISHING} += $slots;
+	}
+	elsif ($gmstatus eq 'INLRMS') {
             my $lrmsid = $job->{localid} || 'IDNOTFOUND';
             my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
-            my $slots = $job->{count} || 1;
+            #my $slots = $job->{count} || 1;
 
             if (defined $lrmsjob) {
                 if ($lrmsjob->{status} ne 'EXECUTED') {
                     $inlrmsslots{$share}{running} ||= 0; 
                     $inlrmsslots{$share}{suspended} ||= 0;
                     $inlrmsslots{$share}{queued} ||= 0;
+		    
+		    $state_slots{$share}{"INLRMS:Q"} ||= 0;
+		    $state_slots{$share}{"INLRMS:R"} ||= 0;
+		    $state_slots{$share}{"INLRMS:O"} ||= 0;
+		    $state_slots{$share}{"INLRMS:E"} ||= 0;
+		    $state_slots{$share}{"INLRMS:S"} ||= 0;
+		    
                     if (defined $vomsvo) {
                         $inlrmsslots{$sharevomsvo}{running} ||= 0; 
                         $inlrmsslots{$sharevomsvo}{suspended} ||= 0;
@@ -868,6 +891,7 @@ sub collect($) {
                         $inlrmsjobstotal{running}++;
                         $inlrmsjobs{$share}{running}++;
                         $inlrmsslots{$share}{running} += $slots;
+			$state_slots{$share}{"INLRMS:R"} += $slots;
                         if (defined $vomsvo) {
                             $inlrmsjobs{$sharevomsvo}{running}++;
                             $inlrmsslots{$sharevomsvo}{running} += $slots;
@@ -876,15 +900,23 @@ sub collect($) {
                         $inlrmsjobstotal{suspended}++;
                         $inlrmsjobs{$share}{suspended}++;
                         $inlrmsslots{$share}{suspended} += $slots;
+			$state_slots{$share}{"INLRMS:S"} += $slots;
                         if (defined $vomsvo) {
                             $inlrmsjobs{$sharevomsvo}{suspended}++;
                             $inlrmsslots{$sharevomsvo}{suspended} += $slots;
                         }
-                    } else {  # Consider other states 'queued'
+                    } elsif($lrmsjob->{status} eq 'Q'){
+			$state_slots{$share}{"INLRMS:Q"} += $slots;
+		    } elsif($lrmsjob->{status} eq 'E'){
+			$state_slots{$share}{"INLRMS:E"} += $slots;
+		    } elsif($lrmsjob->{status} eq 'O'){
+			$state_slots{$share}{"INLRMS:O"} += $slots;
+		    } else {  # Consider other states 'queued' for $inlrms*
                         $inlrmsjobstotal{queued}++;
                         $inlrmsjobs{$share}{queued}++;
                         $inlrmsslots{$share}{queued} += $slots;
                         $requestedslots{$share} += $slots;
+
                         if (defined $vomsvo) {
                             $inlrmsjobs{$sharevomsvo}{queued}++;
                             $inlrmsslots{$sharevomsvo}{queued} += $slots;
@@ -901,7 +933,7 @@ sub collect($) {
         my $jobinterface = $job->{interface} || 'org.nordugrid.arcrest';
         
         $jobs_by_endpoint->{$jobinterface}{$jobid} = {};
-
+	
     }
    
     my $admindomain = $config->{admindomain}{Name};
@@ -1399,12 +1431,8 @@ sub collect($) {
             $cep->{Capability} = $epscapabilities->{'org.nordugrid.arcrest'};
             $cep->{Technology} = 'rest';
             $cep->{InterfaceName} = 'org.nordugrid.arcrest';
-            # REST interface versions that we currently support.
-            #$cep->{InterfaceVersion} = [ '1.1', '1.0'  ];
-            # Due to a bug in LDAP only the first entry will be shown or the Endpoint will not be published.
-            # I could change the LDAP code, but better to be consistent between the two renderings instead.
-            # The LDAP issue is related to the GLUE2 schema (SingleValue instead of MultiValue) and cannot be corrected without hassle.
-            $cep->{InterfaceVersion} = [ '1.1' ];
+            # REST interface versions that we currently support. In LDAP only the first entry will be shown.
+            $cep->{InterfaceVersion} = [ '1.1', '1.0'  ];
             #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
             #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
             #              ];
@@ -2068,6 +2096,18 @@ sub collect($) {
             # TODO: slots should be cores?
             $cmgr->{TotalSlots} = (defined $config->{service}{totalcpus}) ? $config->{service}{totalcpus} : $cluster_info->{totalcpus};
 
+
+
+	    # Slots per share and state
+	    my @slot_entries;
+	    foreach my $share (keys %state_slots) {
+		foreach my $state (keys %{$state_slots{$share}}) {
+		    my $value = $state_slots{$share}{$state};
+		    push @slot_entries, "$share\_$state\=$value";
+		}
+	    }
+	    $cmgr->{OtherInfo} = join(',',@slot_entries);
+	    
             # This number can be more than totalslots in case more
             # than the published cores can be used -- happens with fork
             my @queuenames = keys %{$lrms_info->{queues}};
