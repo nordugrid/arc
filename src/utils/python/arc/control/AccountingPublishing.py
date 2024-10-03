@@ -1174,8 +1174,7 @@ Year: {year}
 GlobalUserName: {userdn}{voinfo}
 SubmitHost: {endpoint}
 InfrastructureType: grid
-ServiceLevelType: {benchmark_type}
-ServiceLevel: {benchmark_value}
+ServiceLevel: {service_level}
 NodeCount: {nodecount}
 Processors: {cpucount}
 EarliestEndTime: {timestart}
@@ -1187,12 +1186,11 @@ NumberOfJobs: {count}'''
     def __init__(self, recorddata, gocdb_name):
         super(APELSummaryRecordV02, self).__init__(recorddata, gocdb_name)
         (benchmark_type, benchmark_value) = get_apel_benchmark(self.logger, self.recorddata['benchmark'])
-        self.recorddata['benchmark_type'] = benchmark_type
-        self.recorddata['benchmark_value'] = benchmark_value
+        self.recorddata['service_level'] = '{{{0}: {1}}}'.format(benchmark_type, benchmark_value)
 
     @staticmethod
     def header():
-        return 'APEL-summary-job-message: v0.2\n'
+        return 'APEL-summary-job-message: v0.4\n'
 
 
 class APELSummaryRecordV04(APELSummaryRecordBase):
