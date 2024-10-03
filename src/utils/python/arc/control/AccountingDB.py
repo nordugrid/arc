@@ -348,8 +348,8 @@ class AccountingDB(object):
         params += self.sqlfilter.getparams()
         self.adb_connect()
         try:
-            res = self.con.execute(sql, params)
-            return res
+            result = self.con.execute(sql, params)
+            return result
         except sqlite3.Error as e:
             params += (str(e),)
             self.logger.debug('Failed to execute query: {0}. Error: %s'.format(
