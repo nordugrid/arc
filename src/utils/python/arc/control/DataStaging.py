@@ -37,25 +37,28 @@ class DataStagingControl(ComponentControl):
         twindow = None
         if args.days:
             twindow =  datetime.timedelta(days=args.days)
-        if args.hours:
+        if args.hours != 0:
             """ This has a default of 1 hr """
             if twindow:
                 twindow = twindow + datetime.timedelta(hours=args.hours)
             else:
                 twindow = datetime.timedelta(hours=args.hours)
-        if args.minutes:
+        if args.minutes != 0:
             if twindow:
                 twindow = twindow + datetime.timedelta(minutes=args.minutes)
             else:
                 twindow = datetime.timedelta(minutes=args.minutes)
-        if args.seconds:
+        if args.seconds != 0:
             if twindow:
                 twindow = twindow + datetime.timedelta(seconds=args.seconds)
             else:
                 twindow = datetime.timedelta(seconds=args.seconds)
-             
-        twindow_start=datetime.datetime.now() - twindow
-        return twindow_start
+
+        if twindow:
+            twindow_start=datetime.datetime.now() - twindow
+            return twindow_start
+        else:
+            return None
 
     
     def _get_tstamp(self,line):
@@ -140,7 +143,7 @@ class DataStagingControl(ComponentControl):
                         continue
                         
             if twindow_start and ds_end:
-                """  If the datastaging started """
+                """  If the datastaging ended before the selected timewindow """
                 if ds_end < twindow_start:
                     return None
 
@@ -671,7 +674,10 @@ class DataStagingControl(ComponentControl):
         datastaging_files={}
         twindow_start = self._calc_timewindow(args)
 
-        print(f"\nThis may take some time... Fetching the total number of files downloaded for jobs modified after {datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S')}")
+        if twindow_start:
+            print(f"\nThis may take some time... \nFetching the total number of files downloaded for jobs in INLRMS and PREPARING state that were modified after {datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S')}")
+        else:
+            print(f"\nThis may take some time... \nFetching the total number of files downloaded for jobs in INLRMS and PREPARING state")
 
         out,err=subprocess.Popen(['arcctl','job','list','-s','PREPARING'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
         jobids = out.decode().split('\n')
@@ -813,8 +819,11 @@ class DataStagingControl(ComponentControl):
         datastaging_jobs={}
         twindow_start = self._calc_timewindow(args)
 
-        print(f"\nThis may take some time... Fetching summary of download times for jobs modified after {format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S'))}")
-              
+        if twindow_start:
+            print(f"\nThis may take some time... \nFetching summary of download times for INLRMS and PREPARING jobs modified after {format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S'))}")
+        else:
+            print(f"\nThis may take some time... \nFetching summary of download times for all INLRMS and PREPARING jobs")
+        
         out,err=subprocess.Popen(['arcctl','job','list','-s','PREPARING'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
         jobids = out.decode().split('\n')
 
@@ -834,7 +843,7 @@ class DataStagingControl(ComponentControl):
                 continue
         
             """ Skip all files that are modified before the users or default timewindow """
-            if mtime < twindow_start:
+            if twindow_start and (mtime < twindow_start):
                 continue
 
             try:
@@ -870,9 +879,9 @@ class DataStagingControl(ComponentControl):
         print('\nSorted list of jobs where datastaging is done:')
         print('Number of jobs:  '+ str(len(sorted_dict)))
         if sorted_dict:
-            print(f"\t{'ARCID':<60} {'DURATION':<10} {'TIMESTAMP-DONE':<22}")
+            print(f"\t{'ARCID':<60} {'DURATION':<10} {'TIMESTAMP-START':<22} {'TIMESTAMP-DONE':<22}")
             for item in sorted_dict:
-                print(f"\t{item[0]:<60} {item[1]['dt']:<10} {item[1]['end']:<22}")
+                print(f"\t{item[0]:<60} {item[1]['dt']:<10} {item[1]['start']:<22} {item[1]['end']:<22}")
 
         sorted_dict = sorted(ongoing_dict.items(), key = lambda x: x[1]['dt']) 
         if ongoing_dict:
@@ -974,17 +983,17 @@ class DataStagingControl(ComponentControl):
         dds_summary_ctl.set_defaults(handler_class=DataStagingControl)
         dds_summary_actions = dds_summary_ctl.add_subparsers(title='Job Datastaging Summary Menu',dest='summaryaction',metavar='ACTION',help='DESCRIPTION')
         dds_summary_actions.required = True
-        
-        dds_summary_jobs = dds_summary_actions.add_parser('jobs',help='Show overview of the duration of datastaging for jobs active in the chosen (or default=1hr) timewindow')
+
+        dds_summary_jobs = dds_summary_actions.add_parser('jobs',help='Show overview of the duration of datastaging for all jobs INLRMS or PREPARING status. If no timewindow is specified, all these jobs will be accounted for.')
         dds_summary_jobs.add_argument('-d','--days',default=0,type=int,help='Modification time in days (default: %(default)s days)')
-        dds_summary_jobs.add_argument('-hr','--hours',default=1,type=int,help='Modification time in hours (default: %(default)s hour)')
+        dds_summary_jobs.add_argument('-hr','--hours',default=0,type=int,help='Modification time in hours (default: %(default)s hour)')
         dds_summary_jobs.add_argument('-m','--minutes',default=0,type=int,help='Modification time in minutes (default: %(default)s minutes)')
         dds_summary_jobs.add_argument('-s','--seconds',default=0,type=int,help='Modification time in seconds (default: %(default)s seconds)')
         
 
-        dds_summary_files = dds_summary_actions.add_parser('files',help='Show the total number file and and total file-size downloaded in the chosen (or default=1hr)timewindow')
+        dds_summary_files = dds_summary_actions.add_parser('files',help='Show the total number file and and total file-size downloaded for all jobs INLRMS or PREPARING status. If no timewindow is specified, all these jobs will be accounted for.')
         dds_summary_files.add_argument('-d','--days',default=0,type=int,help='Modification time in days (default: %(default)s days)')
-        dds_summary_files.add_argument('-hr','--hours',default=1,type=int,help='Modification time in hours (default: %(default)s hour)')
+        dds_summary_files.add_argument('-hr','--hours',default=0,type=int,help='Modification time in hours (default: %(default)s hour)')
         dds_summary_files.add_argument('-m','--minutes',default=0,type=int,help='Modification time in minutes (default: %(default)s minutes)')
         dds_summary_files.add_argument('-s','--seconds',default=0,type=int,help='Modification time in seconds (default: %(default)s seconds)')
         
