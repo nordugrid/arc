@@ -324,7 +324,7 @@ class Validator(object):
                    try:
                        self._check_config_blocks(config_dict,self.arcconf.get_default_config_dict(),config_dict['queue:'+defaultqueue])
                    except KeyError:
-                       self.error(f"The default queue: {defaultqueue} specified in the lrms block is not defined in any queue blocks!")
+                       self.error("The default queue: % specified in the lrms block is not defined in any queue blocks!" % defaultqueue)
 
 
     def validate_certificates(self):
