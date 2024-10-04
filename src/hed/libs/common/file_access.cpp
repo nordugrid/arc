@@ -480,7 +480,7 @@ int main(int argc,char* argv[]) {
 
       case CMD_WRITEFILE: {
         unsigned int size = sizeof(filebuf);
-        if(!sread_buf(sin,filebuf,size,header.size)) return false;
+        if(!sread_buf(sin,filebuf,size,header.size)) return -1;
         if(header.size) return -1;
         errno = 0;
         ssize_t l = ::write(curfile,filebuf,size);
@@ -511,7 +511,7 @@ int main(int argc,char* argv[]) {
         if(!sread(sin,&offset,sizeof(offset))) return -1;
         header.size -= sizeof(offset);
         unsigned int size = sizeof(filebuf);
-        if(!sread_buf(sin,filebuf,size,header.size)) return false;
+        if(!sread_buf(sin,filebuf,size,header.size)) return -1;
         if(header.size) return -1;
         ssize_t l = -1;
         errno = 0;
