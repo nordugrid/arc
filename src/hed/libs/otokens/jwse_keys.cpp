@@ -187,10 +187,10 @@ namespace Arc {
     for(int certN = 0; ; ++certN) {
       cJSON* certObject = cJSON_GetArrayItem(x5cObject, certN);
       if(certObject == NULL) break;
-      if(certObject->type != cJSON_String) return NULL;
+      if(certObject->type != cJSON_String) return false;
       // It should be PEM encoded certificate in single string and without header/footer           
       AutoPointer<BIO> mem(BIO_new(BIO_s_mem()), &BIO_deallocate);
-      if(!mem) return NULL;
+      if(!mem) return false;
       BIO_puts(mem.Ptr(), "-----BEGIN CERTIFICATE-----\n");
       BIO_puts(mem.Ptr(), certObject->valuestring);
       BIO_puts(mem.Ptr(), "\n-----END CERTIFICATE-----");
