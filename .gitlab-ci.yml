@@ -117,8 +117,7 @@ build_el9:
     extends: .template_build_rhel9
     variables:
         BUILD_IMAGE: maikenp/arc-build-cs9
-    tags: 
-      - 158.39.75.211
+   
 
 
 ###############
@@ -217,7 +216,6 @@ deploy_el9:
     BUILD_VOL: /rpmbuild
     BUILD_DIR: $CI_PROJECT_DIR/$BUILD_VOL/* 
   tags:
-    - 158.37.66.139
     - deploy
   needs:
     - job: build_el9
@@ -235,7 +233,6 @@ deploy_deb11:
     BUILD_VOL: /build
     BUILD_DIR: $CI_PROJECT_DIR/*.deb    
   tags:
-    - 158.39.75.5
     - deploy
   needs:
     - job: build_deb11
@@ -254,7 +251,6 @@ deploy_deb12:
     BUILD_VOL: /build
     BUILD_DIR: $CI_PROJECT_DIR/*.deb    
   tags:
-    - 158.39.75.5
     - deploy
   needs:
     - job: build_deb12
@@ -272,7 +268,6 @@ deploy_ubuntu2004:
     BUILD_VOL: /build
     BUILD_DIR: $CI_PROJECT_DIR/*.deb
   tags:
-    - 158.39.201.198
     - deploy
   needs:
     - job: build_ubuntu2004
@@ -290,7 +285,6 @@ deploy_ubuntu2204:
     BUILD_VOL: /build
     BUILD_DIR: $CI_PROJECT_DIR/*.deb
   tags:
-    - 158.39.201.198
     - deploy
   needs:
     - job: build_ubuntu2204
