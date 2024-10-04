@@ -220,37 +220,13 @@ bool contact_myproxy_server(const std::string& myproxy_server, const std::string
       myproxyopt["username"] = user_name;
       myproxyopt["password"] = passphrase;
       myproxyopt["lifetime"] = myproxy_period;
-      // According to the protocol of myproxy, the "Get" command can
+
+      // TODO?  According to the protocol of myproxy, the "Get" command can
       // include the information about vo name, so that myproxy server
       // can contact voms server to retrieve AC for myproxy client 
       // See 2.4 of http://grid.ncsa.illinois.edu/myproxy/protocol/
       // "When VONAME appears in the message, the server will generate VOMS
       // proxy certificate using VONAME and VOMSES, or the server's VOMS server information."
-      class vomses_match: public Arc::VOMSConfig::filter {
-       private:
-        int seq_;
-        const std::list<std::string>& vomses_;
-        std::map<std::string,std::string>& opts_;
-       public:
-        bool match(const Arc::VOMSConfigLine& line) {
-          for(std::list<std::string>::const_iterator voms = vomses_.begin();
-                         voms != vomses_.end(); ++voms) {
-            if((line.Name() == *voms) || (line.Alias() == *voms)) {
-              opts_["vomsname"+Arc::tostring(seq_)] = *voms;
-              opts_["vomses"+Arc::tostring(seq_)] = line.Str();
-              ++seq_;
-              break;
-            };
-          };
-          // Because rsult is stored imeediately there is no sense to keep matched lines in 
-          // VOMSConfig object.
-          return false;
-        };
-        vomses_match(const std::list<std::string>& vomses, std::map<std::string,std::string> opts):
-                 seq_(0),vomses_(vomses),opts_(opts) { };
-      };
-
-      Arc::VOMSConfig voms_config(vomses_path, vomses_match(vomslist,myproxyopt));
 
       if(!cstore.Retrieve(myproxyopt,proxy_cred_str_pem))
         throw std::invalid_argument("Failed to retrieve proxy from MyProxy service");
