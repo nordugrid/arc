@@ -65,7 +65,7 @@ bool PayloadStream::Get(char* buf,int& size) {
     FAILSYSERR("Failed reading stream's handle: ");
   }
   size=l;
-  if((l == 0) && (fd.revents && POLLERR)) {
+  if((l == 0) && (fd.revents & POLLERR)) {
     // TODO: remove because it never happens
     failure_ = MCC_Status(GENERIC_ERROR,"STREAM","Error in stream's handle");
     return false;
