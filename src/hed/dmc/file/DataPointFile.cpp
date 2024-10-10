@@ -738,7 +738,7 @@ namespace ArcDMCFile {
           }
           if(fd != -1) {
             lseek(fd, 0, SEEK_SET);
-            ftruncate(fd, 0);
+            (void)ftruncate(fd, 0);
             close(fd);
             fd = -1;
           }
