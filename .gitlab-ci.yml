@@ -111,12 +111,12 @@ variables:
         
 
 ####################
-#    CENTOS STREAM 9
+#    ALMALINUX 9
 ####################
 build_el9:
     extends: .template_build_rhel9
     variables:
-        BUILD_IMAGE: maikenp/arc-build-cs9
+        BUILD_IMAGE: maikenp/arc-build-almalinux9
    
 
 
@@ -206,13 +206,13 @@ build_ubuntu2204:
 
 
 #####################
-#    CENTOS STREAM 9
+#    ALMALINUX 9
 #####################
 deploy_el9:
   extends: .deploy
   variables:
     OS_V: el9
-    ARC_IMAGE: maikenp/arc-deploy-cs9
+    ARC_IMAGE: maikenp/arc-deploy-almalinux9
     BUILD_VOL: /rpmbuild
     BUILD_DIR: $CI_PROJECT_DIR/$BUILD_VOL/* 
   tags:
