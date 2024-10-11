@@ -184,6 +184,20 @@ class AccountingDB(object):
         # run ANALYZE
         print_info(self.logger, 'Analyzing the database to optimize query performance')
         self.__sql_query('PRAGMA optimize', errorstr='Failed to run PRAGMA optimize', filtered=False, exit_on_error=True)
+        self.adb_commit()
+        self.adb_close()
+
+    def adb_cleanup(self):
+        """Delete records from the database"""
+        self.__sql_query('PRAGMA foreign_keys = ON', errorstr='Failed to enable foreign keys support', filtered=False, exit_on_error=True)
+        self.__sql_query('DELETE FROM AAR', errorstr='Failed to delete records from database', filtered=True, exit_on_error=True)
+        self.adb_commit()
+        self.adb_close()
+
+    def adb_vacuum(self):
+        """Vacuum the database file"""
+        self.__sql_query('VACUUM', errorstr='Failed to vacuum database', filtered=False, exit_on_error=True)
+        self.adb_commit()
         self.adb_close()
 
     def __del__(self):

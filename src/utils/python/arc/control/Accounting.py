@@ -4,6 +4,7 @@ from __future__ import absolute_import
 from .ControlCommon import *
 from .AccountingDB import AccountingDB, ACCOUNTING_DB_FILE
 from .AccountingPublishing import RecordsPublisher
+from .OSService import OSServiceManagement
 
 import sys
 import json
@@ -444,6 +445,47 @@ class AccountingControl(ComponentControl):
         # trigger optimize
         self.adb.optimize()
 
+    def __db_vacuum_precheck(self, args):
+        if args.vacuum and not args.yes:
+            sm = OSServiceManagement()
+            if sm.is_active('arc-arex'):
+                print('You have requested to vacuum database with A-REX service running.')
+                print('It is advised to stop A-REX while vacuuming.')
+                if not ask_yes_no('Do you want to continue?'):
+                    return False
+        return True
+
+    def db_cleanup(self, args):
+        self.__init_adb()
+        # safety checks
+        if not args.yes:
+            print('This action will do the cleanup of the accounting records that cannot be undone!')
+            print('It is advised to have a backups.')
+            if not ask_yes_no('Do you want to continue?'):
+                return
+        if not self.__db_vacuum_precheck(args):
+            return
+        # set timerange for records to delete
+        self.adb.filter_endtill(args.end_till)
+        if args.end_from:
+            self.adb.filter_endfrom(args.end_from)
+            print_info(self.logger, 'Deleting the records from accounting database for jobs finished within from %s to %s',
+                       args.end_from, args.end_till)
+        else:
+            print_info(self.logger, 'Deleting the records from accounting database for jobs finished before %s',
+                       args.end_till)
+        # remove records
+        self.adb.adb_cleanup()
+        if args.vacuum:
+            print_info(self.logger, 'Vacuuming the database file')
+            self.adb.adb_vacuum()
+
+    def db_rotate(self, args):
+        self.__init_adb()
+        # safety checks
+        if not self.__db_vacuum_precheck(args):
+            return
+
     def jobcontrol(self, args):
         canonicalize_args_jobid(args)
         if args.jobaction == 'info':
@@ -464,9 +506,9 @@ class AccountingControl(ComponentControl):
         elif args.dbaction == 'optimize':
             self.db_optimize(args)
         elif args.dbaction == 'cleanup':
-            pass
+            self.db_cleanup(args)
         elif args.dbaction == 'rotate':
-            pass
+            self.db_rotate(args)
         else:
             self.logger.critical('Unsupported accounting database action %s', args.dbaction)
             sys.exit(1)
@@ -562,17 +604,18 @@ class AccountingControl(ComponentControl):
         db_migrate.add_argument('-e', '--end-till', type=valid_datetime_type, required=False,
                                 help='Optionally define to which point in time migrate records (YYYY-MM-DD [HH:mm[:ss]]).')
 
-        # TODO: implement
         db_cleanup = db_actions.add_parser('cleanup', help='Delete old records from accounting database')
         db_cleanup.add_argument('-e', '--end-till', type=valid_datetime_type, required=True,
                                 help='Cleanup records older than specified completion time (YYYY-MM-DD [HH:mm[:ss]])')
         db_cleanup.add_argument('-b', '--end-from', type=valid_datetime_type, required=False,
                                 help='Optionally define from which point in time cleanup records (YYYY-MM-DD [HH:mm[:ss]]).')
+        db_cleanup.add_argument('--yes', action='store_true', help='Answer yes to all questions')
         db_cleanup.add_argument('--vacuum', help='Vacuum database (this is blocking action)', action='store_true')
-
+        # TODO: implement
         db_rotate = db_actions.add_parser('rotate', help='Rotate accounting database')
         db_rotate.add_argument('--date', type=valid_datetime_yymmdd, required=True,
                                 help='Rotate database at specified date (YYYY-MM-DD)')
+        db_rotate.add_argument('--yes', action='store_true', help='Answer yes to all questions')
         db_rotate.add_argument('--vacuum', help='Vacuum database (this is blocking action)', action='store_true')
 
     @staticmethod
