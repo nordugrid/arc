@@ -497,17 +497,17 @@ class AccountingControl(ComponentControl):
         if args.rotate_to:
             rotated_file = args.rotate_to
         else:
-            rotated_file = self.__db_location(ACCOUNTING_DB_FILE + args.date.strftime("%Y-%m-%d"))
+            rotated_file = self.__db_location('{0}-{1}'.format(self.db_file, args.date.strftime("%Y-%m-%d")))
         print_info(self.logger, 'Cloning the existing database to %s', rotated_file)
         rotated_adb = self.backup(rotated_file)
         # cleanup records above rotation point
-        print_info('Trimming records for jobs finished after %s from %s', args.date, rotated_file)
+        print_info(self.logger, 'Trimming records for jobs finished after %s from %s', args.date, rotated_file)
         rotated_adb.filter_endfrom(args.date)
         rotated_adb.adb_cleanup()
         rotated_adb.adb_vacuum()
         rotated_adb.adb_close()
         # cleanup records below rotation point in the active database
-        print_info('Trimming records for jobs finished before %s from %s', args.date, self.db_file)
+        print_info(self.logger, 'Trimming records for jobs finished before %s from %s', args.date, self.db_file)
         self.adb.filter_endtill(args.date)
         self.adb.adb_cleanup()
         if args.vacuum:
@@ -639,10 +639,12 @@ class AccountingControl(ComponentControl):
                                 help='Optionally define from which point in time cleanup records (YYYY-MM-DD [HH:mm[:ss]]).')
         db_cleanup.add_argument('--yes', action='store_true', help='Answer yes to all questions')
         db_cleanup.add_argument('--vacuum', help='Vacuum database (this is blocking action)', action='store_true')
-        # TODO: implement
+
         db_rotate = db_actions.add_parser('rotate', help='Rotate accounting database')
         db_rotate.add_argument('--date', type=valid_datetime_yymmdd, required=True,
                                 help='Rotate database at specified date (YYYY-MM-DD)')
+        db_rotate.add_argument('--rotate-to', required=False,
+                               help='Rotated database file. Path or file name inside controldir. Default is to add date suffix.')
         db_rotate.add_argument('--yes', action='store_true', help='Answer yes to all questions')
         db_rotate.add_argument('--vacuum', help='Vacuum database (this is blocking action)', action='store_true')
 

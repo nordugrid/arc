@@ -4,6 +4,7 @@ import logging
 import calendar
 import datetime
 import sqlite3
+import shutil
 
 from .ControlCommon import get_human_readable_size, print_info
 
@@ -120,6 +121,13 @@ class AccountingDB(object):
             self.logger.info('Accounting database schema version for %s is %s', self.db_file, self.db_version)
         return self.db_version
 
+    def _wal_checkpoint(self):
+        """Trigger the WAL checkpoint to write data to main database file"""
+        self.adb_connect()
+        self.logger.debug('Triggering the WAL checkpoint to dump data to the main database file')
+        self.__sql_query('PRAGMA wal_checkpoint(FULL)', errorstr='Failed to make WAL checkpoint', 
+                         filtered=False, exit_on_error=True)
+
     def _backup_progress(self, status, remaining, total):
         """Log database backup progress"""
         progress = ( total - remaining ) * 100 // total
@@ -136,10 +144,27 @@ class AccountingDB(object):
         try:
             self._backup_progress_log_threshold = 0
             self.con.backup(backup_con, pages=1, progress=self._backup_progress)
+            backup_adb.adb_close()
+        except AttributeError as e:
+            self.logger.warning('SQlite backup method not found (Python < 3.7). Falling back to backup via vacuuming into file.')
+            backup_file = backup_adb.db_file
+            backup_adb.adb_close()
+            os.unlink(backup_file)
+            try:
+                self.con.execute('VACUUM INTO ?', (backup_file,))
+            except sqlite3.Error as e:
+                self.logger.debug('Failed to execute query: VACUUM INTO %s. Error: %s', backup_file, str(e))
+                self.logger.warning('SQlite backup via vacuuming unavailable (SQLite < 3.27). Falling back to file copy.')
+                self._wal_checkpoint()
+                self.adb_close()
+                try:
+                    shutil.copyfile(src=self.db_file, dst=backup_file)
+                except OSError as e:
+                    self.logger.error('Failed to backup database using file copy. Error: %s', str(e))
+                    sys.exit(1)
         except sqlite3.Error as e:
-            self.logger.error('Failed to backup accounting database to %s. Error %s', backup_adb.db_file, str(e))
+            self.logger.error('Failed to backup accounting database to %s. Error %s', backup_file, str(e))
             sys.exit(1)
-        backup_adb.adb_close()
         self.adb_close()
         del self._backup_progress_log_threshold
 
