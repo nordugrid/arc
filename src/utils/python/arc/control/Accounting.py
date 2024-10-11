@@ -410,12 +410,31 @@ class AccountingControl(ComponentControl):
                 args.end_from, args.end_till, targettype.upper(), targetid
             ))
 
-    def backup(self, location):
+    def backup(self, backup_location):
         self.__init_adb()
-        # TODO: check there is enough space
-        self.logger.info('Starting accounting database backup to %s', location)
-        backup_adb = AccountingDB(location, must_exists=False)
+        # TODO: check there is enough space?
+        self.logger.info('Starting accounting database backup to %s', backup_location)
+        backup_adb = AccountingDB(backup_location, must_exists=False)
         self.adb.backup(backup_adb)
+        return backup_adb
+
+    def __db_vacuum_precheck(self, args):
+        if args.vacuum and not args.yes:
+            sm = OSServiceManagement()
+            if sm.is_active('arc-arex'):
+                print('You have requested to vacuum database with A-REX service running.')
+                print('It is advised to stop A-REX while vacuuming.')
+                if not ask_yes_no('Do you want to continue?'):
+                    return False
+        return True
+
+    def __db_backups_advise(self, args):
+        if not args.yes:
+            print('This action will alter the accounting database records and cannot be undone!')
+            print('It is advised to have a backups.')
+            if not ask_yes_no('Do you want to continue?'):
+                return False
+        return True
 
     def db_migrate(self, args):
         self.__init_adb()
@@ -445,24 +464,11 @@ class AccountingControl(ComponentControl):
         # trigger optimize
         self.adb.optimize()
 
-    def __db_vacuum_precheck(self, args):
-        if args.vacuum and not args.yes:
-            sm = OSServiceManagement()
-            if sm.is_active('arc-arex'):
-                print('You have requested to vacuum database with A-REX service running.')
-                print('It is advised to stop A-REX while vacuuming.')
-                if not ask_yes_no('Do you want to continue?'):
-                    return False
-        return True
-
     def db_cleanup(self, args):
         self.__init_adb()
         # safety checks
-        if not args.yes:
-            print('This action will do the cleanup of the accounting records that cannot be undone!')
-            print('It is advised to have a backups.')
-            if not ask_yes_no('Do you want to continue?'):
-                return
+        if not self.__db_backups_advise(args):
+            return
         if not self.__db_vacuum_precheck(args):
             return
         # set timerange for records to delete
@@ -477,14 +483,36 @@ class AccountingControl(ComponentControl):
         # remove records
         self.adb.adb_cleanup()
         if args.vacuum:
-            print_info(self.logger, 'Vacuuming the database file')
+            print_info(self.logger, 'Vacuuming the database file at %s', self.db_file)
             self.adb.adb_vacuum()
 
     def db_rotate(self, args):
         self.__init_adb()
         # safety checks
+        if not self.__db_backups_advise(args):
+            return
         if not self.__db_vacuum_precheck(args):
             return
+        # clone the database (backup)
+        if args.rotate_to:
+            rotated_file = args.rotate_to
+        else:
+            rotated_file = self.__db_location(ACCOUNTING_DB_FILE + args.date.strftime("%Y-%m-%d"))
+        print_info(self.logger, 'Cloning the existing database to %s', rotated_file)
+        rotated_adb = self.backup(rotated_file)
+        # cleanup records above rotation point
+        print_info('Trimming records for jobs finished after %s from %s', args.date, rotated_file)
+        rotated_adb.filter_endfrom(args.date)
+        rotated_adb.adb_cleanup()
+        rotated_adb.adb_vacuum()
+        rotated_adb.adb_close()
+        # cleanup records below rotation point in the active database
+        print_info('Trimming records for jobs finished before %s from %s', args.date, self.db_file)
+        self.adb.filter_endtill(args.date)
+        self.adb.adb_cleanup()
+        if args.vacuum:
+            print_info(self.logger, 'Vacuuming the database file at %s', self.db_file)
+            self.adb.adb_vacuum()
 
     def jobcontrol(self, args):
         canonicalize_args_jobid(args)

@@ -57,7 +57,8 @@ class AccountingDB(object):
         # try to make a connection
         self.adb_connect()
         # fetch database version
-        self.adb_version()
+        if must_exists:
+            self.adb_version()
         # ensure Write-Ahead Logging mode
         jmode = self.__get_value('PRAGMA journal_mode=WAL', errstr='SQLite journal mode')
         if jmode != 'wal':
@@ -189,6 +190,7 @@ class AccountingDB(object):
 
     def adb_cleanup(self):
         """Delete records from the database"""
+        self.adb_connect()
         self.__sql_query('PRAGMA foreign_keys = ON', errorstr='Failed to enable foreign keys support', filtered=False, exit_on_error=True)
         self.__sql_query('DELETE FROM AAR', errorstr='Failed to delete records from database', filtered=True, exit_on_error=True)
         self.adb_commit()
@@ -196,6 +198,7 @@ class AccountingDB(object):
 
     def adb_vacuum(self):
         """Vacuum the database file"""
+        self.adb_connect()
         self.__sql_query('VACUUM', errorstr='Failed to vacuum database', filtered=False, exit_on_error=True)
         self.adb_commit()
         self.adb_close()
