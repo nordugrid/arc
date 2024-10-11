@@ -310,7 +310,11 @@ namespace Arc {
     attributes.insert(std::pair<std::string, std::string>("Accept", "text/xml"));
     Arc::MCC_Status res = client.process(std::string("POST"), attributes, &request, &info, &response);
     if((!res) || (info.code != 201)) {
-      logger.msg(WARNING, "Failed to process jobs - wrong response: %u", info.code);
+      if (!res) {
+        logger.msg(WARNING, "Failed to process jobs - error response: %s", std::string(res));
+      } else {
+        logger.msg(WARNING, "Failed to process jobs - wrong response: %u", info.code);
+      }
       if(response && response->Content()) logger.msg(DEBUG, "Content: %s", response->Content());
       delete response; response = NULL;
       for (std::list<std::string>::const_iterator it = IDs.begin(); it != IDs.end(); ++it) {
