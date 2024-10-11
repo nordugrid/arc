@@ -434,6 +434,16 @@ class AccountingControl(ComponentControl):
         # run migration queries
         adb_v1.migrate_to_v2(self.db_file)
 
+    def db_optimize(self, args):
+        self.__init_adb()
+        # set filters for publishing and stats queries we ANALYZE
+        self.adb.filter_endfrom(args.end_from)
+        if args.end_till:
+            self.adb.filter_endtill(args.end_till)
+        self.adb.filter_statuses(['completed', 'failed'])
+        # trigger optimize
+        self.adb.optimize()
+
     def jobcontrol(self, args):
         canonicalize_args_jobid(args)
         if args.jobaction == 'info':
@@ -451,6 +461,8 @@ class AccountingControl(ComponentControl):
             self.backup(args.location)
         elif args.dbaction == 'migrate':
             self.db_migrate(args)
+        elif args.dbaction == 'optimize':
+            self.db_optimize(args)
         elif args.dbaction == 'cleanup':
             pass
         elif args.dbaction == 'rotate':
@@ -536,7 +548,12 @@ class AccountingControl(ComponentControl):
         db_backup = db_actions.add_parser('backup', help='Run online backup of accounting database')
         db_backup.add_argument('--location', help='Database backup file path', required=True)
 
-        # TODO: implement
+        db_optimize = db_actions.add_parser('optimize', help='Optimize database query performance')
+        db_optimize.add_argument('-b', '--end-from', type=valid_datetime_type, required=True,
+                                help='Define time range start for ANALYSE queries (YYYY-MM-DD [HH:mm[:ss]])')
+        db_optimize.add_argument('-e', '--end-till', type=valid_datetime_type, required=False,
+                                help='Optionally define to which point in time migrate records (YYYY-MM-DD [HH:mm[:ss]]).')
+
         db_migrate = db_actions.add_parser('migrate', help='Migrate records from legacy ARC6 database')
         db_migrate.add_argument('-f', '--from-db', help='Legacy database file (default is %(default)s)',
                                 default='accounting.db', required=True)
@@ -545,6 +562,7 @@ class AccountingControl(ComponentControl):
         db_migrate.add_argument('-e', '--end-till', type=valid_datetime_type, required=False,
                                 help='Optionally define to which point in time migrate records (YYYY-MM-DD [HH:mm[:ss]]).')
 
+        # TODO: implement
         db_cleanup = db_actions.add_parser('cleanup', help='Delete old records from accounting database')
         db_cleanup.add_argument('-e', '--end-till', type=valid_datetime_type, required=True,
                                 help='Cleanup records older than specified completion time (YYYY-MM-DD [HH:mm[:ss]])')

@@ -168,6 +168,24 @@ class AccountingDB(object):
             print_info(self.logger,'Data migrated to v2 %s table. %s records inserted.', table, cursor.rowcount)
         self.adb_close()
 
+    def optimize(self):
+        """Make sure indexes are in place and run database ANALYZE after typical queries"""
+        self.adb_connect()
+        # run optimize queries playbook
+        for q in _DATABASE_OPTIMIZE:
+            print_info(self.logger, q['info'])
+            self.__sql_query(q['sql'], errorstr='Failed to run the optimize query', filtered=False, exit_on_error=True)
+            self.adb_commit()
+        # run typical queries
+        print_info(self.logger, 'Running typical APEL summary query to analyze')
+        self.get_apel_summaries(keep_db_con=True)
+        print_info(self.logger, 'Running typical job stats queries to analyze')
+        self.get_stats(keep_db_con=True)
+        # run ANALYZE
+        print_info(self.logger, 'Analyzing the database to optimize query performance')
+        self.__sql_query('PRAGMA optimize', errorstr='Failed to run PRAGMA optimize', filtered=False, exit_on_error=True)
+        self.adb_close()
+
     def __del__(self):
         self.adb_close()
         self.publishing_db_close()
@@ -411,6 +429,7 @@ class AccountingDB(object):
 
     def filter_extra_attributes(self, fdict):
         """Filter additional job information for custom queries"""
+        # TODO: consider refactoring to use JOINS instead
         # predefined filters
         filters = {
             'vomsfqan': "AND RecordID IN ( SELECT RecordID FROM AuthTokenAttributes "
@@ -470,17 +489,8 @@ class AccountingDB(object):
             if exit_on_error:
                 sys.exit(1)
             return []
-    #
-    # Testing 10M jobs SQLite database from legacy jura archive conversion (4 year of records from Andrej) shows that:
-    #   a) using SQL functions works a bit faster that python post-processing
-    #   b) calculating several things at once in SQlite does not affect performance, so it is worth to do it in one shot
-    #
-    # ALSO NOTE: in where clause filters order is very important!
-    #   Filtering time range first (using less/greater than comparision on column index) and value match filters later
-    #   MUCH faster compared to opposite order of filters.
-    #
 
-    def get_stats(self):
+    def get_stats(self, keep_db_con=False):
         """Return jobs statistics counters for records that match applied filters"""
         stats = {
             'count': 0, 'walltime': 0, 'cpuusertime': 0, 'cpukerneltime': 0,
@@ -501,7 +511,8 @@ class AccountingDB(object):
                     'rangestart': res[6],
                     'rangeend': res[7]
                 }
-        self.adb_close()
+        if not keep_db_con:
+            self.adb_close()
         return stats
 
     def get_job_owners(self):
@@ -595,7 +606,7 @@ class AccountingDB(object):
         result = {}
         self.logger.debug('Fetching job events for AARs from database')
         sql = 'SELECT RecordID, EventKey, EventTime FROM JobEvents ' \
-              'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>) ORDER BY EventTime ASC'
+              'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
         for row in self.__sql_query(sql, errorstr='Failed to get JobEvents for AAR(s) from database'):
             if row[0] not in result:
                 result[row[0]] = []
@@ -716,14 +727,14 @@ class AccountingDB(object):
             if extra_data is not None and rid in extra_data:
                 a.aar['JobExtraInfo'] = extra_data[rid]
 
-    def get_apel_summaries(self):
+    def get_apel_summaries(self, keep_db_con=False):
         """Return data for APEL aggregated summary records"""
         if self.db_version < 2:
-            return self.__get_apel_summaries_v1()
+            return self.__get_apel_summaries_v1(keep_db_con)
         else:
-            return self.__get_apel_summaries_v2()
+            return self.__get_apel_summaries_v2(keep_db_con)
 
-    def __get_apel_summaries_v1(self):
+    def __get_apel_summaries_v1(self, keep_db_con=False):
         """Query data for APEL aggregated summary records from v1 database"""
         summaries = []
         # get RecordID range to limit further filtering
@@ -735,7 +746,8 @@ class AccountingDB(object):
             record_end = res[1]
         if record_start is None or record_end is None:
             self.logger.error('Database query error. Failed to proceed with APEL summary generation')
-            self.adb_close()
+            if not keep_db_con:
+                self.adb_close()
             return summaries
         self.logger.debug('Will query extra table for the records in range [%s, %s]', record_start, record_end)
         # invoke heavy summary query with extra table pre-filtering
@@ -776,10 +788,11 @@ class AccountingDB(object):
                 'timestart': res[10],
                 'timeend': res[11]
             })
-        self.adb_close()
+        if not keep_db_con:
+            self.adb_close()
         return summaries
 
-    def __get_apel_summaries_v2(self):
+    def __get_apel_summaries_v2(self, keep_db_con=False):
         """Query data for APEL aggregated summary records from v2 database"""
         summaries = []
         # UserID(0), VOID(1), EndpointID(2), NodeCount(3), CPUCount(4), FQANID(5), BenchmarkID(6),
@@ -814,7 +827,8 @@ class AccountingDB(object):
                 'timestart': res[11],
                 'timeend': res[12]
             })
-        self.adb_close()
+        if not keep_db_con:
+            self.adb_close()
         return summaries
 
     def get_apel_sync(self):
@@ -1065,6 +1079,25 @@ class AAR(object):
         submithost = split_url[1][2:]  # http://[example.org]:443/jobs..
         submithost = submithost.split('/')[0]  # [exmple.org]/jobs...
         return submithost
+
+#
+# SQL QUERY PLAYBOOKS
+#
+
+_DATABASE_OPTIMIZE = [
+    {
+        'info': 'Creating composite index if not exists on AAR(StatusID, EndTime)',
+        'sql': 'CREATE INDEX IF NOT EXISTS AAR_StatusID_EndTime_IDX ON AAR(StatusID, EndTime)'
+    },
+    {
+        'info': 'Creating composite index if not exists on AuthTokenAttributes(RecordID, AttrKey)',
+        'sql': 'CREATE INDEX IF NOT EXISTS AuthTokenAttributes_RecordID_AttrKey_IDX ON AuthTokenAttributes(RecordID, AttrKey)'
+    },
+    {
+        'info': 'Creating composite index if not exists on JobExtraInfo(RecordID, InfoKey)',
+        'sql': 'CREATE INDEX IF NOT EXISTS JobExtraInfo_RecordID_InfoKey_IDX ON JobExtraInfo(RecordID, InfoKey)'
+    }
+]
 
 _MIGRATION_V1_TO_V2 = [
     {

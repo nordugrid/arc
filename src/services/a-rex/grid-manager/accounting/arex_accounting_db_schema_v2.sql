@@ -50,6 +50,8 @@ CREATE INDEX IF NOT EXISTS AAR_StatusID_IDX ON AAR(StatusID);
 CREATE INDEX IF NOT EXISTS AAR_SubmitTime_IDX ON AAR(SubmitTime);
 CREATE INDEX IF NOT EXISTS AAR_EndTime_IDX ON AAR(EndTime);
 CREATE INDEX IF NOT EXISTS AAR_Benchmark_IDX ON AAR(BenchmarkID);
+/* optimize publishing queries */
+CREATE INDEX IF NOT EXISTS AAR_StatusID_EndTime_IDX ON AAR(StatusID, EndTime);
 
 /*
  * Extra tables for AAR normalization
@@ -122,7 +124,7 @@ CREATE TABLE IF NOT EXISTS AuthTokenAttributes (
   FOREIGN KEY(RecordID) REFERENCES AAR(RecordID) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS AuthTokenAttributes_RecordID_IDX ON AuthTokenAttributes(RecordID);
-CREATE INDEX IF NOT EXISTS AuthTokenAttributes_AttrKey_IDX ON AuthTokenAttributes(AttrKey);
+CREATE INDEX IF NOT EXISTS AuthTokenAttributes_RecordID_AttrKey_IDX ON AuthTokenAttributes(RecordID, AttrKey);
 
 /* Event timestamps for the job */
 CREATE TABLE IF NOT EXISTS JobEvents (
@@ -132,7 +134,6 @@ CREATE TABLE IF NOT EXISTS JobEvents (
   FOREIGN KEY(RecordID) REFERENCES AAR(RecordID) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS JobEvents_RecordID_IDX ON JobEvents(RecordID);
-CREATE INDEX IF NOT EXISTS JobEvents_EventKey_IDX ON JobEvents(EventKey);
 
 /* RTEs */
 CREATE TABLE IF NOT EXISTS RunTimeEnvironments (
@@ -141,7 +142,7 @@ CREATE TABLE IF NOT EXISTS RunTimeEnvironments (
   FOREIGN KEY(RecordID) REFERENCES AAR(RecordID) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS RunTimeEnvironments_RecordID_IDX ON RunTimeEnvironments(RecordID);
-CREATE INDEX IF NOT EXISTS RunTimeEnvironments_RTEName_IDX ON RunTimeEnvironments(RTEName);
+CREATE INDEX IF NOT EXISTS RunTimeEnvironments_RecordID_RTEName_IDX ON RunTimeEnvironments(RecordID, RTEName);
 
 /* Data transfers info */
 CREATE TABLE IF NOT EXISTS DataTransfers (
@@ -154,7 +155,7 @@ CREATE TABLE IF NOT EXISTS DataTransfers (
   FOREIGN KEY(RecordID) REFERENCES AAR(RecordID) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS DataTransfers_RecordID_IDX ON DataTransfers(RecordID);
-CREATE INDEX IF NOT EXISTS DataTransfers_URL_IDX ON DataTransfers(URL);
+CREATE INDEX IF NOT EXISTS DataTransfers_RecordID_URL_IDX ON DataTransfers(RecordID, URL);
 
 /* Extra arbitrary text attributes affiliated with AAR */
 CREATE TABLE IF NOT EXISTS JobExtraInfo (
@@ -164,7 +165,7 @@ CREATE TABLE IF NOT EXISTS JobExtraInfo (
   FOREIGN KEY(RecordID) REFERENCES AAR(RecordID) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS JobExtraInfo_RecordID_IDX ON JobExtraInfo(RecordID);
-CREATE INDEX IF NOT EXISTS JobExtraInfo_InfoKey_IDX ON JobExtraInfo(InfoKey);
+CREATE INDEX IF NOT EXISTS JobExtraInfo_RecordID_InfoKey_IDX ON JobExtraInfo(RecordID, InfoKey);
 
 /* 
  * Database common config parameters 
