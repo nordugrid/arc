@@ -536,11 +536,11 @@ class AccountingDB(object):
         """Return jobs statistics counters for records that match applied filters"""
         stats = {
             'count': 0, 'walltime': 0, 'cpuusertime': 0, 'cpukerneltime': 0,
-            'stagein': 0, 'stageout': 0, 'rangestart': 0, 'rangeend': 0
+            'stagein': 0, 'stageout': 0, 'minstarttime': 0, 'maxendtime': 0, 'minendtime': 0
         }
         for res in self.__sql_query('SELECT COUNT(RecordID), SUM(UsedWalltime), SUM(UsedCPUUserTime),'
                                     'SUM(UsedCPUKernelTime), SUM(StageInVolume), SUM(StageOutVolume),'
-                                    'MIN(SubmitTime), MAX(EndTime) FROM AAR',
+                                    'MIN(SubmitTime), MAX(EndTime), MIN(EndTime) FROM AAR',
                                     errorstr='Failed to get accounting statistics'):
             if res[0] != 0:
                 stats = {
@@ -550,8 +550,9 @@ class AccountingDB(object):
                     'cpukerneltime': res[3],
                     'stagein': res[4],
                     'stageout': res[5],
-                    'rangestart': res[6],
-                    'rangeend': res[7]
+                    'minstarttime': res[6],
+                    'maxendtime': res[7],
+                    'minendtime': res[8]
                 }
         if not keep_db_con:
             self.adb_close()

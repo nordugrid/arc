@@ -114,8 +114,9 @@ class AccountingControl(ComponentControl):
         stats['cpuusertime'] = datetime.timedelta(seconds=stats['cpuusertime'])
         stats['cpukerneltime'] = datetime.timedelta(seconds=stats['cpukerneltime'])
         stats['cputime'] = stats['cpuusertime'] + stats['cpukerneltime']
-        stats['rangestart'] = datetime.datetime.utcfromtimestamp(stats['rangestart'])
-        stats['rangeend'] = datetime.datetime.utcfromtimestamp(stats['rangeend'])
+        stats['minstarttime'] = datetime.datetime.utcfromtimestamp(stats['minstarttime'])
+        stats['maxendtime'] = datetime.datetime.utcfromtimestamp(stats['maxendtime'])
+        stats['minendtime'] = datetime.datetime.utcfromtimestamp(stats['minendtime'])
         stats['stagein'] = get_human_readable_size(stats['stagein'])
         stats['stageout'] = get_human_readable_size(stats['stageout'])
 
@@ -152,7 +153,8 @@ class AccountingControl(ComponentControl):
             self.__human_readable(stats)
             print('A-REX Accounting Statistics:\n'
                   '  Number of Jobs: {count}\n'
-                  '  Execution timeframe: {rangestart} - {rangeend}\n'
+                  '  Accounting timeframe: {minendtime} - {maxendtime}\n'
+                  '  Execution timeframe: {minstarttime} - {maxendtime}\n'
                   '  Total WallTime: {walltime}\n'
                   '  Total CPUTime: {cputime} (including {cpukerneltime} of kernel time)\n'
                   '  Data staged in: {stagein}\n'
