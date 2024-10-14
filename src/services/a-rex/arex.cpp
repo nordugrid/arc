@@ -1000,7 +1000,7 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
            Arc::FileRead(keys_path, keys)) {
           if(!issuer.empty() && !metadata.empty() && !keys.empty()) {
             // Assign validity enough to the future
-            if(Arc::JWSE::SetIssuerInfo(Arc::Time(time(nullptr) + Arc::Time::YEAR*10), true, issuer, metadata, keys, logger_)) {
+            if(Arc::JWSE::SetIssuerInfo(nullptr, true, issuer, metadata, keys, logger_)) {
               logger_.msg(Arc::INFO, "Created entry for JWT issuer %s", d->d_name);
 	    } else {
               logger_.msg(Arc::ERROR, "Failed to create entry for JWT issuer %s", d->d_name);

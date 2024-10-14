@@ -27,43 +27,6 @@ using namespace ArcCredential;
 
 namespace Arc {
 
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-
-static BN_GENCB* BN_GENCB_new(void) {
-  BN_GENCB* bn = (BN_GENCB*)std::malloc(sizeof(BN_GENCB));
-  if(bn) std::memset(bn, 0, sizeof(BN_GENCB));
-  return bn;
-}
-
-static void BN_GENCB_free(BN_GENCB* bn) {
-  if(bn) std::free(bn);
-}
-
-#define X509_getm_notAfter X509_get_notAfter
-#define X509_getm_notBefore X509_get_notBefore
-#define X509_set1_notAfter X509_set_notAfter
-#define X509_set1_notBefore X509_set_notBefore
-
-static const unsigned char* ASN1_STRING_get0_data(const ASN1_STRING* x) {
-    return x->data;
-}
-
-#endif
-
-
-#if (OPENSSL_VERSION_NUMBER < 0x10002000L)
-
-static int X509_get_signature_nid(const X509 *x) {
-    return OBJ_obj2nid(x->sig_alg->algorithm);
-}
-
-static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const X509 *x) {
-    if (psig) *psig = x->signature;
-    if (palg) *palg = x->sig_alg;
-}
-
-#endif
-
 
 #if (OPENSSL_VERSION_NUMBER < 0x30000000L)
 #define OPENSSL_CONST

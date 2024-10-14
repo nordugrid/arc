@@ -1486,69 +1486,67 @@ bool JobsList::ActJob(GMJobRef& i) {
 
   if (job_result != JobDropped) {
 
-  if(old_state != i->job_state) {
-    // Job changed state. Skip state change processing if job is about to be dropped.
-    if(!job_state_write_file(*i,config,i->job_state,i->job_pending)) {
-      i->AddFailure("Failed writing job status: "+Arc::StrError(errno));
-      job_result = ActJobFailed(i); // immedaitely process failure
-    } else {
-      // Talk to external plugin to ask if we can proceed
-      // Jobs with ACCEPTED state or UNDEFINED previous state
-      // could be ignored here. But there is tiny possibility
-      // that service failed while processing ContinuationPlugins.
-      // Hence here we have duplicate call for ACCEPTED state.
-      // TODO: maybe introducing job state prefix VALIDATING:
-      // could be used to resolve this situation.
-      if(!CheckJobContinuePlugins(i)) {
-        // No need for AddFailure. It is filled inside CheckJobContinuePlugins.
+    if(old_state != i->job_state) {
+      // Job changed state. Skip state change processing if job is about to be dropped.
+      if(!job_state_write_file(*i,config,i->job_state,i->job_pending)) {
+        i->AddFailure("Failed writing job status: "+Arc::StrError(errno));
         job_result = ActJobFailed(i); // immedaitely process failure
+      } else {
+        // Talk to external plugin to ask if we can proceed
+        // Jobs with ACCEPTED state or UNDEFINED previous state
+        // could be ignored here. But there is tiny possibility
+        // that service failed while processing ContinuationPlugins.
+        // Hence here we have duplicate call for ACCEPTED state.
+        // TODO: maybe introducing job state prefix VALIDATING:
+        // could be used to resolve this situation.
+        if(!CheckJobContinuePlugins(i)) {
+          // No need for AddFailure. It is filled inside CheckJobContinuePlugins.
+          job_result = ActJobFailed(i); // immedaitely process failure
+        };
+        // Processing to be done on relatively successful state changes
+        JobLog* joblog = config.GetJobLog();
+        if(joblog) joblog->WriteJobRecord(*i,config);
+        // TODO: Consider moving following code into ActJob* methods
+        if(i->job_state == JOB_STATE_FINISHED) {
+          job_clean_finished(i->job_id,config);
+          if(joblog) joblog->WriteFinishInfo(*i,config);
+          PrepareCleanupTime(i,i->keep_finished);
+        } else if(i->job_state == JOB_STATE_PREPARING) {
+          joblog->WriteStartInfo(*i,config);
+        };
       };
-      // Processing to be done on relatively successful state changes
-      JobLog* joblog = config.GetJobLog();
-      if(joblog) joblog->WriteJobRecord(*i,config);
-      // TODO: Consider moving following code into ActJob* methods
-      if(i->job_state == JOB_STATE_FINISHED) {
-        job_clean_finished(i->job_id,config);
-        if(joblog) joblog->WriteFinishInfo(*i,config);
-        PrepareCleanupTime(i,i->keep_finished);
-      } else if(i->job_state == JOB_STATE_PREPARING) {
-        joblog->WriteStartInfo(*i,config);
-      };
-//            SetJobState(i, JOB_STATE_FINISHED, "Job processing error");
-//            SetJobState(i, JOB_STATE_FINISHING, "Job processing error");
-    };
-    // send mail after error and change are processed
-    // do not send if something really wrong happened to avoid email DoS
-    if(job_result != JobFailed) send_mail(*i,config);
+      // send mail after error and change are processed
+      // do not send if something really wrong happened to avoid email DoS
+      if(job_result != JobFailed) send_mail(*i,config);
 
-    // Manage per-DN counter
-    // Any job state change goes through here
-    if(!IS_ACTIVE_STATE(old_state)) {
-      if(IS_ACTIVE_STATE(i->job_state)) {
-        if(i->GetLocalDescription(config)) {
-          // add to DN map
-          if (i->local->DN.empty()) {
-             logger.msg(Arc::WARNING, "Failed to get DN information from .local file for job %s", i->job_id);
-          }
-          Glib::RecMutex::Lock lock(jobs_lock);
-          ++(jobs_dn[i->local->DN]);
+      // Manage per-DN counter
+      // Any job state change goes through here
+      if(!IS_ACTIVE_STATE(old_state)) {
+        if(IS_ACTIVE_STATE(i->job_state)) {
+          if(i->GetLocalDescription(config)) {
+            // add to DN map
+            if (i->local->DN.empty()) {
+              logger.msg(Arc::WARNING, "Failed to get DN information from .local file for job %s", i->job_id);
+            }
+            Glib::RecMutex::Lock lock(jobs_lock);
+            ++(jobs_dn[i->local->DN]);
+          };
+        };
+      } else if(IS_ACTIVE_STATE(old_state)) {
+        if(!IS_ACTIVE_STATE(i->job_state)) {
+          if(i->GetLocalDescription(config)) {
+            Glib::RecMutex::Lock lock(jobs_lock);
+            if (--(jobs_dn[i->local->DN]) == 0) jobs_dn.erase(i->local->DN);
+          };
         };
       };
-    } else if(IS_ACTIVE_STATE(old_state)) {
-      if(!IS_ACTIVE_STATE(i->job_state)) {
-        if(i->GetLocalDescription(config)) {
-          Glib::RecMutex::Lock lock(jobs_lock);
-          if (--(jobs_dn[i->local->DN]) == 0) jobs_dn.erase(i->local->DN);
-        };
-      };
+    } else if(old_pending != i->job_pending) {
+      // Only pending flag has changed - only write state file
+      if(!job_state_write_file(*i,config,i->job_state,i->job_pending)) {
+        i->AddFailure("Failed writing job status: "+Arc::StrError(errno));
+        job_result = ActJobFailed(i); // immedaitely process failure
+      }
     };
-  } else if(old_pending != i->job_pending) {
-    // Only pending flag has changed - only write state file
-    if(!job_state_write_file(*i,config,i->job_state,i->job_pending)) {
-      i->AddFailure("Failed writing job status: "+Arc::StrError(errno));
-      job_result = ActJobFailed(i); // immedaitely process failure
-    }
-  };
 
   }; // !JobDropped
 
@@ -1603,6 +1601,13 @@ JobsList::ActJobResult JobsList::ActJobFailed(GMJobRef i) {
     } else if(i->job_state == JOB_STATE_FINISHING) {
       // No matter if FINISHING fails - it still goes to FINISHED
       SetJobState(i, JOB_STATE_FINISHED, "Job failure detected");
+      RequestReprocess(i);
+    } else if(i->job_state == JOB_STATE_INLRMS) {
+      // This happens either if job processing failed or continuation
+      // plugin failed. But that also means job is probably being
+      // processed by batch system. So safest is to act as if cncel 
+      // request arrived.
+      SetJobState(i, JOB_STATE_CANCELING, "Job failure detected");
       RequestReprocess(i);
     } else {
       // Other states are moved to FINISHING and start post-staging

@@ -22,57 +22,6 @@ static EVP_PKEY* X509_get_privkey(X509*) {
   return NULL;
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-
-static int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d) {
-  /* If the fields n and e in r are NULL, the corresponding input
-   * parameters MUST be non-NULL for n and e.  d may be
-   * left NULL (in case only the public key is used).
-   */
-  if ((r->n == NULL && n == NULL)
-      || (r->e == NULL && e == NULL))
-    return 0;
-
-  if (n != NULL) {
-    BN_free(r->n);
-    r->n = n;
-  }
-  if (e != NULL) {
-    BN_free(r->e);
-    r->e = e;
-  }
-  if (d != NULL) {
-    BN_free(r->d);
-    r->d = d;
-  }
-
-  return 1;
-}
-
-static RSA *EVP_PKEY_get0_RSA(EVP_PKEY *pkey) {
-  if(pkey)
-    if((pkey->type == EVP_PKEY_RSA) || (pkey->type == EVP_PKEY_RSA2))
-      return pkey->pkey.rsa;
-  return NULL;
-}
-
-void RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e, const BIGNUM **d) {
-  if(n) *n = NULL;
-  if(e) *e = NULL;
-  if(d) *d = NULL;
-  if(!r) return;
-  if(n) *n = r->n;
-  if(e) *e = r->e;
-  if(d) *d = r->d;
-}
-
-int EVP_PKEY_up_ref(EVP_PKEY *r) {
-    int i = CRYPTO_add(&r->references, 1, CRYPTO_LOCK_EVP_PKEY);
-    return ((i > 1) ? 1 : 0);
-}
-
-#endif
-
 
 namespace Arc {
  
@@ -82,9 +31,16 @@ namespace Arc {
    public:
     IssuerInfo() {
       validTill = time(nullptr) + DefaultValidTime;
+      isNonexpiring = false;
+    }
+
+    bool IsExpired() const {
+      if(isNonexpiring) return false;
+      return (static_cast< std::make_signed_t<time_t> >(time(nullptr) - validTill) > 0);
     }
 
     time_t validTill;
+    bool   isNonexpiring;
     bool   isSafe;
     Arc::AutoPointer<OpenIDMetadata> metadata;
     Arc::AutoPointer<JWSEKeyHolderList> keys;
@@ -355,8 +311,10 @@ namespace Arc {
         for(std::map<std::string, IssuerInfo>::iterator infoIt = issuersInfo.begin(); infoIt != issuersInfo.end();) {
           std::map<std::string, IssuerInfo>::iterator nextIt = infoIt;
           ++nextIt;
-          if(now > infoIt->second.validTill)
-          issuersInfo.erase(infoIt);
+          if(infoIt->second.IsExpired()) {
+            logger_.msg(DEBUG, "JWSE::ExtractPublicKey: deleting outdated info: %s", infoIt->first); 
+            issuersInfo.erase(infoIt);
+          }
           infoIt = nextIt;
         }
         std::map<std::string, IssuerInfo>::iterator infoIt = issuersInfo.find(issuerObj->valuestring);
@@ -407,7 +365,7 @@ namespace Arc {
           }
         }
       }
-      SetIssuerInfo(validTill, keyProtocolSafe, issuerObj->valuestring, serviceMetadata, keys);
+      SetIssuerInfo(&validTill, keyProtocolSafe, issuerObj->valuestring, serviceMetadata, keys);
       if(keyFound)
         return true;
     } else {
@@ -419,17 +377,21 @@ namespace Arc {
     return false;
   }
 
-  void JWSE::SetIssuerInfo(Time validTill, bool isSafe, std::string const& issuer, Arc::AutoPointer<OpenIDMetadata>& metadata, Arc::AutoPointer<JWSEKeyHolderList>& keys) {
+  void JWSE::SetIssuerInfo(Time* validTill, bool isSafe, std::string const& issuer, Arc::AutoPointer<OpenIDMetadata>& metadata, Arc::AutoPointer<JWSEKeyHolderList>& keys) {
     Arc::AutoLock<Glib::Mutex> lock(issuersInfoLock);
     IssuerInfo& info(issuersInfo[issuer]);
     info.isSafe = isSafe;
     info.metadata = metadata;
     info.keys = keys;
-    if(validTill < info.validTill)
-      info.validTill = validTill.GetTime();
+    if(validTill) {
+      if(*validTill < info.validTill)
+        info.validTill = validTill->GetTime();
+    } else {
+      info.isNonexpiring = true;
+    }
   }
 
-  bool JWSE::SetIssuerInfo(Time validTill, bool isSafe, std::string const& issuer, std::string const& metadataStr, std::string const& keysStr, Logger& logger) {
+  bool JWSE::SetIssuerInfo(Time* validTill, bool isSafe, std::string const& issuer, std::string const& metadataStr, std::string const& keysStr, Logger& logger) {
     AutoPointer<OpenIDMetadata> metadata(new OpenIDMetadata);
     if(!OpenIDMetadataFetcher::Import(metadataStr.c_str(), *metadata)) return false;
 
