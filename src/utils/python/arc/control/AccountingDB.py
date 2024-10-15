@@ -811,7 +811,8 @@ class AccountingDB(object):
                      WHERE 1=1 <FILTERS>) a
               LEFT JOIN ( SELECT * FROM JobExtraInfo
                           WHERE JobExtraInfo.RecordID >= {0} AND JobExtraInfo.RecordID <= {1}
-                          AND JobExtraInfo.InfoKey = "benchmark" ) e ON e.RecordID = a.RecordID
+                          AND JobExtraInfo.InfoKey = "benchmark" GROUP BY JobExtraInfo.RecordID ) e
+                          ON e.RecordID = a.RecordID
               LEFT JOIN ( SELECT * FROM AuthTokenAttributes
                           WHERE AuthTokenAttributes.RecordID >= {0} AND AuthTokenAttributes.RecordID <= {1}
                           AND AuthTokenAttributes.AttrKey = "mainfqan" ) t ON t.RecordID = a.RecordID
