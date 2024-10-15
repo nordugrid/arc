@@ -312,7 +312,24 @@ class RecordsPublisher(object):
                 apel_sender.publish_summaries(apelsummaries)
         # Sync messages are always sent and contains job counts for all periods
         self.logger.debug('Assigning filters to APEL sync database query')
-        self.__init_adb_filters()
+        sync_endtill = None
+        # Sync interval
+        if regular:
+            endfrom_year = endfrom.year - 1
+            sync_endfrom = endfrom.replace(day=1, year=endfrom_year, hour=0, minute=0, second=0)
+            self.logger.debug('Querying sync data for the last year')
+        else:
+            sync_endfrom = endfrom.replace(day=1, hour=0, minute=0, second=0)
+            if endtill:
+                endtillx = endtill - datetime.timedelta(seconds=1)
+                endtill_month = endtillx.month + 1
+                endtill_year = endtillx.year
+                if endtill_month == 13:
+                        endtill_year += 1
+                        endtill_month = 1
+                sync_endtill = endtillx.replace(day=1, month=endtill_month, year=endtill_year, hour=0, minute=0, second=0)
+            self.logger.debug('Querying sync data for the republished data months')
+        self.__init_adb_filters(sync_endfrom, sync_endtill)
         # optional WLCG VO filtering
         self.__add_vo_filter(target_conf)
         self.logger.debug('Querying APEL Sync data from accounting database')
