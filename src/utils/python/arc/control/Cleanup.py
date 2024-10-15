@@ -128,6 +128,9 @@ class CleanupControl(ComponentControl):
                 print_warn(self.logger, 'ARC services restart is needed to apply configuration changes.')
             else:
                 self.logger.error('Issuer %s is not trusted by ARC CE. Nothing to cleanup.', args.issuer)
+        elif args.action == 'accounting':
+            print_info(self.logger, 'To cleanup accounting database use "arcctl accounting database cleanup"')
+            print_info(self.logger, 'Please note, you can also backup, rotate and optimize database via "arcctl accounting database"')
         else:
             self.logger.critical('Unsupported cleanup action %s', args.action)
             sys.exit(1)
@@ -158,6 +161,9 @@ class CleanupControl(ComponentControl):
         cleanup_issuer.add_argument('-l', '--list', action='store_true', help='List JWT issuers trusted by ARC CE')
         cleanup_issuer.add_argument('-i', '--issuer', action='store',
                                     help='JWT Issuer ID to cleanup').completer = complete_jwt_issuer
+
+
+        cleanup_accounting = cleanup_actions.add_parser('accounting', help='Cleanup accounting database')
 
         if TestCAControl is not None:
             cleanup_testca = cleanup_actions.add_parser('test-ca',help='Cleanup TestCA files')
