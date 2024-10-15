@@ -28,7 +28,7 @@ except ImportError:
 ACCOUNTING_PUBLISHING_DB_FILE = "publishing.db"
 
 # module regexes init
-__voms_fqan_re = re.compile(r'(?P<group>/[-\w.]+(?:/[-\w.]+)*)(?P<role>/Role=[-\w.]+)?(?P<cap>/Capability=[-\w.]+)?')
+__voms_fqan_re = re.compile(r'(?P<group>/[-\w.]+(?:/(?!Role=)[-\w.]+)*)(?P<role>/Role=[-\w.]+)?(?P<cap>/Capability=[-\w.]+)?')
 
 __url_re = re.compile(r'^(?P<url>(?P<protocol>[^:/]+)://(?P<host>[^:/]+)(?::(?P<port>[0-9]+))?/*(?:(?P<path>/.*))?)$')
 
