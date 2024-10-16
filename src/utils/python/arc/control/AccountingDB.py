@@ -563,6 +563,14 @@ class AccountingDB(object):
             if extra_data is not None and rid in extra_data:
                 a.aar['JobExtraInfo'] = extra_data[rid]
 
+    def __format_apel_submithost(self, endpointid):
+        """Return endpoint string for APEL SubmitHost"""
+        (etype, eurl) = self.endpoints['byid'][endpointid]
+        # return URL for gridftp and emies for backward compatibility
+        if etype == 'org.ogf.glue.emies.activitycreation' or etype == 'org.nordugrid.gridftpjob':
+            return eurl
+        return '{0}:{1}'.format(etype.lstrip('org.nordugrid.'), eurl)
+
     def get_apel_summaries(self):
         """Return info corresponding to APEL aggregated summary records"""
         summaries = []
@@ -594,7 +602,7 @@ class AccountingDB(object):
                           WHERE AuthTokenAttributes.RecordID >= {0} AND AuthTokenAttributes.RecordID <= {1}
                           AND AuthTokenAttributes.AttrKey = "mainfqan" ) t ON t.RecordID = a.RecordID
               GROUP BY YearMonth, a.UserID, a.VOID, a.EndpointID,
-                       a.NodeCount, a.CPUCount, RBenchmark'''.format(record_start, record_end)
+                       a.NodeCount, a.CPUCount, AuthToken, RBenchmark'''.format(record_start, record_end)
         self.__fetch_users()
         self.__fetch_wlcgvos()
         self.__fetch_endpoints()
@@ -606,7 +614,7 @@ class AccountingDB(object):
                 'month': month.lstrip('0'),
                 'userdn': self.users['byid'][res[0]],
                 'wlcgvo': self.wlcgvos['byid'][res[1]],
-                'endpoint': self.endpoints['byid'][res[2]][1],
+                'endpoint': self.__format_apel_submithost(res[2]),
                 'nodecount': res[3],
                 'cpucount': res[4],
                 'fqan': res[5],
@@ -632,7 +640,7 @@ class AccountingDB(object):
                 'year': year,
                 'month': month.lstrip('0'),
                 'count': res[1],
-                'endpoint': self.endpoints['byid'][res[2]][1]
+                'endpoint': self.__format_apel_submithost(res[2])
             })
         self.adb_close()
         return syncs
