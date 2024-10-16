@@ -132,7 +132,7 @@ class AccountingDB(object):
         return values
 
     # get unsigned integer (stored in SQLite as signed)
-    def __get_unsigned_int(value):
+    def __get_unsigned_int(self, value):
         if value > 0:
             return value
         if abs(value) < 2**31:
