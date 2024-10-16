@@ -8,7 +8,7 @@
 
 namespace ArcDMCSRM {
   
-  SRMURL::SRMURL(std::string url) try: URL(url) {
+  SRMURL::SRMURL(std::string url): URL(url) {
     portdefined = false;
     if(protocol != "srm") { 
       valid=false;
@@ -33,8 +33,6 @@ namespace ArcDMCSRM {
       path = "/srm/managerv2";
       isshort=true;
     }
-  } catch (std::exception& e) {
-    valid=false;
   }  
   
   void SRMURL::SetSRMVersion(const std::string& version) {
