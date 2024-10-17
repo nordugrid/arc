@@ -2,6 +2,11 @@
 ## Doing so will unfortunately create unnesseccary merge conflicts between branches and the fork, and nordugrid/arc version of this file.
 ## To have the automatic builds work on your fork, check that the runner is enabled in your fork: Settings->CI/CD->Runner settings
 
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+
 stages:
   - build
   - deploy
