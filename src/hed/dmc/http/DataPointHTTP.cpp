@@ -33,6 +33,18 @@ using namespace Arc;
 
   Logger DataPointHTTP::logger(Logger::getRootLogger(), "DataPoint.HTTP");
 
+  static void RedirectURL(URL& url, std::string const& location) {
+    std::map<std::string,std::string> options = url.Options();
+    url = location;
+    for(std::map<std::string,std::string>::iterator it = options.begin(); it != options.end(); ++it) url.AddOption(it->first, it->second);
+  }
+
+  static void RedirectURL(URL& url, URL const& location) {
+    std::map<std::string,std::string> options = url.Options();
+    url = location;
+    for(std::map<std::string,std::string>::iterator it = options.begin(); it != options.end(); ++it) url.AddOption(it->first, it->second);
+  }
+
   typedef struct {
     DataPointHTTP *point;
   } HTTPInfo_t;
@@ -390,7 +402,7 @@ using namespace Arc;
            (info.code == 307)) { // temporary redirection
           // 305 - redirection to proxy - unhandled
           // Recreate connection now to new URL
-          rurl = info.location;
+          RedirectURL(rurl, info.location);
           logger.msg(VERBOSE,"Redirecting to %s",info.location.str());
           continue;
         }
@@ -578,7 +590,7 @@ using namespace Arc;
            (info.code == 307)) { // temporary redirection
           // 305 - redirection to proxy - unhandled
           // Recreate connection now to new URL
-          rurl = info.location;
+          RedirectURL(rurl, info.location);
           logger.msg(VERBOSE,"Redirecting to %s",info.location.str());
           continue;
         }
@@ -672,7 +684,7 @@ using namespace Arc;
            (info.code == 307)) { // temporary redirection
           // 305 - redirection to proxy - unhandled
           // Recreate connection now to new URL
-          rurl = info.location;
+          RedirectURL(rurl, info.location);
           logger.msg(VERBOSE,"Redirecting to %s",info.location.str());
           continue;
         }
@@ -847,7 +859,8 @@ using namespace Arc;
       html2list(result.c_str(), curl, files);
       if(verb & (INFO_TYPE_TYPE | INFO_TYPE_TIMES | INFO_TYPE_CONTENT)) {
         for(std::list<FileInfo>::iterator f = files.begin(); f != files.end(); ++f) {
-          URL furl(curl.str()+'/'+(f->GetName()));
+          URL furl(curl);
+          furl.ChangePath(curl.Path()+'/'+(f->GetName()));
           do_stat_http(furl, *f);
         }
       }
@@ -1114,7 +1127,7 @@ using namespace Arc;
         if (instream) delete instream;
         // Recreate connection now to new URL
         point.release_client(client_url,client.Release()); // return client to poll
-        client_url = transfer_info.location;
+        RedirectURL(client_url, transfer_info.location);
         logger.msg(VERBOSE,"Redirecting to %s",transfer_info.location.str());
         client = point.acquire_client(client_url);
         if (client) {
@@ -1259,7 +1272,7 @@ using namespace Arc;
         if (inbuf) delete inbuf;
         // Recreate connection now to new URL
         point.release_client(client_url,client.Release());
-        client_url = transfer_info.location;
+        RedirectURL(client_url, transfer_info.location);
         logger.msg(VERBOSE,"Redirecting to %s",transfer_info.location.str());
         client = point.acquire_client(client_url);
         if (client) {
@@ -1408,7 +1421,7 @@ using namespace Arc;
         // Got redirection response
         // Recreate connection now to new URL
         point.release_client(client_url,client.Release());
-        client_url = transfer_info.location;
+        RedirectURL(client_url, transfer_info.location);
         logger.msg(VERBOSE,"Redirecting to %s",transfer_info.location.str());
         client = point.acquire_client(client_url);
         if (client) {

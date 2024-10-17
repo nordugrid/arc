@@ -169,9 +169,13 @@ namespace Arc {
       } else {
         comp.NewChild("SystemCA") = "true";
       };
-      if(cfg.tlsallowinsecure) {
+      if (sec.ver == UseCredVerify) {
+        comp.NewChild("AllowInsecure") = "false";
+      } else if (sec.ver == NoCredVerify) {
         comp.NewChild("AllowInsecure") = "true";
-      };
+      } else if(cfg.tlsallowinsecure) {
+        comp.NewChild("AllowInsecure") = "true";
+      }
       comp.NewAttribute("entry") = "tls";
       if (sec.sec == SSL3Sec) comp.NewChild("Handshake") = "SSLv3";
       else if (sec.sec == TLS10Sec) comp.NewChild("Handshake") = "TLSv1.0";
@@ -398,6 +402,12 @@ namespace Arc {
       sec.cred = UseNoCred;
     } else if(credOption == "x509") {
       sec.cred = UseX509Cred;
+    }
+    std::string noVerifyOption = url.Option("allowinsecure");
+    if(noVerifyOption == "off") {
+      sec.ver = UseCredVerify;
+    } else if(noVerifyOption == "on") {
+      sec.ver = NoCredVerify;
     }
     return sec;
   }
