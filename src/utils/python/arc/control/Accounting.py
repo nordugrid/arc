@@ -396,6 +396,12 @@ class AccountingControl(ComponentControl):
             self.jobcontrol(args)
         elif args.action == 'republish':
             self.republish(args)
+        elif args.action == 'database':
+            if args.dbaction == 'optimize':
+                self.__init_adb()
+                self.adb.optimize()
+            else:
+                self.logger.critical('Unsupported accounting database action %s', args.dbaction)
         else:
             self.logger.critical('Unsupported accounting action %s', args.action)
             sys.exit(1)
@@ -454,6 +460,13 @@ class AccountingControl(ComponentControl):
         accounting_actions = accounting_ctl.add_subparsers(title='Accounting Actions', dest='action',
                                                            metavar='ACTION', help='DESCRIPTION')
         accounting_actions.required = True
+
+
+        accounting_database = accounting_actions.add_parser('database', help='Accounting database operations')
+        db_actions = accounting_database.add_subparsers(title='Accounting Database Actions', dest='dbaction',
+                                        metavar='DBACTION', help='DESCRIPTION')
+        db_actions.required = True
+        db_optimize = db_actions.add_parser('optimize', help='Optimize database query performance')
 
         # stats from accounting database
         accounting_stats = accounting_actions.add_parser('stats', help='Show A-REX AAR statistics')
