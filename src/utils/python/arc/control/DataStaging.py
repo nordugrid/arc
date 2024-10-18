@@ -4,6 +4,7 @@ import sys
 import re
 import glob
 import copy
+from datetime import datetime, timedelta
 
 try:
     from .Jobs import *
@@ -37,18 +38,17 @@ class DataStagingControl(ComponentControl):
         twindow = None
         if args.days:
             twindow =  datetime.timedelta(days=args.days)
-        if args.hours != 0:
-            """ This has a default of 1 hr """
+        if args.hours:
             if twindow:
                 twindow = twindow + datetime.timedelta(hours=args.hours)
             else:
                 twindow = datetime.timedelta(hours=args.hours)
-        if args.minutes != 0:
+        if args.minutes:
             if twindow:
                 twindow = twindow + datetime.timedelta(minutes=args.minutes)
             else:
                 twindow = datetime.timedelta(minutes=args.minutes)
-        if args.seconds != 0:
+        if args.seconds:
             if twindow:
                 twindow = twindow + datetime.timedelta(seconds=args.seconds)
             else:
@@ -404,6 +404,72 @@ class DataStagingControl(ComponentControl):
 
         return  state_counter
 
+
+
+    def ascii_histogram(self,data):
+
+        hist = {}
+
+        bin_edges = [0, 1, 5, 15, 30, 60, 180, 360, 720, 1440, 4320]
+        bin_labels = ['0-1m', '1-5m', '5-15m', '15-30m', '30-60m', '1-3h', '3-6h', '6-12h', '12-24h', '1d-3d','>3d']
+        duration_minutes = []
+
+
+        """ Initialize histogram dict """
+        for bin_edge in bin_edges:
+            hist[bin_edge] = 0
+
+            
+        for time_str in data:
+            time_delta = None
+            try:
+                time_delta = datetime.datetime.strptime(time_str, '%H:%M:%S')
+            except ValueError:
+                time_delta = datetime.datetime.strptime(time_str, '%H:%M:%S.%f')
+            except:
+                pass
+            """ Ignore seconds """
+            duration_minutes = time_delta.hour*60 + time_delta.minute
+
+            if duration_minutes >= bin_edges[0] and duration_minutes < bin_edges[1]:
+                hist[bin_edges[0]] +=1
+            elif duration_minutes >= bin_edges[1] and duration_minutes < bin_edges[2]:
+                hist[bin_edges[1]] +=1
+            elif duration_minutes >= bin_edges[2] and duration_minutes < bin_edges[3]:
+                hist[bin_edges[2]] +=1
+            elif duration_minutes >= bin_edges[3] and duration_minutes < bin_edges[4]:
+                hist[bin_edges[3]] +=1
+            elif duration_minutes >= bin_edges[4] and duration_minutes < bin_edges[5]:
+                hist[bin_edges[4]] +=1
+            elif duration_minutes >= bin_edges[5] and duration_minutes < bin_edges[6]:
+                hist[bin_edges[5]] +=1
+            elif duration_minutes >= bin_edges[6] and duration_minutes < bin_edges[7]:
+                hist[bin_edges[6]] +=1
+            elif duration_minutes >= bin_edges[7] and duration_minutes < bin_edges[8]:
+                hist[bin_edges[7]] +=1
+            elif duration_minutes >= bin_edges[8] and duration_minutes < bin_edges[9]:
+                hist[bin_edges[8]] +=1
+            elif duration_minutes >= bin_edges[9] and duration_minutes < bin_edges[10]:
+                hist[bin_edges[9]] +=1
+            else:
+                hist[bin_edges[10]] +=1
+
+
+        # Find the maximum count for scaling
+        max_count = max(hist.values())
+    
+        # Print the histogram
+        for bin_num, count in hist.items():
+            bin_idx = bin_edges.index(bin_num)
+            
+            bar = '\u2588' * int(50 * count / max_count)
+            print(f'{bin_labels[bin_idx]:>8}: {bar} ({count})')
+
+
+
+
+
+        
     def show_preparing_jobs(self,args):
         
         out,err=subprocess.Popen(['arcctl','job','list','-s','PREPARING'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
@@ -878,10 +944,15 @@ class DataStagingControl(ComponentControl):
         sorted_dict = sorted(done_dict.items(), key = lambda x: x[1]['dt'])
         print('\nSorted list of jobs where datastaging is done:')
         print('Number of jobs:  '+ str(len(sorted_dict)))
+        done_list = []
+        ongoing_list = []
         if sorted_dict:
             print(f"\t{'ARCID':<60} {'DURATION':<10} {'TIMESTAMP-START':<22} {'TIMESTAMP-DONE':<22}")
             for item in sorted_dict:
                 print(f"\t{item[0]:<60} {item[1]['dt']:<10} {item[1]['start']:<22} {item[1]['end']:<22}")
+                done_list.append(item[1]['dt'])
+        else:
+            print('\nNo jobs where datastaging is done.')   
 
         sorted_dict = sorted(ongoing_dict.items(), key = lambda x: x[1]['dt']) 
         if ongoing_dict:
@@ -890,6 +961,9 @@ class DataStagingControl(ComponentControl):
             print(f"\t{'ARCID':<60} {'DURATION':<10}")
             for item in sorted_dict:
                 print(f"\t{item[0]:<60} {item[1]['dt'].split('.')[0]:<10}")
+                ongoing_list.append(item[1]['dt'])
+        else:
+            print('\nNo jobs where datastaging is ongoing.')   
 
         sorted_dict = sorted(failed_dict.items(), key = lambda x: x[1]['dt']) 
         if failed_dict:
@@ -899,6 +973,18 @@ class DataStagingControl(ComponentControl):
             for item in sorted_dict:
                 print(f"\t{item[0]:<60} {item[1]['dt'].split('.')[0]:<10}")
 
+
+        if args.showhist:
+            if done_list:
+                print('\nHistogram of datastaging durations for jobs done with datastaging')
+                self.ascii_histogram(done_list)
+                print('\n')
+            if ongoing_list:
+                print('\nHistogram of datastaging durations for jobs with ongoing datastaging')
+                self.ascii_histogram(ongoing_list)
+                print('\n')
+
+            
     def summarycontrol(self,args):
         if args.summaryaction == 'jobs':
             self.show_summary_jobs(args)
@@ -984,18 +1070,18 @@ class DataStagingControl(ComponentControl):
         dds_summary_actions = dds_summary_ctl.add_subparsers(title='Job Datastaging Summary Menu',dest='summaryaction',metavar='ACTION',help='DESCRIPTION')
         dds_summary_actions.required = True
 
-        dds_summary_jobs = dds_summary_actions.add_parser('jobs',help='Show overview of the duration of datastaging for all jobs INLRMS or PREPARING status. If no timewindow is specified, all these jobs will be accounted for.')
-        dds_summary_jobs.add_argument('-d','--days',default=0,type=int,help='Modification time in days (default: %(default)s days)')
-        dds_summary_jobs.add_argument('-hr','--hours',default=0,type=int,help='Modification time in hours (default: %(default)s hour)')
-        dds_summary_jobs.add_argument('-m','--minutes',default=0,type=int,help='Modification time in minutes (default: %(default)s minutes)')
-        dds_summary_jobs.add_argument('-s','--seconds',default=0,type=int,help='Modification time in seconds (default: %(default)s seconds)')
-        
+        dds_summary_jobs = dds_summary_actions.add_parser('jobs',help='Show overview of the duration of datastaging for all jobs INLRMS or PREPARING status. If no timewindow is specified, all active jobs will be accounted for. If a timewindow is specified, only jobs that have had any activity in the errors file in the specified timewindow are included.')
+        dds_summary_jobs.add_argument('-d','--days',type=int,help='Timewindow in days.')
+        dds_summary_jobs.add_argument('-hr','--hours',type=int,help='Timewindow in hours.')
+        dds_summary_jobs.add_argument('-m','--minutes',type=int,help='Timewindow in minutes.')
+        dds_summary_jobs.add_argument('-s','--seconds',type=int,help='Timewindow in seconds.')
+        dds_summary_jobs.add_argument('-sh','--showhist',action='store_true',help='Print out ASCII histograms of the datastaging summary.')
 
-        dds_summary_files = dds_summary_actions.add_parser('files',help='Show the total number file and and total file-size downloaded for all jobs INLRMS or PREPARING status. If no timewindow is specified, all these jobs will be accounted for.')
-        dds_summary_files.add_argument('-d','--days',default=0,type=int,help='Modification time in days (default: %(default)s days)')
-        dds_summary_files.add_argument('-hr','--hours',default=0,type=int,help='Modification time in hours (default: %(default)s hour)')
-        dds_summary_files.add_argument('-m','--minutes',default=0,type=int,help='Modification time in minutes (default: %(default)s minutes)')
-        dds_summary_files.add_argument('-s','--seconds',default=0,type=int,help='Modification time in seconds (default: %(default)s seconds)')
+        dds_summary_files = dds_summary_actions.add_parser('files',help='Show the total number file and and total file-size downloaded for all jobs INLRMS or PREPARING status. If no timewindow is specified, all active jobs will be accounted for. If a timewindow is specified, only jobs that have had any activity in the errors file in the specified timewindow are included.')
+        dds_summary_files.add_argument('-d','--days',type=int,help='Timewindow in days.')
+        dds_summary_files.add_argument('-hr','--hours',type=int,help='Timewindow in hours.')
+        dds_summary_files.add_argument('-m','--minutes',type=int,help='Timewindow in minutes.')
+        dds_summary_files.add_argument('-s','--seconds',type=int,help='Timewindow in seconds.')
         
 
         """ Remote datadelivery services """
