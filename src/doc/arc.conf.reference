@@ -806,8 +806,8 @@
 
 ## controldir = path - The directory of the A-REX's internal job metadata files.
 ## For a heavy loaded computing elements you can consider to locate controldir on
-## a dedicated partition optimized for small random reads and writes.
-## The directory is not needed on the nodes.
+## a dedicated partition optimized for small random reads and writes and for
+## storing many small files. The directory is not needed on the nodes.
 ## default: /var/spool/arc/jobstatus
 #controldir=/var/spool/arc/jobstatus
 
