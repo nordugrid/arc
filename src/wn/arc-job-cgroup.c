@@ -16,6 +16,15 @@ static void usage(char *pname) {
     fprintf(stderr, "Options:\n  -m      Use memory controller\n  -c      Use cpuacct controller\n  -d      Delete cgroup (move processes to parent cgroup)\n  -n NAME Name of the nested cgroup to create\n\n");
 }
 
+static void* must_malloc(size_t n) {
+    void* p = malloc(n);
+    if (p == NULL) {
+        fprintf(stderr, "ERROR: Out of memory\n");
+        exit(1);
+    }
+    return p;
+}
+
 // Provide the path to the mountpoint where requested cgroup controller tree is mounted
 int get_cgroup_mount_root(const char *req_controller, char *cgroup_root_ptr) {
     FILE *proc_mount_fd = NULL;
@@ -24,16 +33,18 @@ int get_cgroup_mount_root(const char *req_controller, char *cgroup_root_ptr) {
         fprintf(stderr, "ERROR: Cannot read the /proc/mounts\n");
         return 1;
     }
-    // parse /proc/mounts looking for req_contrller in mount options
-    char *fs_spec = malloc(sizeof(char) * (FILENAME_MAX + 1));
-    char *fs_mount = malloc(sizeof(char) * (FILENAME_MAX + 1));
-    char fs_type[4096+1];
-    char fs_mntopts[4096+1];
+    // parse /proc/mounts looking for req_controller in mount options
+    char *fs_mount = must_malloc(FILENAME_MAX + 1);
+#define FS_BUFSIZE 4096
+    char fs_type[FS_BUFSIZE + 1];
+    char fs_mntopts[FS_BUFSIZE + 1];
     int fs_freq, fs_passno;
     char *mntopt;
     char *mntopt_pos;
     int found = 0;
-    while (!found && fscanf(proc_mount_fd, "%" STR(FILENAME_MAX) "s %" STR(FILENAME_MAX) "s %4096s %4096s %d %d\n", fs_spec, fs_mount, fs_type, fs_mntopts, &fs_freq, &fs_passno) == 6 ) {
+    // The skipped first field here is fs_spec.
+    while (!found && fscanf(proc_mount_fd, "%*s %" STR(FILENAME_MAX) "s %" STR(FS_BUFSIZE) "s %" STR(FS_BUFSIZE) "s %d %d\n",
+                            fs_mount, fs_type, fs_mntopts, &fs_freq, &fs_passno) == 6 ) {
         if (strcmp(fs_type, "cgroup")) continue;
         // split mount options to find the requested controller
         mntopt = strtok_r(fs_mntopts, ",", &mntopt_pos);
@@ -61,9 +72,9 @@ int get_cgroup_mount_root(const char *req_controller, char *cgroup_root_ptr) {
             mntopt = strtok_r(NULL, ",", &mntopt_pos);
         }
     }
-    free(fs_spec);
     free(fs_mount);
     fclose(proc_mount_fd);
+#undef FS_BUFSIZE
 
     if (!found) {
         fprintf(stderr, "ERROR: Cannot find cgroup mountpoint for %s controller\n", req_controller);
@@ -77,21 +88,22 @@ int get_cgroup_controller_path(pid_t pid, const char *req_controller, char *cgro
     char pid_cgroup_file[64];
     FILE *pid_cgroup_fd = NULL;
     // open the /proc/<PID>/cgroup file
-    snprintf(pid_cgroup_file, 64, "/proc/%d/cgroup", (int)pid);
+    snprintf(pid_cgroup_file, sizeof(pid_cgroup_file), "/proc/%d/cgroup", (int)pid);
     pid_cgroup_fd = fopen(pid_cgroup_file, "r");
     if (!pid_cgroup_fd) {
         fprintf(stderr, "ERROR: Failed to open %s\n", pid_cgroup_file);
         return 1;
     }
     // parse process cgroups looking for req_controller path
-    char controllers[64];
-    char *controllers_path = malloc(sizeof(char) * (FILENAME_MAX + 1));
+#define CONTROLLERS_SIZE 64
+    char controllers[CONTROLLERS_SIZE + 1];
+    char *controllers_path = must_malloc(FILENAME_MAX + 1);
     int idx;
     char *controller = NULL;
     char *controller_pos = NULL;
     int found = 0;
     // and find the requested controller path
-    while (!found && fscanf(pid_cgroup_fd, "%d:%64[^:]:%"STR(FILENAME_MAX)"[^\n]\n", &idx, controllers, controllers_path) == 3 ){
+    while (!found && fscanf(pid_cgroup_fd, "%d:%"STR(CONTROLLERS_SIZE)"[^:]:%"STR(FILENAME_MAX)"[^\n]\n", &idx, controllers, controllers_path) == 3 ){
         controller = strtok_r(controllers, ",", &controller_pos);
         while (controller) {
             if ((strncmp(req_controller, controller, strlen(req_controller) + 1) == 0) && (controller[strlen(req_controller)] == ',' || controller[strlen(req_controller)] == '\0')) {
@@ -113,6 +125,7 @@ int get_cgroup_controller_path(pid_t pid, const char *req_controller, char *cgro
     }
     free(controllers_path);
     fclose(pid_cgroup_fd);
+#undef CONTROLLERS_SIZE
 
     if (!found) {
         fprintf(stderr, "ERROR: Cannot find %s cgroup controller for PID %d\n", req_controller, pid);
@@ -124,7 +137,7 @@ int get_cgroup_controller_path(pid_t pid, const char *req_controller, char *cgro
 // Create a new cgroup and move process with defined PID to it
 int move_pid_to_cgroup(pid_t pid, const char *cgroup_path) {
     FILE *cgroup_tasks = NULL;
-    char *task_path = malloc(sizeof(char) * (FILENAME_MAX + 1));
+    char *task_path = must_malloc(FILENAME_MAX + 1);
     // change umask to avoid too restrictive values
     umask(S_IWGRP | S_IWOTH);
     // create cgroup
@@ -181,8 +194,8 @@ int move_pid_to_cgroup(pid_t pid, const char *cgroup_path) {
 
 // Remove cgroup (moving all processed to parent cgroup)
 int move_pids_to_parent_cgroup(const char *cgroup_path, const char *cgroup_root) {
-    char *parent_cgroup_path =  malloc(sizeof(char) * (FILENAME_MAX + 1));
-    char *current_cgroup_path =  malloc(sizeof(char) * (FILENAME_MAX + 1));
+    char *parent_cgroup_path = must_malloc(FILENAME_MAX + 1);
+    char *current_cgroup_path = must_malloc(FILENAME_MAX + 1);
     strncpy(current_cgroup_path, cgroup_path, FILENAME_MAX); current_cgroup_path[FILENAME_MAX] = '\0';
     strncpy(parent_cgroup_path, cgroup_path, FILENAME_MAX); parent_cgroup_path[FILENAME_MAX] = '\0';
     // check for top-level cgroup
@@ -285,9 +298,9 @@ int main(int argc, char *argv[]) {
         usage(argv[0]);
         return 1;
     }
-    char *cgroup_root = malloc(sizeof(char) * (FILENAME_MAX + 1));
-    char *controller_path = malloc(sizeof(char) * (FILENAME_MAX + 1));
-    char *cgroup_path = malloc(sizeof(char) * (FILENAME_MAX + 1));
+    char *cgroup_root = must_malloc(FILENAME_MAX + 1);
+    char *controller_path = must_malloc(FILENAME_MAX + 1);
+    char *cgroup_path = must_malloc(FILENAME_MAX + 1);
     int retval = 1;
     do {
         // get cgroup root mount
