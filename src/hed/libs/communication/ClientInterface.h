@@ -85,15 +85,22 @@ namespace Arc {
     UseX509Cred  //< Use X.509 user credentilas for TLS/GSI
   };
 
+  enum CredentialVerify {
+    DefaultCredVerify,
+    NoCredVerify,      //< Do not verify remote side's validity
+    UseCredVerify,      //< Do verify remote side's validity
+  };
+
   class TCPSec {
   public:
     SecurityLayer sec;
     EncryptionLevel enc;
     CredentialUse cred;
-    TCPSec(void):sec(NoSec),enc(NoEnc),cred(UseNoCred) { };
-    TCPSec(SecurityLayer s):sec(s),enc((s==NoSec)?NoEnc:RequireEnc),cred(UseX509Cred) { };
-    TCPSec(SecurityLayer s, EncryptionLevel e):sec(s),enc(e),cred(UseX509Cred) { };
-    TCPSec(SecurityLayer s, EncryptionLevel e, CredentialUse u):sec(s),enc(e),cred(u) { };
+    CredentialVerify ver;
+    TCPSec(void):sec(NoSec),enc(NoEnc),cred(UseNoCred),ver(DefaultCredVerify) { };
+    TCPSec(SecurityLayer s):sec(s),enc((s==NoSec)?NoEnc:RequireEnc),cred(UseX509Cred),ver(DefaultCredVerify) { };
+    TCPSec(SecurityLayer s, EncryptionLevel e):sec(s),enc(e),cred(UseX509Cred),ver(DefaultCredVerify) { };
+    TCPSec(SecurityLayer s, EncryptionLevel e, CredentialUse u, CredentialVerify v):sec(s),enc(e),cred(u),ver(v) { };
   };
 
   //! Class for setting up a MCC chain for TCP communication
