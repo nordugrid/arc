@@ -475,7 +475,10 @@ class AccountingControl(ComponentControl):
     def db_optimize(self, args):
         self.__init_adb()
         # set filters for publishing and stats queries we ANALYZE
-        self.adb.filter_endfrom(args.end_from)
+        if args.end_from:
+            self.adb.filter_endfrom(args.end_from)
+        else:
+            self.adb.filter_endfrom(datetime.datetime.today() - datetime.timedelta(days=14))
         if args.end_till:
             self.adb.filter_endtill(args.end_till)
         self.adb.filter_statuses(['completed', 'failed'])
@@ -642,8 +645,8 @@ class AccountingControl(ComponentControl):
         db_backup.add_argument('--location', help='Database backup file path', required=True)
 
         db_optimize = db_actions.add_parser('optimize', help='Optimize database query performance')
-        db_optimize.add_argument('-b', '--end-from', type=valid_datetime_type, required=True,
-                                help='Define time range start for ANALYSE queries (YYYY-MM-DD [HH:mm[:ss]])')
+        db_optimize.add_argument('-b', '--end-from', type=valid_datetime_type, required=False,
+                                help='Define time range start for ANALYSE queries (YYYY-MM-DD [HH:mm[:ss]]). Default is 2 weeks ago.')
         db_optimize.add_argument('-e', '--end-till', type=valid_datetime_type, required=False,
                                 help='Optionally define to which point in time migrate records (YYYY-MM-DD [HH:mm[:ss]]).')
 
