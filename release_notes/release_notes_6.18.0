@@ -3,16 +3,29 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.X.X     XX.XX.XXXX
+Release Notes for NorduGrid ARC  6.18.0     24.10.2023
 =======================================================
 
 
 Highlights in this release
 --------------------------
+While waiting for ARC 7, we release ARC 6.18.0 in order to publish some useful bugfixes and other minor changes.
+The highlight being the availability of the new HEPscore23 benchmark type (https://source.coderefinery.org/nordugrid/arc/-/merge_requests/1594). 
 
 
 The following Bugzilla tickets have been adressed or solved
 ------------------------------------------------------------
+* 4132  Invalid CSR version reported
+* 4130  ARC-CE does not see suspended jobs in slurm
+* 4119  Warning message for arctest -J 2 job
+* 4110  arcstat -a fails to return info on all jobs Failed to process job:
+* 4109  arcstat -J json parsing error
+* 4100  Infinite loop in arcproxy (GGUS:159426)
+* 4034  arcctl accounting republish:: time-like arguments should be validated (ordering)
+* 4029  Protection against empty EndpointURL in Endpoints table
+* 3981  arcctl config brief and dump uses the last config files specified by arcctl -c FILE
+* 3969  arcctl rte params-set fails for int parameter
+
 
 
 
@@ -57,38 +70,15 @@ Getting in touch
 If you need help with the configuration file or have any other questions related to ARC 6, please contact us via
 * Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
 * Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
-* Report a bug: https://bugzilla.nordugrid.org/
 
 
-
-
-Coming ARC 7 release
-=====================
-Start getting ready for ARC 7. We expect a release after summer. You can already now install the testing version of ARC following: http://www.nordugrid.org/arc/arc7/common/repos/testing-repository.html. For upgrade instructions, please see: http://www.nordugrid.org/arc/arc7/admins/migrating6to7.html.
-
-The support policy of ARC 6 will follow the same policy we had for ARC 5: 1 year security updates, no more development of ARC 6 once ARC 7 is out.
-
-Installing from EPEL:
-----------------------
-Once the release is out, it can be installed from EPEL using package-name types: nordugrid-arc7-*
-
-
-Future support of ARC 5-series
+Support of ARC 5-series
 ===============================
-As of June 2020 no more security updates are provided to ARC 5.
-Also since the release of ARC 6 in June 2019, no more development on the ARC 5 code base has been provided.
-
-
-ARC5 is available in EPEL7 and will stay there. EPEL8 will only contain ARC 6.
-To install ARC 6 from EPEL7 the package-names are of type: nordugrid-arc6-* 
-
+* As of June 2020 no more security updates are provided to ARC 5.
+* Since the release of ARC 6 in June 2019, no more development on the ARC 5 code base has been provided.
 
 
 Known issues
 ==============
-* Related to the accounting system introduded in release 6.4.0: 
-  * Accounting records created by ARC 6.4.0 are affected by a bug causing missing benchmark values:
-   https://bugzilla.nordugrid.org./show_bug.cgi?id=3921#c3
-   Recommendations are to update to a newer version of ARC.
-   The bugreport gives instructions on how to manually fix the wrong benchmark values.
+* The arcctl deploy -e option is currently out of function due to an EGI server change. 
 

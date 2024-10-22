@@ -540,11 +540,17 @@ namespace Arc {
     case Job::SESSIONDIR:
       break;
     case Job::JOBLOG:
-    case Job::JOBDESCRIPTION:
+    case Job::JOBDESCRIPTION: {
       std::string path = url.Path();
       path.insert(path.rfind('/'), "/info");
       url.ChangePath(path + (resource == Job::JOBLOG ? "/errors" : "/description"));
+    }; break;
+    case Job::LOGDIR:
+      url = URL(); // Do not provide log dir url because log files are available through stageout dir
       break;
+    default:
+      url = URL();
+      return false;
     }
 
     return true;
@@ -571,7 +577,7 @@ namespace Arc {
     std::string localfile = Glib::build_filename(Glib::get_tmp_dir(), tmpfile);
     URL dest_url(localfile);
 
-    if (!Job::CopyJobFile(*usercfg, source_url, dest_url)) {
+    if (!Job::CopyJobFile(*usercfg, source_url, dest_url, true)) {
       return false;
     }
 

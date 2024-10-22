@@ -96,7 +96,7 @@ static void RenderToJson(Arc::XMLNode xml, std::string& output, int depth = 0) {
             XMLNode child = xml.Attribute(n);
             if (!child) break;
             if(n != 0) output += ",";
-            std::string val = json_encode((std::string)xml);
+            std::string val = json_encode((std::string)child);
             output += "\"";
             output += child.Name();
             output += "\":\"";

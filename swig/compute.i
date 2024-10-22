@@ -441,6 +441,9 @@ template <class Type> struct traits_from<const Type *> {
 %rename(_ServiceEndpointRetrieverPluginTESTControl) Arc::ServiceEndpointRetrieverPluginTESTControl;
 %rename(_TargetInformationRetrieverPluginTESTControl) Arc::TargetInformationRetrieverPluginTESTControl;
 #endif
+#if SWIG_VERSION < 0x040201
+%typemap(varout) std::list< Arc::SimpleCondition * >;
+#endif
 %include "../src/hed/libs/compute/TestACCControl.h"
 %template(EndpointListList) std::list< std::list<Arc::Endpoint> >;
 %template(EndpointQueryingStatusList) std::list<Arc::EndpointQueryingStatus>;

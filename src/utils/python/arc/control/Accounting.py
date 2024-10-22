@@ -318,6 +318,11 @@ class AccountingControl(ComponentControl):
             targetconf['apel_messages'] = args.apel_messages
         elif required:
             targetconf['apel_messages'] = 'summaries'
+        # configurable APEL project
+        if args.apel_project is not None:
+            targetconf['project'] = args.apel_project
+        elif required:
+            targetconf['project'] = 'accounting'
         # gocdb is mandatory (if not specified, check will fail in __check_target_confdict during republish)
         if args.gocdb_name is not None:
             targetconf['gocdb_name'] = args.gocdb_name
@@ -349,6 +354,9 @@ class AccountingControl(ComponentControl):
         targetid = None
         confrequired = True
         publisher = RecordsPublisher(self.arcconfig)
+        if args.end_from > args.end_till:
+            self.logger.error('Republishing timeframe specified incorrectly: "--end-from" cannot be later that "--end-till"')
+            sys.exit(1)
         if args.target_name is not None:
             targetid = args.target_name
             (targetconf, targettype) = publisher.find_configured_target(targetid)
@@ -388,6 +396,12 @@ class AccountingControl(ComponentControl):
             self.jobcontrol(args)
         elif args.action == 'republish':
             self.republish(args)
+        elif args.action == 'database':
+            if args.dbaction == 'optimize':
+                self.__init_adb()
+                self.adb.optimize()
+            else:
+                self.logger.critical('Unsupported accounting database action %s', args.dbaction)
         else:
             self.logger.critical('Unsupported accounting action %s', args.action)
             sys.exit(1)
@@ -446,6 +460,13 @@ class AccountingControl(ComponentControl):
         accounting_actions = accounting_ctl.add_subparsers(title='Accounting Actions', dest='action',
                                                            metavar='ACTION', help='DESCRIPTION')
         accounting_actions.required = True
+
+
+        accounting_database = accounting_actions.add_parser('database', help='Accounting database operations')
+        db_actions = accounting_database.add_subparsers(title='Accounting Database Actions', dest='dbaction',
+                                        metavar='DBACTION', help='DESCRIPTION')
+        db_actions.required = True
+        db_optimize = db_actions.add_parser('optimize', help='Optimize database query performance')
 
         # stats from accounting database
         accounting_stats = accounting_actions.add_parser('stats', help='Show A-REX AAR statistics')
@@ -506,7 +527,8 @@ class AccountingControl(ComponentControl):
                                   choices=['gLite-APEL', '/queue/global.accounting.test.cpu.central'])
         apel_options.add_argument('--apel-messages', required=False,
                                   help='Define APEL messages (default is summaries)',
-                                  choices=['urs', 'summaries'])
+                                  choices=['urs', 'summaries', 'summaries-v04'])
+        apel_options.add_argument('--apel-project', required=False, help='Define APEL project (default is "accounting")')
         apel_options.add_argument('--gocdb-name', required=False, help='(Re)define GOCDB site name')
 
         sgas_options = accounting_republish.add_argument_group(title='SGAS',

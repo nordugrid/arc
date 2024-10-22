@@ -37,7 +37,7 @@ namespace Arc {
     //! like HTTP header.
     JWSE(std::string const& jwseCompact);
 
-    //! Default contructor creates valid Token
+    //! Default constructor creates valid Token
     //! with empty information.
     JWSE();    
 

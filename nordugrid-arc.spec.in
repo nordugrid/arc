@@ -195,6 +195,10 @@ Obsoletes:	%{name}-ldap-infosys < 6.0.0
 Obsoletes:	%{name}-aris < 6.0.0
 %endif
 
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool
+BuildRequires:	make
 BuildRequires:	gcc-c++
 BuildRequires:	cppunit-devel
 BuildRequires:	pkgconfig
@@ -202,12 +206,8 @@ BuildRequires:	pkgconfig
 BuildRequires:	systemd
 BuildRequires:	systemd-devel
 %endif
-%if %{?fedora}%{!?fedora:0} >= 12 || %{?rhel}%{!?rhel:0} >= 6 || %{?suse_version:1}%{!?suse_version:0}
 BuildRequires:	libuuid-devel
-%else
-BuildRequires:	e2fsprogs-devel
-%endif
-BuildRequires:	gettext
+BuildRequires:	gettext-devel
 %if %{with_python2}
 BuildRequires:	python2-devel
 %endif
@@ -983,6 +983,7 @@ if pkg-config --atleast-version 2.6 sigc++-2.0 ; then
   fi
 fi
 
+autoreconf -v -f -i
 %configure --disable-static \
 %if ! %{with_acix}
      --disable-acix \
@@ -1494,6 +1495,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/PerfData.pl
 %{_datadir}/%{pkgdir}/arc-arex-start
 %{_datadir}/%{pkgdir}/arc-arex-ws-start
+%dir %{_datadir}/%{pkgdir}/sql-schema
 %{_datadir}/%{pkgdir}/sql-schema/arex_accounting_db_schema_v1.sql
 %doc %{_mandir}/man1/arc-config-check.1*
 %doc %{_mandir}/man1/cache-clean.1*

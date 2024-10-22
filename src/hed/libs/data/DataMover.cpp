@@ -48,6 +48,7 @@ namespace Arc {
       force_registration(false),
       do_checks(true),
       do_retries(true),
+      do_retries_retryable(true),
       default_min_speed(0),
       default_min_speed_time(0),
       default_min_average_speed(0),
@@ -80,6 +81,14 @@ namespace Arc {
 
   void DataMover::retry(bool val) {
     do_retries = val;
+  }
+
+  bool DataMover::retry_retryable() {
+    return do_retries_retryable;
+  }
+
+  void DataMover::retry_retryable(bool val) {
+    do_retries_retryable = val;
   }
 
   bool DataMover::checks() {
@@ -328,8 +337,10 @@ namespace Arc {
       else
         logger.msg(ERROR, "Failed to resolve source: %s", source.str());
       source.NextTry(); /* try again */
-      if (!do_retries)
-        return dres;
+      if (!do_retries) {
+        if(!do_retries_retryable || !dres.Retryable())
+          return dres;
+      }
       if (!source.LocationValid())
         return dres;
     }
@@ -345,8 +356,10 @@ namespace Arc {
       else
         logger.msg(ERROR, "Failed to resolve destination: %s", destination.str());
       destination.NextTry(); /* try again */
-      if (!do_retries)
-        return dres;
+      if (!do_retries) {
+        if(!do_retries_retryable || !dres.Retryable())
+          return dres;
+      }
       if (!destination.LocationValid())
         return dres;
     }
@@ -398,8 +411,10 @@ namespace Arc {
           }
           logger.msg(INFO, "Failed to delete %s", del_url.str());
           destination.NextTry(); /* try again */
-          if (!do_retries)
-            return res;
+          if (!do_retries) {
+            if(!do_retries_retryable || !res.Retryable())
+              return res;
+          }
           if ((--try_num) <= 0)
             return res;
         }
@@ -416,8 +431,10 @@ namespace Arc {
               logger.msg(ERROR, "Failed to resolve destination: %s",
                          destination.str());
             destination.NextTry(); /* try again */
-            if (!do_retries)
-              return dres;
+            if (!do_retries) {
+              if(!do_retries_retryable || !dres.Retryable())
+                return dres;
+            }
             if (!destination.LocationValid())
               return dres;
           }
@@ -436,7 +453,7 @@ namespace Arc {
     for (try_num = 0;; try_num++) { /* cycle for retries */
       Glib::Mutex::Lock lock(lock_);
       logger.msg(VERBOSE, "DataMover: cycle");
-      if ((try_num != 0) && (!do_retries)) {
+      if ((try_num != 0) && (!do_retries && (!do_retries_retryable || !res.Retryable()))) {
         logger.msg(VERBOSE, "DataMover: no retries requested - exit");
         return res;
       }

@@ -86,115 +86,118 @@ namespace Arc {
     // - if lock exists check pid and host
     //   - if lock has timed out or pid no longer exists delete it and go back to start
 
-    struct stat fileStat;
-    if (!FileStat(lock_file, &fileStat, false)) {
-      if (errno == EACCES) {
-        logger.msg(ERROR, "EACCES Error opening lock file %s: %s", lock_file, StrError(errno));
-        return false;
-      }
-      else if (errno != ENOENT) {
-        // some other error occurred opening the lock file
-        logger.msg(ERROR, "Error opening lock file %s in initial check: %s", lock_file, StrError(errno));
-        return false;
-      }
-      // lock does not exist - create tmp file
-      std::string tmpfile = lock_file + ".XXXXXX";
-      std::string lock_content = use_pid ? pid + "@" + hostname : "";
-      if (!TmpFileCreate(tmpfile, lock_content)) {
-        logger.msg(ERROR, "Error creating temporary file %s: %s", tmpfile, StrError(errno));
-        return false;
-      }
-      // create lock by creating hard link - should be an atomic operation
-      errno = EPERM; // Workaround for systems without links is open with O_EXCL
-      if (!FileLink(tmpfile.c_str(), lock_file.c_str(), false)) {
-        remove(tmpfile.c_str());
-        if (errno == EEXIST) {
-          // another process got there first
-          logger.msg(INFO, "Could not create link to lock file %s as it already exists", lock_file);
-          // should recursion depth be limited somehow?
-          return acquire_(lock_removed);
-        } else if (errno == EPERM) {
-          // Most probably links not supported
-          // Trying to create lock file
-          // Which permissions should it have?
-          int h = ::open(lock_file.c_str(),O_WRONLY|O_CREAT|O_EXCL,S_IRUSR|S_IWUSR);
-          if(h == -1) {
-            if(errno == EEXIST) {
-              // lock is taken
-              logger.msg(INFO, "Could not create lock file %s as it already exists", lock_file);
-              // should recursion depth be limited somehow?
-              return acquire_(lock_removed);
+    while(true) {
+      struct stat fileStat;
+      if (!FileStat(lock_file, &fileStat, false)) {
+        if (errno == EACCES) {
+          logger.msg(ERROR, "EACCES Error opening lock file %s: %s", lock_file, StrError(errno));
+          return false;
+        } else if (errno != ENOENT) {
+          // some other error occurred opening the lock file
+          logger.msg(ERROR, "Error opening lock file %s in initial check: %s", lock_file, StrError(errno));
+          return false;
+        }
+        // lock does not exist - create tmp file
+        std::string tmpfile = lock_file + ".XXXXXX";
+        std::string lock_content = use_pid ? pid + "@" + hostname : "";
+        if (!TmpFileCreate(tmpfile, lock_content)) {
+          logger.msg(ERROR, "Error creating temporary file %s: %s", tmpfile, StrError(errno));
+          return false;
+        }
+        // create lock by creating hard link - should be an atomic operation
+        errno = EPERM; // Workaround for systems without links and link() is open with O_EXCL or just return true
+        if (!FileLink(tmpfile.c_str(), lock_file.c_str(), false)) {
+          int err = errno;
+          remove(tmpfile.c_str());
+          if (err == EEXIST) {
+            // another process got there first
+            logger.msg(INFO, "Could not create link to lock file %s as it already exists", lock_file);
+            sleep(1);
+            continue; // retry
+          } else if (err == EPERM) {
+            // Most probably links not supported
+            // Trying to create lock file instead
+            // Which permissions should it have?
+            int h = ::open(lock_file.c_str(),O_WRONLY|O_CREAT|O_EXCL,S_IRUSR|S_IWUSR);
+            if(h == -1) {
+              if(errno == EEXIST) {
+                // lock is taken
+                logger.msg(INFO, "Could not create lock file %s as it already exists", lock_file);
+                sleep(1);
+                continue; // retry 
+              }
+              logger.msg(ERROR, "Error creating lock file %s: %s", lock_file, StrError(errno));
+              return false;
             }
-            logger.msg(ERROR, "Error creating lock file %s: %s", lock_file, StrError(errno));
-            return false;
-          }
-          // success
-          if (!write_pid(h)) {
-            logger.msg(ERROR, "Error writing to lock file %s: %s", lock_file, StrError(errno));
-            remove(lock_file.c_str());
+            // success - for filesystems without hardlinks 
+            if (!write_pid(h)) {
+              logger.msg(ERROR, "Error writing to lock file %s: %s", lock_file, StrError(errno));
+              remove(lock_file.c_str());
+              close(h);
+              return false;
+            }
             close(h);
+            // fall through to success handling code
+          } else {
+            logger.msg(ERROR, "Error linking tmp file %s to lock file %s: %s", tmpfile, lock_file, StrError(errno));
             return false;
           }
-          close(h);
-          // fall through to success handling code
         } else {
-          logger.msg(ERROR, "Error linking tmp file %s to lock file %s: %s", tmpfile, lock_file, StrError(errno));
+          // success - for filesystems with hardlinks 
+          remove(tmpfile.c_str());
+        }
+        // success creating lock file - check it's really there with the correct pid and hostname
+        if (check(true) != 0) {
+          logger.msg(ERROR, "Error in lock file %s, even though linking did not return an error", lock_file);
           return false;
         }
-      }
-      else {
-        remove(tmpfile.c_str());
-      }
-      // check it's really there with the correct pid and hostname
-      if (check(true) != 0) {
-        logger.msg(ERROR, "Error in lock file %s, even though linking did not return an error", lock_file);
+      } else {
+        // the lock already exists, check if it has expired
+        // look at modification time
+        time_t mod_time = fileStat.st_mtime;
+        time_t now = time(NULL);
+        logger.msg(VERBOSE, "%li seconds since lock file %s was created", now - mod_time, lock_file);
+
+        if ((now - mod_time) > timeout) {
+          logger.msg(VERBOSE, "Timeout has expired, will remove lock file %s", lock_file);
+          // TODO: kill the process holding the lock, only if we know it was the original
+          // process which created it
+          if (remove(lock_file.c_str()) != 0 && errno != ENOENT) {
+            logger.msg(ERROR, "Failed to remove stale lock file %s: %s", lock_file, StrError(errno));
+            return false;
+          }
+          // lock has expired and has been removed. Retry acquire() again
+          lock_removed = true;
+          sleep(1);
+          continue;
+        }
+
+        // lock is still valid, check if we own it
+        int lock_pid = check(false);
+        if (lock_pid == 0) {
+          // safer to wait until lock expires than risk corruption
+          logger.msg(INFO, "This process already owns the lock on %s", filename);
+        } else if (lock_pid != -1) {
+          // check if the pid owning the lock is still running - if not we can claim the lock
+          if (kill(lock_pid, 0) != 0 && errno == ESRCH) {
+            logger.msg(VERBOSE, "The process owning the lock on %s is no longer running, will remove lock", filename);
+            if (remove(lock_file.c_str()) != 0 && errno != ENOENT) {
+              logger.msg(ERROR, "Failed to remove file %s: %s", lock_file, StrError(errno));
+              return false;
+            }
+            // retry acquire() again
+            lock_removed = true;
+            sleep(1);
+            continue;
+          }
+        }
+        logger.msg(VERBOSE, "The file %s is currently locked with a valid lock", filename);
         return false;
       }
+
+      // if we get to here we have acquired the lock
+      break;
     }
-    else {
-      // the lock already exists, check if it has expired
-      // look at modification time
-      time_t mod_time = fileStat.st_mtime;
-      time_t now = time(NULL);
-      logger.msg(VERBOSE, "%li seconds since lock file %s was created", now - mod_time, lock_file);
-
-      if ((now - mod_time) > timeout) {
-        logger.msg(VERBOSE, "Timeout has expired, will remove lock file %s", lock_file);
-        // TODO: kill the process holding the lock, only if we know it was the original
-        // process which created it
-        if (remove(lock_file.c_str()) != 0 && errno != ENOENT) {
-          logger.msg(ERROR, "Failed to remove stale lock file %s: %s", lock_file, StrError(errno));
-          return false;
-        }
-        // lock has expired and has been removed. Call acquire() again
-        lock_removed = true;
-        return acquire_(lock_removed);
-      }
-
-      // lock is still valid, check if we own it
-      int lock_pid = check(false);
-      if (lock_pid == 0) {
-        // safer to wait until lock expires than risk corruption
-        logger.msg(INFO, "This process already owns the lock on %s", filename);
-      }
-      else if (lock_pid != -1) {
-        // check if the pid owning the lock is still running - if not we can claim the lock
-        if (kill(lock_pid, 0) != 0 && errno == ESRCH) {
-          logger.msg(VERBOSE, "The process owning the lock on %s is no longer running, will remove lock", filename);
-          if (remove(lock_file.c_str()) != 0 && errno != ENOENT) {
-            logger.msg(ERROR, "Failed to remove file %s: %s", lock_file, StrError(errno));
-            return false;
-          }
-          // call acquire() again
-          lock_removed = true;
-          return acquire_(lock_removed);
-        }
-      }
-      logger.msg(VERBOSE, "The file %s is currently locked with a valid lock", filename);
-      return false;
-    }
-
-    // if we get to here we have acquired the lock
     return true;
   }
 

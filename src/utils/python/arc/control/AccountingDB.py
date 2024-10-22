@@ -99,6 +99,26 @@ class AccountingDB(object):
             self.con.close()
             self.con = None
 
+    def adb_commit(self):
+        """Commit transaction"""
+        if self.con is not None:
+            self.logger.debug('Commiting changes to accounting database')
+            self.con.commit()
+
+    def optimize(self):
+        """Make sure indexes are in place and run database ANALYZE after typical queries"""
+        self.adb_connect()
+        # run optimize queries playbook
+        for q in _DATABASE_OPTIMIZE:
+            self.logger.info(q['info'])
+            self.__filtered_query(q['sql'], errorstr='Failed to run the optimize query', filtered=False)
+            self.adb_commit()
+        # run ANALYZE
+        self.logger.info('Analyzing the database to optimize query performance')
+        self.__filtered_query('PRAGMA optimize', errorstr='Failed to run PRAGMA optimize', filtered=False)
+        self.adb_commit()
+        self.adb_close()
+
     def __del__(self):
         self.adb_close()
         self.publishing_db_close()
@@ -341,20 +361,21 @@ class AccountingDB(object):
         """Remove all defined SQL query filters"""
         self.sqlfilter.clean()
 
-    def __filtered_query(self, sql, params=(), errorstr=''):
+    def __filtered_query(self, sql, params=(), errorstr='', filtered=True):
         """Add defined filters to SQL query and execute it returning the results iterator"""
         # NOTE: this function does not close DB connection and return sqlite3.Cursor object on successful query
-        if not self.sqlfilter.isresult():
-            return []
-        if '<FILTERS>' in sql:
-            # substitute filters to <FILTERS> placeholder if defined
-            sql = sql.replace('<FILTERS>', self.sqlfilter.getsql())
-        else:
-            # add to the end of query otherwise
-            if 'WHERE' not in sql:
-                sql += ' WHERE 1=1'  # verified that this does not affect performance
-            sql += ' ' + self.sqlfilter.getsql()
-        params += self.sqlfilter.getparams()
+        if filtered:
+            if not self.sqlfilter.isresult():
+                return []
+            if '<FILTERS>' in sql:
+                # substitute filters to <FILTERS> placeholder if defined
+                sql = sql.replace('<FILTERS>', self.sqlfilter.getsql())
+            else:
+                # add to the end of query otherwise
+                if 'WHERE' not in sql:
+                    sql += ' WHERE 1=1'  # verified that this does not affect performance
+                sql += ' ' + self.sqlfilter.getsql()
+            params += self.sqlfilter.getparams()
         self.adb_connect()
         try:
             res = self.con.execute(sql, params)
@@ -572,6 +593,14 @@ class AccountingDB(object):
             if extra_data is not None and rid in extra_data:
                 a.aar['JobExtraInfo'] = extra_data[rid]
 
+    def __format_apel_submithost(self, endpointid):
+        """Return endpoint string for APEL SubmitHost"""
+        (etype, eurl) = self.endpoints['byid'][endpointid]
+        # return URL for gridftp and emies for backward compatibility
+        if etype == 'org.ogf.glue.emies.activitycreation' or etype == 'org.nordugrid.gridftpjob':
+            return eurl
+        return '{0}:{1}'.format(etype.lstrip('org.nordugrid.'), eurl)
+
     def get_apel_summaries(self):
         """Return info corresponding to APEL aggregated summary records"""
         summaries = []
@@ -597,12 +626,13 @@ class AccountingDB(object):
                      WHERE 1=1 <FILTERS>) a
               LEFT JOIN ( SELECT * FROM JobExtraInfo
                           WHERE JobExtraInfo.RecordID >= {0} AND JobExtraInfo.RecordID <= {1}
-                          AND JobExtraInfo.InfoKey = "benchmark" ) e ON e.RecordID = a.RecordID
+                          AND JobExtraInfo.InfoKey = "benchmark" GROUP BY JobExtraInfo.RecordID ) e
+                          ON e.RecordID = a.RecordID
               LEFT JOIN ( SELECT * FROM AuthTokenAttributes
                           WHERE AuthTokenAttributes.RecordID >= {0} AND AuthTokenAttributes.RecordID <= {1}
                           AND AuthTokenAttributes.AttrKey = "mainfqan" ) t ON t.RecordID = a.RecordID
               GROUP BY YearMonth, a.UserID, a.VOID, a.EndpointID,
-                       a.NodeCount, a.CPUCount, RBenchmark'''.format(record_start, record_end)
+                       a.NodeCount, a.CPUCount, AuthToken, RBenchmark'''.format(record_start, record_end)
         self.__fetch_users()
         self.__fetch_wlcgvos()
         self.__fetch_endpoints()
@@ -614,7 +644,7 @@ class AccountingDB(object):
                 'month': month.lstrip('0'),
                 'userdn': self.users['byid'][res[0]],
                 'wlcgvo': self.wlcgvos['byid'][res[1]],
-                'endpoint': self.endpoints['byid'][res[2]][1],
+                'endpoint': self.__format_apel_submithost(res[2]),
                 'nodecount': res[3],
                 'cpucount': res[4],
                 'fqan': res[5],
@@ -640,7 +670,7 @@ class AccountingDB(object):
                 'year': year,
                 'month': month.lstrip('0'),
                 'count': res[1],
-                'endpoint': self.endpoints['byid'][res[2]][1]
+                'endpoint': self.__format_apel_submithost(res[2])
             })
         self.adb_close()
         return syncs
@@ -813,8 +843,30 @@ class AAR(object):
 
     # info that requires processing
     def submithost(self):
-        submithost = self.aar['EndpointURL']
-        submithost = submithost.split(':')[1][2:]  # http://[example.org]:443/jobs..
+        split_url = self.aar['EndpointURL'].split(':')
+        if len(split_url) < 2:
+            self.logger.error('Endpoint URL "%s" does not comply with URL syntax for AAR %s. Returning empty string.',
+                              self.aar['EndpointURL'], self.aar['RecordID'])
+            return ''
+        submithost = split_url[1][2:]  # http://[example.org]:443/jobs..
         submithost = submithost.split('/')[0]  # [exmple.org]/jobs...
         return submithost
 
+#
+# SQL QUERY PLAYBOOKS
+#
+
+_DATABASE_OPTIMIZE = [
+    {
+        'info': 'Creating composite index if not exists on AAR(StatusID, EndTime)',
+        'sql': 'CREATE INDEX IF NOT EXISTS AAR_StatusID_EndTime_IDX ON AAR(StatusID, EndTime)'
+    },
+    {
+        'info': 'Creating composite index if not exists on AuthTokenAttributes(RecordID, AttrKey)',
+        'sql': 'CREATE INDEX IF NOT EXISTS AuthTokenAttributes_RecordID_AttrKey_IDX ON AuthTokenAttributes(RecordID, AttrKey)'
+    },
+    {
+        'info': 'Creating composite index if not exists on JobExtraInfo(RecordID, InfoKey)',
+        'sql': 'CREATE INDEX IF NOT EXISTS JobExtraInfo_RecordID_InfoKey_IDX ON JobExtraInfo(RecordID, InfoKey)'
+    }
+]

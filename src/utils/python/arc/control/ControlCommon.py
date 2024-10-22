@@ -98,13 +98,17 @@ def get_parsed_arcconf(conf_f):
                 logger.error('Cannot find ARC configuration file in the default location.')
             return None
 
+    # save/load running config cache only for default arc.conf
+    runconf_save = False
     if runconf_load:
         if arcctl_runtime_config is None:
             runconf_load = False
         else:
             runconf_load = os.path.exists(arcctl_runtime_config)
+            runconf_save = not runconf_load
     else:
         logger.debug('Custom ARC configuration file location is specified. Ignoring cached runtime configuration usage.')
+
 
     try:
         logger.debug('Getting ARC configuration (config file: %s)', conf_f)
@@ -121,7 +125,8 @@ def get_parsed_arcconf(conf_f):
             logger.debug('Parsing configuration options from %s (with defaults in %s)',
                          conf_f, config.defaults_defpath())
             config.parse_arc_conf(conf_f)
-            if arcctl_runtime_config is not None:
+            if runconf_save:
+                logger.debug('Saving cached parsed configuration to %s', arcctl_runtime_config)
                 config.save_run_config(arcctl_runtime_config)
         arcconfig = config
         arcconfig.conf_f = conf_f

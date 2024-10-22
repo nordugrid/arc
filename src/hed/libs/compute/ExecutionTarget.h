@@ -577,7 +577,7 @@ namespace Arc {
 
     SubmissionStatus Submit(const UserConfig& ucfg, const JobDescription& jobdesc, Job& job) const;
 
-    /// Update ExecutionTarget after succesful job submission
+    /// Update ExecutionTarget after successful job submission
     /**
      * Method to update the ExecutionTarget after a job successfully
      * has been submitted to the computing resource it

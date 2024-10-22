@@ -1,6 +1,6 @@
 [Unit]
 Description=ARC cache index - scanner server
-After=network.target local_fs.target
+After=network.target local-fs.target
 
 [Service]
 Type=forking

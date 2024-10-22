@@ -386,7 +386,8 @@ using namespace Arc;
         if((info.code == 301) || // permanent redirection
            (info.code == 302) || // temporary redirection
            (info.code == 303) || // POST to GET redirection
-           (info.code == 304)) { // redirection to cache
+           (info.code == 304) || // redirection to cache
+           (info.code == 307)) { // temporary redirection
           // 305 - redirection to proxy - unhandled
           // Recreate connection now to new URL
           rurl = info.location;
@@ -485,25 +486,27 @@ using namespace Arc;
           std::list<std::string> csumlist;
           Arc::tokenize(csums, csumlist, ",");
 
+          std::string csumfirst;
           for (std::list<std::string>::const_iterator csumi = csumlist.begin(); csumi != csumlist.end(); ++csumi) {
             // type and value are separated by =
             std::string csum(*csumi);
             std::string::size_type n = csum.find("=");
-            csum.replace(n, 1, ":");
-            std::string csumtype(csum.substr(0, n));
-            // if the type matches the default checksum type, use it
-            if (csumtype == DefaultCheckSum()) {
-              logger.msg(DEBUG, "Using checksum %s", csum);
-              file.SetCheckSum(csum);
-              break;
+            if(n != std::string::npos) {
+              csum.replace(n, 1, ":");
+              if(csumfirst.empty()) csumfirst = csum;
+              std::string csumtype(csum.substr(0, n));
+              // if the type matches the default checksum type, use it
+              if (csumtype == DefaultCheckSum()) {
+                logger.msg(DEBUG, "Using checksum %s", csum);
+                file.SetCheckSum(csum);
+                break;
+              }
             }
           }
           // If no matching default checksum type, use the first in the list
-          if (!file.CheckCheckSum()) {
-            std::string csum(csumlist.front());
-            csum.replace(csum.find('='), 1, ":");
-            logger.msg(INFO, "No matching checksum type, using first in list %s", csum);
-            file.SetCheckSum(csum);
+          if (!file.CheckCheckSum() && !csumfirst.empty()) {
+            logger.msg(INFO, "No matching checksum type, using first in list %s", csumfirst);
+            file.SetCheckSum(csumfirst);
           }
         } else if ((bool)sumtype && !((std::string)sumtype).empty() &&
                    (bool)sumvalue && !((std::string)sumvalue).empty()) {
@@ -571,7 +574,8 @@ using namespace Arc;
         if((info.code == 301) || // permanent redirection
            (info.code == 302) || // temporary redirection
            (info.code == 303) || // POST to GET redirection
-           (info.code == 304)) { // redirection to cache
+           (info.code == 304) || // redirection to cache
+           (info.code == 307)) { // temporary redirection
           // 305 - redirection to proxy - unhandled
           // Recreate connection now to new URL
           rurl = info.location;
@@ -664,7 +668,8 @@ using namespace Arc;
         if((info.code == 301) || // permanent redirection
            (info.code == 302) || // temporary redirection
            (info.code == 303) || // POST to GET redirection
-           (info.code == 304)) { // redirection to cache
+           (info.code == 304) || // redirection to cache
+           (info.code == 307)) { // temporary redirection
           // 305 - redirection to proxy - unhandled
           // Recreate connection now to new URL
           rurl = info.location;
@@ -1245,7 +1250,8 @@ using namespace Arc;
       if((transfer_info.code == 301) || // permanent redirection
          (transfer_info.code == 302) || // temporary redirection
          (transfer_info.code == 303) || // POST to GET redirection
-         (transfer_info.code == 304)) { // redirection to cache
+         (transfer_info.code == 304) || // redirection to cache
+         (transfer_info.code == 307)) { // temporary redirection
         // 305 - redirection to proxy - unhandled
         // Return buffer
         point.buffer->is_read(transfer_handle, 0, 0);

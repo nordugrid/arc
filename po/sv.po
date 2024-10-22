@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: support@nordugrid.org\n"
-"POT-Creation-Date: 2022-08-25 19:10+0200\n"
-"PO-Revision-Date: 2022-08-25 20:59+0200\n"
+"POT-Creation-Date: 2023-02-02 10:45+0100\n"
+"PO-Revision-Date: 2022-11-25 10:26+0100\n"
 "Last-Translator: Mattias Ellert <mattias.ellert@physics.uu.se>\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -4861,8 +4861,8 @@ msgstr "Kan inte ta bort fil %s: %s"
 #: src/hed/dmc/file/DataPointFile.cpp:521
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:335
 #: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:313
-#: src/hed/dmc/http/DataPointHTTP.cpp:1607
-#: src/hed/dmc/http/DataPointHTTP.cpp:1625
+#: src/hed/dmc/http/DataPointHTTP.cpp:1632
+#: src/hed/dmc/http/DataPointHTTP.cpp:1650
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1466
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:545
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:565
@@ -5436,14 +5436,14 @@ msgid "StopWriting: aborting connection"
 msgstr "StopWriting: avbryter förbindelse"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:664
-#: src/hed/dmc/http/DataPointHTTP.cpp:936
+#: src/hed/dmc/http/DataPointHTTP.cpp:961
 #: src/hed/libs/data/DataPointDelegate.cpp:321
 #, c-format
 msgid "StopWriting: Calculated checksum %s"
 msgstr "StopWriting: Beräkna checksumma %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:668
-#: src/hed/dmc/http/DataPointHTTP.cpp:940
+#: src/hed/dmc/http/DataPointHTTP.cpp:965
 #: src/hed/libs/data/DataPointDelegate.cpp:325
 #, c-format
 msgid "StopWriting: looking for checksum of %s"
@@ -5474,7 +5474,7 @@ msgid "list_files_ftp: checksum %s"
 msgstr "list_files_ftp: checksumma %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:694
-#: src/hed/dmc/http/DataPointHTTP.cpp:949
+#: src/hed/dmc/http/DataPointHTTP.cpp:974
 #: src/hed/libs/data/DataPointDelegate.cpp:332
 msgid ""
 "Checksum type returned by server is different to requested type, cannot "
@@ -5484,7 +5484,7 @@ msgstr ""
 "typen, kan inte jämföra"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:696
-#: src/hed/dmc/http/DataPointHTTP.cpp:951
+#: src/hed/dmc/http/DataPointHTTP.cpp:976
 #: src/hed/libs/data/DataPointDelegate.cpp:334
 #, c-format
 msgid "Calculated checksum %s matches checksum reported by server"
@@ -5492,7 +5492,7 @@ msgstr ""
 "Beräknad checksumma %s stämmer överens med checksumma rapporterad av servern"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:699
-#: src/hed/dmc/http/DataPointHTTP.cpp:953
+#: src/hed/dmc/http/DataPointHTTP.cpp:978
 #: src/hed/libs/data/DataPointDelegate.cpp:337
 #, c-format
 msgid ""
@@ -6108,67 +6108,82 @@ msgid "Failed to transfer data"
 msgstr "Misslyckades med att överföra data"
 
 #: src/hed/dmc/http/DataPointHTTP.cpp:393
-#: src/hed/dmc/http/DataPointHTTP.cpp:553
-#: src/hed/dmc/http/DataPointHTTP.cpp:646
-#: src/hed/dmc/http/DataPointHTTP.cpp:1088
-#: src/hed/dmc/http/DataPointHTTP.cpp:1232
-#: src/hed/dmc/http/DataPointHTTP.cpp:1381
+#: src/hed/dmc/http/DataPointHTTP.cpp:578
+#: src/hed/dmc/http/DataPointHTTP.cpp:671
+#: src/hed/dmc/http/DataPointHTTP.cpp:1113
+#: src/hed/dmc/http/DataPointHTTP.cpp:1257
+#: src/hed/dmc/http/DataPointHTTP.cpp:1406
 #, c-format
 msgid "Redirecting to %s"
 msgstr "Omdirigerar till %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:572
-#: src/hed/dmc/http/DataPointHTTP.cpp:665
+#: src/hed/dmc/http/DataPointHTTP.cpp:445
+#, c-format
+msgid "PROPFIND response: %s"
+msgstr "PROPFIND-svar: %s"
+
+#: src/hed/dmc/http/DataPointHTTP.cpp:496
+#, c-format
+msgid "Using checksum %s"
+msgstr "Använder checksumma %s"
+
+#: src/hed/dmc/http/DataPointHTTP.cpp:505
+#, c-format
+msgid "No matching checksum type, using first in list %s"
+msgstr "Ingen matchande typ av checksumma, använder första i listan %s"
+
+#: src/hed/dmc/http/DataPointHTTP.cpp:597
+#: src/hed/dmc/http/DataPointHTTP.cpp:690
 msgid "No information returned by PROPFIND"
 msgstr "Ingen information returnerad av PROPFIND"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:722
+#: src/hed/dmc/http/DataPointHTTP.cpp:747
 #, c-format
 msgid "Stat: obtained size %llu"
 msgstr "Stat: erhållen storlek %llu"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:726
+#: src/hed/dmc/http/DataPointHTTP.cpp:751
 #, c-format
 msgid "Stat: obtained modification time %s"
 msgstr "Stat: erhållen ändringstid %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:730
+#: src/hed/dmc/http/DataPointHTTP.cpp:755
 #, c-format
 msgid "Stat: obtained checksum %s"
 msgstr "Stat: erhållen checksumma %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:945
+#: src/hed/dmc/http/DataPointHTTP.cpp:970
 #, c-format
 msgid "Could not find checksum: %s"
 msgstr "Kunde inte hitta checksumma: %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:947
+#: src/hed/dmc/http/DataPointHTTP.cpp:972
 #, c-format
 msgid "Checksum of %s is not available"
 msgstr "Checksumma för %s är inte tillgänglig"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:990
+#: src/hed/dmc/http/DataPointHTTP.cpp:1015
 #, c-format
 msgid "Check: obtained size %llu"
 msgstr "Check: erhållen storlek %llu"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:992
+#: src/hed/dmc/http/DataPointHTTP.cpp:1017
 #, c-format
 msgid "Check: obtained modification time %s"
 msgstr "Check: erhållen ändringstid %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:1105
-#: src/hed/dmc/http/DataPointHTTP.cpp:1252
+#: src/hed/dmc/http/DataPointHTTP.cpp:1130
+#: src/hed/dmc/http/DataPointHTTP.cpp:1277
 #, c-format
 msgid "HTTP failure %u - %s"
 msgstr "HTTP-fel %u - %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:1409
+#: src/hed/dmc/http/DataPointHTTP.cpp:1434
 #, c-format
 msgid "Failed to create %s, trying to create parent directories"
 msgstr "Misslyckades med att skapa %s, försöker skapa föräldrakataloger"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:1598
+#: src/hed/dmc/http/DataPointHTTP.cpp:1623
 #, c-format
 msgid "Error creating directory: %s"
 msgstr "Fel vid skapande av katalog: %s"
@@ -7818,118 +7833,118 @@ msgstr "urllistan %s innehåller ogiltig URL: %s"
 msgid "URL protocol is not urllist: %s"
 msgstr "URL-protokollet är inte urllist: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:32 src/hed/libs/common/UserConfig.cpp:781
-#: src/hed/libs/common/UserConfig.cpp:790
-#: src/hed/libs/common/UserConfig.cpp:796
-#: src/hed/libs/common/UserConfig.cpp:822
-#: src/hed/libs/common/UserConfig.cpp:832
-#: src/hed/libs/common/UserConfig.cpp:844
-#: src/hed/libs/common/UserConfig.cpp:864
+#: src/hed/libs/common/UserConfig.cpp:32 src/hed/libs/common/UserConfig.cpp:782
+#: src/hed/libs/common/UserConfig.cpp:791
+#: src/hed/libs/common/UserConfig.cpp:797
+#: src/hed/libs/common/UserConfig.cpp:823
+#: src/hed/libs/common/UserConfig.cpp:833
+#: src/hed/libs/common/UserConfig.cpp:845
+#: src/hed/libs/common/UserConfig.cpp:865
 #, c-format
 msgid "Multiple %s attributes in configuration file (%s)"
 msgstr "Mer än ett %s-attribut i inställningsfil (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:132
+#: src/hed/libs/common/UserConfig.cpp:133
 #, c-format
 msgid "Wrong ownership of certificate file: %s"
 msgstr "Fel ägare för certifikatfil: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:134
+#: src/hed/libs/common/UserConfig.cpp:135
 #, c-format
 msgid "Wrong permissions of certificate file: %s"
 msgstr "Fel åtkomsträttigheter för certifikatfil: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:136
+#: src/hed/libs/common/UserConfig.cpp:137
 #, c-format
 msgid "Can not access certificate file: %s"
 msgstr "Kan inte komma åt certifikatfil: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:143
+#: src/hed/libs/common/UserConfig.cpp:144
 #, c-format
 msgid "Wrong ownership of key file: %s"
 msgstr "Fel ägare för nyckelfil: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:145
+#: src/hed/libs/common/UserConfig.cpp:146
 #, c-format
 msgid "Wrong permissions of key file: %s"
 msgstr "Fel åtkomsträttigheter för nyckelfil: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:147
+#: src/hed/libs/common/UserConfig.cpp:148
 #, c-format
 msgid "Can not access key file: %s"
 msgstr "Kan inte komma åt nyckelfil: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:154
+#: src/hed/libs/common/UserConfig.cpp:155
 #, c-format
 msgid "Wrong ownership of proxy file: %s"
 msgstr "Fel ägare för proxyfil: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:156
+#: src/hed/libs/common/UserConfig.cpp:157
 #, c-format
 msgid "Wrong permissions of proxy file: %s"
 msgstr "Fel åtkomsträttigheter för proxyfil: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:158
+#: src/hed/libs/common/UserConfig.cpp:159
 #, c-format
 msgid "Can not access proxy file: %s"
 msgstr "Kan inte komma åt proxyfil: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:169
+#: src/hed/libs/common/UserConfig.cpp:170
 msgid "computing"
 msgstr "beräkning"
 
-#: src/hed/libs/common/UserConfig.cpp:171
+#: src/hed/libs/common/UserConfig.cpp:172
 msgid "index"
 msgstr "indexering"
 
-#: src/hed/libs/common/UserConfig.cpp:270
-#: src/hed/libs/common/UserConfig.cpp:274
-#: src/hed/libs/common/UserConfig.cpp:321
-#: src/hed/libs/common/UserConfig.cpp:325
+#: src/hed/libs/common/UserConfig.cpp:271
+#: src/hed/libs/common/UserConfig.cpp:275
+#: src/hed/libs/common/UserConfig.cpp:322
+#: src/hed/libs/common/UserConfig.cpp:326
 #, c-format
 msgid "System configuration file (%s) contains errors."
 msgstr "Systeminställningsfil (%s) innehåller fel."
 
-#: src/hed/libs/common/UserConfig.cpp:278
-#: src/hed/libs/common/UserConfig.cpp:329
+#: src/hed/libs/common/UserConfig.cpp:279
+#: src/hed/libs/common/UserConfig.cpp:330
 #, c-format
 msgid "System configuration file (%s or %s) does not exist."
 msgstr "Systeminställningsfil (%s eller %s) existerar inte."
 
-#: src/hed/libs/common/UserConfig.cpp:280
-#: src/hed/libs/common/UserConfig.cpp:331
+#: src/hed/libs/common/UserConfig.cpp:281
+#: src/hed/libs/common/UserConfig.cpp:332
 #, c-format
 msgid "System configuration file (%s) does not exist."
 msgstr "Systeminställningsfil (%s) existerar inte."
 
-#: src/hed/libs/common/UserConfig.cpp:286
-#: src/hed/libs/common/UserConfig.cpp:298
-#: src/hed/libs/common/UserConfig.cpp:337
-#: src/hed/libs/common/UserConfig.cpp:349
+#: src/hed/libs/common/UserConfig.cpp:287
+#: src/hed/libs/common/UserConfig.cpp:299
+#: src/hed/libs/common/UserConfig.cpp:338
+#: src/hed/libs/common/UserConfig.cpp:350
 #, c-format
 msgid "User configuration file (%s) contains errors."
 msgstr "Användarinställningsfil (%s) innehåller fel."
 
-#: src/hed/libs/common/UserConfig.cpp:291
-#: src/hed/libs/common/UserConfig.cpp:342
+#: src/hed/libs/common/UserConfig.cpp:292
+#: src/hed/libs/common/UserConfig.cpp:343
 msgid "No configuration file could be loaded."
 msgstr "Ingen inställningfil kunde laddas in."
 
-#: src/hed/libs/common/UserConfig.cpp:294
-#: src/hed/libs/common/UserConfig.cpp:345
+#: src/hed/libs/common/UserConfig.cpp:295
+#: src/hed/libs/common/UserConfig.cpp:346
 #, c-format
 msgid "User configuration file (%s) does not exist or cannot be loaded."
 msgstr ""
 "Användarinställningsfil (%s) existerar inte eller kunde inte laddas in."
 
-#: src/hed/libs/common/UserConfig.cpp:406
+#: src/hed/libs/common/UserConfig.cpp:407
 #, c-format
 msgid ""
 "Unable to parse the specified verbosity (%s) to one of the allowed levels"
 msgstr ""
 "Kunde inte tolka den angivna debugnivån (%s) till en av de tillåtna nivåerna"
 
-#: src/hed/libs/common/UserConfig.cpp:418
+#: src/hed/libs/common/UserConfig.cpp:419
 #, c-format
 msgid ""
 "Unsupported job list type '%s', using 'BDB'. Supported types are: BDB, "
@@ -7938,17 +7953,17 @@ msgstr ""
 "Jobblisttyp '%s' stöds inte, använder 'BDB'. Typer som stöds är: BDB, "
 "SQLITE, XML."
 
-#: src/hed/libs/common/UserConfig.cpp:463
+#: src/hed/libs/common/UserConfig.cpp:464
 msgid "Loading OToken failed - ignoring its presence"
 msgstr "Inladdning av OToken misslyckades - ignorerar dess närvaro"
 
-#: src/hed/libs/common/UserConfig.cpp:604
+#: src/hed/libs/common/UserConfig.cpp:605
 #, c-format
 msgid "Certificate and key ('%s' and '%s') not found in any of the paths: %s"
 msgstr ""
 "Hittade inte certifikat och nyckel ('%s' och '%s') i någon av sökvägarna: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:606
+#: src/hed/libs/common/UserConfig.cpp:607
 #, c-format
 msgid ""
 "If the proxy or certificate/key does exist, you can manually specify the "
@@ -7959,8 +7974,8 @@ msgstr ""
 "manuellt via miljövariablerna '%s'/'%s' eller '%s', eller attributen "
 "'%s'/'%s' eller '%s' i klientinställningsfilen (t.ex. '%s')"
 
-#: src/hed/libs/common/UserConfig.cpp:623
-#: src/hed/libs/common/UserConfig.cpp:633
+#: src/hed/libs/common/UserConfig.cpp:624
+#: src/hed/libs/common/UserConfig.cpp:634
 #, c-format
 msgid ""
 "Can not access CA certificate directory: %s. The certificates will not be "
@@ -7969,7 +7984,7 @@ msgstr ""
 "Kan inte komma åt CA-certifikatkatalog: %s. Certifikaten kommer inte att "
 "verifieras"
 
-#: src/hed/libs/common/UserConfig.cpp:659
+#: src/hed/libs/common/UserConfig.cpp:660
 #, c-format
 msgid ""
 "Can not find CA certificates directory in default locations:\n"
@@ -7991,42 +8006,42 @@ msgstr ""
 "miljövariabeln X509_CERT_DIR, eller attributet cacertificatesdirectory i "
 "client.conf\n"
 
-#: src/hed/libs/common/UserConfig.cpp:680
+#: src/hed/libs/common/UserConfig.cpp:681
 #, c-format
 msgid "Using proxy file: %s"
 msgstr "Använder proxyfil: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:683
+#: src/hed/libs/common/UserConfig.cpp:684
 #, c-format
 msgid "Using certificate file: %s"
 msgstr "Använder certifikatfil: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:684
+#: src/hed/libs/common/UserConfig.cpp:685
 #, c-format
 msgid "Using key file: %s"
 msgstr "Använder nyckelfil: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:688
+#: src/hed/libs/common/UserConfig.cpp:689
 #, c-format
 msgid "Using CA certificate directory: %s"
 msgstr "Använder CA-certifikatkatalog: %s"
 
-#: src/hed/libs/common/UserConfig.cpp:692
+#: src/hed/libs/common/UserConfig.cpp:693
 msgid "Using OToken"
 msgstr "Använder OToken"
 
-#: src/hed/libs/common/UserConfig.cpp:705
-#: src/hed/libs/common/UserConfig.cpp:711
+#: src/hed/libs/common/UserConfig.cpp:706
+#: src/hed/libs/common/UserConfig.cpp:712
 #, c-format
 msgid "Can not access VOMSES file/directory: %s."
 msgstr "Kan inte komma åt VOMSES-fil/katalog: %s."
 
-#: src/hed/libs/common/UserConfig.cpp:717
+#: src/hed/libs/common/UserConfig.cpp:718
 #, c-format
 msgid "Can not access VOMS file/directory: %s."
 msgstr "Kan inte komma åt VOMS-fil/katalog: %s."
 
-#: src/hed/libs/common/UserConfig.cpp:731
+#: src/hed/libs/common/UserConfig.cpp:732
 msgid ""
 "Can not find voms service configuration file (vomses) in default locations: "
 "~/.arc/vomses, ~/.voms/vomses, $ARC_LOCATION/etc/vomses, $ARC_LOCATION/etc/"
@@ -8036,12 +8051,12 @@ msgstr ""
 "arc/vomses, ~/.voms/vomses, $ARC_LOCATION/etc/vomses, $ARC_LOCATION/etc/grid-"
 "security/vomses, $PWD/vomses, /etc/vomses, /etc/grid-security/vomses"
 
-#: src/hed/libs/common/UserConfig.cpp:744
+#: src/hed/libs/common/UserConfig.cpp:745
 #, c-format
 msgid "Loading configuration (%s)"
 msgstr "Laddar in inställningar (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:778
+#: src/hed/libs/common/UserConfig.cpp:779
 #, c-format
 msgid ""
 "The value of the timeout attribute in the configuration file (%s) was only "
@@ -8049,7 +8064,7 @@ msgid ""
 msgstr ""
 "Värdet på timeout-attributet i inställningsfilen (%s) tolkades endast delvis"
 
-#: src/hed/libs/common/UserConfig.cpp:803
+#: src/hed/libs/common/UserConfig.cpp:804
 msgid ""
 "The brokerarguments attribute can only be used in conjunction with the "
 "brokername attribute"
@@ -8057,7 +8072,7 @@ msgstr ""
 "brokerarguments-attributet kan endast användas i kombination med brokername-"
 "attributet"
 
-#: src/hed/libs/common/UserConfig.cpp:819
+#: src/hed/libs/common/UserConfig.cpp:820
 #, c-format
 msgid ""
 "The value of the keysize attribute in the configuration file (%s) was only "
@@ -8065,7 +8080,7 @@ msgid ""
 msgstr ""
 "Värdet på keysize-attributet i inställningsfilen (%s) tolkades endast delvis"
 
-#: src/hed/libs/common/UserConfig.cpp:839
+#: src/hed/libs/common/UserConfig.cpp:840
 #, c-format
 msgid ""
 "Could not convert the slcs attribute value (%s) to an URL instance in "
@@ -8074,12 +8089,12 @@ msgstr ""
 "Kunde inte konvertera slcs-attributvärdet (%s) till en URL-instans i "
 "inställningsfilen (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:885
+#: src/hed/libs/common/UserConfig.cpp:886
 #, c-format
 msgid "Specified overlay file (%s) does not exist."
 msgstr "Angiven överlagringsfil (%s) existerar inte."
 
-#: src/hed/libs/common/UserConfig.cpp:889
+#: src/hed/libs/common/UserConfig.cpp:890
 #, c-format
 msgid ""
 "Unknown attribute %s in common section of configuration file (%s), ignoring "
@@ -8087,64 +8102,64 @@ msgid ""
 msgstr ""
 "Okänt attribut %s i common-sektionen i inställningsfilen (%s), ignorerar det"
 
-#: src/hed/libs/common/UserConfig.cpp:930
+#: src/hed/libs/common/UserConfig.cpp:931
 #, c-format
 msgid "Unknown section %s, ignoring it"
 msgstr "Okänd sektion %s, ignorerar den"
 
-#: src/hed/libs/common/UserConfig.cpp:934
+#: src/hed/libs/common/UserConfig.cpp:935
 #, c-format
 msgid "Configuration (%s) loaded"
 msgstr "Inställningar (%s) har laddats in"
 
-#: src/hed/libs/common/UserConfig.cpp:937
+#: src/hed/libs/common/UserConfig.cpp:938
 #, c-format
 msgid "Could not load configuration (%s)"
 msgstr "Kunde inte ladda in inställningar (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:1032
+#: src/hed/libs/common/UserConfig.cpp:1033
 #, c-format
 msgid "UserConfiguration saved to file (%s)"
 msgstr "Användarinställningar sparade till fil (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:1045
+#: src/hed/libs/common/UserConfig.cpp:1046
 #, c-format
 msgid "Unable to create %s directory."
 msgstr "Kunde inte skapa %s katalog."
 
-#: src/hed/libs/common/UserConfig.cpp:1054
+#: src/hed/libs/common/UserConfig.cpp:1055
 #, c-format
 msgid "Configuration example file created (%s)"
 msgstr "Exempel-inställningsfil skapades (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:1056
+#: src/hed/libs/common/UserConfig.cpp:1057
 #, c-format
 msgid "Unable to copy example configuration from existing configuration (%s)"
 msgstr ""
 "Kunde inte kopiera exempelinställningar från existerande inställningar (%s)"
 
-#: src/hed/libs/common/UserConfig.cpp:1061
+#: src/hed/libs/common/UserConfig.cpp:1062
 #, c-format
 msgid "Cannot copy example configuration (%s), it is not a regular file"
 msgstr "Kan inte kopiera exempelinställningar (%s), det är inte en vanlig fil"
 
-#: src/hed/libs/common/UserConfig.cpp:1066
+#: src/hed/libs/common/UserConfig.cpp:1067
 #, c-format
 msgid "Example configuration (%s) not created."
 msgstr "Exempelinställningar (%s) skapades inte."
 
-#: src/hed/libs/common/UserConfig.cpp:1071
+#: src/hed/libs/common/UserConfig.cpp:1072
 #, c-format
 msgid "The default configuration file (%s) is not a regular file."
 msgstr "Den förvalda inställningsfilen (%s) är inte en vanlig fil."
 
-#: src/hed/libs/common/UserConfig.cpp:1089
+#: src/hed/libs/common/UserConfig.cpp:1090
 #, c-format
 msgid "%s directory created"
 msgstr "%s-katalog skapad"
 
-#: src/hed/libs/common/UserConfig.cpp:1091
-#: src/hed/libs/common/UserConfig.cpp:1130 src/hed/libs/data/DataMover.cpp:682
+#: src/hed/libs/common/UserConfig.cpp:1092
+#: src/hed/libs/common/UserConfig.cpp:1131 src/hed/libs/data/DataMover.cpp:682
 #, c-format
 msgid "Failed to create directory %s"
 msgstr "Misslyckades med att skapa katalog %s"
@@ -12894,12 +12909,17 @@ msgstr "Misslyckades med att efterregistrera destination: %s"
 msgid "Invalid URL option: %s"
 msgstr "Ogiltigt URL-alternativ: %s"
 
-#: src/hed/libs/data/DataPoint.cpp:263
+#: src/hed/libs/data/DataPoint.cpp:245
+msgid "Checksum types of index and replica are different, skipping comparison"
+msgstr ""
+"Typ av checksumma för index och replika är olika, hoppar över jämförelse"
+
+#: src/hed/libs/data/DataPoint.cpp:272
 #, c-format
 msgid "Skipping invalid URL option %s"
 msgstr "Hoppar över ogiltigt URL-alternativ: %s"
 
-#: src/hed/libs/data/DataPoint.cpp:278
+#: src/hed/libs/data/DataPoint.cpp:287
 msgid ""
 "Third party transfer was requested but the corresponding plugin could\n"
 "       not be loaded. Is the GFAL plugin installed? If not, please install "
@@ -12912,7 +12932,7 @@ msgstr ""
 "      'nordugrid-arc-plugins-gfal' och 'gfal2-all'. Beroende på din typ av\n"
 "      installation kan paketnamnen variera."
 
-#: src/hed/libs/data/DataPoint.cpp:296
+#: src/hed/libs/data/DataPoint.cpp:305
 #, c-format
 msgid "Failed to load plugin for URL %s"
 msgstr "Misslyckades med att ladda in plugin för URL %s"
@@ -14378,50 +14398,50 @@ msgstr ""
 "Mottog meddelande out-of-band (inte kritiskt, ERROR-nivå är bara för "
 "debuggningsändamål)"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:293
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:297
 #, c-format
 msgid "Using DH parameters from file: %s"
 msgstr "Använder DH-parametrar från fil: %s"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:296
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:300
 msgid "Failed to open file with DH parameters for reading"
 msgstr "Misslyckades med att öppna fil med DH-parametrar för läsning"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:301
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:305
 msgid "Failed to read file with DH parameters"
 msgstr "Misslyckades med att läsa fil med DH-parametrar"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:304
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:308
 msgid "Failed to apply DH parameters"
 msgstr "Misslyckades med att tillämpa DH-parametrar"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:306
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:310
 msgid "DH parameters applied"
 msgstr "DH-parametrar tillämpade"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:321
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:325
 #, c-format
 msgid "Using curve with NID: %u"
 msgstr "Använder kurva med NID: %u"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:324
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:328
 msgid "Failed to generate EC key"
 msgstr "Misslyckades med att generera EC-nyckel"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:327
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:331
 msgid "Failed to apply ECDH parameters"
 msgstr "Misslyckades med att tillämpa ECDH-parametrar"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:329
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:333
 msgid "ECDH parameters applied"
 msgstr "ECDH-parametrar tillämpade"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:336
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:340
 #, c-format
 msgid "Using cipher list: %s"
 msgstr "Använder chifferlista: %s"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:352
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:356
 #, c-format
 msgid "Using protocol options: 0x%x"
 msgstr "Använder protokollalternativ: 0x%x"
@@ -17287,7 +17307,7 @@ msgid "Failed to read database schema file at %s"
 msgstr "Misslyckades med att läsa databasschemafil på %s"
 
 #: src/services/a-rex/grid-manager/accounting/AccountingDBSQLite.cpp:63
-msgid "Accounting database initialized succesfully"
+msgid "Accounting database initialized successfully"
 msgstr "Bokföringsdatabas initierad"
 
 #: src/services/a-rex/grid-manager/accounting/AccountingDBSQLite.cpp:65
@@ -19665,12 +19685,12 @@ msgid "OptimizedInformationContainer failed to parse XML"
 msgstr "OptimizedInformationContainer misslyckades med att tolka XML"
 
 #: src/services/a-rex/information_collector.cpp:242
-msgid "OptimizedInformationContainer failed to rename temprary file"
+msgid "OptimizedInformationContainer failed to rename temporary file"
 msgstr ""
 "OptimizedInformationContainer misslyckades med att byta namn på temporär fil"
 
 #: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:36
-msgid "Default INTERNAL client contructor"
+msgid "Default INTERNAL client constructor"
 msgstr "Förvald INTERNAL klient-konstruktor"
 
 #: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:39
@@ -19820,7 +19840,7 @@ msgstr "Referenshanteringsundantag: %s"
 msgid "Out of tries while allocating new job ID in %s"
 msgstr "Slut på försök vid allokering av nytt jobb-id i %s"
 
-#: src/services/a-rex/job.cpp:1270
+#: src/services/a-rex/job.cpp:1269
 msgid "No non-draining session dirs available"
 msgstr "Inga non-draining sessionskataloger tillgänglig"
 

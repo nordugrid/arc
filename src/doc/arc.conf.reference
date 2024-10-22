@@ -937,7 +937,7 @@
 ##   "timeout"
 ##      defines the timeout in seconds to wait for plugin execution ("timeout=" can be omitted).
 ##   "onsuccess", "onfailure", "ontimeout"
-##      defines the action that A-REX should take on succesfull execution (exit code 0), 
+##      defines the action that A-REX should take on successful execution (exit code 0),
 ##      failed execution (exit code is not 0) or execution timeout respectively.
 ## Possible actions are:
 ##   - "pass" - continue executing job,
@@ -1728,6 +1728,11 @@
 ## default: gLite-APEL
 #topic=/queue/global.accounting.test.cpu.central
 
+## project = project_name - Sets the name of the APEL project to use.
+## default: accounting
+#project=accounting-nl
+## CHANGE: NEW in 6.19.0
+
 ## *gocdb_name = name - Can be used to specify the GOCDB name of the resource.
 ## This value would be seen as Site attribute in the generated APEL records.
 ## default: undefined
@@ -1735,11 +1740,12 @@
 
 ## apel_messages = type - (introduced in 6.4.0) Define what kind of records JURA 
 ## will send to APEL services during regular publishing process.
-## Possible cases are: per-job EMI CAR records ("urs"), APEL summary records ("summaries"). 
+## Possible cases are: per-job EMI CAR records ("urs"), APEL summary records ("summaries")
+## or APEL summary records v0.4 ("summaries-v04")
 ## APEL Sync messages are always generated.
 ## NOTE that on the heavy loaded sites with 10k+ jobs weekly "summaries" generation has
 ##   a performance penalty in ARC < 6.8. It is advised to use "urs" in this case.
-## allowedvalues: urs summaries
+## allowedvalues: urs summaries summaries-v04
 ## default: summaries
 #apel_messages=urs
 ## CHANGE: NEW in 6.4.0.
@@ -2786,13 +2792,14 @@
 ## with respect to the benchmark performance.
 ## NOTE that in ARC < 6.4 this parameter is only used for information publishing.
 ## In case of multiple benchmarks are specified:
-##   - Accounting subsystem will use only the FIRST defined benchmark.
+##   - Accounting subsystem will use ONLY THE FIRST defined benchmark.
 ##   - Infosys will publish all defined benchmark values.
 ##
 ## The values represent per-core CPU performance.
-## Note that APEL accounting services are accept "HEPSPEC" or "Si2k" benchmark types only.
+## Note that APEL accounting services are accept "HEPscore23", "HEPSPEC" or "Si2k" benchmark types only.
 ## multivalued
 ## default: HEPSPEC 1.0
+#benchmark=HEPscore23 16.5
 #benchmark=HEPSPEC 12.26
 #benchmark=Si2k 3065
 ## CHANGE: MODIFIED IN 6.4.0.

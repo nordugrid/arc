@@ -31,6 +31,7 @@ namespace Arc {
     bool do_checks;
     std::string verbose_prefix;
     bool do_retries;
+    bool do_retries_retryable;
     unsigned long long int default_min_speed;
     time_t default_min_speed_time;
     unsigned long long int default_min_average_speed;
@@ -131,10 +132,14 @@ namespace Arc {
      * \param prefix use this string if 'prefix' in DataMover::Transfer is NULL.
      */
     void verbose(const std::string& prefix);
-    /// Returns whether transfer will be retried in case of failure.
+    /// Returns whether transfer will be retried in case of any failure.
     bool retry();
-    /// Set if transfer will be retried in case of failure.
+    /// Set if transfer will be retried in case of any failure.
     void retry(bool);
+    /// Returns whether transfer will be retried in case of retryable failure.
+    bool retry_retryable();
+    /// Set if transfer will be retried in case of retryable failure.
+    void retry_retryable(bool);
     /// Set if high level of security (encryption) will be used during transfer if available.
     void secure(bool);
     /// Set if passive transfer should be used for FTP-like transfers.

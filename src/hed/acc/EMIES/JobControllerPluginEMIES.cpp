@@ -260,7 +260,7 @@ namespace Arc {
       // Choose url by state
       // TODO: maybe this method should somehow know what is purpose of URL
       // TODO: state attributes would be more suitable
-      // TODO: library need to be etended to allow for multiple URLs
+      // TODO: library need to be extended to allow for multiple URLs
       if((tjob.State == JobState::ACCEPTED) ||
          (tjob.State == JobState::PREPARING)) {
         url = stagein;
@@ -295,7 +295,7 @@ namespace Arc {
     case Job::JOBLOG:
     case Job::JOBDESCRIPTION:
       if (job.LogDir == ".") {
-        // Trying to use REST interface
+        // Trying to use old REST interface
         std::string path = url.Path();
         path.insert(path.rfind('/'), "/*logs");
         url.ChangePath(path + ((resource == Job::JOBLOG) ? "/errors" : "/description"));
@@ -314,8 +314,37 @@ namespace Arc {
     case Job::SESSIONDIR:
       if(session) url = session;
       break;
-    default:
+    case Job::LOGDIR:
+      if (job.LogDir == ".") {
+        // Trying to use old REST interface
+        std::string path = url.Path();
+        path.insert(path.rfind('/'), "/*logs");
+        url.ChangePath(path);
+      } else if (!job.LogDir.empty()) {
+        url.ChangePath(url.Path() + '/' + job.LogDir);
+      } else {
+        url = URL();
+      };
+      if (url) {
+        URL file(url);
+        file.ChangePath(url.Path() + "/failed"); url.AddLocation(URLLocation(file, "failed"));
+        file.ChangePath(url.Path() + "/local"); url.AddLocation(URLLocation(file, "local"));
+        file.ChangePath(url.Path() + "/errors"); url.AddLocation(URLLocation(file, "errors"));
+        file.ChangePath(url.Path() + "/description"); url.AddLocation(URLLocation(file, "description"));
+        file.ChangePath(url.Path() + "/diag"); url.AddLocation(URLLocation(file, "diag"));
+        file.ChangePath(url.Path() + "/comment"); url.AddLocation(URLLocation(file, "comment"));
+        file.ChangePath(url.Path() + "/status"); url.AddLocation(URLLocation(file, "status"));
+        file.ChangePath(url.Path() + "/acl"); url.AddLocation(URLLocation(file, "acl"));
+        file.ChangePath(url.Path() + "/xml"); url.AddLocation(URLLocation(file, "xml"));
+        file.ChangePath(url.Path() + "/input"); url.AddLocation(URLLocation(file, "input"));
+        file.ChangePath(url.Path() + "/output"); url.AddLocation(URLLocation(file, "output"));
+        file.ChangePath(url.Path() + "/input_status"); url.AddLocation(URLLocation(file, "input_status"));
+        file.ChangePath(url.Path() + "/output_status"); url.AddLocation(URLLocation(file, "output_status"));
+        file.ChangePath(url.Path() + "/statistics"); url.AddLocation(URLLocation(file, "statistics"));
+      }
       break;
+    default:
+      return false;
     }
     if(url && ((url.Protocol() == "https") || (url.Protocol() == "http"))) {
       url.AddOption("threads=2",false);

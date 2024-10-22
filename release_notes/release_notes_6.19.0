@@ -3,16 +3,26 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.X.X     XX.XX.XXXX
+Release Notes for NorduGrid ARC  6.19.0   10.04.2024
 =======================================================
+This release comes with a critical bugfix (Bugzilla 4147 and 4148), but also includes a set of other useful smaller improvements and fixes, like ensuring that logs are transferred when submitting HTTPS (EMIES or REST), see  Bugzilla 4143, some fixes related to swig in Fedora 40, in addition to project name now being configurable for Apel accounting. 
 
+See the list of Bugzilla tickets for more details. 
 
 Highlights in this release
 --------------------------
+The critical bugs 4148 and 4147 related to a situation where the DAV response processing caused repeated segfaults are fixed. 
 
 
 The following Bugzilla tickets have been adressed or solved
 ------------------------------------------------------------
+The following Bugzilla tickets have been resolved: 
+* 4148  arched process segfaults every few minutes
+* 4147  Unlimited recursion in data cache handling code
+* 4144  Test failures on Fedora 40, likely due to swig 4.2 update
+* 4143  Arcget for jobs submitted via HTTPS doesn't transfer gmlog
+* 4139  Please make ARGO project configurable in arc.conf
+* 4138  Failed to shut down SSL: SSL error, "shutdown while in init", at "SSL routines" library, with "unknown" alert 
 
 
 
@@ -60,33 +70,20 @@ If you need help with the configuration file or have any other questions related
 * Report a bug: https://bugzilla.nordugrid.org/
 
 
-
-
-Coming ARC 7 release
-=====================
-Start getting ready for ARC 7. We expect a release after summer. You can already now install the testing version of ARC following: http://www.nordugrid.org/arc/arc7/common/repos/testing-repository.html. For upgrade instructions, please see: http://www.nordugrid.org/arc/arc7/admins/migrating6to7.html.
-
-The support policy of ARC 6 will follow the same policy we had for ARC 5: 1 year security updates, no more development of ARC 6 once ARC 7 is out.
-
-Installing from EPEL:
-----------------------
-Once the release is out, it can be installed from EPEL using package-name types: nordugrid-arc7-*
-
-
 Future support of ARC 5-series
 ===============================
 As of June 2020 no more security updates are provided to ARC 5.
 Also since the release of ARC 6 in June 2019, no more development on the ARC 5 code base has been provided.
-
 
 ARC5 is available in EPEL7 and will stay there. EPEL8 will only contain ARC 6.
 To install ARC 6 from EPEL7 the package-names are of type: nordugrid-arc6-* 
 
 
 
+
 Known issues
 ==============
-* Related to the accounting system introduded in release 6.4.0: 
+* Related to the new accounting system introduded in release 6.4.0: 
   * Accounting records created by ARC 6.4.0 are affected by a bug causing missing benchmark values:
    https://bugzilla.nordugrid.org./show_bug.cgi?id=3921#c3
    Recommendations are to update to a newer version of ARC.

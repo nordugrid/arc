@@ -16,7 +16,7 @@
 
 namespace ARex {
   class JobStateList {
-    /*Holds sucess or fail of last 100 jobs */
+    /*Holds success or fail of last 100 jobs */
 
   private:
     class JobNode {

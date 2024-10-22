@@ -28,7 +28,7 @@ namespace Arc {
 
     virtual SubmissionStatus Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted);
     virtual SubmissionStatus Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted);
-    virtual bool Migrate(const URL& /*jobid*/, const JobDescription& /*jobdesc*/, const ExecutionTarget& /*et*/, bool /*forcemigration*/, Job& job) { job = SubmitterPluginTestACCControl::migrateJob; return SubmitterPluginTestACCControl::migrateStatus; }
+    virtual bool Migrate(const std::string& /*jobid*/, const JobDescription& /*jobdesc*/, const ExecutionTarget& /*et*/, bool /*forcemigration*/, Job& job) { job = SubmitterPluginTestACCControl::migrateJob; return SubmitterPluginTestACCControl::migrateStatus; }
   };
 
 }

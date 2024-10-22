@@ -2,6 +2,11 @@
 ## Doing so will unfortunately create unnesseccary merge conflicts between branches and the fork, and nordugrid/arc version of this file.
 ## To have the automatic builds work on your fork, check that the runner is enabled in your fork: Settings->CI/CD->Runner settings
 
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+
 stages:
   - build
   - deploy
@@ -117,13 +122,6 @@ build_el7:
     variables:
         BUILD_IMAGE: maikenp/arc-build-centos7
     
-#####################
-#    CENTOS STREAM 8
-####################
-build_el8:
-    extends: .template_build_rhel
-    variables:
-        BUILD_IMAGE: maikenp/arc-build-cs8
 
 ####################
 #    CENTOS STREAM 9
@@ -131,7 +129,7 @@ build_el8:
 build_el9:
     extends: .template_build_rhel9
     variables:
-        BUILD_IMAGE: maikenp/arc-build-cs9
+        BUILD_IMAGE: maikenp/arc-build-almalinux9
 
 ###############
 #    DEBIAN 10
@@ -148,14 +146,15 @@ build_deb11:
     extends: .template_build_deb
     variables:
         BUILD_IMAGE: maikenp/arc-build-debian11
-    
-##################
-#    UBUNTU 18.04
-##################
-build_ubuntu1804:
+
+###############
+#    DEBIAN 12
+###############
+build_deb12:
     extends: .template_build_deb
     variables:
-        BUILD_IMAGE: maikenp/arc-build-ubuntu1804
+        BUILD_IMAGE: maikenp/arc-build-debian12
+
 
 ##################
 #    UBUNTU 20.04
@@ -182,7 +181,6 @@ build_ubuntu2204:
   stage: deploy
   image: docker:stable
   before_script: 
-    - export DOCKER_API_VERSION=1.19
     - DEPLOY_CONTAINER=$OS_V_`date +%Y%m%dT%H%M`
     - docker pull $ARC_IMAGE
     - GITLAB_CONTAINER=$(docker ps  | awk 'FNR==2' | awk '{print $NF}')
@@ -237,7 +235,6 @@ deploy_el7:
     BUILD_VOL: /rpmbuild
     BUILD_DIR: $CI_PROJECT_DIR/$BUILD_VOL/*
   tags:
-    - 158.39.201.67
     - deploy
   needs:
     - job: build_el7
@@ -245,35 +242,16 @@ deploy_el7:
 
 
 #####################
-#    CENTOS STREAM 8
-#####################
-deploy_el8:
-  extends: .deploy
-  variables:
-    OS_V: el8
-    ARC_IMAGE: maikenp/arc-deploy-cs8
-    BUILD_VOL: /rpmbuild
-    BUILD_DIR: $CI_PROJECT_DIR/$BUILD_VOL/* 
-  tags:
-    - 158.39.201.179
-    - deploy
-  needs:
-    - job: build_el8
-      artifacts: true
-
-
-#####################
-#    CENTOS STREAM 9
+#    ALMALINUX 9
 #####################
 deploy_el9:
   extends: .deploy
   variables:
     OS_V: el9
-    ARC_IMAGE: maikenp/arc-deploy-cs9
+    ARC_IMAGE: maikenp/arc-deploy-almalinux9
     BUILD_VOL: /rpmbuild
     BUILD_DIR: $CI_PROJECT_DIR/$BUILD_VOL/* 
   tags:
-    - 158.39.201.179
     - deploy
   needs:
     - job: build_el9
@@ -291,7 +269,6 @@ deploy_deb10:
     BUILD_VOL: /build
     BUILD_DIR: $CI_PROJECT_DIR/*.deb    
   tags:
-    - 158.39.75.5
     - deploy
   needs:
     - job: build_deb10
@@ -308,30 +285,29 @@ deploy_deb11:
     BUILD_VOL: /build
     BUILD_DIR: $CI_PROJECT_DIR/*.deb    
   tags:
-    - 158.39.75.5
     - deploy
   needs:
     - job: build_deb11
       artifacts: true
   
 
+
 ##################
-#    UBUNTU 18.04
+#    DEBIAN 12
 ##################
-deploy_ubuntu1804:
+deploy_deb12:
   extends: .deploy
   variables:
-    OS_V: ubuntu1804
-    ARC_IMAGE: maikenp/arc-deploy-ubuntu1804
+    OS_V: deb12
+    ARC_IMAGE: maikenp/arc-deploy-debian12
     BUILD_VOL: /build
-    BUILD_DIR: $CI_PROJECT_DIR/*.deb
+    BUILD_DIR: $CI_PROJECT_DIR/*.deb    
   tags:
-    - 158.39.74.3
     - deploy
   needs:
-    - job: build_ubuntu1804
+    - job: build_deb12
       artifacts: true
-
+  
 
 ##################
 #    UBUNTU 20.04
@@ -344,7 +320,6 @@ deploy_ubuntu2004:
     BUILD_VOL: /build
     BUILD_DIR: $CI_PROJECT_DIR/*.deb
   tags:
-    - 158.39.201.198
     - deploy
   needs:
     - job: build_ubuntu2004
@@ -362,7 +337,6 @@ deploy_ubuntu2204:
     BUILD_VOL: /build
     BUILD_DIR: $CI_PROJECT_DIR/*.deb
   tags:
-    - 158.39.201.198
     - deploy
   needs:
     - job: build_ubuntu2204
@@ -421,41 +395,6 @@ arcconf_el7_deploytest:
     - job: deploy_el7
       artifacts: true
     
-############################
-##### EL8 DEPLOY CHECK
-############################
-gridftp_el8_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'gridftp'
-  needs:
-    - job: deploy_el8
-      artifacts: true
-
-emies_el8_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'emies'
-  needs:
-    - job: deploy_el8
-      artifacts: true
-    
-arcrest_el8_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcrest'
-  needs:
-    - job: deploy_el8
-      artifacts: true
-
-arcconf_el8_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcconf'
-  needs:
-    - job: deploy_el8
-      artifacts: true
-
 
 ############################
 ##### EL9 DEPLOY CHECK
@@ -565,41 +504,6 @@ arcconf_deb11_deploytest:
       artifacts: true
 
     
-############################
-##### UBUNTU DEPLOY CHECK
-############################
-gridftp_ubuntu1804_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'gridftp'
-  stage:  check_deploy
-  needs:
-    - job: deploy_ubuntu1804
-      artifacts: true
-
-emies_ubuntu1804_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'emies'
-  needs:
-    - job: deploy_ubuntu1804
-      artifacts: true
-    
-arcrest_ubuntu1804_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcrest'
-  needs:
-    - job: deploy_ubuntu1804
-      artifacts: true
-
-arcconf_ubuntu1804_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcconf'
-  needs:
-    - job: deploy_ubuntu1804
-      artifacts: true
 
 ############################
 ##### UBUNTU DEPLOY CHECK

@@ -310,7 +310,11 @@ namespace Arc {
     attributes.insert(std::pair<std::string, std::string>("Accept", "text/xml"));
     Arc::MCC_Status res = client.process(std::string("POST"), attributes, &request, &info, &response);
     if((!res) || (info.code != 201)) {
-      logger.msg(WARNING, "Failed to process jobs - wrong response: %u", info.code);
+      if (!res) {
+        logger.msg(WARNING, "Failed to process jobs - error response: %s", std::string(res));
+      } else {
+        logger.msg(WARNING, "Failed to process jobs - wrong response: %u", info.code);
+      }
       if(response && response->Content()) logger.msg(DEBUG, "Content: %s", response->Content());
       delete response; response = NULL;
       for (std::list<std::string>::const_iterator it = IDs.begin(); it != IDs.end(); ++it) {
@@ -398,6 +402,26 @@ namespace Arc {
     case Job::STAGEOUTDIR:
     case Job::SESSIONDIR:
       url.ChangePath(url.Path() + "/session");
+      break;
+    case Job::LOGDIR:
+      url.ChangePath(url.Path() + "/diagnose");
+      {
+      URL file(url);
+      file.ChangePath(url.Path() + "/failed"); url.AddLocation(URLLocation(file, "failed"));
+      file.ChangePath(url.Path() + "/local"); url.AddLocation(URLLocation(file, "local"));
+      file.ChangePath(url.Path() + "/errors"); url.AddLocation(URLLocation(file, "errors"));
+      file.ChangePath(url.Path() + "/description"); url.AddLocation(URLLocation(file, "description"));
+      file.ChangePath(url.Path() + "/diag"); url.AddLocation(URLLocation(file, "diag"));
+      file.ChangePath(url.Path() + "/comment"); url.AddLocation(URLLocation(file, "comment"));
+      file.ChangePath(url.Path() + "/status"); url.AddLocation(URLLocation(file, "status"));
+      file.ChangePath(url.Path() + "/acl"); url.AddLocation(URLLocation(file, "acl"));
+      file.ChangePath(url.Path() + "/xml"); url.AddLocation(URLLocation(file, "xml"));
+      file.ChangePath(url.Path() + "/input"); url.AddLocation(URLLocation(file, "input"));
+      file.ChangePath(url.Path() + "/output"); url.AddLocation(URLLocation(file, "output"));
+      file.ChangePath(url.Path() + "/input_status"); url.AddLocation(URLLocation(file, "input_status"));
+      file.ChangePath(url.Path() + "/output_status"); url.AddLocation(URLLocation(file, "output_status"));
+      file.ChangePath(url.Path() + "/statistics"); url.AddLocation(URLLocation(file, "statistics"));
+      }
       break;
     case Job::JOBLOG:
       url.ChangePath(url.Path() + "/diagnose/errors");
