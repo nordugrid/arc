@@ -176,8 +176,8 @@ static MCC_Status make_http_fault(Logger& logger,
   bool keep_alive = (!inpayload)?false:inpayload.KeepAlive();
   outpayload.KeepAlive(keep_alive);
   // Add forced headers
-  for(std::list< std::pair<std::string,std::string> >::const_iterator header = headers.cbegin();
-      header != headers.cend();
+  for(std::list< std::pair<std::string,std::string> >::const_iterator header = headers.begin();
+      header != headers.end();
       ++header) {
     outpayload.Attribute(header->first, header->second);
   }
