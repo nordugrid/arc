@@ -482,7 +482,6 @@ class AccountingDB(object):
 
     def filter_extra_attributes(self, fdict):
         """Filter additional job information for custom queries"""
-        # TODO: consider refactoring to use JOINS instead
         # predefined filters
         filters = {
             'vomsfqan': "AND RecordID IN ( SELECT RecordID FROM AuthTokenAttributes "
@@ -490,6 +489,8 @@ class AccountingDB(object):
             'rte': "AND RecordID IN ( SELECT RecordID FROM RunTimeEnvironments WHERE RTEName IN ({0}) )",
             'dtrurl': "AND RecordID IN ( SELECT RecordID FROM DataTransfers WHERE URL IN ({0}) )"
         }
+        # 'RecordID IN' and 'JOIN' are showing comparable query time
+        # 'RecordID IN' has kept for simplicity of filtering framework
         for f in fdict.keys():
             values = fdict[f][:]
             if f in filters:
