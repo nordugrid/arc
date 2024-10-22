@@ -11,37 +11,37 @@ import json
 
 def complete_wlcgvo(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
-    return AccountingControl(arcconf).complete_wlcgvo()
+    return AccountingControl(arcconf).complete_wlcgvo(parsed_args)
 
 
 def complete_fqan(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
-    return AccountingControl(arcconf).complete_fqan()
+    return AccountingControl(arcconf).complete_fqan(parsed_args)
 
 
 def complete_userdn(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
-    return AccountingControl(arcconf).complete_userdn()
+    return AccountingControl(arcconf).complete_userdn(parsed_args)
 
 
 def complete_state(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
-    return AccountingControl(arcconf).complete_state()
+    return AccountingControl(arcconf).complete_state(parsed_args)
 
 
 def complete_queue(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
-    return AccountingControl(arcconf).complete_queue()
+    return AccountingControl(arcconf).complete_queue(parsed_args)
 
 
 def complete_endpoint_type(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
-    return AccountingControl(arcconf).complete_endpoint_type()
+    return AccountingControl(arcconf).complete_endpoint_type(parsed_args)
 
 
 def complete_accounting_jobid(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
-    return AccountingControl(arcconf).complete_jobid(prefix)
+    return AccountingControl(arcconf).complete_jobid(parsed_args, prefix)
 
 
 class AccountingControl(ComponentControl):
@@ -79,27 +79,40 @@ class AccountingControl(ComponentControl):
             self.__set_db_location()
         self.adb = AccountingDB(self.db_file)
 
-    def __add_adb_filters(self, args):
+    def __add_stats_adb_filters(self, args):
         """apply optional query filters in the right order"""
         self.__init_adb()
+        # time-range filters
         if args.start_from:
             self.adb.filter_startfrom(args.start_from)
         if args.end_from:
             self.adb.filter_endfrom(args.end_from)
         if args.end_till:
             self.adb.filter_endtill(args.end_till)
+        # state filter
+        if args.filter_state:
+            # use sattused explicitly defined
+            statuses = args.filter_state
+            if args.show_active and 'in-progress' not in statuses:
+                statuses.append('in-progress')
+            self.adb.filter_statuses(statuses)
+        elif not args.show_active:
+            # # otherwise filter terminal states
+            self.adb.filter_statuses(['completed', 'failed'])
+        # filter IDs
         if args.filter_user:
             self.adb.filter_users(args.filter_user)
         if args.filter_vo:
             self.adb.filter_wlcgvos(args.filter_vo)
         if args.filter_fqan:
             self.adb.filter_fqans(args.filter_fqan)
+        # filter Queue
         if args.filter_queue:
             self.adb.filter_queues(args.filter_queue)
-        if args.filter_state:
-            self.adb.filter_statuses(args.filter_state)
+        # filter Endpoint
         if args.filter_endpoint:
             self.adb.filter_endpoint_type(args.filter_endpoint)
+        # filter Extra attributes
         if args.filter_extra:
             fdict = {}
             for eattr, evalue in args.filter_extra:
@@ -123,7 +136,7 @@ class AccountingControl(ComponentControl):
     def stats(self, args):
         """Print-out different aggregated accounting stats"""
         self.__init_adb()
-        self.__add_adb_filters(args)
+        self.__add_stats_adb_filters(args)
         # separate queries
         if args.output == 'users':
             out = '\n'.join(self.adb.get_job_owners())
@@ -151,14 +164,17 @@ class AccountingControl(ComponentControl):
             self.logger.error('There are no jobs matching defined filtering criteria')
         if args.output == 'brief' and stats['count']:
             self.__human_readable(stats)
-            print('A-REX Accounting Statistics:\n'
-                  '  Number of Jobs: {count}\n'
-                  '  Accounting timeframe: {minendtime} - {maxendtime}\n'
-                  '  Execution timeframe: {minstarttime} - {maxendtime}\n'
-                  '  Total WallTime: {walltime}\n'
-                  '  Total CPUTime: {cputime} (including {cpukerneltime} of kernel time)\n'
-                  '  Data staged in: {stagein}\n'
-                  '  Data staged out: {stageout}'.format(**stats))
+            stats_output = ['A-REX Accounting Statistics:']
+            stats_output.append('Number of Jobs: {count}')
+            if args.show_active:
+                stats_output.append('Execution timeframe: {minstarttime} - {maxendtime}')
+            else:
+                stats_output.append('Accounting timeframe: {minendtime} - {maxendtime}')
+            stats_output.append('Total WallTime: {walltime}')
+            stats_output.append('Total CPUTime: {cputime} (including {cpukerneltime} of kernel time)')
+            stats_output.append('Data staged in: {stagein}')
+            stats_output.append('Data staged out: {stageout}')
+            print('\n  '.join(stats_output).format(**stats))
         elif args.output == 'jobcount':
             print(stats['count'])
         elif args.output == 'walltime':
@@ -561,32 +577,37 @@ class AccountingControl(ComponentControl):
             sys.exit(1)
 
     # bash-completion helpers
-    def complete_wlcgvo(self):
+    def __init_adb_location(self, args):
+        if args.database_file:
+            self.__set_db_location(args.database_file)
         self.__init_adb()
+
+    def complete_wlcgvo(self, args):
+        self.__init_adb_location(args)
         return self.adb.get_wlcgvos()
 
-    def complete_fqan(self):
-        self.__init_adb()
+    def complete_fqan(self, args):
+        self.__init_adb_location(args)
         return self.adb.get_fqans()
 
-    def complete_userdn(self):
-        self.__init_adb()
+    def complete_userdn(self, args):
+        self.__init_adb_location(args)
         return self.adb.get_users()
 
-    def complete_state(self):
-        self.__init_adb()
+    def complete_state(self, args):
+        self.__init_adb_location(args)
         return self.adb.get_statuses()
 
-    def complete_queue(self):
-        self.__init_adb()
+    def complete_queue(self, args):
+        self.__init_adb_location(args)
         return self.adb.get_queues()
 
-    def complete_endpoint_type(self):
-        self.__init_adb()
+    def complete_endpoint_type(self, args):
+        self.__init_adb_location(args)
         return self.adb.get_endpoint_types()
 
-    def complete_jobid(self, prefix):
-        self.__init_adb()
+    def complete_jobid(self, args, prefix):
+        self.__init_adb_location(args)
         return self.adb.get_joblist(prefix)
 
     @staticmethod
@@ -668,6 +689,8 @@ class AccountingControl(ComponentControl):
                                       help='Define the job completion time range end (YYYY-MM-DD [HH:mm[:ss]])')
         accounting_stats.add_argument('-s', '--start-from', type=valid_datetime_type,
                                       help='Define the job start time constraint (YYYY-MM-DD [HH:mm[:ss]])')
+        accounting_stats.add_argument('-a', '--show-active', action='store_true', 
+                                      help='Include active jobs (not in terminal states) to the stats')
         accounting_stats.add_argument('--filter-vo', help='Account jobs owned by specified WLCG VO(s)',
                                      action='append').completer = complete_wlcgvo
         accounting_stats.add_argument('--filter-fqan', help='Account jobs owned by users with specified FQAN(s)',
