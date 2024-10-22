@@ -10,7 +10,11 @@ try:
     from .Jobs import *
 except ImportError:
     JobsControl = None
-
+try:
+    from .Accounting import *
+except ImportError:
+    AccountingControl = None
+    
 def complete_job_id(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
     return JobsControl(arcconf).complete_job(parsed_args)
@@ -100,7 +104,8 @@ class DataStagingControl(ComponentControl):
         has_udef_input = self._has_userdefined_inputfiles(jobid)
 
         if has_udef_input is None:
-            print('The grami file for job with id: ', jobid, ' is no longer present. Skipping this job.')
+            """ No grami file - which means the job is most probably finished and removed from the ARC-CE """
+            return None
         elif has_udef_input is False:
             ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':True}
         else:
@@ -643,21 +648,35 @@ class DataStagingControl(ComponentControl):
         datastaging_time=self._get_timestamps_joblog(log_f,jobid)
 
         if datastaging_time:
-            print(f"\nTotal datastaging duration for jobid {jobid:<50}")
+
             if datastaging_time['noinput']:
                 print('\tThis job has no user-defined input-files, hence no datastaging needed/done.')
             else:
                 if datastaging_time['done']:
+                    print(f"\nTotal datastaging duration for jobid {jobid} - job is currently INLRMS")
                     print(f"\t{'Start':<21} \t{'End':<21} \t{'Duration':<12}")
                     print(f"\t{datastaging_time['start']:<21} \t{datastaging_time['end']:<21} \t{datastaging_time['dt']:<12}")
                 else:
-                    print("\tDatastaging still ongoing")
+                    print(f"\nTotal datastaging duration for jobid {jobid} - job is still PREPARING")
                     print(f"\t{'Start':<21} \t{'Duration':<12}")
                     print(f"\t{datastaging_time['start']:<21} \t{datastaging_time['dt']:<12}")
         else:
-            print(f'No datastaging information for jobid {jobid:<50} - Try arcctl accounting instead - the job might be finished.')
+            print(f"\nTotal datastaging duration for jobid {jobid} - job is FINISHED - fetching information from accounting.")
+            inputs_remote, inputs_cache, inputs_all  = AccountingControl(self.arcconfig).jobdownload(jobid)
+
+            print(f"\nRemotely downloaded files")
+            print(f"\t{'Start':<24} {'End':<24} {'Duration':<12} {'Size':<5} {'Nfiles':<6}")
+            print(f"\t{inputs_remote['start']:%Y-%m-%d %H-%M-%S:24}   {inputs_remote['end']:%Y-%m-%d %H-%M-%S:24}   {inputs_remote['delta']}      {inputs_remote['size']:<5.5} {inputs_remote['nfiles']:>6}")
 
 
+            print(f"\nCached files")
+            print(f"\t{'Start':<24} {'End':<24} {'Duration':<12} {'Size':<5} {'Nfiles':<6}")
+            print(f"\t{inputs_cache['start']:%Y-%m-%d %H-%M-%S:24}   {inputs_cache['end']:%Y-%m-%d %H-%M-%S:24}   {inputs_cache['delta']}      {inputs_all['size']:<5.5} {inputs_cache['nfiles']:>6}")
+
+            print(f"\nGrand totals")
+            print(f"\t{'Start':<24} {'End':<24} {'Duration':<12} {'Size':<5} {'Nfiles':<6}")
+            print(f"\t{inputs_all['start']:%Y-%m-%d %H-%M-%S:24}   {inputs_all['end']:%Y-%m-%d %H-%M-%S:24}   {inputs_all['delta']}      {inputs_all['size']:<5.5} {inputs_all['nfiles']:>6}")
+            
 
     def show_job_details(self,jobid,file_details):
 
