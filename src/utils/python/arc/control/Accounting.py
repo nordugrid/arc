@@ -437,6 +437,9 @@ class AccountingControl(ComponentControl):
         return backup_adb
 
     def __db_vacuum_precheck(self, args):
+        # skip A-REX check if running against non-default DB location
+        if self.db_file != self.__db_location(ACCOUNTING_DB_FILE):
+            return True
         if args.vacuum and not args.yes:
             sm = OSServiceManagement()
             if sm.is_active('arc-arex'):
