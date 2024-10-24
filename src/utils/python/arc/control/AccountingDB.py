@@ -151,6 +151,15 @@ class AccountingDB(object):
             self.logger.debug('Failed to get %s from the accounting database. Error: %s', errstr, str(e))
         return values
 
+    # get unsigned integer (stored in SQLite as signed)
+    def __get_unsigned_int(self, value):
+        if value > 0:
+            return value
+        if abs(value) < 2**31:
+            return value + (1 << 32)
+        else:
+            return value + (1 << 64)
+
     # helpers to fetch accounting DB normalization databases to internal class structures
     def __fetch_idname_table(self, table):
         """General helper to fetch (id, name) tables content as a dict"""
@@ -505,7 +514,7 @@ class AccountingDB(object):
                 ttype = 'output'
             result[row[0]].append({
                 'url': row[1],
-                'size': row[2],
+                'size': self.__get_unsigned_int(row[2]),
                 'timestart': datetime.datetime.utcfromtimestamp(row[3]),
                 'timeend': datetime.datetime.utcfromtimestamp(row[4]),
                 'type':  ttype
