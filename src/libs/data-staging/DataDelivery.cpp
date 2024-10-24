@@ -248,7 +248,7 @@ namespace DataStaging {
             dp->dtr->set_error_status(status.error,status.error_location,
                      status.error_desc[0]?status.error_desc:dp->comm->GetError().c_str());
           }
-          else if (status.checksum) {
+          else if (status.checksum[0]) {
             dp->dtr->get_destination()->SetCheckSum(status.checksum);
           }
           dp->dtr->get_logger()->msg(Arc::INFO, "Transfer finished: %llu bytes transferred %s", status.transferred,

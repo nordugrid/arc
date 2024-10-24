@@ -737,14 +737,17 @@ namespace ArcDMCFile {
             }
           }
           if(fd != -1) {
-            (lseek(fd, 0, SEEK_SET) == -1);
-            (ftruncate(fd, 0) != 0);
-            (close(fd) != -1); fd = -1;
+            lseek(fd, 0, SEEK_SET);
+            (void)ftruncate(fd, 0);
+            close(fd);
+            fd = -1;
           }
           if(fa) {
             fa->fa_lseek(0, SEEK_SET);
             fa->fa_ftruncate(0);
-            fa->fa_close(); delete fa; fa = NULL;
+            fa->fa_close();
+            delete fa;
+            fa = NULL;
           }
           logger.msg(VERBOSE, "Failed to preallocate space for %s", url.Path());
           buffer->speed.reset();

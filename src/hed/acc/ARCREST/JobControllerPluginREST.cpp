@@ -311,7 +311,7 @@ namespace Arc {
     Arc::MCC_Status res = client.process(std::string("POST"), attributes, &request, &info, &response);
     if((!res) || (info.code != 201)) {
       if (!res) {
-        logger.msg(WARNING, "Failed to process jobs - no response from server");
+        logger.msg(WARNING, "Failed to process jobs - error response: %s", std::string(res));
       } else {
         logger.msg(WARNING, "Failed to process jobs - wrong response: %u", info.code);
       }
