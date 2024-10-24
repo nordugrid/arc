@@ -12,6 +12,10 @@ if os.geteuid() != 0:
 
 def arcctl_server_mode():
     """Just return True indicating that we are working in server mode with arc.conf in place"""
+    # TODO: non-root ARC - use arc.conf user instead of hardcoded root
+    if os.geteuid() != 0:
+        logger.warning('Running arcctl on ARC CE from non-root user. Disabling the service mode.')
+        return False
     return True
 
 

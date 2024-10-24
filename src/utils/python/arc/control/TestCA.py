@@ -119,13 +119,14 @@ class TestCAControl(ComponentControl):
         cg = CertificateGenerator(self.x509_cert_dir)
         cg.generateCA(self.caName, validityperiod=args.validity, messagedigest=args.digest, force=args.force)
         # create empty allowed-subjects file
-        try:
-            open(self.__test_authfile, 'a').close()
-        except IOError as err:
-            self.logger.error('Failed to create %s file. Error %s', self.__test_authfile, str(err))
-            sys.exit(1)
-        # add arc.conf to authorize testCA users
-        write_conf_d(self.__conf_d_access, self.__arc_conf_access())
+        if arcctl_server_mode():
+            try:
+                open(self.__test_authfile, 'a').close()
+            except IOError as err:
+                self.logger.error('Failed to create %s file. Error %s', self.__test_authfile, str(err))
+                sys.exit(1)
+            # add arc.conf to authorize testCA users
+            write_conf_d(self.__conf_d_access, self.__arc_conf_access())
 
     def cleanup_files(self):
         # CA certificates dir
@@ -174,6 +175,7 @@ class TestCAControl(ComponentControl):
             # create tarball
             with closing(tarfile.open(os.path.join(workdir, tarball), 'w:gz')) as tarf:
                 tarf.add('.')
+            print_info(self.logger, 'Certificate and key for host %s are exported to %s', hostname, tarball)
             # cleanup
             os.chdir(workdir)
             shutil.rmtree(exportdir)

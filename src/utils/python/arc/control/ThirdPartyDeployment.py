@@ -10,7 +10,7 @@ import re
 import subprocess
 from .OSPackage import OSPackageManagement
 from .TestJWT import JWTIssuer
-
+from .CertificateGenerator import CertificateKeyPair
 
 class ThirdPartyControl(ComponentControl):
     def __init__(self, arcconfig):
@@ -276,6 +276,26 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
                               'Make sure you have repositories installed (see --help for options).')
             sys.exit(exitcode)
 
+    def __ca_bundle(self, ca):
+        if ca == 'system':
+            return system_ca_bundle()
+        elif ca == 'grid':
+            return self.x509_cert_dir
+        elif ca == 'insecure':
+            return None
+        else:
+            self.logger.error('Failed to define CA bundle. %s is not a valid option', ca)
+            sys.exit(1)
+
+    def cacert_deploy(self, url, ca):
+        # TODO: complete implementation using CertificateKeyPair
+        if url.startswith('https://'):
+            # define CA bundle
+            capath = self.__ca_bundle(ca)
+        elif os.path.exists(url):
+            pass
+
+
     def jwt_deploy(self, url, ca, deploy_conf=False):
         if url.startswith('test-jwt://'):
             iss = JWTIssuer.from_dump(url[11:])
@@ -283,15 +303,7 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             if not url.endswith('/.well-known/openid-configuration'):
                 url = url + '/.well-known/openid-configuration'
             # define CA bundle
-            if ca == 'system':
-                capath = system_ca_bundle()
-            elif ca == 'grid':
-                capath = self.x509_cert_dir
-            elif ca == 'insecure':
-                capath = None
-            else:
-                self.logger.error('Failed to define CA bundle. %s is not a valid option', ca)
-                sys.exit(1)
+            capath = self.__ca_bundle(ca)
             # fetch metadata
             jwt_metadata = JWTIssuer.parse_json(
                 fetch_url(url, cacerts_path=capath, err_description='JWT Issuer metadata'))
@@ -405,6 +417,8 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             self.vomses_deploy(args)
         elif args.action == 'igtf-ca':
             self.igtf_deploy(args.bundle, args.installrepo)
+        elif args.action == 'ca-cert':
+            self.cacert_deploy(args.url, args.ca)
         elif args.action == 'jwt-issuer':
             self.jwt_deploy(args.url, args.ca, args.deploy_conf)
         elif args.action == 'iptables-config':
@@ -427,6 +441,11 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
                              choices=['classic', 'iota', 'mics', 'slcs'])
         igtf_ca.add_argument('-i', '--installrepo', help='Add specified repository that contains IGTF CA certificates',
                              choices=['igtf', 'egi-trustanchors'])
+
+        ca_cert = deploy_actions.add_parser('ca-cert', help='Deploy trusted CA certificate')
+        ca_cert.add_argument('location', help='CA Certificate PEM file location (URL, path to file)')
+        ca_cert.add_argument('--ca', help='PKI CA Bundle for URL locations (default is %(default)s)',
+                             action='store', default='system', choices=['system', 'grid', 'insecure'])
 
         deploy_vomses = deploy_actions.add_parser('vomses', help='Deploy VOMS client configuration files')
         deploy_vomses.add_argument('vo', help='VO Name')
