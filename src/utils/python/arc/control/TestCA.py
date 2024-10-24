@@ -16,8 +16,8 @@ from contextlib import closing
 
 
 def add_parser_digest_validity(parser, defvalidity=90):
-    parser.add_argument('-d', '--digest', help='Digest to use (default is %(default)s)', default='sha256',
-                        choices=['md2', 'md4', 'md5', 'mdc2', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512'])
+    parser.add_argument('-d', '--digest', help='Digest to use (default is %(default)s)', default='sha384',
+                        choices=['sha224', 'sha256', 'sha384', 'sha512'])
     parser.add_argument('-v', '--validity', type=int, default=defvalidity,
                         help='Validity of certificate in days (default is %(default)s)')
 

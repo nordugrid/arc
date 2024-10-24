@@ -75,7 +75,7 @@ cond_subjects globus '"{dn_base}/*"'
         os.symlink(self.signingPolicyFile, self.subject_hash_old + ".signing_policy")
 
 class CertificateGenerator(object):
-    supportedMessageDigests = ["md2", "md4", "md5", "mdc2", "sha1", "sha224", "sha256", "sha384", "sha512"]
+    supportedMessageDigests = ["sha224", "sha256", "sha384", "sha512"]
 
     def __init__(self, work_dir=''):
         super(CertificateGenerator, self).__init__()
@@ -118,7 +118,7 @@ class CertificateGenerator(object):
             self.logger.info('Removing the CA file: %s', fpath)
             os.unlink(fpath)
 
-    def generateCA(self, name="Test CA", validityperiod=30, messagedigest="sha1", use_for_signing=True, force=False):
+    def generateCA(self, name="Test CA", validityperiod=30, messagedigest="sha384", use_for_signing=True, force=False):
         if not isinstance(validityperiod, int):
             self.logger.error("The 'validityperiod' argument must be an integer")
             sys.exit(1)
@@ -144,7 +144,7 @@ class CertificateGenerator(object):
 
         subject = "/DC=org/DC=nordugrid/DC=ARC/O=TestCA/CN=" + name
         self.logger.info('Generating Test CA RSA Key for %s', subject)
-        run_subprocess("openssl", "genrsa", "-out", keyLocation, "2048")
+        run_subprocess("openssl", "genrsa", "-out", keyLocation, "4096")
 
         run_subprocess("openssl", "req", "-x509", "-new", "-" + messagedigest, "-subj", subject, "-key",
                   keyLocation, "-out", certLocation, "-days", str(validityperiod))
@@ -190,7 +190,7 @@ class CertificateGenerator(object):
         return ca
 
     def generateHostCertificate(self, hostname, prefix="host", ca=None,
-                                validityperiod=30, messagedigest="sha1", force=False):
+                                validityperiod=30, messagedigest="sha384", force=False):
         ca = self.__check_generate_args(ca, validityperiod, messagedigest)
 
         prefix += "-" + hostname.replace(" ", "-")
@@ -243,7 +243,7 @@ class CertificateGenerator(object):
 
         return keypair
 
-    def generateClientCertificate(self, name, prefix="client", ca=None, validityperiod=30, messagedigest="sha1"):
+    def generateClientCertificate(self, name, prefix="client", ca=None, validityperiod=30, messagedigest="sha384"):
         ca = self.__check_generate_args(ca, validityperiod, messagedigest)
 
         prefix += "-" + name.replace(" ", "-")
@@ -288,16 +288,3 @@ class CertificateGenerator(object):
 
         return keypair
 
-
-def createParser():
-    parser = argparse.ArgumentParser(description='Script for generating certificates')
-    parser.add_argument('--CA', help='Generate CA certificate with supplied name')
-    parser.add_argument('--host', help='Generate host certificate with supplied name')
-    parser.add_argument('--client', help='Generate client certificate with supplied name')
-    parser.add_argument('--CA-key-path', help='Path of CA key')
-    parser.add_argument('--CA-cert-path', help='Path of CA certificate')
-    parser.add_argument('--validity', type=int, default=30,
-                        help='Number of days the certificates will be valid (default %(default)s)')
-    parser.add_argument('--digest', default="sha1", help='The hash function to use for certificate signing')
-    parser.add_argument('--list-digest', action='store_const', const=True, help='List supported hash functions')
-    return parser
