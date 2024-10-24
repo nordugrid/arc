@@ -7,7 +7,9 @@ import os
 import socket
 import ssl
 import re
+import shutil
 import subprocess
+import tempfile
 from .OSPackage import OSPackageManagement
 from .TestJWT import JWTIssuer
 from .CertificateGenerator import CertificateKeyPair
@@ -287,13 +289,41 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             self.logger.error('Failed to define CA bundle. %s is not a valid option', ca)
             sys.exit(1)
 
-    def cacert_deploy(self, url, ca):
-        # TODO: complete implementation using CertificateKeyPair
-        if url.startswith('https://'):
+    def cacert_deploy(self, location, ca):
+        pem_file = None
+        if location is None:
+            print_info(self.logger, 'Reading CA Certificate PEM data from stdin')
+            pem_data = sys.stdin.read()
+        elif location.startswith('https://'):
             # define CA bundle
             capath = self.__ca_bundle(ca)
-        elif os.path.exists(url):
-            pass
+            pem_data = fetch_url(location, cacerts_path=capath, err_description='Certificate file')
+        elif os.path.exists(location):
+            pem_file = location
+        else:
+            self.logger.error('Location %s is not supported. Use HTTPS URL or filesyste path.', location)
+            sys.exit(1)
+        # dump PEM to file
+        if pem_file is None:
+            if not pem_data:
+                self.logger.error('Cannot get PEM data from defined location')
+            pem_file = tempfile.mkstemp('.pem', 'arcctl-deploy-')[1]
+            with open(pem_file, 'w') as pem_fd:
+                pem_fd.write(pem_data)
+        # deploy
+        cert = CertificateKeyPair(None, pem_file, None)
+        certname = cert.dn[cert.dn.rfind('/'):].replace('/CN=', '').replace(' ', '') + '.pem'
+        deploy_location = os.path.join(self.x509_cert_dir, certname)
+        try:
+            shutil.move(cert.certLocation, deploy_location)
+            deploy_cert = CertificateKeyPair(None, deploy_location, cert.dn)
+            deploy_cert.setFilePermissions()
+            deploy_cert.makeHashLinks()
+            deploy_cert.writeCASigningPolicy()
+        except OSError as e:
+            self.logger.error('Failed to deploy CA certificate. Error: %s', str(e))
+            sys.exit(1)
+        print_info(self.logger, 'CA Certificate for %s is deployed successfully to %s', cert.dn, deploy_location)
 
 
     def jwt_deploy(self, url, ca, deploy_conf=False):
@@ -418,7 +448,7 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         elif args.action == 'igtf-ca':
             self.igtf_deploy(args.bundle, args.installrepo)
         elif args.action == 'ca-cert':
-            self.cacert_deploy(args.url, args.ca)
+            self.cacert_deploy(args.location, args.ca)
         elif args.action == 'jwt-issuer':
             self.jwt_deploy(args.url, args.ca, args.deploy_conf)
         elif args.action == 'iptables-config':
@@ -443,9 +473,11 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
                              choices=['igtf', 'egi-trustanchors'])
 
         ca_cert = deploy_actions.add_parser('ca-cert', help='Deploy trusted CA certificate')
-        ca_cert.add_argument('location', help='CA Certificate PEM file location (URL, path to file)')
+        ca_cert.add_argument('-l', '--location', help='CA Certificate PEM file location (URL, path to file). '
+                             '(default is to raad from stdin)')
         ca_cert.add_argument('--ca', help='PKI CA Bundle for URL locations (default is %(default)s)',
-                             action='store', default='system', choices=['system', 'grid', 'insecure'])
+                            action='store', default='system', choices=['system', 'grid', 'insecure'])
+        # TODO: --force
 
         deploy_vomses = deploy_actions.add_parser('vomses', help='Deploy VOMS client configuration files')
         deploy_vomses.add_argument('vo', help='VO Name')

@@ -1,9 +1,7 @@
 from __future__ import print_function
 
-import subprocess
 import tempfile
 import os
-import argparse
 import sys
 import stat
 import logging
@@ -21,7 +19,7 @@ class CertificateKeyPair(object):
         if dn is None:
             self.dn = run_subprocess("openssl", "x509", "-subject", "-noout",
                                      "-nameopt", "compat",
-                                     "-in", self.certLocation).split('=', 1)[1]
+                                     "-in", self.certLocation).split('=', 1)[1].strip()
             self.logger.debug('Certificate DN: %s', self.dn)
         else:
             self.dn = dn
@@ -41,7 +39,7 @@ class CertificateKeyPair(object):
 
     def setCertificateSubjectHash(self, force=False):
         if self.subject_hash and not force:
-            self.logger.debug('Certificate subject has is already set for %s', self.certLocation)
+            self.logger.debug('Certificate subject is already set for %s', self.certLocation)
             return
         self.subject_hash, self.subject_hash_old = run_subprocess(
             "openssl", "x509", "-subject_hash", "-subject_hash_old",
@@ -59,7 +57,7 @@ class CertificateKeyPair(object):
     def writeCASigningPolicy(self):
         # Signing policy is critical for Globus
         self.logger.info('Writing signing_policy file for CA')
-        signing_policy = '''# EACL {dn}
+        signing_policy = '''# EACL for {dn}
 access_id_CA  X509   '{dn}'
 pos_rights    globus CA:sign
 cond_subjects globus '"{dn_base}/*"'
