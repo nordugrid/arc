@@ -205,10 +205,9 @@ int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobD
         if (ets->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") {
           jobdesclang = "nordugrid:xrsl";
         }
-        else if (ets->ComputingEndpoint->InterfaceName == "org.ogf.glue.emies.activitycreation") {
-          jobdesclang = "emies:adl";
-        }
-        else if (ets->ComputingEndpoint->InterfaceName == "org.nordugrid.internal") {
+        else if ((ets->ComputingEndpoint->InterfaceName == "org.nordugrid.arcrest.activitycreation") ||
+                 (ets->ComputingEndpoint->InterfaceName == "org.ogf.glue.emies.activitycreation") ||
+                 (ets->ComputingEndpoint->InterfaceName == "org.nordugrid.internal.activitycreation")) {
           jobdesclang = "emies:adl";
         }
         std::string jobdesc;
@@ -336,8 +335,8 @@ bool prepare_submission_endpoint_batches(const Arc::UserConfig& usercfg, const C
     } else if ( opt.submit_types.empty() ) {
       // try all infodiscovery endpoints but prioritize the interfaces in the following order
       std::list<std::string> info_priority;
-      info_priority.push_back("org.ogf.glue.emies.resourceinfo");
       info_priority.push_back("org.nordugrid.arcrest");
+      info_priority.push_back("org.ogf.glue.emies.resourceinfo");
       info_priority.push_back("org.nordugrid.ldapglue2");
       info_priority.push_back("org.nordugrid.ldapng");
       for (std::list<std::string>::const_iterator iit = info_priority.begin();
