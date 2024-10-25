@@ -128,6 +128,23 @@ class TestCAControl(ComponentControl):
             # add arc.conf to authorize testCA users
             write_conf_d(self.__conf_d_access, self.__arc_conf_access())
 
+    def ca_info(self, args):
+        if not os.path.exists(self.caCert):
+            self.logger.error('TestCA "%s" does not exists. Run init.', self.caName)
+            sys.exit(0)
+        ca = CertificateKeyPair(self.caKey, self.caCert, None)
+        if args.output == 'dn':
+            self.logger.debug('Printing CA Issuer DN for %s', self.caName)
+            print(ca.dn)
+        elif args.output == 'files':
+            self.logger.debug('Showing CA files locatino for %s', self.caName)
+            print('Certificate: {0}'.format(ca.certLocation))
+            print('Key: {0}'.format(ca.keyLocation))
+        elif args.output == 'ca-cert':
+            self.logger.debug('Printing CA Certificate PEM for %s', self.caName)
+            with open(ca.certLocation, 'r') as ca_pem:
+                print(ca_pem.read().strip())
+
     def cleanup_files(self):
         # CA certificates dir
         if not os.path.exists(self.x509_cert_dir):
@@ -313,14 +330,15 @@ class TestCAControl(ComponentControl):
         # define CA dir if provided
         if args.ca_dir is not None:
             self.__define_ca_dir(args.ca_dir)
-        # no need to go further if CA dir is not writable
-        ensure_path_writable(self.x509_cert_dir)
         # define CA ID if provided
         if args.ca_id is not None:
             self.__define_CA_ID(args.ca_id)
         # parse actions
         if args.action == 'init':
+            ensure_path_writable(self.x509_cert_dir)
             self.createca(args)
+        elif args.action == 'info':
+            self.ca_info(args)
         elif args.action == 'cleanup':
             self.cleanup_files()
         elif args.action == 'hostcert':
@@ -348,6 +366,10 @@ class TestCAControl(ComponentControl):
         testca_init = testca_actions.add_parser('init', help='Generate self-signed TestCA files')
         add_parser_digest_validity(testca_init)
         testca_init.add_argument('-f', '--force', action='store_true', help='Overwrite files if exist')
+
+        testca_info = testca_actions.add_parser('info', help='Show information about TestCA')
+        testca_info.add_argument('-o', '--output', help='Specify what information to show (default is %(default)s)',
+                                 choices=['dn', 'files', 'ca-cert'], default='dn')
 
         testca_cleanup = testca_actions.add_parser('cleanup', help='Cleanup TestCA files')
 
