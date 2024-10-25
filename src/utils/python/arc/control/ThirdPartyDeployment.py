@@ -289,14 +289,15 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             self.logger.error('Failed to define CA bundle. %s is not a valid option', ca)
             sys.exit(1)
 
-    def cacert_deploy(self, location, ca):
+    def cacert_deploy(self, args):
+        location = args.crt
         pem_file = None
         if location is None:
             print_info(self.logger, 'Reading CA Certificate PEM data from stdin')
             pem_data = sys.stdin.read()
         elif location.startswith('https://'):
             # define CA bundle
-            capath = self.__ca_bundle(ca)
+            capath = self.__ca_bundle(args.url_ca)
             pem_data = fetch_url(location, cacerts_path=capath, err_description='Certificate file')
         elif os.path.exists(location):
             pem_file = location
@@ -313,13 +314,25 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         # deploy
         cert = CertificateKeyPair(None, pem_file, None)
         certname = cert.dn[cert.dn.rfind('/'):].replace('/CN=', '').replace(' ', '') + '.pem'
-        deploy_location = os.path.join(self.x509_cert_dir, certname)
+
+        ca_cert_dir = args.x509_cert_dir
+        if ca_cert_dir is None:
+            ca_cert_dir = self.x509_cert_dir
+        if not os.path.exists(ca_cert_dir):
+            self.logger.debug('Making CA certificates directory at %s', ca_cert_dir)
+            os.makedirs(ca_cert_dir, mode=0o755)
+
+        deploy_location = os.path.join(ca_cert_dir, certname)
+        if os.path.exists(deploy_location) and not args.force:
+            self.logger.error('CA Certificate %s is already exists. Use --force to overwrite', deploy_location)
+            sys.exit(1)
+
         try:
             shutil.move(cert.certLocation, deploy_location)
             deploy_cert = CertificateKeyPair(None, deploy_location, cert.dn)
             deploy_cert.setFilePermissions()
-            deploy_cert.makeHashLinks()
-            deploy_cert.writeCASigningPolicy()
+            deploy_cert.makeHashLinks(args.force)
+            deploy_cert.writeCASigningPolicy(args.force)
         except OSError as e:
             self.logger.error('Failed to deploy CA certificate. Error: %s', str(e))
             sys.exit(1)
@@ -448,9 +461,9 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         elif args.action == 'igtf-ca':
             self.igtf_deploy(args.bundle, args.installrepo)
         elif args.action == 'ca-cert':
-            self.cacert_deploy(args.location, args.ca)
+            self.cacert_deploy(args)
         elif args.action == 'jwt-issuer':
-            self.jwt_deploy(args.url, args.ca, args.deploy_conf)
+            self.jwt_deploy(args.url, args.url_ca, args.deploy_conf)
         elif args.action == 'iptables-config':
             self.iptables_config(args.multiport, args.any_state)
         else:
@@ -473,11 +486,12 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
                              choices=['igtf', 'egi-trustanchors'])
 
         ca_cert = deploy_actions.add_parser('ca-cert', help='Deploy trusted CA certificate')
-        ca_cert.add_argument('-l', '--location', help='CA Certificate PEM file location (URL, path to file). '
+        ca_cert.add_argument('-c', '--crt', help='CA Certificate PEM file location: HTTPS URL or path to file '
                              '(default is to raad from stdin)')
-        ca_cert.add_argument('--ca', help='PKI CA Bundle for URL locations (default is %(default)s)',
+        ca_cert.add_argument('-f', '--force', help='Overwrite if already exists', action='store_true')
+        ca_cert.add_argument('--x509-cert-dir', help='Redefine CA Certificates dir location')
+        ca_cert.add_argument('--url-ca', help='PKI CA Bundle for URL locations (default is %(default)s)',
                             action='store', default='system', choices=['system', 'grid', 'insecure'])
-        # TODO: --force
 
         deploy_vomses = deploy_actions.add_parser('vomses', help='Deploy VOMS client configuration files')
         deploy_vomses.add_argument('vo', help='VO Name')
@@ -503,7 +517,7 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         if arcctl_server_mode():
             jwt_iss = deploy_actions.add_parser('jwt-issuer', help='Deploy JWT Issuer trust data')
             jwt_iss.add_argument('url', help='Issuer metadata URL (.well-known/configuration or test-jwt://)')
-            jwt_iss.add_argument('--ca', help='PKI CA Bundle (default is %(default)s)', action='store', default='system',
+            jwt_iss.add_argument('--url-ca', help='PKI CA Bundle (default is %(default)s)', action='store', default='system',
                                 choices=['system', 'grid', 'insecure'])
             jwt_iss.add_argument('-i', '--deploy-conf', help='Automatically add atuh configuration snipped to arc.conf.d',
                                  action='store_true')
@@ -514,4 +528,3 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
                                   help='Do not add \'--state NEW\' to filter configuration')
             iptables.add_argument('--multiport', action='store_true',
                                   help='Use one-line multiport filter instead of per-service entries')
-

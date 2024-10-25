@@ -131,8 +131,8 @@ class TestCAControl(ComponentControl):
     def cleanup_files(self):
         # CA certificates dir
         if not os.path.exists(self.x509_cert_dir):
-            self.logger.debug('Making CA certificates directory at %s', self.x509_cert_dir)
-            os.makedirs(self.x509_cert_dir, mode=0o755)
+            self.logger.error('CA certificates directory %s does not exists', self.x509_cert_dir)
+            sys.exit(1)
         # CA files cleanup
         cg = CertificateGenerator(self.x509_cert_dir)
         cg.cleanupCAfiles(self.caName)

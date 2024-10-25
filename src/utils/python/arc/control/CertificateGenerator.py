@@ -45,16 +45,18 @@ class CertificateKeyPair(object):
             "openssl", "x509", "-subject_hash", "-subject_hash_old",
             "-noout", "-in", self.certLocation).splitlines()
 
-    def makeHashLinks(self):
+    def makeHashLinks(self, force=False):
         self.setCertificateSubjectHash()
         # Use relative location. Assume hash link does not already exist (.0).
         os.chdir(self.certDir)
-        self.logger.info('Linking %s to %s.0', self.certFilename, self.subject_hash)
-        os.symlink(self.certFilename, self.subject_hash + ".0")
-        self.logger.info('Linking %s to %s.0', self.certFilename, self.subject_hash_old)
-        os.symlink(self.certFilename, self.subject_hash_old + ".0")
+        for link in [self.subject_hash + ".0", self.subject_hash_old + ".0"]:
+            self.logger.info('Linking %s to %s.0', self.certFilename, link)
+            if os.path.exists(link) and force:
+                self.logger.info('Removing existing %s link', link)
+                os.remove(link)
+            os.symlink(self.certFilename, link)
 
-    def writeCASigningPolicy(self):
+    def writeCASigningPolicy(self, force=False):
         # Signing policy is critical for Globus
         self.logger.info('Writing signing_policy file for CA')
         signing_policy = '''# EACL for {dn}
@@ -67,10 +69,12 @@ cond_subjects globus '"{dn_base}/*"'
         # hash links
         self.setCertificateSubjectHash()
         os.chdir(self.certDir)
-        self.logger.info('Linking %s to %s.signing_policy', self.signingPolicyFile, self.subject_hash)
-        os.symlink(self.signingPolicyFile, self.subject_hash + ".signing_policy")
-        self.logger.info('Linking %s to %s.signing_policy', self.signingPolicyFile, self.subject_hash_old)
-        os.symlink(self.signingPolicyFile, self.subject_hash_old + ".signing_policy")
+        for link in [self.subject_hash + ".signing_policy", self.subject_hash_old + ".signing_policy"]:
+            self.logger.info('Linking %s to %s.0', self.signingPolicyFile, link)
+            if os.path.exists(link) and force:
+                self.logger.info('Removing existing %s link', link)
+                os.remove(link)
+            os.symlink(self.signingPolicyFile, link)
 
 class CertificateGenerator(object):
     supportedMessageDigests = ["sha224", "sha256", "sha384", "sha512"]
