@@ -1431,8 +1431,13 @@ sub collect($) {
             $cep->{Capability} = $epscapabilities->{'org.nordugrid.arcrest'};
             $cep->{Technology} = 'rest';
             $cep->{InterfaceName} = 'org.nordugrid.arcrest';
-            # REST interface versions that we currently support. In LDAP only the first entry will be shown.
-            $cep->{InterfaceVersion} = [ '1.1', '1.0'  ];
+            # REST interface versions that we currently support:
+            #$cep->{InterfaceVersion} = [ '1.1', '1.0'  ];
+            # Due to a bug in LDAP only the first entry will be shown or the Endpoint will not be published.
+            # I could change the LDAP code, but better to be consistent between the two renderings instead.
+            # The LDAP issue is related to the GLUE2 schema (SingleValue instead of MultiValue) and cannot be corrected without hassle.
+            # DO NOT CHANGE THIS BELOW or the REST endpoint will not be published in LDAP.
+            $cep->{InterfaceVersion} = [ '1.1' ];
             #$cep->{SupportedProfile} = [ "http://www.ws-i.org/Profiles/BasicProfile-1.0.html",  # WS-I 1.0
             #            "http://schemas.ogf.org/hpcp/2007/01/bp"               # HPC-BP
             #              ];
