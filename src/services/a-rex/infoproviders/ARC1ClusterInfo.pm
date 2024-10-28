@@ -399,6 +399,7 @@ sub rest_state {
 # input is an array with (state, lrms_state, failure_state)
 sub glueState {
     my @ng_status = @_;
+
     return [ "UNDEFINEDVALUE" ] unless $ng_status[0];
     my $status = [ "nordugrid:".join(':',@ng_status) ];
     my $local_state = local_state(@ng_status);
@@ -934,6 +935,10 @@ sub collect($) {
     # each endpoint its list of jobids
     my $jobs_by_endpoint = {};
 
+    # corecount per internal AREX state
+    my %state_slots;
+
+
     # fills most of the above hashes
     for my $jobid (keys %$gmjobs_info) {
 
@@ -1014,16 +1019,34 @@ sub collect($) {
 
         # count grid jobs running and queued in LRMS for each share
 
-        if ($gmstatus eq 'INLRMS') {
+	
+	my $slots = $job->{count} || 1;
+	if ($gmstatus eq 'PREPARING'){
+
+	    #how should initialization be done - fix
+	    $state_slots{$share}{PREPARING} += $slots;
+	}
+	elsif ($gmstatus eq 'FINISHING'){
+	    #my $slots = $job->{count} || 1;
+	    $state_slots{$share}{FINISHING} += $slots;
+	}
+	elsif ($gmstatus eq 'INLRMS') {
             my $lrmsid = $job->{localid} || 'IDNOTFOUND';
             my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
-            my $slots = $job->{count} || 1;
+            #my $slots = $job->{count} || 1;
 
             if (defined $lrmsjob) {
                 if ($lrmsjob->{status} ne 'EXECUTED') {
                     $inlrmsslots{$share}{running} ||= 0; 
                     $inlrmsslots{$share}{suspended} ||= 0;
                     $inlrmsslots{$share}{queued} ||= 0;
+		    
+		    $state_slots{$share}{"INLRMS:Q"} ||= 0;
+		    $state_slots{$share}{"INLRMS:R"} ||= 0;
+		    $state_slots{$share}{"INLRMS:O"} ||= 0;
+		    $state_slots{$share}{"INLRMS:E"} ||= 0;
+		    $state_slots{$share}{"INLRMS:S"} ||= 0;
+		    
                     if (defined $vomsvo) {
                         $inlrmsslots{$sharevomsvo}{running} ||= 0; 
                         $inlrmsslots{$sharevomsvo}{suspended} ||= 0;
@@ -1033,6 +1056,7 @@ sub collect($) {
                         $inlrmsjobstotal{running}++;
                         $inlrmsjobs{$share}{running}++;
                         $inlrmsslots{$share}{running} += $slots;
+			$state_slots{$share}{"INLRMS:R"} += $slots;
                         if (defined $vomsvo) {
                             $inlrmsjobs{$sharevomsvo}{running}++;
                             $inlrmsslots{$sharevomsvo}{running} += $slots;
@@ -1041,15 +1065,23 @@ sub collect($) {
                         $inlrmsjobstotal{suspended}++;
                         $inlrmsjobs{$share}{suspended}++;
                         $inlrmsslots{$share}{suspended} += $slots;
+			$state_slots{$share}{"INLRMS:S"} += $slots;
                         if (defined $vomsvo) {
                             $inlrmsjobs{$sharevomsvo}{suspended}++;
                             $inlrmsslots{$sharevomsvo}{suspended} += $slots;
                         }
-                    } else {  # Consider other states 'queued'
+                    } elsif($lrmsjob->{status} eq 'Q'){
+			$state_slots{$share}{"INLRMS:Q"} += $slots;
+		    } elsif($lrmsjob->{status} eq 'E'){
+			$state_slots{$share}{"INLRMS:E"} += $slots;
+		    } elsif($lrmsjob->{status} eq 'O'){
+			$state_slots{$share}{"INLRMS:O"} += $slots;
+		    } else {  # Consider other states 'queued' for $inlrms*
                         $inlrmsjobstotal{queued}++;
                         $inlrmsjobs{$share}{queued}++;
                         $inlrmsslots{$share}{queued} += $slots;
                         $requestedslots{$share} += $slots;
+
                         if (defined $vomsvo) {
                             $inlrmsjobs{$sharevomsvo}{queued}++;
                             $inlrmsslots{$sharevomsvo}{queued} += $slots;
@@ -1066,7 +1098,7 @@ sub collect($) {
         my $jobinterface = $job->{interface} || 'org.nordugrid.gridftpjob';
         
         $jobs_by_endpoint->{$jobinterface}{$jobid} = {};
-
+	
     }
    
     my $admindomain = $config->{admindomain}{Name};
@@ -1469,6 +1501,9 @@ sub collect($) {
         $csv->{StagingJobs} = ( $gmtotalcount{preparing} || 0 )
                             + ( $gmtotalcount{finishing} || 0 );
         $csv->{PreLRMSWaitingJobs} = $pendingtotal || 0;
+
+
+
 
         # ComputingActivity sub. Will try to use as a general approach for each endpoint.
         my $getComputingActivities = sub {
@@ -2863,6 +2898,16 @@ sub collect($) {
             $csha->{MaxSlotsPerJob} = $sconfig->{MaxSlotsPerJob} || $qinfo->{MaxSlotsPerJob};
         }
 
+	
+	# Slots per share and state
+	my @slot_entries;
+	foreach my $state (keys %{$state_slots{$share}}) {
+	    my $value = $state_slots{$share}{$state};
+	    push @slot_entries, "$state\=$value";
+	}
+	$csha->{OtherInfo} = join(',',@slot_entries);
+	
+
         # MaxStageInStreams, MaxStageOutStreams
         # OBS: A-REX does not have separate limits for up and downloads.
         # OBS: A-REX only cares about totals, not per share limits!
@@ -2908,7 +2953,7 @@ sub collect($) {
         # ServingState: closed and queuing are not yet supported
         # OBS: this serving state should come from LRMS.
         $csha->{ServingState} = 'production';
-
+	
         # We can't guess which local job belongs to a certain VO, hence
         # we set LocalRunning/Waiting/Suspended to zero for shares related to
         # a VO. 
@@ -3077,6 +3122,7 @@ sub collect($) {
             # TODO: slots should be cores?
             $cmgr->{TotalSlots} = (defined $config->{service}{totalcpus}) ? $config->{service}{totalcpus} : $cluster_info->{totalcpus};
 
+	    
             # This number can be more than totalslots in case more
             # than the published cores can be used -- happens with fork
             my @queuenames = keys %{$lrms_info->{queues}};
