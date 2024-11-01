@@ -7981,7 +7981,7 @@ msgstr "Период недоступности цели (%s) не объявл�
 
 #: src/hed/libs/compute/Broker.cpp:200
 #, c-format
-msgid "HealthState of ExecutionTarget (%s) is not OK (%s)"
+msgid "HealthState of ExecutionTarget (%s) is not OK or WARNING (%s)"
 msgstr "Состояние здоровья назначения для исполнения (%s) неудовлетворительное (%s)"
 
 #: src/hed/libs/compute/Broker.cpp:205
