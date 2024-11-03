@@ -912,6 +912,7 @@ namespace Arc {
     const std::string dstpath = dst.Path() + (dst.Path().empty() || *dst.Path().rbegin() != G_DIR_SEPARATOR ? G_DIR_SEPARATOR_S : "");
 
     std::list<URLLocation> files;
+    bool data_files_listed = false;
     if(src.Locations().empty()) {
       std::list<std::string> paths;
       if (!ListFilesRecursive(uc, src, paths)) {
@@ -923,10 +924,14 @@ namespace Arc {
         file.ChangePath(srcpath + *it);
         files.push_back(file);
       }
+      data_files_listed = true;
     } else {
       std::list<URLLocation> const & locations = src.Locations();
       files.insert(files.end(), locations.begin(), locations.end());
     }
+    std::size_t data_files_num = files.size();
+
+    bool log_files_listed = false;
     if (logsrc) {
       const std::string logsrcpath = logsrc.Path() + (logsrc.Path().empty() || *logsrc.Path().rbegin() != '/' ? "/" : "");
       if(logsrc.Locations().empty()) {
@@ -940,6 +945,7 @@ namespace Arc {
           file.ChangePath(logsrcpath + *it);
           files.push_back(file);
         }
+        log_files_listed = true;
       } else {
         std::list<URLLocation> const & locations = logsrc.Locations();
         for(std::list<URLLocation>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
@@ -963,6 +969,11 @@ namespace Arc {
     bool ok = true;
     std::set<std::string> processed;
     for (std::list<URLLocation>::const_iterator it = files.begin(); it != files.end(); ++it) {
+      bool file_listed = log_files_listed;
+      if (data_files_num > 0) {
+        file_listed = data_files_listed;
+        --data_files_num;
+      }
       src = *it;
       dst.ChangePath(dstpath + it->Name());
       if(!processed.insert(it->Name()).second) continue; // skip already processed input files
@@ -979,7 +990,8 @@ namespace Arc {
           continue;
         }
       }
-      if (!CopyJobFile(uc, src, dst)) {
+        
+      if (!CopyJobFile(uc, src, dst, file_listed)) {
         logger.msg(INFO, "Failed downloading %s to %s", src.str(), dst.Path());
         ok = false;
       }
@@ -1033,7 +1045,7 @@ namespace Arc {
     return true;
   }
 
-  bool Job::CopyJobFile(const UserConfig& uc, const URL& src, const URL& dst) {
+  bool Job::CopyJobFile(const UserConfig& uc, const URL& src, const URL& dst, bool required) {
     DataMover mover;
     mover.retry(false);
     mover.retry_retryable(true);
@@ -1087,9 +1099,10 @@ namespace Arc {
       mover.Transfer(*source, *destination, cache, URLMap(), 0, 0, 0,
                      uc.Timeout());
     if (!res.Passed()) {
-      // Missing file is not fatal error because dir listing or plugin query may provide incorrect inforamtion.
-      bool fatal = (res.GetErrno() != ENOENT);
-      logger.msg(fatal?ERROR:WARNING, "File download failed: %s", std::string(res));
+      // Missing file is not fatal error because dir listing or plugin query may provide incorrect information.
+      // If file is definitely not required fully suppress reporting about missing file.
+      bool noSourceFound = ((res.GetStatus() == DataStatus::ReadError) && (res.GetErrno() == ENOENT));
+      if (required || !noSourceFound) logger.msg(noSourceFound?WARNING:ERROR, "File download failed: %s", std::string(res));
       // Reset connection because one can't be sure how failure
       // affects server and/or connection state.
       // TODO: Investigate/define DMC behavior in such case.
@@ -1097,7 +1110,7 @@ namespace Arc {
       data_source = NULL;
       delete data_destination;
       data_destination = NULL;
-      return fatal?false:true;
+      return noSourceFound?true:false;
     }
 
     return true;
