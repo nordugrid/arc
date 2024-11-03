@@ -248,7 +248,7 @@ int RUNMAIN(arccat)(int argc, char **argv) {
       src.ChangePath(src.Path()+"/"+opt.show_file);
     }
 
-    if (!it->CopyJobFile(usercfg, src, dst)) {
+    if (!it->CopyJobFile(usercfg, src, dst, true)) {
       retval = 1;
       continue;
     }
@@ -256,7 +256,7 @@ int RUNMAIN(arccat)(int argc, char **argv) {
     logger.msg(Arc::VERBOSE, "Catting %s for job %s", resourceName, it->JobID);
 
     // Use File DMC in order to handle proper writing to stdout (e.g. supporting redirection and piping from shell).
-    if (!it->CopyJobFile(usercfg, dst, stdoutdst)) {
+    if (!it->CopyJobFile(usercfg, dst, stdoutdst, true)) {
       retval = 1;
       continue;
     }
