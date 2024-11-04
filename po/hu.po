@@ -8531,7 +8531,7 @@ msgstr ""
 
 #: src/hed/libs/compute/Broker.cpp:200
 #, c-format
-msgid "HealthState of ExecutionTarget (%s) is not OK (%s)"
+msgid "HealthState of ExecutionTarget (%s) is not OK or WARNING (%s)"
 msgstr ""
 
 #: src/hed/libs/compute/Broker.cpp:205
