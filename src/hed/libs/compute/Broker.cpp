@@ -198,9 +198,9 @@ namespace Arc {
     }
 
     if (!t.ComputingEndpoint->HealthState.empty()) {
-
-      if (lower(t.ComputingEndpoint->HealthState) != "ok") { // Enumeration for healthstate: ok, critical, other, unknown, warning
-        logger.msg(VERBOSE, "HealthState of ExecutionTarget (%s) is not OK (%s)", t.ComputingEndpoint->URLString, t.ComputingEndpoint->HealthState);
+      std::string healthState = lower(t.ComputingEndpoint->HealthState);
+      if (healthState != "ok" && healthState != "warning") { // Enumeration for healthstate: ok, critical, other, unknown
+        logger.msg(VERBOSE, "HealthState of ExecutionTarget (%s) is not OK or WARNING (%s)", t.ComputingEndpoint->URLString, t.ComputingEndpoint->HealthState);
         return false;
       }
     }

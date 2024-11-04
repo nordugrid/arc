@@ -8382,8 +8382,8 @@ msgstr "Targets (%s) driftstopp har inte publicerats. Behåller target."
 
 #: src/hed/libs/compute/Broker.cpp:200
 #, c-format
-msgid "HealthState of ExecutionTarget (%s) is not OK (%s)"
-msgstr "HealthState för ExecutionTarget (%s) är inte OK (%s)"
+msgid "HealthState of ExecutionTarget (%s) is not OK or WARNING (%s)"
+msgstr "HealthState för ExecutionTarget (%s) är inte OK eller VARNING (%s)"
 
 #: src/hed/libs/compute/Broker.cpp:205
 #, c-format
