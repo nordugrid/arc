@@ -103,6 +103,14 @@ def valid_datetime_type(arg_datetime_str):
                       "Expected format: YYYY-MM-DD [HH:mm[:ss]]".format(arg_datetime_str)
                 raise argparse.ArgumentTypeError(msg)
 
+def valid_datetime_yymmdd(arg_datetime_str):
+    """Argparse datetime-as-an-argument helper (date-only)"""
+    try:
+        return datetime.datetime.strptime(arg_datetime_str, "%Y-%m-%d")
+    except ValueError:
+        msg = "Timestamp format ({0}) is not valid! " \
+              "Expected format: YYYY-MM-DD".format(arg_datetime_str)
+        raise argparse.ArgumentTypeError(msg)
 
 def get_human_readable_size(sizeinbytes):
     """generate human-readable size representation like du command"""

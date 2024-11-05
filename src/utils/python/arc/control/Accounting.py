@@ -2,41 +2,46 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from .ControlCommon import *
-from .AccountingDB import AccountingDB
+from .AccountingDB import AccountingDB, ACCOUNTING_DB_FILE
 from .AccountingPublishing import RecordsPublisher
+from .OSService import OSServiceManagement
 
 import sys
 import json
 
-
 def complete_wlcgvo(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
-    return AccountingControl(arcconf).complete_wlcgvo()
+    return AccountingControl(arcconf).complete_wlcgvo(parsed_args)
+
+
+def complete_fqan(prefix, parsed_args, **kwargs):
+    arcconf = get_parsed_arcconf(parsed_args.config)
+    return AccountingControl(arcconf).complete_fqan(parsed_args)
 
 
 def complete_userdn(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
-    return AccountingControl(arcconf).complete_userdn()
+    return AccountingControl(arcconf).complete_userdn(parsed_args)
 
 
 def complete_state(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
-    return AccountingControl(arcconf).complete_state()
+    return AccountingControl(arcconf).complete_state(parsed_args)
 
 
 def complete_queue(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
-    return AccountingControl(arcconf).complete_queue()
+    return AccountingControl(arcconf).complete_queue(parsed_args)
 
 
 def complete_endpoint_type(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
-    return AccountingControl(arcconf).complete_endpoint_type()
+    return AccountingControl(arcconf).complete_endpoint_type(parsed_args)
 
 
 def complete_accounting_jobid(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
-    return AccountingControl(arcconf).complete_jobid(prefix)
+    return AccountingControl(arcconf).complete_jobid(parsed_args, prefix)
 
 
 class AccountingControl(ComponentControl):
@@ -44,10 +49,11 @@ class AccountingControl(ComponentControl):
         self.logger = logging.getLogger('ARCCTL.Accounting')
         # arc config
         if arcconfig is None:
-            self.logger.error('Failed to parse arc.conf. Jura configuration is unavailable.')
+            self.logger.error('Failed to parse arc.conf. Accounting configuration is unavailable.')
             sys.exit(1)
         self.arcconfig = arcconfig
         # accounting db
+        self.db_file = None
         self.adb = None  # type: AccountingDB
 
     def __del__(self):
@@ -55,32 +61,58 @@ class AccountingControl(ComponentControl):
             del self.adb
             self.adb = None
 
+    def __db_location(self, db_path):
+        """Handle database default location in controldir/accounting"""
+        if '/' in db_path:
+            return db_path
+        return os.path.join(self.arcconfig.get_value('controldir', 'arex'), "accounting", db_path)
+
+    def __set_db_location(self, db_location=ACCOUNTING_DB_FILE):
+        """Set the location of accounting database file"""
+        self.db_file = self.__db_location(db_location)
+
     def __init_adb(self):
         """DB connection on-demand initialization"""
         if self.adb is not None:
             return
-        adb_file = self.arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting/accounting.db'
-        self.adb = AccountingDB(adb_file)
+        if self.db_file is None:
+            self.__set_db_location()
+        self.adb = AccountingDB(self.db_file)
 
-    def __add_adb_filters(self, args):
+    def __add_stats_adb_filters(self, args):
         """apply optional query filters in the right order"""
         self.__init_adb()
+        # time-range filters
         if args.start_from:
             self.adb.filter_startfrom(args.start_from)
         if args.end_from:
             self.adb.filter_endfrom(args.end_from)
         if args.end_till:
             self.adb.filter_endtill(args.end_till)
+        # state filter
+        if args.filter_state:
+            # use sattused explicitly defined
+            statuses = args.filter_state
+            if args.show_active and 'in-progress' not in statuses:
+                statuses.append('in-progress')
+            self.adb.filter_statuses(statuses)
+        elif not args.show_active:
+            # # otherwise filter terminal states
+            self.adb.filter_statuses(['completed', 'failed'])
+        # filter IDs
         if args.filter_user:
             self.adb.filter_users(args.filter_user)
         if args.filter_vo:
             self.adb.filter_wlcgvos(args.filter_vo)
+        if args.filter_fqan:
+            self.adb.filter_fqans(args.filter_fqan)
+        # filter Queue
         if args.filter_queue:
             self.adb.filter_queues(args.filter_queue)
-        if args.filter_state:
-            self.adb.filter_statuses(args.filter_state)
+        # filter Endpoint
         if args.filter_endpoint:
             self.adb.filter_endpoint_type(args.filter_endpoint)
+        # filter Extra attributes
         if args.filter_extra:
             fdict = {}
             for eattr, evalue in args.filter_extra:
@@ -95,15 +127,16 @@ class AccountingControl(ComponentControl):
         stats['cpuusertime'] = datetime.timedelta(seconds=stats['cpuusertime'])
         stats['cpukerneltime'] = datetime.timedelta(seconds=stats['cpukerneltime'])
         stats['cputime'] = stats['cpuusertime'] + stats['cpukerneltime']
-        stats['rangestart'] = datetime.datetime.utcfromtimestamp(stats['rangestart'])
-        stats['rangeend'] = datetime.datetime.utcfromtimestamp(stats['rangeend'])
+        stats['minstarttime'] = datetime.datetime.utcfromtimestamp(stats['minstarttime'])
+        stats['maxendtime'] = datetime.datetime.utcfromtimestamp(stats['maxendtime'])
+        stats['minendtime'] = datetime.datetime.utcfromtimestamp(stats['minendtime'])
         stats['stagein'] = get_human_readable_size(stats['stagein'])
         stats['stageout'] = get_human_readable_size(stats['stageout'])
 
     def stats(self, args):
         """Print-out different aggregated accounting stats"""
         self.__init_adb()
-        self.__add_adb_filters(args)
+        self.__add_stats_adb_filters(args)
         # separate queries
         if args.output == 'users':
             out = '\n'.join(self.adb.get_job_owners())
@@ -120,19 +153,28 @@ class AccountingControl(ComponentControl):
             if out:
                 print(out)
             return
+        if args.output == 'fqans':
+            out = '\n'.join(self.adb.get_job_fqans())
+            if out:
+                print(out)
+            return
         # common stats query for other options
         stats = self.adb.get_stats()
         if stats['count'] == 0:
             self.logger.error('There are no jobs matching defined filtering criteria')
         if args.output == 'brief' and stats['count']:
             self.__human_readable(stats)
-            print('A-REX Accounting Statistics:\n'
-                  '  Number of Jobs: {count}\n'
-                  '  Execution timeframe: {rangestart} - {rangeend}\n'
-                  '  Total WallTime: {walltime}\n'
-                  '  Total CPUTime: {cputime} (including {cpukerneltime} of kernel time)\n'
-                  '  Data staged in: {stagein}\n'
-                  '  Data staged out: {stageout}'.format(**stats))
+            stats_output = ['A-REX Accounting Statistics:']
+            stats_output.append('Number of Jobs: {count}')
+            if args.show_active:
+                stats_output.append('Execution timeframe: {minstarttime} - {maxendtime}')
+            else:
+                stats_output.append('Accounting timeframe: {minendtime} - {maxendtime}')
+            stats_output.append('Total WallTime: {walltime}')
+            stats_output.append('Total CPUTime: {cputime} (including {cpukerneltime} of kernel time)')
+            stats_output.append('Data staged in: {stagein}')
+            stats_output.append('Data staged out: {stageout}')
+            print('\n  '.join(stats_output).format(**stats))
         elif args.output == 'jobcount':
             print(stats['count'])
         elif args.output == 'walltime':
@@ -147,6 +189,7 @@ class AccountingControl(ComponentControl):
             stats['cputime'] = stats['cpuusertime'] + stats['cpukerneltime']
             stats['users'] = self.adb.get_job_owners()
             stats['wlcgvos'] = self.adb.get_job_wlcgvos()
+            stats['fqans'] = self.adb.get_job_fqans()
             print(json.dumps(stats))
 
     def jobinfo(self, args):
@@ -185,6 +228,8 @@ class AccountingControl(ComponentControl):
             voinfo = 'with no WLCG VO affiliation'
             if aar.wlcgvo():
                 voinfo = 'as a member of "{WLCGVO}" WLCG VO'
+                if aar.fqan():
+                    voinfo += ' ({FQAN})'
             if all:
                 print('Job description:')
             description = tab + \
@@ -200,6 +245,9 @@ class AccountingControl(ComponentControl):
                 print('  Following job properties are recorded:')
             for attr in extrainfo.keys():
                 print('    {0}: {1}'.format(attr.capitalize(), extrainfo[attr]))
+            # benchmark in v2
+            if self.adb.db_version >= 2:
+                print('    BENCHMARK: {0}'.format(aar.get()['Benchmark']))
         if args.output == 'resources' or all:
             # resource usage
             if all:
@@ -296,18 +344,6 @@ class AccountingControl(ComponentControl):
         else:
             print('No stage-out data transfers (uploads) performed by A-REX.')
 
-    def jobcontrol(self, args):
-        canonicalize_args_jobid(args)
-        if args.jobaction == 'info':
-            self.jobinfo(args)
-        elif args.jobaction == 'events':
-            self.jobevents(args.jobid)
-        elif args.jobaction == 'transfers':
-            self.jobtransfers(args.jobid)
-        else:
-            self.logger.critical('Unsupported job accounting action %s', args.jobaction)
-            sys.exit(1)
-
     def __add_apel_options(self, args, targetconf, required=False):
         # topic is mandatory and default exists
         if args.apel_topic is not None:
@@ -354,7 +390,8 @@ class AccountingControl(ComponentControl):
         targettype = None
         targetid = None
         confrequired = True
-        publisher = RecordsPublisher(self.arcconfig)
+        self.__init_adb()
+        publisher = RecordsPublisher(self.arcconfig, self.adb)
         if args.end_from > args.end_till:
             self.logger.error('Republishing timeframe specified incorrectly: "--end-from" cannot be later that "--end-till"')
             sys.exit(1)
@@ -381,18 +418,162 @@ class AccountingControl(ComponentControl):
             self.__add_sgas_options(args, targetconf, required=confrequired)
         # run republishing
         if targetconf:
-            if not publisher.republish(targettype, targetconf, args.end_from, args.end_till):
+            if not publisher.republish(targettype, targetconf, args.end_from, args.end_till, args.dry_run):
                 self.logger.error('Failed to republish accounting data from {0} till {1} to {2} target {3}'.format(
                     args.end_from, args.end_till, targettype.upper(), targetid
                 ))
                 sys.exit(1)
-        self.logger.info('Accounting data from {0} till {1} to {2} target {3} has been republished.'.format(
-            args.end_from, args.end_till, targettype.upper(), targetid
-        ))
+        if not args.dry_run:
+            self.logger.info('Accounting data from {0} till {1} to {2} target {3} has been republished.'.format(
+                args.end_from, args.end_till, targettype.upper(), targetid
+            ))
+
+    def backup(self, backup_location):
+        self.__init_adb()
+        # TODO: check there is enough space?
+        self.logger.info('Starting accounting database backup to %s', backup_location)
+        backup_adb = AccountingDB(backup_location, must_exists=False)
+        self.adb.backup(backup_adb)
+        return backup_adb
+
+    def __db_vacuum_precheck(self, args):
+        # skip A-REX check if running against non-default DB location
+        if self.db_file != self.__db_location(ACCOUNTING_DB_FILE):
+            return True
+        if args.vacuum and not args.yes:
+            sm = OSServiceManagement()
+            if sm.is_active('arc-arex'):
+                print('You have requested to vacuum database with A-REX service running.')
+                print('It is advised to stop A-REX while vacuuming.')
+                if not ask_yes_no('Do you want to continue?'):
+                    return False
+        return True
+
+    def __db_backups_advise(self, args):
+        if not args.yes:
+            print('This action will alter the accounting database records and cannot be undone!')
+            print('It is advised to have a backups.')
+            if not ask_yes_no('Do you want to continue?'):
+                return False
+        return True
+
+    def db_migrate(self, args):
+        self.__init_adb()
+        # connect to specified v1 database
+        adb_v1_file = self.__db_location(args.from_db)
+        adb_v1 = AccountingDB(adb_v1_file)
+        if adb_v1.adb_version() != 1:
+            self.logger.error('Migration only works from database schema v1. Database at %s has schema version %s.',
+                              adb_v1_file, adb_v1.adb_version())
+            sys.exit(1)
+        # define timerange filters
+        self.logger.info('Migrate records from %s for jobs finished after %s', adb_v1_file, str(args.end_from))
+        adb_v1.filter_endfrom(args.end_from)
+        if args.end_till:
+            adb_v1.filter_endtill(args.end_till)
+            self.logger.info('Only jobs finished before %s will be migrated', str(args.end_till))
+        # run migration queries
+        adb_v1.migrate_to_v2(self.db_file)
+
+    def db_optimize(self, args):
+        self.__init_adb()
+        # set filters for publishing and stats queries we ANALYZE
+        if args.end_from:
+            self.adb.filter_endfrom(args.end_from)
+        else:
+            self.adb.filter_endfrom(datetime.datetime.today() - datetime.timedelta(days=14))
+        if args.end_till:
+            self.adb.filter_endtill(args.end_till)
+        self.adb.filter_statuses(['completed', 'failed'])
+        # trigger optimize
+        self.adb.optimize()
+
+    def db_cleanup(self, args):
+        self.__init_adb()
+        # safety checks
+        if not self.__db_backups_advise(args):
+            return
+        if not self.__db_vacuum_precheck(args):
+            return
+        # set timerange for records to delete
+        self.adb.filter_endtill(args.end_till)
+        if args.end_from:
+            self.adb.filter_endfrom(args.end_from)
+            print_info(self.logger, 'Deleting the records from accounting database for jobs finished within from %s to %s',
+                       args.end_from, args.end_till)
+        else:
+            print_info(self.logger, 'Deleting the records from accounting database for jobs finished before %s',
+                       args.end_till)
+        # remove records
+        self.adb.adb_cleanup()
+        if args.vacuum:
+            print_info(self.logger, 'Vacuuming the database file at %s', self.db_file)
+            self.adb.adb_vacuum()
+
+    def db_rotate(self, args):
+        self.__init_adb()
+        # safety checks
+        if not self.__db_backups_advise(args):
+            return
+        if not self.__db_vacuum_precheck(args):
+            return
+        # clone the database (backup)
+        if args.rotate_to:
+            rotated_file = args.rotate_to
+        else:
+            rotated_file = self.__db_location('{0}-{1}'.format(self.db_file, args.date.strftime("%Y-%m-%d")))
+        print_info(self.logger, 'Cloning the existing database to %s', rotated_file)
+        rotated_adb = self.backup(rotated_file)
+        # cleanup records above rotation point
+        print_info(self.logger, 'Trimming records for jobs finished after %s from %s', args.date, rotated_file)
+        rotated_adb.filter_endfrom(args.date)
+        rotated_adb.adb_cleanup()
+        rotated_adb.adb_vacuum()
+        rotated_adb.adb_close()
+        # cleanup records below rotation point in the active database
+        print_info(self.logger, 'Trimming records for jobs finished before %s from %s', args.date, self.db_file)
+        self.adb.filter_endtill(args.date)
+        self.adb.adb_cleanup()
+        if args.vacuum:
+            print_info(self.logger, 'Vacuuming the database file at %s', self.db_file)
+            self.adb.adb_vacuum()
+
+    def jobcontrol(self, args):
+        canonicalize_args_jobid(args)
+        if args.jobaction == 'info':
+            self.jobinfo(args)
+        elif args.jobaction == 'events':
+            self.jobevents(args.jobid)
+        elif args.jobaction == 'transfers':
+            self.jobtransfers(args.jobid)
+        else:
+            self.logger.critical('Unsupported job accounting action %s', args.jobaction)
+            sys.exit(1)
+
+    def dbcontrol(self, args):
+        if args.dbaction == 'backup':
+            self.backup(args.location)
+        elif args.dbaction == 'migrate':
+            self.db_migrate(args)
+        elif args.dbaction == 'optimize':
+            self.db_optimize(args)
+        elif args.dbaction == 'cleanup':
+            self.db_cleanup(args)
+        elif args.dbaction == 'rotate':
+            self.db_rotate(args)
+        else:
+            self.logger.critical('Unsupported accounting database action %s', args.dbaction)
+            sys.exit(1)
 
     def control(self, args):
+        # optional custom database location (e.g. backup copy)
+        if args.database_file:
+            self.__set_db_location(args.database_file)
+        # action-based routines
         if args.action == 'stats':
             self.stats(args)
+        elif args.action == 'database' or 'dbaction' in args:
+            self.dbcontrol(args)
         elif args.action == 'job' or 'jobaction' in args:
             self.jobcontrol(args)
         elif args.action == 'republish':
@@ -402,28 +583,37 @@ class AccountingControl(ComponentControl):
             sys.exit(1)
 
     # bash-completion helpers
-    def complete_wlcgvo(self):
+    def __init_adb_location(self, args):
+        if args.database_file:
+            self.__set_db_location(args.database_file)
         self.__init_adb()
+
+    def complete_wlcgvo(self, args):
+        self.__init_adb_location(args)
         return self.adb.get_wlcgvos()
 
-    def complete_userdn(self):
-        self.__init_adb()
+    def complete_fqan(self, args):
+        self.__init_adb_location(args)
+        return self.adb.get_fqans()
+
+    def complete_userdn(self, args):
+        self.__init_adb_location(args)
         return self.adb.get_users()
 
-    def complete_state(self):
-        self.__init_adb()
+    def complete_state(self, args):
+        self.__init_adb_location(args)
         return self.adb.get_statuses()
 
-    def complete_queue(self):
-        self.__init_adb()
+    def complete_queue(self, args):
+        self.__init_adb_location(args)
         return self.adb.get_queues()
 
-    def complete_endpoint_type(self):
-        self.__init_adb()
+    def complete_endpoint_type(self, args):
+        self.__init_adb_location(args)
         return self.adb.get_endpoint_types()
 
-    def complete_jobid(self, prefix):
-        self.__init_adb()
+    def complete_jobid(self, args, prefix):
+        self.__init_adb_location(args)
         return self.adb.get_joblist(prefix)
 
     @staticmethod
@@ -448,9 +638,50 @@ class AccountingControl(ComponentControl):
         accounting_dtr.add_argument('jobid', help='Job ID').completer = complete_accounting_jobid
 
     @staticmethod
+    def register_db_parser(job_db_ctl):
+        job_db_ctl.set_defaults(handler_class=AccountingControl)
+
+        db_actions = job_db_ctl.add_subparsers(title='Accounting Database Actions', dest='dbaction',
+                                               metavar='ACTION', help='DESCRIPTION')
+        db_actions.required = True
+        db_backup = db_actions.add_parser('backup', help='Run online backup of accounting database')
+        db_backup.add_argument('--location', help='Database backup file path', required=True)
+
+        db_optimize = db_actions.add_parser('optimize', help='Optimize database query performance')
+        db_optimize.add_argument('-b', '--end-from', type=valid_datetime_type, required=False,
+                                help='Define time range start for ANALYSE queries (YYYY-MM-DD [HH:mm[:ss]]). Default is 2 weeks ago.')
+        db_optimize.add_argument('-e', '--end-till', type=valid_datetime_type, required=False,
+                                help='Optionally define to which point in time migrate records (YYYY-MM-DD [HH:mm[:ss]]).')
+
+        db_migrate = db_actions.add_parser('migrate', help='Migrate records from legacy ARC6 database')
+        db_migrate.add_argument('-f', '--from-db', help='Legacy database file (default is %(default)s)',
+                                default='accounting.db', required=True)
+        db_migrate.add_argument('-b', '--end-from', type=valid_datetime_type, required=True,
+                                help='Define from which point in time migrate records (YYYY-MM-DD [HH:mm[:ss]])')
+        db_migrate.add_argument('-e', '--end-till', type=valid_datetime_type, required=False,
+                                help='Optionally define to which point in time migrate records (YYYY-MM-DD [HH:mm[:ss]]).')
+
+        db_cleanup = db_actions.add_parser('cleanup', help='Delete old records from accounting database')
+        db_cleanup.add_argument('-e', '--end-till', type=valid_datetime_type, required=True,
+                                help='Cleanup records older than specified completion time (YYYY-MM-DD [HH:mm[:ss]])')
+        db_cleanup.add_argument('-b', '--end-from', type=valid_datetime_type, required=False,
+                                help='Optionally define from which point in time cleanup records (YYYY-MM-DD [HH:mm[:ss]]).')
+        db_cleanup.add_argument('--yes', action='store_true', help='Answer yes to all questions')
+        db_cleanup.add_argument('--vacuum', help='Vacuum database (this is blocking action)', action='store_true')
+
+        db_rotate = db_actions.add_parser('rotate', help='Rotate accounting database')
+        db_rotate.add_argument('--date', type=valid_datetime_yymmdd, required=True,
+                                help='Rotate database at specified date (YYYY-MM-DD)')
+        db_rotate.add_argument('--rotate-to', required=False,
+                               help='Rotated database file. Path or file name inside controldir. Default is to add date suffix.')
+        db_rotate.add_argument('--yes', action='store_true', help='Answer yes to all questions')
+        db_rotate.add_argument('--vacuum', help='Vacuum database (this is blocking action)', action='store_true')
+
+    @staticmethod
     def register_parser(root_parser):
         accounting_ctl = root_parser.add_parser('accounting', help='A-REX Accounting records management')
         accounting_ctl.set_defaults(handler_class=AccountingControl)
+        accounting_ctl.add_argument('--database-file', help='Set custom location of accounting database to work with. Path or file name inside controldir.')
 
         accounting_actions = accounting_ctl.add_subparsers(title='Accounting Actions', dest='action',
                                                            metavar='ACTION', help='DESCRIPTION')
@@ -464,8 +695,12 @@ class AccountingControl(ComponentControl):
                                       help='Define the job completion time range end (YYYY-MM-DD [HH:mm[:ss]])')
         accounting_stats.add_argument('-s', '--start-from', type=valid_datetime_type,
                                       help='Define the job start time constraint (YYYY-MM-DD [HH:mm[:ss]])')
+        accounting_stats.add_argument('-a', '--show-active', action='store_true', 
+                                      help='Include active jobs (not in terminal states) to the stats')
         accounting_stats.add_argument('--filter-vo', help='Account jobs owned by specified WLCG VO(s)',
                                      action='append').completer = complete_wlcgvo
+        accounting_stats.add_argument('--filter-fqan', help='Account jobs owned by users with specified FQAN(s)',
+                                     action='append').completer = complete_fqan
         accounting_stats.add_argument('--filter-user', help='Account jobs owned by specified user(s)',
                                      action='append').completer = complete_userdn
         accounting_stats.add_argument('--filter-state', help='Account jobs in the defined state(s)',
@@ -481,15 +716,20 @@ class AccountingControl(ComponentControl):
         accounting_stats.add_argument('-o', '--output', default='brief',
                                       help='Define what kind of stats you want to output (default is %(default)s)',
                                       choices=['brief', 'jobcount', 'walltime', 'cputime', 'data-staged-in',
-                                               'data-staged-out', 'wlcgvos', 'users', 'jobids', 'json'])
+                                               'data-staged-out', 'wlcgvos', 'fqans', 'users', 'jobids', 'json'])
 
         # per-job accounting information
         job_accounting_ctl = accounting_actions.add_parser('job', help='Show job accounting data')
         AccountingControl.register_job_parser(job_accounting_ctl)
 
+        # database-level operations
+        db_accounting_ctl = accounting_actions.add_parser('database', help='Accounting database operations')
+        AccountingControl.register_db_parser(db_accounting_ctl)
+
         # republish
         accounting_republish = accounting_actions.add_parser('republish',
                                                              help='Republish accounting records to defined target')
+        accounting_republish.add_argument('--dry-run', help='Print out messages instead of sending them to target', action='store_true')
         accounting_republish.add_argument('-b', '--end-from', type=valid_datetime_type, required=True,
                                           help='Define republishing timeframe start (YYYY-MM-DD [HH:mm[:ss]])')
         accounting_republish.add_argument('-e', '--end-till', type=valid_datetime_type, required=True,

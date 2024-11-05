@@ -23,7 +23,7 @@
 #include "JobLog.h"
 
 #define ACCOUNTING_SUBDIR "accounting"
-#define ACCOUNTING_DB_FILE "accounting.db"
+#define ACCOUNTING_DB_FILE "accounting_v2.db"
 
 namespace ARex {
 

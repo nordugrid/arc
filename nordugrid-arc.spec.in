@@ -1143,7 +1143,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/arc-arex-start
 %{_datadir}/%{pkgdir}/arc-arex-ws-start
 %dir %{_datadir}/%{pkgdir}/sql-schema
-%{_datadir}/%{pkgdir}/sql-schema/arex_accounting_db_schema_v1.sql
+%{_datadir}/%{pkgdir}/sql-schema/arex_accounting_db_schema_v2.sql
 %doc %{_mandir}/man1/cache-clean.1*
 %doc %{_mandir}/man1/cache-list.1*
 %doc %{_mandir}/man8/gm-jobs.8*

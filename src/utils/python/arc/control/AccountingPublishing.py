@@ -1,8 +1,8 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
-from .ControlCommon import HTTPSClientAuthConnection
-from .AccountingDB import AccountingDB, AAR
+from .ControlCommon import HTTPSClientAuthConnection, print_info
+from .AccountingDB import AccountingDB, AAR, ACCOUNTING_DB_FILE
 from arc.paths import ARC_VERSION, ARC_RUN_DIR
 
 import os
@@ -25,8 +25,10 @@ except ImportError:
     except ImportError:
         import StringIO
 
+ACCOUNTING_PUBLISHING_DB_FILE = "publishing.db"
+
 # module regexes init
-__voms_fqan_re = re.compile(r'(?P<group>/[-\w.]+(?:/[-\w.]+)*)(?P<role>/Role=[-\w.]+)?(?P<cap>/Capability=[-\w.]+)?')
+__voms_fqan_re = re.compile(r'(?P<group>/[-\w.]+(?:/(?!Role=)[-\w.]+)*)(?P<role>/Role=[-\w.]+)?(?P<cap>/Capability=[-\w.]+)?')
 
 __url_re = re.compile(r'^(?P<url>(?P<protocol>[^:/]+)://(?P<host>[^:/]+)(?::(?P<port>[0-9]+))?/*(?:(?P<path>/.*))?)$')
 
@@ -110,9 +112,8 @@ def get_apel_benchmark(logger, benchmark):
 #
 class RecordsPublisher(object):
     """Class for publishing accounting records to central network services"""
-    def __init__(self, arcconfig):
+    def __init__(self, arcconfig, adb=None):
         self.logger = logging.getLogger('ARC.Accounting.Publisher')
-        self.adb = None
         # arc config
         if arcconfig is None:
             self.logger.error('Failed to parse arc.conf. Accounting publishing is not possible.')
@@ -125,10 +126,12 @@ class RecordsPublisher(object):
         self.conf_targets += list(map(lambda t: ('apel', t), self.arcconfig.get_subblocks('arex/jura/apel')))
         # accounting database files and connection
         self.accounting_dir = arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting'
-        adb_file = self.accounting_dir + '/accounting.db'
-        self.adb = AccountingDB(adb_file)
+        self.adb = adb
+        if self.adb is None:
+            adb_file = os.path.join(self.accounting_dir, ACCOUNTING_DB_FILE)
+            self.adb = AccountingDB(adb_file)
         # publishing state database file
-        self.pdb_file = self.accounting_dir + '/publishing.db'
+        self.pdb_file = os.path.join(self.accounting_dir, ACCOUNTING_PUBLISHING_DB_FILE)
         self.logger.debug('Accounting records publisher had been initialized')
 
     def __del__(self):
@@ -182,7 +185,7 @@ class RecordsPublisher(object):
         # only finished jobs
         self.adb.filter_statuses(['completed', 'failed'])
 
-    def publish_sgas(self, target_conf, endfrom, endtill=None):
+    def publish_sgas(self, target_conf, endfrom, endtill=None, dry_run=False):
         """Publish to SGAS target"""
         self.logger.debug('Assigning filters to SGAS publishing database query')
         self.__init_adb_filters(endfrom, endtill)
@@ -209,6 +212,7 @@ class RecordsPublisher(object):
             target_conf[k] = self.arcconfig.get_value(k, ['arex/jura'])
         # init SGAS sender
         sgassender = SGASSender(target_conf)
+        sgassender.set_dry_run(dry_run)
         # get AARs from database
         self.logger.debug('Querying AARS from accounting database')
         aars = self.adb.get_aars(resolve_ids=True)
@@ -232,7 +236,7 @@ class RecordsPublisher(object):
         self.logger.debug('Accounting records have been published to SGAS target %s', target_conf['targethost'])
         return latest_endtime
 
-    def publish_apel(self, target_conf, endfrom, endtill=None, regular=False):
+    def publish_apel(self, target_conf, endfrom, endtill=None, regular=False, dry_run=False):
         """Publish to all APEL targets"""
         # Parse targetURL and get necessary parameters for APEL publishing
         urldict = get_url_components(target_conf['targeturl'])
@@ -245,6 +249,7 @@ class RecordsPublisher(object):
         os.environ['RANDFILE'] = ARC_RUN_DIR + '/openssl.rnd'
         # init APEL AMS sender
         apel_sender = APELAMSDirectSender(target_conf)
+        apel_sender.set_dry_run(dry_run)
         # database query filters
         self.logger.debug('Assigning filters to APEL usage records database query.')
         self.__init_adb_filters(endfrom, endtill)
@@ -307,7 +312,24 @@ class RecordsPublisher(object):
                 apel_sender.publish_summaries(apelsummaries)
         # Sync messages are always sent and contains job counts for all periods
         self.logger.debug('Assigning filters to APEL sync database query')
-        self.__init_adb_filters()
+        sync_endtill = None
+        # Sync interval
+        if regular:
+            endfrom_year = endfrom.year - 1
+            sync_endfrom = endfrom.replace(day=1, year=endfrom_year, hour=0, minute=0, second=0)
+            self.logger.debug('Querying sync data for the last year')
+        else:
+            sync_endfrom = endfrom.replace(day=1, hour=0, minute=0, second=0)
+            if endtill:
+                endtillx = endtill - datetime.timedelta(seconds=1)
+                endtill_month = endtillx.month + 1
+                endtill_year = endtillx.year
+                if endtill_month == 13:
+                        endtill_year += 1
+                        endtill_month = 1
+                sync_endtill = endtillx.replace(day=1, month=endtill_month, year=endtill_year, hour=0, minute=0, second=0)
+            self.logger.debug('Querying sync data for the republished data months')
+        self.__init_adb_filters(sync_endfrom, sync_endtill)
         # optional WLCG VO filtering
         self.__add_vo_filter(target_conf)
         self.logger.debug('Querying APEL Sync data from accounting database')
@@ -330,7 +352,7 @@ class RecordsPublisher(object):
                 return targetconf, ttype
         return None, None
 
-    def republish(self, targettype, targetconf, endfrom, endtill=None):
+    def republish(self, targettype, targetconf, endfrom, endtill=None, dry_run=False):
         self.logger.info('Starting republishing process to %s target', targettype.upper())
         # check config for mandatory options
         if not self.__check_target_confdict(targettype, targetconf):
@@ -338,9 +360,9 @@ class RecordsPublisher(object):
         # publish without recording the last intervals
         latest = None
         if targettype == 'apel':
-            latest = self.publish_apel(targetconf, endfrom, endtill)
+            latest = self.publish_apel(targetconf, endfrom, endtill, dry_run=dry_run)
         elif targettype == 'sgas':
-            latest = self.publish_sgas(targetconf, endfrom, endtill)
+            latest = self.publish_sgas(targetconf, endfrom, endtill, dry_run=dry_run)
         if latest is None:
             return False
         return True
@@ -387,9 +409,13 @@ class SGASSender(object):
     """Send messages to SGAS server"""
     def __init__(self, targetconf):
         self.logger = logging.getLogger('ARC.Accounting.SGAS')
+        self.dry_run = False
         self.conf = targetconf
         self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 50
         self.logger.debug('Initializing SGAS records sender for %s', self.conf['targethost'])
+
+    def set_dry_run(self, enable=True):
+        self.dry_run = enable
 
     def __post_xml(self, xmldata):
         self.logger.debug('Initializing HTTPS connection to %s:%s', self.conf['targethost'], self.conf['targetport'])
@@ -431,7 +457,12 @@ class SGASSender(object):
             buf.write(UsageRecord.batch_header())
             buf.write(UsageRecord.join_str().join(map(lambda ur: ur.get_xml(), urs[x:x + self.batchsize])))
             buf.write(UsageRecord.batch_footer())
-            published = self.__post_xml(buf.getvalue())
+            if not self.dry_run:
+                published = self.__post_xml(buf.getvalue())
+            else:
+                print_info(self.logger, 'Printing the content of JobUsageRecords insted of sending it to SGAS')
+                print(buf.getvalue())
+                published = True
             buf.close()
             del buf
             if not published:
@@ -443,6 +474,7 @@ class APELAMSDirectSender(object):
     """Send messages to APEL via AMS REST interface direct usage"""
     def __init__(self, targetconf):
         self.logger = logging.getLogger('ARC.Accounting.AMS')
+        self.dry_run = False
         self.conf = targetconf
         self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 500
         # AMS project
@@ -455,6 +487,9 @@ class APELAMSDirectSender(object):
         # publish error flag
         self.publish_error = False
         self.logger.debug('Initializing APEL publishing via AMS REST for %s', self.conf['targethost'])
+
+    def set_dry_run(self, enable=True):
+        self.dry_run = enable
 
     def _obtain_ams_token(self):
         if self.ams_token is not None:
@@ -568,8 +603,12 @@ class APELAMSDirectSender(object):
             buf.write(ComputeAccountingRecord.join_str().join(map(lambda ur: ur.get_xml(),
                                                                   carlist[x:x + self.batchsize])))
             buf.write(ComputeAccountingRecord.batch_footer())
-            if not self._msg_send(buf.getvalue()):
-                self.publish_error = True
+            if self.dry_run:
+                print_info(self.logger, 'Printing the content of the CAR instead of sending it to APEL')
+                print(buf.getvalue())
+            else:
+                if not self._msg_send(buf.getvalue()):
+                    self.publish_error = True
             buf.close()
             del buf
 
@@ -580,8 +619,12 @@ class APELAMSDirectSender(object):
             buf.write(summaries[0].header())
             buf.write(summaries[0].join_str().join(map(lambda s: s.get_record(), summaries[x:x + self.batchsize])))
             buf.write(summaries[0].footer())
-            if not self._msg_send(buf.getvalue()):
-                self.publish_error = True
+            if self.dry_run:
+                print_info(self.logger, 'Printing the content of the APEL summary instead of sending it to APEL')
+                print(buf.getvalue())
+            else:
+                if not self._msg_send(buf.getvalue()):
+                    self.publish_error = True
             buf.close()
             del buf
 
@@ -592,8 +635,12 @@ class APELAMSDirectSender(object):
             buf.write(APELSyncRecord.header())
             buf.write(APELSyncRecord.join_str().join(map(lambda s: s.get_record(), syncs[x:x + self.batchsize])))
             buf.write(APELSyncRecord.footer())
-            if not self._msg_send(buf.getvalue()):
-                self.publish_error = True
+            if self.dry_run:
+                print_info(self.logger, 'Printing the content of the APEL Sync instead of sending it to APEL')
+                print(buf.getvalue())
+            else:
+                if not self._msg_send(buf.getvalue()):
+                    self.publish_error = True
             buf.close()
             del buf
 
@@ -603,7 +650,8 @@ class APELAMSDirectSender(object):
             self.logger.error('Failed to publish records to APEL AMS %s. See previous messages for details.',
                               self.conf['targethost'])
             return False
-        self.logger.debug('AMS direct records sending to %s has finished.', self.conf['targeturl'])
+        if not self.dry_run:
+            self.logger.debug('AMS direct records sending to %s has finished.', self.conf['targeturl'])
         return True
 
 
