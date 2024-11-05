@@ -1887,6 +1887,7 @@ sub collect($) {
             $csha->{MaxSlotsPerJob} = $sconfig->{MaxSlotsPerJob} || $qinfo->{MaxSlotsPerJob};
         }
 
+	
         # MaxStageInStreams, MaxStageOutStreams
         # OBS: A-REX does not have separate limits for up and downloads.
         # OBS: A-REX only cares about totals, not per share limits!
@@ -1933,6 +1934,16 @@ sub collect($) {
         # OBS: this serving state should come from LRMS.
         $csha->{ServingState} = 'production';
 
+
+	# Slots per share and state
+	my @slot_entries;
+	foreach my $state (keys %{$state_slots{$share}}) {
+	    my $value = $state_slots{$share}{$state};
+	    push @slot_entries, "$state\=$value";
+	}
+	$csha->{OtherInfo} = join(',',@slot_entries);
+
+	
         # We can't guess which local job belongs to a certain VO, hence
         # we set LocalRunning/Waiting/Suspended to zero for shares related to
         # a VO. 
@@ -2102,17 +2113,6 @@ sub collect($) {
             $cmgr->{TotalSlots} = (defined $config->{service}{totalcpus}) ? $config->{service}{totalcpus} : $cluster_info->{totalcpus};
 
 
-
-	    # Slots per share and state
-	    my @slot_entries;
-	    foreach my $share (keys %state_slots) {
-		foreach my $state (keys %{$state_slots{$share}}) {
-		    my $value = $state_slots{$share}{$state};
-		    push @slot_entries, "$share\_$state\=$value";
-		}
-	    }
-	    $cmgr->{OtherInfo} = join(',',@slot_entries);
-	    
             # This number can be more than totalslots in case more
             # than the published cores can be used -- happens with fork
             my @queuenames = keys %{$lrms_info->{queues}};
