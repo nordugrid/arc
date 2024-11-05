@@ -231,7 +231,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
   std::list<Arc::JobDescription> jobdescriptionlist;
   jobdescriptionlist.push_back(testJob);
   // canonicalize endpoint types
-  if (!opt.canonicalizeARC6InterfaceTypes(logger)) return 1;
+  if (!opt.canonicalizeARCInterfaceTypes(logger)) return 1;
 
   // get endpoint batches according to ARC6 target selection logic
   std::list<std::list<Arc::Endpoint> > endpoint_batches;

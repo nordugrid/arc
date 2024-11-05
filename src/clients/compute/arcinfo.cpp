@@ -93,7 +93,7 @@ int RUNMAIN(arcinfo)(int argc, char **argv) {
       break;
   }
 
-  if (!opt.canonicalizeARC6InterfaceTypes(logger)) return 1;
+  if (!opt.canonicalizeARCInterfaceTypes(logger)) return 1;
   std::string req_sub_iface;
   std::string req_info_iface;
   if (!opt.submit_types.empty()) req_sub_iface = opt.submit_types.front();

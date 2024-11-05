@@ -192,7 +192,7 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
   }
 
   // canonicalize endpoint types
-  if (!opt.canonicalizeARC6InterfaceTypes(logger)) return 1;
+  if (!opt.canonicalizeARCInterfaceTypes(logger)) return 1;
 
   // get endpoint batches according to ARC6 target selection logic
   std::list<std::list<Arc::Endpoint> > endpoint_batches;

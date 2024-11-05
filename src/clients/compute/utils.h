@@ -154,7 +154,7 @@ public:
                 const std::string& description = "");
 
   /// Implement ARC consistent info/submission endpoint types logic
-  bool canonicalizeARC6InterfaceTypes(Arc::Logger& logger);
+  bool canonicalizeARCInterfaceTypes(Arc::Logger& logger);
 
   bool getDelegationType(Arc::Logger& logger, Arc::UserConfig const& usercfg, DelegationType& delegation_type) const;
   bool getAuthenticationType(Arc::Logger& logger, Arc::UserConfig const& usercfg, AuthenticationType& authentication_type) const;

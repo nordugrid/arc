@@ -266,20 +266,13 @@ Arc::JobInformationStorage* createJobInformationStorage(const Arc::UserConfig& u
   return NULL;
 }
 
-bool ClientOptions::canonicalizeARC6InterfaceTypes(Arc::Logger& logger) {
+bool ClientOptions::canonicalizeARCInterfaceTypes(Arc::Logger& logger) {
   std::string s(requested_submission_endpoint_type);
   std::string i(requested_info_endpoint_type);
   // canonicalize submission endpoint
   if ( !s.empty() ) {
     if (s.find(".") == std::string::npos) {
       s = "org.nordugrid." + s;
-    }
-    // replace EMI-ES type
-    if (s == "org.nordugrid.emies") {
-      s = "org.ogf.glue.emies.activitycreation";
-    // allow to use gridftp as gridftpjob
-    } else if ( s == "org.nordugrid.gridftp" ) {
-      s += "job";
     }
   }
   // canonicalize information endpoint
@@ -291,13 +284,6 @@ bool ClientOptions::canonicalizeARC6InterfaceTypes(Arc::Logger& logger) {
     } else if ( i == "ldap.glue2" ) {
       i = "org.nordugrid.ldapglue2";
     }
-    // replace EMI-ES type
-    if (i == "org.nordugrid.emies") {
-      i = "org.ogf.glue.emies.resourceinfo";
-    // allow to use gridftp as gridftpjob
-    } else if ( s == "org.nordugrid.gridftp" ) {
-      s += "job";
-    }
   }
 
   // nothing specified - any interface can be used
@@ -306,12 +292,7 @@ bool ClientOptions::canonicalizeARC6InterfaceTypes(Arc::Logger& logger) {
   // define info based on submission (and verify submission type is supported)
   if ( !s.empty() ) {
     const std::string notify_template = "Automatically adding %s information endpoint type based on desired submission interface";
-    if ( s == "org.ogf.glue.emies.activitycreation" ) {
-      if ( i.empty() ) {
-        logger.msg(Arc::VERBOSE, notify_template, "org.ogf.glue.emies.resourceinfo");
-        info_types.push_back("org.ogf.glue.emies.resourceinfo");
-      }
-    } else if ( s == "org.nordugrid.arcrest" ) {
+    if ( s == "org.nordugrid.arcrest" ) {
       if ( i.empty() ) {
         logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.arcrest");
         info_types.push_back("org.nordugrid.arcrest");
@@ -320,13 +301,6 @@ bool ClientOptions::canonicalizeARC6InterfaceTypes(Arc::Logger& logger) {
       if ( i.empty() ) {
         logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.internal");
         info_types.push_back("org.nordugrid.internal");
-      }
-    } else if ( s == "org.nordugrid.gridftpjob" ) {
-      if ( i.empty() ) {
-        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.ldapng");
-        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.ldapglue2");
-        info_types.push_back("org.nordugrid.ldapng");
-        info_types.push_back("org.nordugrid.ldapglue2");
       }
     } else {
       logger.msg(Arc::ERROR, "Unsupported submission endpoint type: %s", s);
@@ -337,39 +311,19 @@ bool ClientOptions::canonicalizeARC6InterfaceTypes(Arc::Logger& logger) {
 
   // define submission type based on info (and verify info type is supported)
   if ( !i.empty() ) {
-    const std::string notify_template = "Automatically adding %s submission endpoint type based on desired information interface";
-    if ( i == "org.ogf.glue.emies.resourceinfo" ) {
-      if ( s.empty() ) {
-        logger.msg(Arc::VERBOSE, notify_template, "org.ogf.glue.emies.activitycreation");
-        submit_types.push_back("org.ogf.glue.emies.activitycreation");
-      }
-    } else if ( i == "org.nordugrid.arcrest" ) {
-      if ( s.empty() ) {
-        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.arcrest");
-        submit_types.push_back("org.nordugrid.arcrest");
-      }
+    const std::string notify_template = "Add arcrest submission endpoint type.";
+    if ( s.empty() ) {
+      logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.arcrest");
+      submit_types.push_back("org.nordugrid.arcrest");
     } else if ( i == "org.nordugrid.internal" ) {
       if ( s.empty() ) {
         logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.internal");
         submit_types.push_back("org.nordugrid.internal");
       }
-    } else if ( i == "org.nordugrid.ldapng" ) {
-      if ( s.empty() ) {
-        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.gridftpjob");
-        submit_types.push_back("org.nordugrid.gridftpjob");
-      }
-    } else if ( i == "org.nordugrid.ldapglue2" ) {
-      if ( s.empty() ) {
-        logger.msg(Arc::VERBOSE, notify_template, "org.ogf.glue.emies.activitycreation");
-        submit_types.push_back("org.ogf.glue.emies.activitycreation");
-        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.gridftpjob");
-        submit_types.push_back("org.nordugrid.gridftpjob");
-      }
     } else if ( Arc::lower(i) == "none" ) {
       if ( s.empty() ) {
-        logger.msg(Arc::VERBOSE, "Requested to skip resource discovery. Will try direct submission to %s and %s submission endpoint types", "org.ogf.glue.emies.activitycreation", "org.nordugrid.gridftpjob");
-        submit_types.push_back("org.ogf.glue.emies.activitycreation");
-        submit_types.push_back("org.nordugrid.gridftpjob");
+        logger.msg(Arc::VERBOSE, "Requested to skip resource discovery. Will try direct submission to arcrest endpoint type.");
+        submit_types.push_back("org.nordugrid.arcrest");
       }
       return true;
     } else {
@@ -451,7 +405,7 @@ ClientOptions::ClientOptions(Client_t c,
   if ( c == CO_SUB || c == CO_TEST ) {
     GroupAddOption("arc-target", 'T', "submission-endpoint-type",
             istring("require the specified endpoint type for job submission.\n"
-                    "\tAllowed values are: arcrest, emies, gridftp or gridftpjob and internal."),
+                    "\tAllowed values are: arcrest and internal."),
             istring("type"),
             requested_submission_endpoint_type);
   }
@@ -465,7 +419,7 @@ ClientOptions::ClientOptions(Client_t c,
     GroupAddOption("arc-target", 'Q', "info-endpoint-type",
           istring("require information query using the specified information endpoint type.\n"
                   "\tSpecial value 'NONE' will disable all resource information queries and the following brokering.\n"
-                  "\tAllowed values are: ldap.nordugrid, ldap.glue2, emies, arcrest and internal."),
+                  "\tAllowed values are: ldap.nordugrid, ldap.glue2, arcrest and internal."),
           istring("type"),
           requested_info_endpoint_type);
   }
@@ -473,7 +427,7 @@ ClientOptions::ClientOptions(Client_t c,
   if (c == CO_INFO) {
     GroupAddOption("arc-target", 'T', "submission-endpoint-type",
           istring("only get information about executon targets that support this job submission endpoint type.\n"
-                  "\tAllowed values are: arcrest, emies, gridftp or gridftpjob and internal."),
+                  "\tAllowed values are: arcrest and internal."),
           istring("type"),
           requested_submission_endpoint_type);
   }
