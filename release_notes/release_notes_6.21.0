@@ -1,0 +1,104 @@
+=================================
+Advanced Resource Connector (ARC)
+=================================
+
+
+Release Notes for NorduGrid ARC  6.21.0    06.11.2024
+=======================================================
+
+This release addresses several bugs in accounting, in addition to the usual handful of smaller bugfixes and enhancements.
+
+
+Highlights in this release
+--------------------------
+
+The accounting bugs 4211 and 4212 describe the case where the same job was counted multiple times in APEL summary if it passed the FINISHED state multiple times (due to restarts, etc). There is also a data discrepancies in APEL summary reports when EMI-ES and REST submission interfaces are used the same time.
+
+In both cases, the site will have a mismatch in the Sync records versus published data. If it is a case for your site, please upgrade and do republishing (http://www.nordugrid.org/arc/arc7/admins/commands/arcctl.html#republish).
+
+To address accounting queries performance issues, a new `arcctl accounting database optimize` command has been back-ported from ARC7. Running this command will add several composite indexes that significantly improve the APEL publishing time on the large accounting databases. All sites are advised to run it.
+
+
+Another enhancement worth mentioning is an addition to the published information about the ARC-CE (info.xml). There is now a ComputingShare/OtherInfo tag, where the number of cores per ARC state in that share is recorded. This equips the info.xml with core and state metrics, replacing the need for gangliarc. This in turn can be consumed by metrics collectors (e.g. Prometheus). See Bug 4196. If you want to try out the technical preview ARC prometheus exporter - you can get it from: https://source.coderefinery.org/nordugrid/arc-exporter.git
+
+The following Bugzilla tickets have been addressed or solved
+------------------------------------------------------------
+
+The following Bugzilla tickets have been resolved:
+* 4217  ARC CE minimum host certificate lifetime requirement
+* 4212  APEL summaries inconsistent data when both arcrest and emies are used
+* 4211  Jobs are accounted multiple times if they pass the FINISHED state multiple time
+* 4210  Tidy up arc-job-cgroup.c
+* 4206  Clang 17 warnings that are (mostly) actual bugs
+* 4201  JobControllerPluginREST::ProcessJobs reads garbage data in error case
+* 4196  ARC should publish job and core summary information
+* 4193  arc-arex.service fails to start up if default queue is specified for lrms parameter
+* 4190  ntpdate not for rhel 9 - gives config validation errors
+* 4161  arcget and gmlog WARNING messages and job failure in ARC 6.19.0
+* 3968  job input/output transfer accounting integer overflow
+
+
+
+Documentation
+==============
+The ARC 6 documentation can be found at http://www.nordugrid.org/arc/arc6
+
+If you miss something or have questions, please contact us!
+
+
+Installing ARC 6
+=================
+We recommend to install ARC release using the Nordugrid repository.
+* Start with the basics: http://www.nordugrid.org/arc/arc6/admins/try_arc6.html
+* Get production ready: http://www.nordugrid.org/arc/arc6/admins/arc6_install_guide.html
+
+Note that if you instead install from EPEL for RHEL 7 compatible systems,
+the ARC 6 packages can be found as nordugrid-arc6-* and not nordugrid-arc-*
+This was needed in order to supply both ARC 5 already available for RHEL7 and the new ARC 6.
+
+
+We provide binary builds for all supported versions of
+  * Debian (i386 and amd64)
+  * Fedora (x86_64)
+  * Centos/RHEL (x86_64)
+  * Ubuntu (i386 and amd64, both LTS and interim releases) - from Ubuntu 20.04 no i386 support
+
+In addition we build nightly packages for older platforms.
+
+
+Contributing
+=============
+You can submit pull requests to our public repo at https://github.com/nordugrid/arc which mirrors
+our Gitlab repo https://source.coderefinery.org/nordugrid/arc.
+
+The pull requests will be automatically copied over to our Gitlab repo where they will be
+merged into the source-code if accepted.
+
+
+Getting in touch
+==================
+If you need help with the configuration file or have any other questions related to ARC 6, please contact us via
+* Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
+* Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
+* Report a bug: https://bugzilla.nordugrid.org/
+
+
+Coming ARC 7 release
+=====================
+Start getting ready for ARC 7. We expect a release in 2024. You can already now install the testing version of ARC following: http://www.nordugrid.org/arc/arc7/common/repos/testing-repository.html. For upgrade instructions, please see: http://www.nordugrid.org/arc/arc7/admins/migrating6to7.html.
+
+The support policy of ARC 6 will follow the same policy we had for ARC 5: 1 year security updates, no more development of ARC 6 once ARC 7 is out.
+
+Installing from EPEL:
+----------------------
+Once the release is out, it can be installed from EPEL using package-name types: nordugrid-arc7-*
+
+
+
+Known issues
+==============
+* Related to the accounting system introduced in release 6.4.0:
+  * Accounting records created by ARC 6.4.0 are affected by a bug causing missing benchmark values:
+   https://bugzilla.nordugrid.org./show_bug.cgi?id=3921#c3
+   Recommendations are to update to a newer version of ARC.
+   The bugreport gives instructions on how to manually fix the wrong benchmark values.
