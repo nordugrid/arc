@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: support@nordugrid.org\n"
-"POT-Creation-Date: 2023-02-02 10:45+0100\n"
-"PO-Revision-Date: 2022-11-25 10:26+0100\n"
+"POT-Creation-Date: 2024-11-05 20:48+0100\n"
+"PO-Revision-Date: 2024-11-05 21:18+0100\n"
 "Last-Translator: Mattias Ellert <mattias.ellert@physics.uu.se>\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -438,7 +438,7 @@ msgid "No job description input specified"
 msgstr "Ingen jobbeskrivning angiven"
 
 #: src/clients/compute/arcsub.cpp:107
-#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:582
+#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:588
 #, c-format
 msgid "Can not open job description file: %s"
 msgstr "Kan inte öppna jobbeskrivningsfil: %s"
@@ -2193,13 +2193,13 @@ msgstr "Lyckades med att ändra lösenord på myproxy-server"
 msgid "Succeeded to destroy credential on MyProxy server"
 msgstr "Lyckades med att ta bort referens på myproxy-server"
 
-#: src/clients/credentials/arcproxy_myproxy.cpp:265
+#: src/clients/credentials/arcproxy_myproxy.cpp:241
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1032
 #, c-format
 msgid "Succeeded to get a proxy in %s from MyProxy server %s"
 msgstr "Lyckades med att hämta en proxy i %s från myproxy-server %s"
 
-#: src/clients/credentials/arcproxy_myproxy.cpp:318
+#: src/clients/credentials/arcproxy_myproxy.cpp:294
 #: src/hed/libs/credential/ARCProxyUtil.cpp:1091
 msgid "Succeeded to put a proxy onto MyProxy server"
 msgstr "Lyckades med att lägga upp en proxy på myproxy-server"
@@ -2759,38 +2759,43 @@ msgstr "Jobb %s har ingen associerad delegering. Kan inte förnya sådana jobb."
 msgid "Job %s failed to renew delegation %s."
 msgstr "Jobb %s misslyckades med att förnya delegering %s."
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:313
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:314
+#, c-format
+msgid "Failed to process jobs - error response: %s"
+msgstr "Misslyckades med att behandla jobb - felsvar: %s"
+
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:316
 #, c-format
 msgid "Failed to process jobs - wrong response: %u"
 msgstr "Misslyckades med att behandla jobb - felaktigt svar: %u"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:314
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:323
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:318
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:327
 #, c-format
 msgid "Content: %s"
 msgstr "Innehåll: %s"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:317
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:329
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:321
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:333
 #, c-format
 msgid "Failed to process job: %s"
 msgstr "Misslyckades med att behandla jobb: %s"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:327
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:331
 msgid "Failed to process jobs - failed to parse response"
 msgstr "Misslyckades med att behandla jobb - misslyckades med att tolka svar"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:340
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:344
 #, c-format
 msgid "No response returned: %s"
 msgstr "Inget svar returnerades: %s"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:364
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:368
 #, c-format
 msgid "Failed to process job: %s - %s %s"
 msgstr "Misslyckades med att behandla jobb: %s - %s %s"
 
-#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:431
+#: src/hed/acc/ARCREST/JobControllerPluginREST.cpp:455
 #, c-format
 msgid "Failed retrieving job description for job: %s"
 msgstr "Misslyckades med att hämta jobbeskrivning för jobb: %s"
@@ -3101,7 +3106,7 @@ msgstr "Jobbet återupptogs framgångsrikt"
 msgid "Failed retrieving information for job: %s"
 msgstr "Misslyckades med att hämta information om jobb: %s"
 
-#: src/hed/acc/EMIES/JobControllerPluginEMIES.cpp:330
+#: src/hed/acc/EMIES/JobControllerPluginEMIES.cpp:359
 msgid "Retrieving job description of EMI ES jobs is not supported"
 msgstr "Att hämta jobbeskrivning för ett EMI-ES-jobb stöds inte"
 
@@ -3294,7 +3299,7 @@ msgstr "Resursbeskrivningsvalidering enligt GLUE2-schema misslyckades: "
 #: src/hed/identitymap/ArgusPEPClient.cpp:345
 #: src/hed/libs/common/Thread.cpp:242 src/hed/libs/common/Thread.cpp:245
 #: src/hed/libs/common/Thread.cpp:248
-#: src/hed/libs/credential/Credential.cpp:1048
+#: src/hed/libs/credential/Credential.cpp:1056
 #: src/hed/libs/data/DataPointDelegate.cpp:628
 #: src/hed/mcc/tcp/PayloadTCPSocket.cpp:68
 #: src/hed/mcc/tcp/PayloadTCPSocket.cpp:84
@@ -3762,43 +3767,43 @@ msgstr "HER: %s"
 msgid "Could not create temporary file: %s"
 msgstr "Kunde inte skapa temporär fil: %s"
 
-#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:556
+#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:562
 #, c-format
 msgid "Trying to retrieve job description of %s from computing resource"
 msgstr "Försöker hämta jobbeskrivning för %s från beräkningsresurs"
 
-#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:561
+#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:567
 #, c-format
 msgid "invalid jobID: %s"
 msgstr "ogiltigt jobb-id: %s"
 
-#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:603
+#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:609
 msgid "clientxrsl found"
 msgstr "hittade klient-xrsl"
 
-#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:606
+#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:612
 msgid "could not find start of clientxrsl"
 msgstr "kunde inte hitta början på klient-xrsl"
 
-#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:611
+#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:617
 msgid "could not find end of clientxrsl"
 msgstr "kunde inte hitta slutet på klient-xrsl"
 
-#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:624
+#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:630
 #, c-format
 msgid "Job description: %s"
 msgstr "Jobbeskrivning: %s"
 
-#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:627
+#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:633
 msgid "clientxrsl not found"
 msgstr "hittade inte klient-xrsl"
 
-#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:633
+#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:639
 #, c-format
 msgid "Invalid JobDescription: %s"
 msgstr "Ogiltig jobbeskrivning: %s"
 
-#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:636
+#: src/hed/acc/GRIDFTPJOB/JobControllerPluginGRIDFTPJOB.cpp:642
 msgid "Valid JobDescription found"
 msgstr "Hittade giltig jobbeskrivning"
 
@@ -4806,63 +4811,63 @@ msgstr "Misslyckades med att öppna stdio-kanal %d"
 msgid "fsync of file %s failed: %s"
 msgstr "fsync för fil %s misslyckades: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:338
-#: src/hed/dmc/file/DataPointFile.cpp:345
+#: src/hed/dmc/file/DataPointFile.cpp:339
+#: src/hed/dmc/file/DataPointFile.cpp:347
 #, c-format
 msgid "closing file %s failed: %s"
 msgstr "stängning av fil %s misslyckades: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:364
+#: src/hed/dmc/file/DataPointFile.cpp:366
 #, c-format
 msgid "File is not accessible: %s"
 msgstr "Filen kan inte kommas åt: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:370
-#: src/hed/dmc/file/DataPointFile.cpp:455
+#: src/hed/dmc/file/DataPointFile.cpp:372
+#: src/hed/dmc/file/DataPointFile.cpp:457
 #, c-format
 msgid "Can't stat file: %s: %s"
 msgstr "Kan inte göra stat på filen: %s: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:416
-#: src/hed/dmc/file/DataPointFile.cpp:422
+#: src/hed/dmc/file/DataPointFile.cpp:418
+#: src/hed/dmc/file/DataPointFile.cpp:424
 #, c-format
 msgid "Can't stat stdio channel %s"
 msgstr "Kan inte göra stat på stdio-kanal %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:470
+#: src/hed/dmc/file/DataPointFile.cpp:472
 #, c-format
 msgid "%s is not a directory"
 msgstr "%s är inte en katalog"
 
-#: src/hed/dmc/file/DataPointFile.cpp:485 src/hed/dmc/s3/DataPointS3.cpp:440
+#: src/hed/dmc/file/DataPointFile.cpp:487 src/hed/dmc/s3/DataPointS3.cpp:440
 #: src/hed/dmc/s3/DataPointS3.cpp:550
 #, c-format
 msgid "Failed to read object %s: %s"
 msgstr "Misslyckades med att läsa objekt: %s: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:498
+#: src/hed/dmc/file/DataPointFile.cpp:500
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:517
 #, c-format
 msgid "File is not accessible %s: %s"
 msgstr "Filen kan inte kommas åt %s: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:504
+#: src/hed/dmc/file/DataPointFile.cpp:506
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:523
 #, c-format
 msgid "Can't delete directory %s: %s"
 msgstr "Kan inte ta bort katalog: %s: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:511
+#: src/hed/dmc/file/DataPointFile.cpp:513
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:530
 #, c-format
 msgid "Can't delete file %s: %s"
 msgstr "Kan inte ta bort fil %s: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:521
+#: src/hed/dmc/file/DataPointFile.cpp:523
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:335
 #: src/hed/dmc/gridftp/DataPointGridFTPHelper.cpp:313
-#: src/hed/dmc/http/DataPointHTTP.cpp:1632
-#: src/hed/dmc/http/DataPointHTTP.cpp:1650
+#: src/hed/dmc/http/DataPointHTTP.cpp:1638
+#: src/hed/dmc/http/DataPointHTTP.cpp:1656
 #: src/hed/dmc/srm/srmclient/SRM22Client.cpp:1466
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:545
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:565
@@ -4870,75 +4875,75 @@ msgstr "Kan inte ta bort fil %s: %s"
 msgid "Creating directory %s"
 msgstr "Skapar katalog %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:529 src/hed/dmc/srm/DataPointSRM.cpp:171
+#: src/hed/dmc/file/DataPointFile.cpp:531 src/hed/dmc/srm/DataPointSRM.cpp:171
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:579
 #, c-format
 msgid "Renaming %s to %s"
 msgstr "Byter namn på %s till %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:531
+#: src/hed/dmc/file/DataPointFile.cpp:533
 #: src/hed/dmc/xrootd/DataPointXrootd.cpp:588
 #, c-format
 msgid "Can't rename file %s: %s"
 msgstr "Kan inte byta namn på fil %s: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:559
+#: src/hed/dmc/file/DataPointFile.cpp:561
 #, c-format
 msgid "Failed to open %s for reading: %s"
 msgstr "Misslyckades med att öppna %s för läsning: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:574
-#: src/hed/dmc/file/DataPointFile.cpp:709
+#: src/hed/dmc/file/DataPointFile.cpp:576
+#: src/hed/dmc/file/DataPointFile.cpp:711
 #, c-format
 msgid "Failed to switch user id to %d/%d"
 msgstr "Misslyckades med att byta användar-id till %d/%d"
 
-#: src/hed/dmc/file/DataPointFile.cpp:580
+#: src/hed/dmc/file/DataPointFile.cpp:582
 #, c-format
 msgid "Failed to create/open file %s: %s"
 msgstr "Misslyckades med att skapa/öppna fil %s: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:596
+#: src/hed/dmc/file/DataPointFile.cpp:598
 msgid "Failed to create thread"
 msgstr "Misslyckades med att skapa tråd"
 
-#: src/hed/dmc/file/DataPointFile.cpp:676
+#: src/hed/dmc/file/DataPointFile.cpp:678
 #, c-format
 msgid "Invalid url: %s"
 msgstr "Ogiltig URL: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:685 src/hed/libs/data/FileCache.cpp:482
+#: src/hed/dmc/file/DataPointFile.cpp:687 src/hed/libs/data/FileCache.cpp:482
 #, c-format
 msgid "Failed to create directory %s: %s"
 msgstr "Misslyckades med att skapa katalog %s: %s\""
 
-#: src/hed/dmc/file/DataPointFile.cpp:698
-#: src/hed/dmc/file/DataPointFile.cpp:717
+#: src/hed/dmc/file/DataPointFile.cpp:700
+#: src/hed/dmc/file/DataPointFile.cpp:719
 #, c-format
 msgid "Failed to create file %s: %s"
 msgstr "Misslyckades med att skapa fil %s: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:729
+#: src/hed/dmc/file/DataPointFile.cpp:731
 #, c-format
 msgid "setting file %s to size %llu"
 msgstr "Sätter fil %s till storlek %llu"
 
-#: src/hed/dmc/file/DataPointFile.cpp:749
+#: src/hed/dmc/file/DataPointFile.cpp:754
 #, c-format
 msgid "Failed to preallocate space for %s"
 msgstr "Misslyckades med förallokera utrymme for %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:790 src/hed/libs/data/FileCache.cpp:856
+#: src/hed/dmc/file/DataPointFile.cpp:793 src/hed/libs/data/FileCache.cpp:856
 #, c-format
 msgid "Failed to clean up file %s: %s"
 msgstr "Misslyckades med att ta bort fil %s: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:799
+#: src/hed/dmc/file/DataPointFile.cpp:807
 #, c-format
 msgid "Error during file validation. Can't stat file %s: %s"
 msgstr "Fel under filvalidering. Kan inte göra stat på fil %s: %s"
 
-#: src/hed/dmc/file/DataPointFile.cpp:803
+#: src/hed/dmc/file/DataPointFile.cpp:811
 #, c-format
 msgid ""
 "Error during file validation: Local file size %llu does not match source "
@@ -5436,14 +5441,14 @@ msgid "StopWriting: aborting connection"
 msgstr "StopWriting: avbryter förbindelse"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:664
-#: src/hed/dmc/http/DataPointHTTP.cpp:961
+#: src/hed/dmc/http/DataPointHTTP.cpp:966
 #: src/hed/libs/data/DataPointDelegate.cpp:321
 #, c-format
 msgid "StopWriting: Calculated checksum %s"
 msgstr "StopWriting: Beräkna checksumma %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:668
-#: src/hed/dmc/http/DataPointHTTP.cpp:965
+#: src/hed/dmc/http/DataPointHTTP.cpp:970
 #: src/hed/libs/data/DataPointDelegate.cpp:325
 #, c-format
 msgid "StopWriting: looking for checksum of %s"
@@ -5474,7 +5479,7 @@ msgid "list_files_ftp: checksum %s"
 msgstr "list_files_ftp: checksumma %s"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:694
-#: src/hed/dmc/http/DataPointHTTP.cpp:974
+#: src/hed/dmc/http/DataPointHTTP.cpp:979
 #: src/hed/libs/data/DataPointDelegate.cpp:332
 msgid ""
 "Checksum type returned by server is different to requested type, cannot "
@@ -5484,7 +5489,7 @@ msgstr ""
 "typen, kan inte jämföra"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:696
-#: src/hed/dmc/http/DataPointHTTP.cpp:976
+#: src/hed/dmc/http/DataPointHTTP.cpp:981
 #: src/hed/libs/data/DataPointDelegate.cpp:334
 #, c-format
 msgid "Calculated checksum %s matches checksum reported by server"
@@ -5492,7 +5497,7 @@ msgstr ""
 "Beräknad checksumma %s stämmer överens med checksumma rapporterad av servern"
 
 #: src/hed/dmc/gridftp/DataPointGridFTP.cpp:699
-#: src/hed/dmc/http/DataPointHTTP.cpp:978
+#: src/hed/dmc/http/DataPointHTTP.cpp:983
 #: src/hed/libs/data/DataPointDelegate.cpp:337
 #, c-format
 msgid ""
@@ -6107,83 +6112,83 @@ msgstr "Dataöverföring avbruten"
 msgid "Failed to transfer data"
 msgstr "Misslyckades med att överföra data"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:393
-#: src/hed/dmc/http/DataPointHTTP.cpp:578
-#: src/hed/dmc/http/DataPointHTTP.cpp:671
-#: src/hed/dmc/http/DataPointHTTP.cpp:1113
-#: src/hed/dmc/http/DataPointHTTP.cpp:1257
-#: src/hed/dmc/http/DataPointHTTP.cpp:1406
+#: src/hed/dmc/http/DataPointHTTP.cpp:394
+#: src/hed/dmc/http/DataPointHTTP.cpp:582
+#: src/hed/dmc/http/DataPointHTTP.cpp:676
+#: src/hed/dmc/http/DataPointHTTP.cpp:1118
+#: src/hed/dmc/http/DataPointHTTP.cpp:1263
+#: src/hed/dmc/http/DataPointHTTP.cpp:1412
 #, c-format
 msgid "Redirecting to %s"
 msgstr "Omdirigerar till %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:445
+#: src/hed/dmc/http/DataPointHTTP.cpp:446
 #, c-format
 msgid "PROPFIND response: %s"
 msgstr "PROPFIND-svar: %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:496
+#: src/hed/dmc/http/DataPointHTTP.cpp:500
 #, c-format
 msgid "Using checksum %s"
 msgstr "Använder checksumma %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:505
+#: src/hed/dmc/http/DataPointHTTP.cpp:508
 #, c-format
 msgid "No matching checksum type, using first in list %s"
 msgstr "Ingen matchande typ av checksumma, använder första i listan %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:597
-#: src/hed/dmc/http/DataPointHTTP.cpp:690
+#: src/hed/dmc/http/DataPointHTTP.cpp:601
+#: src/hed/dmc/http/DataPointHTTP.cpp:695
 msgid "No information returned by PROPFIND"
 msgstr "Ingen information returnerad av PROPFIND"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:747
+#: src/hed/dmc/http/DataPointHTTP.cpp:752
 #, c-format
 msgid "Stat: obtained size %llu"
 msgstr "Stat: erhållen storlek %llu"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:751
+#: src/hed/dmc/http/DataPointHTTP.cpp:756
 #, c-format
 msgid "Stat: obtained modification time %s"
 msgstr "Stat: erhållen ändringstid %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:755
+#: src/hed/dmc/http/DataPointHTTP.cpp:760
 #, c-format
 msgid "Stat: obtained checksum %s"
 msgstr "Stat: erhållen checksumma %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:970
+#: src/hed/dmc/http/DataPointHTTP.cpp:975
 #, c-format
 msgid "Could not find checksum: %s"
 msgstr "Kunde inte hitta checksumma: %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:972
+#: src/hed/dmc/http/DataPointHTTP.cpp:977
 #, c-format
 msgid "Checksum of %s is not available"
 msgstr "Checksumma för %s är inte tillgänglig"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:1015
+#: src/hed/dmc/http/DataPointHTTP.cpp:1020
 #, c-format
 msgid "Check: obtained size %llu"
 msgstr "Check: erhållen storlek %llu"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:1017
+#: src/hed/dmc/http/DataPointHTTP.cpp:1022
 #, c-format
 msgid "Check: obtained modification time %s"
 msgstr "Check: erhållen ändringstid %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:1130
-#: src/hed/dmc/http/DataPointHTTP.cpp:1277
+#: src/hed/dmc/http/DataPointHTTP.cpp:1135
+#: src/hed/dmc/http/DataPointHTTP.cpp:1283
 #, c-format
 msgid "HTTP failure %u - %s"
 msgstr "HTTP-fel %u - %s"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:1434
+#: src/hed/dmc/http/DataPointHTTP.cpp:1440
 #, c-format
 msgid "Failed to create %s, trying to create parent directories"
 msgstr "Misslyckades med att skapa %s, försöker skapa föräldrakataloger"
 
-#: src/hed/dmc/http/DataPointHTTP.cpp:1623
+#: src/hed/dmc/http/DataPointHTTP.cpp:1629
 #, c-format
 msgid "Error creating directory: %s"
 msgstr "Fel vid skapande av katalog: %s"
@@ -7422,7 +7427,7 @@ msgid_plural "seconds"
 msgstr[0] "sekund"
 msgstr[1] "sekunder"
 
-#: src/hed/libs/common/FileLock.cpp:92
+#: src/hed/libs/common/FileLock.cpp:93
 #, c-format
 msgid "EACCES Error opening lock file %s: %s"
 msgstr "EACCES-fel vid öppnande av låsfil %s: %s"
@@ -7437,32 +7442,32 @@ msgstr "Fel vid öppnande av låsfil %s i initial check: %s"
 msgid "Error creating temporary file %s: %s"
 msgstr "Fel vid skapandet av temporär fil %s: %s"
 
-#: src/hed/libs/common/FileLock.cpp:113
+#: src/hed/libs/common/FileLock.cpp:114
 #, c-format
 msgid "Could not create link to lock file %s as it already exists"
 msgstr "Kunde inte skapa länk till låsfil %s eftersom den redan existerar"
 
-#: src/hed/libs/common/FileLock.cpp:124
+#: src/hed/libs/common/FileLock.cpp:125
 #, c-format
 msgid "Could not create lock file %s as it already exists"
 msgstr "Kunde inte skapa låsfil %s eftersom den redan existerar"
 
-#: src/hed/libs/common/FileLock.cpp:128
+#: src/hed/libs/common/FileLock.cpp:129
 #, c-format
 msgid "Error creating lock file %s: %s"
 msgstr "Fel vid skapandet av låsfil %s: %s"
 
-#: src/hed/libs/common/FileLock.cpp:133
+#: src/hed/libs/common/FileLock.cpp:134
 #, c-format
 msgid "Error writing to lock file %s: %s"
 msgstr "Fel vid skrivning till låsfil %s: %s"
 
-#: src/hed/libs/common/FileLock.cpp:141
+#: src/hed/libs/common/FileLock.cpp:142
 #, c-format
 msgid "Error linking tmp file %s to lock file %s: %s"
 msgstr "Fel vid länkning av temporär fil %s till låsfil %s: %s"
 
-#: src/hed/libs/common/FileLock.cpp:150
+#: src/hed/libs/common/FileLock.cpp:151
 #, c-format
 msgid "Error in lock file %s, even though linking did not return an error"
 msgstr "Fel i låsfil %s, trots att länkning inte returnerade ett fel"
@@ -7482,7 +7487,7 @@ msgstr "Timeout har passerat, kommer att ta bort låsfil %s"
 msgid "Failed to remove stale lock file %s: %s"
 msgstr "Misslyckades med att ta bort gammal låsfil %s: %s"
 
-#: src/hed/libs/common/FileLock.cpp:178
+#: src/hed/libs/common/FileLock.cpp:179
 #, c-format
 msgid "This process already owns the lock on %s"
 msgstr "Denna process äger redan låset på %s"
@@ -7498,52 +7503,52 @@ msgstr "Processen som äger låset på %s kör inte längre, kommer att ta bort 
 msgid "Failed to remove file %s: %s"
 msgstr "Misslyckades med att ta bort fil %s: %s"
 
-#: src/hed/libs/common/FileLock.cpp:193
+#: src/hed/libs/common/FileLock.cpp:194
 #, c-format
 msgid "The file %s is currently locked with a valid lock"
 msgstr "Filen %s är för tillfället låst med ett giltigt lås"
 
-#: src/hed/libs/common/FileLock.cpp:208
+#: src/hed/libs/common/FileLock.cpp:211
 #, c-format
 msgid "Failed to unlock file with lock %s: %s"
 msgstr "Misslyckades med att låsa upp fil med lås %s: %s"
 
-#: src/hed/libs/common/FileLock.cpp:220
+#: src/hed/libs/common/FileLock.cpp:223
 #, c-format
 msgid "Lock file %s doesn't exist"
 msgstr "Låsfil %s existerar inte"
 
-#: src/hed/libs/common/FileLock.cpp:222
+#: src/hed/libs/common/FileLock.cpp:225
 #, c-format
 msgid "Error listing lock file %s: %s"
 msgstr "Fel vid listning av låsfil %s: %s"
 
-#: src/hed/libs/common/FileLock.cpp:228
+#: src/hed/libs/common/FileLock.cpp:231
 #, c-format
 msgid "Found unexpected empty lock file %s. Must go back to acquire()"
 msgstr "Hittade oväntad tom låsfil %s. Måste gå tillbaka till acquire()"
 
-#: src/hed/libs/common/FileLock.cpp:234
+#: src/hed/libs/common/FileLock.cpp:237
 #, c-format
 msgid "Error reading lock file %s: %s"
 msgstr "Fel vid läsning av låsfil %s: %s"
 
-#: src/hed/libs/common/FileLock.cpp:238
+#: src/hed/libs/common/FileLock.cpp:241
 #, c-format
 msgid "Error with formatting in lock file %s"
 msgstr "Formatteringsfel i låsfil %s"
 
-#: src/hed/libs/common/FileLock.cpp:248
+#: src/hed/libs/common/FileLock.cpp:251
 #, c-format
 msgid "Lock %s is owned by a different host (%s)"
 msgstr "Lås %s ägs av en annan värd (%s)"
 
-#: src/hed/libs/common/FileLock.cpp:257
+#: src/hed/libs/common/FileLock.cpp:260
 #, c-format
 msgid "Badly formatted pid %s in lock file %s"
 msgstr "Felaktigt formatterat pid %s i låsfil %s"
 
-#: src/hed/libs/common/FileLock.cpp:260
+#: src/hed/libs/common/FileLock.cpp:263
 #, c-format
 msgid "Another process (%s) owns the lock on file %s"
 msgstr "En annan process (%s) äger låset på fil %s"
@@ -7823,12 +7828,12 @@ msgstr "Försöker tilldela relativ sökväg till URL - gör den absolut"
 msgid "URL option %s does not have format name=value"
 msgstr "URL-alternativ %s har inte formatet namn=värde"
 
-#: src/hed/libs/common/URL.cpp:1180
+#: src/hed/libs/common/URL.cpp:1184
 #, c-format
 msgid "urllist %s contains invalid URL: %s"
 msgstr "urllistan %s innehåller ogiltig URL: %s"
 
-#: src/hed/libs/common/URL.cpp:1185
+#: src/hed/libs/common/URL.cpp:1189
 #, c-format
 msgid "URL protocol is not urllist: %s"
 msgstr "URL-protokollet är inte urllist: %s"
@@ -8159,7 +8164,7 @@ msgid "%s directory created"
 msgstr "%s-katalog skapad"
 
 #: src/hed/libs/common/UserConfig.cpp:1092
-#: src/hed/libs/common/UserConfig.cpp:1131 src/hed/libs/data/DataMover.cpp:682
+#: src/hed/libs/common/UserConfig.cpp:1131 src/hed/libs/data/DataMover.cpp:699
 #, c-format
 msgid "Failed to create directory %s"
 msgstr "Misslyckades med att skapa katalog %s"
@@ -8351,7 +8356,7 @@ msgid ""
 msgstr ""
 "CA-utfärdaren (%s) för referenserna (%s) är inte betrodd av target (%s)."
 
-#: src/hed/libs/compute/Broker.cpp:153 src/hed/libs/compute/Broker.cpp:171
+#: src/hed/libs/compute/Broker.cpp:153
 #, c-format
 msgid "ComputingShareName of ExecutionTarget (%s) is not defined"
 msgstr "ComputingShareName för ExecutionTarget (%s) är inte definierat"
@@ -8361,12 +8366,29 @@ msgstr "ComputingShareName för ExecutionTarget (%s) är inte definierat"
 msgid "ComputingShare (%s) explicitly rejected"
 msgstr "ComputingShare (%s) explicit avvisad"
 
+#: src/hed/libs/compute/Broker.cpp:171
+#, c-format
+msgid ""
+"Matchmaking, ComputingShareName of ExecutionTarget (%s) is not defined, but "
+"requested queue is (%s)"
+msgstr ""
+"Matchmaking, ComputingShareName för ExecutionTarget (%s) är inte definierat, "
+"men begärd kö är det (%s)"
+
 #: src/hed/libs/compute/Broker.cpp:175 src/hed/libs/compute/Broker.cpp:180
 #, c-format
-msgid "ComputingShare (%s) does not match selected queue (%s)"
-msgstr "ComputingShare (%s) matchar inte vald kö (%s)"
+msgid ""
+"Matchmaking, ComputingShare (%s) does not match requested queue (%s): "
+"skipping"
+msgstr ""
+"Matchmaking, ComputingShare (%s) matchar inte begärd kö (%s): hoppar över"
 
-#: src/hed/libs/compute/Broker.cpp:189
+#: src/hed/libs/compute/Broker.cpp:184
+#, c-format
+msgid "Matchmaking, ComputingShare (%s) matches requested queue (%s)"
+msgstr "Matchmaking, ComputingShare (%s) matchar begärd kö (%s)"
+
+#: src/hed/libs/compute/Broker.cpp:192
 #, c-format
 msgid ""
 "ProcessingStartTime (%s) specified in job description is inside the targets "
@@ -8375,22 +8397,22 @@ msgstr ""
 "ProcessingStartTime (%s) angiven i jobbeskrivning ligger inom targets "
 "driftstoppsperiod [ %s - %s ]."
 
-#: src/hed/libs/compute/Broker.cpp:194
+#: src/hed/libs/compute/Broker.cpp:197
 #, c-format
 msgid "The downtime of the target (%s) is not published. Keeping target."
 msgstr "Targets (%s) driftstopp har inte publicerats. Behåller target."
 
-#: src/hed/libs/compute/Broker.cpp:200
+#: src/hed/libs/compute/Broker.cpp:203
 #, c-format
 msgid "HealthState of ExecutionTarget (%s) is not OK or WARNING (%s)"
 msgstr "HealthState för ExecutionTarget (%s) är inte OK eller VARNING (%s)"
 
-#: src/hed/libs/compute/Broker.cpp:205
+#: src/hed/libs/compute/Broker.cpp:208
 #, c-format
 msgid "Matchmaking, ExecutionTarget:  %s, HealthState is not defined"
 msgstr "Matchmaking, ExecutionTarget:  %s, HealthState är inte definierat"
 
-#: src/hed/libs/compute/Broker.cpp:212
+#: src/hed/libs/compute/Broker.cpp:215
 #, c-format
 msgid ""
 "Matchmaking, Computing endpoint requirement not satisfied. ExecutionTarget: "
@@ -8398,19 +8420,19 @@ msgid ""
 msgstr ""
 "Matchmaking, Beräkningsslutpunktsvillkor inte uppfyllt. ExecutionTarget: %s"
 
-#: src/hed/libs/compute/Broker.cpp:217
+#: src/hed/libs/compute/Broker.cpp:220
 #, c-format
 msgid "Matchmaking, ExecutionTarget:  %s, ImplementationName is not defined"
 msgstr ""
 "Matchmaking, ExecutionTarget:  %s, ImplementationName är inte definierat"
 
-#: src/hed/libs/compute/Broker.cpp:243
+#: src/hed/libs/compute/Broker.cpp:246
 #, c-format
 msgid ""
 "Matchmaking, %s (%d) is %s than %s (%d) published by the ExecutionTarget."
 msgstr "Matchmaking, %s (%d) är %s än %s (%d) publicerat av ExecutionTarget."
 
-#: src/hed/libs/compute/Broker.cpp:272
+#: src/hed/libs/compute/Broker.cpp:275
 #, c-format
 msgid ""
 "Matchmaking, The %s scaled %s (%d) is %s than the %s (%d) published by the "
@@ -8419,12 +8441,12 @@ msgstr ""
 "Matchmaking, %s skalad %s (%d) är %s än %s (%d) publicerat av "
 "ExecutionTarget."
 
-#: src/hed/libs/compute/Broker.cpp:284
+#: src/hed/libs/compute/Broker.cpp:287
 #, c-format
 msgid "Matchmaking, Benchmark %s is not published by the ExecutionTarget."
 msgstr "Matchmaking, Benchmark %s är inte publicerat av ExecutionTarget."
 
-#: src/hed/libs/compute/Broker.cpp:299
+#: src/hed/libs/compute/Broker.cpp:302
 #, c-format
 msgid ""
 "Matchmaking, MaxTotalCPUTime problem, ExecutionTarget: %d (MaxTotalCPUTime), "
@@ -8433,7 +8455,7 @@ msgstr ""
 "Matchmaking, MaxTotalCPUTime-problem, ExecutionTarget: %d (MaxTotalCPUTime), "
 "JobDescription: %d (TotalCPUTime)"
 
-#: src/hed/libs/compute/Broker.cpp:306
+#: src/hed/libs/compute/Broker.cpp:309
 #, c-format
 msgid ""
 "Matchmaking, MaxCPUTime problem, ExecutionTarget: %d (MaxCPUTime), "
@@ -8442,7 +8464,7 @@ msgstr ""
 "Matchmaking, MaxCPUTime-problem, ExecutionTarget: %d (MaxCPUTime), "
 "JobDescription: %d (TotalCPUTime/NumberOfSlots)"
 
-#: src/hed/libs/compute/Broker.cpp:311
+#: src/hed/libs/compute/Broker.cpp:314
 #, c-format
 msgid ""
 "Matchmaking, ExecutionTarget:  %s, MaxTotalCPUTime or MaxCPUTime not "
@@ -8451,7 +8473,7 @@ msgstr ""
 "Matchmaking, ExecutionTarget:  %s, varken MaxTotalCPUTime eller MaxCPUTime "
 "är definierad, antar ingen CPU-tidsgräns"
 
-#: src/hed/libs/compute/Broker.cpp:317
+#: src/hed/libs/compute/Broker.cpp:320
 #, c-format
 msgid ""
 "Matchmaking, MinCPUTime problem, ExecutionTarget: %d (MinCPUTime), "
@@ -8460,7 +8482,7 @@ msgstr ""
 "Matchmaking, MinCPUTime-problem, ExecutionTarget: %d (MinCPUTime), "
 "JobDescription: %d (TotalCPUTime/NumberOfSlots)"
 
-#: src/hed/libs/compute/Broker.cpp:322
+#: src/hed/libs/compute/Broker.cpp:325
 #, c-format
 msgid ""
 "Matchmaking, ExecutionTarget:  %s, MinCPUTime not defined, assuming no CPU "
@@ -8469,7 +8491,7 @@ msgstr ""
 "Matchmaking, ExecutionTarget:  %s, MinCPUTime inte definierat, antar ingen "
 "CPU-tidsgräns"
 
-#: src/hed/libs/compute/Broker.cpp:330
+#: src/hed/libs/compute/Broker.cpp:333
 #, c-format
 msgid ""
 "Matchmaking, MainMemorySize problem, ExecutionTarget: %d (MainMemorySize), "
@@ -8478,7 +8500,7 @@ msgstr ""
 "Matchmaking, MainMemorySize-problem, ExecutionTarget: %d (MainMemorySize), "
 "JobDescription: %d (IndividualPhysicalMemory)"
 
-#: src/hed/libs/compute/Broker.cpp:336
+#: src/hed/libs/compute/Broker.cpp:339
 #, c-format
 msgid ""
 "Matchmaking, MaxMainMemory problem, ExecutionTarget: %d (MaxMainMemory), "
@@ -8487,7 +8509,7 @@ msgstr ""
 "Matchmaking, MaxMainMemory-problem, ExecutionTarget: %d (MaxMainMemory), "
 "JobDescription: %d (IndividualPhysicalMemory)"
 
-#: src/hed/libs/compute/Broker.cpp:341
+#: src/hed/libs/compute/Broker.cpp:344
 #, c-format
 msgid ""
 "Matchmaking, ExecutionTarget: %s, MaxMainMemory and MainMemorySize are not "
@@ -8496,7 +8518,7 @@ msgstr ""
 "Matchmaking, ExecutionTarget: %s, MaxMainMemory och MainMemorySize är inte "
 "definierade"
 
-#: src/hed/libs/compute/Broker.cpp:349
+#: src/hed/libs/compute/Broker.cpp:352
 #, c-format
 msgid ""
 "Matchmaking, MaxVirtualMemory problem, ExecutionTarget: %d "
@@ -8505,12 +8527,12 @@ msgstr ""
 "Matchmaking, MaxVirtualMemory-problem, ExecutionTarget: %d "
 "(MaxVirtualMemory), JobDescription: %d (IndividualVirtualMemory)"
 
-#: src/hed/libs/compute/Broker.cpp:354
+#: src/hed/libs/compute/Broker.cpp:357
 #, c-format
 msgid "Matchmaking, ExecutionTarget: %s, MaxVirtualMemory is not defined"
 msgstr "Matchmaking, ExecutionTarget: %s, MaxVirtualMemory är inte definierat"
 
-#: src/hed/libs/compute/Broker.cpp:362
+#: src/hed/libs/compute/Broker.cpp:365
 #, c-format
 msgid ""
 "Matchmaking, Platform problem, ExecutionTarget: %s (Platform) "
@@ -8519,24 +8541,24 @@ msgstr ""
 "Matchmaking, Platform-problem, ExecutionTarget: %s (Platform) "
 "JobDescription: %s (Platform)"
 
-#: src/hed/libs/compute/Broker.cpp:367
+#: src/hed/libs/compute/Broker.cpp:370
 #, c-format
 msgid "Matchmaking, ExecutionTarget:  %s, Platform is not defined"
 msgstr "Matchmaking, ExecutionTarget:  %s, Platform är inte definierad"
 
-#: src/hed/libs/compute/Broker.cpp:375
+#: src/hed/libs/compute/Broker.cpp:378
 #, c-format
 msgid ""
 "Matchmaking, ExecutionTarget: %s, OperatingSystem requirements not satisfied"
 msgstr ""
 "Matchmaking, ExecutionTarget: %s, OperatingSystem-villkor är inte uppfyllt"
 
-#: src/hed/libs/compute/Broker.cpp:380
+#: src/hed/libs/compute/Broker.cpp:383
 #, c-format
 msgid "Matchmaking, ExecutionTarget:  %s,  OperatingSystem is not defined"
 msgstr "Matchmaking, ExecutionTarget:  %s,  OperatingSystem är inte definierat"
 
-#: src/hed/libs/compute/Broker.cpp:388
+#: src/hed/libs/compute/Broker.cpp:391
 #, c-format
 msgid ""
 "Matchmaking, ExecutionTarget:  %s, RunTimeEnvironment requirements not "
@@ -8545,13 +8567,13 @@ msgstr ""
 "Matchmaking, ExecutionTarget:  %s, RunTimeEnvironment-villkor är inte "
 "uppfyllt"
 
-#: src/hed/libs/compute/Broker.cpp:393
+#: src/hed/libs/compute/Broker.cpp:396
 #, c-format
 msgid "Matchmaking, ExecutionTarget: %s, ApplicationEnvironments not defined"
 msgstr ""
 "Matchmaking, ExecutionTarget: %s, ApplicationEnvironments är inte definierade"
 
-#: src/hed/libs/compute/Broker.cpp:402
+#: src/hed/libs/compute/Broker.cpp:405
 #, c-format
 msgid ""
 "Matchmaking, NetworkInfo demand not fulfilled, ExecutionTarget do not "
@@ -8560,12 +8582,12 @@ msgstr ""
 "Matchmaking, NetworkInfo-begäran inte uppfylld, ExecutionTarget stöder inte "
 "%s, angiven i jobbeskrivning."
 
-#: src/hed/libs/compute/Broker.cpp:406
+#: src/hed/libs/compute/Broker.cpp:409
 #, c-format
 msgid "Matchmaking, ExecutionTarget:  %s, NetworkInfo is not defined"
 msgstr "Matchmaking, ExecutionTarget:  %s, NetworkInfo är inte definierad"
 
-#: src/hed/libs/compute/Broker.cpp:414
+#: src/hed/libs/compute/Broker.cpp:417
 #, c-format
 msgid ""
 "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); "
@@ -8574,7 +8596,7 @@ msgstr ""
 "Matchmaking, MaxDiskSpace-problem, ExecutionTarget: %d MB (MaxDiskSpace); "
 "JobDescription: %d MB (SessionDiskSpace)"
 
-#: src/hed/libs/compute/Broker.cpp:421
+#: src/hed/libs/compute/Broker.cpp:424
 #, c-format
 msgid ""
 "Matchmaking, WorkingAreaFree problem, ExecutionTarget: %d MB "
@@ -8583,7 +8605,7 @@ msgstr ""
 "Matchmaking, WorkingAreaFree-problem, ExecutionTarget: %d MB "
 "(WorkingAreaFree); JobDescription: %d MB (SessionDiskSpace)"
 
-#: src/hed/libs/compute/Broker.cpp:427 src/hed/libs/compute/Broker.cpp:448
+#: src/hed/libs/compute/Broker.cpp:430 src/hed/libs/compute/Broker.cpp:451
 #, c-format
 msgid ""
 "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace and WorkingAreaFree are not "
@@ -8592,7 +8614,7 @@ msgstr ""
 "Matchmaking, ExecutionTarget:  %s, MaxDiskSpace och WorkingAreaFree är inte "
 "definierade"
 
-#: src/hed/libs/compute/Broker.cpp:435
+#: src/hed/libs/compute/Broker.cpp:438
 #, c-format
 msgid ""
 "Matchmaking, MaxDiskSpace problem, ExecutionTarget: %d MB (MaxDiskSpace); "
@@ -8601,7 +8623,7 @@ msgstr ""
 "Matchmaking, MaxDiskSpace-problem, ExecutionTarget: %d MB (MaxDiskSpace); "
 "JobDescription: %d MB (DiskSpace)"
 
-#: src/hed/libs/compute/Broker.cpp:442
+#: src/hed/libs/compute/Broker.cpp:445
 #, c-format
 msgid ""
 "Matchmaking, WorkingAreaFree problem, ExecutionTarget: %d MB "
@@ -8610,7 +8632,7 @@ msgstr ""
 "Matchmaking, WorkingAreaFree-problem, ExecutionTarget: %d MB "
 "(WorkingAreaFree); JobDescription: %d MB (DiskSpace)"
 
-#: src/hed/libs/compute/Broker.cpp:456
+#: src/hed/libs/compute/Broker.cpp:459
 #, c-format
 msgid ""
 "Matchmaking, CacheTotal problem, ExecutionTarget: %d MB (CacheTotal); "
@@ -8619,12 +8641,12 @@ msgstr ""
 "Matchmaking, CacheTotal-problem, ExecutionTarget: %d MB (CacheTotal); "
 "JobDescription: %d MB (CacheDiskSpace)"
 
-#: src/hed/libs/compute/Broker.cpp:461
+#: src/hed/libs/compute/Broker.cpp:464
 #, c-format
 msgid "Matchmaking, ExecutionTarget:  %s, CacheTotal is not defined"
 msgstr "Matchmaking, ExecutionTarget:  %s, CacheTotal är inte definierat"
 
-#: src/hed/libs/compute/Broker.cpp:469
+#: src/hed/libs/compute/Broker.cpp:472
 #, c-format
 msgid ""
 "Matchmaking, TotalSlots problem, ExecutionTarget: %d (TotalSlots) "
@@ -8633,7 +8655,7 @@ msgstr ""
 "Matchmaking, TotalSlots-problem, ExecutionTarget: %d (TotalSlots) "
 "JobDescription: %d (NumberOfProcesses)"
 
-#: src/hed/libs/compute/Broker.cpp:475
+#: src/hed/libs/compute/Broker.cpp:478
 #, c-format
 msgid ""
 "Matchmaking, MaxSlotsPerJob problem, ExecutionTarget: %d (MaxSlotsPerJob) "
@@ -8642,7 +8664,7 @@ msgstr ""
 "Matchmaking, MaxSlotsPerJob-problem, ExecutionTarget: %d (MaxSlotsPerJob) "
 "JobDescription: %d (NumberOfProcesses)"
 
-#: src/hed/libs/compute/Broker.cpp:481
+#: src/hed/libs/compute/Broker.cpp:484
 #, c-format
 msgid ""
 "Matchmaking, ExecutionTarget:  %s, TotalSlots and MaxSlotsPerJob are not "
@@ -8651,7 +8673,7 @@ msgstr ""
 "Matchmaking, ExecutionTarget:  %s, TotalSlots och MaxSlotsPerJob är inte "
 "definierade"
 
-#: src/hed/libs/compute/Broker.cpp:489
+#: src/hed/libs/compute/Broker.cpp:492
 #, c-format
 msgid ""
 "Matchmaking, WorkingAreaLifeTime problem, ExecutionTarget: %s "
@@ -8660,13 +8682,13 @@ msgstr ""
 "Matchmaking, WorkingAreaLifeTime-problem, ExecutionTarget: %s "
 "(WorkingAreaLifeTime) JobDescription: %s (SessionLifeTime)"
 
-#: src/hed/libs/compute/Broker.cpp:494
+#: src/hed/libs/compute/Broker.cpp:497
 #, c-format
 msgid "Matchmaking, ExecutionTarget:  %s, WorkingAreaLifeTime is not defined"
 msgstr ""
 "Matchmaking, ExecutionTarget:  %s, WorkingAreaLifeTime är inte definierad"
 
-#: src/hed/libs/compute/Broker.cpp:502
+#: src/hed/libs/compute/Broker.cpp:505
 #, c-format
 msgid ""
 "Matchmaking, ConnectivityIn problem, ExecutionTarget: %s (ConnectivityIn) "
@@ -8675,7 +8697,7 @@ msgstr ""
 "Matchmaking, ConnectivityIn-problem, ExecutionTarget: %s (ConnectivityIn) "
 "JobDescription: %s (InBound)"
 
-#: src/hed/libs/compute/Broker.cpp:509
+#: src/hed/libs/compute/Broker.cpp:512
 #, c-format
 msgid ""
 "Matchmaking, ConnectivityOut problem, ExecutionTarget: %s (ConnectivityOut) "
@@ -8684,21 +8706,21 @@ msgstr ""
 "Matchmaking, ConnectivityOut-problem, ExecutionTarget: %s (ConnectivityOut) "
 "JobDescription: %s (OutBound)"
 
-#: src/hed/libs/compute/Broker.cpp:532
+#: src/hed/libs/compute/Broker.cpp:535
 msgid "Unable to sort added jobs. The BrokerPlugin plugin has not been loaded."
 msgstr ""
 "Kan inte sortera tillagda jobb. BrokerPlugin-pluginen har inte laddats in."
 
-#: src/hed/libs/compute/Broker.cpp:549
+#: src/hed/libs/compute/Broker.cpp:552
 msgid "Unable to match target, marking it as not matching. Broker not valid."
 msgstr ""
 "Kan inte matcha target, markerar det som inte matchande. Mäklare inte giltig."
 
-#: src/hed/libs/compute/Broker.cpp:585
+#: src/hed/libs/compute/Broker.cpp:588
 msgid "Unable to sort ExecutionTarget objects - Invalid Broker object."
 msgstr "Kan inte sortera ExecutionTarget-objekt - Ogiltigt Broker-objekt."
 
-#: src/hed/libs/compute/Broker.cpp:609
+#: src/hed/libs/compute/Broker.cpp:612
 msgid ""
 "Unable to register job submission. Can't get JobDescription object from "
 "Broker, Broker is invalid."
@@ -9845,94 +9867,108 @@ msgstr ""
 msgid "Downloading job: %s"
 msgstr "Laddar ner jobb: %s"
 
-#: src/hed/libs/compute/Job.cpp:885
+#: src/hed/libs/compute/Job.cpp:887
 #, c-format
 msgid ""
-"Cant retrieve job files for job (%s) - unable to determine URL of stage out "
+"Can't retrieve job files for job (%s) - unable to determine URL of stage out "
 "directory"
 msgstr ""
 "Kan inte hämta jobbfiler för jobb (%s) - kan inte bestämma URL till stage-"
 "out-katalog"
 
-#: src/hed/libs/compute/Job.cpp:890
+#: src/hed/libs/compute/Job.cpp:893
+#, c-format
+msgid ""
+"Can't retrieve job files for job (%s) - unable to determine URL of log "
+"directory"
+msgstr ""
+"Kan inte hämta jobbfiler för jobb (%s) - kan inte bestämma URL till logg-"
+"katalog"
+
+#: src/hed/libs/compute/Job.cpp:899
 #, c-format
 msgid "Invalid stage out path specified (%s)"
 msgstr "Ogiltig stage-out-sökväg angiven (%s)"
 
-#: src/hed/libs/compute/Job.cpp:897
+#: src/hed/libs/compute/Job.cpp:907
 #, c-format
 msgid "%s directory exist! Skipping job."
 msgstr "%s-katalog existerar! Hoppar över jobb."
 
-#: src/hed/libs/compute/Job.cpp:903
+#: src/hed/libs/compute/Job.cpp:919
 #, c-format
 msgid "Unable to retrieve list of job files to download for job %s"
 msgstr "Kunde inte hämta lista med jobbfiler att ladda ned för jobb %s"
 
-#: src/hed/libs/compute/Job.cpp:908
+#: src/hed/libs/compute/Job.cpp:940
+#, c-format
+msgid "Unable to retrieve list of log files to download for job %s"
+msgstr "Kunde inte hämta lista med loggfiler att ladda ned för jobb %s"
+
+#: src/hed/libs/compute/Job.cpp:959
 #, c-format
 msgid "No files to retrieve for job %s"
 msgstr "Inga filer att hämta för jobb %s"
 
-#: src/hed/libs/compute/Job.cpp:914
+#: src/hed/libs/compute/Job.cpp:965
 #, c-format
 msgid "Failed to create directory %s! Skipping job."
 msgstr "Misslyckades med att skapa katalog %s! Hoppar över jobb."
 
-#: src/hed/libs/compute/Job.cpp:927
+#: src/hed/libs/compute/Job.cpp:982
 #, c-format
 msgid "Failed downloading %s to %s, destination already exist"
 msgstr ""
 "Misslyckades med att ladda ned %s till %s, destinationen existerar redan"
 
-#: src/hed/libs/compute/Job.cpp:933
+#: src/hed/libs/compute/Job.cpp:988
 #, c-format
 msgid "Failed downloading %s to %s, unable to remove existing destination"
 msgstr ""
 "Misslyckades med att ladda ned %s till %s, kunde inte ta bort existerande "
 "destination"
 
-#: src/hed/libs/compute/Job.cpp:939
+#: src/hed/libs/compute/Job.cpp:995
 #, c-format
 msgid "Failed downloading %s to %s"
 msgstr "Misslyckades med att ladda ned %s till %s"
 
-#: src/hed/libs/compute/Job.cpp:952
+#: src/hed/libs/compute/Job.cpp:1008
 #, c-format
 msgid "Unable to initialize handler for %s"
 msgstr "Misslyckades med att initiera hanterare för %s"
 
-#: src/hed/libs/compute/Job.cpp:957
+#: src/hed/libs/compute/Job.cpp:1013
 #, c-format
 msgid "Unable to list files at %s"
 msgstr "Kunde inte lista filer på %s"
 
-#: src/hed/libs/compute/Job.cpp:999
+#: src/hed/libs/compute/Job.cpp:1056
 msgid "Now copying (from -> to)"
 msgstr "Kopierar nu (från -> till)"
 
-#: src/hed/libs/compute/Job.cpp:1000
+#: src/hed/libs/compute/Job.cpp:1057
 #, c-format
 msgid " %s -> %s"
 msgstr " %s -> %s"
 
-#: src/hed/libs/compute/Job.cpp:1015
+#: src/hed/libs/compute/Job.cpp:1072
 #, c-format
 msgid "Unable to initialise connection to source: %s"
 msgstr "Kunde inte initiera förbindelse till källa %s"
 
-#: src/hed/libs/compute/Job.cpp:1026
+#: src/hed/libs/compute/Job.cpp:1083
 #, c-format
 msgid "Unable to initialise connection to destination: %s"
 msgstr "Kunde inte initiera förbindelse till destination: %s"
 
-#: src/hed/libs/compute/Job.cpp:1045
+#: src/hed/libs/compute/Job.cpp:1105
 #, c-format
 msgid "File download failed: %s"
 msgstr "Filnedladdning misslyckades: %s"
 
-#: src/hed/libs/compute/Job.cpp:1084 src/hed/libs/compute/Job.cpp:1113
-#: src/hed/libs/compute/Job.cpp:1145 src/hed/libs/compute/Job.cpp:1178
+#: src/hed/libs/compute/Job.cpp:1144 src/hed/libs/compute/Job.cpp:1173
+#: src/hed/libs/compute/Job.cpp:1205 src/hed/libs/compute/Job.cpp:1238
 #, c-format
 msgid "Waiting for lock on file %s"
 msgstr "Väntar på lås på fil %s"
@@ -10540,8 +10576,8 @@ msgid "Requirement \"%s %s\" satisfied by \"%s\"."
 msgstr "Villkor \"%s %s\" uppfyllt av \"%s\"."
 
 #: src/hed/libs/compute/Software.cpp:219
-msgid "All requirements satisfied."
-msgstr "Alla villkor uppfyllda."
+msgid "All software requirements satisfied."
+msgstr "Alla mjukvaruvillkor uppfyllda."
 
 #: src/hed/libs/compute/Submitter.cpp:83
 #, c-format
@@ -10705,13 +10741,13 @@ msgid "Failed to sign proxy"
 msgstr "Misslyckades med att signera proxy"
 
 #: src/hed/libs/credential/ARCProxyUtil.cpp:437
-#: src/hed/libs/credential/Credential.cpp:878
+#: src/hed/libs/credential/Credential.cpp:886
 #, c-format
 msgid "Error: can't open policy file: %s"
 msgstr "Fel: Kan inte öppna policyfil: %s"
 
 #: src/hed/libs/credential/ARCProxyUtil.cpp:447
-#: src/hed/libs/credential/Credential.cpp:891
+#: src/hed/libs/credential/Credential.cpp:899
 #, c-format
 msgid "Error: policy location: %s is not a regular file"
 msgstr "Fel: policy-plats: %s är inte en vanlig fil"
@@ -10918,7 +10954,7 @@ msgid "Certificate has unknown extension with numeric ID %u and SN %s"
 msgstr "Certifikat har okänt tillägg med numeriskt ID %u och SN %s"
 
 #: src/hed/libs/credential/CertUtil.cpp:374
-#: src/hed/libs/credential/Credential.cpp:1697
+#: src/hed/libs/credential/Credential.cpp:1705
 msgid ""
 "Can not convert DER encoded PROXY_CERT_INFO_EXTENSION extension to internal "
 "format"
@@ -10947,210 +10983,210 @@ msgstr "Kan inte erhålla policy-språk från PROXYCERTINFO-tillägg"
 msgid "The subject does not match the issuer name + proxy CN entry"
 msgstr "Subjekt matchar inte utfärdarnamn + proxy-CN-post"
 
-#: src/hed/libs/credential/Credential.cpp:84
+#: src/hed/libs/credential/Credential.cpp:92
 #, c-format
 msgid "OpenSSL error string: %s"
 msgstr "OpenSSL-felsträng: %s"
 
-#: src/hed/libs/credential/Credential.cpp:205
+#: src/hed/libs/credential/Credential.cpp:213
 msgid "Can't get the first byte of input to determine its format"
 msgstr "Kan inte erhålla indatas fösta byte för att bestämma dess format"
 
-#: src/hed/libs/credential/Credential.cpp:219
+#: src/hed/libs/credential/Credential.cpp:227
 msgid "Can't reset the input"
 msgstr "Kan inte återställa indata"
 
-#: src/hed/libs/credential/Credential.cpp:244
-#: src/hed/libs/credential/Credential.cpp:280
+#: src/hed/libs/credential/Credential.cpp:252
+#: src/hed/libs/credential/Credential.cpp:288
 msgid "Can't get the first byte of input BIO to get its format"
 msgstr "Kan inte erhålla indata-BIOs första byte för att bestämma dess format"
 
-#: src/hed/libs/credential/Credential.cpp:256
+#: src/hed/libs/credential/Credential.cpp:264
 msgid "Can not read certificate/key string"
 msgstr "Kan inte läsa certifikat/nyckel-sträng"
 
-#: src/hed/libs/credential/Credential.cpp:460
+#: src/hed/libs/credential/Credential.cpp:468
 #, c-format
 msgid "Can not find certificate file: %s"
 msgstr "Kan inte hitta certifikatfil: %s"
 
-#: src/hed/libs/credential/Credential.cpp:465
+#: src/hed/libs/credential/Credential.cpp:473
 #, c-format
 msgid "Can not read certificate file: %s"
 msgstr "Kan inte läsa certifikatfil: %s"
 
-#: src/hed/libs/credential/Credential.cpp:503
+#: src/hed/libs/credential/Credential.cpp:511
 msgid "Can not read certificate string"
 msgstr "Kan inte läsa certifikatsträng: %s"
 
-#: src/hed/libs/credential/Credential.cpp:523
+#: src/hed/libs/credential/Credential.cpp:531
 msgid "Certificate format is PEM"
 msgstr "Certifikatformat är PEM"
 
-#: src/hed/libs/credential/Credential.cpp:550
+#: src/hed/libs/credential/Credential.cpp:558
 msgid "Certificate format is DER"
 msgstr "Certifikatformat är DER"
 
-#: src/hed/libs/credential/Credential.cpp:579
+#: src/hed/libs/credential/Credential.cpp:587
 msgid "Certificate format is PKCS"
 msgstr "Certifikatformat är PKCS"
 
-#: src/hed/libs/credential/Credential.cpp:605
+#: src/hed/libs/credential/Credential.cpp:613
 msgid "Certificate format is unknown"
 msgstr "Certifikatformat är okänt"
 
-#: src/hed/libs/credential/Credential.cpp:613
+#: src/hed/libs/credential/Credential.cpp:621
 #, c-format
 msgid "Can not find key file: %s"
 msgstr "Kan inte hitta nyckelfil: %s"
 
-#: src/hed/libs/credential/Credential.cpp:618
+#: src/hed/libs/credential/Credential.cpp:626
 #, c-format
 msgid "Can not open key file %s"
 msgstr "Kan inte öppna nyckelfil: %s"
 
-#: src/hed/libs/credential/Credential.cpp:637
+#: src/hed/libs/credential/Credential.cpp:645
 msgid "Can not read key string"
 msgstr "Kan inte läsa nyckelsträng"
 
-#: src/hed/libs/credential/Credential.cpp:700
+#: src/hed/libs/credential/Credential.cpp:708
 #: src/hed/libs/credential/VOMSUtil.cpp:244
 msgid "Failed to lock arccredential library in memory"
 msgstr "Misslyckades med att låsa arccredential-biblioteket i minnet"
 
-#: src/hed/libs/credential/Credential.cpp:712
+#: src/hed/libs/credential/Credential.cpp:720
 msgid "Certificate verification succeeded"
 msgstr "Certifikatverifiering lyckades"
 
-#: src/hed/libs/credential/Credential.cpp:716
+#: src/hed/libs/credential/Credential.cpp:724
 msgid "Certificate verification failed"
 msgstr "Certifikatverifiering misslyckades"
 
-#: src/hed/libs/credential/Credential.cpp:729
-#: src/hed/libs/credential/Credential.cpp:747
-#: src/hed/libs/credential/Credential.cpp:765
-#: src/hed/libs/credential/Credential.cpp:996
-#: src/hed/libs/credential/Credential.cpp:2368
-#: src/hed/libs/credential/Credential.cpp:2397
+#: src/hed/libs/credential/Credential.cpp:737
+#: src/hed/libs/credential/Credential.cpp:755
+#: src/hed/libs/credential/Credential.cpp:773
+#: src/hed/libs/credential/Credential.cpp:1004
+#: src/hed/libs/credential/Credential.cpp:2376
+#: src/hed/libs/credential/Credential.cpp:2405
 msgid "Failed to initialize extensions member for Credential"
 msgstr "Misslyckades med att initiera tilläggsmedlem för referens"
 
-#: src/hed/libs/credential/Credential.cpp:808
+#: src/hed/libs/credential/Credential.cpp:816
 #, c-format
 msgid "Unsupported proxy policy language is requested - %s"
 msgstr "Det begärda proxypolicyspråken stöds inte - %s"
 
-#: src/hed/libs/credential/Credential.cpp:820
+#: src/hed/libs/credential/Credential.cpp:828
 #, c-format
 msgid "Unsupported proxy version is requested - %s"
 msgstr "Den begärda proxyversionen stöds inte - %s"
 
-#: src/hed/libs/credential/Credential.cpp:831
+#: src/hed/libs/credential/Credential.cpp:839
 msgid "If you specify a policy you also need to specify a policy language"
 msgstr "Om du anger en policy måste du också ange ett policyspråk"
 
-#: src/hed/libs/credential/Credential.cpp:1001
+#: src/hed/libs/credential/Credential.cpp:1009
 msgid "Certificate/Proxy path is empty"
 msgstr "Certifikat/proxy-sökväg är tom"
 
-#: src/hed/libs/credential/Credential.cpp:1059
-#: src/hed/libs/credential/Credential.cpp:2905
+#: src/hed/libs/credential/Credential.cpp:1067
+#: src/hed/libs/credential/Credential.cpp:2913
 msgid "Failed to duplicate extension"
 msgstr "Misslyckades med att duplicera tillägg"
 
-#: src/hed/libs/credential/Credential.cpp:1063
+#: src/hed/libs/credential/Credential.cpp:1071
 msgid "Failed to add extension into credential extensions"
 msgstr "Misslyckades med att lägga till tillägg till referenstillägg"
 
-#: src/hed/libs/credential/Credential.cpp:1074
+#: src/hed/libs/credential/Credential.cpp:1082
 msgid "Certificate information collection failed"
 msgstr "Certifikatinformationsinsamling misslyckades"
 
-#: src/hed/libs/credential/Credential.cpp:1113
-#: src/hed/libs/credential/Credential.cpp:1118
+#: src/hed/libs/credential/Credential.cpp:1121
+#: src/hed/libs/credential/Credential.cpp:1126
 msgid "Can not convert string into ASN1_OBJECT"
 msgstr "Kan inte konvertera sträng till ASN1_OBJECT"
 
-#: src/hed/libs/credential/Credential.cpp:1125
+#: src/hed/libs/credential/Credential.cpp:1133
 msgid "Can not create ASN1_OCTET_STRING"
 msgstr "Kan inte skapa ASN1_OCTET_STRING"
 
-#: src/hed/libs/credential/Credential.cpp:1134
+#: src/hed/libs/credential/Credential.cpp:1142
 msgid "Can not allocate memory for extension for proxy certificate"
 msgstr "Kan inte allokera minne för tillägg för proxycertifikat"
 
-#: src/hed/libs/credential/Credential.cpp:1144
+#: src/hed/libs/credential/Credential.cpp:1152
 msgid "Can not create extension for proxy certificate"
 msgstr "Kan inte skapa tillägg för proxycertifikat"
 
-#: src/hed/libs/credential/Credential.cpp:1180
-#: src/hed/libs/credential/Credential.cpp:1348
+#: src/hed/libs/credential/Credential.cpp:1188
+#: src/hed/libs/credential/Credential.cpp:1356
 msgid "BN_set_word failed"
 msgstr "BN_set_word misslyckades"
 
-#: src/hed/libs/credential/Credential.cpp:1189
-#: src/hed/libs/credential/Credential.cpp:1357
+#: src/hed/libs/credential/Credential.cpp:1197
+#: src/hed/libs/credential/Credential.cpp:1365
 msgid "RSA_generate_key_ex failed"
 msgstr "RSA_generate_key_ex misslyckades"
 
-#: src/hed/libs/credential/Credential.cpp:1198
-#: src/hed/libs/credential/Credential.cpp:1365
+#: src/hed/libs/credential/Credential.cpp:1206
+#: src/hed/libs/credential/Credential.cpp:1373
 msgid "BN_new || RSA_new failed"
 msgstr "BN_new || RSA_new misslyckades"
 
-#: src/hed/libs/credential/Credential.cpp:1209
+#: src/hed/libs/credential/Credential.cpp:1217
 msgid "Created RSA key, proceeding with request"
 msgstr "Skapade RSA-nyckel, fortsätter med begäran"
 
-#: src/hed/libs/credential/Credential.cpp:1214
+#: src/hed/libs/credential/Credential.cpp:1222
 msgid "pkey and rsa_key exist!"
 msgstr "pkey och rsa_key existerar!"
 
-#: src/hed/libs/credential/Credential.cpp:1217
+#: src/hed/libs/credential/Credential.cpp:1225
 msgid "Generate new X509 request!"
 msgstr "Generera ny X509-begäran"
 
-#: src/hed/libs/credential/Credential.cpp:1222
+#: src/hed/libs/credential/Credential.cpp:1230
 msgid "Setting subject name!"
 msgstr "Sätter subjekt-namn"
 
-#: src/hed/libs/credential/Credential.cpp:1230
-#: src/hed/libs/credential/Credential.cpp:1444
+#: src/hed/libs/credential/Credential.cpp:1238
+#: src/hed/libs/credential/Credential.cpp:1452
 msgid "PEM_write_bio_X509_REQ failed"
 msgstr "PEM_write_bio_X509_REQ misslyckades"
 
-#: src/hed/libs/credential/Credential.cpp:1260
-#: src/hed/libs/credential/Credential.cpp:1301
-#: src/hed/libs/credential/Credential.cpp:1476
-#: src/hed/libs/credential/Credential.cpp:1496
+#: src/hed/libs/credential/Credential.cpp:1268
+#: src/hed/libs/credential/Credential.cpp:1309
+#: src/hed/libs/credential/Credential.cpp:1484
+#: src/hed/libs/credential/Credential.cpp:1504
 msgid "Can not create BIO for request"
 msgstr "Kan inte skapa BIO för begäran"
 
-#: src/hed/libs/credential/Credential.cpp:1278
+#: src/hed/libs/credential/Credential.cpp:1286
 msgid "Failed to write request into string"
 msgstr "Misslyckades med att skriva begäran till sträng"
 
-#: src/hed/libs/credential/Credential.cpp:1305
-#: src/hed/libs/credential/Credential.cpp:1310
-#: src/hed/libs/credential/Credential.cpp:1500
+#: src/hed/libs/credential/Credential.cpp:1313
+#: src/hed/libs/credential/Credential.cpp:1318
+#: src/hed/libs/credential/Credential.cpp:1508
 msgid "Can not set writable file for request BIO"
 msgstr "Kan inte ange skrivbar fil för begärans BIO"
 
-#: src/hed/libs/credential/Credential.cpp:1316
-#: src/hed/libs/credential/Credential.cpp:1505
+#: src/hed/libs/credential/Credential.cpp:1324
+#: src/hed/libs/credential/Credential.cpp:1513
 msgid "Wrote request into a file"
 msgstr "Skrev begäran till en fil"
 
-#: src/hed/libs/credential/Credential.cpp:1318
-#: src/hed/libs/credential/Credential.cpp:1508
+#: src/hed/libs/credential/Credential.cpp:1326
+#: src/hed/libs/credential/Credential.cpp:1516
 msgid "Failed to write request into a file"
 msgstr "Misslyckades med att skriva begäran till en fil"
 
-#: src/hed/libs/credential/Credential.cpp:1338
+#: src/hed/libs/credential/Credential.cpp:1346
 msgid "The credential's private key has already been initialized"
 msgstr "Referensens privata nyckel har redan initierats"
 
-#: src/hed/libs/credential/Credential.cpp:1386
+#: src/hed/libs/credential/Credential.cpp:1394
 msgid ""
 "Can not duplicate the subject name for the self-signing proxy certificate "
 "request"
@@ -11158,14 +11194,14 @@ msgstr ""
 "Kan inte duplicera subjektnamnet för den självsignerande "
 "proxycertifikatbegäran"
 
-#: src/hed/libs/credential/Credential.cpp:1396
+#: src/hed/libs/credential/Credential.cpp:1404
 msgid "Can not create a new X509_NAME_ENTRY for the proxy certificate request"
 msgstr "Kan inte skapa en ny X509_NAME_ENTRY för proxycertifikatbegäran"
 
-#: src/hed/libs/credential/Credential.cpp:1414
-#: src/hed/libs/credential/Credential.cpp:1421
-#: src/hed/libs/credential/Credential.cpp:1999
+#: src/hed/libs/credential/Credential.cpp:1422
+#: src/hed/libs/credential/Credential.cpp:1429
 #: src/hed/libs/credential/Credential.cpp:2007
+#: src/hed/libs/credential/Credential.cpp:2015
 msgid ""
 "Can not convert PROXY_CERT_INFO_EXTENSION struct from internal to DER "
 "encoded format"
@@ -11173,238 +11209,238 @@ msgstr ""
 "Kan inte konvertera PROXY_CERT_INFO_EXTENSION-struct från internt till DER-"
 "kodat format"
 
-#: src/hed/libs/credential/Credential.cpp:1451
+#: src/hed/libs/credential/Credential.cpp:1459
 msgid "Can't convert X509 request from internal to DER encoded format"
 msgstr "Kan inte konvertera X509-begäran från internt till DER-kodat format"
 
-#: src/hed/libs/credential/Credential.cpp:1461
+#: src/hed/libs/credential/Credential.cpp:1469
 msgid "Can not generate X509 request"
 msgstr "Kan inte generera X509-begäran"
 
-#: src/hed/libs/credential/Credential.cpp:1463
+#: src/hed/libs/credential/Credential.cpp:1471
 msgid "Can not set private key"
 msgstr "Kan inte ange privat nyckel"
 
-#: src/hed/libs/credential/Credential.cpp:1561
+#: src/hed/libs/credential/Credential.cpp:1569
 msgid "Failed to get private key"
 msgstr "Misslyckades med att erhålla privat nyckel"
 
-#: src/hed/libs/credential/Credential.cpp:1580
+#: src/hed/libs/credential/Credential.cpp:1588
 msgid "Failed to get public key from RSA object"
 msgstr "Misslyckades med att erhålla publik nyckel från RSA-objekt"
 
-#: src/hed/libs/credential/Credential.cpp:1588
+#: src/hed/libs/credential/Credential.cpp:1596
 msgid "Failed to get public key from X509 object"
 msgstr "Misslyckades med att erhålla publik nyckel från X509-objekt"
 
-#: src/hed/libs/credential/Credential.cpp:1595
+#: src/hed/libs/credential/Credential.cpp:1603
 msgid "Failed to get public key"
 msgstr "Misslyckades med att erhålla publik nyckel"
 
-#: src/hed/libs/credential/Credential.cpp:1633
+#: src/hed/libs/credential/Credential.cpp:1641
 #, c-format
 msgid "Certiticate chain number %d"
 msgstr "Certifikatkedja nummer %d"
 
-#: src/hed/libs/credential/Credential.cpp:1661
+#: src/hed/libs/credential/Credential.cpp:1669
 msgid "NULL BIO passed to InquireRequest"
 msgstr "NULL BIO skickad till InquireRequest"
 
-#: src/hed/libs/credential/Credential.cpp:1664
+#: src/hed/libs/credential/Credential.cpp:1672
 msgid "PEM_read_bio_X509_REQ failed"
 msgstr "PEM_read_bio_X509_REQ misslyckades"
 
-#: src/hed/libs/credential/Credential.cpp:1668
+#: src/hed/libs/credential/Credential.cpp:1676
 msgid "d2i_X509_REQ_bio failed"
 msgstr "d2i_X509_REQ_bio misslyckades"
 
-#: src/hed/libs/credential/Credential.cpp:1690
+#: src/hed/libs/credential/Credential.cpp:1698
 msgid "Missing data in DER encoded PROXY_CERT_INFO_EXTENSION extension"
 msgstr "Saknar data i DER-kodat PROXY_CERT_INFO_EXTENSION-tillägg"
 
-#: src/hed/libs/credential/Credential.cpp:1702
+#: src/hed/libs/credential/Credential.cpp:1710
 msgid "Can not create PROXY_CERT_INFO_EXTENSION extension"
 msgstr "Kan inte skapa PROXY_CERT_INFO_EXTENSION-tillägg"
 
-#: src/hed/libs/credential/Credential.cpp:1712
+#: src/hed/libs/credential/Credential.cpp:1720
 msgid "Can not get policy from PROXY_CERT_INFO_EXTENSION extension"
 msgstr "Kan inte erhålla policy från PROXY_CERT_INFO_EXTENSION-tillägg"
 
-#: src/hed/libs/credential/Credential.cpp:1716
+#: src/hed/libs/credential/Credential.cpp:1724
 msgid "Can not get policy language from PROXY_CERT_INFO_EXTENSION extension"
 msgstr "Kan inte erhålla policy-språk från PROXY_CERT_INFO_EXTENSION-tillägg"
 
-#: src/hed/libs/credential/Credential.cpp:1732
+#: src/hed/libs/credential/Credential.cpp:1740
 #, c-format
 msgid "Cert Type: %d"
 msgstr "Certifikattyp: %d"
 
-#: src/hed/libs/credential/Credential.cpp:1745
-#: src/hed/libs/credential/Credential.cpp:1764
+#: src/hed/libs/credential/Credential.cpp:1753
+#: src/hed/libs/credential/Credential.cpp:1772
 msgid "Can not create BIO for parsing request"
 msgstr "Kan inte skapa BIO för att tolka begäran"
 
-#: src/hed/libs/credential/Credential.cpp:1750
+#: src/hed/libs/credential/Credential.cpp:1758
 msgid "Read request from a string"
 msgstr "Läste begäran från en sträng"
 
-#: src/hed/libs/credential/Credential.cpp:1753
+#: src/hed/libs/credential/Credential.cpp:1761
 msgid "Failed to read request from a string"
 msgstr "Misslyckades med att läsa begäran från en sträng"
 
-#: src/hed/libs/credential/Credential.cpp:1768
+#: src/hed/libs/credential/Credential.cpp:1776
 msgid "Can not set readable file for request BIO"
 msgstr "Kunde inte ange läsbar fil för begärans BIO"
 
-#: src/hed/libs/credential/Credential.cpp:1773
+#: src/hed/libs/credential/Credential.cpp:1781
 msgid "Read request from a file"
 msgstr "Läste begäran från en fil"
 
-#: src/hed/libs/credential/Credential.cpp:1776
+#: src/hed/libs/credential/Credential.cpp:1784
 msgid "Failed to read request from a file"
 msgstr "Misslyckades med att läsa begäran från en fil"
 
-#: src/hed/libs/credential/Credential.cpp:1816
+#: src/hed/libs/credential/Credential.cpp:1824
 msgid "Can not convert private key to DER format"
 msgstr "Kan inte konvertera privat nyckel till DER-format"
 
-#: src/hed/libs/credential/Credential.cpp:1980
+#: src/hed/libs/credential/Credential.cpp:1988
 msgid "Credential is not initialized"
 msgstr "Referens har inte initierats"
 
-#: src/hed/libs/credential/Credential.cpp:1986
+#: src/hed/libs/credential/Credential.cpp:1994
 msgid "Failed to duplicate X509 structure"
 msgstr "Misslyckades med att duplicera X509-struktur"
 
-#: src/hed/libs/credential/Credential.cpp:1991
+#: src/hed/libs/credential/Credential.cpp:1999
 msgid "Failed to initialize X509 structure"
 msgstr "Misslyckades med att initiera X509-struktur"
 
-#: src/hed/libs/credential/Credential.cpp:2014
+#: src/hed/libs/credential/Credential.cpp:2022
 msgid "Can not create extension for PROXY_CERT_INFO"
 msgstr "Kan inte skapa tillägg för PROXY_CERT_INFO"
 
-#: src/hed/libs/credential/Credential.cpp:2018
-#: src/hed/libs/credential/Credential.cpp:2066
+#: src/hed/libs/credential/Credential.cpp:2026
+#: src/hed/libs/credential/Credential.cpp:2074
 msgid "Can not add X509 extension to proxy cert"
 msgstr "Kan inte lägga till X509-tillägg till proxycertifikat"
 
-#: src/hed/libs/credential/Credential.cpp:2034
+#: src/hed/libs/credential/Credential.cpp:2042
 msgid "Can not convert keyUsage struct from DER encoded format"
 msgstr "Kan inte konvertera keyUsage-struct från DER-kodat format"
 
-#: src/hed/libs/credential/Credential.cpp:2046
-#: src/hed/libs/credential/Credential.cpp:2055
+#: src/hed/libs/credential/Credential.cpp:2054
+#: src/hed/libs/credential/Credential.cpp:2063
 msgid "Can not convert keyUsage struct from internal to DER format"
 msgstr "Kan inte konvertera keyUsage-struct från internt till DER-format"
 
-#: src/hed/libs/credential/Credential.cpp:2062
+#: src/hed/libs/credential/Credential.cpp:2070
 msgid "Can not create extension for keyUsage"
 msgstr "Kan inte skapa tillägg för keyUsage"
 
-#: src/hed/libs/credential/Credential.cpp:2075
+#: src/hed/libs/credential/Credential.cpp:2083
 msgid "Can not get extended KeyUsage extension from issuer certificate"
 msgstr "Kan inte erhålla utökad KeyUsage-tillägg från utfärdarcertifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2080
+#: src/hed/libs/credential/Credential.cpp:2088
 msgid "Can not copy extended KeyUsage extension"
 msgstr "Kan inte kopiera det utökade KeyUsage-tillägget"
 
-#: src/hed/libs/credential/Credential.cpp:2085
+#: src/hed/libs/credential/Credential.cpp:2093
 msgid "Can not add X509 extended KeyUsage extension to new proxy certificate"
 msgstr ""
 "Kan inte lägga till X509-utökat KeyUsage-tillägg till det nya "
 "proxycertifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2095
+#: src/hed/libs/credential/Credential.cpp:2103
 msgid "Can not compute digest of public key"
 msgstr "Kan inte beräkna digest för publik nyckel"
 
-#: src/hed/libs/credential/Credential.cpp:2106
+#: src/hed/libs/credential/Credential.cpp:2114
 msgid "Can not copy the subject name from issuer for proxy certificate"
 msgstr "Kan inte kopiera subjektnamnet från utfärdaren för proxycertifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2112
+#: src/hed/libs/credential/Credential.cpp:2120
 msgid "Can not create name entry CN for proxy certificate"
 msgstr "Kan inte skapa namnpost CN för proxycertifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2117
+#: src/hed/libs/credential/Credential.cpp:2125
 msgid "Can not set CN in proxy certificate"
 msgstr "Kan inte ange CN i proxycertifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2125
+#: src/hed/libs/credential/Credential.cpp:2133
 msgid "Can not set issuer's subject for proxy certificate"
 msgstr "Kan inte ange utfärdarens subjekt för proxycertifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2130
+#: src/hed/libs/credential/Credential.cpp:2138
 msgid "Can not set version number for proxy certificate"
 msgstr "Kan inte ange versionsnummer för proxycertifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2138
+#: src/hed/libs/credential/Credential.cpp:2146
 msgid "Can not set serial number for proxy certificate"
 msgstr "Kan inte ange serienummer för proxycertifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2144
+#: src/hed/libs/credential/Credential.cpp:2152
 msgid "Can not duplicate serial number for proxy certificate"
 msgstr "Kan inte duplicera serienummer för proxycertifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2150
+#: src/hed/libs/credential/Credential.cpp:2158
 msgid "Can not set the lifetime for proxy certificate"
 msgstr "Kan inte ange livstid för proxycertifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2154
+#: src/hed/libs/credential/Credential.cpp:2162
 msgid "Can not set pubkey for proxy certificate"
 msgstr "Kan inte ange publik nyckel för proxycertifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2170
-#: src/hed/libs/credential/Credential.cpp:2795
+#: src/hed/libs/credential/Credential.cpp:2178
+#: src/hed/libs/credential/Credential.cpp:2803
 msgid "The credential to be signed is NULL"
 msgstr "Referensen som skall signeras är NULL"
 
-#: src/hed/libs/credential/Credential.cpp:2174
-#: src/hed/libs/credential/Credential.cpp:2799
+#: src/hed/libs/credential/Credential.cpp:2182
+#: src/hed/libs/credential/Credential.cpp:2807
 msgid "The credential to be signed contains no request"
 msgstr "Referensen som skall signeras innehåller ingen begäran"
 
-#: src/hed/libs/credential/Credential.cpp:2178
-#: src/hed/libs/credential/Credential.cpp:2803
+#: src/hed/libs/credential/Credential.cpp:2186
+#: src/hed/libs/credential/Credential.cpp:2811
 msgid "The BIO for output is NULL"
 msgstr "Utdata-BIO är NULL"
 
-#: src/hed/libs/credential/Credential.cpp:2192
-#: src/hed/libs/credential/Credential.cpp:2810
+#: src/hed/libs/credential/Credential.cpp:2200
+#: src/hed/libs/credential/Credential.cpp:2818
 msgid "Error when extracting public key from request"
 msgstr "Fel när publik nyckel extraheras från begäran"
 
-#: src/hed/libs/credential/Credential.cpp:2197
-#: src/hed/libs/credential/Credential.cpp:2814
+#: src/hed/libs/credential/Credential.cpp:2205
+#: src/hed/libs/credential/Credential.cpp:2822
 msgid "Failed to verify the request"
 msgstr "Misslyckades med att verifiera begäran"
 
-#: src/hed/libs/credential/Credential.cpp:2201
+#: src/hed/libs/credential/Credential.cpp:2209
 msgid "Failed to add issuer's extension into proxy"
 msgstr "Misslyckades med att lägga till utfärdarens tillägg till proxyn"
 
-#: src/hed/libs/credential/Credential.cpp:2225
+#: src/hed/libs/credential/Credential.cpp:2233
 msgid "Failed to find extension"
 msgstr "Misslyckades med att hitta tillägg"
 
-#: src/hed/libs/credential/Credential.cpp:2237
+#: src/hed/libs/credential/Credential.cpp:2245
 msgid "Can not get the issuer's private key"
 msgstr "Kan inte erhålla utfärdarens privata nyckel"
 
-#: src/hed/libs/credential/Credential.cpp:2244
-#: src/hed/libs/credential/Credential.cpp:2846
+#: src/hed/libs/credential/Credential.cpp:2252
+#: src/hed/libs/credential/Credential.cpp:2854
 msgid "There is no digest in issuer's private key object"
 msgstr "Det finns inget digest i utfärdarens privata-nyckel-objekt"
 
-#: src/hed/libs/credential/Credential.cpp:2249
-#: src/hed/libs/credential/Credential.cpp:2850
+#: src/hed/libs/credential/Credential.cpp:2257
+#: src/hed/libs/credential/Credential.cpp:2858
 #, c-format
 msgid "%s is an unsupported digest type"
 msgstr "Digesttypen %s stöds inte"
 
-#: src/hed/libs/credential/Credential.cpp:2260
+#: src/hed/libs/credential/Credential.cpp:2268
 #, c-format
 msgid ""
 "The signing algorithm %s is not allowed,it should be SHA1 or SHA2 to sign "
@@ -11413,126 +11449,126 @@ msgstr ""
 "Signeringsalgoritmen %s är ej tillåten, den skall vara SHA1 eller SHA2 för "
 "att signera certifikatbegärningar"
 
-#: src/hed/libs/credential/Credential.cpp:2266
+#: src/hed/libs/credential/Credential.cpp:2274
 msgid "Failed to sign the proxy certificate"
 msgstr "Misslyckades med att signera proxycertifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2268
+#: src/hed/libs/credential/Credential.cpp:2276
 msgid "Succeeded to sign the proxy certificate"
 msgstr "Lyckades signera proxycertifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2273
+#: src/hed/libs/credential/Credential.cpp:2281
 msgid "Failed to verify the signed certificate"
 msgstr "Misslyckades med att verifiera det signerade certifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2275
+#: src/hed/libs/credential/Credential.cpp:2283
 msgid "Succeeded to verify the signed certificate"
 msgstr "Lyckades verifiera det signerade certifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2280
-#: src/hed/libs/credential/Credential.cpp:2289
+#: src/hed/libs/credential/Credential.cpp:2288
+#: src/hed/libs/credential/Credential.cpp:2297
 msgid "Output the proxy certificate"
 msgstr "Skriv ut proxycertifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2283
+#: src/hed/libs/credential/Credential.cpp:2291
 msgid "Can not convert signed proxy cert into PEM format"
 msgstr "Kan inte konvertera det signerade proxycertifikatet till PEM-format"
 
-#: src/hed/libs/credential/Credential.cpp:2292
+#: src/hed/libs/credential/Credential.cpp:2300
 msgid "Can not convert signed proxy cert into DER format"
 msgstr "Kan inte konvertera det signerade proxycertifikatet till DER-format"
 
-#: src/hed/libs/credential/Credential.cpp:2308
-#: src/hed/libs/credential/Credential.cpp:2331
+#: src/hed/libs/credential/Credential.cpp:2316
+#: src/hed/libs/credential/Credential.cpp:2339
 msgid "Can not create BIO for signed proxy certificate"
 msgstr "Kan inte skapa BIO för det signerade proxycertifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2335
+#: src/hed/libs/credential/Credential.cpp:2343
 msgid "Can not set writable file for signed proxy certificate BIO"
 msgstr "Kan inte ange skrivbar fil för det signerade proxycertifikatets BIO"
 
-#: src/hed/libs/credential/Credential.cpp:2340
+#: src/hed/libs/credential/Credential.cpp:2348
 msgid "Wrote signed proxy certificate into a file"
 msgstr "Skrev det signerade proxycertifikatet till en fil"
 
-#: src/hed/libs/credential/Credential.cpp:2343
+#: src/hed/libs/credential/Credential.cpp:2351
 msgid "Failed to write signed proxy certificate into a file"
 msgstr ""
 "Misslyckades med att skriva det signerade proxycertifikatet till en fil"
 
-#: src/hed/libs/credential/Credential.cpp:2377
-#: src/hed/libs/credential/Credential.cpp:2415
+#: src/hed/libs/credential/Credential.cpp:2385
+#: src/hed/libs/credential/Credential.cpp:2423
 #, c-format
 msgid "ERROR: %s"
 msgstr "Fel: %s"
 
-#: src/hed/libs/credential/Credential.cpp:2423
+#: src/hed/libs/credential/Credential.cpp:2431
 #, c-format
 msgid "SSL error: %s, libs: %s, func: %s, reason: %s"
 msgstr "SSL-fel: %s, bibliotek: %s, funktion: %s, anledning: %s"
 
-#: src/hed/libs/credential/Credential.cpp:2468
+#: src/hed/libs/credential/Credential.cpp:2476
 #, c-format
 msgid "unable to load number from: %s"
 msgstr "kunde inre ladda in nummer från: %s"
 
-#: src/hed/libs/credential/Credential.cpp:2473
+#: src/hed/libs/credential/Credential.cpp:2481
 msgid "error converting number from bin to BIGNUM"
 msgstr "fel vid konvertering av nummer från bin till BIGNUM"
 
-#: src/hed/libs/credential/Credential.cpp:2500
+#: src/hed/libs/credential/Credential.cpp:2508
 msgid "file name too long"
 msgstr "filnamn för långt"
 
-#: src/hed/libs/credential/Credential.cpp:2523
+#: src/hed/libs/credential/Credential.cpp:2531
 msgid "error converting serial to ASN.1 format"
 msgstr "fel vid konvertering av serienummer till ASN.1-format"
 
-#: src/hed/libs/credential/Credential.cpp:2556
+#: src/hed/libs/credential/Credential.cpp:2564
 #, c-format
 msgid "load serial from %s failure"
 msgstr "hämta serienummer från %s misslyckades"
 
-#: src/hed/libs/credential/Credential.cpp:2561
+#: src/hed/libs/credential/Credential.cpp:2569
 msgid "add_word failure"
 msgstr "add_word misslyckades"
 
-#: src/hed/libs/credential/Credential.cpp:2566
+#: src/hed/libs/credential/Credential.cpp:2574
 #, c-format
 msgid "save serial to %s failure"
 msgstr "spara serienummer till %s misslyckades"
 
-#: src/hed/libs/credential/Credential.cpp:2586
+#: src/hed/libs/credential/Credential.cpp:2594
 msgid "Error initialising X509 store"
 msgstr "Fel vid initiering av X509-lager"
 
-#: src/hed/libs/credential/Credential.cpp:2593
+#: src/hed/libs/credential/Credential.cpp:2601
 msgid "Out of memory when generate random serial"
 msgstr "Minnet tog slut när slump-serienummer genererades"
 
-#: src/hed/libs/credential/Credential.cpp:2605
+#: src/hed/libs/credential/Credential.cpp:2613
 msgid "CA certificate and CA private key do not match"
 msgstr "CA-certifikat och CA-privat-nyckel matchar inte"
 
-#: src/hed/libs/credential/Credential.cpp:2629
+#: src/hed/libs/credential/Credential.cpp:2637
 #, c-format
 msgid "Failed to load extension section: %s"
 msgstr "Misslyckades med att hämta tilläggssektion: %s"
 
-#: src/hed/libs/credential/Credential.cpp:2666
+#: src/hed/libs/credential/Credential.cpp:2674
 msgid "malloc error"
 msgstr "Minnesallokeringsfel"
 
-#: src/hed/libs/credential/Credential.cpp:2670
+#: src/hed/libs/credential/Credential.cpp:2678
 msgid "Subject does not start with '/'"
 msgstr "Subjekt börjar inte med '/'"
 
-#: src/hed/libs/credential/Credential.cpp:2686
-#: src/hed/libs/credential/Credential.cpp:2707
+#: src/hed/libs/credential/Credential.cpp:2694
+#: src/hed/libs/credential/Credential.cpp:2715
 msgid "escape character at end of string"
 msgstr "escape-tecken vid strängens slut"
 
-#: src/hed/libs/credential/Credential.cpp:2698
+#: src/hed/libs/credential/Credential.cpp:2706
 #, c-format
 msgid ""
 "end of string encountered while processing type of subject name element #%d"
@@ -11540,62 +11576,62 @@ msgstr ""
 "strängens slut påträffades medan typ för subjekt-namn-element #%d "
 "processerades"
 
-#: src/hed/libs/credential/Credential.cpp:2735
+#: src/hed/libs/credential/Credential.cpp:2743
 #, c-format
 msgid "Subject Attribute %s has no known NID, skipped"
 msgstr "Subjektattribut %s har ingen känd NID, hoppar över"
 
-#: src/hed/libs/credential/Credential.cpp:2739
+#: src/hed/libs/credential/Credential.cpp:2747
 #, c-format
 msgid "No value provided for Subject Attribute %s skipped"
 msgstr "Inget värde tillhandahållet för subjektattribut %s, hoppar över"
 
-#: src/hed/libs/credential/Credential.cpp:2780
+#: src/hed/libs/credential/Credential.cpp:2788
 msgid "Failed to set the pubkey for X509 object by using pubkey from X509_REQ"
 msgstr ""
 "Misslyckades med att ange publik nyckel för X509-objekt genom att använda "
 "publik nyckel från X509_REQ"
 
-#: src/hed/libs/credential/Credential.cpp:2790
+#: src/hed/libs/credential/Credential.cpp:2798
 msgid "The private key for signing is not initialized"
 msgstr "Privata nyckeln för signering har inte initierats"
 
-#: src/hed/libs/credential/Credential.cpp:2869
+#: src/hed/libs/credential/Credential.cpp:2877
 #, c-format
 msgid "Error when loading the extension config file: %s"
 msgstr "Fel vid inladdning av tilläggsinställningsfilen: %s"
 
-#: src/hed/libs/credential/Credential.cpp:2873
+#: src/hed/libs/credential/Credential.cpp:2881
 #, c-format
 msgid "Error when loading the extension config file: %s on line: %d"
 msgstr "Fel vid inladdning av tilläggsinställningsfilen: %s på rad: %d"
 
-#: src/hed/libs/credential/Credential.cpp:2921
+#: src/hed/libs/credential/Credential.cpp:2929
 msgid "Can not sign a EEC"
 msgstr "Kan inte signera ett EEC"
 
-#: src/hed/libs/credential/Credential.cpp:2925
+#: src/hed/libs/credential/Credential.cpp:2933
 msgid "Output EEC certificate"
 msgstr "Skriv ut EEC-certifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2928
+#: src/hed/libs/credential/Credential.cpp:2936
 msgid "Can not convert signed EEC cert into DER format"
 msgstr "Kan inte konvertera det signerade EEC-certifikatet till DER-format"
 
-#: src/hed/libs/credential/Credential.cpp:2942
-#: src/hed/libs/credential/Credential.cpp:2961
+#: src/hed/libs/credential/Credential.cpp:2950
+#: src/hed/libs/credential/Credential.cpp:2969
 msgid "Can not create BIO for signed EEC certificate"
 msgstr "Kan inte skapa BIO för det signerade EEC-certifikatet"
 
-#: src/hed/libs/credential/Credential.cpp:2965
+#: src/hed/libs/credential/Credential.cpp:2973
 msgid "Can not set writable file for signed EEC certificate BIO"
 msgstr "Kan inte ange skrivbar fil för det signerade EEC-certifikatets BIO"
 
-#: src/hed/libs/credential/Credential.cpp:2970
+#: src/hed/libs/credential/Credential.cpp:2978
 msgid "Wrote signed EEC certificate into a file"
 msgstr "Skrev det signerade EEC-certifikatet till en fil"
 
-#: src/hed/libs/credential/Credential.cpp:2973
+#: src/hed/libs/credential/Credential.cpp:2981
 msgid "Failed to write signed EEC certificate into a file"
 msgstr "Misslyckades med att skriva det signerade EEC-certifikatet till en fil"
 
@@ -12446,271 +12482,271 @@ msgstr "Förväntade kommando modul-sökväg bland argumenten"
 msgid "Expecting Command module name among arguments"
 msgstr "Förväntade kommando modul-namn bland argumenten<"
 
-#: src/hed/libs/data/DataMover.cpp:115
+#: src/hed/libs/data/DataMover.cpp:124
 msgid "No locations found - probably no more physical instances"
 msgstr "Hittade inga platser - troligen inga fler fysiska instanser"
 
-#: src/hed/libs/data/DataMover.cpp:121 src/hed/libs/data/FileCache.cpp:552
+#: src/hed/libs/data/DataMover.cpp:130 src/hed/libs/data/FileCache.cpp:552
 #: src/libs/data-staging/Processor.cpp:449
 #: src/libs/data-staging/Processor.cpp:463
 #, c-format
 msgid "Removing %s"
 msgstr "Tar bort %s"
 
-#: src/hed/libs/data/DataMover.cpp:134
+#: src/hed/libs/data/DataMover.cpp:143
 msgid "This instance was already deleted"
 msgstr "Denna instans har redan tagits bort"
 
-#: src/hed/libs/data/DataMover.cpp:140
+#: src/hed/libs/data/DataMover.cpp:149
 msgid "Failed to delete physical file"
 msgstr "Misslyckades med att ta bort fysisk fil"
 
-#: src/hed/libs/data/DataMover.cpp:151
+#: src/hed/libs/data/DataMover.cpp:160
 #, c-format
 msgid "Removing metadata in %s"
 msgstr "Tar bort metadata i %s"
 
-#: src/hed/libs/data/DataMover.cpp:155
+#: src/hed/libs/data/DataMover.cpp:164
 msgid "Failed to delete meta-information"
 msgstr "Misslyckades med att ta bort metainformation"
 
-#: src/hed/libs/data/DataMover.cpp:169
+#: src/hed/libs/data/DataMover.cpp:178
 msgid "Failed to remove all physical instances"
 msgstr "Misslyckades med att ta bort alla instanser"
 
-#: src/hed/libs/data/DataMover.cpp:173
+#: src/hed/libs/data/DataMover.cpp:182
 #, c-format
 msgid "Removing logical file from metadata %s"
 msgstr "Tar bort logisk fil från metadata %s"
 
-#: src/hed/libs/data/DataMover.cpp:176
+#: src/hed/libs/data/DataMover.cpp:185
 msgid "Failed to delete logical file"
 msgstr "Misslyckades med att ta bort logisk fil"
 
-#: src/hed/libs/data/DataMover.cpp:183
+#: src/hed/libs/data/DataMover.cpp:192
 msgid "Failed to remove instance"
 msgstr "Misslyckades med att ta bort instans"
 
-#: src/hed/libs/data/DataMover.cpp:232
+#: src/hed/libs/data/DataMover.cpp:241
 msgid "DataMover::Transfer : starting new thread"
 msgstr "DataMover::Transfer : startar ny tråd"
 
-#: src/hed/libs/data/DataMover.cpp:260
+#: src/hed/libs/data/DataMover.cpp:269
 #, c-format
 msgid "Transfer from %s to %s"
 msgstr "Överföring från %s till %s"
 
-#: src/hed/libs/data/DataMover.cpp:262
+#: src/hed/libs/data/DataMover.cpp:271
 msgid "Not valid source"
 msgstr "Ogiltig källa"
 
-#: src/hed/libs/data/DataMover.cpp:267
+#: src/hed/libs/data/DataMover.cpp:276
 msgid "Not valid destination"
 msgstr "Ogiltig destination"
 
-#: src/hed/libs/data/DataMover.cpp:287 src/services/candypond/CandyPond.cpp:304
+#: src/hed/libs/data/DataMover.cpp:296 src/services/candypond/CandyPond.cpp:304
 #, c-format
 msgid "Couldn't handle certificate: %s"
 msgstr "Kunde inte hantera certifikatfil: %s"
 
-#: src/hed/libs/data/DataMover.cpp:296 src/hed/libs/data/DataMover.cpp:593
+#: src/hed/libs/data/DataMover.cpp:305 src/hed/libs/data/DataMover.cpp:610
 #: src/libs/data-staging/Processor.cpp:133
 #, c-format
 msgid "File %s is cached (%s) - checking permissions"
 msgstr "Fil %s är cachad (%s) - kontrollerar åtkomsträttigheter"
 
-#: src/hed/libs/data/DataMover.cpp:300 src/hed/libs/data/DataMover.cpp:612
-#: src/hed/libs/data/DataMover.cpp:670 src/libs/data-staging/Processor.cpp:152
+#: src/hed/libs/data/DataMover.cpp:309 src/hed/libs/data/DataMover.cpp:629
+#: src/hed/libs/data/DataMover.cpp:687 src/libs/data-staging/Processor.cpp:152
 msgid "Permission checking passed"
 msgstr "Åtkomsträttighetskontroll godkänd"
 
-#: src/hed/libs/data/DataMover.cpp:301 src/hed/libs/data/DataMover.cpp:631
-#: src/hed/libs/data/DataMover.cpp:1159
+#: src/hed/libs/data/DataMover.cpp:310 src/hed/libs/data/DataMover.cpp:648
+#: src/hed/libs/data/DataMover.cpp:1176
 msgid "Linking/copying cached file"
 msgstr "Länkar/kopierar cachad fil"
 
-#: src/hed/libs/data/DataMover.cpp:325
+#: src/hed/libs/data/DataMover.cpp:334
 #, c-format
 msgid "No locations for source found: %s"
 msgstr "Hittade inga platser för källa: %s"
 
-#: src/hed/libs/data/DataMover.cpp:329
+#: src/hed/libs/data/DataMover.cpp:338
 #, c-format
 msgid "Failed to resolve source: %s"
 msgstr "Misslyckades med att slå upp källa: %s"
 
-#: src/hed/libs/data/DataMover.cpp:341 src/hed/libs/data/DataMover.cpp:412
+#: src/hed/libs/data/DataMover.cpp:352 src/hed/libs/data/DataMover.cpp:427
 #, c-format
 msgid "No locations for destination found: %s"
 msgstr "Hittade inga platser för destination: %s"
 
-#: src/hed/libs/data/DataMover.cpp:346 src/hed/libs/data/DataMover.cpp:416
+#: src/hed/libs/data/DataMover.cpp:357 src/hed/libs/data/DataMover.cpp:431
 #, c-format
 msgid "Failed to resolve destination: %s"
 msgstr "Misslyckades med att slå upp destination: %s"
 
-#: src/hed/libs/data/DataMover.cpp:361
+#: src/hed/libs/data/DataMover.cpp:374
 #, c-format
 msgid "No locations for destination different from source found: %s"
 msgstr "Hittade inga platser för destinationen som skiljer sig från källan: %s"
 
-#: src/hed/libs/data/DataMover.cpp:383
+#: src/hed/libs/data/DataMover.cpp:396
 #, c-format
 msgid "DataMover::Transfer: trying to destroy/overwrite destination: %s"
 msgstr "DataMover::Transfer: försöker förstöra/skriva över destination: %s"
 
-#: src/hed/libs/data/DataMover.cpp:395
+#: src/hed/libs/data/DataMover.cpp:408
 #, c-format
 msgid "Failed to delete %s but will still try to copy"
 msgstr ""
 "Misslyckades med att ta bort %s, men kommer fortfarande att försöka kopiera"
 
-#: src/hed/libs/data/DataMover.cpp:399
+#: src/hed/libs/data/DataMover.cpp:412
 #, c-format
 msgid "Failed to delete %s"
 msgstr "Misslyckades med att ta bort %s"
 
-#: src/hed/libs/data/DataMover.cpp:426
+#: src/hed/libs/data/DataMover.cpp:443
 #, c-format
 msgid "Deleted but still have locations at %s"
 msgstr "Borttagen men har fortfarande platser på %s"
 
-#: src/hed/libs/data/DataMover.cpp:438
+#: src/hed/libs/data/DataMover.cpp:455
 msgid "DataMover: cycle"
 msgstr "DataMover: nästa cykel"
 
-#: src/hed/libs/data/DataMover.cpp:440
+#: src/hed/libs/data/DataMover.cpp:457
 msgid "DataMover: no retries requested - exit"
 msgstr "DataMover: begärt att inte försöka igen - avsluta"
 
-#: src/hed/libs/data/DataMover.cpp:445
+#: src/hed/libs/data/DataMover.cpp:462
 msgid "DataMover: source out of tries - exit"
 msgstr "DataMover: källan har slut på försök - avsluta"
 
-#: src/hed/libs/data/DataMover.cpp:447
+#: src/hed/libs/data/DataMover.cpp:464
 msgid "DataMover: destination out of tries - exit"
 msgstr "DataMover: destinationen har slut på försök - avsluta"
 
-#: src/hed/libs/data/DataMover.cpp:455
+#: src/hed/libs/data/DataMover.cpp:472
 #, c-format
 msgid "Real transfer from %s to %s"
 msgstr "Reell överföring från %s till %s"
 
-#: src/hed/libs/data/DataMover.cpp:481
+#: src/hed/libs/data/DataMover.cpp:498
 #, c-format
 msgid "Creating buffer: %lli x %i"
 msgstr "Skapar buffer: %lli x %i"
 
-#: src/hed/libs/data/DataMover.cpp:497
+#: src/hed/libs/data/DataMover.cpp:514
 #, c-format
 msgid "DataMove::Transfer: no checksum calculation for %s"
 msgstr "DataMove::Transfer: ingen checksumma beräknad för %s"
 
-#: src/hed/libs/data/DataMover.cpp:502
+#: src/hed/libs/data/DataMover.cpp:519
 #, c-format
 msgid "DataMove::Transfer: using supplied checksum %s:%s"
 msgstr "DataMove::Transfer: använder tillhandahållen checksumma %s:%s"
 
-#: src/hed/libs/data/DataMover.cpp:526
+#: src/hed/libs/data/DataMover.cpp:543
 #, c-format
 msgid "DataMove::Transfer: will calculate %s checksum"
 msgstr "DataMove::Transfer: kommer att beräkna %s-checksumma"
 
-#: src/hed/libs/data/DataMover.cpp:531
+#: src/hed/libs/data/DataMover.cpp:548
 msgid "Buffer creation failed !"
 msgstr "Skapande av buffer misslyckades"
 
-#: src/hed/libs/data/DataMover.cpp:554
+#: src/hed/libs/data/DataMover.cpp:571
 #, c-format
 msgid "URL is mapped to: %s"
 msgstr "URL mappas till: %s"
 
-#: src/hed/libs/data/DataMover.cpp:582 src/hed/libs/data/DataMover.cpp:640
+#: src/hed/libs/data/DataMover.cpp:599 src/hed/libs/data/DataMover.cpp:657
 #: src/libs/data-staging/Processor.cpp:88
 msgid "Cached file is locked - should retry"
 msgstr "Cachad fil är låst - bör försöka igen"
 
-#: src/hed/libs/data/DataMover.cpp:587 src/libs/data-staging/Processor.cpp:106
+#: src/hed/libs/data/DataMover.cpp:604 src/libs/data-staging/Processor.cpp:106
 msgid "Failed to initiate cache"
 msgstr "Misslyckades med att initiera cache"
 
-#: src/hed/libs/data/DataMover.cpp:604 src/services/candypond/CandyPond.cpp:379
+#: src/hed/libs/data/DataMover.cpp:621 src/services/candypond/CandyPond.cpp:379
 #, c-format
 msgid "Permission checking failed: %s"
 msgstr "Åtkomsträttighetskontroll inte godkänd: %s"
 
-#: src/hed/libs/data/DataMover.cpp:606 src/hed/libs/data/DataMover.cpp:664
-#: src/hed/libs/data/DataMover.cpp:684 src/hed/libs/data/DataMover.cpp:695
+#: src/hed/libs/data/DataMover.cpp:623 src/hed/libs/data/DataMover.cpp:681
+#: src/hed/libs/data/DataMover.cpp:701 src/hed/libs/data/DataMover.cpp:712
 msgid "source.next_location"
 msgstr "source.next_location"
 
-#: src/hed/libs/data/DataMover.cpp:620 src/libs/data-staging/Processor.cpp:157
+#: src/hed/libs/data/DataMover.cpp:637 src/libs/data-staging/Processor.cpp:157
 #, c-format
 msgid "Source modification date: %s"
 msgstr "Källans ändringstid: %s"
 
-#: src/hed/libs/data/DataMover.cpp:621 src/libs/data-staging/Processor.cpp:158
+#: src/hed/libs/data/DataMover.cpp:638 src/libs/data-staging/Processor.cpp:158
 #, c-format
 msgid "Cache creation date: %s"
 msgstr "Cache skapades: %s"
 
-#: src/hed/libs/data/DataMover.cpp:627 src/libs/data-staging/Processor.cpp:163
+#: src/hed/libs/data/DataMover.cpp:644 src/libs/data-staging/Processor.cpp:163
 msgid "Cached file is outdated, will re-download"
 msgstr "Cachad fil är gammal, kommer att ladda ner igen"
 
-#: src/hed/libs/data/DataMover.cpp:630 src/libs/data-staging/Processor.cpp:168
+#: src/hed/libs/data/DataMover.cpp:647 src/libs/data-staging/Processor.cpp:168
 msgid "Cached copy is still valid"
 msgstr "Cachad kopia är fortfarande giltig"
 
-#: src/hed/libs/data/DataMover.cpp:657
+#: src/hed/libs/data/DataMover.cpp:674
 msgid "URL is mapped to local access - checking permissions on original URL"
 msgstr ""
 "URL är mappad till lokal åtkomst - kontrollerar åtkomsträttigheter på "
 "ursprunglig URL"
 
-#: src/hed/libs/data/DataMover.cpp:661
+#: src/hed/libs/data/DataMover.cpp:678
 #, c-format
 msgid "Permission checking on original URL failed: %s"
 msgstr "Åtkomsträttighetskontroll på ursprunglig URL inte godkänd: %s"
 
-#: src/hed/libs/data/DataMover.cpp:672
+#: src/hed/libs/data/DataMover.cpp:689
 msgid "Linking local file"
 msgstr "Länkar lokal fil"
 
-#: src/hed/libs/data/DataMover.cpp:692
+#: src/hed/libs/data/DataMover.cpp:709
 #, c-format
 msgid "Failed to make symbolic link %s to %s : %s"
 msgstr "Misslyckades med att skapa symbolisk länk %s till %s : %s"
 
-#: src/hed/libs/data/DataMover.cpp:701
+#: src/hed/libs/data/DataMover.cpp:718
 #, c-format
 msgid "Failed to change owner of symbolic link %s to %i"
 msgstr "Misslyckades med att ändra ägare av symbolisk länk %s till %i"
 
-#: src/hed/libs/data/DataMover.cpp:712
+#: src/hed/libs/data/DataMover.cpp:729
 #, c-format
 msgid "cache file: %s"
 msgstr "cachefil: %s"
 
-#: src/hed/libs/data/DataMover.cpp:738
+#: src/hed/libs/data/DataMover.cpp:755
 #, c-format
 msgid "Failed to stat source %s"
 msgstr "Misslyckades med att göra stat på källa: %s"
 
-#: src/hed/libs/data/DataMover.cpp:740 src/hed/libs/data/DataMover.cpp:755
-#: src/hed/libs/data/DataMover.cpp:787 src/hed/libs/data/DataMover.cpp:807
-#: src/hed/libs/data/DataMover.cpp:830 src/hed/libs/data/DataMover.cpp:848
-#: src/hed/libs/data/DataMover.cpp:1007 src/hed/libs/data/DataMover.cpp:1040
-#: src/hed/libs/data/DataMover.cpp:1051 src/hed/libs/data/DataMover.cpp:1125
+#: src/hed/libs/data/DataMover.cpp:757 src/hed/libs/data/DataMover.cpp:772
+#: src/hed/libs/data/DataMover.cpp:804 src/hed/libs/data/DataMover.cpp:824
+#: src/hed/libs/data/DataMover.cpp:847 src/hed/libs/data/DataMover.cpp:865
+#: src/hed/libs/data/DataMover.cpp:1024 src/hed/libs/data/DataMover.cpp:1057
+#: src/hed/libs/data/DataMover.cpp:1068 src/hed/libs/data/DataMover.cpp:1142
 msgid "(Re)Trying next source"
 msgstr "Försöker med nästa källa (igen)"
 
-#: src/hed/libs/data/DataMover.cpp:751
+#: src/hed/libs/data/DataMover.cpp:768
 #, c-format
 msgid "Meta info of source and location do not match for %s"
 msgstr "Metainformation för källa och plats stämmer inte överens för %s"
 
-#: src/hed/libs/data/DataMover.cpp:765
+#: src/hed/libs/data/DataMover.cpp:782
 #, c-format
 msgid ""
 "Replica %s has high latency, but no more sources exist so will use this one"
@@ -12718,59 +12754,59 @@ msgstr ""
 "Replika %s har hög latency, men inga fler källor existerar så kommer att "
 "använda denna"
 
-#: src/hed/libs/data/DataMover.cpp:769
+#: src/hed/libs/data/DataMover.cpp:786
 #, c-format
 msgid "Replica %s has high latency, trying next source"
 msgstr "Replika %s har hög latency, prövar nästa källa"
 
-#: src/hed/libs/data/DataMover.cpp:781 src/hed/libs/data/DataMover.cpp:802
+#: src/hed/libs/data/DataMover.cpp:798 src/hed/libs/data/DataMover.cpp:819
 #: src/libs/data-staging/DataStagingDelivery.cpp:344
 #: src/libs/data-staging/DataStagingDelivery.cpp:367
 #, c-format
 msgid "Using internal transfer method of %s"
 msgstr "Använder intern överföringsmetod %s"
 
-#: src/hed/libs/data/DataMover.cpp:794 src/hed/libs/data/DataMover.cpp:812
+#: src/hed/libs/data/DataMover.cpp:811 src/hed/libs/data/DataMover.cpp:829
 #: src/libs/data-staging/DataStagingDelivery.cpp:360
 #: src/libs/data-staging/DataStagingDelivery.cpp:381
 #, c-format
 msgid "Internal transfer method is not supported for %s"
 msgstr "Intern överföringsmetod stöds inte för %s"
 
-#: src/hed/libs/data/DataMover.cpp:819
+#: src/hed/libs/data/DataMover.cpp:836
 msgid "Using buffered transfer method"
 msgstr "Använder buffrad överföringsmetod"
 
-#: src/hed/libs/data/DataMover.cpp:823
+#: src/hed/libs/data/DataMover.cpp:840
 #, c-format
 msgid "Failed to prepare source: %s"
 msgstr "Misslyckades med att förbereda källa: %s"
 
-#: src/hed/libs/data/DataMover.cpp:838
+#: src/hed/libs/data/DataMover.cpp:855
 #, c-format
 msgid "Failed to start reading from source: %s"
 msgstr "Misslyckades med att påbörja läsning från källa: %s"
 
-#: src/hed/libs/data/DataMover.cpp:858
+#: src/hed/libs/data/DataMover.cpp:875
 msgid "Metadata of source and destination are different"
 msgstr "Källans och destinationens metadata är olika"
 
-#: src/hed/libs/data/DataMover.cpp:878
+#: src/hed/libs/data/DataMover.cpp:895
 #, c-format
 msgid "Failed to preregister destination: %s"
 msgstr "Misslyckades med att förregistrera destination: %s"
 
-#: src/hed/libs/data/DataMover.cpp:883 src/hed/libs/data/DataMover.cpp:1149
+#: src/hed/libs/data/DataMover.cpp:900 src/hed/libs/data/DataMover.cpp:1166
 msgid "destination.next_location"
 msgstr "destination.next_location"
 
-#: src/hed/libs/data/DataMover.cpp:894
+#: src/hed/libs/data/DataMover.cpp:911
 #, c-format
 msgid "Failed to prepare destination: %s"
 msgstr "Misslyckades med att förbereda destination: %s"
 
-#: src/hed/libs/data/DataMover.cpp:901 src/hed/libs/data/DataMover.cpp:924
-#: src/hed/libs/data/DataMover.cpp:1146
+#: src/hed/libs/data/DataMover.cpp:918 src/hed/libs/data/DataMover.cpp:941
+#: src/hed/libs/data/DataMover.cpp:1163
 #, c-format
 msgid ""
 "Failed to unregister preregistered lfn. You may need to unregister it "
@@ -12779,23 +12815,23 @@ msgstr ""
 "Misslyckades med att avregistrera förregistrerad lfn. Du kan behöva "
 "avregistrera det manuellt: %s"
 
-#: src/hed/libs/data/DataMover.cpp:905 src/hed/libs/data/DataMover.cpp:927
-#: src/hed/libs/data/DataMover.cpp:1016 src/hed/libs/data/DataMover.cpp:1032
-#: src/hed/libs/data/DataMover.cpp:1057 src/hed/libs/data/DataMover.cpp:1102
+#: src/hed/libs/data/DataMover.cpp:922 src/hed/libs/data/DataMover.cpp:944
+#: src/hed/libs/data/DataMover.cpp:1033 src/hed/libs/data/DataMover.cpp:1049
+#: src/hed/libs/data/DataMover.cpp:1074 src/hed/libs/data/DataMover.cpp:1119
 msgid "(Re)Trying next destination"
 msgstr "Försöker med nästa destination (igen)"
 
-#: src/hed/libs/data/DataMover.cpp:916
+#: src/hed/libs/data/DataMover.cpp:933
 #, c-format
 msgid "Failed to start writing to destination: %s"
 msgstr "Misslyckades med att påbörja skrivning till destination: %s"
 
-#: src/hed/libs/data/DataMover.cpp:939
+#: src/hed/libs/data/DataMover.cpp:956
 msgid "Failed to start writing to cache"
 msgstr "Misslyckades med att påbörja skrivning till cache"
 
-#: src/hed/libs/data/DataMover.cpp:947 src/hed/libs/data/DataMover.cpp:993
-#: src/hed/libs/data/DataMover.cpp:1171
+#: src/hed/libs/data/DataMover.cpp:964 src/hed/libs/data/DataMover.cpp:1010
+#: src/hed/libs/data/DataMover.cpp:1188
 msgid ""
 "Failed to unregister preregistered lfn. You may need to unregister it "
 "manually"
@@ -12803,52 +12839,52 @@ msgstr ""
 "Misslyckades med att avregistrera förregistrerad lfn. Du kan behöva "
 "avregistrera det manuellt"
 
-#: src/hed/libs/data/DataMover.cpp:954
+#: src/hed/libs/data/DataMover.cpp:971
 msgid "Waiting for buffer"
 msgstr "Väntar på buffer"
 
-#: src/hed/libs/data/DataMover.cpp:961
+#: src/hed/libs/data/DataMover.cpp:978
 #, c-format
 msgid "Failed updating timestamp on cache lock file %s for file %s: %s"
 msgstr ""
 "Misslyckades med att uppdatera klockslag på cachelåsfil %s för fil %s: %s"
 
-#: src/hed/libs/data/DataMover.cpp:966
+#: src/hed/libs/data/DataMover.cpp:983
 #, c-format
 msgid "buffer: read EOF : %s"
 msgstr "buffer: läs EOF  : %s"
 
-#: src/hed/libs/data/DataMover.cpp:967
+#: src/hed/libs/data/DataMover.cpp:984
 #, c-format
 msgid "buffer: write EOF: %s"
 msgstr "buffer: skriv EOF: %s"
 
-#: src/hed/libs/data/DataMover.cpp:968
+#: src/hed/libs/data/DataMover.cpp:985
 #, c-format
 msgid "buffer: error    : %s, read: %s, write: %s"
 msgstr "buffer: fel      : %s, lås: %s, skriv: %s"
 
-#: src/hed/libs/data/DataMover.cpp:969
+#: src/hed/libs/data/DataMover.cpp:986
 msgid "Closing read channel"
 msgstr "Stänger läskanal"
 
-#: src/hed/libs/data/DataMover.cpp:976
+#: src/hed/libs/data/DataMover.cpp:993
 msgid "Closing write channel"
 msgstr "Stänger skrivkanal"
 
-#: src/hed/libs/data/DataMover.cpp:984
+#: src/hed/libs/data/DataMover.cpp:1001
 msgid "Failed to complete writing to destination"
 msgstr "Misslyckades med att slutföra skrivning till destination"
 
-#: src/hed/libs/data/DataMover.cpp:998
+#: src/hed/libs/data/DataMover.cpp:1015
 msgid "Transfer cancelled successfully"
 msgstr "Överföring avbröts framgångsrikt"
 
-#: src/hed/libs/data/DataMover.cpp:1045
+#: src/hed/libs/data/DataMover.cpp:1062
 msgid "Cause of failure unclear - choosing randomly"
 msgstr "Anledning till misslyckande oklar - väljer slumpvis"
 
-#: src/hed/libs/data/DataMover.cpp:1089
+#: src/hed/libs/data/DataMover.cpp:1106
 #, c-format
 msgid ""
 "Checksum mismatch between checksum given as meta option (%s:%s) and "
@@ -12857,7 +12893,7 @@ msgstr ""
 "Checksumma stämmer inte överens mellan checksumma given som metaalternativ "
 "(%s:%s) och beräknad checksumma(%s)"
 
-#: src/hed/libs/data/DataMover.cpp:1095
+#: src/hed/libs/data/DataMover.cpp:1112
 msgid ""
 "Failed to unregister preregistered lfn, You may need to unregister it "
 "manually"
@@ -12865,41 +12901,41 @@ msgstr ""
 "Misslyckades med att avregistrera förregistrerad lfn, du kan behöva "
 "avregistrera den manuellt"
 
-#: src/hed/libs/data/DataMover.cpp:1099
+#: src/hed/libs/data/DataMover.cpp:1116
 msgid "Failed to delete destination, retry may fail"
 msgstr "Misslyckades med att ta bort destination, nytt försök kan misslyckas"
 
-#: src/hed/libs/data/DataMover.cpp:1109
+#: src/hed/libs/data/DataMover.cpp:1126
 msgid "Cannot compare empty checksum"
 msgstr "Kan inte jämföra tom checksumma"
 
-#: src/hed/libs/data/DataMover.cpp:1116
+#: src/hed/libs/data/DataMover.cpp:1133
 #: src/libs/data-staging/DataStagingDelivery.cpp:538
 msgid "Checksum type of source and calculated checksum differ, cannot compare"
 msgstr ""
 "Typ av checksumma för källa och beräknad checksumma är olika, kan inte "
 "jämföra"
 
-#: src/hed/libs/data/DataMover.cpp:1118
+#: src/hed/libs/data/DataMover.cpp:1135
 #, c-format
 msgid "Checksum mismatch between calcuated checksum %s and source checksum %s"
 msgstr ""
 "Checksumma stämmer inte överens mellan beräknad checksumma (%s) och källans "
 "checksumma %s"
 
-#: src/hed/libs/data/DataMover.cpp:1130
+#: src/hed/libs/data/DataMover.cpp:1147
 #: src/libs/data-staging/DataStagingDelivery.cpp:554
 #, c-format
 msgid "Calculated transfer checksum %s matches source checksum"
 msgstr ""
 "Beräknad överförings-checksumma %s stämmer överens med källans checksumma"
 
-#: src/hed/libs/data/DataMover.cpp:1136
+#: src/hed/libs/data/DataMover.cpp:1153
 #: src/libs/data-staging/DataStagingDelivery.cpp:557
 msgid "Checksum not computed"
 msgstr "Checksumma ej beräknad"
 
-#: src/hed/libs/data/DataMover.cpp:1142
+#: src/hed/libs/data/DataMover.cpp:1159
 #, c-format
 msgid "Failed to postregister destination %s"
 msgstr "Misslyckades med att efterregistrera destination: %s"
@@ -14002,33 +14038,33 @@ msgstr "Kan inte ladda in begäranobjekt"
 msgid "Can not generate policy object"
 msgstr "Kan inte generera policyobjekt"
 
-#: src/hed/mcc/http/MCCHTTP.cpp:168
+#: src/hed/mcc/http/MCCHTTP.cpp:174
 #, c-format
 msgid "HTTP Error: %d %s"
 msgstr "HTTP-fel: %d %s"
 
-#: src/hed/mcc/http/MCCHTTP.cpp:241
+#: src/hed/mcc/http/MCCHTTP.cpp:255
 msgid "Cannot create http payload"
 msgstr "Kan inte skapa http-nyttolast"
 
-#: src/hed/mcc/http/MCCHTTP.cpp:311
+#: src/hed/mcc/http/MCCHTTP.cpp:325
 msgid "No next element in the chain"
 msgstr "Inget nästa element i kedjan"
 
-#: src/hed/mcc/http/MCCHTTP.cpp:320
+#: src/hed/mcc/http/MCCHTTP.cpp:334
 #: src/hed/mcc/msgvalidator/MCCMsgValidator.cpp:253
 msgid "next element of the chain returned error status"
 msgstr "nästa element i kedjan returnerade felstatus"
 
-#: src/hed/mcc/http/MCCHTTP.cpp:329
+#: src/hed/mcc/http/MCCHTTP.cpp:343
 msgid "next element of the chain returned no payload"
 msgstr "nästa element i kedjan returnerade ingen nyttolast"
 
-#: src/hed/mcc/http/MCCHTTP.cpp:341
+#: src/hed/mcc/http/MCCHTTP.cpp:355
 msgid "next element of the chain returned invalid/unsupported payload"
 msgstr "nästa element i kedjan returnerade ogiltig/ej stödd nyttolast"
 
-#: src/hed/mcc/http/MCCHTTP.cpp:423
+#: src/hed/mcc/http/MCCHTTP.cpp:437
 msgid "Error to flush output payload"
 msgstr "Fel vid utmatning av utdatanyttolast"
 
@@ -14398,50 +14434,50 @@ msgstr ""
 "Mottog meddelande out-of-band (inte kritiskt, ERROR-nivå är bara för "
 "debuggningsändamål)"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:297
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:296
 #, c-format
 msgid "Using DH parameters from file: %s"
 msgstr "Använder DH-parametrar från fil: %s"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:300
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:299
 msgid "Failed to open file with DH parameters for reading"
 msgstr "Misslyckades med att öppna fil med DH-parametrar för läsning"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:305
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:304
 msgid "Failed to read file with DH parameters"
 msgstr "Misslyckades med att läsa fil med DH-parametrar"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:308
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:307
 msgid "Failed to apply DH parameters"
 msgstr "Misslyckades med att tillämpa DH-parametrar"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:310
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:309
 msgid "DH parameters applied"
 msgstr "DH-parametrar tillämpade"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:325
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:324
 #, c-format
 msgid "Using curve with NID: %u"
 msgstr "Använder kurva med NID: %u"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:328
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:327
 msgid "Failed to generate EC key"
 msgstr "Misslyckades med att generera EC-nyckel"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:331
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:330
 msgid "Failed to apply ECDH parameters"
 msgstr "Misslyckades med att tillämpa ECDH-parametrar"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:333
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:332
 msgid "ECDH parameters applied"
 msgstr "ECDH-parametrar tillämpade"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:340
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:339
 #, c-format
 msgid "Using cipher list: %s"
 msgstr "Använder chifferlista: %s"
 
-#: src/hed/mcc/tls/ConfigTLSMCC.cpp:356
+#: src/hed/mcc/tls/ConfigTLSMCC.cpp:365
 #, c-format
 msgid "Using protocol options: 0x%x"
 msgstr "Använder protokollalternativ: 0x%x"
@@ -14471,36 +14507,36 @@ msgstr "Proxy med ARC-policy"
 msgid "Proxy with unknown policy  - fail on unrecognized policy"
 msgstr "Proxy med okänd policy - misslyckades på grund av okänd policy"
 
-#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:77
-#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:128
+#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:112
+#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:163
 #, c-format
 msgid "Was expecting %s at the beginning of \"%s\""
 msgstr "Förväntade %s i början av \"%s\""
 
-#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:82
+#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:117
 #, c-format
 msgid "We only support CAs in Globus signing policy - %s is not supported"
 msgstr "Vi stöder endast CA i Globus signeringspolicy - %s stöds inte"
 
-#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:87
+#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:122
 #, c-format
 msgid "We only support X509 CAs in Globus signing policy - %s is not supported"
 msgstr "Vi stöder endast X509-CA i Globus signeringspolicy - %s stöds inte"
 
-#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:92
+#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:127
 msgid "Missing CA subject in Globus signing policy"
 msgstr "Saknat CA-subjekt i Globus signeringspolicy"
 
-#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:102
+#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:137
 msgid "Negative rights are not supported in Globus signing policy"
 msgstr "Negativa rättigheter stöds inte i Globus signeringspolicy"
 
-#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:106
+#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:141
 #, c-format
 msgid "Unknown rights in Globus signing policy - %s"
 msgstr "Okända rättigheter i Globus signeringspolicy - %s"
 
-#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:111
+#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:146
 #, c-format
 msgid ""
 "Only globus rights are supported in Globus signing policy - %s is not "
@@ -14508,7 +14544,7 @@ msgid ""
 msgstr ""
 "Endast globusrättigheter stöds i Globus signeringspolicy - %s stöds inte"
 
-#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:116
+#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:151
 #, c-format
 msgid ""
 "Only signing rights are supported in Globus signing policy - %s is not "
@@ -14516,7 +14552,7 @@ msgid ""
 msgstr ""
 "Endast signeringsrättigheter stöds i Globus signeringspolicy - %s stöds inte"
 
-#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:133
+#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:168
 #, c-format
 msgid ""
 "We only support subjects conditions in Globus signing policy - %s is not "
@@ -14524,7 +14560,7 @@ msgid ""
 msgstr ""
 "Vi stöder endast subjektvillkor i Globus signeringspolicy - %s stöds inte"
 
-#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:138
+#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:173
 #, c-format
 msgid ""
 "We only support globus conditions in Globus signing policy - %s is not "
@@ -14532,11 +14568,11 @@ msgid ""
 msgstr ""
 "Vi stöder endast globusvillkor i Globus signeringspolicy - %s stöds inte"
 
-#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:144
+#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:179
 msgid "Missing condition subjects in Globus signing policy"
 msgstr "Saknade villkorssubjekt i Globus signeringspolicy"
 
-#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:220
+#: src/hed/mcc/tls/GlobusSigningPolicy.cpp:255
 msgid "Unknown element in Globus signing policy"
 msgstr "Okänt element i Globus signeringspolicy"
 
@@ -14623,15 +14659,15 @@ msgstr "Misslyckades med att lagra tillämpningsdata"
 msgid "Failed to retrieve application data from OpenSSL"
 msgstr "Misslyckades med att hämta tillämpningsdata från OpenSSL"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:257 src/hed/mcc/tls/PayloadTLSMCC.cpp:356
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:257 src/hed/mcc/tls/PayloadTLSMCC.cpp:357
 msgid "Can not create the SSL Context object"
 msgstr "Kan inte skapa SSL-kontextobjekt"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:270 src/hed/mcc/tls/PayloadTLSMCC.cpp:376
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:270 src/hed/mcc/tls/PayloadTLSMCC.cpp:377
 msgid "Can't set OpenSSL verify flags"
 msgstr "Kan inte ange OpenSSL verifikationsflaggor"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:289 src/hed/mcc/tls/PayloadTLSMCC.cpp:390
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:289 src/hed/mcc/tls/PayloadTLSMCC.cpp:391
 msgid "Can not create the SSL object"
 msgstr "Kan inte skapa SSL-objektet"
 
@@ -14643,16 +14679,16 @@ msgstr "Misslyckades med att tilldela värdnamnstillägg"
 msgid "Failed to establish SSL connection"
 msgstr "Misslyckades med att etablera SSL-förbindelse"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:316 src/hed/mcc/tls/PayloadTLSMCC.cpp:405
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:317 src/hed/mcc/tls/PayloadTLSMCC.cpp:407
 #, c-format
 msgid "Using cipher: %s"
 msgstr "Använder chiffer: %s"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:402
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:403
 msgid "Failed to accept SSL connection"
 msgstr "Misslyckades med att acceptera SSL-förbindelse"
 
-#: src/hed/mcc/tls/PayloadTLSMCC.cpp:455
+#: src/hed/mcc/tls/PayloadTLSMCC.cpp:458
 #, c-format
 msgid "Failed to shut down SSL: %s"
 msgstr "Misslyckades med att stänga av SSL: %s"
