@@ -3,7 +3,7 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  6.21.0    06.11.2024
+Release Notes for NorduGrid ARC  6.21.0    07.11.2024
 =======================================================
 
 This release addresses several bugs in accounting, in addition to the usual handful of smaller bugfixes and enhancements.
@@ -36,7 +36,6 @@ The following Bugzilla tickets have been resolved:
 * 4190  ntpdate not for rhel 9 - gives config validation errors
 * 4161  arcget and gmlog WARNING messages and job failure in ARC 6.19.0
 * 3968  job input/output transfer accounting integer overflow
-
 
 
 Documentation
@@ -92,13 +91,3 @@ The support policy of ARC 6 will follow the same policy we had for ARC 5: 1 year
 Installing from EPEL:
 ----------------------
 Once the release is out, it can be installed from EPEL using package-name types: nordugrid-arc7-*
-
-
-
-Known issues
-==============
-* Related to the accounting system introduced in release 6.4.0:
-  * Accounting records created by ARC 6.4.0 are affected by a bug causing missing benchmark values:
-   https://bugzilla.nordugrid.org./show_bug.cgi?id=3921#c3
-   Recommendations are to update to a newer version of ARC.
-   The bugreport gives instructions on how to manually fix the wrong benchmark values.
