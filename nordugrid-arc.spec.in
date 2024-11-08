@@ -1381,4 +1381,4 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_unitdir}/arc-exporter.service
 %else
 %{_initrddir}/arc-exporter
-
+%endif
