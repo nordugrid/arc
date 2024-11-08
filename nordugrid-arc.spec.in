@@ -1351,3 +1351,12 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitelib}/pyarcrest
 %{python3_sitelib}/pyarcrest-*.*-info
 %{_bindir}/arcrest
+
+%files arc-exporter
+%defattr(-,root,root,-)
+%{_sbindir}/arc-exporter
+%if %{use_systemd}
+%{_unitdir}/arc-exporter.service
+%else
+%{_initrddir}/arc-exporter
+

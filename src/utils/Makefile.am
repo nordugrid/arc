@@ -4,5 +4,5 @@ else
 HED =
 endif
 
-SUBDIRS = $(HED) python archery
-DIST_SUBDIRS = hed python archery
+SUBDIRS = $(HED) python archery arc-exporter
+DIST_SUBDIRS = hed python archery arc-exporter
