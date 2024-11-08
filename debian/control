@@ -587,3 +587,23 @@ Description: ARC REST client
  Connector (ARC).
  .
  This package contains the ARC REST client.
+
+
+
+Package: nordugrid-arc-arc-exporter
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ python3-prometheus-client,
+ python3-datetime,
+ python3-collections,
+ python3-xml
+Description: ARC prometheus exporter
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ This package contains the Prometheus arc-exporter which collects and publishes metrics
+ about jobs and datastaging on the ARC-CE. 
+
