@@ -2903,9 +2903,13 @@ sub collect($) {
 	my @slot_entries;
 	foreach my $state (keys %{$state_slots{$share}}) {
 	    my $value = $state_slots{$share}{$state};
-	    push @slot_entries, "$state\=$value";
+	    if($value){
+		push @slot_entries, "$state\=$value";
+	    }
 	}
-	$csha->{OtherInfo} = join(',',@slot_entries);
+	if(@slot_entries){
+	    $csha->{OtherInfo} = \@slot_entries;
+	}
 	
 
         # MaxStageInStreams, MaxStageOutStreams
