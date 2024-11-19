@@ -1893,7 +1893,7 @@ sub collect($) {
 	foreach my $state (keys %{$state_slots{$share}}) {
 	    my $value = $state_slots{$share}{$state};
 	    if($value){
-		push @slot_entries, "$state\=$value";
+		push @slot_entries, "CoreCount\=$state\=$value";
 	    }
 	}
 	if(@slot_entries){
