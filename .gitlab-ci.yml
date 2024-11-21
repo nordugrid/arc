@@ -116,7 +116,7 @@ variables:
 build_el9:
     extends: .template_build_rhel9
     variables:
-        BUILD_IMAGE: maikenp/arc-build-almalinux9
+        BUILD_IMAGE: nordugrid/arc-build-almalinux9
    
 
 
@@ -126,7 +126,7 @@ build_el9:
 build_deb11:
     extends: .template_build_deb
     variables:
-        BUILD_IMAGE: maikenp/arc-build-debian11
+        BUILD_IMAGE: nordugrid/arc-build-debian11
 
 ###############
 #    DEBIAN 12
@@ -134,7 +134,7 @@ build_deb11:
 build_deb12:
     extends: .template_build_deb
     variables:
-        BUILD_IMAGE: maikenp/arc-build-debian12
+        BUILD_IMAGE: nordugrid/arc-build-debian12
 
 
 ##################
@@ -143,7 +143,7 @@ build_deb12:
 build_ubuntu2004:
     extends: .template_build_deb
     variables:
-        BUILD_IMAGE: maikenp/arc-build-ubuntu2004
+        BUILD_IMAGE: nordugrid/arc-build-ubuntu2004
     
 ##################
 #    UBUNTU 22.04
@@ -151,7 +151,7 @@ build_ubuntu2004:
 build_ubuntu2204:
     extends: .template_build_deb
     variables:
-        BUILD_IMAGE: maikenp/arc-build-ubuntu2204
+        BUILD_IMAGE: nordugrid/arc-build-ubuntu2204
 
 
 #############################################################
@@ -212,7 +212,7 @@ deploy_el9:
   extends: .deploy
   variables:
     OS_V: el9
-    ARC_IMAGE: maikenp/arc-deploy-almalinux9
+    ARC_IMAGE: nordugrid/arc-deploy-almalinux9
     BUILD_VOL: /rpmbuild
     BUILD_DIR: $CI_PROJECT_DIR/$BUILD_VOL/* 
   tags:
@@ -229,7 +229,7 @@ deploy_deb11:
   extends: .deploy
   variables:
     OS_V: deb11
-    ARC_IMAGE: maikenp/arc-deploy-debian11
+    ARC_IMAGE: nordugrid/arc-deploy-debian11
     BUILD_VOL: /build
     BUILD_DIR: $CI_PROJECT_DIR/*.deb    
   tags:
@@ -247,7 +247,7 @@ deploy_deb12:
   extends: .deploy
   variables:
     OS_V: deb12
-    ARC_IMAGE: maikenp/arc-deploy-debian12
+    ARC_IMAGE: nordugrid/arc-deploy-debian12
     BUILD_VOL: /build
     BUILD_DIR: $CI_PROJECT_DIR/*.deb    
   tags:
@@ -264,7 +264,7 @@ deploy_ubuntu2004:
   extends: .deploy
   variables:
     OS_V: ubuntu2004
-    ARC_IMAGE: maikenp/arc-deploy-ubuntu2004
+    ARC_IMAGE: nordugrid/arc-deploy-ubuntu2004
     BUILD_VOL: /build
     BUILD_DIR: $CI_PROJECT_DIR/*.deb
   tags:
@@ -281,7 +281,7 @@ deploy_ubuntu2204:
   extends: .deploy
   variables:
     OS_V: ubuntu2204
-    ARC_IMAGE: maikenp/arc-deploy-ubuntu2204
+    ARC_IMAGE: nordugrid/arc-deploy-ubuntu2204
     BUILD_VOL: /build
     BUILD_DIR: $CI_PROJECT_DIR/*.deb
   tags:
@@ -295,7 +295,7 @@ deploy_ubuntu2204:
 ##             CHECK DEPLOY                                ## 
 #############################################################
 .job_template_assert:
-  image: maikenp/arc-deploy-check
+  image: nordugrid/arc-deploy-check
   stage:  check_deploy
   variables:
     TESTTYPE: ''
