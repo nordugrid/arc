@@ -713,7 +713,6 @@ Connector (ARC).
 
 This package contains the ARC REST client.
 
-
 %package arc-exporter
 Summary:	ARC Prometheus exporter service
 Group:		Applications/Internet
@@ -721,19 +720,17 @@ Group:		Applications/Internet
 BuildArch:	noarch
 %endif
 Requires:	python3-prometheus-client
-Requires:       python3-datetime
-Requires:       python3-collections
-Requires:       python3-xml
+Requires:	python3-datetime
+Requires:	python3-collections
+Requires:	python3-xml
 
 %description arc-exporter
 NorduGrid is a collaboration aiming at development, maintenance and
 support of the middleware, known as the Advanced Resource
 Connector (ARC).
 
-This package contains the Prometheus arc-exporter which collects and publishes metrics
-about jobs and datastaging on the ARC-CE. 
-
-
+This package contains the Prometheus arc-exporter which collects and
+publishes metrics about jobs and datastaging on the ARC-CE.
 
 %prep
 %setup @fedorasetupopts@
@@ -1377,8 +1374,3 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %files arc-exporter
 %defattr(-,root,root,-)
 %{_sbindir}/arc-exporter
-%if %{use_systemd}
-%{_unitdir}/arc-exporter.service
-%else
-%{_initrddir}/arc-exporter
-%endif
