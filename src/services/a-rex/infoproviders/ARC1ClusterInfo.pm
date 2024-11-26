@@ -93,53 +93,53 @@ sub local_state {
             $loc_state->{State} = [ "canceling" ];
             return $loc_state;
     } elsif ($gm_state eq "KILLED") {
-	$loc_state->{State} = [ "killed" ];
+    $loc_state->{State} = [ "killed" ];
         return $loc_state;
     } elsif ($gm_state eq "FAILED") {
-	$loc_state->{State} = [ "failed" ];
-	if (! defined($failure_state)) {
-	    return $loc_state;
-	} else {
+    $loc_state->{State} = [ "failed" ];
+    if (! defined($failure_state)) {
+        return $loc_state;
+    } else {
             ## Not sure how these will be rendered - to-fix/to-check
-	    if ($failure_state eq "ACCEPTED")  {                
-		$loc_state->{State} = [ "accepted","validation-failure" ];
-		return $loc_state;
-	    } elsif ($failure_state eq "PREPARING") {
-		$loc_state->{State} = [ "preparing","cancel","failure" ];
-		return $loc_state;
-	    } elsif ($failure_state eq "SUBMIT") {
-		$loc_state->{State} = [ "submit","cancel","failure" ];
-		return $loc_state;
-	    } elsif ($failure_state eq "INLRMS") {
-		if ( $lrms_state eq "R" ) {
-		    $loc_state->{State} = [ "inlrms","cancel","app-failure" ];
-		    return $loc_state;
-		} else {
-		    $loc_state->{State} = [ "inlrms","cancel","processing-failure" ];
-		    return $loc_state;
-		}                
-	    } elsif ($failure_state eq "FINISHING") {
-		$loc_state->{State} = [ "finishing","cancel","failure" ];
-		return $loc_state;
-	    } elsif ($failure_state eq "FINISHED") {
-		$loc_state->{State} = [ "finished","failure"];
-		return $loc_state;
-	    } elsif ($failure_state eq "DELETED") {
-		$loc_state->{State} = [ "deleted","failure" ];
-		return $loc_state;
-	    } elsif ($failure_state eq "CANCELING") {
-		$loc_state->{State} = ["canceling","failure"];
-		return $loc_state;
-	    } else {
-		return $loc_state;
-	    }
-	}
+        if ($failure_state eq "ACCEPTED")  {                
+        $loc_state->{State} = [ "accepted","validation-failure" ];
+        return $loc_state;
+        } elsif ($failure_state eq "PREPARING") {
+        $loc_state->{State} = [ "preparing","cancel","failure" ];
+        return $loc_state;
+        } elsif ($failure_state eq "SUBMIT") {
+        $loc_state->{State} = [ "submit","cancel","failure" ];
+        return $loc_state;
+        } elsif ($failure_state eq "INLRMS") {
+        if ( $lrms_state eq "R" ) {
+            $loc_state->{State} = [ "inlrms","cancel","app-failure" ];
+            return $loc_state;
+        } else {
+            $loc_state->{State} = [ "inlrms","cancel","processing-failure" ];
+            return $loc_state;
+        }                
+        } elsif ($failure_state eq "FINISHING") {
+        $loc_state->{State} = [ "finishing","cancel","failure" ];
+        return $loc_state;
+        } elsif ($failure_state eq "FINISHED") {
+        $loc_state->{State} = [ "finished","failure"];
+        return $loc_state;
+        } elsif ($failure_state eq "DELETED") {
+        $loc_state->{State} = [ "deleted","failure" ];
+        return $loc_state;
+        } elsif ($failure_state eq "CANCELING") {
+        $loc_state->{State} = ["canceling","failure"];
+        return $loc_state;
+        } else {
+        return $loc_state;
+        }
+    }
     } elsif ($gm_state eq "FINISHED") {
-	$loc_state->{State} = [ "finished" ];
-	return $loc_state;
+    $loc_state->{State} = [ "finished" ];
+    return $loc_state;
     } elsif ($gm_state eq "DELETED") {
-	$loc_state->{State} = [ "deleted" ];
-	return $loc_state;
+    $loc_state->{State} = [ "deleted" ];
+    return $loc_state;
     } elsif ($gm_state) { # this is the "pending" case
         $loc_state->{State} = ["hold"];
         return $loc_state;
@@ -351,11 +351,11 @@ sub intersection {
 
 # union of two arrays using hashes. Returns an array.
 sub union {
-	my (@a, @b) = @_;
-	my %union;
-	foreach (@a) {$union{$_} = 1;}
-	foreach (@b) {$union{$_} = 1;}
-	return keys %union;
+    my (@a, @b) = @_;
+    my %union;
+    foreach (@a) {$union{$_} = 1;}
+    foreach (@b) {$union{$_} = 1;}
+    return keys %union;
 }
 
 # processes NodeSelection options and returns the matching nodes.
@@ -575,7 +575,7 @@ sub addprefix {
    my @set = @_;
    my @prefixedset = @set;
    @prefixedset = map { $prefix.$_ } @prefixedset;
-   return @prefixedset;	
+   return @prefixedset;    
 }
 
 # sub to pick a value in order: first value preferred to others
@@ -854,18 +854,18 @@ sub collect($) {
 
         # count grid jobs running and queued in LRMS for each share
 
-	
-	my $slots = $job->{count} || 1;
-	if ($gmstatus eq 'PREPARING'){
+    
+    my $slots = $job->{count} || 1;
+    if ($gmstatus eq 'PREPARING'){
 
-	    #how should initialization be done - fix
-	    $state_slots{$share}{PREPARING} += $slots;
-	}
-	elsif ($gmstatus eq 'FINISHING'){
-	    #my $slots = $job->{count} || 1;
-	    $state_slots{$share}{FINISHING} += $slots;
-	}
-	elsif ($gmstatus eq 'INLRMS') {
+        #how should initialization be done - fix
+        $state_slots{$share}{PREPARING} += $slots;
+    }
+    elsif ($gmstatus eq 'FINISHING'){
+        #my $slots = $job->{count} || 1;
+        $state_slots{$share}{FINISHING} += $slots;
+    }
+    elsif ($gmstatus eq 'INLRMS') {
             my $lrmsid = $job->{localid} || 'IDNOTFOUND';
             my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
             #my $slots = $job->{count} || 1;
@@ -875,13 +875,13 @@ sub collect($) {
                     $inlrmsslots{$share}{running} ||= 0; 
                     $inlrmsslots{$share}{suspended} ||= 0;
                     $inlrmsslots{$share}{queued} ||= 0;
-		    
-		    $state_slots{$share}{"INLRMS:Q"} ||= 0;
-		    $state_slots{$share}{"INLRMS:R"} ||= 0;
-		    $state_slots{$share}{"INLRMS:O"} ||= 0;
-		    $state_slots{$share}{"INLRMS:E"} ||= 0;
-		    $state_slots{$share}{"INLRMS:S"} ||= 0;
-		    
+            
+            $state_slots{$share}{"INLRMS:Q"} ||= 0;
+            $state_slots{$share}{"INLRMS:R"} ||= 0;
+            $state_slots{$share}{"INLRMS:O"} ||= 0;
+            $state_slots{$share}{"INLRMS:E"} ||= 0;
+            $state_slots{$share}{"INLRMS:S"} ||= 0;
+            
                     if (defined $vomsvo) {
                         $inlrmsslots{$sharevomsvo}{running} ||= 0; 
                         $inlrmsslots{$sharevomsvo}{suspended} ||= 0;
@@ -891,7 +891,7 @@ sub collect($) {
                         $inlrmsjobstotal{running}++;
                         $inlrmsjobs{$share}{running}++;
                         $inlrmsslots{$share}{running} += $slots;
-			$state_slots{$share}{"INLRMS:R"} += $slots;
+            $state_slots{$share}{"INLRMS:R"} += $slots;
                         if (defined $vomsvo) {
                             $inlrmsjobs{$sharevomsvo}{running}++;
                             $inlrmsslots{$sharevomsvo}{running} += $slots;
@@ -900,18 +900,18 @@ sub collect($) {
                         $inlrmsjobstotal{suspended}++;
                         $inlrmsjobs{$share}{suspended}++;
                         $inlrmsslots{$share}{suspended} += $slots;
-			$state_slots{$share}{"INLRMS:S"} += $slots;
+            $state_slots{$share}{"INLRMS:S"} += $slots;
                         if (defined $vomsvo) {
                             $inlrmsjobs{$sharevomsvo}{suspended}++;
                             $inlrmsslots{$sharevomsvo}{suspended} += $slots;
                         }
                     } elsif($lrmsjob->{status} eq 'Q'){
-			$state_slots{$share}{"INLRMS:Q"} += $slots;
-		    } elsif($lrmsjob->{status} eq 'E'){
-			$state_slots{$share}{"INLRMS:E"} += $slots;
-		    } elsif($lrmsjob->{status} eq 'O'){
-			$state_slots{$share}{"INLRMS:O"} += $slots;
-		    } else {  # Consider other states 'queued' for $inlrms*
+            $state_slots{$share}{"INLRMS:Q"} += $slots;
+            } elsif($lrmsjob->{status} eq 'E'){
+            $state_slots{$share}{"INLRMS:E"} += $slots;
+            } elsif($lrmsjob->{status} eq 'O'){
+            $state_slots{$share}{"INLRMS:O"} += $slots;
+            } else {  # Consider other states 'queued' for $inlrms*
                         $inlrmsjobstotal{queued}++;
                         $inlrmsjobs{$share}{queued}++;
                         $inlrmsslots{$share}{queued} += $slots;
@@ -933,7 +933,7 @@ sub collect($) {
         my $jobinterface = $job->{interface} || 'org.nordugrid.arcrest';
         
         $jobs_by_endpoint->{$jobinterface}{$jobid} = {};
-	
+    
     }
    
     my $admindomain = $config->{admindomain}{Name};
@@ -1219,8 +1219,8 @@ sub collect($) {
     # share.
         
     my $getMappingPolicies = sub {
-	   my ($shareID, $sharename) = @_;
-	   return undef unless my ($policy) = each %{$GLUE2shares->{$sharename}{MappingPolicies}};
+       my ($shareID, $sharename) = @_;
+       return undef unless my ($policy) = each %{$GLUE2shares->{$sharename}{MappingPolicies}};
        my $sub = $mappingpolicies->{$policy};
        return &{$sub}($shareID, $sharename);
     };
@@ -1558,7 +1558,7 @@ sub collect($) {
             $cep->{Technology} = 'direct';
             $cep->{InterfaceName} = 'org.nordugrid.internal';
             $cep->{InterfaceVersion} = [ '1.0' ];
-            $cep->{Capability} = [ @{$epscapabilities->{'org.nordugrid.internal'}}, @{$epscapabilities->{'common'}} ]; 	    
+            $cep->{Capability} = [ @{$epscapabilities->{'org.nordugrid.internal'}}, @{$epscapabilities->{'common'}} ];         
             $cep->{Implementor} = "NorduGrid";
             $cep->{ImplementationName} = "nordugrid-arc";
             $cep->{ImplementationVersion} = $config->{arcversion};
@@ -1887,19 +1887,19 @@ sub collect($) {
             $csha->{MaxSlotsPerJob} = $sconfig->{MaxSlotsPerJob} || $qinfo->{MaxSlotsPerJob};
         }
 
-	
-	# Slots per share and state
-	my @slot_entries;
-	foreach my $state (keys %{$state_slots{$share}}) {
-	    my $value = $state_slots{$share}{$state};
-	    if($value){
-		push @slot_entries, "CoreCount\=$state\=$value";
-	    }
-	}
-	if(@slot_entries){
-	    $csha->{OtherInfo} = \@slot_entries;
-	}
-	
+    
+    # Slots per share and state
+    my @slot_entries;
+    foreach my $state (keys %{$state_slots{$share}}) {
+        my $value = $state_slots{$share}{$state};
+        if($value){
+        push @slot_entries, "CoreCount\=$state\=$value";
+        }
+    }
+    if(@slot_entries){
+        $csha->{OtherInfo} = \@slot_entries;
+    }
+    
 
         # MaxStageInStreams, MaxStageOutStreams
         # OBS: A-REX does not have separate limits for up and downloads.
@@ -1946,17 +1946,7 @@ sub collect($) {
         # ServingState: closed and queuing are not yet supported
         # OBS: this serving state should come from LRMS.
         $csha->{ServingState} = 'production';
-
-
-	# Slots per share and state
-	my @slot_entries;
-	foreach my $state (keys %{$state_slots{$share}}) {
-	    my $value = $state_slots{$share}{$state};
-	    push @slot_entries, "$state\=$value";
-	}
-	$csha->{OtherInfo} = join(',',@slot_entries);
-
-	
+    
         # We can't guess which local job belongs to a certain VO, hence
         # we set LocalRunning/Waiting/Suspended to zero for shares related to
         # a VO. 
@@ -2125,7 +2115,7 @@ sub collect($) {
             # TODO: slots should be cores?
             $cmgr->{TotalSlots} = (defined $config->{service}{totalcpus}) ? $config->{service}{totalcpus} : $cluster_info->{totalcpus};
 
-
+        
             # This number can be more than totalslots in case more
             # than the published cores can be used -- happens with fork
             my @queuenames = keys %{$lrms_info->{queues}};
@@ -2440,7 +2430,7 @@ sub collect($) {
 
     my $othersv = {};
 
-	#EndPoint here
+    #EndPoint here
 
 
     # aggregates services
@@ -2488,25 +2478,25 @@ sub collect($) {
 
     my $getToStorageElement = sub {
       
-	my $tse = {};
+    my $tse = {};
 
-	$tse->{CreationTime} = $creation_time;
-	$tse->{Validity} = $validity_ttl;
+    $tse->{CreationTime} = $creation_time;
+    $tse->{Validity} = $validity_ttl;
 
-	$tse->{ID} = $tseID;
+    $tse->{ID} = $tseID;
 
-	$tse->{Name} = "";
-	$tse->{OtherInfo} = ''; # array
-	
-	# Local path on the machine to access storage, for example a NFS share
-	$tse->{LocalPath} = 'String';
+    $tse->{Name} = "";
+    $tse->{OtherInfo} = ''; # array
+    
+    # Local path on the machine to access storage, for example a NFS share
+    $tse->{LocalPath} = 'String';
   
-	# Remote path in the Storage Service associated with the local path above
-	$tse->{RemotePath} = 'String';
-	
-	# Associations
-	$tse->{ComputingService} = $csvID;
-	$tse->{StorageService} = '';
+    # Remote path in the Storage Service associated with the local path above
+    $tse->{RemotePath} = 'String';
+    
+    # Associations
+    $tse->{ComputingService} = $csvID;
+    $tse->{StorageService} = '';
     };
 
 
