@@ -853,80 +853,95 @@ sub collect($) {
         }
 
         # count grid jobs running and queued in LRMS for each share
+        if ($gmstatus eq 'INLRMS') {
+                my $lrmsid = $job->{localid} || 'IDNOTFOUND';
+                my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
+                my $slots = $job->{count} || 1;
 
+                if (defined $lrmsjob) {
+                    if ($lrmsjob->{status} ne 'EXECUTED') {
+                        $inlrmsslots{$share}{running} ||= 0; 
+                        $inlrmsslots{$share}{suspended} ||= 0;
+                        $inlrmsslots{$share}{queued} ||= 0;
+                
+                        $state_slots{$share}{"INLRMS:Q"} ||= 0;
+                        $state_slots{$share}{"INLRMS:R"} ||= 0;
+                        $state_slots{$share}{"INLRMS:O"} ||= 0;
+                        $state_slots{$share}{"INLRMS:E"} ||= 0;
+                        $state_slots{$share}{"INLRMS:S"} ||= 0;
+                
+                        if (defined $vomsvo) {
+                            $inlrmsslots{$sharevomsvo}{running} ||= 0; 
+                            $inlrmsslots{$sharevomsvo}{suspended} ||= 0;
+                            $inlrmsslots{$sharevomsvo}{queued} ||= 0;
+                            
+                            $state_slots{$sharevomsvo}{"INLRMS:Q"} ||= 0;
+                            $state_slots{$sharevomsvo}{"INLRMS:R"} ||= 0;
+                            $state_slots{$sharevomsvo}{"INLRMS:O"} ||= 0;
+                            $state_slots{$sharevomsvo}{"INLRMS:E"} ||= 0;
+                            $state_slots{$sharevomsvo}{"INLRMS:S"} ||= 0;
+                        }
+                        if ($lrmsjob->{status} eq 'R') {
+                            $inlrmsjobstotal{running}++;
+                            $inlrmsjobs{$share}{running}++;
+                            $inlrmsslots{$share}{running} += $slots;
+                            $state_slots{$share}{"INLRMS:R"} += $slots;
+                            if (defined $vomsvo) {
+                                $inlrmsjobs{$sharevomsvo}{running}++;
+                                $inlrmsslots{$sharevomsvo}{running} += $slots;
+                                $state_slots{$sharevomsvo}{"INLRMS:R"} += $slots;
+                            }
+                        } elsif ($lrmsjob->{status} eq 'S') {
+                            $inlrmsjobstotal{suspended}++;
+                            $inlrmsjobs{$share}{suspended}++;
+                            $inlrmsslots{$share}{suspended} += $slots;
+                            $state_slots{$share}{"INLRMS:S"} += $slots;
+                            if (defined $vomsvo) {
+                                $inlrmsjobs{$sharevomsvo}{suspended}++;
+                                $inlrmsslots{$sharevomsvo}{suspended} += $slots;
+                                $state_slots{$sharevomsvo}{"INLRMS:S"} += $slots;
+                            }
+                        } elsif($lrmsjob->{status} eq 'E'){
+                            $state_slots{$share}{"INLRMS:E"} += $slots;
+                            if (defined $vomsvo) {
+                                $state_slots{$sharevomsvo}{"INLRMS:E"} += $slots;
+                            }
+                        } elsif($lrmsjob->{status} eq 'O'){
+                            $state_slots{$share}{"INLRMS:O"} += $slots;
+                            if (defined $vomsvo) {
+                                $state_slots{$sharevomsvo}{"INLRMS:O"} += $slots;
+                            }
+                        } else {  # Consider other states 'queued' for $inlrms*
+                            $inlrmsjobstotal{queued}++;
+                            $inlrmsjobs{$share}{queued}++;
+                            $inlrmsslots{$share}{queued} += $slots;
+                            $requestedslots{$share} += $slots;
+                            $state_slots{$share}{"INLRMS:Q"} += $slots;
     
-    my $slots = $job->{count} || 1;
-    if ($gmstatus eq 'PREPARING'){
-
-        #how should initialization be done - fix
-        $state_slots{$share}{PREPARING} += $slots;
-    }
-    elsif ($gmstatus eq 'FINISHING'){
-        #my $slots = $job->{count} || 1;
-        $state_slots{$share}{FINISHING} += $slots;
-    }
-    elsif ($gmstatus eq 'INLRMS') {
-            my $lrmsid = $job->{localid} || 'IDNOTFOUND';
-            my $lrmsjob = $lrms_info->{jobs}{$lrmsid};
-            #my $slots = $job->{count} || 1;
-
-            if (defined $lrmsjob) {
-                if ($lrmsjob->{status} ne 'EXECUTED') {
-                    $inlrmsslots{$share}{running} ||= 0; 
-                    $inlrmsslots{$share}{suspended} ||= 0;
-                    $inlrmsslots{$share}{queued} ||= 0;
-            
-            $state_slots{$share}{"INLRMS:Q"} ||= 0;
-            $state_slots{$share}{"INLRMS:R"} ||= 0;
-            $state_slots{$share}{"INLRMS:O"} ||= 0;
-            $state_slots{$share}{"INLRMS:E"} ||= 0;
-            $state_slots{$share}{"INLRMS:S"} ||= 0;
-            
-                    if (defined $vomsvo) {
-                        $inlrmsslots{$sharevomsvo}{running} ||= 0; 
-                        $inlrmsslots{$sharevomsvo}{suspended} ||= 0;
-                        $inlrmsslots{$sharevomsvo}{queued} ||= 0;
-                    }
-                    if ($lrmsjob->{status} eq 'R') {
-                        $inlrmsjobstotal{running}++;
-                        $inlrmsjobs{$share}{running}++;
-                        $inlrmsslots{$share}{running} += $slots;
-            $state_slots{$share}{"INLRMS:R"} += $slots;
-                        if (defined $vomsvo) {
-                            $inlrmsjobs{$sharevomsvo}{running}++;
-                            $inlrmsslots{$sharevomsvo}{running} += $slots;
-                        }
-                    } elsif ($lrmsjob->{status} eq 'S') {
-                        $inlrmsjobstotal{suspended}++;
-                        $inlrmsjobs{$share}{suspended}++;
-                        $inlrmsslots{$share}{suspended} += $slots;
-            $state_slots{$share}{"INLRMS:S"} += $slots;
-                        if (defined $vomsvo) {
-                            $inlrmsjobs{$sharevomsvo}{suspended}++;
-                            $inlrmsslots{$sharevomsvo}{suspended} += $slots;
-                        }
-                    } elsif($lrmsjob->{status} eq 'Q'){
-            $state_slots{$share}{"INLRMS:Q"} += $slots;
-            } elsif($lrmsjob->{status} eq 'E'){
-            $state_slots{$share}{"INLRMS:E"} += $slots;
-            } elsif($lrmsjob->{status} eq 'O'){
-            $state_slots{$share}{"INLRMS:O"} += $slots;
-            } else {  # Consider other states 'queued' for $inlrms*
-                        $inlrmsjobstotal{queued}++;
-                        $inlrmsjobs{$share}{queued}++;
-                        $inlrmsslots{$share}{queued} += $slots;
-                        $requestedslots{$share} += $slots;
-
-                        if (defined $vomsvo) {
-                            $inlrmsjobs{$sharevomsvo}{queued}++;
-                            $inlrmsslots{$sharevomsvo}{queued} += $slots;
-                            $requestedslots{$sharevomsvo} += $slots;
+                            if (defined $vomsvo) {
+                                $inlrmsjobs{$sharevomsvo}{queued}++;
+                                $inlrmsslots{$sharevomsvo}{queued} += $slots;
+                                $requestedslots{$sharevomsvo} += $slots;
+                                $state_slots{$sharevomsvo}{"INLRMS:Q"} += $slots;
+                            }
                         }
                     }
+                } else {
+                    $log->warning("Info missing about lrms job $lrmsid");
                 }
-            } else {
-                $log->warning("Info missing about lrms job $lrmsid");
-            }
+        # Count cores in PREPARING and FINISHING states
+        } elsif ($gmstatus eq 'PREPARING'){
+                my $slots = $job->{count} || 1;
+                $state_slots{$share}{PREPARING} += $slots;
+                if (defined $vomsvo) {
+                    $state_slots{$sharevomsvo}{PREPARING} += $slots;
+                }
+        } elsif ($gmstatus eq 'FINISHING'){
+                my $slots = $job->{count} || 1;
+                $state_slots{$share}{FINISHING} += $slots;
+                if (defined $vomsvo) {
+                    $state_slots{$sharevomsvo}{PREPARING} += $slots;
+                }
         }
         
         # fills efficiently %jobs_by_endpoint, defaults to arcrest
