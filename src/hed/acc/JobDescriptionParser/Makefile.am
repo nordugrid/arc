@@ -22,8 +22,8 @@ libaccJobDescriptionParser_la_LDFLAGS = -no-undefined -avoid-version -module
 
 libaccJobDescriptionParser.apd: libaccJobDescriptionParser.apd.in libaccJobDescriptionParser.la
 	mkdir -p .libs
-	cp libaccJobDescriptionParser.apd.in .libs/libaccJobDescriptionParser.apd
-	cp libaccJobDescriptionParser.apd.in libaccJobDescriptionParser.apd
+	cp $(srcdir)/libaccJobDescriptionParser.apd.in .libs/libaccJobDescriptionParser.apd
+	cp $(srcdir)/libaccJobDescriptionParser.apd.in libaccJobDescriptionParser.apd
 
 
 DIST_SUBDIRS = test

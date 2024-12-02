@@ -16,6 +16,6 @@ libdmcmock_la_LDFLAGS = -no-undefined -avoid-version -module
 
 libdmcmock.apd: libdmcmock.apd.in libdmcmock.la
 	mkdir -p .libs
-	cp libdmcmock.apd.in .libs/libdmcmock.apd
-	cp libdmcmock.apd.in libdmcmock.apd
+	cp $(srcdir)/libdmcmock.apd.in .libs/libdmcmock.apd
+	cp $(srcdir)/libdmcmock.apd.in libdmcmock.apd
 
