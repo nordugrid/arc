@@ -67,23 +67,23 @@ void DataPointS3::getCompleteCallback(S3Status status,
     int len = 0;
     if (error && error->message) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                      "  Message: %s\n", error->message);
+                      "Message: %s;", error->message);
     }
     if (error && error->resource) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                      "  Resource: %s\n", error->resource);
+                      "Resource: %s;", error->resource);
     }
     if (error && error->furtherDetails) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                      "  Further Details: %s\n", error->furtherDetails);
+                      "Further Details: %s;", error->furtherDetails);
     }
     if (error && error->extraDetailsCount) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len, "%s",
-                      "  Extra Details:\n");
+                      "Extra Details:");
       int i;
       for (i = 0; i < error->extraDetailsCount; i++) {
         len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                        "    %s: %s\n", error->extraDetails[i].name,
+                        " %s: %s;", error->extraDetails[i].name,
                         error->extraDetails[i].value);
       }
     }
@@ -103,23 +103,23 @@ void DataPointS3::putCompleteCallback(S3Status status,
     int len = 0;
     if (error && error->message) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                      "  Message: %s\n", error->message);
+                      "Message: %s;", error->message);
     }
     if (error && error->resource) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                      "  Resource: %s\n", error->resource);
+                      "Resource: %s;", error->resource);
     }
     if (error && error->furtherDetails) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                      "  Further Details: %s\n", error->furtherDetails);
+                      "Further Details: %s;", error->furtherDetails);
     }
     if (error && error->extraDetailsCount) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len, "%s",
-                      "  Extra Details:\n");
+                      "Extra Details:");
       int i;
       for (i = 0; i < error->extraDetailsCount; i++) {
         len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                        "    %s: %s\n", error->extraDetails[i].name,
+                        " %s: %s;", error->extraDetails[i].name,
                         error->extraDetails[i].value);
       }
     }
@@ -135,23 +135,23 @@ void DataPointS3::responseCompleteCallback(S3Status status,
   int len = 0;
   if (error && error->message) {
     len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                    "  Message: %s\n", error->message);
+                    "Message: %s;", error->message);
   }
   if (error && error->resource) {
     len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                    "  Resource: %s\n", error->resource);
+                    "Resource: %s;", error->resource);
   }
   if (error && error->furtherDetails) {
     len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                    "  Further Details: %s\n", error->furtherDetails);
+                    "Further Details: %s;", error->furtherDetails);
   }
   if (error && error->extraDetailsCount) {
     len += snprintf(&(error_details[len]), sizeof(error_details) - len, "%s",
-                    "  Extra Details:\n");
+                    "Extra Details:");
     int i;
     for (i = 0; i < error->extraDetailsCount; i++) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                      "    %s: %s\n", error->extraDetails[i].name,
+                      " %s: %s;", error->extraDetails[i].name,
                       error->extraDetails[i].value);
     }
   }
@@ -183,7 +183,7 @@ S3Status DataPointS3::getObjectDataCallback(int bufferSize, const char *buffer,
   return S3StatusOK;
 }
 
-static int putObjectDataCallback(int bufferSize, char *buffer,
+int DataPointS3::putObjectDataCallback(int bufferSize, char *buffer,
                                  void *callbackData) {
 
   DataBuffer *buf = (DataBuffer *)callbackData;
@@ -212,7 +212,8 @@ DataPointS3::DataPointS3(const URL &url, const UserConfig &usercfg,
                          PluginArgument *parg)
     : DataPointDirect(url, usercfg, parg), fd(-1), reading(false),
       writing(false) {
-  hostname = std::string(url.Host() + ":" + tostring(url.Port()));
+  //hostname = std::string(url.Host() + ":" + tostring(url.Port()));
+  hostname = url.Host();
   access_key = Arc::GetEnv("S3_ACCESS_KEY");
   secret_key = Arc::GetEnv("S3_SECRET_KEY");
 #if defined(S3_DEFAULT_REGION)
@@ -251,8 +252,15 @@ DataPointS3::DataPointS3(const URL &url, const UserConfig &usercfg,
   }
 
   uri_style = S3UriStylePath;
-  S3_initialize("s3", S3_INIT_ALL, hostname.c_str());
+  
+  logger.msg(DEBUG, "Initializing S3 connection to %s", hostname.c_str());
 
+  S3Status init_status;
+  if ((init_status = S3_initialize("s3", S3_INIT_ALL, hostname.c_str()))
+        != S3StatusOK) {
+    logger.msg(ERROR, "Failed to initialize S3 to %s: %s", hostname.c_str(),
+                      S3_get_status_name(init_status));
+  }
   bufsize = 16384;
 }
 
@@ -367,6 +375,7 @@ DataStatus DataPointS3::List(std::list<FileInfo> &files,
 
   if (!bucket_name.empty() && !key_name.empty()) {
     FileInfo file(key_name);
+
     S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                       protocol,           uri_style,
                                       access_key.c_str(), secret_key.c_str(),
@@ -421,7 +430,7 @@ DataStatus DataPointS3::List(std::list<FileInfo> &files,
                                                   &responseCompleteCallback },
                                                 &listServiceCallback };
 
-    S3_list_service(S3ProtocolHTTP, access_key.c_str(), secret_key.c_str(), 0,
+    S3_list_service(protocol, access_key.c_str(), secret_key.c_str(), 0,
 #if defined(S3_DEFAULT_REGION)
                     NULL, auth_region.c_str(),
                     NULL,
@@ -437,8 +446,8 @@ DataStatus DataPointS3::List(std::list<FileInfo> &files,
   if (request_status == S3StatusOK) {
     return DataStatus::Success;
   }
-  logger.msg(ERROR, "Failed to read object %s: %s", url.Path(),
-             S3_get_status_name(request_status));
+  logger.msg(ERROR, "Failed to read object %s: %s; %s", url.Path(),
+             S3_get_status_name(request_status), error_details);
   return DataStatus(DataStatus::ListError, S3_get_status_name(request_status));
 }
 
@@ -448,7 +457,7 @@ DataStatus DataPointS3::Remove() {
     S3ResponseHandler responseHandler = { &responsePropertiesCallback,
                                           &responseCompleteCallback };
 
-    S3_delete_bucket(S3ProtocolHTTP, S3UriStylePath, access_key.c_str(),
+    S3_delete_bucket(protocol, uri_style, access_key.c_str(),
 #if defined(S3_DEFAULT_REGION)
                      secret_key.c_str(), 0, 0, bucket_name.c_str(), auth_region.c_str(), NULL,
 #else
@@ -501,7 +510,7 @@ DataStatus DataPointS3::CreateDirectory(bool with_parents) {
                                         &responseCompleteCallback };
 
   S3CannedAcl cannedAcl = S3CannedAclPrivate;
-  S3_create_bucket(S3ProtocolHTTP, access_key.c_str(), secret_key.c_str(), 0, 0,
+  S3_create_bucket(protocol, access_key.c_str(), secret_key.c_str(), 0, 0,
 #if defined(S3_DEFAULT_REGION)
                    bucket_name.c_str(), auth_region.c_str(), cannedAcl, 0, 0,
 #if defined(S3_TIMEOUTMS)
@@ -547,8 +556,8 @@ void DataPointS3::read_file() {
                 &getObjectHandler, buffer);
 
   if (request_status != S3StatusOK) {
-    logger.msg(ERROR, "Failed to read object %s: %s", url.Path(),
-               S3_get_status_name(request_status));
+    logger.msg(ERROR, "Failed to read object %s: %s; %s", url.Path(),
+               S3_get_status_name(request_status), error_details);
     buffer->error_read(true);
   }
 }
@@ -587,15 +596,15 @@ void DataPointS3::write_file() {
   S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                     protocol,           uri_style,
                                     access_key.c_str(), secret_key.c_str(),
-#if defined(S3_AUTH_REGION)
+#if defined(S3_DEFAULT_REGION)
                                     0, auth_region.c_str() };
 #else
                                     0 };
 #endif
 
   S3PutObjectHandler putObjectHandler = { { &responsePropertiesCallback,
-                                            &putCompleteCallback },
-                                          &putObjectDataCallback };
+                                            &DataPointS3::putCompleteCallback },
+                                          &DataPointS3::putObjectDataCallback };
 
   const char *cacheControl = 0, *contentType = 0, *md5 = 0;
   const char *contentDispositionFilename = 0, *contentEncoding = 0;
@@ -618,8 +627,9 @@ void DataPointS3::write_file() {
                 &putObjectHandler, buffer);
 
   if (request_status != S3StatusOK) {
-    logger.msg(ERROR, "Failed to write object %s: %s", url.Path(),
-               S3_get_status_name(request_status));
+    logger.msg(ERROR, "Failed to write object %s: %s; %s", url.Path(),
+               S3_get_status_name(request_status), error_details);
+
     buffer->error_write(true);
   }
 }
