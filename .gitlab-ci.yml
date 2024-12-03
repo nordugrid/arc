@@ -84,7 +84,7 @@ variables:
   script:
     - apt-get update -y
     - echo "6.99.9" > VERSION
-    - apt-get install libs3-dev
+    - apt-get install libs3-dev -y
     - ./autogen.sh
     - ./configure
     - make dist
