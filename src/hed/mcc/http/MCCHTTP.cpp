@@ -299,19 +299,32 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   {
     std::string::size_type p = endpoint.find("://");
     if(p == std::string::npos) {
-      // TODO: Use Host attribute of HTTP
+      std::string endpoint_host = nextpayload.Attribute("host");
+      std::string endpoint_port;
+      // parse info from URI
       std::string oendpoint = nextinmsg.Attributes()->get("ENDPOINT");
       p=oendpoint.find("://");
       if(p != std::string::npos) {
         oendpoint.erase(0,p+3);
       };
-      // Assuming we have host:port here
-      if(oendpoint.empty() ||
-         (oendpoint[oendpoint.length()-1] != '/')) {
-        if(endpoint[0] != '/') oendpoint+="/";
+      // trim slash
+      oendpoint = Arc::trim(oendpoint, "/");
+      // split host:port
+      p=oendpoint.find(":");
+      std::string ohost = oendpoint;
+      if(p != std::string::npos) {
+        ohost = oendpoint.substr(0,p);
+        endpoint_port = oendpoint.substr(p);
       };
-      // TODO: HTTPS detection
-      endpoint="http://"+oendpoint+endpoint;
+      if(endpoint_host.empty()) endpoint_host = ohost;
+      // add trailing slash
+      std::string sep;
+      if (endpoint[0] != '/') sep = "/";
+      // HTTPS detection
+      std::string protocol = "http";
+      if (!inmsg.Attributes()->get("TLS:LOCALDN").empty()) protocol+="s";
+      // Construct HTTP URL endpoint
+      endpoint=protocol+"://"+endpoint_host+endpoint_port+sep+endpoint;
     };
   };
   nextinmsg.Attributes()->set("ENDPOINT",endpoint);
