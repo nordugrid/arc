@@ -580,7 +580,7 @@ static Arc::MCC_Status HTTPPOSTResponse(Arc::Message& inmsg, Arc::Message& outms
 }
 
 static std::string GetPath(Arc::Message &inmsg,std::string &base,std::multimap<std::string,std::string>& query) {
-  base = inmsg.Attributes()->get("HTTP:ENDPOINT");
+  base = inmsg.Attributes()->get("ENDPOINT");
   Arc::AttributeIterator iterator = inmsg.Attributes()->getAll("PLEXER:EXTENSION");
   std::string path;
   if(iterator.hasMore()) {
@@ -874,7 +874,7 @@ Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& o
       if(!delegation_stores_.GetRequest(config_.DelegationDir(),delegationId,config->GridName(),delegationRequest)) {
         return HTTPFault(inmsg,outmsg,500,"Failed generating delegation request");
       }
-      Arc::URL base(inmsg.Attributes()->get("HTTP:ENDPOINT"));
+      Arc::URL base(inmsg.Attributes()->get("ENDPOINT"));
       return HTTPPOSTResponse(inmsg,outmsg,delegationRequest,"application/x-pem-file",base.Path()+"/"+delegationId);
     } else if(requestedType == "jwt") {
       Arc::AttributeIterator tokenIt = inmsg.Attributes()->getAll("HTTP:x-token-delegation");
@@ -885,7 +885,7 @@ Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& o
       if(!delegation_stores_.PutCred(config_.DelegationDir(),delegationId,config->GridName(),*tokenIt,meta)) {
         return HTTPFault(inmsg,outmsg,500,"Failed storing delegation token");
       }
-      Arc::URL base(inmsg.Attributes()->get("HTTP:ENDPOINT"));
+      Arc::URL base(inmsg.Attributes()->get("ENDPOINT"));
       return HTTPPOSTResponse(inmsg,outmsg,base.Path()+"/"+delegationId);
     }
     return HTTPFault(inmsg,outmsg,501,"Unknown delegation type specified");
@@ -1887,7 +1887,7 @@ Arc::MCC_Status ARexRest::processJobSessionDir(Arc::Message& inmsg,Arc::Message&
     else if(depthStr == "1")
       depth = 1;
     std::string fpath = job.GetFilePath(context.subpath);
-    URL url(inmsg.Attributes()->get("HTTP:ENDPOINT"));
+    URL url(inmsg.Attributes()->get("ENDPOINT"));
     Arc::XMLNode multistatus("<d:multistatus xmlns:d=\"DAV:\"/>");
     FileAccessRef fa(Arc::FileAccess::Acquire());
     if(fa) ProcessPROPFIND(fa,multistatus,url,fpath,job.UID(),job.GID(),depth);
