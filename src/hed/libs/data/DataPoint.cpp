@@ -51,6 +51,10 @@ namespace Arc {
     valid_url_options.insert("failureallowed");
     valid_url_options.insert("relativeuri");
     valid_url_options.insert("accesslatency");
+    valid_url_options.insert("delegation_id");
+    valid_url_options.insert("s3_access_key");
+    valid_url_options.insert("s3_secret_key");
+    valid_url_options.insert("s3_auth_region");
   }
 
   DataPoint::~DataPoint() {}
