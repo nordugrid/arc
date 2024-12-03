@@ -212,12 +212,27 @@ DataPointS3::DataPointS3(const URL &url, const UserConfig &usercfg,
                          PluginArgument *parg)
     : DataPointDirect(url, usercfg, parg), fd(-1), reading(false),
       writing(false) {
-  //hostname = std::string(url.Host() + ":" + tostring(url.Port()));
+  // S3 endpoint
   hostname = url.Host();
-  access_key = Arc::GetEnv("S3_ACCESS_KEY");
-  secret_key = Arc::GetEnv("S3_SECRET_KEY");
+  // Check scheme
+  if (url.Protocol() == "s3+https") {
+    protocol = S3ProtocolHTTPS;
+    if (url.Port() != 443) {
+      hostname = std::string(url.Host() + ":" + tostring(url.Port()));
+    }
+  } else {
+    protocol = S3ProtocolHTTP;
+    if (url.Port() != 80) {
+      hostname = std::string(url.Host() + ":" + tostring(url.Port()));
+    }
+  }
+  // S3 DMC uses the path-style
+  uri_style = S3UriStylePath;
+  // S3 credentials (url options or env variables)
+  access_key = url.Option("s3_access_key", Arc::GetEnv("S3_ACCESS_KEY"));
+  secret_key = url.Option("s3_secret_key", Arc::GetEnv("S3_SECRET_KEY"));
 #if defined(S3_DEFAULT_REGION)
-  auth_region = Arc::GetEnv("S3_AUTH_REGION");
+  auth_region = url.Option("s3_auth_region", Arc::GetEnv("S3_AUTH_REGION"));
 #endif
 
   // Extract bucket
@@ -244,14 +259,6 @@ DataPointS3::DataPointS3(const URL &url, const UserConfig &usercfg,
   // if / in key_name or bucket_name then Invalid bucket/key name
   if (bucket_name.find('/') || key_name.find("/")) {
   }
-  // Check scheme
-  if (url.Protocol() == "s3+https") {
-    protocol = S3ProtocolHTTPS;
-  } else {
-    protocol = S3ProtocolHTTP;
-  }
-
-  uri_style = S3UriStylePath;
   
   logger.msg(DEBUG, "Initializing S3 connection to %s", hostname.c_str());
 
