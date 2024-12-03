@@ -2913,20 +2913,18 @@ sub collect($) {
             $csha->{MaxSlotsPerJob} = $sconfig->{MaxSlotsPerJob} || $qinfo->{MaxSlotsPerJob};
         }
 
-    
-    # Slots per share and state
-    my @slot_entries;
-    foreach my $state (keys %{$state_slots{$share}}) {
-        my $value = $state_slots{$share}{$state};
-        if($value){
-        push @slot_entries, "CoreCount\=$state\=$value";
+        # Slots per share and state
+        my @slot_entries;
+        foreach my $state (keys %{$state_slots{$share}}) {
+            my $value = $state_slots{$share}{$state};
+            if($value){
+            push @slot_entries, "CoreCount\=$state\=$value";
+            }
         }
-    }
-    if(@slot_entries){
-        $csha->{OtherInfo} = \@slot_entries;
-    }
+        if(@slot_entries){
+            $csha->{OtherInfo} = \@slot_entries;
+        }
     
-
         # MaxStageInStreams, MaxStageOutStreams
         # OBS: A-REX does not have separate limits for up and downloads.
         # OBS: A-REX only cares about totals, not per share limits!
