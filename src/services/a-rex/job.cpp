@@ -437,7 +437,7 @@ ARexJob::ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string&
   if(!id.empty()) id_ = id[0];
 }
 
-ARexJob::ARexJob(std::string const& job_desc_str,ARexGMConfig& config,const std::string& delegid,const std::string& clientid,const std::string& queue,Arc::Logger& logger,JobIDGenerator& idgenerator):id_(""),logger_(logger),config_(config) {
+ARexJob::ARexJob(std::string const& job_desc_str,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid, Arc::Logger& logger,JobIDGenerator& idgenerator):id_(""),logger_(logger),config_(config) {
   if(!config_) return;
 
   uid_ = config_.User().get_uid();
