@@ -54,6 +54,7 @@ override_dh_auto_configure:
 		    --libexecdir=/usr/lib \
 		    --docdir=/usr/share/doc/nordugrid-arc \
 		    --enable-gfal \
+		    --enable-s3 \
 		    --enable-xrootd=$(XROOTD) \
 		    --enable-internal \
 		    --enable-systemd=$(SYSTEMD) \
