@@ -54,7 +54,7 @@ quickstart guide that will give you an ARC Computing Element and introduce you
 to typical distributed computing workflows in just a few minutes!
 
 QUICKSTART GUIDE:
-  <http://www.nordugrid.org/arc/arc6/admins/try_arc6.html>
+  <http://www.nordugrid.org/arc/arc7/admins/quickstart_jwt.html>
 
 
 For production Computing Element deployment follow the 
@@ -62,7 +62,7 @@ Installation and Configuration Guide, which contains pointers to precise
 configuration of every ARC subsystem.
 
 INSTALLATION and CONFIG GUIDE:
-  <http://www.nordugrid.org/arc/arc6/admins/arc6_install_guide.html>
+  <http://www.nordugrid.org/arc/arc7/admins/arc_install_guide.html>
 
 
 Contributing
@@ -94,7 +94,7 @@ several mailing lists including the nordugrid-discuss mailing list which provide
 a general forum for all kind of issues related to the ARC middleware. 
 
 MAILING LISTS:
-  <https://mail.nordugrid.org/mailman/listinfo>
+  <Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch >
 
 The Bugzilla problem tracking system accepts requests for features or 
 enhancements, and it is also the main system for tracking and reporting problems.
@@ -109,8 +109,8 @@ Research papers, overview talks, reference manuals, user guides,
 installation instructions, conference presentations, FAQ and even
 tutorial materials can be found in the documentation section of the website.
   
-ARC6 specific documentation is at
-  <http://www.nordugrid.org/arc/arc6/>
+ARC7 specific documentation is at
+  <http://www.nordugrid.org/arc/arc7/>
 
 
 Contact
