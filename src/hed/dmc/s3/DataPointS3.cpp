@@ -479,15 +479,19 @@ DataStatus DataPointS3::Remove() {
                                           &responseCompleteCallback };
 
     S3_delete_bucket(protocol, uri_style, access_key.c_str(),
+#if defined(S3_SECURITY_TOKEN)
+                    0,  // securityToken
+#endif
+                    0, // hostName
+                    bucket_name.c_str(), //bucketName
 #if defined(S3_DEFAULT_REGION)
-                     secret_key.c_str(), 0, 0, bucket_name.c_str(), auth_region.c_str(), NULL,
-#else
-                     secret_key.c_str(), 0, 0, bucket_name.c_str(), 0,
+                    auth_region.c_str(), // authRegion
 #endif
+                    NULL, // requestContext
 #if defined(S3_TIMEOUTMS)
-                     S3_TIMEOUTMS,
+                    S3_TIMEOUTMS, //timeoutMs
 #endif
-                     &responseHandler, 0);
+                    &responseHandler, 0);
   } else {
     S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                       protocol,           uri_style,
@@ -533,16 +537,20 @@ DataStatus DataPointS3::CreateDirectory(bool with_parents) {
                                         &responseCompleteCallback };
 
   S3CannedAcl cannedAcl = S3CannedAclPrivate;
-  S3_create_bucket(protocol, access_key.c_str(), secret_key.c_str(), 0, 0,
+  S3_create_bucket(protocol, access_key.c_str(), secret_key.c_str(), 
+#if defined(S3_SECURITY_TOKEN)
+                    0,  // securityToken
+#endif
+                    0, // hostName
+                    bucket_name.c_str(), //bucketName
 #if defined(S3_DEFAULT_REGION)
-                   bucket_name.c_str(), auth_region.c_str(), cannedAcl, 0, 0,
+                    auth_region.c_str(), // authRegion
+#endif
+                    cannedAcl, 0, 0, // cannedAcl,locationConstraint,requestContext
 #if defined(S3_TIMEOUTMS)
-                   S3_TIMEOUTMS,
+                    S3_TIMEOUTMS, //timeoutMs
 #endif
-                   &responseHandler, 0);
-#else
-                   bucket_name.c_str(), cannedAcl, 0, 0, &responseHandler, 0);
-#endif
+                    &responseHandler, 0);
 
   if (request_status == S3StatusOK) {
     return DataStatus::Success;
