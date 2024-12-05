@@ -424,7 +424,7 @@ DataStatus DataPointS3::List(std::list<FileInfo> &files,
 
     S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                       protocol,           uri_style,
-                                      access_key.c_str(), secret_key.c_str(),
+                                      access_key.c_str(), secret_key.c_str()
 #if defined(S3_SECURITY_TOKEN)
                                       , NULL
 #endif
@@ -564,7 +564,7 @@ void DataPointS3::read_file() {
 
   S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                     protocol,           uri_style,
-                                    access_key.c_str(), secret_key.c_str(),
+                                    access_key.c_str(), secret_key.c_str()
 #if defined(S3_SECURITY_TOKEN)
                                       , NULL
 #endif
@@ -620,7 +620,7 @@ void DataPointS3::write_file() {
 
   S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                     protocol,           uri_style,
-                                    access_key.c_str(), secret_key.c_str(),
+                                    access_key.c_str(), secret_key.c_str()
 #if defined(S3_SECURITY_TOKEN)
                                       , NULL
 #endif
