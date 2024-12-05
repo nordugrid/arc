@@ -478,7 +478,7 @@ DataStatus DataPointS3::Remove() {
     S3ResponseHandler responseHandler = { &responsePropertiesCallback,
                                           &responseCompleteCallback };
 
-    S3_delete_bucket(protocol, uri_style, access_key.c_str(),
+    S3_delete_bucket(protocol, uri_style, access_key.c_str(),secret_key.c_str(),
 #if defined(S3_SECURITY_TOKEN)
                     0,  // securityToken
 #endif
