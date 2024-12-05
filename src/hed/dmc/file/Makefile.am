@@ -17,7 +17,7 @@ libdmcfile_la_LDFLAGS = -no-undefined -avoid-version -module
 
 libdmcfile.apd: libdmcfile.apd.in libdmcfile.la
 	mkdir -p .libs
-	cp libdmcfile.apd.in .libs/libdmcfile.apd
-	cp libdmcfile.apd.in libdmcfile.apd
+	cp $(srcdir)/libdmcfile.apd.in .libs/libdmcfile.apd
+	cp $(srcdir)/libdmcfile.apd.in libdmcfile.apd
 
 
