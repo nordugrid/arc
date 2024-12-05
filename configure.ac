@@ -1906,6 +1906,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/grid-manager/arc-blahp-logger.8
                  src/services/a-rex/grid-manager/gm-jobs.8
                  src/services/a-rex/rest/Makefile
+                 src/services/a-rex/rest/test/Makefile
                  src/services/a-rex/delegation/Makefile
                  src/services/a-rex/grid-manager/Makefile
                  src/services/a-rex/grid-manager/accounting/Makefile
