@@ -178,8 +178,9 @@ static char const * ParseFromJson(Arc::XMLNode& xml, char const * input, int dep
     if(*input == '{') {
         // complex item
         ++input;
-        char const * nameStart = SkipWS(input);
-        if(*nameStart != '}') while(true) {
+        input = SkipWS(input);
+        if(*input != '}') while(true) {
+            char const * nameStart = input;
             if(*nameStart != '"') return NULL;
             ++nameStart;
             char const * nameEnd = SkipToEscaped(nameStart, '"');
@@ -194,6 +195,7 @@ static char const * ParseFromJson(Arc::XMLNode& xml, char const * input, int dep
             if(*input == ',') {
                 // next element
                 ++input;
+                input = SkipWS(input);
             } else if(*input == '}') {
                 // last element
                 break;
@@ -205,9 +207,9 @@ static char const * ParseFromJson(Arc::XMLNode& xml, char const * input, int dep
     } else if(*input == '[') {
         ++input;
         // array
-        char const * nameStart = SkipWS(input);
+        input = SkipWS(input);
         XMLNode item = xml;
-        if(*nameStart != ']') while(true) {
+        if(*input != ']') while(true) {
             input = ParseFromJson(item,input,depth+1);
             if(!input) return NULL;
             input = SkipWS(input);
