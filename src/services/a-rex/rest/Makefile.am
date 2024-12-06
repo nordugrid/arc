@@ -1,5 +1,5 @@
-SUBDIRS = 
-DIST_SUBDIRS = 
+DIST_SUBDIRS = test
+SUBDIRS = $(TEST_DIR)
 
 noinst_LTLIBRARIES = libarexrest.la
 
