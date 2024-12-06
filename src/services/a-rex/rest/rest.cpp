@@ -337,6 +337,8 @@ static void ExtractRange(Arc::Message& inmsg, off_t& range_start, off_t& range_e
 }
 
 
+#ifndef CPPUNITTEST
+
 std::string ARexRest::ProcessingContext::operator[](char const * key) const {
   if(!key)
     return "";
@@ -2021,3 +2023,5 @@ Arc::MCC_Status ARexRest::processJobDelegation(Arc::Message& inmsg,Arc::Message&
   return HTTPFault(inmsg,outmsg,501,"Not Implemented");
 }
 */
+
+#endif // CPPUNITTEST
