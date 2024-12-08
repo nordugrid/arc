@@ -272,6 +272,7 @@ Depends:
  nordugrid-arc-plugins-needed (= ${binary:Version}),
  libjson-xs-perl,
  libxml-simple-perl,
+ procps,
  lsb-base (>= 3.0-6)
 Description: ARC Resource-coupled EXecution service
  NorduGrid is a collaboration aiming at development, maintenance and
