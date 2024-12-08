@@ -213,6 +213,7 @@ BuildRequires:	python2-devel
 %endif
 %if %{with_python3}
 BuildRequires:	python%{python3_pkgversion}-devel
+BuildRequires:	python%{python3_pkgversion}-setuptools
 %endif
 %if %{with_pylint}
 BuildRequires:	pylint
@@ -514,6 +515,8 @@ Requires:	python3-ldap
 %else
 Requires:	python-ldap
 %endif
+Requires:	findutils
+Requires:	procps
 Provides:	%{name}-cache-service = %{version}-%{release}
 Obsoletes:	%{name}-cache-service < 6.0.0
 Provides:	%{name}-candypond = %{version}-%{release}
