@@ -1351,3 +1351,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{python3_sitelib}/pyarcrest
 %{python3_sitelib}/pyarcrest-*.*-info
 %{_bindir}/arcrest
+
+%changelog
+* @SPECDATE@ Anders Waananen <waananen@nbi.dk> - @baseversion@-@fedorarelease@
+- Unofficial build
