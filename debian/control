@@ -40,6 +40,7 @@ Build-Depends:
  python-twisted | libinline-python-perl (>= 0.56-2~),
  python-openssl | libinline-python-perl (>= 0.56-2~),
  python3-dev,
+ python3-setuptools,
  python3-twisted | libinline-python-perl (<< 0.56-2~) | dpkg (<< 1.18),
  python3-openssl | libinline-python-perl (<< 0.56-2~) | dpkg (<< 1.18)
 XS-Python-Version: current
@@ -288,6 +289,7 @@ Depends:
  nordugrid-arc-plugins-needed (= ${binary:Version}),
  libjson-xs-perl,
  libxml-simple-perl,
+ procps,
  ${pydeps:Depends},
  lsb-base (>= 3.0-6)
 XB-Python-Version: ${python:Versions}
