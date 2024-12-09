@@ -1797,3 +1797,6 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %defattr(-,root,root,-)
 %attr(4755,root,root) %{_bindir}/arc-job-cgroup
 
+%changelog
+* @SPECDATE@ Anders Waananen <waananen@nbi.dk> - @baseversion@-@fedorarelease@
+- Unofficial build
