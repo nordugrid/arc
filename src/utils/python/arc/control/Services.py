@@ -56,14 +56,19 @@ class ServicesControl(ComponentControl):
             # check is arcctl-service package (that contains service control modules) installed via packet manager
             if self.pm.is_installed(self.package_base + '-arcctl-service'):
                 self.sm = OSServiceManagement()
-            # epel6 and epel7 contains 'nordugrid-arc6' base to coexist with ARC5 release
-            elif self.pm.is_installed(self.package_base + '6-arcctl-service'):
-                self.package_base += '6'
+            # epel7 and epel8 contains 'nordugrid-arc7' base to coexist with ARC6 release
+            elif self.pm.is_installed(self.package_base + '7-arcctl-service'):
+                self.package_base += '7'
                 self.sm = OSServiceManagement()
             # ARC installed without known packet manager
             else:
                 self.pm = None
-                self.sm = OSServiceManagement(ARC_LOCATION + '/etc/rc.d/init.d/')
+                if ARC_LOCATION == '/usr':
+                    # rely on OS service management for installation in default location
+                    self.sm = OSServiceManagement()
+                else:
+                    # otherwise just use startup scripts
+                    self.sm = OSServiceManagement(ARC_LOCATION + '/etc/rc.d/init.d/')
         return self.pm, self.sm
 
     def __get_configured(self):
