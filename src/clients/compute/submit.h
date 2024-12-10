@@ -24,7 +24,7 @@ int legacy_submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescri
 
 int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface);
 
-/// Implements ARC6 logic of targets selection based on info/submit types requested
+/// Implements targets selection logic based on info/submission endpoint types requested
 /**
   This helper method process requested types, computing elements and registry and 
   defines the endpoint batches for submission tries.

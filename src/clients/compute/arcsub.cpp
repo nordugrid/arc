@@ -194,7 +194,7 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
   // canonicalize endpoint types
   if (!opt.canonicalizeARCInterfaceTypes(logger)) return 1;
 
-  // get endpoint batches according to ARC6 target selection logic
+  // get endpoint batches
   std::list<std::list<Arc::Endpoint> > endpoint_batches;
   bool info_discovery = prepare_submission_endpoint_batches(usercfg, opt, endpoint_batches);
 

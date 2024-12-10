@@ -4,7 +4,7 @@ Module for interaction with the ARC CE REST interface.
 Automatic support for multiple versions of the API is implemented with optional
 manual selection of the API version. This is done by defining a base class with
 methods closely reflecting the operations specified in the ARC CE REST
-interface specification: https://www.nordugrid.org/arc/arc6/tech/rest/rest.html
+interface specification: https://www.nordugrid.org/arc/arc7/tech/rest/rest.html
 Additionally, the base class defines some higher level methods, e. g. a method
 to upload job input files using multiple threads.
 
