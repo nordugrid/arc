@@ -1,11 +1,10 @@
 INSTALLING AND TESTING
 ======================
 
-The arcctl tool is installed along with A-REX package or built from source tree along with entire code using general ARC build sequence.
+The arcctl tool is installed standalone or as A-REX package dependency.
 
 The arcctl uses python configuration parser and rely havily on config to get the values of control directory, runtime directry, logs paths, etc.
 
-Thus new config structure is implied, you can obviously test it on ARC6. 
 
 LEARINING HOW TO USE ARCCTL
 ===========================
@@ -46,8 +45,6 @@ To get the completion power make sure you have installed and enabled python-argc
 The easiest way is to enable python completion globally:
   yum install python-argcomplete
   activate-global-python-argcomplete
-
-P.S. We can investigate packages availability and maybe add 'Requires' to packaging.
 
 DEVELOP COMPONENT FOR ARCCTL
 ============================
