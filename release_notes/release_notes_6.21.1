@@ -1,0 +1,98 @@
+=================================
+Advanced Resource Connector (ARC)
+=================================
+
+
+Release Notes for NorduGrid ARC  6.21.1    10.12.2024
+=======================================================
+
+This patch release solves the problems introduced in 6.21.0 related to the changes introduced in the infosys for Bugzilla ticket 4196. 
+
+Several problems were discovered, and the relevant block in info.xml now has a different format compared to the first attempt. 
+There is now one OtherInfo entry per internal AREX job state - and as before, per share. 
+In addition we have added the same metrics for any vomsvo's defined. 
+
+The possible states are: 
+INLRMS:Q
+INLRMS:R
+INLRMS:O
+INLRMS:E
+INLRMS:S
+PREPARING
+FINISHING
+
+
+Here is a snippet of how the information could look like in info.xml: 
+
+ <ComputingShare BaseType="Share" CreationTime="2024-12-10T09:46:11Z" Validity="10800">
+            <ID>urn:ogf:ComputingShare:arctest-el7:main</ID>
+            <Name>main</Name>
+            <OtherInfo>CoreCount=INLRMS:R=1</OtherInfo>
+            <OtherInfo>CoreCount=INLRMS:Q=3</OtherInfo>
+            <OtherInfo>CoreCount=PREPARING=2</OtherInfo>
+            <OtherInfo>CoreCount=FINISHING=5</OtherInfo>
+            <..truncated..>
+</ComputingShare>
+
+
+
+The following Bugzilla tickets have been addressed or solved
+------------------------------------------------------------
+
+The following Bugzilla tickets have been resolved:
+* 4196  ARC should publish job and core summary information
+
+
+Documentation
+==============
+The ARC 6 documentation can be found at http://www.nordugrid.org/arc/arc6
+
+If you miss something or have questions, please contact us!
+
+
+Installing ARC 6
+=================
+We recommend to install ARC release using the Nordugrid repository.
+* Start with the basics: http://www.nordugrid.org/arc/arc6/admins/try_arc6.html
+* Get production ready: http://www.nordugrid.org/arc/arc6/admins/arc6_install_guide.html
+
+Note that if you instead install from EPEL for RHEL 7 compatible systems,
+the ARC 6 packages can be found as nordugrid-arc6-* and not nordugrid-arc-*
+This was needed in order to supply both ARC 5 already available for RHEL7 and the new ARC 6.
+
+
+We provide binary builds for all supported versions of
+  * Debian (i386 and amd64)
+  * Fedora (x86_64)
+  * Centos/RHEL (x86_64)
+  * Ubuntu (i386 and amd64, both LTS and interim releases) - from Ubuntu 20.04 no i386 support
+
+In addition we build nightly packages for older platforms.
+
+
+Contributing
+=============
+You can submit pull requests to our public repo at https://github.com/nordugrid/arc which mirrors
+our Gitlab repo https://source.coderefinery.org/nordugrid/arc.
+
+The pull requests will be automatically copied over to our Gitlab repo where they will be
+merged into the source-code if accepted.
+
+
+Getting in touch
+==================
+If you need help with the configuration file or have any other questions related to ARC 6, please contact us via
+* Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
+* Skype channel dedicated to ARC 6 support: https://join.skype.com/dyf3A6Uutjy2
+* Report a bug: https://bugzilla.nordugrid.org/
+
+
+Coming ARC 7 release
+=====================
+Start getting ready for ARC 7. We expect a release in 2024. You can already now install the testing version of ARC following: http://www.nordugrid.org/arc/arc7/common/repos/testing-repository.html. For upgrade instructions, please see: http://www.nordugrid.org/arc/arc7/admins/migrating6to7.html.
+
+The support policy of ARC 6 will follow the same policy we had for ARC 5: 1 year security updates, no more development of ARC 6 once ARC 7 is out.
+
+Installing from EPEL:
+----------------------
+Once the release is out, it can be installed from EPEL using package-name types: nordugrid-arc7-*
