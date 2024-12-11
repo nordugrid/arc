@@ -284,7 +284,7 @@ job_canwait() {
     || { log "job_canwait requires the following to be set: gridid, maxwait"; return 1; }
 
     
-    countfile="${basenames[$localid]}/lrms_done"
+    countfile="${basenames[$localid]}/lrms_job"
     if [ ! -f "$countfile" ]; then
         echo "1" > "$countfile" || { log "cannot write count file: $PWD/$countfile"; return 1; }
     else
