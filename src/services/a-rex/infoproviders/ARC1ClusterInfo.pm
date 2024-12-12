@@ -937,7 +937,17 @@ sub collect($) {
 
     # corecount per internal AREX state
     my %state_slots;
-
+    
+    # Initialize cores stats to 0
+    for my $sharename (keys %{$GLUE2shares}) {
+        $state_slots{$sharename}{"INLRMS:Q"} ||= 0;
+        $state_slots{$sharename}{"INLRMS:R"} ||= 0;
+        $state_slots{$sharename}{"INLRMS:O"} ||= 0;
+        $state_slots{$sharename}{"INLRMS:E"} ||= 0;
+        $state_slots{$sharename}{"INLRMS:S"} ||= 0;
+        $state_slots{$sharename}{"PREPARING"} ||= 0;
+        $state_slots{$sharename}{"FINISHING"} ||= 0;
+    }
 
     # fills most of the above hashes
     for my $jobid (keys %$gmjobs_info) {
@@ -2916,10 +2926,7 @@ sub collect($) {
         # Slots per share and state
         my @slot_entries;
         foreach my $state (keys %{$state_slots{$share}}) {
-            my $value = $state_slots{$share}{$state};
-            if($value){
-            push @slot_entries, "CoreCount\=$state\=$value";
-            }
+            push @slot_entries, "CoreCount\=$state\=$state_slots{$share}{$state}";
         }
         if(@slot_entries){
             $csha->{OtherInfo} = \@slot_entries;
