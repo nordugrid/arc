@@ -4,8 +4,10 @@
 
 workflow:
   rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-
+   - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+     when: always
+   - if: $CI_COMMIT_BRANCH =~ /^patch/
+     when: always
 
 stages:
   - build
