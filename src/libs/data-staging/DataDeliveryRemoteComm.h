@@ -24,6 +24,9 @@ namespace DataStaging {
     /// Read status from service
     virtual void PullStatus();
 
+    /// Returns identifier of delivery handler - URL of delivery service.
+    virtual std::string DeliveryId() const;
+
     /// Pings service to find allowed dirs
     static bool CheckComm(DTR_ptr dtr, std::vector<std::string>& allowed_dirs, std::string& load_avg);
 
