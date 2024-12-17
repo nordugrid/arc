@@ -4,6 +4,7 @@
 # param:BINARY_PATH:string:/usr/bin/singularity:singularity binary location
 
 SINGULARITY_OPTIONS="${SINGULARITY_OPTIONS:-}"
+SINGULARITY_OPTIONS="${3:-$SINGULARITY_OPTIONS}"
 SINGULARITY_IMAGE="${SINGULARITY_IMAGE:-}"
 BINARY_PATH="${BINARY_PATH:-'/usr/bin/singularity'}"
 BINARY_PATH="${4:-$BINARY_PATH}"
