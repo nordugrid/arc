@@ -69,8 +69,6 @@ namespace DataStaging {
     unsigned int status_pos_;
     /// Lock to protect access to status
     Glib::Mutex lock_;
-    /// Pointer to singleton handler of all DataDeliveryComm objects
-    DataDeliveryCommHandler* handler_;
     /// Transfer limits
     TransferParameters transfer_params;
     /// Time transfer was started
@@ -86,12 +84,22 @@ namespace DataStaging {
      */
     virtual void PullStatus() = 0;
 
+    /// Returns identifier of the handler/delivery service this object uses to perform transfers.
+    virtual std::string DeliveryId() const = 0;
+
     /// Start transfer with parameters taken from DTR and supplied transfer limits.
     /**
      * Constructor should not be used directly, CreateInstance() should be used
      * instead.
      */
     DataDeliveryComm(DTR_ptr dtr, const TransferParameters& params);
+
+    /// Access handler used for this DataDeliveryComm object
+    DataDeliveryCommHandler& GetHandler();
+
+   private:
+    /// Pointer to handler used for this DataDeliveryComm object
+    DataDeliveryCommHandler* handler_;
 
    public:
     /// Factory method to get DataDeliveryComm instance.
@@ -133,7 +141,8 @@ namespace DataStaging {
     Glib::Mutex lock_;
     static void func(void* arg);
     std::list<DataDeliveryComm*> items_;
-    static DataDeliveryCommHandler* comm_handler;
+    static Glib::Mutex comm_lock;
+    static std::map<std::string, DataDeliveryCommHandler*> comm_handler;
 
     /// Constructor is private - getInstance() should be used instead
     DataDeliveryCommHandler();
@@ -146,8 +155,8 @@ namespace DataStaging {
     void Add(DataDeliveryComm* item);
     /// Remove a DataDeliveryComm instance from the handler
     void Remove(DataDeliveryComm* item);
-    /// Get the singleton instance of the handler
-    static DataDeliveryCommHandler* getInstance();
+    /// Get the instance of the handler for specified delivery id
+    static DataDeliveryCommHandler* getInstance(std::string const & id);
   };
 
 } // namespace DataStaging
