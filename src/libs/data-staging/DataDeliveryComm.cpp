@@ -15,8 +15,12 @@ namespace DataStaging {
   }
 
   DataDeliveryComm::DataDeliveryComm(DTR_ptr dtr, const TransferParameters& params)
-    : status_pos_(0),transfer_params(params),logger_(dtr->get_logger()) {
-    handler_= DataDeliveryCommHandler::getInstance();
+    : status_pos_(0),transfer_params(params),logger_(dtr->get_logger()),handler_(NULL) {
+  }
+
+  DataDeliveryCommHandler& DataDeliveryComm::GetHandler() {
+    if(handler_) return *handler_;
+    return *(handler_ = DataDeliveryCommHandler::getInstance(DeliveryId()));
   }
 
   DataDeliveryComm::Status DataDeliveryComm::GetStatus(void) const {
@@ -53,11 +57,14 @@ namespace DataStaging {
     }
   }
 
-  DataDeliveryCommHandler* DataDeliveryCommHandler::comm_handler = NULL;
+  Glib::Mutex DataDeliveryCommHandler::comm_lock;
+  std::map<std::string, DataDeliveryCommHandler*> DataDeliveryCommHandler::comm_handler;
 
-  DataDeliveryCommHandler* DataDeliveryCommHandler::getInstance() {
-    if(comm_handler) return comm_handler;
-    return (comm_handler = new DataDeliveryCommHandler);
+  DataDeliveryCommHandler* DataDeliveryCommHandler::getInstance(std::string const & id) {
+    Glib::Mutex::Lock lock(comm_lock);
+    std::map<std::string, DataDeliveryCommHandler*>::iterator it = comm_handler.find(id);
+    if(it != comm_handler.end()) return it->second;
+    return (comm_handler[id] = new DataDeliveryCommHandler);
   }
 
   // This is a dedicated thread which periodically checks for
