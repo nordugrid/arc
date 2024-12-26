@@ -181,6 +181,8 @@ static int runmain(int argc, char **argv) {
   if (allow_insecure_connection) usercfg.TLSAllowInsecure(true);
  
   AuthenticationType authentication_type = UndefinedAuthentication;
+  if(!getAuthenticationType(logger, usercfg, no_authentication, x509_authentication, token_authentication, authentication_type))
+    return 1;
   switch(authentication_type) {
     case NoAuthentication:
       usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeNone);
