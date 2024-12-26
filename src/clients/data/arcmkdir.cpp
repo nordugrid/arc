@@ -52,20 +52,7 @@ bool arcmkdir(const Arc::URL& file_url,
     return false;
   }
   if (url->RequiresCredentials()) {
-    if (!usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials)) {
-      logger.msg(Arc::ERROR, "Unable to create directory %s", file_url.str());
-      logger.msg(Arc::ERROR, "Invalid credentials, please check proxy and/or CA certificates");
-      return false;
-    }
-    Arc::Credential holder(usercfg);
-    if (!holder.IsValid()) {
-      if (holder.GetEndTime() < Arc::Time()) {
-        logger.msg(Arc::ERROR, "Proxy expired");
-      }
-      logger.msg(Arc::ERROR, "Unable to create directory %s", file_url.str());
-      logger.msg(Arc::ERROR, "Invalid credentials, please check proxy and/or CA certificates");
-      return false;
-    }
+   if(!initProxy(logger, usercfg, file_url)) return false;
   }
   url->SetSecure(false);
   Arc::DataStatus res = url->CreateDirectory(with_parents);
@@ -137,6 +124,11 @@ static int runmain(int argc, char **argv) {
               istring("force using CA certificates configuration for Grid services (typically IGTF)"),
               force_grid_ca);
     
+  bool allow_insecure_connection = false;
+  options.AddOption('\0', "allowinsecureconnection",
+              istring("allow TLS connection which failed verification"),
+              allow_insecure_connection);
+
   std::string debug;
   options.AddOption('d', "debug",
                     istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
@@ -186,7 +178,8 @@ static int runmain(int argc, char **argv) {
   usercfg.Timeout(timeout);
   if (force_system_ca) usercfg.CAUseSystem(true);
   if (force_grid_ca) usercfg.CAUseSystem(false);
-
+  if (allow_insecure_connection) usercfg.TLSAllowInsecure(true);
+ 
   AuthenticationType authentication_type = UndefinedAuthentication;
   switch(authentication_type) {
     case NoAuthentication:

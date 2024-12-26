@@ -19,4 +19,6 @@ bool getAuthenticationType(Arc::Logger& logger, Arc::UserConfig const& usercfg,
                            bool no_authentication, bool x509_authentication, bool token_authentication,
                            AuthenticationType& authentication_type);
 
+bool initProxy(Arc::Logger& logger, Arc::UserConfig& usercfg, const Arc::URL& file);
+
 #endif // __ARC_CLIENT_DATA_UTILS_H_
