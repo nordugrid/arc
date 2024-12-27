@@ -64,20 +64,7 @@ bool arcrename(const Arc::URL& old_url,
     return false;
   }
   if (url->RequiresCredentials()) {
-    if (!usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials)) {
-      logger.msg(Arc::ERROR, "Unable to rename %s", old_url.str());
-      logger.msg(Arc::ERROR, "Invalid credentials, please check proxy and/or CA certificates");
-      return false;
-    }
-    Arc::Credential holder(usercfg);
-    if (!holder.IsValid()) {
-      if (holder.GetEndTime() < Arc::Time()) {
-        logger.msg(Arc::ERROR, "Proxy expired");
-      }
-      logger.msg(Arc::ERROR, "Unable to rename %s", old_url.str());
-      logger.msg(Arc::ERROR, "Invalid credentials, please check proxy and/or CA certificates");
-      return false;
-    }
+    if(!initProxy(logger, usercfg, old_url)) return false;
   }
 
   // Insecure by default
@@ -148,6 +135,11 @@ static int runmain(int argc, char **argv) {
               istring("force using CA certificates configuration for Grid services (typically IGTF)"),
               force_grid_ca);
     
+  bool allow_insecure_connection = false;
+  options.AddOption('\0', "allowinsecureconnection",
+              istring("allow TLS connection which failed verification"),
+              allow_insecure_connection);
+
   std::string debug;
   options.AddOption('d', "debug",
                     istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
@@ -196,8 +188,11 @@ static int runmain(int argc, char **argv) {
   usercfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY());
   if (force_system_ca) usercfg.CAUseSystem(true);
   if (force_grid_ca) usercfg.CAUseSystem(false);
-
+  if (allow_insecure_connection) usercfg.TLSAllowInsecure(true);
+ 
   AuthenticationType authentication_type = UndefinedAuthentication;
+  if(!getAuthenticationType(logger, usercfg, no_authentication, x509_authentication, token_authentication, authentication_type))
+    return 1;
   switch(authentication_type) {
     case NoAuthentication:
       usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeNone);

@@ -65,21 +65,7 @@ int arcrm(const std::list<Arc::URL>& urls,
       }
 
       if ((*handle)->RequiresCredentials()) {
-        if (!usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials)) {
-          logger.msg(Arc::ERROR, "Unable to remove file %s", url->str());
-          logger.msg(Arc::ERROR, "Invalid credentials, please check proxy and/or CA certificates");
-          failed++;
-          delete handle;
-          handle = NULL;
-          continue;
-        }
-        Arc::Credential holder(usercfg);
-        if (!holder.IsValid()) {
-          if (holder.GetEndTime() < Arc::Time()) {
-            logger.msg(Arc::ERROR, "Proxy expired");
-          }
-          logger.msg(Arc::ERROR, "Unable to remove file %s", url->str());
-          logger.msg(Arc::ERROR, "Invalid credentials, please check proxy and/or CA certificates");
+        if(!initProxy(logger, usercfg, *url)) {
           failed++;
           delete handle;
           handle = NULL;
@@ -162,6 +148,11 @@ static int runmain(int argc, char **argv) {
   options.AddOption('\0', "gridca",
               istring("force using CA certificates configuration for Grid services (typically IGTF)"),
               force_grid_ca);
+
+  bool allow_insecure_connection = false;
+  options.AddOption('\0', "allowinsecureconnection",
+              istring("allow TLS connection which failed verification"),
+              allow_insecure_connection);
     
   std::string debug;
   options.AddOption('d', "debug",
@@ -213,6 +204,7 @@ static int runmain(int argc, char **argv) {
   usercfg.Timeout(timeout);
   if (force_system_ca) usercfg.CAUseSystem(true);
   if (force_grid_ca) usercfg.CAUseSystem(false);
+  if (allow_insecure_connection) usercfg.TLSAllowInsecure(true);
 
   AuthenticationType authentication_type = UndefinedAuthentication;
   if(!getAuthenticationType(logger, usercfg, no_authentication, x509_authentication, token_authentication, authentication_type))
