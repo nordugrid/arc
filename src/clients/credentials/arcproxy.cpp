@@ -452,6 +452,11 @@ static int runmain(int argc, char *argv[]) {
                     istring("force using CA certificates configuration for Grid services (typically IGTF)"),
                     force_grid_ca);
 
+  bool allow_insecure_connection = false;
+  options.AddOption('\0', "allowinsecureconnection",
+                    istring("allow TLS connection which failed verification"),
+                    allow_insecure_connection);
+
   bool version = false;
   options.AddOption('v', "version", istring("print version information"),
                     version);
@@ -495,7 +500,8 @@ static int runmain(int argc, char *argv[]) {
 
   if (force_system_ca) usercfg.CAUseSystem(true);
   if (force_grid_ca) usercfg.CAUseSystem(false);
-
+  if (allow_insecure_connection) usercfg.TLSAllowInsecure(true);
+ 
   if(use_nssdb) {
     usercfg.CertificatePath("");;
     usercfg.KeyPath("");;

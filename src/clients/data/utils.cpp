@@ -71,3 +71,26 @@ bool getAuthenticationType(Arc::Logger& logger, Arc::UserConfig const& usercfg,
   return true;
 }
 
+bool initProxy(Arc::Logger& logger, Arc::UserConfig& usercfg, const Arc::URL& file) {
+  if(usercfg.CommunicationAuthType() != Arc::UserConfig::AuthTypeCert) {
+    usercfg.InitializeCredentials(Arc::initializeCredentialsType::SkipCredentials);
+    return true;
+  }
+
+  if (!usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials)) {
+    logger.msg(Arc::ERROR, "Unable to handle %s", file.str());
+    logger.msg(Arc::ERROR, "Invalid credentials, please check proxy and/or CA certificates");
+    return false;
+  }
+  Arc::Credential holder(usercfg);
+  if (!holder.IsValid()) {
+    if (holder.GetEndTime() < Arc::Time()) {
+      logger.msg(Arc::ERROR, "Proxy expired");
+    }
+    logger.msg(Arc::ERROR, "Unable to handle %s", file.str());
+    logger.msg(Arc::ERROR, "Invalid credentials, please check proxy and/or CA certificates");
+    return false;
+  }
+  return true;
+}
+
