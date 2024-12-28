@@ -300,6 +300,70 @@ class AccountingControl(ComponentControl):
         for (event, date) in events:
             print('{0}\t{1}'.format(date, event))
 
+    def jobdownload(self, jobid):
+        self.__init_adb()
+        self.adb.filter_jobids([jobid])
+        aars = self.adb.get_aars(resolve_ids=False)
+        if not aars:
+            self.logger.error('There is no job accounting information found for job %s', jobid)
+            sys.exit(1)
+        self.adb.enrich_aars(aars, dtrs=True)
+        datatransfers = aars[0].datatransfers()
+        if not datatransfers:
+            self.logger.error('There are no data transfers registered for job %s', jobid)
+            return
+
+        inputs_all = {'size':0,'nfiles':0,'start':None,'end':None}
+        inputs_remote = {'size':0,'nfiles':0,'start':None,'end':None}
+        inputs_cache = {'size':0,'nfiles':0,'start':None,'end':None}
+        size_all = 0
+        size_remote = 0
+        size_cache = 0
+        
+        for dtrinfo in datatransfers:
+            if dtrinfo['type'] == 'input':
+                
+                size_all += dtrinfo['size']
+                size_remote += dtrinfo['size']
+                
+                inputs_all['nfiles'] += 1
+                inputs_remote['nfiles'] += 1
+                
+                if inputs_remote['start'] is None or dtrinfo['timestart'] < inputs_remote['start']:
+                    inputs_remote['start'] = dtrinfo['timestart']
+                    inputs_all['start'] = dtrinfo['timestart']
+                if inputs_remote['end'] is None or dtrinfo['timeend'] > inputs_remote['end']:
+                    inputs_remote['end'] = dtrinfo['timeend']
+                    inputs_all['end'] = dtrinfo['timeend']
+                    
+            elif dtrinfo['type'] == 'cache_input':
+                
+                size_all += dtrinfo['size']
+                size_cache += dtrinfo['size']
+
+                inputs_cache['nfiles'] += 1
+                inputs_all['nfiles'] += 1
+                
+                if inputs_cache['start'] is None or dtrinfo['timestart'] < inputs_cache['start']:
+                    inputs_cache['start'] = dtrinfo['timestart']
+                    inputs_all['start'] = dtrinfo['timestart']
+                if inputs_cache['end'] is None or dtrinfo['timeend'] > inputs_cache['end']:
+                    inputs_cache['end'] = dtrinfo['timeend']
+                    inputs_all['end'] = dtrinfo['timeend']
+            else:
+                continue
+
+        inputs_remote['delta'] = inputs_remote['end'] - inputs_remote['start']
+        inputs_cache['delta'] = inputs_cache['end'] - inputs_cache['start']
+        inputs_all['delta'] = inputs_all['end'] - inputs_all['start']
+        inputs_remote['size'] = get_human_readable_size(size_remote)
+        inputs_cache['size'] = get_human_readable_size(size_cache)
+        inputs_all['size'] = get_human_readable_size(size_all)
+
+        
+        return inputs_remote, inputs_cache, inputs_all
+
+            
     def jobtransfers(self, jobid):
         self.__init_adb()
         self.adb.filter_jobids([jobid])
@@ -310,7 +374,7 @@ class AccountingControl(ComponentControl):
         self.adb.enrich_aars(aars, dtrs=True)
         datatransfers = aars[0].datatransfers()
         if not datatransfers:
-            self.logger.error('There are no data transfers registered for job %s', jobid)
+            self.logger.error('There are no data transfoers registered for job %s', jobid)
             return
         # sort by transfer type
         sorteddtr = {
