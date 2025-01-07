@@ -8,7 +8,7 @@ class OSServiceManagement(object):
     """This class aimed to handle both Systemd and SysV cases"""
     def __init__(self, scripts_path=None):
         self.command_base = []  # placeholder to include command's prefix, like ssh to host
-        # self.command_base = ['ssh', 'arc6.grid.org.ua']
+        # self.command_base = ['ssh', 'arc.grid.org.ua']
         self.logger = logging.getLogger('ARCCTL.OSServiceManagement')
         # scripts_path is defined - no OS service management, only scripts
         if scripts_path is not None:

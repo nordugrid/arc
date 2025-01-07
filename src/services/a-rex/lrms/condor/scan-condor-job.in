@@ -29,7 +29,7 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 # include common scan functions
 . "${pkgdatadir}/scan_common.sh" || exit $?
 
-# run common init 
+# run common init
 #  * parse config
 #  * load LRMS-specific env
 #  * set common variables
@@ -54,7 +54,7 @@ declare -a gridids
 declare -a ctrdirs
 # Array to store localids of jobs that are determined to have finished, which are sent to gm-kick
 declare -a kicklist
-# Array with jobid blocks 
+# Array with jobid blocks
 declare -a lidblocks
 
 # Find list of grid jobs with status INLRMS, store localid and
@@ -68,7 +68,7 @@ for ctr_dir in "$@"; do
         basename=$(control_path "${ctr_dir}" "${id}" "")
         localid=$(grep ^localid= "${basename}/local" | cut -d= -f2 | cut -d "." -f1)
         #verify_jobid "$localid" || continue
-	
+
         localids[${#localids[@]}]="$localid"
         basenames[$localid]="$basename"
         gridids[$localid]="$id"
@@ -90,7 +90,7 @@ fi
 #
 # Should print the id's of all jobs in the LRMS, one per line. If left
 # unimplemented then lrms_job_finished must be implemented. If it's
-# implemented then implementing lrms_job_finished is optional. 
+# implemented then implementing lrms_job_finished is optional.
 #
 lrms_list_jobs() {
     LIST_IMPLEMENTED=
@@ -114,7 +114,7 @@ lrms_job_finished() {
 # time is needed, the function should signal this by returning without setting
 # the LRMSExitcode variable. In this case it will be called again on the next
 # run on scan-*-jobs, but not more than $maxwait times for any given job. If
-# it sets LRMSExitcode, or $maxwait retries have already been done, then 
+# it sets LRMSExitcode, or $maxwait retries have already been done, then
 # lrms_last_call will be called shortly afterwards and the job declared done.
 # STDOUT and STDERR are redirected to job.$gridid.errors. The interval between
 # successive runs of scan-*-jobs is controlled by $wakeupperiod.
@@ -200,7 +200,7 @@ read_grami() {
 
     gramifile="${basenames[$localid]}/grami"
 
-    [ -f "$gramifile" ] || { log "grami file not found: $PWD/$gramifile"; return 1; }
+    [ -f "$gramifile" ] || { log "grami file not found: $gramifile"; return 1; }
 
     ReqWallTime=$(sed -n "s/^joboption_walltime=//p" "$gramifile" | tail -n 1)
     ReqCPUTime=$(sed -n "s/^joboption_cputime=//p" "$gramifile" | tail -n 1)
@@ -283,16 +283,16 @@ job_canwait() {
     [ -n "$gridid" ] && [ -n "$maxwait" ] \
     || { log "job_canwait requires the following to be set: gridid, maxwait"; return 1; }
 
-    
-    countfile="${basenames[$localid]}/lrms_done"
+
+    countfile="${basenames[$localid]}/lrms_job"
     if [ ! -f "$countfile" ]; then
-        echo "1" > "$countfile" || { log "cannot write count file: $PWD/$countfile"; return 1; }
+        echo "1" > "$countfile" || { log "cannot write count file: $countfile"; return 1; }
     else
-        count=$(head -n 1 "$countfile") || { log "cannot read count file: $PWD/$countfile"; return 1; }
-        [ -z "$count" ] && { log "empty count file: $PWD/$countfile"; return 1; }
-        dummy=$(echo "$count" | grep -v '[0-9]') && { log "not an integer in count file: $PWD/$countfile"; return 1; }
+        count=$(head -n 1 "$countfile") || { log "cannot read count file: $countfile"; return 1; }
+        [ -z "$count" ] && { log "empty count file: $countfile"; return 1; }
+        dummy=$(echo "$count" | grep -v '[0-9]') && { log "not an integer in count file: $countfile"; return 1; }
         [ "$count" -lt "$maxwait" ] || { rm -f "$countfile"; return 1; }
-        echo "$(( $count + 1 ))" > "$countfile" || { log "cannot write count file: $PWD/$countfile"; return 1; }
+        echo "$(( $count + 1 ))" > "$countfile" || { log "cannot write count file: $countfile"; return 1; }
     fi
     return 0
 }
@@ -372,10 +372,10 @@ job_write_donefile() {
     log "${msg:-$LRMS job $lrmsid finished normally}"
 
     donefile="${basenames[$localid]}/lrms_done"
-    echo "${LRMSExitcode:--1} $msg" > $donefile || log "failed writing file: $PWD/$donefile"
+    echo "${LRMSExitcode:--1} $msg" > $donefile || log "failed writing file: $donefile"
 
     # wake up GM
-    "${pkglibexecdir}/gm-kick" -j "$gridid" "$PWD"
+    "${pkglibexecdir}/gm-kick" -j "$gridid" "$ctrdir"
 }
 
 #
@@ -389,21 +389,21 @@ job_write_donefile() {
 process_job() {
     [ -n "$gridid" ] && [ -n "$lrmsid" ] && [ -n "$uid" ] && [ -n "$LRMS" ] \
     	|| { log "process_job requires the following to be set: gridid, lrmsid, uid, LRMS"; return 1; }
-    
+
 
     lrms_job_finished || return
-	
+
     log "[$(date +%Y-%m-%d\ %T)] $LRMS job $lrmsid has exited"
-    
+
     localfile="${basenames[$localid]}/local"
     sessiondir=$(sed -n 's/^sessiondir=//p' "$localfile" | tail -n 1)
-    [ -n "$sessiondir" ] || { log "failed reading sessiondir from: $PWD/$localfile"; return 1; }
-    
+    [ -n "$sessiondir" ] || { log "failed reading sessiondir from: $localfile"; return 1; }
+
     # move diag file that end-up in session directory after condor transfer_output (shared_filesystem = no)
     [ -f "${sessiondir}/${sessiondir##*/}.diag" ] && mv "${sessiondir}/${sessiondir##*/}.diag" "${sessiondir}.diag"
     job_read_diag
     lrms_get_accounting
-    
+
     if [ -z "$LRMSExitcode" ] && job_canwait; then
         : # Come back again next time
     else
@@ -413,7 +413,7 @@ process_job() {
         job_write_diag
         job_write_donefile
     fi
-    
+
 }
 
 
@@ -446,21 +446,21 @@ scan_init () {
 scan_main() {
 
     log () { echo "$progname: $*" 1>&2; }
-    
+
     donefile="${basenames[$localid]}/lrms_done"
     [ -f "$donefile" ] && return 0
-    
+
     errorsfile="${basenames[$localid]}/errors"
-    [ -w "$errorsfile" ] || { log "cannot write to errors file at: $PWD/$errorsfile"; return 0; }
-    
+    [ -w "$errorsfile" ] || { log "cannot write to errors file at: $errorsfile"; return 0; }
+
     jobfile="${basenames[$localid]}/local"
     uid=$(get_owner_uid "$jobfile")
-    
+
     # run in separate process to make sure shell vars of one job
     # are not influencing other jobs
     ( process_job; ) >> "$errorsfile" 2>&1
-        
-    
+
+
 }
 
 
@@ -480,7 +480,7 @@ lrms_list_jobs() {
 
 
 condor_read_history() {
-    # This Perl script reads and prints a per-job condor history file. We need to use a 
+    # This Perl script reads and prints a per-job condor history file. We need to use a
     # hash rather than printing the file directly because some attributes appear multiple
     # times and we need to use the last occurrence.
     condorscript='use strict;
@@ -495,7 +495,7 @@ condor_read_history() {
                       foreach my $key (keys %data) {
                           print $key." = ".$data{$key}."\n";
                       }
-                  } 
+                  }
     '
 
     # First try per-job history files (best performance)
@@ -511,7 +511,7 @@ condor_read_history() {
 
     # If per-job history is not in place - use common history files (including rotated)
     historydir=`$CONDOR_BIN_PATH/condor_config_val HISTORY`
-    if [ -z "$histstring" -a -n "$historydir" ]; then 
+    if [ -z "$histstring" -a -n "$historydir" ]; then
         # find the appropriate history file
         historyfile=`grep "$(hostname -s).*#$lrmsid.0" -l $historydir*`
         if [ $? -eq 0 ]; then
@@ -562,9 +562,9 @@ condor_read_log() {
     # Find the Condor log.
 
     gramifile="${basenames[$localid]}/grami"
-    [ -f "$gramifile" ] || { log "grami file not found: $PWD/$gramifile"; return 1; }
+    [ -f "$gramifile" ] || { log "grami file not found: $gramifile"; return 1; }
     condor_log=$(sed -n 's/^condor_log=//p' "$gramifile" | tail -n 1)
-    [ -n "$condor_log" ] || { log "condor_log not set in grami file: $PWD/$gramifile"; return 1; }
+    [ -n "$condor_log" ] || { log "condor_log not set in grami file: $gramifile"; return 1; }
     log "condor log is at: $condor_log"
     [ -r "$condor_log" ] || { log "Condor log file not readable: $condor_log"; return 1; }
 
@@ -695,7 +695,7 @@ for localid in ${localids[@]}; do
     gridid=${gridids[$localid]}
     ctrdir=${ctrdirs[$localid]}
     lrmsid=$localid
-    
+
     scan_init
     scan_main "$@"
 

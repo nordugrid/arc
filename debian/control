@@ -23,6 +23,7 @@ Build-Depends:
  libglobus-ftp-control-dev,
  libxrootd-client-dev | dpkg (<< 1.20.9),
  libgfal2-dev,
+ libs3-dev,
  openssl,
  swig,
  libnss3-dev,
@@ -271,6 +272,7 @@ Depends:
  nordugrid-arc-plugins-needed (= ${binary:Version}),
  libjson-xs-perl,
  libxml-simple-perl,
+ procps,
  lsb-base (>= 3.0-6)
 Description: ARC Resource-coupled EXecution service
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -430,6 +432,20 @@ Description: ARC xrootd plugins
  Connector (ARC).
  .
  ARC xrootd plugins. These allow access to data through the xrootd
+ protocol.
+
+Package: nordugrid-arc-plugins-s3
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ libarccommon4 (= ${binary:Version}),
+Description: ARC S3 plugins
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ ARC plugins for S3. These allow access to data through the S3
  protocol.
 
 Package: nordugrid-arc-plugins-gfal

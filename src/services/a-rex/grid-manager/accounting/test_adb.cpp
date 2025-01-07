@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
 
     ARex::AAR aar;
     aar.jobid = "0DULDmc8azunjwO5upha6lOqABFKDmABFKDmpjJKDmABFKDmQs7RCo";
-    aar.endpoint = { "org.nordugrid.gridftpjob", "gsiftp://arc6.univ.kiev.ua:2811/jobs/" };
+    aar.endpoint = { "org.nordugrid.arcrest", "https://arc.univ.kiev.ua:443/arex/" };
     aar.queue = "grid";
     aar.userdn = "/DC=org/DC=ugrid/O=people/O=KNU/CN=Andrii Salnikov";
     aar.wlcgvo = "testbed.univ.kiev.ua";

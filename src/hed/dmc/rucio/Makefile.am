@@ -1,7 +1,7 @@
 pkglib_LTLIBRARIES = libdmcrucio.la
 
 libdmcrucio_la_SOURCES = DataPointRucio.cpp DataPointRucio.h
-libdmcrucio_la_CXXFLAGS = -I$(top_srcdir)/include \
+libdmcrucio_la_CXXFLAGS = -I$(top_srcdir)/include -I$(top_builddir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS) $(OPENSSL_CFLAGS)
 libdmcrucio_la_LIBADD = \
 	$(top_builddir)/src/external/cJSON/libcjson.la \

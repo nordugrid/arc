@@ -36,6 +36,12 @@
 #define S3_TIMEOUTMS 0
 #endif
 
+// assume these changes introduced the same time as authRegion
+// TODO: find better way to distinguish libs3 versions
+#if defined(S3_DEFAULT_REGION)
+#define S3_SECURITY_TOKEN
+#define S3_SERVER_SIDE_ENCRYPTION
+#endif
 namespace ArcDMCS3 {
 
 using namespace Arc;
@@ -67,23 +73,23 @@ void DataPointS3::getCompleteCallback(S3Status status,
     int len = 0;
     if (error && error->message) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                      "  Message: %s\n", error->message);
+                      "Message: %s;", error->message);
     }
     if (error && error->resource) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                      "  Resource: %s\n", error->resource);
+                      "Resource: %s;", error->resource);
     }
     if (error && error->furtherDetails) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                      "  Further Details: %s\n", error->furtherDetails);
+                      "Further Details: %s;", error->furtherDetails);
     }
     if (error && error->extraDetailsCount) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len, "%s",
-                      "  Extra Details:\n");
+                      "Extra Details:");
       int i;
       for (i = 0; i < error->extraDetailsCount; i++) {
         len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                        "    %s: %s\n", error->extraDetails[i].name,
+                        " %s: %s;", error->extraDetails[i].name,
                         error->extraDetails[i].value);
       }
     }
@@ -103,23 +109,23 @@ void DataPointS3::putCompleteCallback(S3Status status,
     int len = 0;
     if (error && error->message) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                      "  Message: %s\n", error->message);
+                      "Message: %s;", error->message);
     }
     if (error && error->resource) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                      "  Resource: %s\n", error->resource);
+                      "Resource: %s;", error->resource);
     }
     if (error && error->furtherDetails) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                      "  Further Details: %s\n", error->furtherDetails);
+                      "Further Details: %s;", error->furtherDetails);
     }
     if (error && error->extraDetailsCount) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len, "%s",
-                      "  Extra Details:\n");
+                      "Extra Details:");
       int i;
       for (i = 0; i < error->extraDetailsCount; i++) {
         len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                        "    %s: %s\n", error->extraDetails[i].name,
+                        " %s: %s;", error->extraDetails[i].name,
                         error->extraDetails[i].value);
       }
     }
@@ -135,23 +141,23 @@ void DataPointS3::responseCompleteCallback(S3Status status,
   int len = 0;
   if (error && error->message) {
     len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                    "  Message: %s\n", error->message);
+                    "Message: %s;", error->message);
   }
   if (error && error->resource) {
     len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                    "  Resource: %s\n", error->resource);
+                    "Resource: %s;", error->resource);
   }
   if (error && error->furtherDetails) {
     len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                    "  Further Details: %s\n", error->furtherDetails);
+                    "Further Details: %s;", error->furtherDetails);
   }
   if (error && error->extraDetailsCount) {
     len += snprintf(&(error_details[len]), sizeof(error_details) - len, "%s",
-                    "  Extra Details:\n");
+                    "Extra Details:");
     int i;
     for (i = 0; i < error->extraDetailsCount; i++) {
       len += snprintf(&(error_details[len]), sizeof(error_details) - len,
-                      "    %s: %s\n", error->extraDetails[i].name,
+                      " %s: %s;", error->extraDetails[i].name,
                       error->extraDetails[i].value);
     }
   }
@@ -183,7 +189,7 @@ S3Status DataPointS3::getObjectDataCallback(int bufferSize, const char *buffer,
   return S3StatusOK;
 }
 
-static int putObjectDataCallback(int bufferSize, char *buffer,
+int DataPointS3::putObjectDataCallback(int bufferSize, char *buffer,
                                  void *callbackData) {
 
   DataBuffer *buf = (DataBuffer *)callbackData;
@@ -212,11 +218,27 @@ DataPointS3::DataPointS3(const URL &url, const UserConfig &usercfg,
                          PluginArgument *parg)
     : DataPointDirect(url, usercfg, parg), fd(-1), reading(false),
       writing(false) {
-  hostname = std::string(url.Host() + ":" + tostring(url.Port()));
-  access_key = Arc::GetEnv("S3_ACCESS_KEY");
-  secret_key = Arc::GetEnv("S3_SECRET_KEY");
+  // S3 endpoint
+  hostname = url.Host();
+  // Check scheme
+  if (url.Protocol() == "s3+https") {
+    protocol = S3ProtocolHTTPS;
+    if (url.Port() != 443) {
+      hostname = std::string(url.Host() + ":" + tostring(url.Port()));
+    }
+  } else {
+    protocol = S3ProtocolHTTP;
+    if (url.Port() != 80) {
+      hostname = std::string(url.Host() + ":" + tostring(url.Port()));
+    }
+  }
+  // S3 DMC uses the path-style
+  uri_style = S3UriStylePath;
+  // S3 credentials (url options or env variables)
+  access_key = url.Option("s3_access_key", Arc::GetEnv("S3_ACCESS_KEY"));
+  secret_key = url.Option("s3_secret_key", Arc::GetEnv("S3_SECRET_KEY"));
 #if defined(S3_DEFAULT_REGION)
-  auth_region = Arc::GetEnv("S3_AUTH_REGION");
+  auth_region = url.Option("s3_auth_region", Arc::GetEnv("S3_AUTH_REGION"));
 #endif
 
   // Extract bucket
@@ -243,16 +265,15 @@ DataPointS3::DataPointS3(const URL &url, const UserConfig &usercfg,
   // if / in key_name or bucket_name then Invalid bucket/key name
   if (bucket_name.find('/') || key_name.find("/")) {
   }
-  // Check scheme
-  if (url.Protocol() == "s3+https") {
-    protocol = S3ProtocolHTTPS;
-  } else {
-    protocol = S3ProtocolHTTP;
+  
+  logger.msg(DEBUG, "Initializing S3 connection to %s", hostname.c_str());
+
+  S3Status init_status;
+  if ((init_status = S3_initialize("s3", S3_INIT_ALL, hostname.c_str()))
+        != S3StatusOK) {
+    logger.msg(ERROR, "Failed to initialize S3 to %s: %s", hostname.c_str(),
+                      S3_get_status_name(init_status));
   }
-
-  uri_style = S3UriStylePath;
-  S3_initialize("s3", S3_INIT_ALL, hostname.c_str());
-
   bufsize = 16384;
 }
 
@@ -291,12 +312,14 @@ DataStatus DataPointS3::Stat(FileInfo &file, DataPointInfoType verb) {
   if (!bucket_name.empty() && !key_name.empty()) {
     S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                       protocol,           uri_style,
-                                      access_key.c_str(), secret_key.c_str(),
-#if defined(S3_DEFAULT_REGION)
-                                      NULL, auth_region.c_str() };
-#else
-                                      0 };
+                                      access_key.c_str(), secret_key.c_str()
+#if defined(S3_SECURITY_TOKEN)
+                                      , NULL
 #endif
+#if defined(S3_DEFAULT_REGION)
+                                      , auth_region.c_str()
+#endif
+                                      };
 
     S3ResponseHandler responseHandler = { &headResponsePropertiesCallback,
                                           &responseCompleteCallback };
@@ -367,14 +390,17 @@ DataStatus DataPointS3::List(std::list<FileInfo> &files,
 
   if (!bucket_name.empty() && !key_name.empty()) {
     FileInfo file(key_name);
+
     S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                       protocol,           uri_style,
-                                      access_key.c_str(), secret_key.c_str(),
-#if defined(S3_DEFAULT_REGION)
-                                      NULL, auth_region.c_str() };
-#else
-                                      0 };
+                                      access_key.c_str(), secret_key.c_str()
+#if defined(S3_SECURITY_TOKEN)
+                                      , NULL
 #endif
+#if defined(S3_DEFAULT_REGION)
+                                      , auth_region.c_str()
+#endif
+                                      };
 
     S3ResponseHandler responseHandler = { &headResponsePropertiesCallback,
                                           &responseCompleteCallback };
@@ -398,12 +424,14 @@ DataStatus DataPointS3::List(std::list<FileInfo> &files,
 
     S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                       protocol,           uri_style,
-                                      access_key.c_str(), secret_key.c_str(),
-#if defined(S3_DEFAULT_REGION)
-                                      NULL, auth_region.c_str() };
-#else
-                                      0 };
+                                      access_key.c_str(), secret_key.c_str()
+#if defined(S3_SECURITY_TOKEN)
+                                      , NULL
 #endif
+#if defined(S3_DEFAULT_REGION)
+                                      , auth_region.c_str()
+#endif
+                                      };
 
     S3ListBucketHandler listBucketHandler = { { &responsePropertiesCallback,
                                                 &responseCompleteCallback },
@@ -421,24 +449,26 @@ DataStatus DataPointS3::List(std::list<FileInfo> &files,
                                                   &responseCompleteCallback },
                                                 &listServiceCallback };
 
-    S3_list_service(S3ProtocolHTTP, access_key.c_str(), secret_key.c_str(), 0,
+    S3_list_service(protocol, access_key.c_str(), secret_key.c_str(), 
+#if defined(S3_SECURITY_TOKEN)
+                    0,  // securityToken
+#endif
+                    NULL, // hostName
 #if defined(S3_DEFAULT_REGION)
-                    NULL, auth_region.c_str(),
-                    NULL,
+                    auth_region.c_str(), // authRegion
+#endif
+                    NULL, // requestContext
 #if defined(S3_TIMEOUTMS)
-                    S3_TIMEOUTMS,
+                    S3_TIMEOUTMS, //timeoutMs
 #endif
                     &listServiceHandler, &files);
-#else
-                    0, 0, &listServiceHandler, &files);
-#endif
   }
 
   if (request_status == S3StatusOK) {
     return DataStatus::Success;
   }
-  logger.msg(ERROR, "Failed to read object %s: %s", url.Path(),
-             S3_get_status_name(request_status));
+  logger.msg(ERROR, "Failed to read object %s: %s; %s", url.Path(),
+             S3_get_status_name(request_status), error_details);
   return DataStatus(DataStatus::ListError, S3_get_status_name(request_status));
 }
 
@@ -448,25 +478,31 @@ DataStatus DataPointS3::Remove() {
     S3ResponseHandler responseHandler = { &responsePropertiesCallback,
                                           &responseCompleteCallback };
 
-    S3_delete_bucket(S3ProtocolHTTP, S3UriStylePath, access_key.c_str(),
+    S3_delete_bucket(protocol, uri_style, access_key.c_str(),secret_key.c_str(),
+#if defined(S3_SECURITY_TOKEN)
+                    0,  // securityToken
+#endif
+                    0, // hostName
+                    bucket_name.c_str(), //bucketName
 #if defined(S3_DEFAULT_REGION)
-                     secret_key.c_str(), 0, 0, bucket_name.c_str(), auth_region.c_str(), NULL,
-#else
-                     secret_key.c_str(), 0, 0, bucket_name.c_str(), 0,
+                    auth_region.c_str(), // authRegion
 #endif
+                    NULL, // requestContext
 #if defined(S3_TIMEOUTMS)
-                     S3_TIMEOUTMS,
+                    S3_TIMEOUTMS, //timeoutMs
 #endif
-                     &responseHandler, 0);
+                    &responseHandler, 0);
   } else {
     S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                       protocol,           uri_style,
-                                      access_key.c_str(), secret_key.c_str(),
-#if defined(S3_DEFAULT_REGION)
-                                      NULL, auth_region.c_str() };
-#else
-                                      0 };
+                                      access_key.c_str(), secret_key.c_str()
+#if defined(S3_SECURITY_TOKEN)
+                                      , NULL
 #endif
+#if defined(S3_DEFAULT_REGION)
+                                      , auth_region.c_str()
+#endif
+                                      };
 
     S3ResponseHandler responseHandler = { 0, &responseCompleteCallback };
 
@@ -501,16 +537,20 @@ DataStatus DataPointS3::CreateDirectory(bool with_parents) {
                                         &responseCompleteCallback };
 
   S3CannedAcl cannedAcl = S3CannedAclPrivate;
-  S3_create_bucket(S3ProtocolHTTP, access_key.c_str(), secret_key.c_str(), 0, 0,
+  S3_create_bucket(protocol, access_key.c_str(), secret_key.c_str(), 
+#if defined(S3_SECURITY_TOKEN)
+                    0,  // securityToken
+#endif
+                    0, // hostName
+                    bucket_name.c_str(), //bucketName
 #if defined(S3_DEFAULT_REGION)
-                   bucket_name.c_str(), auth_region.c_str(), cannedAcl, 0, 0,
+                    auth_region.c_str(), // authRegion
+#endif
+                    cannedAcl, 0, 0, // cannedAcl,locationConstraint,requestContext
 #if defined(S3_TIMEOUTMS)
-                   S3_TIMEOUTMS,
+                    S3_TIMEOUTMS, //timeoutMs
 #endif
-                   &responseHandler, 0);
-#else
-                   bucket_name.c_str(), cannedAcl, 0, 0, &responseHandler, 0);
-#endif
+                    &responseHandler, 0);
 
   if (request_status == S3StatusOK) {
     return DataStatus::Success;
@@ -532,12 +572,14 @@ void DataPointS3::read_file() {
 
   S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                     protocol,           uri_style,
-                                    access_key.c_str(), secret_key.c_str(),
-#if defined(S3_DEFAULT_REGION)
-                                    0, auth_region.c_str() };
-#else
-                                    0 };
+                                    access_key.c_str(), secret_key.c_str()
+#if defined(S3_SECURITY_TOKEN)
+                                      , NULL
 #endif
+#if defined(S3_DEFAULT_REGION)
+                                      , auth_region.c_str()
+#endif
+                                      };
 
   uint64_t startByte = 0, byteCount = 0;
   S3_get_object(&bucketContext, key_name.c_str(), 0, startByte, byteCount, 0,
@@ -547,8 +589,8 @@ void DataPointS3::read_file() {
                 &getObjectHandler, buffer);
 
   if (request_status != S3StatusOK) {
-    logger.msg(ERROR, "Failed to read object %s: %s", url.Path(),
-               S3_get_status_name(request_status));
+    logger.msg(ERROR, "Failed to read object %s: %s; %s", url.Path(),
+               S3_get_status_name(request_status), error_details);
     buffer->error_read(true);
   }
 }
@@ -586,16 +628,18 @@ void DataPointS3::write_file() {
 
   S3BucketContext bucketContext = { 0,                  bucket_name.c_str(),
                                     protocol,           uri_style,
-                                    access_key.c_str(), secret_key.c_str(),
-#if defined(S3_AUTH_REGION)
-                                    0, auth_region.c_str() };
-#else
-                                    0 };
+                                    access_key.c_str(), secret_key.c_str()
+#if defined(S3_SECURITY_TOKEN)
+                                      , NULL
 #endif
+#if defined(S3_DEFAULT_REGION)
+                                      , auth_region.c_str()
+#endif
+                                      };
 
   S3PutObjectHandler putObjectHandler = { { &responsePropertiesCallback,
-                                            &putCompleteCallback },
-                                          &putObjectDataCallback };
+                                            &DataPointS3::putCompleteCallback },
+                                          &DataPointS3::putObjectDataCallback };
 
   const char *cacheControl = 0, *contentType = 0, *md5 = 0;
   const char *contentDispositionFilename = 0, *contentEncoding = 0;
@@ -609,7 +653,11 @@ void DataPointS3::write_file() {
                                     cacheControl,    contentDispositionFilename,
                                     contentEncoding, expires,
                                     cannedAcl,       metaPropertiesCount,
-                                    metaProperties,  useServerSideEncryption };
+                                    metaProperties
+#if defined(S3_SERVER_SIDE_ENCRYPTION)
+                                    ,  useServerSideEncryption 
+#endif
+                                    };
 
   S3_put_object(&bucketContext, key_name.c_str(), size, &putProperties, NULL,
 #if defined(S3_TIMEOUTMS)
@@ -618,8 +666,9 @@ void DataPointS3::write_file() {
                 &putObjectHandler, buffer);
 
   if (request_status != S3StatusOK) {
-    logger.msg(ERROR, "Failed to write object %s: %s", url.Path(),
-               S3_get_status_name(request_status));
+    logger.msg(ERROR, "Failed to write object %s: %s; %s", url.Path(),
+               S3_get_status_name(request_status), error_details);
+
     buffer->error_write(true);
   }
 }

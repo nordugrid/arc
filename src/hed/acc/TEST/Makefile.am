@@ -26,6 +26,6 @@ libaccTEST_la_LDFLAGS = -no-undefined -avoid-version -module
 
 libaccTEST.apd: libaccTEST.apd.in libaccTEST.la
 	mkdir -p .libs
-	cp libaccTEST.apd.in .libs/libaccTEST.apd
-	cp libaccTEST.apd.in libaccTEST.apd
+	cp $(srcdir)/libaccTEST.apd.in .libs/libaccTEST.apd
+	cp $(srcdir)/libaccTEST.apd.in libaccTEST.apd
 

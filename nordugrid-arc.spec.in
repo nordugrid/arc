@@ -403,6 +403,8 @@ Requires:	%{name}-hed = %{version}-%{release}
 Requires:	%{name}-arcctl = %{version}-%{release}
 Requires:	%{name}-arcctl-service = %{version}-%{release}
 Requires:	%{name}-plugins-needed = %{version}-%{release}
+Requires:	findutils
+Requires:	procps
 Provides:	%{name}-cache-service = %{version}-%{release}
 Obsoletes:	%{name}-cache-service < 6.0.0
 Provides:	%{name}-candypond = %{version}-%{release}
@@ -1374,3 +1376,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %files arc-exporter
 %defattr(-,root,root,-)
 %{_sbindir}/arc-exporter
+
+%changelog
+* @SPECDATE@ Anders Waananen <waananen@nbi.dk> - @baseversion@-@fedorarelease@
+- Unofficial build

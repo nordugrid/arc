@@ -217,7 +217,6 @@ public:
   std::list<std::string> rejectdiscovery;
   std::list<std::string> rejectmanagement;
 
-  // arc6 consistent, intuitive and streamlined target selection:
   // command line options
   std::list<std::string> computing_elements;
   std::list<std::string> registries;

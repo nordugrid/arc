@@ -426,4 +426,6 @@ if [ ! -z "$hlimit" ] ; then
   ulimit -S -n "$hlimit" 2>/dev/null
 fi
 
+now=`date '+[%Y:%m:%d %H:%M:%S]' 2>/dev/null`
+echo "$now Starting A-REX service executable..." >> "$LOGFILE"
 exec $CMD "$@"
