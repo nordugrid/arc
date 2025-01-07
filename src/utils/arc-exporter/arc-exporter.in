@@ -107,20 +107,27 @@ def getARCCoreCounts():
         namespace = {'glue': 'http://schemas.ogf.org/glue/2009/03/spec_2.0_r1'}
         
         # Find all ComputingShares  - there can be several ComputingShares (queues)
+        # Each can have multivalued OtherInfo xml tags of type:
+        #      <OtherInfo>CoreCount=INLRMS:R=431</OtherInfo>
+        #      <OtherInfo>CoreCount=PREPARING=2543</OtherInfo>
+        #      <OtherInfo>CoreCount=INLRMS:E=1</OtherInfo>
         computing_shares = root.findall('.//glue:ComputingShare', namespace)
         if computing_shares is not None:
             for computing_share in computing_shares:
-                # OtherInfo contains corecount
                 share = computing_share.find('glue:Name', namespace).text
-                other_info = computing_share.find('glue:OtherInfo', namespace).text
-                try:
-                    for coreinfo in other_info.split(','):
-                        state = coreinfo.split('=')[0].strip()
-                        count = coreinfo.split('=')[-1].strip()
-                        logging.debug(f"Set arc_corecount: share={share}, state={state}")
+                other_info_tags = computing_share.findall('.//glue:OtherInfo',namespace)
+                for other_info in other_info_tags:
+                    try:
+                        parts = other_info.text.split('=')
+                        state = parts[1]
+                        count = parts[2]
                         arc_corecount.labels(share,state).set(int(count))
-                except ValueError as e:
-                    logging.error(f"Error parsing count value: {count} - {str(e)}")
+                    except ValueError as e:
+                        logging.error(f"Error parsing count value: {count} - {str(e)}")
+                    except IndexError as e:
+                        logging.error(f"Error fetching information about corecount per state: {str(e)}")
+                    except Exception as e:
+                        logging.error(f"Unexpected error fetching information about corecount per state {str(e)}")
         else:
             logging.warning("No ComputingShare tag not found in XML.")
 
@@ -130,6 +137,7 @@ def getARCCoreCounts():
         logging.error(f"Error parsing XML file: {str(e)}")
     except Exception as e:
         logging.error(f"Unexpected error: {str(e)}")
+
 
 
 
@@ -146,15 +154,19 @@ def getCoreCounts():
     # Loop over all the lines in the sacct_result and extract account,
     # state, and number of cores for this account and state. Fill gauge
     # with the metric. Must be increased per account and state.
+
     for item in sacct_result:
-        parts = item.split('|')
-        account = str(parts[1])
-        user = str(parts[2])
-        partition = str(parts[3])
-        state = str(parts[4])
-        alloc_cores = str(parts[5])
-        req_cores = str(parts[6])
-        cores = alloc_cores
+        try:
+            parts = item.split('|')
+            account = str(parts[1])
+            user = str(parts[2])
+            partition = str(parts[3])
+            state = str(parts[4])
+            alloc_cores = str(parts[5])
+            req_cores = str(parts[6])
+            cores = alloc_cores
+        except:
+            continue
         if int(cores) == 0:
             # If job is pending, no cores yet allocated. Set corecount as
             # requested cores
