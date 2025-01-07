@@ -41,12 +41,12 @@ if [ ! -z "$perflogdir" ]; then
 fi
 
 
-# List of  jobids for grid-jobs with state INLRMS
+# List of jobids for grid-jobs with state INLRMS
 declare -a localids
 # Array with basenames of grid-job files in ctrl_dir, indexed by localid
 # example /some/path/XX/XX/X /some/other/path/YY/YY/Y
 declare -a basenames
-# Array with states of the jobs in SLURM, indexed by localid
+# Array with states of the jobs in Condor, indexed by localid
 declare -a jobstates
 # Array with grid id values, indexed by localid
 declare -a gridids
@@ -67,7 +67,6 @@ for ctr_dir in "$@"; do
     do
         basename=$(control_path "${ctr_dir}" "${id}" "")
         localid=$(grep ^localid= "${basename}/local" | cut -d= -f2 | cut -d "." -f1)
-        #verify_jobid "$localid" || continue
 
         localids[${#localids[@]}]="$localid"
         basenames[$localid]="$basename"
@@ -100,7 +99,7 @@ lrms_list_jobs() {
 # Should return 0 only if the job is not in the LRMS. The job's LRMS id is
 # stored in the lrmsid variable. It's called for all grid jobs that are in
 # INLRMS and CANCELING states and whose LRMS id was not listed by
-# lrms_list_jobs. STDOUT and STDERR are redirected to job.$gridid.error.
+# lrms_list_jobs. STDOUT and STDERR are redirected to $gridid/error.
 #
 lrms_job_finished() {
     return 0
@@ -116,7 +115,7 @@ lrms_job_finished() {
 # run on scan-*-jobs, but not more than $maxwait times for any given job. If
 # it sets LRMSExitcode, or $maxwait retries have already been done, then
 # lrms_last_call will be called shortly afterwards and the job declared done.
-# STDOUT and STDERR are redirected to job.$gridid.errors. The interval between
+# STDOUT and STDERR are redirected to $gridid/errors. The interval between
 # successive runs of scan-*-jobs is controlled by $wakeupperiod.
 # Input variables:
 #   * gridid
@@ -138,8 +137,8 @@ lrms_job_finished() {
 #   * LRMSEndTime -- in Mds time format, UTC time zone (20091201140049Z)
 # Output variables:
 #   * LRMSExitcode -- as reported by the LRMS. It will be saved to the .diag file
-#   * LRMSMessage -- any clues obtained from the LRMS about job failure. It
-#                    content will be addedd to .lrms_done in case LRMSExitcode is not 0.
+#   * LRMSMessage -- any clues obtained from the LRMS about job failure. It's
+#                    content will be added to $gridid/lrms_done in case LRMSExitcode is not 0.
 #
 lrms_get_accounting() {
     ACCT_IMPLEMENTED=
@@ -147,8 +146,8 @@ lrms_get_accounting() {
 }
 
 #
-# Called just before uptading .diag and writing the .lrms_done file. STDOUT and
-# STDERR are redirected to job.$gridid.error. Can be left as is.
+# Called just before uptading .diag and writing the $gridid/lrms_done file. STDOUT and
+# STDERR are redirected to $gridid/error. Can be left as is.
 # Input/Output variables:
 #   * the same as for lrms_get_accounting
 #   * any variables set in lrms_get_accounting are visible here
@@ -315,7 +314,7 @@ job_print_comment() {
     " || log "failed reading: $commentfile"
 }
 
-# In case overlimit is set, tweak what will go into .lrms_done
+# In case overlimit is set, tweak what will go into $gridid/lrms_done
 set_overlimit_message() {
 
     [ -n "$overlimit" ] || return
@@ -380,7 +379,7 @@ job_write_donefile() {
 
 #
 # Should check that the job has exited lrms, and then do whatever post-processing is necesarry.
-# Called with STDOUT and STDERR redirected to the job.*.errors file.
+# Called with STDOUT and STDERR redirected to the $gridid/errors file.
 # Input variables:
 #   * gridid
 #   * lrmsid
@@ -456,7 +455,7 @@ scan_main() {
         return 0
     fi
 
-    # Exit the loop cleanly if lrms_done exists
+    # Exit the loop cleanly if $gridid/lrms_done exists
     # This indicates that the job has already been processed by this loop and identifed as complete by Condor
     donefile="${basenames[$localid]}/lrms_done"
     [ -f "$donefile" ] && return 0
