@@ -440,6 +440,10 @@ scan_init () {
       CONFIG_shared_filesystem=
     fi
 
+    # Retrieve all jobs from Condor
+    # Call function lrms_list_jobs which runs condor_q against the local schedd of the CE
+    lrmsids=$(lrms_list_jobs) || { log "lrms_list_jobs failed"; continue; }
+
 }
 
 
@@ -447,6 +451,13 @@ scan_main() {
 
     log () { echo "$progname: $*" 1>&2; }
 
+    # If the job is in condor_q, exit cleanly, the job has not yet finished
+    if echo "$lrmsids" | grep -q "^$lrmsid$"; then
+        return 0
+    fi
+
+    # Exit the loop cleanly if lrms_done exists
+    # This indicates that the job has already been processed by this loop and identifed as complete by Condor
     donefile="${basenames[$localid]}/lrms_done"
     [ -f "$donefile" ] && return 0
 
@@ -459,7 +470,6 @@ scan_main() {
     # run in separate process to make sure shell vars of one job
     # are not influencing other jobs
     ( process_job; ) >> "$errorsfile" 2>&1
-
 
 }
 
@@ -689,14 +699,17 @@ lrms_last_call() {
     exitcode=$LRMSExitcode
 }
 
+# Setup Condor environment
+# Don't include as part of for loop to reduce pressure on Condor schedd
+scan_init
 
+# Loop through all jobs in "$ctr_dir/processing" with name '*.status'
 for localid in ${localids[@]}; do
 
     gridid=${gridids[$localid]}
     ctrdir=${ctrdirs[$localid]}
     lrmsid=$localid
 
-    scan_init
     scan_main "$@"
 
 done
