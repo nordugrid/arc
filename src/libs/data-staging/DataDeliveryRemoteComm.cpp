@@ -65,6 +65,8 @@ namespace DataStaging {
 
     // connect to service and make a new transfer request
     logger_->msg(Arc::VERBOSE, "Connecting to Delivery service at %s", endpoint.str());
+    // TODO: implement pool of ClientSOAP objects instead of having one for each Comm
+    // object. That shall reduce number of TCP connections. 
     client = new Arc::ClientSOAP(cfg, endpoint, timeout);
 
     Arc::NS ns;
@@ -149,15 +151,19 @@ namespace DataStaging {
 
     delete response;
     valid = true;
-    handler_->Add(this);
+    GetHandler().Add(this);
   }
 
   DataDeliveryRemoteComm::~DataDeliveryRemoteComm() {
     // If transfer is still going, send cancellation request to service
     if (valid) CancelDTR();
-    if (handler_) handler_->Remove(this);
+    GetHandler().Remove(this);
     Glib::Mutex::Lock lock(lock_);
     delete client;
+  }
+
+  std::string DataDeliveryRemoteComm::DeliveryId() const {
+    return endpoint.str();
   }
 
   void DataDeliveryRemoteComm::CancelDTR() {

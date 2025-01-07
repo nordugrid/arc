@@ -179,7 +179,7 @@ namespace DataStaging {
         return;
       }
     }
-    handler_->Add(this);
+    GetHandler().Add(this);
   }
 
   DataDeliveryLocalComm::~DataDeliveryLocalComm(void) {
@@ -191,7 +191,11 @@ namespace DataStaging {
       }
     }
     if(!tmp_proxy_.empty()) Arc::FileDelete(tmp_proxy_);
-    if(handler_) handler_->Remove(this);
+    GetHandler().Remove(this);
+  }
+
+  std::string DataDeliveryLocalComm::DeliveryId() const {
+    return "localhost";
   }
 
   void DataDeliveryLocalComm::PullStatus(void) {
