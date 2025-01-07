@@ -375,7 +375,7 @@ job_write_donefile() {
     echo "${LRMSExitcode:--1} $msg" > $donefile || log "failed writing file: $PWD/$donefile"
 
     # wake up GM
-    "${pkglibexecdir}/gm-kick" -j "$gridid" "$PWD"
+    "${pkglibexecdir}/gm-kick" -j "$gridid" "$ctrdir"
 }
 
 #
