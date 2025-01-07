@@ -2028,6 +2028,8 @@ AC_CONFIG_FILES([Makefile
                  src/tests/perf/arcperftest.1
                  src/tests/client/Makefile
                  src/tests/lrms/Makefile
+                 src/utils/arc-exporter/Makefile
+                 src/utils/arc-exporter/arc-exporter
                  src/utils/archery/Makefile
                  src/utils/archery/archery-manage
                  src/utils/python/Makefile
