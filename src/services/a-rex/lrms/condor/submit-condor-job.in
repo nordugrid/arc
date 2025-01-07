@@ -6,8 +6,8 @@
 #  Submits job to HTCondor.
 #  Input: path to grami file (same as Globus).
 #
-# The temporary job description file is created for the submission and then removed 
-# at the end of this script. 
+# The temporary job description file is created for the submission and then removed
+# at the end of this script.
 
 echo "----- starting submit_condor_job -----" 1>&2
 joboption_lrms="condor"
@@ -27,7 +27,7 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 # include common submit functions
 . "${pkgdatadir}/submit_common.sh" || exit $?
 
-# run common init 
+# run common init
 #  * parse grami
 #  * parse config
 #  * load LRMS-specific env
@@ -152,9 +152,13 @@ if [ ! -z "$CONFIG_condor_rank" ] ; then
   echo "Rank = $CONFIG_condor_rank" >> $LRMS_JOB_DESCRIPT
 fi
 
-# proxy
+# proxy or token
 if [ -f "${joboption_directory}/user.proxy" ]; then
-  echo "x509userproxy = ${joboption_directory}/user.proxy" >> $LRMS_JOB_DESCRIPT
+  if  head -n 1 | grep -F -q 'BEGIN CERTIFICATE' ; then
+    echo "x509userproxy = ${joboption_directory}/user.proxy" >> $LRMS_JOB_DESCRIPT
+  else
+    echo "scitokens_file = ${joboption_directory}/user.proxy" >> $LRMS_JOB_DESCRIPT
+  fi
 fi
 
 ##############################################################
@@ -185,9 +189,9 @@ if [ ! -z "$joboption_cputime" ] ; then
   maxcputime=$(( $joboption_cputime / $joboption_count ))
   echo "+JobCpuLimit = $joboption_cputime" >> $LRMS_JOB_DESCRIPT
   PERIODIC_REMOVE="${PERIODIC_REMOVE} || RemoteUserCpu + RemoteSysCpu > JobCpuLimit"
-  
-fi  
-  
+
+fi
+
 if [ -z "$joboption_walltime" ] ; then
   if [ ! -z "$joboption_cputime" ] ; then
     # Set walltime for backward compatibility or incomplete requests
@@ -272,7 +276,7 @@ add_user_env
 
 ##############################################################
 # Check for existance of executable,
-# there is no sense to check for executable if files are 
+# there is no sense to check for executable if files are
 # downloaded directly to computing node
 ##############################################################
 if [ -z "${joboption_arg_0}" ] ; then
@@ -411,7 +415,7 @@ while [ "$CONDOR_TRIES" -lt '10' ] ; do
 
   ${CONDOR_SUBMIT} $LRMS_JOB_DESCRIPT 1>$LRMS_JOB_OUT 2>$LRMS_JOB_ERR
   CONDOR_RESULT="$?"
-  
+
   if [ ! -z "$perflogdir" ]; then
     stop_ts=`date +%s.%N`
     t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
@@ -424,7 +428,7 @@ while [ "$CONDOR_TRIES" -lt '10' ] ; do
 done
 if [ $CONDOR_RESULT -eq '0' ] ; then
    job_out=`cat $LRMS_JOB_OUT`
-   
+
    if [ "${job_out}" = "" ]; then
       echo "job *NOT* submitted successfully!" 1>&2
       echo "failed getting the condor jobid for the job!" 1>&2
