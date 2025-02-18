@@ -228,6 +228,7 @@ BuildRequires:	ldns-devel >= 1.6.8
 %if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
 BuildRequires:	pkgconfig(bash-completion)
 %endif
+BuildRequires:	help2man
 %if %{?fedora}%{!?fedora:0} >= 13 || %{?rhel}%{!?rhel:0} >= 7 || %{?suse_version:1}%{!?suse_version:0}
 Requires:	hostname
 %else

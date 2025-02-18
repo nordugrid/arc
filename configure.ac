@@ -1994,25 +1994,8 @@ AC_CONFIG_FILES([Makefile
                  src/services/wrappers/python/schema/Makefile
                  src/clients/Makefile
                  src/clients/data/Makefile
-                 src/clients/data/arccp.1
-                 src/clients/data/arcls.1
-                 src/clients/data/arcrm.1
-                 src/clients/data/arcmkdir.1
-                 src/clients/data/arcrename.1
                  src/clients/credentials/Makefile
-                 src/clients/credentials/arcproxy.1
                  src/clients/compute/Makefile
-                 src/clients/compute/arcstat.1
-                 src/clients/compute/arcinfo.1
-                 src/clients/compute/arcsub.1
-                 src/clients/compute/arcclean.1
-                 src/clients/compute/arckill.1
-                 src/clients/compute/arcget.1
-                 src/clients/compute/arccat.1
-                 src/clients/compute/arcsync.1
-                 src/clients/compute/arcrenew.1
-                 src/clients/compute/arcresume.1
-                 src/clients/compute/arctest.1
                  src/clients/pyarcrest/Makefile
                  src/tests/Makefile
                  src/tests/echo/Makefile

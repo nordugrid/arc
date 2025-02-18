@@ -1,68 +1,7 @@
-.\" -*- nroff -*-
-.TH ARCTEST 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
-
-.SH NAME
-
+[NAME]
 arctest \- ARC Test Suite
 
-.SH DESCRIPTION
-
-The
-.B arctest
-command tests basic ARC client setup and job submission to ARC CE
-
-.SH SYNOPSIS
-
-.B arctest [options]
-
-.SH OPTIONS
-
-.IP "\fB-C\fR, \fB--computing-element\fR=\fIname\fR"
-select one or more computing elements
-.IP "\fB-Y\fR, \fB--registry\fR=\fIname\fR"
-select one or more registries
-.IP "\fB-R\fR, \fB--rejectdiscovery\fR=\fIURL\fR"
-skip the service with the given URL during service discovery
-.IP "\fB-T\fR, \fB--submission-endpoint-type\fR=\fItype\fR"
-select the jobsubmission endpoint type
-.IP "\fB-Q\fR, \fB--info-endpoint-type\fR=\fItype\fR"
-select cluster/resource information retrieval interface type
-.IP "\fB-J\fR \fIjobid\fR, \fB--jobid\fR=\fIjobid\fR"
-submits testjob given by the jobid.
-.IP "\fB-r\fR \fItime\fR, \fB--runtime\fR=\fItime\fR"
-test job runtime specified in case of the 1st test job.
-.IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
-the file storing information about active jobs (default ~/.arc/jobs.dat)
-.IP "\fB-o\fR, \fB--jobids-to-file\fR=\fIfilename\fR"
-the IDs of the submitted jobs will be appended to this file
-.IP "\fB-D\fR, \fB--dryrun\fR"
-submit jobs as dry run (no submission to batch system)
-.IP "\fB    --direct\fR"
-submit directly - no resource discovery or matchmaking
-.IP "\fB-x\fR, \fB--dumpdescription\fR"
-do not submit - dump job description in the language accepted by the target
-.IP "\fB-E\fR, \fB--certificate\fR"
-prints information about installed user- and CA-certificates
-.IP "\fB-P\fR, \fB--listplugins\fR"
-list the available plugins
-.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
-timeout in seconds (default 20)
-.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
-configuration file (default ~/.arc/client.conf)
-.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
-FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
-.IP "\fB-b\fR, \fB--broker\fR=\fIbroker\fR"
-selected broker: Random (default), FastestQueue or custom
-.IP "\fB-n\fR, \fB--no-delegation\fR"
-do not perform X.509 delegation for submitted jobs
-.IP "\fB-v\fR, \fB-version\fR"
-print version information
-.IP "\fB-h\fR, \fB-help\fR"
-print usage information
-.LP
-
-.SH EXTENDED DESCRIPTION
-
+[EXTENDED DESCRIPTION]
 The
 .B arctest
 command is mainly used for basic testing of job submission to ARC CE
@@ -90,15 +29,13 @@ Test job 2: attempts to list all environment variables at the remote site
 
 Test job 3: copies a remote file from an HTTP server into a local file
 
-.SH EXAMPLES
-
+[EXAMPLES]
 .br
 \fBarctest -J 1 -C <computing element>\fR
 
 will submit test job number 1 to the specified CE.
 
-.SH FILES
-
+[FILES]
 .TP
 .B ~/.arc/client.conf
 Some options can be given default values by specifying them in the
@@ -117,18 +54,15 @@ option to the various NorduGrid ARC user interface commands. By using the
 .B --joblist
 option a different file can be used than the default.
 
-.SH COPYRIGHT
-
+[COPYRIGHT]
 APACHE LICENSE Version 2.0
 
-.SH AUTHOR
-
+[AUTHOR]
 ARC software is developed by the NorduGrid Collaboration 
 (http://www.nordugrid.org), please consult the AUTHORS file distributed with 
 ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 
-.SH SEE ALSO
-
+[SEE ALSO]
 .BR arccat (1),
 .BR arcclean (1),
 .BR arccp (1),
@@ -144,4 +78,3 @@ ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 .BR arcstat (1),
 .BR arcsub (1),
 .BR arcsync (1)
-

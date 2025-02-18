@@ -246,62 +246,64 @@ static int runmain(int argc, char *argv[]) {
                             istring("The arcproxy command creates a proxy from a key/certificate pair which can\n"
                                     "then be used to access grid resources."),
                             istring("Supported constraints are:\n"
-                                    "  validityStart=time (e.g. 2008-05-29T10:20:30Z; if not specified, start from now)\n"
-                                    "  validityEnd=time\n"
-                                    "  validityPeriod=time (e.g. 43200 or 12h or 12H; if both validityPeriod and validityEnd\n"
-                                    "    not specified, the default is 12 hours for local proxy, and 168 hours for delegated\n"
-                                    "    proxy on myproxy server)\n"
-                                    "  vomsACvalidityPeriod=time (e.g. 43200 or 12h or 12H; if not specified, the default\n"
-                                    "    is the minimum value of 12 hours and validityPeriod)\n"
+                                    "  validityStart=time (e.g. 2008-05-29T10:20:30Z; if not specified, start\n"
+                                    "  from now)\n\n"
+                                    "  validityEnd=time\n\n"
+                                    "  validityPeriod=time (e.g. 43200 or 12h or 12H; if both validityPeriod and\n"
+                                    "  validityEnd not specified, the default is 12 hours for local proxy, and\n"
+                                    "  168 hours for delegated proxy on myproxy server)\n\n"
+                                    "  vomsACvalidityPeriod=time (e.g. 43200 or 12h or 12H; if not specified, the\n"
+                                    "  default is the minimum value of 12 hours and validityPeriod)\n\n"
                                     "  myproxyvalidityPeriod=time (lifetime of proxies delegated by myproxy server,\n"
-                                    "    e.g. 43200 or 12h or 12H; if not specified, the default is the minimum value of\n"
-                                    "    12 hours and validityPeriod (which is lifetime of the delegated proxy on myproxy server))\n"
-                                    "  proxyPolicy=policy content\n"
-                                    "  proxyPolicyFile=policy file\n"
+                                    "  e.g. 43200 or 12h or 12H; if not specified, the default is the minimum value\n"
+                                    "  of 12 hours and validityPeriod (which is lifetime of the delegated proxy on\n"
+                                    "  myproxy server))\n\n"
+                                    "  proxyPolicy=policy content\n\n"
+                                    "  proxyPolicyFile=policy file\n\n"
                                     "  keybits=number - length of the key to generate. Default is 2048 bits.\n"
-                                    "    Special value 'inherit' is to use key length of signing certificate.\n"
-                                    "  signingAlgorithm=name - signing algorithm to use for signing public key of proxy.\n"
-                                    "    Possible values are sha1, sha2 (alias for sha256), sha224, sha256, sha384, sha512\n"
-                                    "    and inherit (use algorithm of signing certificate). Default is inherit.\n"
-                                    "    With old systems, only sha1 is acceptable.\n"
+                                    "  Special value 'inherit' is to use key length of signing certificate.\n\n"
+                                    "  signingAlgorithm=name - signing algorithm to use for signing public key of\n"
+                                    "  proxy. Possible values are sha1, sha2 (alias for sha256), sha224, sha256,\n"
+                                    "  sha384, sha512 and inherit (use algorithm of signing certificate). Default\n"
+                                    "  is inherit. With old systems, only sha1 is acceptable.\n"
                                     "\n"
                                     "Supported information item names are:\n"
-                                    "  subject - subject name of proxy certificate.\n"
-                                    "  identity - identity subject name of proxy certificate.\n"
-                                    "  issuer - issuer subject name of proxy certificate.\n"
-                                    "  ca - subject name of CA which issued initial certificate.\n"
-                                    "  path - file system path to file containing proxy.\n"
+                                    "  subject - subject name of proxy certificate.\n\n"
+                                    "  identity - identity subject name of proxy certificate.\n\n"
+                                    "  issuer - issuer subject name of proxy certificate.\n\n"
+                                    "  ca - subject name of CA which issued initial certificate.\n\n"
+                                    "  path - file system path to file containing proxy.\n\n"
                                     "  type - type of proxy certificate.\n"
-                                    "  validityStart - timestamp when proxy validity starts.\n"
-                                    "  validityEnd - timestamp when proxy validity ends.\n"
-                                    "  validityPeriod - duration of proxy validity in seconds.\n"
-                                    "  validityLeft - duration of proxy validity left in seconds.\n"
-                                    "  vomsVO - VO name  represented by VOMS attribute\n"
-                                    "  vomsSubject - subject of certificate for which VOMS attribute is issued\n"
-                                    "  vomsIssuer - subject of service which issued VOMS certificate\n"
-                                    "  vomsACvalidityStart - timestamp when VOMS attribute validity starts.\n"
-                                    "  vomsACvalidityEnd - timestamp when VOMS attribute validity ends.\n"
-                                    "  vomsACvalidityPeriod - duration of VOMS attribute validity in seconds.\n"
-                                    "  vomsACvalidityLeft - duration of VOMS attribute validity left in seconds.\n"
-                                    "  proxyPolicy\n"
-                                    "  keybits - size of proxy certificate key in bits.\n"
-                                    "  signingAlgorithm - algorithm used to sign proxy certificate.\n"
+                                    "  validityStart - timestamp when proxy validity starts.\n\n"
+                                    "  validityEnd - timestamp when proxy validity ends.\n\n"
+                                    "  validityPeriod - duration of proxy validity in seconds.\n\n"
+                                    "  validityLeft - duration of proxy validity left in seconds.\n\n"
+                                    "  vomsVO - VO name represented by VOMS attribute\n\n"
+                                    "  vomsSubject - subject of certificate for which VOMS attribute is issued\n\n"
+                                    "  vomsIssuer - subject of service which issued VOMS certificate\n\n"
+                                    "  vomsACvalidityStart - timestamp when VOMS attribute validity starts.\n\n"
+                                    "  vomsACvalidityEnd - timestamp when VOMS attribute validity ends.\n\n"
+                                    "  vomsACvalidityPeriod - duration of VOMS attribute validity in seconds.\n\n"
+                                    "  vomsACvalidityLeft - duration of VOMS attribute validity left in seconds.\n\n"
+                                    "  proxyPolicy\n\n"
+                                    "  keybits - size of proxy certificate key in bits.\n\n"
+                                    "  signingAlgorithm - algorithm used to sign proxy certificate.\n\n"
                                     "Items are printed in requested order and are separated by newline.\n"
                                     "If item has multiple values they are printed in same line separated by |.\n"
                                     "\n"
                                     "Supported password destinations are:\n"
-                                    "  key - for reading private key\n"
-                                    "  myproxy - for accessing credentials at MyProxy service\n"
-                                    "  myproxynew - for creating credentials at MyProxy service\n"
+                                    "  key - for reading private key\n\n"
+                                    "  myproxy - for accessing credentials at MyProxy service\n\n"
+                                    "  myproxynew - for creating credentials at MyProxy service\n\n"
                                     "  all - for any purspose.\n"
                                     "\n"
                                     "Supported password sources are:\n"
-                                    "  quoted string (\"password\") - explicitly specified password\n"
-                                    "  int - interactively request password from console\n"
-                                    "  stdin - read password from standard input delimited by newline\n"
-                                    "  file:filename - read password from file named filename\n"
+                                    "  quoted string (\"password\") - explicitly specified password\n\n"
+                                    "  int - interactively request password from console\n\n"
+                                    "  stdin - read password from standard input delimited by newline\n\n"
+                                    "  file:filename - read password from file named filename\n\n"
                                     "  stream:# - read password from input stream number #.\n"
-                                    "             Currently only 0 (standard input) is supported.\n"
+                                    "  Currently only 0 (standard input) is supported."
   ));
 
   std::string proxy_path;
@@ -329,33 +331,34 @@ static int runmain(int argc, char *argv[]) {
                     istring("path"), vomses_path);
 
   std::list<std::string> vomslist;
-  options.AddOption('S', "voms", istring("voms<:command>. Specify VOMS server (More than one VOMS server \n"
-                                         "              can be specified like this: --voms VOa:command1 --voms VOb:command2). \n"
-                                         "              :command is optional, and is used to ask for specific attributes(e.g: roles)\n"
-                                         "              command options are:\n"
-                                         "              all --- put all of this DN's attributes into AC; \n"
-                                         "              list ---list all of the DN's attribute, will not create AC extension; \n"
-                                         "              /Role=yourRole --- specify the role, if this DN \n"
-                                         "                               has such a role, the role will be put into AC; \n"
-                                         "              /voname/groupname/Role=yourRole --- specify the VO, group and role; if this DN \n"
-                                         "                               has such a role, the role will be put into AC. \n"
+  options.AddOption('S', "voms", istring("voms<:command>. Specify VOMS server\n"
+                                         "    More than one VOMS server can be specified like this:\n"
+                                         "    --voms VOa:command1 --voms VOb:command2.\n"
+                                         "    :command is optional, and is used to ask for specific attributes (e.g: roles)\n"
+                                         "              command options are:\n\n"
+                                         "              all --- put all of this DN's attributes into AC;\n\n"
+                                         "              list --- list all of the DN's attribute, will not create AC extension;\n\n"
+                                         "              /Role=yourRole --- specify the role, if this DN\n"
+                                         "              has such a role, the role will be put into AC;\n\n"
+                                         "              /voname/groupname/Role=yourRole --- specify the VO, group and role; if this DN\n"
+                                         "              has such a role, the role will be put into AC.\n\n"
                                          "              If this option is not specified values from configuration files are used.\n"
                                          "              To avoid anything to be used specify -S with empty value.\n"
                                          ),
                     istring("string"), vomslist);
 
   std::list<std::string> orderlist;
-  options.AddOption('o', "order", istring("group<:role>. Specify ordering of attributes \n"
-                    "              Example: --order /knowarc.eu/coredev:Developer,/knowarc.eu/testers:Tester \n"
-                    "              or: --order /knowarc.eu/coredev:Developer --order /knowarc.eu/testers:Tester \n"
-                    " Note that it does not make sense to specify the order if you have two or more different VOMS servers specified"),
+  options.AddOption('o', "order", istring("group<:role>. Specify ordering of attributes\n"
+                    "              Example: --order /knowarc.eu/coredev:Developer,/knowarc.eu/testers:Tester\n"
+                    "              or: --order /knowarc.eu/coredev:Developer --order /knowarc.eu/testers:Tester\n"
+                    "    Note that it does not make sense to specify the order if you have two or more different VOMS servers specified"),
                     istring("string"), orderlist);
 
   bool use_gsi_comm = false;
   options.AddOption('G', "gsicom", istring("use GSI communication protocol for contacting VOMS services"), use_gsi_comm);
 
   bool use_http_comm = false;
-  options.AddOption('H', "httpcom", istring("use HTTP communication protocol for contacting VOMS services that provide RESTful access \n"
+  options.AddOption('H', "httpcom", istring("use HTTP communication protocol for contacting VOMS services that provide RESTful access\n"
                                             "               Note for RESTful access, \'list\' command and multiple VOMS server are not supported\n"), use_http_comm);
 
   bool use_old_comm = false;
@@ -377,22 +380,20 @@ static int runmain(int argc, char *argv[]) {
   options.AddOption('U', "user", istring("username to MyProxy server (if missing subject of user certificate is used)"),
                     istring("string"), user_name);
 
-  bool use_empty_passphrase = false; //if use empty passphrase to myproxy server
+  bool use_empty_passphrase = false; //if use empty passphrase to myproxy serveyr
   options.AddOption('N', "nopassphrase", istring(
-              "don't prompt for a credential passphrase, when retrieve a \n"
-              "              credential from on MyProxy server. \n"
-              "              The precondition of this choice is the credential is PUT onto\n"
-              "              the MyProxy server without a passphrase by using -R (--retrievable_by_cert) \n"
-              "              option when being PUTing onto Myproxy server. \n"
-              "              This option is specific for the GET command when contacting Myproxy server."
-                                         ),
+              "don't prompt for a credential passphrase, when retrieve a "
+              "credential from an MyProxy server.\n"
+              "    The precondition of this choice is that the credential was PUT onto\n"
+              "    the MyProxy server without a passphrase by using the\n"
+              "    -R (--retrievable_by_cert) option.\n"
+              "    This option is specific for the GET command when contacting Myproxy server."),
                     use_empty_passphrase);
   
   std::string retrievable_by_cert; //if use empty passphrase to myproxy server
   options.AddOption('R', "retrievable_by_cert", istring(
               "Allow specified entity to retrieve credential without passphrase.\n"
-              "              This option is specific for the PUT command when contacting Myproxy server."
-                                         ),
+              "    This option is specific for the PUT command when contacting Myproxy server."),
                     istring("string"), retrievable_by_cert);
 
   std::string myproxy_server; //url of MyProxy server
@@ -402,12 +403,12 @@ static int runmain(int argc, char *argv[]) {
   std::string myproxy_command; //command to myproxy server
   options.AddOption('M', "myproxycmd", istring(
         "command to MyProxy server. The command can be PUT, GET, INFO, NEWPASS or DESTROY.\n"
-        "              PUT -- put a delegated credentials to the MyProxy server; \n"
-        "              GET -- get a delegated credentials from the MyProxy server; \n"
-        "              INFO -- get and present information about credentials stored at the MyProxy server; \n"
-        "              NEWPASS -- change password protecting credentials stored at the MyProxy server; \n"
-        "              DESTROY -- wipe off credentials stored at the MyProxy server; \n"
-        "              Local credentials (certificate and key) are not necessary except in case of PUT. \n"
+        "              PUT -- put a delegated credentials to the MyProxy server;\n\n"
+        "              GET -- get a delegated credentials from the MyProxy server;\n\n"
+        "              INFO -- get and present information about credentials stored at the MyProxy server;\n\n"
+        "              NEWPASS -- change password protecting credentials stored at the MyProxy server;\n\n"
+        "              DESTROY -- wipe off credentials stored at the MyProxy server;\n\n"
+        "              Local credentials (certificate and key) are not necessary except in case of PUT.\n"
         "              MyProxy functionality can be used together with VOMS functionality.\n"
         "              --voms and --vomses can be used for Get command if VOMS attributes\n"
         "              is required to be included in the proxy.\n"
@@ -416,8 +417,7 @@ static int runmain(int argc, char *argv[]) {
 
   bool use_nssdb = false;
 #ifdef HAVE_NSS
-  options.AddOption('F', "nssdb", istring("use NSS credential database in default Mozilla profiles, \n"
-                                          "              including Firefox, Seamonkey and Thunderbird.\n"), use_nssdb);
+  options.AddOption('F', "nssdb", istring("use NSS credential database in default Mozilla profiles, including Firefox, Seamonkey and Thunderbird."), use_nssdb);
 #endif
 
   std::list<std::string> constraintlist;

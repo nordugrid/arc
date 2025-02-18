@@ -66,3 +66,8 @@ arcresume_SOURCES  = arcresume.cpp utils.cpp utils.h
 arcresume_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arcresume_LDADD    = $(CLILIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
+
+%.1: % %.1.in
+	LANG=C help2man -N -h "-h|sed s/…/.../g" -i $(word 2,$^) -o $@ ./$<
+
+EXTRA_DIST = $(man_MANS:=.in)

@@ -1,52 +1,7 @@
-.\" -*- nroff -*-
-.TH ARCSYNC 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
-
-.SH NAME
-
+[NAME]
 arcsync \- ARC Synchronize
 
-.SH DESCRIPTION
-
-The \fBarcsync\fR command synchronizes your local jobs database with the
-information at a given CE or registry.
-
-.SH SYNOPSIS
-
-.B arcsync [options]
-
-.SH OPTIONS
-
-.IP "\fB-C\fR, \fB--computing-element\fR=\fIname\fR"
-select one or more computing elements
-.IP "\fB-Y\fR, \fB--registry\fR=\fIname\fR"
-select one or more registries
-.IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
-the file storing information about active jobs (default ~/.arc/jobs.dat)
-.IP "\fB-f\fR, \fB--force\fR"
-don't ask for verification
-.IP "\fB-T\fR, \fB--truncate\fR"
-shrinks the joblist before synchronizing
-.IP "\fB-C\fR, \fB--convert\fR"
-instead of pulling jobs information from server read it from jobs storage and write it back. This
-option is mostly for converting format of jobs storage file.
-.IP "\fB-P\fR, \fB--listplugins\fR"
-list the available plugins
-.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
-timeout in seconds (default 20)
-.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
-configuration file (default ~/.arc/client.conf)
-.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
-FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
-.IP "\fB-v\fR, \fB--version\fR"
-print version information
-.IP "\fB-?\fR, \fB--help\fR"
-print help
-.LP
-
-.LP
-
-.SH EXTENDED DESCRIPTION
-
+[EXTENDED DESCRIPTION]
 The ARC CLI keeps a local database of active jobs in the users
 home directory (see \fBarcsub\fR(1)). If this file is lost, or the user
 wants to recreate the file on a different computer, the \fBarcsync\fR
@@ -64,8 +19,7 @@ will be merged with the new jobs, unless the
 option is given, in which case the joblist will first be cleaned of old
 jobs and then the new jobs will be added.
 
-.SH FILES
-
+[FILES]
 .TP
 .B ~/.arc/client.conf
 Some options can be given default values by specifying them in the
@@ -84,18 +38,15 @@ option to the various NorduGrid ARC user interface commands. By using the
 .B --joblist
 option a different file can be used than the default.
 
-.SH COPYRIGHT
-
+[COPYRIGHT]
 APACHE LICENSE Version 2.0
 
-.SH AUTHOR
-
+[AUTHOR]
 ARC software is developed by the NorduGrid Collaboration 
 (http://www.nordugrid.org), please consult the AUTHORS file distributed with 
 ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 
-.SH SEE ALSO
-
+[SEE ALSO]
 .BR arccat (1),
 .BR arcclean (1),
 .BR arccp (1),
@@ -111,4 +62,3 @@ ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 .BR arcstat (1),
 .BR arcsub (1),
 .BR arctest (1)
-
