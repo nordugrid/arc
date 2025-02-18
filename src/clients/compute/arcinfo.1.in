@@ -1,52 +1,7 @@
-.\" -*- nroff -*-
-.TH ARCINFO 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
-
-.SH NAME
-
+[NAME]
 arcinfo \- ARC Info
 
-.SH DESCRIPTION
-
-The
-.B arcinfo
-command is used for obtaining status and information about computing elements.
-
-.SH SYNOPSIS
-
-.B arcinfo [options] [CE ...]
-
-.SH OPTIONS
-
-.IP "\fB-C\fR, \fB--computing-element\fR=\fIname\fR"
-select one or more computing elements
-.IP "\fB-Y\fR, \fB--registry\fR=\fIname\fR"
-select one or more registries
-.IP "\fB-R\fR, \fB--rejectdiscovery\fR=\fIURL\fR"
-skip the service with the given URL during service discovery
-.IP "\fB-Q\fR, \fB--info-endpoint-type\fR=\fItype\fR"
-select cluster/resource information retrieval interface type
-.IP "\fB-T\fR, \fB--submission-endpoint-type\fR=\fItype\fR"
-select executon targets which supports this job submission interface type
-.IP "\fB-l\fR, \fB--long\fR"
-long format (more information)
-.IP "\fB-L\fR, \fB--list-configured-services\fR"
-print a list of services configured in the client.conf
-.IP "\fB-P\fR, \fB--listplugins\fR"
-list the available plugins
-.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
-timeout in seconds (default 20)
-.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
-configuration file (default ~/.arc/client.conf)
-.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
-FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
-.IP "\fB-v\fR, \fB--version\fR"
-print version information
-.IP "\fB-?\fR, \fB--help\fR"
-print help
-.LP
-
-.SH EXTENDED DESCRIPTION
-
+[EXTENDED DESCRIPTION]
 The
 .B arcinfo
 command is used to get the status and information about computing elements.
@@ -63,8 +18,7 @@ specifying the
 .B --long
 flag.
 
-.SH FILES
-
+[FILES]
 .TP
 .B ~/.arc/client.conf
 Some options can be given default values by specifying them in the
@@ -72,18 +26,15 @@ ARC client configuration file. By using the
 .B --conffile
 option a different configuration file can be used than the default.
 
-.SH COPYRIGHT
-
+[COPYRIGHT]
 APACHE LICENSE Version 2.0
 
-.SH AUTHOR
-
+[AUTHOR]
 ARC software is developed by the NorduGrid Collaboration 
 (http://www.nordugrid.org), please consult the AUTHORS file distributed with 
 ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 
-.SH SEE ALSO
-
+[SEE ALSO]
 .BR arccat (1),
 .BR arcclean (1),
 .BR arccp (1),
@@ -99,4 +50,3 @@ ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 .BR arcsub (1),
 .BR arcsync (1),
 .BR arctest (1)
-

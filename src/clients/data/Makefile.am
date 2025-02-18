@@ -33,3 +33,8 @@ arcrename_SOURCES  = arcrename.cpp utils.cpp utils.h
 arcrename_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arcrename_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
+
+%.1: % %.1.in
+	LANG=C help2man -N -h "-h|sed s/…/.../g" -i $(word 2,$^) -o $@ ./$<
+
+EXTRA_DIST = $(man_MANS:=.in)

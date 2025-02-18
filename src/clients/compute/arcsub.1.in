@@ -1,70 +1,7 @@
-.\" -*- nroff -*-
-.TH ARCSUB 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
-
-.SH NAME
-
+[NAME]
 arcsub \- ARC Submission
 
-.SH DESCRIPTION
-
-The
-.B arcsub
-command is used for submitting jobs to distributed computing resources.
-
-.SH SYNOPSIS
-
-.B arcsub [options] [filename ...]
-
-.SH OPTIONS
-
-.IP "\fB-C\fR, \fB--computing-element\fR=\fIname\fR"
-select one or more computing elements
-.IP "\fB-Y\fR, \fB--registry\fR=\fIname\fR"
-select one or more registries
-.IP "\fB-R\fR, \fB--rejectdiscovery\fR=\fIURL\fR"
-skip the service with the given URL during service discovery
-.IP "\fB-T\fR, \fB--submission-endpoint-type\fR=\fItype\fR"
-select the jobsubmission endpoint type
-.IP "\fB-Q\fR, \fB--info-endpoint-type\fR=\fItype\fR"
-select cluster/resource information retrieval interface type
-.IP "\fB-e\fR, \fB--jobdescrstring=\fIString"
-jobdescription string describing the job to be submitted
-.IP "\fB-f\fR, \fB--jobdescrfile=\fIfilename"
-jobdescription file describing the job to be submitted
-.IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
-the file storing information about active jobs (default ~/.arc/jobs.dat)
-.IP "\fB-o\fR, \fB--jobids-to-file\fR=\fIfilename\fR"
-the IDs of the submitted jobs will be appended to this file
-.IP "\fB-D\fR, \fB--dryrun\fR"
-submit jobs as dry run (no submission to batch system)
-.IP "\fB-x\fR, \fB--dumpdescription\fR"
-do not submit - dump job description in the language accepted by the target
-.IP "\fB-P\fR, \fB--listplugins\fR"
-list the available plugins
-.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
-timeout in seconds (default 20)
-.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
-configuration file (default ~/.arc/client.conf)
-.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
-FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
-.IP "\fB-b\fR, \fB--broker\fR=\fIbroker\fR"
-selected broker: Random (default), FastestQueue or custom. Use -P to find possible options.
-.IP "\fB-n\fR, \fB--no-delegation\fR"
-do not perform X.509 delegation for submitted jobs
-.IP "\fB-v\fR, \fB--version\fR"
-print version information
-.IP "\fB-?\fR, \fB--help\fR"
-print help
-.LP
-
-.SH ARGUMENTS
-
-.IP "\fBfilename\fR ..."
-job description files describing the jobs to be submitted
-.LP
-
-.SH EXTENDED DESCRIPTION
-
+[EXTENDED DESCRIPTION]
 \fBarcsub\fR is the key command when submitting jobs to distributed computing
 resources with the ARC client. 
 
@@ -79,8 +16,7 @@ seen using
 Please refer to ARC Documentation at http://www.nordugrid.org/arc for 
 more information about job submission and management.
 
-.SH EXAMPLES
-
+[EXAMPLES]
 Submission of a job description file "helloworld.xrsl" to specified compute element:
 .br
 \fBarcsub -C ce.example.com helloworld.xrsl\fR
@@ -94,8 +30,7 @@ Direct submission to a CE without querying the information:
 .br
 \fBarcsub -Q NONE -T arcrest -C ce.example.com helloworld.xrsl\fR
 
-.SH FILES
-
+[FILES]
 .TP
 .B ~/.arc/client.conf
 Some options can be given default values by specifying them in the
@@ -114,18 +49,15 @@ option to the various NorduGrid ARC user interface commands. By using the
 .B --joblist
 option a different file can be used than the default.
 
-.SH COPYRIGHT
-
+[COPYRIGHT]
 APACHE LICENSE Version 2.0
 
-.SH AUTHOR
-
+[AUTHOR]
 ARC software is developed by the NorduGrid Collaboration 
 (http://www.nordugrid.org), please consult the AUTHORS file distributed with 
 ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 
-.SH SEE ALSO
-
+[SEE ALSO]
 .BR arccat (1),
 .BR arcclean (1),
 .BR arccp (1),
@@ -141,4 +73,3 @@ ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 .BR arcstat (1),
 .BR arcsync (1),
 .BR arctest (1)
-

@@ -1,45 +1,7 @@
-.\" -*- nroff -*-
-.TH ARCMDKIR 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
-
-.SH NAME
-
+[NAME]
 arcmkdir \- create directories
 
-.SH DESCRIPTION
-
-The
-.B arcmkdir
-command creates directories on grid storage elements and indexing services.
-
-.SH SYNOPSIS
-
-.B arcmkdir [options] url
-
-.SH OPTIONS
-
-.IP "\fB-p\fR, \fB--parents\fR"
-make parent directories as needed
-.IP "\fB-P\fR, \fB--listplugins\fR"
-list the available plugins (protocols supported)
-.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
-timeout in seconds (default 20)
-.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
-configuration file (default ~/.arc/client.conf)
-.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
-FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
-.IP "\fB-v\fR, \fB--version\fR"
-print version information
-.IP "\fB-?\fR, \fB--help\fR"
-print help
-
-.SH ARGUMENTS
-
-.IP "\fBurl\fR"
-the directory to create
-.LP
-
-.SH EXTENDED DESCRIPTION
-
+[EXTENDED DESCRIPTION]
 The
 .B arcmkdir
 command creates directories on grid storage elements and indexing services.
@@ -63,8 +25,7 @@ Depending on the installed libraries (check with
 ), the following protocols may be used: file  (file://  prefix  may  be
 omitted), http, https, httpg, ftp, gsiftp, srm, root.
 
-.SH FILES
-
+[FILES]
 .TP
 .B ~/.arc/client.conf
 Some options can be given default values by specifying them in the
@@ -72,8 +33,7 @@ ARC client configuration file. By using the
 .B --conffile
 option a different configuration file can be used than the default.
 
-.SH ENVIRONMENT VARIABLES
-
+[ENVIRONMENT VARIABLES]
 .TP
 .B X509_USER_PROXY
 The location of the user's Grid proxy file. Shouldn't be set unless
@@ -92,23 +52,19 @@ The location of ARC plugins can be specified by this variable. Multiple
 locations can be specified by separating them by : (; in Windows). The
 default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
 
-.SH EXAMPLE
-
+[EXAMPLE]
 arcmkdir gsiftp://example.com/grid/newdir
 
-.SH COPYRIGHT
-
+[COPYRIGHT]
 APACHE LICENSE Version 2.0
 
-.SH AUTHOR
-
+[AUTHOR]
 ARC software is developed by the NorduGrid Collaboration 
 (http://www.nordugrid.org), please consult the AUTHORS file distributed with 
 ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 
-.SH SEE ALSO
-
+[SEE ALSO]
 .BR arccp (1),
 .BR arcls (1),
 .BR arcrename (1),
-.BR arcrm (1),
+.BR arcrm (1)

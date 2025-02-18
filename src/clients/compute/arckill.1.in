@@ -1,58 +1,7 @@
-.\" -*- nroff -*-
-.TH ARCKILL 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
-
-.SH NAME
-
+[NAME]
 arckill \- ARC Kill
 
-.SH DESCRIPTION
-
-The
-.B arckill
-command is used to kill running jobs.
-
-.SH SYNOPSIS
-
-.B arckill [options] [job ...]
-
-.SH OPTIONS
-
-.IP "\fB-a\fR, \fB--all\fR"
-all jobs
-.IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
-the file storing information about active jobs (default ~/.arc/jobs.dat)
-.IP "\fB-i\fR, \fB--jobids-from-file\fR=\fIfilename\fR"
-a file containing a list of jobIDs
-.IP "\fB-C\fR, \fB--computing-element\fR=\fIname\fR"
-select one or more computing elements
-.IP "\fB-r\fR, \fB--rejectmanagement\fR=\fIURL\fR"
-skip jobs which are on a computing element with a given URL
-.IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"
-only select jobs whose status is statusstr
-.IP "\fB-k\fR, \fB--keep\fR"
-keep files on the remote cluster (do not clean)
-.IP "\fB-P\fR, \fB--listplugins\fR"
-list the available plugins
-.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
-timeout in seconds (default 20)
-.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
-configuration file (default ~/.arc/client.conf)
-.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
-FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
-.IP "\fB-v\fR, \fB--version\fR"
-print version information
-.IP "\fB-?\fR, \fB--help\fR"
-print help
-.LP
-
-.SH ARGUMENTS
-
-.IP "\fBjob\fR ..."
-list of jobids and/or jobnames
-.LP
-
-.SH EXTENDED DESCRIPTION
-
+[EXTENDED DESCRIPTION]
 The
 .B arckill
 command kills a running job on an ARC enabled resource. The job can be
@@ -90,8 +39,7 @@ of leftover jobs may be performed by running
 .B arcclean 
 later.
 
-.SH FILES
-
+[FILES]
 .TP
 .B ~/.arc/client.conf
 Some options can be given default values by specifying them in the
@@ -110,18 +58,15 @@ option to the various NorduGrid ARC user interface commands. By using the
 .B --joblist
 option a different file can be used than the default.
 
-.SH COPYRIGHT
-
+[COPYRIGHT]
 APACHE LICENSE Version 2.0
 
-.SH AUTHOR
-
+[AUTHOR]
 ARC software is developed by the NorduGrid Collaboration 
 (http://www.nordugrid.org), please consult the AUTHORS file distributed with 
 ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 
-.SH SEE ALSO
-
+[SEE ALSO]
 .BR arccat (1),
 .BR arcclean (1),
 .BR arccp (1),
@@ -137,4 +82,3 @@ ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 .BR arcsub (1),
 .BR arcsync (1),
 .BR arctest (1)
-
