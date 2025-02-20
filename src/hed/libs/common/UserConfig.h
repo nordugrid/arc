@@ -135,6 +135,7 @@ namespace Arc {
    * - proxypath / ProxyPath(const std::string&)
    * - cacertificatesdirectory / CACertificatesDirectory(const std::string&)
    * - cacertificatepath / CACertificatePath(const std::string&)
+   * - causesystem / CAUseSystem(bool)
    * - timeout / Timeout(int)
    * - joblist / JobListFile(const std::string&)
    * - joblisttype / JobListType(const std::string&)
@@ -299,7 +300,7 @@ namespace Arc {
      *   X509_USER_PROXY. If value is set and corresponding file does
      *   not exist it considered to be an error and no other locations
      *   are tried.  If found no more proxy paths are tried.
-     * - Current proxy path as passed to the contructor, explicitly set
+     * - Current proxy path as passed to the constructor, explicitly set
      *   using the setter method ProxyPath(const std::string&) or read
      *   from configuration by constructor or LoadConfiguartionFile()
      *   method. If value is set and corresponding file does not exist
@@ -314,7 +315,7 @@ namespace Arc {
      *   corresponding files do not exist it considered to be an error
      *   and no other locations are tried. Error message is suppressed
      *   if proxy was previously found.
-     * - Current key/certificate paths passed to the contructor or
+     * - Current key/certificate paths passed to the constructor or
      *   explicitly set using the setter methods KeyPath(const std::string&)
      *   and CertificatePath(const std::string&) or read from configuration
      *   by constructor or LoadConfiguartionFile() method. If values
@@ -386,7 +387,8 @@ namespace Arc {
      * @see InitializeCredentials()
      **/
     bool CredentialsFound() const {
-      return !((proxyPath.empty() && (certificatePath.empty() || keyPath.empty())) || caCertificatesDirectory.empty());
+      return !((proxyPath.empty() && (certificatePath.empty() || keyPath.empty())) ||
+               (caCertificatesDirectory.empty() && !caUseSystem));
     }
 
     /// Load specified configuration file
@@ -921,6 +923,60 @@ namespace Arc {
      **/
     const std::string& CACertificatesDirectory() const { return caCertificatesDirectory; }
 
+    /// Set if system wide CA-certificates to be used
+    /**
+     * Specifies if system wide CA-certificates are used.
+     *
+     * The attribute associated with this setter method is
+     * 'causesystem'.
+     *
+     * @param newCAUseSystem if system wide CA-certificates are used.
+     * @return This method always returns \c true.
+     * @see InitializeCredentials()
+     * @see CredentialsFound() const
+     **/
+    bool CAUseSystem(bool newCAUseSystem) { caUseSystem = newCAUseSystem; return true; }
+    bool CAUseSystem(const std::string& newCAUseSystem) {
+      if((newCAUseSystem == "true") || (newCAUseSystem == "1"))
+        return CAUseSystem(true);
+      if((newCAUseSystem == "false") || (newCAUseSystem == "0"))
+        return CAUseSystem(false);
+      return false;
+    }
+    /**
+     * Retrieve if system wide CA-cerificates are used.
+     *
+     * @return True if system wide CA-certificate are used.
+     * @see InitializeCredentials()
+     * @see CredentialsFound() const
+     **/
+    bool CAUseSystem() const { return caUseSystem; }
+
+    bool TLSAllowInsecure(bool newTLSAllowInsecure) { tlsAllowInsecure = newTLSAllowInsecure; return true; }
+    bool TLSAllowInsecure() const { return tlsAllowInsecure; }
+
+    enum AuthType {
+      AuthTypeUndefined = 0, /// No restrictions, use whatever authentication avaialble (default)
+      AuthTypeNone = 1,      /// Do not use any credentials (anonymous)
+      AuthTypeCert = 2,      /// Use X.509 certificate/proxy for authentication
+      AuthTypeToken = 3      /// Use OIDC/OAuth2 token for authentication (bearer token)
+    };
+
+    /**
+     * Specify which authentication type to use for communication.
+     *
+     * @param newAuthType authentication type to use for communication.
+     * @return This method always returns \c true.
+     **/
+    bool CommunicationAuthType(AuthType newAuthType) { authType = newAuthType; return true; } 
+    /**
+     * Retrieve which authentication type to use for communication.
+     *
+     * @return Authentication type for communication.
+     **/
+    AuthType CommunicationAuthType() const { return authType; }
+
+
     /// Set certificate life time
     /**
      * Sets lifetime of user certificate which will be obtained from
@@ -1335,6 +1391,9 @@ namespace Arc {
     int keySize;
     std::string caCertificatePath;
     std::string caCertificatesDirectory;
+    bool caUseSystem;
+    bool tlsAllowInsecure;
+    AuthType authType;
     Period certificateLifeTime;
 
     URL slcs;
@@ -1398,6 +1457,8 @@ namespace Arc {
     bool x509_user_proxy_set;
     std::string ca_cert_dir_old;
     bool ca_cert_dir_set;
+    std::string ca_cert_policy_old;
+    bool ca_cert_policy_set;
   };
 
   /** @} */

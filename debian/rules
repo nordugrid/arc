@@ -54,6 +54,7 @@ override_dh_auto_configure:
 		    --libexecdir=/usr/lib \
 		    --docdir=/usr/share/doc/nordugrid-arc \
 		    --enable-gfal \
+		    --enable-s3 \
 		    --enable-xrootd=$(XROOTD) \
 		    --enable-internal \
 		    --enable-systemd=$(SYSTEMD) \
@@ -89,7 +90,7 @@ override_dh_auto_clean:
 	find python src -depth -name __pycache__ -exec rm -rf {} ';'
 
 override_dh_auto_install:
-	dh_auto_install
+	DEB_PYTHON_INSTALL_LAYOUT=deb dh_auto_install
 
 	find debian/tmp -name \*.la -exec rm -fv '{}' ';'
 

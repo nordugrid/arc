@@ -162,7 +162,7 @@ void CredentialTest::testhostcert() {
   ca.SignEECRequest(&host_eec, host_dn, host_cert_file.c_str());
 
   //Load signed host cert
-  Arc::Credential host_cert(host_cert_file, host_key_file, "",  CAcert);
+  Arc::Credential host_cert(host_cert_file, host_key_file, "",  CAcert, false);
   
   //Does the certificate chain verify?
   CPPUNIT_ASSERT(host_cert.GetVerification());
@@ -212,10 +212,10 @@ void CredentialTest::testusercert() {
   ca.SignEECRequest(&user_req, user_dn, user_cert_file.c_str());
 
   //Try to load user cert with wrong passphrase
-  Arc::Credential user_cert_bad(user_cert_file,user_key_file,".",CAcert,"Bad password");
+  Arc::Credential user_cert_bad(user_cert_file,user_key_file,".",CAcert,false,"Bad password");
 
   //Load signed user cert
-  Arc::Credential user_cert(user_cert_file, user_key_file, ".", CAcert, user_passphrase);
+  Arc::Credential user_cert(user_cert_file, user_key_file, ".", CAcert, false, user_passphrase);
   
   //Does the certificate chain verify?
   CPPUNIT_ASSERT(user_cert.GetVerification());
@@ -246,7 +246,7 @@ void CredentialTest::testproxy() {
   proxy_req.GenerateRequest(req);
 
   // Load EEC credential
-  Arc::Credential user_cert(user_cert_file, user_key_file, ".", CAcert, user_passphrase);
+  Arc::Credential user_cert(user_cert_file, user_key_file, ".", CAcert, false, user_passphrase);
 
   // Load the request 
   Arc::Credential proxy_cert;
@@ -276,7 +276,7 @@ void CredentialTest::testproxy() {
   out_f.close();
 
   //Load proxy
-  Arc::Credential user_proxy(user_proxy_file,"",".",CAcert);
+  Arc::Credential user_proxy(user_proxy_file,"",".",CAcert,false);
 
   //Does the certificate chain verify?
   CPPUNIT_ASSERT(user_proxy.GetVerification());
@@ -311,7 +311,7 @@ void CredentialTest::testproxy2proxy() {
   // Load the request
   Arc::Credential proxy_cert1;
   std::string signer_cert1 = user_proxy_file;
-  Arc::Credential signer1(signer_cert1, "", ".", CAcert);
+  Arc::Credential signer1(signer_cert1, "", ".", CAcert, false);
   proxy_cert1.InquireRequest(user_req_file1.c_str());
   proxy_cert1.SetProxyPolicy("rfc","independent","",proxydepth);
   Arc::Period proxy1_life(24*3600);
@@ -332,7 +332,7 @@ void CredentialTest::testproxy2proxy() {
   out_f1.close();
 
   //Load the proxy
-  Arc::Credential user_proxy1(user_proxy_file1,"",".",CAcert);
+  Arc::Credential user_proxy1(user_proxy_file1,"",".",CAcert,false);
 
   //Does the certificate chain verify?
   CPPUNIT_ASSERT(user_proxy1.GetVerification());
@@ -359,7 +359,7 @@ void CredentialTest::testproxy2proxy() {
   // Load the request
   Arc::Credential proxy_cert2;
   std::string signer_cert2 = user_proxy_file1;
-  Arc::Credential signer2(signer_cert2, "", ".", CAcert);
+  Arc::Credential signer2(signer_cert2, "", ".", CAcert, false);
   proxy_cert2.InquireRequest(user_req_file2.c_str());
   proxy_cert2.SetProxyPolicy("rfc","independent","",proxydepth-3);
   Arc::Period proxy2_life(8*3600);
@@ -380,7 +380,7 @@ void CredentialTest::testproxy2proxy() {
   out_f2.close();
 
   //Load the proxy
-  Arc::Credential user_proxy2(user_proxy_file2,"","",CAcert);
+  Arc::Credential user_proxy2(user_proxy_file2,"","",CAcert,false);
 
 
   //Does the certificate chain verify?

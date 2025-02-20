@@ -8865,7 +8865,7 @@ msgstr ""
 
 #: src/hed/libs/compute/Broker.cpp:200
 #, c-format
-msgid "HealthState of ExecutionTarget (%s) is not OK (%s)"
+msgid "HealthState of ExecutionTarget (%s) is not OK or WARNING (%s)"
 msgstr ""
 
 #: src/hed/libs/compute/Broker.cpp:205
@@ -19800,7 +19800,7 @@ msgstr ""
 
 #: src/services/a-rex/information_collector.cpp:353
 #, fuzzy
-msgid "OptimizedInformationContainer failed to rename temprary file"
+msgid "OptimizedInformationContainer failed to rename temporary file"
 msgstr "Fehler bei Erstellen von Info-Datei %s: %s"
 
 #: src/services/a-rex/job.cpp:83

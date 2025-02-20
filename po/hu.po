@@ -8531,7 +8531,7 @@ msgstr ""
 
 #: src/hed/libs/compute/Broker.cpp:200
 #, c-format
-msgid "HealthState of ExecutionTarget (%s) is not OK (%s)"
+msgid "HealthState of ExecutionTarget (%s) is not OK or WARNING (%s)"
 msgstr ""
 
 #: src/hed/libs/compute/Broker.cpp:205
@@ -19166,7 +19166,7 @@ msgstr ""
 
 #: src/services/a-rex/information_collector.cpp:353
 #, fuzzy
-msgid "OptimizedInformationContainer failed to rename temprary file"
+msgid "OptimizedInformationContainer failed to rename temporary file"
 msgstr ""
 "Proxy készítés sikertelen: Nem sikerült leellenőrizni a publikus kulcsot"
 

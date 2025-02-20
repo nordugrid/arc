@@ -19,9 +19,9 @@ namespace ARex {
         AccountingDB(const std::string& name) : name(name), isValid(false) {}
         virtual ~AccountingDB() {}
 
-        /// Check if database connection is successfull
+        /// Check if database connection is successful
         /**
-         * @return true if database connection successfull
+         * @return true if database connection successful
          **/
         bool IsValid() const { return isValid; }
         /// Create new AAR in the database

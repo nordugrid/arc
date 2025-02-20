@@ -18,6 +18,6 @@ test_adb_CXXFLAGS = -I$(top_srcdir)/include \
 test_adb_LDADD = libaccounting.la 
 
 arcsqlschemadir = $(pkgdatadir)/sql-schema
-arcsqlschema_DATA = arex_accounting_db_schema_v1.sql
+arcsqlschema_DATA = arex_accounting_db_schema_v2.sql
 EXTRA_DIST = $(arcsqlschema_DATA)
 

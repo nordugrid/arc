@@ -137,7 +137,7 @@ static void RenderToJson(Arc::XMLNode xml, std::string& output, char const * arr
             XMLNode child = xml.Attribute(n);
             if (!child) break;
             if(n != 0) output += ",";
-            std::string val = json_encode((std::string)xml);
+            std::string val = json_encode((std::string)child);
             output += "\"";
             output += child.Name();
             output += "\":\"";
@@ -219,8 +219,9 @@ static char const * ParseFromJson(Arc::XMLNode& xml, char const * input, int dep
     if(*input == '{') {
         // complex item
         ++input;
-        char const * nameStart = SkipWS(input);
-        if(*nameStart != '}') while(true) {
+        input = SkipWS(input);
+        if(*input != '}') while(true) {
+            char const * nameStart = input;
             if(*nameStart != '"') return NULL;
             ++nameStart;
             char const * nameEnd = SkipToEscaped(nameStart, '"');
@@ -235,6 +236,7 @@ static char const * ParseFromJson(Arc::XMLNode& xml, char const * input, int dep
             if(*input == ',') {
                 // next element
                 ++input;
+                input = SkipWS(input);
             } else if(*input == '}') {
                 // last element
                 break;
@@ -246,9 +248,9 @@ static char const * ParseFromJson(Arc::XMLNode& xml, char const * input, int dep
     } else if(*input == '[') {
         ++input;
         // array
-        char const * nameStart = SkipWS(input);
+        input = SkipWS(input);
         XMLNode item = xml;
-        if(*nameStart != ']') while(true) {
+        if(*input != ']') while(true) {
             input = ParseFromJson(item,input,depth+1);
             if(!input) return NULL;
             input = SkipWS(input);
@@ -334,6 +336,8 @@ static void ExtractRange(Arc::Message& inmsg, off_t& range_start, off_t& range_e
   };
 }
 
+
+#ifndef CPPUNITTEST
 
 std::string ARexRest::ProcessingContext::operator[](char const * key) const {
   if(!key)
@@ -580,7 +584,7 @@ static Arc::MCC_Status HTTPPOSTResponse(Arc::Message& inmsg, Arc::Message& outms
 }
 
 static std::string GetPath(Arc::Message &inmsg,std::string &base,std::multimap<std::string,std::string>& query) {
-  base = inmsg.Attributes()->get("HTTP:ENDPOINT");
+  base = inmsg.Attributes()->get("ENDPOINT");
   Arc::AttributeIterator iterator = inmsg.Attributes()->getAll("PLEXER:EXTENSION");
   std::string path;
   if(iterator.hasMore()) {
@@ -874,7 +878,7 @@ Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& o
       if(!delegation_stores_.GetRequest(config_.DelegationDir(),delegationId,config->GridName(),delegationRequest)) {
         return HTTPFault(inmsg,outmsg,500,"Failed generating delegation request");
       }
-      Arc::URL base(inmsg.Attributes()->get("HTTP:ENDPOINT"));
+      Arc::URL base(inmsg.Attributes()->get("ENDPOINT"));
       return HTTPPOSTResponse(inmsg,outmsg,delegationRequest,"application/x-pem-file",base.Path()+"/"+delegationId);
     } else if(requestedType == "jwt") {
       Arc::AttributeIterator tokenIt = inmsg.Attributes()->getAll("HTTP:x-token-delegation");
@@ -885,7 +889,7 @@ Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& o
       if(!delegation_stores_.PutCred(config_.DelegationDir(),delegationId,config->GridName(),*tokenIt,meta)) {
         return HTTPFault(inmsg,outmsg,500,"Failed storing delegation token");
       }
-      Arc::URL base(inmsg.Attributes()->get("HTTP:ENDPOINT"));
+      Arc::URL base(inmsg.Attributes()->get("ENDPOINT"));
       return HTTPPOSTResponse(inmsg,outmsg,base.Path()+"/"+delegationId);
     }
     return HTTPFault(inmsg,outmsg,501,"Unknown delegation type specified");
@@ -1051,11 +1055,19 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
   } else if(context.method == "POST") {
     std::string action = context["action"];
     if(action == "new") {
+      unsigned int all_jobs_count = all_jobs_count_;
       std::string errmsg;
       if(!ARexConfigContext::CheckOperationAllowed(ARexConfigContext::OperationJobCreate, config, errmsg))
         return HTTPFault(inmsg,outmsg,HTTP_ERR_FORBIDDEN,"Operation is not allowed",errmsg.c_str());
-      if((config->GmConfig().MaxTotal() > 0) && (all_jobs_count_ >= config->GmConfig().MaxTotal()))
+      if((config->GmConfig().MaxTotal() > 0) && (all_jobs_count >= config->GmConfig().MaxTotal()))
         return HTTPFault(inmsg,outmsg,500,"No more jobs allowed");
+      int can_accept_jobs = -1; // stands for no limit
+      if(config->GmConfig().MaxTotal() > 0) {
+        if(config->GmConfig().MaxTotal() > all_jobs_count)
+          can_accept_jobs = config->GmConfig().MaxTotal() - all_jobs_count;
+        else
+          can_accept_jobs = 0;
+      }
       // Fetch HTTP content to pass it as job description
       std::string desc_str;
       Arc::MCC_Status res = extract_content(inmsg,desc_str,100*1024*1024);
@@ -1073,9 +1085,21 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
 
       std::string default_queue;
       std::string default_delegation_id;
+      int instances_min = 1;
+      int instances_max = 1;
       if(context.version >= ProcessingContext::Version_1_1) {
         default_queue = context["queue"];
         default_delegation_id = context["delegation_id"];
+        Arc::stringto(context["instances"], instances_max);
+        Arc::stringto(context["instances_min"], instances_min);
+        if((instances_max < 1) || (instances_min > instances_max))
+          return HTTPFault(inmsg,outmsg,500,"Wrong number of instances specified");
+        if(config->GmConfig().MaxTotal() > 0) {
+          if ((all_jobs_count+instances_min) > config->GmConfig().MaxTotal())
+            return HTTPFault(inmsg,outmsg,403,"Number of requested instances exceeds allowed limit");
+          if ((all_jobs_count+instances_max) > config->GmConfig().MaxTotal())
+            instances_max = config->GmConfig().MaxTotal()-all_jobs_count;
+        }
       }
       XMLNode listXml("<jobs/>");
       // TODO: Split to separate functions
@@ -1084,67 +1108,15 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
           Arc::XMLNode jobs_desc_xml(desc_str);
           if (jobs_desc_xml.Name() == "ActivityDescriptions") {
             // multi
+            if(instances_max > 1) 
+              return HTTPFault(inmsg,outmsg,403,"No multiple descriptions and multiple instances simultaneously");
             for(int idx = 0;;++idx) {
               Arc::XMLNode job_desc_xml = jobs_desc_xml.Child(idx);
               if(!job_desc_xml)
                 break;
               XMLNode jobXml = listXml.NewChild("job");
-              ARexJob job(job_desc_xml,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
-              if(!job) {
-                jobXml.NewChild("status-code") = "500";
-                jobXml.NewChild("reason") = job.Failure();
-              } else {
-                jobXml.NewChild("status-code") = "201";
-                jobXml.NewChild("reason") = "Created";
-                jobXml.NewChild("id") = job.ID();
-                jobXml.NewChild("state") = "ACCEPTING";
-              } 
-            }
-          } else {
-            // maybe single
-            XMLNode jobXml = listXml.NewChild("job");
-            ARexJob job(jobs_desc_xml,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
-            if(!job) {
-              jobXml.NewChild("status-code") = "500";
-              jobXml.NewChild("reason") = job.Failure();
-            } else {
-              jobXml.NewChild("status-code") = "201";
-              jobXml.NewChild("reason") = "Created";
-              jobXml.NewChild("id") = job.ID();
-              jobXml.NewChild("state") = "ACCEPTING";
-            } 
-          }
-        }; break;
-
-        case '&': { // single-xRSL
-          XMLNode jobXml = listXml.NewChild("job");
-          ARexJob job(desc_str,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
-          if(!job) {
-            jobXml.NewChild("status-code") = "500";
-            jobXml.NewChild("reason") = job.Failure();
-          } else {
-            jobXml.NewChild("status-code") = "201";
-            jobXml.NewChild("reason") = "Created";
-            jobXml.NewChild("id") = job.ID();
-            jobXml.NewChild("state") = "ACCEPTING";
-          } 
-        }; break;
-
-        case '+': { // multi-xRSL
-          std::list<JobDescription> jobdescs;
-          Arc::JobDescriptionResult result = Arc::JobDescription::Parse(desc_str, jobdescs, "nordugrid:xrsl", "GRIDMANAGER");
-          if (!result) {
-            return HTTPFault(inmsg,outmsg,500,result.str().c_str());
-          } else {
-            for(std::list<JobDescription>::iterator jobdesc = jobdescs.begin(); jobdesc != jobdescs.end(); ++jobdesc) {
-              XMLNode jobXml = listXml.NewChild("job");
-              std::string jobdesc_str;
-              result = jobdesc->UnParse(jobdesc_str, "nordugrid:xrsl", "GRIDMANAGER");
-              if (!result) {
-                jobXml.NewChild("status-code") = "500";
-                jobXml.NewChild("reason") = result.str();
-              } else {
-                ARexJob job(jobdesc_str,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
+              if(can_accept_jobs != 0) {
+                ARexJob job(job_desc_xml,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
                 if(!job) {
                   jobXml.NewChild("status-code") = "500";
                   jobXml.NewChild("reason") = job.Failure();
@@ -1154,7 +1126,137 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
                   jobXml.NewChild("id") = job.ID();
                   jobXml.NewChild("state") = "ACCEPTING";
                 } 
+              } else {
+                jobXml.NewChild("status-code") = "500";
+                jobXml.NewChild("reason") = "No more jobs allowed";
               }
+              if(can_accept_jobs > 0) --can_accept_jobs;
+            }
+          } else {
+            // maybe single
+            if(instances_max <= 1) {
+              if(can_accept_jobs == 0)
+                return HTTPFault(inmsg,outmsg,500,"No more jobs allowed");
+              XMLNode jobXml = listXml.NewChild("job");
+              ARexJob job(jobs_desc_xml,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
+              if(!job) {
+                jobXml.NewChild("status-code") = "500";
+                jobXml.NewChild("reason") = job.Failure();
+              } else {
+                jobXml.NewChild("status-code") = "201";
+                jobXml.NewChild("reason") = "Created";
+                jobXml.NewChild("id") = job.ID();
+                jobXml.NewChild("state") = "ACCEPTING";
+              } 
+            } else {
+              if(can_accept_jobs >= 0) {
+                if(can_accept_jobs < instances_min)
+                  return HTTPFault(inmsg,outmsg,500,"No more jobs allowed");
+                if(can_accept_jobs < instances_max)
+                  instances_max = can_accept_jobs;
+              }
+              std::string failure;
+              std::vector<std::string> ids;
+              if(!ARexJob::Generate(jobs_desc_xml,instances_min,instances_max,*config,
+                                    default_delegation_id,default_queue,clientid,logger_,idgenerator,
+                                    ids,failure)) {
+                if(instances_max < instances_min) {
+                  return HTTPFault(inmsg,outmsg,403,"Can't create requested number of job instances");
+                }
+                XMLNode jobXml = listXml.NewChild("job");
+                jobXml.NewChild("status-code") = "500";
+                jobXml.NewChild("reason") = failure;
+              } else {
+                for(std::size_t idx = 0; idx<ids.size(); ++idx) {
+                  XMLNode jobXml = listXml.NewChild("job");
+                  jobXml.NewChild("status-code") = "201";
+                  jobXml.NewChild("reason") = "Created";
+                  jobXml.NewChild("id") = ids[idx];
+                  jobXml.NewChild("state") = "ACCEPTING";
+                }
+              }
+            }
+          }
+        }; break;
+
+        case '&': { // single-xRSL
+          if(instances_max <= 1) {
+            if(can_accept_jobs == 0)
+              return HTTPFault(inmsg,outmsg,500,"No more jobs allowed");
+            XMLNode jobXml = listXml.NewChild("job");
+            ARexJob job(desc_str,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
+            if(!job) {
+              jobXml.NewChild("status-code") = "500";
+              jobXml.NewChild("reason") = job.Failure();
+            } else {
+              jobXml.NewChild("status-code") = "201";
+              jobXml.NewChild("reason") = "Created";
+              jobXml.NewChild("id") = job.ID();
+              jobXml.NewChild("state") = "ACCEPTING";
+            } 
+          } else {
+            if(can_accept_jobs >= 0) {
+              if(can_accept_jobs < instances_min)
+                return HTTPFault(inmsg,outmsg,500,"No more jobs allowed");
+              if(can_accept_jobs < instances_max)
+                instances_max = can_accept_jobs;
+            }
+            std::string failure;
+            std::vector<std::string> ids;
+            if(!ARexJob::Generate(desc_str,instances_min,instances_max,*config,
+                                  default_delegation_id,default_queue,clientid,logger_,idgenerator,
+                                  ids,failure)) {
+              if(instances_max < instances_min) {
+                return HTTPFault(inmsg,outmsg,403,"Can't create requested number of job instances");
+              }
+              XMLNode jobXml = listXml.NewChild("job");
+              jobXml.NewChild("status-code") = "500";
+              jobXml.NewChild("reason") = failure;
+            } else {
+              for(std::size_t idx = 0; idx<ids.size(); ++idx) {
+                XMLNode jobXml = listXml.NewChild("job");
+                jobXml.NewChild("status-code") = "201";
+                jobXml.NewChild("reason") = "Created";
+                jobXml.NewChild("id") = ids[idx];
+                jobXml.NewChild("state") = "ACCEPTING";
+              }
+            }
+          }
+        }; break;
+
+        case '+': { // multi-xRSL
+          if(instances_max > 1) 
+            return HTTPFault(inmsg,outmsg,403,"No multiple descriptions and multiple instances simultaneously");
+          std::list<JobDescription> jobdescs;
+          Arc::JobDescriptionResult result = Arc::JobDescription::Parse(desc_str, jobdescs, "nordugrid:xrsl", "GRIDMANAGER");
+          if (!result) {
+            return HTTPFault(inmsg,outmsg,500,result.str().c_str());
+          } else {
+            for(std::list<JobDescription>::iterator jobdesc = jobdescs.begin(); jobdesc != jobdescs.end(); ++jobdesc) {
+              XMLNode jobXml = listXml.NewChild("job");
+              if(can_accept_jobs != 0) {
+                std::string jobdesc_str;
+                result = jobdesc->UnParse(jobdesc_str, "nordugrid:xrsl", "GRIDMANAGER");
+                if (!result) {
+                  jobXml.NewChild("status-code") = "500";
+                  jobXml.NewChild("reason") = result.str();
+                } else {
+                  ARexJob job(jobdesc_str,*config,default_delegation_id,default_queue,clientid,logger_,idgenerator);
+                  if(!job) {
+                    jobXml.NewChild("status-code") = "500";
+                    jobXml.NewChild("reason") = job.Failure();
+                  } else {
+                    jobXml.NewChild("status-code") = "201";
+                    jobXml.NewChild("reason") = "Created";
+                    jobXml.NewChild("id") = job.ID();
+                    jobXml.NewChild("state") = "ACCEPTING";
+                  } 
+                }
+              } else {
+                jobXml.NewChild("status-code") = "500";
+                jobXml.NewChild("reason") = "No more jobs allowed";
+              }
+              if(can_accept_jobs > 0) --can_accept_jobs;
             }
           }
         }; break;
@@ -1789,7 +1891,7 @@ Arc::MCC_Status ARexRest::processJobSessionDir(Arc::Message& inmsg,Arc::Message&
     else if(depthStr == "1")
       depth = 1;
     std::string fpath = job.GetFilePath(context.subpath);
-    URL url(inmsg.Attributes()->get("HTTP:ENDPOINT"));
+    URL url(inmsg.Attributes()->get("ENDPOINT"));
     Arc::XMLNode multistatus("<d:multistatus xmlns:d=\"DAV:\"/>");
     FileAccessRef fa(Arc::FileAccess::Acquire());
     if(fa) ProcessPROPFIND(fa,multistatus,url,fpath,job.UID(),job.GID(),depth);
@@ -1921,3 +2023,5 @@ Arc::MCC_Status ARexRest::processJobDelegation(Arc::Message& inmsg,Arc::Message&
   return HTTPFault(inmsg,outmsg,501,"Not Implemented");
 }
 */
+
+#endif // CPPUNITTEST

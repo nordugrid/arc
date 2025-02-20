@@ -23,6 +23,7 @@ class JobLog {
   std::list<std::string> report_config; // additional configuration for usage reporter
   std::string certificate_path;
   std::string ca_certificates_dir;
+  std::map<std::string,std::list<std::string> > token_map;
   // reporter tool vars
   std::string reporter_tool;
   std::string reporter_logfile;
@@ -58,6 +59,8 @@ class JobLog {
   void SetCredentials(std::string const &key_path,std::string const &certificate_path,std::string const &ca_certificates_dir);
   /* Set accounting options (e.g. batch size for SGAS LUTS) */
   void SetOptions(std::string const &options) { report_config.push_back(std::string("accounting_options=")+options); }
+  /* Add mapping entry from token claim to accounting attribute */
+  void AddTokenMap(std::string const& source, std::string const& dest) { token_map[source].push_back(dest); }
 };
 
 } // namespace ARex

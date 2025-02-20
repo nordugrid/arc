@@ -29,7 +29,6 @@ namespace Arc {
 
     virtual SubmissionStatus Submit(const std::list<JobDescription>& jobdescs, const std::string& endpoint, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted);
     virtual SubmissionStatus Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted);
-    virtual bool Migrate(const std::string& jobid, const JobDescription& jobdesc, const ExecutionTarget& et, bool forcemigration, Job& job);
 
     static bool GetDelegationX509(const UserConfig& usercfg, Arc::URL url, std::string& delegationId);
     static bool GetDelegationToken(const UserConfig& usercfg, Arc::URL url, std::string& delegationId);
@@ -38,7 +37,9 @@ namespace Arc {
     bool AddDelegation(std::string& product, std::string const& delegationId);
     SubmissionStatus SubmitInternal(const std::list<JobDescription>& jobdescs, const ExecutionTarget* et, const std::string& endpoint,
                          EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted);
-
+    SubmissionStatus PostProcessInternal(Arc::URL const& baseUrl, Arc::URL const& submissionUrl, std::string const& delegationId,
+                                         JobDescription const& jobdesc, Arc::XMLNode job_item, EntityConsumer<Job>& jc);
+  
     static Logger logger;
   };
 

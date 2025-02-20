@@ -35,7 +35,7 @@ Plugin* PDPServiceInvoker::get_pdpservice_invoker(PluginArgument* arg) {
 }
 
 PDPServiceInvoker::PDPServiceInvoker(Config* cfg,Arc::PluginArgument* parg):PDP(cfg,parg), client(NULL), 
-  is_xacml(false), is_saml(false) {
+  system_ca(false), is_xacml(false), is_saml(false) {
   XMLNode filter = (*cfg)["Filter"];
   if((bool)filter) {
     XMLNode select_attr = filter["Select"];
@@ -60,6 +60,7 @@ PDPServiceInvoker::PDPServiceInvoker(Config* cfg,Arc::PluginArgument* parg):PDP(
   proxy_path = (std::string)((*cfg)["ProxyPath"]);
   ca_dir = (std::string)((*cfg)["CACertificatesDir"]);
   ca_file = (std::string)((*cfg)["CACertificatePath"]);
+  system_ca = (((std::string)((*cfg)["SystemCA"])) == "true");
   mcc_cfg.AddPrivateKey(key_path);
   mcc_cfg.AddCertificate(cert_path);
   mcc_cfg.AddProxy(proxy_path);
@@ -130,7 +131,7 @@ PDPStatus PDPServiceInvoker::isPermitted(Message *msg) const {
     authz_query.NewAttribute("Version") = std::string("2.0");
 
     Arc::Credential cred(cert_path.empty() ? proxy_path : cert_path,
-         cert_path.empty() ? proxy_path : key_path, ca_dir, ca_file);
+         cert_path.empty() ? proxy_path : key_path, ca_dir, ca_file, system_ca);
     std::string local_dn_str = cred.GetDN();
     std::string local_dn = Arc::convert_to_rdn(local_dn_str);
     std::string issuer_name = local_dn;

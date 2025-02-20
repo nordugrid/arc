@@ -12,6 +12,9 @@ use strict;
 # the schema matches all unmatched keys in the data (if any). Arrays in the
 # schema should have exactly one element, and this element will be matched
 # against all elements in the corresponding array in the data.
+# To make a named hash reference optional, but still write all the hash 
+# keys in the schema, use:
+#  enable => '*' means the whole hash is optional
 
 # Constructor
 #
@@ -83,11 +86,11 @@ sub _verify_part($$$$) {
                 and $schema->{$key}[0] eq "*") {
                 # do nothing:
                 # this missing key is optional, it points to optional array
-            } elsif (ref($schema->{$key}) eq "HASH"
-                and keys(%{$schema->{$key}}) == 1
-                and exists $schema->{$key}{'*'} ) {
-                # do nothing:
-                # this missing key is optional, it points to optional hash
+            } elsif (ref($schema->{$key}) eq "HASH") {
+                if ( ( keys(%{$schema->{$key}}) == 1 and exists $schema->{$key}{'*'} ) or ( exists $schema->{$key}{'enabled'} and $schema->{$key}{'enabled'} eq "*" ) ) {
+                    # do nothing:
+                    # this missing key is optional, it points to optional hash
+                }
             } else {
                 push @{$self->{errors}}, "$subj is missing";
             }

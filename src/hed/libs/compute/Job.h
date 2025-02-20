@@ -128,6 +128,7 @@ namespace Arc {
       STAGEINDIR,
       STAGEOUTDIR,
       SESSIONDIR,
+      LOGDIR,
       JOBLOG,
       JOBDESCRIPTION
     };
@@ -198,7 +199,7 @@ namespace Arc {
     
     bool Retrieve(const UserConfig& uc, const URL& destination, bool force) const;
     
-    static bool CopyJobFile(const UserConfig& uc, const URL& src, const URL& dst);
+    static bool CopyJobFile(const UserConfig& uc, const URL& src, const URL& dst, bool required);
     static bool ListFilesRecursive(const UserConfig& uc, const URL& dir, std::list<std::string>& files) { files.clear(); return ListFilesRecursive(uc, dir, files, ""); }
     
     static bool CompareJobID(const Job& a, const Job& b) { return a.JobID.compare(b.JobID) < 0; }

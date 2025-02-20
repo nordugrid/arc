@@ -2,12 +2,6 @@
 
 package CEInfo;
 
-## RESTRUCTURING PHASE ################
-## changes are identified by the tags
-## #C changenumber
-#######################################
-
-
 ########################################################
 # Driver for information collection
 ########################################################
@@ -95,12 +89,9 @@ BEGIN {
         my $perflognytprofdir;
         my $perflognytproffilepath;
 
-        # TODO: update according to new config
-
-        # C134
         my $infosysloglevel = ConfigCentral::getValueOf($configfile,'infosys','loglevel');
         $log->error("Can\'t determine loglevel. Probably the [infosys] block is missing. Exiting...") if ($infosysloglevel eq '');
-        #C 134
+
         LogUtils::level($infosysloglevel);
 
         my $enable_perflog_reporting = ConfigCentral::isBlockPresent($configfile,'monitoring/perflog');
@@ -211,13 +202,12 @@ sub main {
 
     # setup output to logfile before parsing the complete config file
 
-    # C134
     my $infosysloglevel = ConfigCentral::getValueOf($configfile,'infosys','loglevel');
-    $log->error("Can\'t determine loglevel. Probably the [infosys] block is missing. Exiting...") if ($infosysloglevel eq '');
+    $log->error("Cannot determine loglevel. Probably the [infosys] block is missing. Exiting...") if ($infosysloglevel eq '');
     # Change level for root logger (affects all loggers from now on)
-    #C 134
+
     LogUtils::level($infosysloglevel);
-    #C 133
+
     my $providerlog = ConfigCentral::getValueOf($configfile,'infosys','logfile');
 
     $log->info("Redirecting further messages to $providerlog");
@@ -240,7 +230,7 @@ sub main {
 
     if ($dumpconfig) {
         $log->info("Dumping configuration and exiting");
-        ConfigCentral::dumpInternalDatastructure($config);
+        ConfigCentral::dumpInternalDatastructure($configfile);
         $log->info("############## A-REX infoprovider finished ##############");
         exit 0;
     };
@@ -262,11 +252,7 @@ sub main {
     $log->info("Generating LDIF renderings");
     my $ngdata;
     if ( defined $config->{infosys}{nordugrid} ) {
-        if ($config->{gridftpd}{enabled}) {
-            $ngdata = timed 'ARC0ClusterInfo', sub { ARC0ClusterInfo::collect($data) } if ( defined $config->{infosys}{nordugrid} );
-        } else {
-            $log->info('[gridftpd] block not found. NorduGRID schema disabled. NorduGRID schema only works properly when the gridftpd interface is enabled. No NorduGRID information will be generated. Configure [gridftpd] and [gridftpd/jobs] to fix this. NOTE: Also Glue 1.2/1.3 information will NOT be generated WITHOUT the NorduGRID schema!');
-        }
+            $ngdata = timed 'ARC0ClusterInfo', sub { ARC0ClusterInfo::collect($data) }
     }   
     
     # Write out LDIF document(s)
@@ -301,7 +287,7 @@ sub main {
             my $ldifPrinter = GLUE2ldifPrinter->new($fh, $splitjobs, $glue2schemaversion);
             timed 'GLUE2ldif', sub { $ldifPrinter->Top($glue2data) };
         }
-        if ($config->{infosys}{nordugrid}{enabled} and $config->{gridftpd}{enabled}) {
+        if ($config->{infosys}{nordugrid}{enabled}) {
             $log->info("Generating NorduGrid LDIF rendering");
             my $ldifPrinter = NGldifPrinter->new($fh, $config->{infosys}{validity_ttl});
             timed 'NGldif', sub { $ldifPrinter->Top($ngdata) };
@@ -342,20 +328,28 @@ sub collect($) {
 # uncomment for a dump of the whole config hash
 # print Dumper($config);
 
-    # get all local users from grid-map. Sort unique
-    $log->verbose("Reading grid-mapfiles. These are obsolete, one should use other methods, this message can be ignored.");
+#TODO: Everything works without the locausers block, but we may reuse it in the future, so keeping the code here.
+#TODO: @localusers parsed by:
+#      - hostinfo to provide stats for storage usage
+#      - lrms_info to ??
+#TODO: maybe use a default user e.g. root?
+#TODO: no more per-user stats? Needs different code to handle new mapping
+#    # get all local users from grid-map. Sort unique
+#    $log->verbose("Reading grid-mapfiles. These are obsolete, one should use other methods, this message can be ignored.");
+#    my @localusers;
+#    my $usermap = {};
+#    if ($config->{gridmap}) {
+#        my %saw = ();
+#        $usermap = read_grid_mapfile($config->{gridmap});
+#        @localusers = grep !$saw{$_}++, values %$usermap;
+#    } else {
+#        $log->verbose("gridmap not configured. Gridmap files are obsolete, this message can be ignored");
+#        my $defaultuser = $config->{defaultLocalName};
+#        @localusers = ($defaultuser) if $defaultuser;
+#    }
+#    $log->verbose("Cannot determine local users from gridmapfile or config. This approach is obsolete, this message can be discarded.") unless @localusers;
+#TODO: Placeholder for localusers, before removal of the above block
     my @localusers;
-    my $usermap = {};
-    if ($config->{gridmap}) {
-        my %saw = ();
-        $usermap = read_grid_mapfile($config->{gridmap});
-        @localusers = grep !$saw{$_}++, values %$usermap;
-    } else {
-        $log->verbose("gridmap not configured. Gridmap files are obsolete, this message can be ignored");
-        my $defaultuser = $config->{defaultLocalName};
-        @localusers = ($defaultuser) if $defaultuser;
-    }
-    $log->verbose("Cannot determine local users from gridmapfile or config. This approach is obsolete, this message can be discarded.") unless @localusers;
 
     $log->info("Fetching job information from control directory (GMJobsInfo.pm)");
     my $gmjobs_info = get_gmjobs_info($config);
@@ -372,9 +366,12 @@ sub collect($) {
     # build hash with all the input necessary for the renderers
     my $data = {};
     $data->{config} = $config;
-    $data->{usermap} = $usermap;
+    #TODO: this is not used, but may come handy if we implement mapping info.
+    # Used in ARC0 and ARC1 ClusterInfo
+    #$data->{usermap} = $usermap;
 
     $log->info("Updating frontend information (HostInfo.pm)");
+    # @localusers seems not needed, but might be if we go non-root, so keeping code here.
     $data->{host_info} = get_host_info($config,\@localusers);
 
     $log->info("Updating RTE information (RTEInfo.pm)");
@@ -401,16 +398,14 @@ sub get_host_info($$) {
 
     my $host_opts = {};
     $host_opts->{localusers} = $localusers;
-    $host_opts->{processes} = ['arched', 'gridftpd','slapd'];
+    $host_opts->{processes} = ['arched', 'slapd'];
     $host_opts->{ports}{'arched'} = ['443'];
-    $host_opts->{ports}{'gridftpd'} = [$config->{gridftpd}{port}] if $config->{gridftpd}{enabled};
     $host_opts->{ports}{'slapd'} = [$config->{infosys}{ldap}{port}] if $config->{infosys}{ldap}{enabled};
     $host_opts->{x509_host_cert} = $config->{x509_host_cert};
     $host_opts->{x509_cert_dir} = $config->{x509_cert_dir};
+    $host_opts->{x509_cert_policy} = $config->{x509_cert_policy};
     $host_opts->{wakeupperiod} = $config->{wakeupperiod};
-    $host_opts->{sessiondir} = $config->{sessiondir};
-    $host_opts->{control} = $config->{control};
-    $host_opts->{remotegmdirs} = $config->{remotegmdirs};
+    $host_opts->{arex} = $config->{arex};
 
     return timed 'HostInfo', sub { HostInfo::collect($host_opts) };
 }
@@ -419,7 +414,7 @@ sub get_rte_info($) {
     my ($config) = @_;
 
     my $rte_opts;
-    $rte_opts->{controldir} = $config->{control}{'.'}{controldir} if $config->{control}{'.'}{controldir};
+    $rte_opts->{controldir} = $config->{arex}{controldir} if $config->{arex}{controldir};
 
     return timed 'RTEInfo', sub { RTEInfo::collect($rte_opts) };
 }
@@ -427,14 +422,15 @@ sub get_rte_info($) {
 sub get_lrms_info($$$) {
     my ($config,$localusers,$jobids) = @_;
 
-    # TODO: possibly any options from config are needed, but they should be
-    # moved into the lrms block if required.
+    # NOTE: possibly any options from config are needed, but they should be
+    # moved into the lrms block if required. I see no point in moving all of them
+    # if not needed.
 
     # this conforms to LRMSInfo.pm specification
     my $lrms_opts = Storable::dclone($config->{lrms});
     
     # Additional info used by LRMS modules
-    $lrms_opts->{controldir} = $config->{control}{'.'}{controldir};
+    $lrms_opts->{controldir} = $config->{arex}{controldir};
     $lrms_opts->{loglevel} = $config->{infosys}{loglevel};
     
     # TODO: double check this cleanup, if needed
@@ -454,8 +450,7 @@ sub get_lrms_info($$$) {
 sub get_gmjobs_info($) {
     my $config = shift;
 
-    my $gmjobs_info = timed 'GMJobsInfo', sub { GMJobsInfo::collect($config->{control},
-                                                                    $config->{remotegmdirs},
+    my $gmjobs_info = timed 'GMJobsInfo', sub { GMJobsInfo::collect($config->{arex},
                                                                     $nojobs) };
     return fix_jobs($config, $gmjobs_info);
 }
@@ -470,14 +465,14 @@ sub get_gmjobs_info($) {
 sub fix_jobs {
     my ($config, $gmjobs_info) = @_;
 
-    # TODO: this should be already splitted in ConfigCentral
-    my ($lrms, $defaultshare) = split /\s+/, $config->{lrms}{lrms} || ''; # C 10
+    my $lrms = $config->{lrms}{lrms};
+    my $defaultshare = $config->{lrms}{defaultqueue} if defined $config->{lrms}{defaultqueue} || '';
     for my $jobid (keys %$gmjobs_info) {
         my $job = $gmjobs_info->{$jobid};
         my $share = $job->{share};
 
-        # If A-REX has not chosen a share for the job, default to one.
-        # why?!? and how do we know?
+        # If A-REX has not chosen a share for the job, default to one for data collection.
+        # This changes once the shared is written in the controldir by submission scripts.
         if (not $share) {
             my $msg = "A-REX has not chosen a share for job $jobid";
             if ($defaultshare) {
@@ -512,32 +507,33 @@ sub fix_jobs {
 }
 
 
+# TODO: reuse for map_with_file if still needed. Should probably be moved to configcentral eventually.
 # reads grid-mapfile. Returns a ref to a DN => uid hash
 
-sub read_grid_mapfile($) {
-    my $gridmapfile = shift;
-    my $usermap = {};
+#sub read_grid_mapfile($) {
+#    my $gridmapfile = shift;
+#    my $usermap = {};
+#
+#    unless (open MAPFILE, "<$gridmapfile") {
+#        $log->warning("can't open gridmapfile at $gridmapfile");
+#        return;
+#    }
+#    while (my $line = <MAPFILE>) {
+#        chomp($line);
+#        if ( $line =~ m/\"([^\"]+)\"\s+(\S+)/ ) {
+#            my $subject = $1;
+#            eval {
+#                $subject = decode("utf8", $subject, 1);
+#            };
+#            $usermap->{$subject} = $2;
+#        }
+#    }
+#    close MAPFILE;
+#
+#    return $usermap;
+#}
 
-    unless (open MAPFILE, "<$gridmapfile") {
-        $log->warning("can't open gridmapfile at $gridmapfile");
-        return;
-    }
-    while (my $line = <MAPFILE>) {
-        chomp($line);
-        if ( $line =~ m/\"([^\"]+)\"\s+(\S+)/ ) {
-            my $subject = $1;
-            eval {
-                $subject = decode("utf8", $subject, 1);
-            };
-            $usermap->{$subject} = $2;
-        }
-    }
-    close MAPFILE;
-
-    return $usermap;
-}
-
-## CHECK: This probably belongs here, info from HostInfo.pm and LRMS modules is required
+## This routine belongs here as info from HostInfo.pm and LRMS modules is required
 # Replaces 'adotf' in config options with autodetected values
 
 sub fix_adotf {

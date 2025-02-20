@@ -20,6 +20,8 @@
 #include <arc/loader/FinderLoader.h>
 #include <arc/OptionParser.h>
 
+#include "utils.h"
+
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcrm");
 
 /// Returns number of files that failed to be deleted
@@ -63,21 +65,7 @@ int arcrm(const std::list<Arc::URL>& urls,
       }
 
       if ((*handle)->RequiresCredentials()) {
-        if (!usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials)) {
-          logger.msg(Arc::ERROR, "Unable to remove file %s", url->str());
-          logger.msg(Arc::ERROR, "Invalid credentials, please check proxy and/or CA certificates");
-          failed++;
-          delete handle;
-          handle = NULL;
-          continue;
-        }
-        Arc::Credential holder(usercfg);
-        if (!holder.IsValid()) {
-          if (holder.GetEndTime() < Arc::Time()) {
-            logger.msg(Arc::ERROR, "Proxy expired");
-          }
-          logger.msg(Arc::ERROR, "Unable to remove file %s", url->str());
-          logger.msg(Arc::ERROR, "Invalid credentials, please check proxy and/or CA certificates");
+        if(!initProxy(logger, usercfg, *url)) {
           failed++;
           delete handle;
           handle = NULL;
@@ -136,6 +124,36 @@ static int runmain(int argc, char **argv) {
                     istring("configuration file (default ~/.arc/client.conf)"),
                     istring("filename"), conffile);
 
+  bool no_authentication = false;
+  options.AddOption('\0', "no-authentication",
+              istring("do not perform any authentication for opened connections"),
+              no_authentication);
+
+  bool x509_authentication = false;
+  options.AddOption('\0', "x509-authentication",
+              istring("perform X.509 authentication for opened connections"),
+              x509_authentication);
+
+  bool token_authentication = false;
+  options.AddOption('\0', "token-authentication",
+              istring("perform token authentication for opened connections"),
+              token_authentication);
+
+  bool force_system_ca = false;
+  options.AddOption('\0', "systemca",
+              istring("force using CA certificates configuration provided by OpenSSL"),
+              force_system_ca);
+
+  bool force_grid_ca = false;
+  options.AddOption('\0', "gridca",
+              istring("force using CA certificates configuration for Grid services (typically IGTF)"),
+              force_grid_ca);
+
+  bool allow_insecure_connection = false;
+  options.AddOption('\0', "allowinsecureconnection",
+              istring("allow TLS connection which failed verification"),
+              allow_insecure_connection);
+    
   std::string debug;
   options.AddOption('d', "debug",
                     istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
@@ -184,6 +202,28 @@ static int runmain(int argc, char **argv) {
   }
   usercfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY());
   usercfg.Timeout(timeout);
+  if (force_system_ca) usercfg.CAUseSystem(true);
+  if (force_grid_ca) usercfg.CAUseSystem(false);
+  if (allow_insecure_connection) usercfg.TLSAllowInsecure(true);
+
+  AuthenticationType authentication_type = UndefinedAuthentication;
+  if(!getAuthenticationType(logger, usercfg, no_authentication, x509_authentication, token_authentication, authentication_type))
+    return 1;
+  switch(authentication_type) {
+    case NoAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeNone);
+      break;
+    case X509Authentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeCert);
+      break;
+    case TokenAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeToken);
+      break;
+    case UndefinedAuthentication:
+    default:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeUndefined);
+      break;
+  }
 
   if (debug.empty() && !usercfg.Verbosity().empty()) {
     Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(usercfg.Verbosity()));

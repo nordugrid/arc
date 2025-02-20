@@ -1,0 +1,101 @@
+=================================
+Advanced Resource Connector (ARC)
+=================================
+
+
+Release Notes for NorduGrid ARC  7.0.0     XX.XX.2023
+=======================================================
+Draft release notes
+
+Highlights in this release
+--------------------------
+
+- Tokens (http://www.nordugrid.org/arc/arc7/tech/oidc_tokens/oidc_tokens.html)
+  - Major improvements
+  - Community compliance
+  - Enhancements
+  - Added support for using JWT compute scopes for token-based authorization via allowaccess arc.conf parameter authtokens (http://www.nordugrid.org/arc/arc7/admins/reference.html#authtokens)
+  - Token information is part of the accounting records
+
+- The ARC server can use operating system provided CA bundles via configurable x509_cert_policy in the common block  in arc.conf. An ARC-CE must use *either* the default grid option *or* the system option. 
+
+- REST 1.1 (http://www.nordugrid.org/arc/arc7/tech/rest/rest.html)
+  - A new optional delegation parameter type extension to support tokens
+  - A new optional queue parameter to define the default queue of the compute element
+
+- A tidy up has been done to gain consistent handling of the benchmark parameters over the various arc.conf blocks
+
+- A restructured controldir for increased scalability (link)
+  - When upgrading from ARC 6 to ARC 7, the controldir will seamlessly restructure itself.
+
+Backwards compatibilities and incompatibilities
+------------------------------------------------
+
+- ARC7 still suports x509 proxies in addition to the tokens.
+
+- Both authtokens and x509 authentication is enabled by default. 
+
+- Support for the EMIES interface was completely removed. 
+
+- Publshing cluster information via REST interface is enabled by default [arex/ws/publicinfo] block is added to zero.conf
+
+- No incompatible changes in the ARC7 accounting subsystem. APEL and SGAS supported.
+
+- The internal structure of the controldir files have been changed, ARC internal scripts were updated but custom scripts may be broken because of the changed file structure in the controldir.
+
+- ARC 7 supports XRSL and ADL as job description languages, no backward incompatible changes were introduced, all ARC6 job files should work with ARC7. 
+
+- ARC 7 fully supports the SLURM, Condor and the fork batch systems and community efforts were made to provide some maintenance for OpenPBS as well. The other batch systems from ARC6 are kept in ARC7 but their status is unclear. 
+
+
+
+
+
+
+Documentation
+==============
+The ARC 7 documentation can be found at
+
+If you miss something or have questions, please contact us!
+
+Links to Technology papers, specs
+----------------------------------
+ Token support in ARC tech white paper
+
+
+Installing ARC 7 
+=================
+We recommend to install ARC release using the Nordugrid repository.
+
+
+We provide binary builds for all supported versions of
+  
+
+In addition we build nightly packages for older platforms. 
+
+
+
+Contributing
+=============
+You can submit pull requests to our public repo at https://github.com/nordugrid/arc which mirrors
+our Gitlab repo https://source.coderefinery.org/nordugrid/arc.
+
+The pull requests will be automatically copied over to our Gitlab repo where they will be
+merged into the source-code if accepted.
+
+
+Getting in touch
+==================
+If you need help with the configuration file or have any other questions related to ARC, please contact us via
+* Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
+* Skype channel dedicated to ARC support: https://join.skype.com/dyf3A6Uutjy2
+
+
+Future support of ARC 6-series
+===============================
+
+
+
+
+
+

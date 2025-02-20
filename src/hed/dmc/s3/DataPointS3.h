@@ -104,6 +104,9 @@ private:
 
   static S3Status getObjectDataCallback(int bufferSize, const char *buffer,
                                         void *callbackData);
+
+  static int putObjectDataCallback(int bufferSize, char *buffer,
+                                        void *callbackData);
 };
 
 } // namespace Arc

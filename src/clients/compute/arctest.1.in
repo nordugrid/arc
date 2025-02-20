@@ -1,75 +1,16 @@
-.\" -*- nroff -*-
-.TH ARCTEST 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
-
-.SH NAME
-
+[NAME]
 arctest \- ARC Test Suite
 
-.SH DESCRIPTION
-
+[EXTENDED DESCRIPTION]
 The
 .B arctest
-command tests basic ARC client and server setup.
+command is mainly used for basic testing of job submission to ARC CE
+using various pre-defined test jobs.  It supports all target selection 
+options available for 
+.B arcsub
+and use the same brockering logic.
 
-.SH SYNOPSIS
-
-.B arctest [options]
-
-.SH OPTIONS
-
-.IP "\fB-c\fR, \fB--cluster\fR=\fIname\fR"
-select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
-.IP "\fB-g\fR, \fB--index\fR=\fIname\fR"
-select one or more registries: \fIname\fR can be an alias for a single registry, a group of registries or a URL
-.IP "\fB-R\fR, \fB--rejectdiscovery\fR=\fIURL\fR"
-skip the service with the given URL during service discovery
-.IP "\fB-S\fR, \fB--submissioninterface\fR=\fIInterfaceName\fR"
-only use this interface for submitting (e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.ogf.bes)
-.IP "\fB-I\fR, \fB--infointerface\fR=\fIInterfaceName\fR"
-the computing element specified by URL at the command line should be
-queried using this information interface (possible options:
-org.nordugrid.ldapng, org.nordugrid.ldapglue2,
-org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo)
-.IP "\fB-J\fR \fIjobid\fR, \fB--jobid\fR=\fIjobid\fR"
-submits testjob given by the jobid.
-.IP "\fB-r\fR \fItime\fR, \fB--runtime\fR=\fItime\fR"
-test job runtime specified in case of the 1st test job.
-.IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
-the file storing information about active jobs (default ~/.arc/jobs.xml)
-.IP "\fB-o\fR, \fB--jobids-to-file\fR=\fIfilename\fR"
-the IDs of the submitted jobs will be appended to this file
-.IP "\fB-D\fR, \fB--dryrun\fR"
-submit jobs as dry run (no submission to batch system)
-.IP "\fB    --direct\fR"
-submit directly - no resource discovery or matchmaking
-.IP "\fB-x\fR, \fB--dumpdescription\fR"
-do not submit - dump job description in the language accepted by the target
-.IP "\fB-E\fR, \fB--certificate\fR"
-prints information about installed user- and CA-certificates
-.IP "\fB-P\fR, \fB--listplugins\fR"
-list the available plugins
-.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
-timeout in seconds (default 20)
-.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
-configuration file (default ~/.arc/client.conf)
-.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
-FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
-.IP "\fB-b\fR, \fB--broker\fR=\fIbroker\fR"
-selected broker: Random (default), FastestQueue or custom
-.IP "\fB-n\fR, \fB--no-delegation\fR"
-do not perform X.509 delegation for submitted jobs
-.IP "\fB-v\fR, \fB-version\fR"
-print version information
-.IP "\fB-h\fR, \fB-help\fR"
-print usage information
-.LP
-
-.SH EXTENDED DESCRIPTION
-
-The
-.B arctest
-command is used for basic testing of ARC client and server installation
-through submitting various test jobs. It can also print basic information
+It can also print basic information
 about user's certificate. The command is complementary to
 .B arcinfo
 and
@@ -88,28 +29,40 @@ Test job 2: attempts to list all environment variables at the remote site
 
 Test job 3: copies a remote file from an HTTP server into a local file
 
-.SH EXAMPLES
+[EXAMPLES]
+.br
+\fBarctest -J 1 -C <computing element>\fR
 
-arctest -J 1 -c <clustername>
+will submit test job number 1 to the specified CE.
 
-will submit test job number 1 to the specified cluster belonging to the flavor of it.
+[FILES]
+.TP
+.B ~/.arc/client.conf
+Some options can be given default values by specifying them in the
+ARC client configuration file. By using the
+.B --conffile
+option a different configuration file can be used than the default.
 
-arctest --certificate
+.TP
+.B ~/.arc/jobs.dat
+This a local database of the user's active jobs. When a job is
+successfully submitted it is added to database and when it is removed
+from the remote CE it is removed from this list. This database is
+used as the list of all active jobs when the user specifies the
+.B --all
+option to the various NorduGrid ARC user interface commands. By using the
+.B --joblist
+option a different file can be used than the default.
 
-will print basic information about the user's certificate.
-
-.SH COPYRIGHT
-
+[COPYRIGHT]
 APACHE LICENSE Version 2.0
 
-.SH AUTHOR
-
+[AUTHOR]
 ARC software is developed by the NorduGrid Collaboration 
 (http://www.nordugrid.org), please consult the AUTHORS file distributed with 
 ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 
-.SH SEE ALSO
-
+[SEE ALSO]
 .BR arccat (1),
 .BR arcclean (1),
 .BR arccp (1),
@@ -120,10 +73,8 @@ ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 .BR arcmkdir (1),
 .BR arcproxy (1),
 .BR arcrenew (1),
-.BR arcresub (1),
 .BR arcresume (1),
 .BR arcrm (1),
 .BR arcstat (1),
 .BR arcsub (1),
 .BR arcsync (1)
-

@@ -1,70 +1,7 @@
-.\" -*- nroff -*-
-.TH ARCCP 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
-
-.SH NAME
-
+[NAME]
 arccp \- copy files
 
-.SH DESCRIPTION
-
-The
-.B arccp
-command copies files to, from and between grid storage elements.
-
-.SH SYNOPSIS
-
-.B arccp [options] source destination
-
-.SH OPTIONS
-
-.IP "\fB-p\fR, \fB--passive\fR"
-use passive transfer (off by default if secure is on, on by default if secure is not requested)
-.IP "\fB-n\fR, \fB--nopassive\fR"
-do not try to force passive transfer
-.IP "\fB-f\fR, \fB--force\fR"
-if the destination is an indexing service and not the same as the source and the destination is already registered, then the copy is normally not done. However, if this option is specified the source is assumed to be a replica of the destination created in an uncontrolled way and the copy is done like in case of replication. Using this option also skips validation of completed transfers.
-.IP "\fB-i\fR, \fB--indicate\fR"
-show progress indicator. Using this option forces a check of the source file before trying to transfer it, in order to find its size. Depending on other information obtained about the source, there may be side-effects of using this option, for example checksum verification or pre-staging data from tape. 
-.IP "\fB-T\fR, \fB--notransfer\fR"
-do not transfer, but register source into destination. destination must be a meta-url. If destination already exists then meta-information of source must match meta-information of destination. This can be overridden using the --force option.
-.IP "\fB-3\fR, \fB--thirdparty\fR"
-perform third party transfer, where the destination pulls from the source (only available with GFAL plugin)
-.IP "\fB-u\fR, \fB--secure\fR"
-use secure transfer (insecure by default)
-.IP "\fB-y\fR, \fB--cache\fR=\fIpath\fR"
-path to local cache (use to put file into cache)
-.IP "\fB-r\fR, \fB--recursive\fR"
-operate recursively
-.IP "\fB-D\fR, \fB--depth\fR=\fIlevel\fR"
-operate recursively up to specified level
-.IP "\fB-R\fR, \fB--retries\fR=\fInumber\fR"
-number of retries before failing file transfer
-.IP "\fB-L\fR, \fB--location\fR=\fIURL\fR"
-physical file to write to when destination is an indexing service. Must be specified for indexing services which do not automatically generate physical locations. Can be specified multiple times - locations will be tried in order until one succeeds.
-.IP "\fB-P\fR, \fB--listplugins\fR"
-list the available plugins (protocols supported)
-.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
-timeout in seconds (default 20). This timeout applies to connections to remote
-services and indicates the maximum allowed idle time of the transfer.
-.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
-configuration file (default ~/.arc/client.conf)
-.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
-FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
-.IP "\fB-v\fR, \fB--version\fR"
-print version information
-.IP "\fB-?\fR, \fB--help\fR"
-print help
-
-.SH ARGUMENTS
-
-.IP "\fBsource\fR"
-the source of the transfer
-.IP "\fBdestination\fR"
-the destination of the transfer
-.LP
-
-.SH EXTENDED DESCRIPTION
-
+[EXTENDED DESCRIPTION]
 The
 .B arccp
 command copies files to, from and between grid storage elements. It can
@@ -106,8 +43,7 @@ Depending on the installed libraries (check with
 omitted), http, https, httpg, ftp, gsiftp, srm, root. To connect 
 source or destination to standard input/output use '-' instead of URL.
 
-.SH FILES
-
+[FILES]
 .TP
 .B ~/.arc/client.conf
 Some options can be given default values by specifying them in the
@@ -115,8 +51,7 @@ ARC client configuration file. By using the
 .B --conffile
 option a different configuration file can be used than the default.
 
-.SH ENVIRONMENT VARIABLES
-
+[ENVIRONMENT VARIABLES]
 .TP
 .B X509_USER_PROXY
 The location of the user's Grid proxy file. Shouldn't be set unless
@@ -135,22 +70,19 @@ The location of ARC plugins can be specified by this variable. Multiple
 locations can be specified by separating them by : (; in Windows). The
 default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
 
-.SH EXAMPLE
+[EXAMPLE]
 arccp -i gsiftp://example.com/grid/file1.dat /tmp/file1.dat
 
-.SH COPYRIGHT
-
+[COPYRIGHT]
 APACHE LICENSE Version 2.0
 
-.SH AUTHOR
-
+[AUTHOR]
 ARC software is developed by the NorduGrid Collaboration 
 (http://www.nordugrid.org), please consult the AUTHORS file distributed with 
 ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 
-.SH SEE ALSO
-
+[SEE ALSO]
 .BR arcls (1),
 .BR arcmkdir (1),
 .BR arcrename (1),
-.BR arcrm (1),
+.BR arcrm (1)

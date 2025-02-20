@@ -1,4 +1,4 @@
-SUBDIRS = schema
+SUBDIRS = schema $(TEST_DIR)
 pkglib_LTLIBRARIES = libmcctls.la
 
 libmcctls_la_SOURCES = PayloadTLSStream.cpp MCCTLS.cpp \

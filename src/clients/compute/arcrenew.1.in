@@ -1,60 +1,10 @@
-.\" -*- nroff -*-
-.TH ARCRENEW 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
-
-.SH NAME
-
+[NAME]
 arcrenew \- ARC Proxy Renewal
 
-.SH DESCRIPTION
-
+[EXTENDED DESCRIPTION]
 The
 .B arcrenew
-command is used for renewing the proxy of jobs that have
-been submitted to grid enabled resources.
-
-.SH SYNOPSIS
-
-.B arcrenew [options] [job ...]
-
-.SH OPTIONS
-
-.IP "\fB-a\fR, \fB--all\fR"
-all jobs
-.IP "\fB-j\fR, \fB--joblist\fR=\fIfilename\fR"
-the file storing information about active jobs (default ~/.arc/jobs.xml)
-.IP "\fB-i\fR, \fB--jobids-from-file\fR=\fIfilename\fR"
-a file containing a list of jobIDs
-.IP "\fB-c\fR, \fB--cluster\fR=\fIname\fR"
-select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
-.IP "\fB-r\fR, \fB--rejectmanagement\fR=\fIURL\fR"
-skip jobs which are on a computing element with a given URL
-.IP "\fB-s\fR, \fB--status\fR=\fIstatusstr\fR"
-only select jobs whose status is statusstr
-.IP "\fB-P\fR, \fB--listplugins\fR"
-list the available plugins
-.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
-timeout in seconds (default 20)
-.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
-configuration file (default ~/.arc/client.conf)
-.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
-FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
-.IP "\fB-v\fR, \fB--version\fR"
-print version information
-.IP "\fB-?\fR, \fB--help\fR"
-print help
-.LP
-
-.SH ARGUMENTS
-
-.IP "\fBjob\fR ..."
-list of jobids and/or jobnames
-.LP
-
-.SH EXTENDED DESCRIPTION
-
-The
-.B arcrenew
-command renews the proxy of a job submitted an ARC enabled resource.
+command renews the delegated x509 proxy of a job submitted an ARC CEs.
 The job can be referred to either by the jobid that was returned by
 .BR arcsub (1)
 at submission time or by its jobname if the job description that was
@@ -70,18 +20,15 @@ specified filename. By specifying the
 option, the proxies of all active jobs will be renewed.
 
 The
-.B --cluster
-option can be used to select or reject jobs at specific clusters. See
-.BR arcsub (1)
-for a discussion of the format of arguments to this option. The
+.B --computing-element
+option can be used to select or reject jobs at specific clusters. The
 .B --status
 option can be used to select jobs in a specific state. These options
 can be repeated several times. See
-.BR arstat (1)
+.BR arcstat (1)
 for possible state values.
 
-.SH FILES
-
+[FILES]
 .TP
 .B ~/.arc/client.conf
 Some options can be given default values by specifying them in the
@@ -90,48 +37,25 @@ ARC client configuration file. By using the
 option a different configuration file can be used than the default.
 
 .TP
-.B ~/.arc/jobs.xml
-This a local list of the user's active jobs. When a job is
-successfully submitted it is added to this list and when it is removed
-from the remote cluster it is removed from this list. This list is
+.B ~/.arc/jobs.dat
+This a local database of the user's active jobs. When a job is
+successfully submitted it is added to database and when it is removed
+from the remote CE it is removed from this list. This database is
 used as the list of all active jobs when the user specifies the
 .B --all
 option to the various NorduGrid ARC user interface commands. By using the
 .B --joblist
 option a different file can be used than the default.
 
-.SH ENVIRONMENT VARIABLES
-
-.TP
-.B X509_USER_PROXY
-The location of the user's Grid proxy file. Shouldn't be set unless
-the proxy is in a non-standard location.
-
-.TP
-.B ARC_LOCATION
-The location where ARC is installed can be specified by this variable. If not
-specified the install location will be determined from the path to the
-command being executed, and if this fails a WARNING will be given stating the
-location which will be used.
-
-.TP
-.B ARC_PLUGIN_PATH
-The location of ARC plugins can be specified by this variable. Multiple
-locations can be specified by separating them by : (; in Windows). The
-default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
-
-.SH COPYRIGHT
-
+[COPYRIGHT]
 APACHE LICENSE Version 2.0
 
-.SH AUTHOR
-
+[AUTHOR]
 ARC software is developed by the NorduGrid Collaboration 
 (http://www.nordugrid.org), please consult the AUTHORS file distributed with 
 ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 
-.SH SEE ALSO
-
+[SEE ALSO]
 .BR arccat (1),
 .BR arcclean (1),
 .BR arccp (1),
@@ -141,11 +65,9 @@ ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 .BR arcls (1),
 .BR arcmkdir (1),
 .BR arcproxy (1),
-.BR arcresub (1),
 .BR arcresume (1),
 .BR arcrm (1),
 .BR arcstat (1),
 .BR arcsub (1),
 .BR arcsync (1),
 .BR arctest (1)
-

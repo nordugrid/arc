@@ -135,7 +135,7 @@ AuthUser::AuthUser(Arc::Message& message):
     otokens_t otokens;
     otokens.subject  = sattr->get("sub");
     otokens.issuer   = sattr->get("iss");
-    otokens.audience = sattr->get("aud");
+    otokens.audiences= sattr->getAll("aud");
     Arc::tokenize(sattr->get("scope"), otokens.scopes);
     otokens.groups   = sattr->getAll("wlcg.groups");
     otokens.claims   = sattr->getAll();
@@ -148,7 +148,7 @@ AuthUser::AuthUser(Arc::Message& message):
     otokens_t otokens;
     otokens.subject  = sattr->get("sub");
     otokens.issuer   = sattr->get("iss");
-    otokens.audience = sattr->get("aud");
+    otokens.audiences= sattr->getAll("aud");
     Arc::tokenize(sattr->get("scope"), otokens.scopes);
     otokens.groups   = sattr->getAll("wlcg.groups");
     otokens.claims   = sattr->getAll();

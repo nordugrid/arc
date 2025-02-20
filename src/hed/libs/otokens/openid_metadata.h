@@ -2,6 +2,7 @@
 #include <arc/Utils.h>
 #include <arc/URL.h>
 #include <arc/Logger.h>
+#include <arc/UserConfig.h>
 #include <arc/communication/ClientInterface.h>
 
 
@@ -54,7 +55,7 @@ namespace Arc {
     //! Parse metadata as simple string.
     OpenIDMetadata(std::string const& jwseCompact);
 
-    //! Default contructor creates empty metadata.
+    //! Default constructor creates empty metadata.
     OpenIDMetadata();    
 
     //! Ordinary destructor
@@ -166,8 +167,9 @@ namespace Arc {
 
   class OpenIDMetadataFetcher {
    public:
-    OpenIDMetadataFetcher(char const * issuer_url);
+    OpenIDMetadataFetcher(char const * issuer_url, UserConfig& userconfig);
     bool Fetch(OpenIDMetadata& metadata);
+    static bool Import(char const * content, OpenIDMetadata& metadata);
    private:
     URL url_;
     ClientHTTP client_;
@@ -177,12 +179,13 @@ namespace Arc {
   class OpenIDTokenFetcher {
    public:
     typedef std::list< std::pair<std::string, std::string> > TokenList;
-    OpenIDTokenFetcher(char const * token_endpoint, char const * id, char const * secret);
+    OpenIDTokenFetcher(char const * token_endpoint, UserConfig& userconfig, char const * id, char const * secret);
     bool Fetch(std::string const & grant,
                std::string const & subject,
                std::list<std::string> const & scope,
                std::list<std::string> const & audience,
                TokenList & tokens);
+    static bool Import(char const * content, TokenList & tokens);
    private:
     URL url_;
     std::string client_id_;

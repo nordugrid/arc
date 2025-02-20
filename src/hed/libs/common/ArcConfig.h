@@ -121,8 +121,22 @@ namespace Arc {
     std::string cafile;
     /// Path to directory of CA certificates
     std::string cadir;
+    /**
+     * \since Added in 7.0.0.
+     **/
+    /// Either default system-wide CA configuration to be used
+    bool systemca;
+    /// Either TLS connections with failed verification are allowed (dangerous)
+    bool tlsallowinsecure;
     /// Authentication token
     std::string otoken;
+    /// Either otoken can be used for authentication (must be set explicitely)
+    bool otoken_for_auth;
+    /// Either certificate/key/proxy can be used for authentication (must be set explicitely)
+    bool cert_for_auth;
+    /**
+     * \since Added in 4.0.0.
+     **/
     /// Configuration overlay
     XMLNode overlay;
     /// Construct new BaseConfig. Plugin paths are determined automatically.
@@ -130,10 +144,10 @@ namespace Arc {
     virtual ~BaseConfig() {}
     /// Adds non-standard location of plugins
     void AddPluginsPath(const std::string& path);
-    /// Add credential string
     /**
      * \since Added in 4.0.0.
      **/
+    /// Add credential string
     void AddCredential(const std::string& cred);
     /// Add private key
     void AddPrivateKey(const std::string& path);
@@ -145,8 +159,6 @@ namespace Arc {
     void AddCAFile(const std::string& path);
     /// Add CA directory
     void AddCADir(const std::string& path);
-    /// Add authentication token
-    void AddOToken(const std::string& token);
     /// Add configuration overlay
     void AddOverlay(XMLNode cfg);
     /// Read overlay from file
@@ -155,6 +167,13 @@ namespace Arc {
     /** \return reference to XML node representing configuration of
         ModuleManager */
     virtual XMLNode MakeConfig(XMLNode cfg) const;
+    /**
+     * \since Added in 7.0.0.
+     **/
+    /// Add authentication token
+    void AddOToken(const std::string& token);
+    void SetSystemCA(bool use_default);
+    void SetTLSAllowInsecure(bool allow_insecure);
   };
 
 } // namespace Arc

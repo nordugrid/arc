@@ -36,8 +36,9 @@ using namespace Arc;
 class OTokensSecAttr: public SecAttr {
  public:
   OTokensSecAttr(Arc::Message* msg);
-  virtual ~OTokensSecAttr(void);
-  virtual operator bool(void) const;
+  virtual ~OTokensSecAttr();
+  virtual operator bool() const;
+  bool empty() const;
   virtual std::string get(const std::string& id) const;
   virtual std::list<std::string> getAll(const std::string& id) const;
   virtual std::map< std::string,std::list<std::string> > getAll() const;
@@ -75,12 +76,18 @@ OTokensSecAttr::OTokensSecAttr(Arc::Message* msg):valid_(false) {
       if(strnicmp(token_.c_str(), tokenid, sizeof(tokenid)-1) == 0) {
         token_.erase(0, sizeof(tokenid)-1);
         logger.msg(DEBUG, "OTokens: Attr: token: bearer: %s", token_);
-        valid_ = jwse_.Input(token_);
+        // TODO: Propagate information about paths and policy from caller somehow.
+        // So far just using default locations
+        initializeCredentialsType cred_type(Arc::initializeCredentialsType::SkipCANotTryCredentials);
+        UserConfig userconfig(cred_type);
+        valid_ = jwse_.Input(token_, userconfig);
         if(valid_) {
           // Additionally require signature protected by safely obtained key.
           // So far only accepting keys fetched from issuer through https.
           valid_ = (jwse_.InputKeyOrigin() == JWSE::ExternalSafeKey);
         };
+      } else {
+        token_.clear();
       };
     };
   };
@@ -113,6 +120,27 @@ std::list<std::string> OTokensSecAttr::getAll(const std::string& id) const {
     items.push_back(issuer + "/" + subject);
     return items;
   };
+  /*
+  if(id == "*") { // special name for returning all claims in name=value format
+    std::set<std::string> claimnames = jwse_.ClaimNames();
+    for(std::set<std::string>::iterator claimname = claimnames.begin(); claimname != claimnames.end(); ++claimname) {
+      cJSON const * obj = jwse_.Claim(claimname->c_str());
+      if(obj) {
+        if(obj->type == cJSON_String) {
+          if(obj->valuestring) items.push_back(*claimname+"="+obj->valuestring);
+        }
+        else if(obj->type == cJSON_Array) {
+          obj = obj->child;
+          for( ;obj; obj = obj->next) {
+            if(obj->type == cJSON_String) {
+              if(obj->valuestring) items.push_back(*claimname+"="+obj->valuestring);
+            }
+          }
+        }
+      }
+    }
+  };
+  */
   cJSON const * obj = jwse_.Claim(id.c_str());
   if(obj) {
     if(obj->type == cJSON_String) {
@@ -146,7 +174,12 @@ std::map< std::string,std::list<std::string> > OTokensSecAttr::getAll() const {
 }
 
 OTokensSecAttr::operator bool() const {
-  return valid_;
+  // Either token is not present at all or was parsed successfully
+  return valid_ || token_.empty();
+}
+
+bool OTokensSecAttr::empty() const {
+  return token_.empty();
 }
 
 OTokensSH::OTokensSH(Config *cfg,ChainContext*,Arc::PluginArgument* parg):SecHandler(cfg,parg),valid_(false){
@@ -163,6 +196,10 @@ SecHandlerStatus OTokensSH::Handle(Arc::Message* msg) const {
     OTokensSecAttr* sattr = new OTokensSecAttr(msg);
     if(!*sattr) {
       logger.msg(ERROR, "Failed to create OTokens security attributes");
+      delete sattr;
+      sattr = NULL;
+    } else if(sattr->empty()) {
+      logger.msg(DEBUG, "OTokens: Handle: token was not present");
       delete sattr;
       sattr = NULL;
     } else {

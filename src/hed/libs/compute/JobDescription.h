@@ -42,10 +42,10 @@ namespace Arc {
   template<class T>
   class OptIn {
   public:
-    OptIn<T>() : optIn(false) {}
-    OptIn<T>(const T& t) : v(t), optIn(false) {}
-    OptIn<T>(const T& t, bool o) : v(t), optIn(o) {}
-    OptIn<T>(const OptIn<T>& ot) : v(ot.v), optIn(ot.optIn) {}
+    OptIn() : optIn(false) {}
+    OptIn(const T& t) : v(t), optIn(false) {}
+    OptIn(const T& t, bool o) : v(t), optIn(o) {}
+    OptIn(const OptIn<T>& ot) : v(ot.v), optIn(ot.optIn) {}
 
     OptIn<T>& operator=(const OptIn<T>& ot) { v = ot.v; optIn = ot.optIn; return *this; }
     OptIn<T>& operator=(const T& t) { v = t; optIn = false; return *this; }
@@ -63,8 +63,8 @@ namespace Arc {
   template<class T>
   class Range {
   public:
-    Range<T>() : min(0), max(0) {}
-    Range<T>(const T& t) : min(t), max(t) {}
+    Range() : min(0), max(0) {}
+    Range(const T& t) : min(t), max(t) {}
     operator T(void) const { return max; }
 
     Range<T>& operator=(const Range<T>& t) { min = t.min; max = t.max; return *this; };
@@ -81,8 +81,8 @@ namespace Arc {
   template<class T>
   class ScalableTime {
   public:
-    ScalableTime<T>() : benchmark("", -1.) {}
-    ScalableTime<T>(const T& t) : range(t) {}
+    ScalableTime() : benchmark("", -1.) {}
+    ScalableTime(const T& t) : range(t) {}
 
     std::pair<std::string, double> benchmark;
     Range<T> range;
@@ -95,8 +95,8 @@ namespace Arc {
   template<>
   class ScalableTime<int> {
   public:
-    ScalableTime<int>() : benchmark("", -1.) {}
-    ScalableTime<int>(const int& t) : range(t) {}
+    ScalableTime() : benchmark("", -1.) {}
+    ScalableTime(const int& t) : range(t) {}
 
     std::pair<std::string, double> benchmark;
     Range<int> range;
@@ -803,7 +803,7 @@ namespace Arc {
   /// Job description parsing or assembly result
   /**
    * This structure holds boolean value and a string. The boolean indicates
-   * whether parsing or assembling a job description was succesful, while the
+   * whether parsing or assembling a job description was successful, while the
    * string gives an explanation in human readable text.
    * 
    * \ingroup compute
@@ -846,7 +846,7 @@ namespace Arc {
   class JobDescription {
   public:
     friend class JobDescriptionParserPlugin;
-    JobDescription() : alternatives(), current(alternatives.begin()), X509Delegation(true), TokenDelegation(false) {};
+    JobDescription() : alternatives(), current(alternatives.begin()), X509Delegation(true), TokenDelegation(false), InstancesMin(1), InstancesMax(1) {};
 
     JobDescription(const JobDescription& j, bool withAlternatives = true);
 
@@ -1045,6 +1045,10 @@ namespace Arc {
     bool X509Delegation;
     /// Special purpose attribute. If set to true delegation should be performed for job. Default is false.
     bool TokenDelegation;
+    /// Special purpose attribute. Min number of instances of job to submit (1 by default).
+    int InstancesMin;
+    /// Special purpose attribute. Max number of instances of job to submit (1 by default).
+    int InstancesMax;
 
   private:
     bool Prepare(const ExecutionTarget* et);

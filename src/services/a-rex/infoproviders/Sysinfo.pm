@@ -224,7 +224,13 @@ sub osinfo {
             $id = 'fedoracore' if $descr =~ m/^Fedora/i;
             $id = 'scientificlinux' if $descr =~ m/^Scientific Linux/i;
             $id = 'scientificlinuxcern' if $descr =~ m/^Scientific Linux CERN/i;
-            $id = 'redhatenterpriseas' if $descr =~ m/^Red Hat Enterprise/i and not $id;
+            $id = 'redhatenterpriseas' if $descr =~ m/^Red Hat Enterprise/i;
+            # If all the above fail, a generic solution that looks GLUE2 compliant
+            if (not $id) {
+               $id = lc($descr);
+               $id = join '', split ' ', $id;
+            }
+
         }
         $info->{osname} = $id if $id;
         $info->{osversion} = $version if $version;
@@ -254,7 +260,7 @@ sub osinfo {
 #
 sub diskinfo ($) {
     my $path = shift;
-    my ($diskfree, $disktotal, $mountpoint);
+    my ($filesystem, $diskfree, $disktotal, $mountpoint);
 
     if ( -d "$path") {
         # check if on afs
@@ -263,6 +269,7 @@ sub diskinfo ($) {
             if ($? != 0) {
                 $log->warning("Failed running: fs listquota $path");
             } elsif ($dfstring[-1] =~ /\s+(\d+)\s+(\d+)\s+\d+%\s+\d+%/) {
+		$filesystem = 'afs';
                 $disktotal = int $1/1024;
                 $diskfree  = int(($1 - $2)/1024);
                 $mountpoint = '/afs';
@@ -277,20 +284,26 @@ sub diskinfo ($) {
 
             # The first column may be printed on a separate line.
             # The relevant numbers are always on the last line.
-            } elsif ($dfstring[-1] =~ /\s+(\d+)\s+\d+\s+(\d+)\s+\d+%\s+(\/\S*)$/) {
-    	        $disktotal = int $1/1024;
-    	        $diskfree  = int $2/1024;
-                $mountpoint = $3;
+            } elsif ($dfstring[-1] =~ /([\/\-.\:\w]+)\s+(\d+)\s+\d+\s+(\d+)\s+\d+%\s+(\/\S*)$/) {
+                $filesystem = $1;
+                $disktotal = int $2/1024;
+    	        $diskfree  = int $3/1024;
+                $mountpoint = $4;
             } else {
                 $log->warning("Failed interpreting output of: df -k $path");
             }
         }
     } else {
-        $log->warning("No such directory: $path");
+	# Skip per-user sessiondirs
+	if ($path eq '*') {
+	   $log->info("Found sessiondir=* in arc.conf: disk spaces per user home folders are not calculated.");
+	} else {
+           $log->warning("No such directory: $path");
+	}
     }
 
     return undef if not defined $disktotal;
-    return {megstotal => $disktotal, megsfree => $diskfree, mountpoint => $mountpoint};
+    return {filesystem => $filesystem, megstotal => $disktotal, megsfree => $diskfree, mountpoint => $mountpoint};
 }
 
 
@@ -309,12 +322,17 @@ sub diskspaces {
     my ($totalsum, $totalmin, $totalmax);
     my $errors = 0;
     my %mounts;
+    my %processedfilesystems = ();
     for my $path (@_) {
         my $di = diskinfo($path);
         if ($di) {
-            my ($total, $free, $mount) = ($di->{megstotal},$di->{megsfree},$di->{mountpoint});
-            $mounts{$mount}{free} = $free;
-            $mounts{$mount}{total} = $total;
+            my ($filesystem, $total, $free, $mount) = ($di->{filesystem},$di->{megstotal},$di->{megsfree},$di->{mountpoint});
+	    # Do not double count space of paths belonging to the same filesystem
+	    if (! defined $processedfilesystems{$di->{filesystem}}) {
+                $mounts{$mount}{free} = $free;
+                $mounts{$mount}{total} = $total;
+	    };
+	    $processedfilesystems{$di->{filesystem}} = '';
         } else {
             ++$errors;
         }
@@ -342,5 +360,20 @@ sub diskspaces {
              errors => $errors );
 }
 
+
+#### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ##### TEST ####
+#
+#sub test {
+#   my @options = ( '/grid/session1','/tmp/session2', '/opt/session3', '/tmp', '/opt', '/boot', '/boot/grub/', '/boot/efi', '/bogus');
+#   require Data::Dumper; import Data::Dumper qw(Dumper);
+#   LogUtils::level('DEBUG');
+#   #$log->debug("Options:\n" . Dumper(@options));
+#   print Dumper(@options);
+#   my %results = Sysinfo::diskspaces(@options);
+#   #$log->debug("Results:\n" . Dumper(%results));
+#   print Dumper(\%results);
+#}
+#
+#test;
 
 1;

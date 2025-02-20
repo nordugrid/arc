@@ -1,8 +1,8 @@
 bin_PROGRAMS = arcsub arcget arcstat arcinfo arckill arcclean arccat arcsync \
-	arcresub arcresume arcrenew arctest
+	arcresume arcrenew arctest
 
 man_MANS = arcsub.1 arcget.1 arcstat.1 arcinfo.1 arckill.1 arcclean.1 arccat.1 \
-	arcresub.1 arcsync.1 arcresume.1 arcrenew.1 arctest.1
+	arcsync.1 arcresume.1 arcrenew.1 arctest.1
 
 CLILIBS = \
 	$(top_builddir)/src/hed/libs/compute/libarccompute.la \
@@ -57,11 +57,6 @@ arcsync_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arcsync_LDADD    = $(CLILIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 
-arcresub_SOURCES  = arcresub.cpp utils.cpp utils.h submit.cpp submit.h
-arcresub_CXXFLAGS = -I$(top_srcdir)/include \
-	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
-arcresub_LDADD    = $(CLILIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
-
 arcrenew_SOURCES  = arcrenew.cpp utils.cpp utils.h
 arcrenew_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
@@ -71,3 +66,8 @@ arcresume_SOURCES  = arcresume.cpp utils.cpp utils.h
 arcresume_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 arcresume_LDADD    = $(CLILIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
+
+%.1: % %.1.in
+	LANG=C help2man -N -h "-h|sed s/…/.../g" -i $(word 2,$^) -o $@ ./$<
+
+EXTRA_DIST = $(man_MANS:=.in)

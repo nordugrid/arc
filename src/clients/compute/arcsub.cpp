@@ -66,6 +66,8 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
+  if (opt.force_system_ca) usercfg.CAUseSystem(true);
+  if (opt.force_grid_ca) usercfg.CAUseSystem(false);
 
   if (opt.show_plugins) {
     std::list<std::string> types;
@@ -168,85 +170,50 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
   }
 
   DelegationType delegation_type = UndefinedDelegation;
-  if(opt.no_delegation) {
-    if(delegation_type != UndefinedDelegation) {
-      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
-      return 1;
-    }
-    delegation_type = NoDelegation;
-  }
-  if(opt.x509_delegation) {
-    if(delegation_type != UndefinedDelegation) {
-      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
-      return 1;
-    }
-    delegation_type = X509Delegation;
-  }
-  if(opt.token_delegation) {
-    if(delegation_type != UndefinedDelegation) {
-      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
-      return 1;
-    }
-    delegation_type = TokenDelegation;
-  }
-
-  // If delegation is not specified try to guess it
-  if(delegation_type == UndefinedDelegation) {
-    if(!usercfg.OToken().empty()) {
-      delegation_type = TokenDelegation;
-    } else {
-      delegation_type = X509Delegation;
-    }
+  if(!opt.getDelegationType(logger, usercfg, delegation_type))
+    return 1;
+  AuthenticationType authentication_type = UndefinedAuthentication;
+  if(!opt.getAuthenticationType(logger, usercfg, authentication_type))
+    return 1;
+  switch(authentication_type) {
+    case NoAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeNone);
+      break;
+    case X509Authentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeCert);
+      break;
+    case TokenAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeToken);
+      break;
+    case UndefinedAuthentication:
+    default:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeUndefined);
+      break;
   }
 
-  if(delegation_type == X509Delegation) {
-    if (!checkproxy(usercfg)) {
-      return 1;
-    }
-  } else if(delegation_type == TokenDelegation) {
-    if (!checktoken(usercfg)) {
-      return 1;
-    }
+  // canonicalize endpoint types
+  if (!opt.canonicalizeARCInterfaceTypes(logger)) return 1;
+
+  // get endpoint batches
+  std::list<std::list<Arc::Endpoint> > endpoint_batches;
+  bool info_discovery = prepare_submission_endpoint_batches(usercfg, opt, endpoint_batches);
+
+  // add rejectdiscovery if defined
+  if (!opt.rejectdiscovery.empty()) usercfg.AddRejectDiscoveryURLs(opt.rejectdiscovery);
+
+  // action: dumpjobdescription
+  if (opt.dumpdescription) {
+      if (!info_discovery) {
+        logger.msg(Arc::ERROR,"Cannot adapt job description to the submission target when information discovery is turned off");
+        return 1;
+      }
+      // dump description only for priority submission interface, no fallbacks
+      std::list<Arc::Endpoint> services = endpoint_batches.front();
+      std::string req_sub_iface;
+      if (!opt.submit_types.empty()) req_sub_iface = opt.submit_types.front();
+      return dumpjobdescription(usercfg, jobdescriptionlist, services, req_sub_iface);
   }
 
-  if ( opt.isARC6TargetSelectionOptions(logger) ) {
-    // canonicalize endpoint types
-    if (!opt.canonicalizeARC6InterfaceTypes(logger)) return 1;
-
-    // get endpoint batches according to ARC6 target selection logic
-    std::list<std::list<Arc::Endpoint> > endpoint_batches;
-    bool info_discovery = prepare_submission_endpoint_batches(usercfg, opt, endpoint_batches);
-  
-    // add rejectdiscovery if defined
-    if (!opt.rejectdiscovery.empty()) usercfg.AddRejectDiscoveryURLs(opt.rejectdiscovery);
-
-    // action: dumpjobdescription
-    if (opt.dumpdescription) {
-        if (!info_discovery) {
-          logger.msg(Arc::ERROR,"Cannot adapt job description to the submission target when information discovery is turned off");
-          return 1;
-        }
-        // dump description only for priority submission interface, no fallbacks
-        std::list<Arc::Endpoint> services = endpoint_batches.front();
-        std::string req_sub_iface;
-        if (!opt.submit_types.empty()) req_sub_iface = opt.submit_types.front();
-        return dumpjobdescription(usercfg, jobdescriptionlist, services, req_sub_iface);
-    }
-
-    // default action: start submission cycle
-    return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist, delegation_type);
-  } else {
-    // Legacy target selection submission logic
-    std::list<Arc::Endpoint> services = getServicesFromUserConfigAndCommandLine(usercfg, opt.indexurls, opt.clusters, opt.requestedSubmissionInterfaceName, opt.infointerface);
-
-    if (!opt.direct_submission) {
-      usercfg.AddRejectDiscoveryURLs(opt.rejectdiscovery);
-    }
-
-    if (opt.dumpdescription) {
-      return dumpjobdescription(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName);
-    }
-
-    return legacy_submit(usercfg, jobdescriptionlist, services, opt.requestedSubmissionInterfaceName, opt.jobidoutfile, opt.direct_submission, delegation_type);
-  }
+  // default action: start submission cycle
+  return submit_jobs(usercfg, endpoint_batches, info_discovery, opt.jobidoutfile, jobdescriptionlist, delegation_type, opt.instances_min, opt.instances_max);
 }

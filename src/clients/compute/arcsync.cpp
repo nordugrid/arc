@@ -139,7 +139,7 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
   ClientOptions opt(ClientOptions::CO_SYNC, " ",
                     istring("The arcsync command synchronizes your "
                             "local job list with the information at\n"
-                            "the given resources or index servers."));
+                            "the given CEs or registry servers."));
 
   std::list<std::string> params = opt.Parse(argc, argv);
 
@@ -167,6 +167,8 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
+  if (opt.force_system_ca) usercfg.CAUseSystem(true);
+  if (opt.force_grid_ca) usercfg.CAUseSystem(false);
 
   if (opt.convert) {
     Arc::JobInformationStorage *jobstore = createJobInformationStorage(usercfg);
@@ -201,10 +203,23 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
   if (opt.timeout > 0)
     usercfg.Timeout(opt.timeout);
 
-  if(usercfg.OToken().empty()) {
-    if (!checkproxy(usercfg)) {
-      return 1;
-    }
+  AuthenticationType authentication_type = UndefinedAuthentication;
+  if(!opt.getAuthenticationType(logger, usercfg, authentication_type))
+    return 1;
+  switch(authentication_type) {
+    case NoAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeNone);
+      break;
+    case X509Authentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeCert);
+      break;
+    case TokenAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeToken);
+      break;
+    case UndefinedAuthentication:
+    default:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeUndefined);
+      break;
   }
 
   if (opt.debug.empty() && !usercfg.Verbosity().empty())
@@ -227,28 +242,20 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
     }
   }
 
-  // legacy options => new options
-  for (std::list<std::string>::const_iterator it = opt.clusters.begin(); it != opt.clusters.end(); ++it) {
-    opt.computing_elements.push_back(*it); 
-  }
-  for (std::list<std::string>::const_iterator it = opt.indexurls.begin(); it != opt.indexurls.end(); ++it) {
-    opt.registries.push_back(*it);
-  }
-
   std::list<Arc::Endpoint> endpoints = getServicesFromUserConfigAndCommandLine(usercfg, opt.registries, opt.computing_elements);
 
   std::list<std::string> rejectDiscoveryURLs = getRejectDiscoveryURLsFromUserConfigAndCommandLine(usercfg, opt.rejectdiscovery);
 
   if (endpoints.empty()) {
     logger.msg(Arc::ERROR, "No services specified. Please configure default services in the client configuration, "
-                           "or specify a cluster or index (-c or -g options, see arcsync -h).");
+                           "or specify a cluster or refistry (-C or -Y options, see arcsync -h).");
     return 1;
   }
 
 
   std::set<std::string> preferredInterfaceNames;
   if (usercfg.InfoInterface().empty()) {
-    preferredInterfaceNames.insert("org.nordugrid.ldapglue2");
+    preferredInterfaceNames.insert("org.nordugrid.arcrest");
   } else {
     preferredInterfaceNames.insert(usercfg.InfoInterface());
   }

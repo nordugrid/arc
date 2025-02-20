@@ -39,7 +39,6 @@ namespace Arc {
   /// This method converts a string to any type but lets calling function process errors.
   template<typename T>
   bool stringto(const std::string& s, T& t) {
-    t = 0;
     if (s.empty())
       return false;
     std::stringstream ss(s);

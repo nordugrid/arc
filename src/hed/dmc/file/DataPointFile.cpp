@@ -335,14 +335,16 @@ namespace ArcDMCFile {
         buffer->error_write(true);
       }
       if(close(fd) != 0) {
-        logger.msg(ERROR, "closing file %s failed: %s", url.Path(), StrError(errno));
+        int err = errno;
+        logger.msg(ERROR, "closing file %s failed: %s", url.Path(), StrError(err));
         buffer->error_write(true);
       }
     }    
     if (fa) {
       // Lustre?
       if(!fa->fa_close()) {
-        logger.msg(ERROR, "closing file %s failed: %s", url.Path(), StrError(errno));
+        int err = errno;
+        logger.msg(ERROR, "closing file %s failed: %s", url.Path(), StrError(err));
         buffer->error_write(true);
       }
     }    
@@ -737,14 +739,17 @@ namespace ArcDMCFile {
             }
           }
           if(fd != -1) {
-            (lseek(fd, 0, SEEK_SET) == -1);
-            (ftruncate(fd, 0) != 0);
-            (close(fd) != -1); fd = -1;
+            lseek(fd, 0, SEEK_SET);
+            (void)ftruncate(fd, 0);
+            close(fd);
+            fd = -1;
           }
           if(fa) {
             fa->fa_lseek(0, SEEK_SET);
             fa->fa_ftruncate(0);
-            fa->fa_close(); delete fa; fa = NULL;
+            fa->fa_close();
+            delete fa;
+            fa = NULL;
           }
           logger.msg(VERBOSE, "Failed to preallocate space for %s", url.Path());
           buffer->speed.reset();
@@ -775,9 +780,7 @@ namespace ArcDMCFile {
     writing = false;
     if (!buffer->eof_write()) {
       buffer->error_write(true);      /* trigger transfer error */
-      if(fd != -1) close(fd);
-      if(fa) fa->fa_close();
-      fd = -1;
+      // Do not close handle here - thread will do that 
     }
     // buffer->wait_eof_write();
     transfers_started.wait();         /* wait till writing thread exited */
@@ -789,7 +792,12 @@ namespace ArcDMCFile {
       else err = FileDelete(url.Path());
       if (!err && errno != ENOENT) logger.msg(WARNING, "Failed to clean up file %s: %s", url.Path(), StrError(errno));
     }
+    // In case thread has not closed handle, do it now
     delete fa; fa = NULL;
+    if(fd != -1) {
+      close(fd);
+      fd = -1;
+    }
 
     // validate file size, if transfer succeeded
     if (!buffer->error() && additional_checks && CheckSize() && !is_channel) {

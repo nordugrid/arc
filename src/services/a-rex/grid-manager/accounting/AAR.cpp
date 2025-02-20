@@ -30,7 +30,7 @@ namespace ARex {
         return;
     }
 
-    static bool string_to_number(std::string& s, unsigned long long int& n) {
+    static bool string_to_number(std::string& s, long long int& n) {
         extract_integer(s);
         if(s.length() == 0) return false;
         if(!Arc::stringto(s,n)) return false;
@@ -58,7 +58,7 @@ namespace ARex {
         return owner;
     }
 
-    bool AAR::FetchJobData(const GMJob &job,const GMConfig& config) {
+    bool AAR::FetchJobData(const GMJob &job,const GMConfig& config,std::map<std::string,std::list<std::string> > const& tokenmap) {
         // jobid
         jobid = job.get_id();
 
@@ -90,11 +90,26 @@ namespace ARex {
                 wlcgvo.erase(wlcgvo_slash, std::string::npos);
             }
             // authtokenattrs
-            std::string attrname = "mainfqan";
+            bool mainfqan = true;
             for(std::list<std::string>::const_iterator it=local.voms.begin(); it != local.voms.end(); ++it) {
-                authtokenattrs.push_back(aar_authtoken_t(attrname, (*it)));
-                attrname = "vomsfqan";
+                authtokenattrs.push_back(aar_authtoken_t("vomsfqan", (*it)));
+                if (mainfqan) {
+                    // add first FQAN to main AAR data
+                    fqan = (*it);
+                    mainfqan = false;
+                }
             }
+        }
+        // token claims to auth attributes
+        for(std::map<std::string,std::list<std::string> >::const_iterator it = tokenmap.cbegin(); it != tokenmap.cend(); ++it) {
+          std::map<std::string,std::list<std::string> >::const_iterator claims = local.tokenclaim.find(it->first);
+          if(claims != local.tokenclaim.end()) {
+            for(std::list<std::string>::const_iterator destattr = it->second.cbegin(); destattr != it->second.cend(); ++destattr) {
+              for(std::list<std::string>::const_iterator claim = claims->second.cbegin(); claim != claims->second.cend(); ++claim) {
+                authtokenattrs.emplace_back(*destattr, *claim);
+              }
+            }
+          }
         }
         // submittime
         submittime = local.starttime;
@@ -153,10 +168,10 @@ namespace ARex {
         std::list<std::string> nodenames;
         // there are different memory metrics are avaiable from different sources
         // prefered is MAX memory, but use an AVARAGE metrics as fallback
-        unsigned long long int mem_avg_total = 0;
-        unsigned long long int mem_max_total = 0;
-        unsigned long long int mem_avg_resident = 0;
-        unsigned long long int mem_max_resident = 0;
+        long long int mem_avg_total = 0;
+        long long int mem_max_total = 0;
+        long long int mem_avg_resident = 0;
+        long long int mem_max_resident = 0;
         // benchmark is present
         bool is_benchmark = false;
         if (Arc::FileRead(fname_src, diag_data)) {
@@ -171,34 +186,34 @@ namespace ARex {
                 if (key == "nodename") {
                     nodenames.push_back(value);
                 } else if (key == "processors") {
-                    unsigned long long int n;
-                    if (string_to_number(value,n)) cpucount = (unsigned int) n;
+                    long long int n;
+                    if (string_to_number(value,n)) cpucount = n;
                 } else if (key == "exitcode") {
-                    unsigned long long int n;
-                    if (string_to_number(value,n)) exitcode = (unsigned int) n;
+                    long long int n;
+                    if (string_to_number(value,n)) exitcode = n;
                 } else if (key == "walltime" ) {
-                    unsigned long long int n;
+                    long long int n;
                     if (string_to_number(value,n)) usedwalltime = n;
                 } else if (key == "kerneltime" ) {
-                    unsigned long long int n;
+                    long long int n;
                     if (string_to_number(value,n)) usedcpukerneltime = n;
                 } else if (key == "usertime" ) {
-                    unsigned long long int n;
+                    long long int n;
                     if (string_to_number(value,n)) usedcpuusertime = n;
                 } else if (key == "maxresidentmemory" ) {
-                    unsigned long long int n;
+                    long long int n;
                     if (string_to_number(value,n)) mem_max_resident = n;
                 } else if (key == "averageresidentmemory" ) {
-                    unsigned long long int n;
+                    long long int n;
                     if (string_to_number(value,n)) mem_avg_resident = n;
                 } else if (key == "maxtotalmemory" ) {
-                    unsigned long long int n;
+                    long long int n;
                     if (string_to_number(value,n)) mem_max_total = n;
                 } else if (key == "averagetotalmemory" ) {
-                    unsigned long long int n;
+                    long long int n;
                     if (string_to_number(value,n)) mem_avg_total = n;
                 } else if (key == "usedscratch" ) {
-                    unsigned long long int n;
+                    long long int n;
                     if (string_to_number(value,n)) usedscratch = n;
                 } else if (key == "runtimeenvironments") {
                     // rtes are splited by semicolon
@@ -219,17 +234,13 @@ namespace ARex {
                     );
                 } else if (key == "benchmark" ) {
                     is_benchmark = true;
-                    extrainfo.insert(
-                        std::pair <std::string, std::string>("benchmark", value)
-                    );
+                    benchmark = value;
                 }
             }
         }
-        // Insert default LRMS benchmark if missing in the .diag file
+        // Insert fallback LRMS benchmark if missing in the .diag file
         if (!is_benchmark) {
-            extrainfo.insert(
-                std::pair <std::string, std::string>("benchmark", config.DefaultBenchmark())
-            );
+            benchmark = config.DefaultBenchmark();
         }
         // Memory: use max if available, otherwise use avarage as a fallback
         usedmemory = mem_max_resident ? mem_max_resident : mem_avg_resident;
@@ -301,7 +312,7 @@ namespace ARex {
                     if (dkey == "url") {
                         dtrinfo.url = dval;
                     } else if (dkey == "size") {
-                        unsigned long long int n;
+                        long long int n;
                         if (string_to_number(dval,n)) dtrinfo.size = n;
                     } else if (dkey == "starttime") {
                         Arc::Time stime(dval);

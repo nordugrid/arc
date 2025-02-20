@@ -1617,7 +1617,7 @@ namespace Arc {
     } // (dialect == "GRIDMANAGER")
 
 
-    /// \mapattr delegationid <- DataStaging.DelegationID
+    /// \mapattr delegationid <- DelegationID
     if(!j.DataStaging.DelegationID.empty()) {
       RSLList *l = new RSLList;
       l->Add(new RSLLiteral(j.DataStaging.DelegationID));

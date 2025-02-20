@@ -1,5 +1,5 @@
-#ifndef __ARC_CLEINT_COMPUTE_SUBMIT_COMMON_H_
-#define __ARC_CLEINT_COMPUTE_SUBMIT_COMMON_H_
+#ifndef __ARC_CLIENT_COMPUTE_SUBMIT_COMMON_H_
+#define __ARC_CLIENT_COMPUTE_SUBMIT_COMMON_H_
 
 #include <string>
 #include <list>
@@ -16,22 +16,15 @@
 
 #include "utils.h"
 
-enum DelegationType {
-  UndefinedDelegation,
-  NoDelegation,
-  X509Delegation,
-  TokenDelegation
-};
-
 int process_submission_status(Arc::SubmissionStatus status, const Arc::UserConfig& usercfg);
 
 void check_missing_plugins(Arc::Submitter s, int is_error);
 
-int legacy_submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface, const std::string& jobidfile, bool direct_submission, DelegationType delegation_type);
+int legacy_submit(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface, const std::string& jobidfile, bool direct_submission, DelegationType delegation_type, int instances_min, int instances_max);
 
 int dumpjobdescription(const Arc::UserConfig& usercfg, const std::list<Arc::JobDescription>& jobdescriptionlist, const std::list<Arc::Endpoint>& services, const std::string& requestedSubmissionInterface);
 
-/// Implements ARC6 logic of targets selection based on info/submit types requested
+/// Implements targets selection logic based on info/submission endpoint types requested
 /**
   This helper method process requested types, computing elements and registry and 
   defines the endpoint batches for submission tries.
@@ -53,7 +46,7 @@ bool prepare_submission_endpoint_batches(const Arc::UserConfig& usercfg, const C
   \param[in] jobdescriptionlist list of job descriptions to submit
   \return a bool indicating the need of target information lookup versus direct submission.
 */
-int submit_jobs(const Arc::UserConfig& usercfg, const std::list<std::list<Arc::Endpoint> >& endpoint_batches, bool info_discovery, const std::string& jobidfile, const std::list<Arc::JobDescription>& jobdescriptionlist, DelegationType delegation_type);
+int submit_jobs(const Arc::UserConfig& usercfg, const std::list<std::list<Arc::Endpoint> >& endpoint_batches, bool info_discovery, const std::string& jobidfile, const std::list<Arc::JobDescription>& jobdescriptionlist, DelegationType delegation_type, int instances_min, int instances_max);
 
 /// Class to handle submitted job and present the results to user
 class HandleSubmittedJobs : public Arc::EntityConsumer<Arc::Job> {
@@ -76,4 +69,4 @@ private:
   std::list<Arc::Job> submittedJobs;
 };
 
-#endif // __ARC_CLEINT_COMPUTE_SUBMIT_COMMON_H_
+#endif // __ARC_CLIENT_COMPUTE_SUBMIT_COMMON_H_

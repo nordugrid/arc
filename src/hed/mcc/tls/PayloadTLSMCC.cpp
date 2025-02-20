@@ -15,21 +15,6 @@
 
 namespace ArcMCCTLS {
 
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-
-#define X509_getm_notAfter X509_get_notAfter
-#define X509_getm_notBefore X509_get_notBefore
-#define X509_set1_notAfter X509_set_notAfter
-#define X509_set1_notBefore X509_set_notBefore
-
-#endif
-
-#if (OPENSSL_VERSION_NUMBER < 0x10002000L)
-static X509_VERIFY_PARAM *SSL_CTX_get0_param(SSL_CTX *ctx) {
-    return ctx->param;
-}
-#endif
-
 static const char * ex_data_id = "ARC_MCC_Payload_TLS";
 int PayloadTLSMCC::ex_data_index_ = -1;
 
@@ -77,7 +62,13 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
       default: {
         //std::cerr<<"+++ verify_callback: error: "<<X509_verify_cert_error_string(err)<<std::endl;
         if(it) {
-          it->SetFailure((std::string)X509_verify_cert_error_string(err));
+          if(it->Config().AllowInsecureConnection()) {
+            ok=1;
+            X509_STORE_CTX_set_error(sctx,X509_V_OK);
+            Logger::getRootLogger().msg(WARNING,"Ignoring verification error due to insecure connection allowed: %s",X509_verify_cert_error_string(err));
+          } else {
+            it->SetFailure((std::string)X509_verify_cert_error_string(err));
+          }
         } else {
           Logger::getRootLogger().msg(ERROR,"%s",X509_verify_cert_error_string(err));
         }
@@ -96,6 +87,8 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
       //std::cerr<<"+++ additional verification: subject "<<subject_name<<std::endl;
       if(it == NULL) {
         Logger::getRootLogger().msg(WARNING,"Failed to retrieve link to TLS stream. Additional policy matching is skipped.");
+      } else if(it->Config().AllowInsecureConnection()) {
+        Logger::getRootLogger().msg(WARNING,"Skipping additional policy matching due to insecure connections allowed.");
       } else {
         // Globus signing policy
         //std::cerr<<"+++ additional verification: - "<<it->Config().GlobusPolicy()<<" - "<<it->Config().CADir()<<std::endl;
@@ -189,7 +182,7 @@ PayloadTLSMCC* PayloadTLSMCC::RetrieveInstance(X509_STORE_CTX* container) {
 
 
 PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger& logger):
-    PayloadTLSStream(logger),sslctx_(NULL),bio_(NULL),config_(cfg),flags_(0) {
+    PayloadTLSStream(logger),sslctx_(NULL),bio_(NULL),config_(cfg),flags_(0),connected_(false) {
    // Client mode
    int err = SSL_ERROR_NONE;
    char gsi_cmd[1] = { '0' };
@@ -313,6 +306,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
       logger.msg(VERBOSE, "Failed to establish SSL connection");
       goto error;
    };
+   connected_=true;
    logger.msg(VERBOSE, "Using cipher: %s",SSL_get_cipher_name(ssl_));
    // if(SSL_in_init(ssl_)){
    //handle error
@@ -330,7 +324,7 @@ error:
 }
 
 PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC& cfg, Logger& logger):
-    PayloadTLSStream(logger),sslctx_(NULL),config_(cfg),flags_(0) {
+    PayloadTLSStream(logger),sslctx_(NULL),config_(cfg),flags_(0),connected_(false) {
    // Server mode
    int err = SSL_ERROR_NONE;
    master_=true;
@@ -402,6 +396,7 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
       logger.msg(ERROR, "Failed to accept SSL connection");
       goto error;
    };
+   connected_=true;
    logger.msg(VERBOSE, "Using cipher: %s",SSL_get_cipher_name(ssl_));
    //handle error
    // if(SSL_in_init(ssl_)){
@@ -417,7 +412,7 @@ error:
 }
 
 PayloadTLSMCC::PayloadTLSMCC(PayloadTLSMCC& stream):
-    PayloadTLSStream(stream), config_(stream.config_), flags_(0) {
+    PayloadTLSStream(stream), config_(stream.config_), flags_(0), connected_(stream.connected_) {
    master_=false;
    sslctx_=stream.sslctx_;
    ssl_=stream.ssl_;
@@ -436,27 +431,36 @@ PayloadTLSMCC::~PayloadTLSMCC(void) {
   ClearInstance();
   if (ssl_) {
     SSL_set_verify(ssl_,SSL_VERIFY_NONE,NULL);
-    int err = SSL_shutdown(ssl_);
-    if(err == 0) err = SSL_shutdown(ssl_);
-    if(err < 0) { // -1 expected
-      err = SSL_get_error(ssl_,err);
-      if((err == SSL_ERROR_WANT_READ) || (err == SSL_ERROR_WANT_WRITE)) {
-        // We are not going to wait for connection to
-        // close nicely. We are too impatient.
-        ConfigTLSMCC::HandleError();
-      } else if(err == SSL_ERROR_SYSCALL) {
-        // It would be interesting to check errno. But
-        // unfortunately it seems to be lost already
-        // inside SSL_shutdown().
-        ConfigTLSMCC::HandleError();
-      } else {
-        // This case is unexpected. So it is better to
-        // report it.
-        logger_.msg(VERBOSE, "Failed to shut down SSL: %s",ConfigTLSMCC::HandleError(err));
-      }
-      // Trying to get out of error
-      SSL_set_quiet_shutdown(ssl_,1);
-      SSL_shutdown(ssl_);
+    if(connected_) {
+      int err = SSL_shutdown(ssl_);
+      if(err == 0) err = SSL_shutdown(ssl_);
+      if(err < 0) { // -1 expected
+        err = SSL_get_error(ssl_,err);
+        if((err == SSL_ERROR_WANT_READ) || (err == SSL_ERROR_WANT_WRITE)) {
+          // We are not going to wait for connection to
+          // close nicely. We are too impatient.
+          ConfigTLSMCC::HandleError();
+        } else if(err == SSL_ERROR_SYSCALL) {
+          // It would be interesting to check errno. But
+          // unfortunately it seems to be lost already
+          // inside SSL_shutdown().
+          ConfigTLSMCC::HandleError();
+        } else if(err == SSL_ERROR_SSL) {
+          // Although not explicitely specified this seems to
+          // indicate that there was already error on this SSL object
+          // and hence shutdown is meaningless.
+          // Note: it is strange that extracted error says ssl_ is still in init state
+          // despite handshake already finished. Looks like bug in OpenSSL.
+          ConfigTLSMCC::HandleError();
+        } else {
+          // This case is unexpected. So it is better to
+          // report it.
+          logger_.msg(VERBOSE, "Failed to shut down SSL: %s",ConfigTLSMCC::HandleError(err));
+        }
+        // Trying to get out of error
+        SSL_set_quiet_shutdown(ssl_,1);
+        SSL_shutdown(ssl_);
+      };
     };
     // SSL_clear(ssl_); ???
     SSL_free(ssl_);

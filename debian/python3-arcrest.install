@@ -1,0 +1,3 @@
+/usr/lib/python3*/*-packages/pyarcrest
+/usr/lib/python3*/*-packages/pyarcrest-*.*-info
+/usr/bin/arcrest

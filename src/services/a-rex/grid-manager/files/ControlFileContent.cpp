@@ -600,10 +600,12 @@ bool JobLocalDescription::write(const std::string& fname) const {
       act_id != activityid.end(); ++act_id) {
     if(!write_pair(f,"activityid",(*act_id))) return false;
   };
-  if (migrateactivityid != "") {
-    if(!write_pair(f,"migrateactivityid",migrateactivityid)) return false;
-    if(!write_pair(f,"forcemigration",forcemigration)) return false;
-  }
+  for(std::map<std::string, std::list<std::string> >::const_iterator claims=tokenclaim.begin();
+                                                               claims != tokenclaim.end(); ++claims) {
+    for(std::list<std::string>::const_iterator claim = claims->second.begin(); claim != claims->second.end(); ++claim) {
+      if(!write_pair(f,"tokenclaim."+claims->first,*claim)) return false;
+    };
+  };
   if(!write_pair(f,"transfershare",transfershare)) return false;
   if(!write_pair(f,"priority",Arc::tostring(priority))) return false;
   if(!write_pair(f,"dryrun",dryrun)) return false;
@@ -616,6 +618,7 @@ bool JobLocalDescription::read(const std::string& fname) {
   KeyValueFile f(fname,KeyValueFile::Fetch);
   if(!f) return false;
   activityid.clear();
+  tokenclaim.clear();
   localvo.clear();
   voms.clear();
   for(;;) {
@@ -726,8 +729,6 @@ bool JobLocalDescription::read(const std::string& fname) {
     else if(name == "activityid") {
       activityid.push_back(buf);
     }
-    else if(name == "migrateactivityid") { migrateactivityid = buf; }
-    else if(name == "forcemigration") { forcemigration = parse_boolean(buf); }
     else if(name == "transfershare") { transfershare = buf; }
     else if(name == "priority") {
       int n;
@@ -735,6 +736,9 @@ bool JobLocalDescription::read(const std::string& fname) {
       priority = n;
     }
     else if(name == "dryrun") { dryrun = parse_boolean(buf); }
+    else if(name.compare(0,11,"tokenclaim.") == 0) {
+      tokenclaim[name.substr(11)].push_back(buf);
+    }
   }
   return true;
 }

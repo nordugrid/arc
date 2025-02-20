@@ -29,6 +29,7 @@ bool ContinuationPlugins::add(job_state_t state,unsigned int timeout,const char*
   if((state == JOB_STATE_ACCEPTED) ||
      (state == JOB_STATE_PREPARING) ||
      (state == JOB_STATE_SUBMITTING) ||
+     (state == JOB_STATE_INLRMS) ||
      (state == JOB_STATE_FINISHING) ||
      (state == JOB_STATE_FINISHED) ||
      (state == JOB_STATE_DELETED)) {
@@ -75,6 +76,7 @@ bool ContinuationPlugins::add(job_state_t state,const char* options,const char* 
   if((state == JOB_STATE_ACCEPTED) ||
      (state == JOB_STATE_PREPARING) ||
      (state == JOB_STATE_SUBMITTING) ||
+     (state == JOB_STATE_INLRMS) ||
      (state == JOB_STATE_FINISHING) ||
      (state == JOB_STATE_FINISHED) ||
      (state == JOB_STATE_DELETED)) {

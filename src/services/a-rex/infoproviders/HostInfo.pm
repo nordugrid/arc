@@ -17,20 +17,22 @@ use InfoChecker;
 our $host_options_schema = {
         x509_host_cert => '*',
         x509_cert_dir  => '*',
+        x509_cert_policy  => '*',
         wakeupperiod   => '*',
         processes      => [ '' ],
         ports => {
            '*' => [ '*' ] #process name, ports
         },
         localusers     => [ '' ],
-        control => {
-            '*' => {
-                sessiondir => [ '' ],
+        # TODO: Test use case of multiple sessiondirs live.
+        arex => {
+            controldir => '',
+            sessiondir => [ '' ],
+            cache => {
                 cachedir => [ '*' ],
                 cachesize => '*'
-            }
+            },
         },
-        remotegmdirs   => [ '*' ]
 };
 
 our $host_info_schema = {
@@ -218,22 +220,27 @@ sub get_cert_info {
         $log->warning("Host certificate is expired in file: $hostcert") if $?;
     }
 
-    if (not $options->{x509_cert_dir}) {
+    if (not $options->{x509_cert_dir} or $options->{x509_cert_policy} eq 'system') {
         $log->info("x509_cert_dir not configured");
+        $host_info->{issuerca_enddate} = $host_info->{hostcert_enddate};
+        $host_info->{issuerca_expired} = 0;
         return $host_info;
     }
 
     # List certs and elliminate duplication in case 2 soft links point to the same file.
     my %certfiles;
     my $certdir = $options->{x509_cert_dir};
-    opendir(CERTDIR, $certdir) or $log->error("Failed listing certificates directory $certdir: $!");
-    for (readdir CERTDIR) {
-        next unless m/\.\d$/;
-        my $file = $certdir."/".$_;
-        my $link = -l $file ? readlink $file : $_;
-        $certfiles{$link} = $file;
+    if (opendir(CERTDIR, $certdir)) {
+        for (readdir CERTDIR) {
+            next unless m/\.\d$/;
+            my $file = $certdir."/".$_;
+            my $link = -l $file ? readlink $file : $_;
+            $certfiles{$link} = $file;
+        }
+        closedir CERTDIR;
+    } else {
+        $log->warning("Failed listing certificates directory $certdir: $!");
     }
-    closedir CERTDIR;
 
     my %trustedca;
     foreach my $cert ( sort values %certfiles ) {
@@ -315,37 +322,41 @@ sub get_host_info {
     $host_info = {%$host_info, %$osinfo, %$cpuinfo, %$meminfo, %$certinfo};
 
     my @controldirs;
-    my $control = $options->{control};
-    push @controldirs, $_->{controldir} for values %$control;
+    my $control = $options->{arex};
+    # Leaving this array here in case we have still multiple controldirs of some kind
+    push @controldirs, $control->{controldir};
 
     # Considering only common session disk space (not including per-user session directoires)
     my (%commongridareas, $commonfree);
-    if ($control->{'.'}) {
-        $commongridareas{$_} = 1 for map { my ($path, $drain) = split /\s+/, $_; $path; } @{$control->{'.'}{sessiondir}};
+    if ($control) {
+        $commongridareas{$_} = 1 for map { my ($path, $drain) = split /\s+/, $_; $path; } @{$control->{sessiondir}};
     }
+    # TODO: this can be removed. Commenting out for now.
     # Also include remote session directoires.
-    if (my $remotes = $options->{remotegmdirs}) {
-        for my $remote (@$remotes) {
-            my ($ctrldir, @sessions) = split ' ', $remote;
-            $commongridareas{$_} = 1 for grep { $_ ne 'drain' } @sessions;
-            push @controldirs, $ctrldir;
-        }
-    }
+    #if (my $remotes = $options->{remotegmdirs}) {
+    #    for my $remote (@$remotes) {
+    #        my ($ctrldir, @sessions) = split ' ', $remote;
+    #        $commongridareas{$_} = 1 for grep { $_ ne 'drain' } @sessions;
+    #        push @controldirs, $ctrldir;
+    #    }
+    #}
     if (%commongridareas) {
         my %res = Sysinfo::diskspaces(keys %commongridareas);
         if ($res{errors}) {
-            $log->warning("Failed checking disk space available in session directories");
+            $log->warning("Failed checking disk space available in session directories. The check is skipped if sessiondir=* present in arc.conf");
         } else {
             $host_info->{session_free} = $commonfree = $res{freesum};
             $host_info->{session_total} = $res{totalsum};
         }
     }
 
-    # calculate free space on the sessionsirs of each local user.
+    # TODO: this is broken since many years. Needs better handling in CEinfo.pl and ConfigCentral.pm 
+    # calculate free space on the sessionsirs of each "local user".
     my $user = $host_info->{localusers} = {};
 
     foreach my $u (@{$options->{localusers}}) {
 
+        # TODO: this can be reengineered for user-based sessiondirs ('*' parameter)
         # Are there grid-manager settings applying for this local user?
         if ($control->{$u}) {
             my $sessiondirs = [ map { my ($path, $drain) = split /\s+/, $_; $path; } @{$control->{$u}{sessiondir}} ];
@@ -364,11 +375,12 @@ sub get_host_info {
     }
 
     # Considering only common cache disk space (not including per-user caches)
-    if ($control->{'.'}) {
-        my $cachedirs = $control->{'.'}{cachedir} || [];
-        my ($cachemax, $cachemin) = split " ", $control->{'.'}{cachesize} if defined $control->{'.'}{cachesize};
+    if ($control->{'cache'}) {
+        my $cachedirs = $control->{'cache'}{cachedir} || [];
+        my ($cachemax, $cachemin) = split " ", $control->{'cache'}{cachesize} if defined $control->{'cache'}{cachesize};
         my @paths = map { my @pair = split " ", $_; $pair[0] } @$cachedirs;
         if (@paths) {
+            # TODO: treat cache the same way as sessiondir, avoid double counting sizes in in same filesystem
             my %res = Sysinfo::diskspaces(@paths);
             if ($res{errors}) {
                 $log->warning("Failed checking disk space available in common cache directories")
@@ -420,18 +432,13 @@ sub get_host_info {
 sub test {
     my $options = { x509_host_cert => '/etc/grid-security/testCA-hostcert.pem',
                     x509_cert_dir => '/etc/grid-security/certificates',
-                    control => {
-                        '.' => {
-                            sessiondir => [ '/home', '/boot' ],
-                            cachedir => [ '/home' ],
-                            cachesize => '60 80',
+                    arex => {
+                        sessiondir => [ '/home', '/boot', '*', ],
+                        cache => { 
+                           cachedir => [ '/home' ],
+                           cachesize => '60 80',
                         },
-                        'daemon' => {
-                            sessiondir => [ '/home', '/tmp' ],
-                        }
                     },
-                    remotegmdirs => [ '/dummy/control /home',
-                                      '/dummy/control /boot' ],
                     libexecdir => '/usr/libexec/arc',
                     runtimedir => '/home/grid/runtime',
                     processes => [ qw(bash ps init grid-manager bogous cupsd slapd) ],

@@ -23,7 +23,7 @@
 #include "JobLog.h"
 
 #define ACCOUNTING_SUBDIR "accounting"
-#define ACCOUNTING_DB_FILE "accounting.db"
+#define ACCOUNTING_DB_FILE "accounting_v2.db"
 
 namespace ARex {
 
@@ -180,14 +180,14 @@ bool JobLog::WriteJobRecord(GMJob &job, const GMConfig& config) {
   // create initial AAR record in the accounting database on ACCEPTED
   else if(job.get_state() == JOB_STATE_ACCEPTED) {
     AAR aar;
-    aar.FetchJobData(job, config);
+    aar.FetchJobData(job, config, token_map);
     r = adb.createAAR(aar);
   }
 
   // update all job metrics when job FINISHED
   else if (job.get_state() == JOB_STATE_FINISHED) {
     AAR aar;
-    aar.FetchJobData(job, config);
+    aar.FetchJobData(job, config, token_map);
     r = adb.updateAAR(aar);
   }
 

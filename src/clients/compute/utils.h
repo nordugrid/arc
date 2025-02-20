@@ -1,5 +1,5 @@
-#ifndef __ARC_CLEINT_COMPUTE_UTILS_H_
-#define __ARC_CLEINT_COMPUTE_UTILS_H_
+#ifndef __ARC_CLIENT_COMPUTE_UTILS_H_
+#define __ARC_CLIENT_COMPUTE_UTILS_H_
 
 #include <unistd.h>
 #include <string>
@@ -124,10 +124,24 @@ void splitendpoints(std::list<std::string>& selected, std::list<std::string>& re
  */
 Arc::JobInformationStorage* createJobInformationStorage(const Arc::UserConfig& uc);
 
+enum AuthenticationType {
+  UndefinedAuthentication,
+  NoAuthentication,
+  X509Authentication,
+  TokenAuthentication
+};
+
+enum DelegationType {
+  UndefinedDelegation,
+  NoDelegation,
+  X509Delegation,
+  TokenDelegation
+};
+
 class ClientOptions : public Arc::OptionParser {
 public:
   enum Client_t {
-    CO_SUB, CO_MIGRATE, CO_RESUB, CO_TEST,
+    CO_SUB, CO_TEST,
     CO_CAT, CO_CLEAN, CO_GET, CO_KILL, CO_RENEW, CO_RESUME, CO_STAT,
     CO_SYNC,
     CO_INFO,
@@ -139,11 +153,11 @@ public:
                 const std::string& summary = "",
                 const std::string& description = "");
 
-  /// Returns the boolean value indication whether new ARC6 set of target selection options are in use
-  bool isARC6TargetSelectionOptions(Arc::Logger& logger, bool allow_cluster = false);
-
   /// Implement ARC consistent info/submission endpoint types logic
-  bool canonicalizeARC6InterfaceTypes(Arc::Logger& logger);
+  bool canonicalizeARCInterfaceTypes(Arc::Logger& logger);
+
+  bool getDelegationType(Arc::Logger& logger, Arc::UserConfig const& usercfg, DelegationType& delegation_type) const;
+  bool getAuthenticationType(Arc::Logger& logger, Arc::UserConfig const& usercfg, AuthenticationType& authentication_type) const;
 
   bool dryrun;
   bool dumpdescription;
@@ -151,15 +165,12 @@ public:
   bool show_plugins;
   bool showversion;
   bool all;
-  bool forcemigration;
   bool keep;
   bool forcesync;
   bool truncate;
   bool convert;
   bool longlist;
   bool printids;
-  bool same;
-  bool notsame;
   bool forceclean;
   bool show_stdout;
   bool show_stderr;
@@ -167,16 +178,23 @@ public:
   bool show_json;
   bool usejobname;
   bool forcedownload;
-  bool list_configured_services;
   bool direct_submission;
   bool show_unavailable;
   bool no_delegation;
   bool x509_delegation;
   bool token_delegation;
+  bool no_authentication;
+  bool x509_authentication;
+  bool token_authentication;
+  bool force_system_ca;
+  bool force_grid_ca;
+  bool allow_insecure_connection;
 
   int testjobid;
   int runtime;
   int timeout;
+  int instances_min;
+  int instances_max;
 
   std::string show_file;
 
@@ -191,9 +209,6 @@ public:
   std::string requestedSubmissionInterfaceName;
   std::string infointerface;
 
-  std::list<std::string> clusters;
-  std::list<std::string> qlusters;
-  std::list<std::string> indexurls;
   std::list<std::string> jobdescriptionstrings;
   std::list<std::string> jobdescriptionfiles;
   std::list<std::string> jobidinfiles;
@@ -202,7 +217,6 @@ public:
   std::list<std::string> rejectdiscovery;
   std::list<std::string> rejectmanagement;
 
-  // arc6 consistent, intuitive and streamlined target selection:
   // command line options
   std::list<std::string> computing_elements;
   std::list<std::string> registries;
@@ -213,4 +227,4 @@ public:
   std::list<std::string> info_types;
 };
 
-#endif // __ARC_CLEINT_COMPUTE_UTILS_H_
+#endif // __ARC_CLIENT_COMPUTE_UTILS_H_

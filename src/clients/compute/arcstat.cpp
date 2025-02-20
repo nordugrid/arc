@@ -62,6 +62,8 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
+  if (opt.force_system_ca) usercfg.CAUseSystem(true);
+  if (opt.force_grid_ca) usercfg.CAUseSystem(false);
 
   if (opt.debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(usercfg.Verbosity()));
@@ -74,6 +76,25 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
 
   if (opt.timeout > 0)
     usercfg.Timeout(opt.timeout);
+
+  AuthenticationType authentication_type = UndefinedAuthentication;
+  if(!opt.getAuthenticationType(logger, usercfg, authentication_type))
+    return 1;
+  switch(authentication_type) {
+    case NoAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeNone);
+      break;
+    case X509Authentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeCert);
+      break;
+    case TokenAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeToken);
+      break;
+    case UndefinedAuthentication:
+    default:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeUndefined);
+      break;
+  }
 
   if (!opt.sort.empty() && !opt.rsort.empty()) {
     logger.msg(Arc::ERROR, "The 'sort' and 'rsort' flags cannot be specified at the same time.");
@@ -98,17 +119,17 @@ int RUNMAIN(arcstat)(int argc, char **argv) {
     return 1;
   }
 
-  if ((!opt.joblist.empty() || !opt.status.empty()) && jobidentifiers.empty() && opt.clusters.empty())
+  if ((!opt.joblist.empty() || !opt.status.empty()) && jobidentifiers.empty() && opt.computing_elements.empty())
     opt.all = true;
 
-  if (jobidentifiers.empty() && opt.clusters.empty() && !opt.all) {
+  if (jobidentifiers.empty() && opt.computing_elements.empty() && !opt.all) {
     logger.msg(Arc::ERROR, "No jobs given");
     return 1;
   }
   
   std::list<std::string> selectedURLs;
-  if (!opt.clusters.empty()) {
-    selectedURLs = getSelectedURLsFromUserConfigAndCommandLine(usercfg, opt.clusters);
+  if (!opt.computing_elements.empty()) {
+    selectedURLs = getSelectedURLsFromUserConfigAndCommandLine(usercfg, opt.computing_elements);
   }
   std::list<std::string> rejectManagementURLs = getRejectManagementURLsFromUserConfigAndCommandLine(usercfg, opt.rejectmanagement);
   std::list<Arc::Job> jobs;

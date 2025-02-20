@@ -7,9 +7,16 @@ debian/tmp/usr/lib/arc/jura-ng
 debian/tmp/usr/lib/arc/smtp-send
 debian/tmp/usr/lib/arc/smtp-send.sh
 
-debian/tmp/usr/share/arc/cancel-*-job
-debian/tmp/usr/share/arc/scan-*-job
-debian/tmp/usr/share/arc/submit-*-job
+debian/tmp/usr/share/arc/cancel-condor-job
+debian/tmp/usr/share/arc/cancel-fork-job
+debian/tmp/usr/share/arc/cancel-SLURM-job
+debian/tmp/usr/share/arc/scan-condor-job
+debian/tmp/usr/share/arc/scan-fork-job
+debian/tmp/usr/share/arc/scan-SLURM-job
+debian/tmp/usr/share/arc/submit-condor-job
+debian/tmp/usr/share/arc/submit-fork-job
+debian/tmp/usr/share/arc/submit-SLURM-job
+
 debian/tmp/usr/share/arc/perferator
 debian/tmp/usr/share/arc/PerfData.pl
 debian/tmp/usr/share/arc/arc-arex-start
@@ -22,18 +29,12 @@ debian/tmp/usr/lib/arc/libcandypond.apd
 
 debian/tmp/usr/share/arc/CEinfo.pl
 debian/tmp/usr/share/arc/ARC0mod.pm
-debian/tmp/usr/share/arc/FORKmod.pm
-debian/tmp/usr/share/arc/Fork.pm
-debian/tmp/usr/share/arc/SGEmod.pm
-debian/tmp/usr/share/arc/SGE.pm
-debian/tmp/usr/share/arc/LL.pm
-debian/tmp/usr/share/arc/LSF.pm
-debian/tmp/usr/share/arc/PBS.pm
-debian/tmp/usr/share/arc/PBSPRO.pm
+
 debian/tmp/usr/share/arc/Condor.pm
-debian/tmp/usr/share/arc/SLURMmod.pm
+debian/tmp/usr/share/arc/Fork.pm
+debian/tmp/usr/share/arc/FORKmod.pm
 debian/tmp/usr/share/arc/SLURM.pm
-debian/tmp/usr/share/arc/Boinc.pm
+debian/tmp/usr/share/arc/SLURMmod.pm
 
 debian/tmp/usr/share/arc/XmlPrinter.pm
 debian/tmp/usr/share/arc/InfosysHelper.pm
@@ -60,7 +61,7 @@ debian/tmp/usr/share/arc/submit_common.sh
 debian/tmp/usr/share/arc/scan_common.sh
 debian/tmp/usr/share/arc/lrms_common.sh
 
-debian/tmp/usr/share/arc/sql-schema/arex_accounting_db_schema_v1.sql
+debian/tmp/usr/share/arc/sql-schema/arex_accounting_db_schema_v2.sql
 
 debian/tmp/usr/share/man/man1/cache-clean.1
 debian/tmp/usr/share/man/man1/cache-list.1

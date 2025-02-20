@@ -80,22 +80,6 @@ namespace Arc {
                                     std::list<const JobDescription*>& notSubmitted);
 
 
-    /// Migrate job
-    /**
-     * This virtual method should be overridden by plugins which should
-     * be capable of migrating jobs. The active job which should be
-     * migrated is pointed to by the URL jobid, and is represented by
-     * the JobDescription jobdesc. The forcemigration boolean specifies
-     * if the migration should succeed if the active job cannot be
-     * terminated. The protected method AddJob can be used to save job
-     * information.
-     * This method should return the URL of the migrated job. In case
-     * migration fails an empty URL should be returned.
-     */
-    virtual bool Migrate(const std::string& jobid, const JobDescription& jobdesc,
-                         const ExecutionTarget& et,
-                         bool forcemigration, Job& job);
-
     virtual const std::list<std::string>& SupportedInterfaces() const { return supportedInterfaces; };
 
     /**

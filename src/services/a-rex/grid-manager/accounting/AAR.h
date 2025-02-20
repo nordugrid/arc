@@ -52,7 +52,7 @@ class GMConfig;
 
 class AAR {
   public:
-    AAR(void): jobid(""), localid(""), queue(""), userdn(""), wlcgvo(""), status(""), 
+    AAR(void): jobid(""), localid(""), queue(""), userdn(""), wlcgvo(""), fqan(""), status(""), benchmark(""),
                exitcode(1), submittime((time_t)(0)), endtime((time_t)(0)),
                nodecount(1), cpucount(1), usedmemory(0), usedvirtmemory(0),
                usedwalltime(0), usedcpuusertime(0), usedcpukerneltime(0),
@@ -65,23 +65,25 @@ class AAR {
     std::string queue;              // queue
     std::string userdn;             // distinguished name of the job owner
     std::string wlcgvo;             // WLCG VO name
+    std::string fqan;               // main accounting FQAN
     /* Completion data */
     std::string status;             // Job completion status
+    std::string benchmark;          // Job's node benchmark
     int exitcode;                   // Job exit code
     /* Main accounting times to search jobs */
     Arc::Time submittime;           // Job submission time
     Arc::Time endtime;              // Job completion time
-    /* Used resources */
-    unsigned int nodecount;
-    unsigned int cpucount;
-    unsigned long long int usedmemory;
-    unsigned long long int usedvirtmemory;
-    unsigned long long int usedwalltime;
-    unsigned long long int usedcpuusertime;
-    unsigned long long int usedcpukerneltime;
-    unsigned long long int usedscratch;
-    unsigned long long int stageinvolume;
-    unsigned long long int stageoutvolume;
+    /* Used resources (SQLite INT is signed 64-bit integer) */
+    long long int nodecount;
+    long long int cpucount;
+    long long int usedmemory;
+    long long int usedvirtmemory;
+    long long int usedwalltime;
+    long long int usedcpuusertime;
+    long long int usedcpukerneltime;
+    long long int usedscratch;
+    long long int stageinvolume;
+    long long int stageoutvolume;
     /* Complex extra data */
     std::list <aar_authtoken_t> authtokenattrs;     // auth token attributes
     std::list <aar_jobevent_t> jobevents;           // events of the job
@@ -93,7 +95,7 @@ class AAR {
     std::map <std::string, std::string> extrainfo;
 
     /// Fetch info from the job's controldir files and fill AAR data structures
-    bool FetchJobData(const GMJob &job,const GMConfig& config);
+    bool FetchJobData(const GMJob &job,const GMConfig& config,std::map<std::string,std::list<std::string> > const& tokenmap);
   private:
     static Arc::Logger logger;
 };

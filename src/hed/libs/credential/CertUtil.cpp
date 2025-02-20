@@ -12,52 +12,12 @@
 
 #include "CertUtil.h"
 
-#define X509_CERT_DIR  "X509_CERT_DIR"
-
 #define FILE_SEPARATOR "/"
 #define SIGNING_POLICY_FILE_EXTENSION   ".signing_policy"
 
 
 namespace ArcCredential {
 
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-
-static X509_OBJECT* X509_OBJECT_new(void) {
-  X509_OBJECT* obj = (X509_OBJECT*)std::malloc(sizeof(X509_OBJECT));
-  if(obj) {
-    std::memset(obj, 0, sizeof(X509_OBJECT));
-  }
-  return obj;
-}
-
-static void X509_OBJECT_free(X509_OBJECT* obj) {
-  if(obj) {
-    X509_OBJECT_free_contents(obj);
-    std::free(obj);
-  }
-}
-
-static X509_CRL *X509_OBJECT_get0_X509_CRL(X509_OBJECT *obj)
-{
-    if(!obj) return NULL;
-    if(obj->type != X509_LU_CRL) return NULL;
-    return obj->data.crl;
-}
-
-#define X509_STORE_CTX_get0_chain X509_STORE_CTX_get_chain
-#define X509_CRL_get0_lastUpdate X509_CRL_get_lastUpdate
-#define X509_CRL_get0_nextUpdate X509_CRL_get_nextUpdate
-#define X509_STORE_CTX_get_by_subject X509_STORE_get_by_subject
-#define X509_getm_notAfter X509_get_notAfter
-#define X509_getm_notBefore X509_get_notBefore
-
-static const ASN1_INTEGER *X509_REVOKED_get0_serialNumber(const X509_REVOKED *x)
-{
-    if(!x) return NULL;
-    return x->serialNumber;
-}
-
-#endif
 
 static Arc::Logger& logger = Arc::Logger::rootLogger;
 
@@ -98,9 +58,13 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, std::string const&
   }
   if(user_cert == NULL) goto err;
 
-  if (!X509_STORE_load_locations(cert_store,
-           ca_file.empty() ? NULL:ca_file.c_str(),
-           ca_dir.empty() ? NULL:ca_dir.c_str())) { goto err; }
+  if ((!ca_file.empty()) || (!ca_dir.empty())) {
+    if (!X509_STORE_load_locations(cert_store,
+             ca_file.empty() ? NULL:ca_file.c_str(),
+             ca_dir.empty() ? NULL:ca_dir.c_str())) { goto err; }
+  } else {
+    if (!X509_STORE_set_default_paths(cert_store)) { goto err; }
+  }
 
   if ((store_ctx = X509_STORE_CTX_new()) == NULL) { goto err; }
   X509_STORE_CTX_init(store_ctx, cert_store, user_cert, NULL);

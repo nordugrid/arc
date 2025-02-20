@@ -1,83 +1,24 @@
-.\" -*- nroff -*-
-.TH ARCINFO 1 "@DATE@" "NorduGrid ARC @VERSION@" "NorduGrid Users Manual"
-
-.SH NAME
-
+[NAME]
 arcinfo \- ARC Info
 
-.SH DESCRIPTION
-
+[EXTENDED DESCRIPTION]
 The
 .B arcinfo
-command is used for obtaining status and information of clusters on the
-grid.
-
-.SH SYNOPSIS
-
-.B arcinfo [options] [cluster ...]
-
-.SH OPTIONS
-
-.IP "\fB-c\fR, \fB--cluster\fR=\fIname\fR"
-select one or more computing elements: \fIname\fR can be an alias for a single CE, a group of CEs or a URL
-.IP "\fB-I\fR, \fB--infointerface\fR=\fIInterfaceName\fR"
-the computing element specified by URL at the command line should be
-queried using this information interface (possible options:
-org.nordugrid.ldapng, org.nordugrid.ldapglue2,
-org.nordugrid.wsrfglue2, org.ogf.glue.emies.resourceinfo)
-.IP "\fB-g\fR, \fB--index\fR=\fIname\fR"
-select one or more registries: \fIname\fR can be an alias for a single registry, a group of registries or a URL
-.IP "\fB-R\fR, \fB--rejectdiscovery\fR=\fIURL\fR"
-skip the service with the given URL during service discovery
-.IP "\fB-S\fR, \fB--submissioninterface\fR=\fIInterfaceName\fR"
-only get information about executon targets which supports this job submission interface (e.g. org.nordugrid.gridftpjob, org.ogf.glue.emies.activitycreation, org.nordugrid.xbes)
-.IP "\fB-l\fR, \fB--long\fR"
-long format (more information)
-.IP "\fB-L\fR, \fB--list-configured-services\fR"
-print a list of services configured in the client.conf
-.IP "\fB-P\fR, \fB--listplugins\fR"
-list the available plugins
-.IP "\fB-t\fR, \fB--timeout\fR=\fIseconds\fR"
-timeout in seconds (default 20)
-.IP "\fB-z\fR, \fB--conffile\fR=\fIfilename\fR"
-configuration file (default ~/.arc/client.conf)
-.IP "\fB-d\fR, \fB--debug\fR=\fIdebuglevel\fR"
-FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG
-.IP "\fB-v\fR, \fB--version\fR"
-print version information
-.IP "\fB-?\fR, \fB--help\fR"
-print help
-.LP
-
-.SH EXTENDED DESCRIPTION
-
-The
-.B arcinfo
-command is used to get the status and information of clusters and queues
-available on the grid. You can specify the URLs of cluster with the
-.B --cluster
+command is used to get the status and information about computing elements.
+You can specify the URLs of CE endpoint with the
+.B --computing-element
 option, or by just listing them as arguments.
 The
-.B --index
-flag can be used to specify an index server which should be queried for
-clusters. Both of these flags take a service endpoint as argument.
-See
-.BR arcsub (1)
-for a discussion of this format.
+.B --registry
+flag can be used to specify an registry server which should be queried for
+CEs endpoints.
 
 Detailed information about queried computing services can be obtained by
 specifying the
 .B --long
 flag.
 
-When specifying the
-.B --index
-flag, the information about the computing services registered at the
-index server will be queried rather than the status of the index
-server itself. Currently no command exists to query a index server.
-
-.SH FILES
-
+[FILES]
 .TP
 .B ~/.arc/client.conf
 Some options can be given default values by specifying them in the
@@ -85,40 +26,15 @@ ARC client configuration file. By using the
 .B --conffile
 option a different configuration file can be used than the default.
 
-.SH ENVIRONMENT VARIABLES
-
-.TP
-.B X509_USER_PROXY
-The location of the user's Grid proxy file. Shouldn't be set unless
-the proxy is in a non-standard location. Note that this could also be
-set in the client configuration file, however the environment variable
-overrides the settings in configuration.
-
-.TP
-.B ARC_LOCATION
-The location where ARC is installed can be specified by this variable. If not
-specified the install location will be determined from the path to the
-command being executed, and if this fails a WARNING will be given stating the
-location which will be used.
-
-.TP
-.B ARC_PLUGIN_PATH
-The location of ARC plugins can be specified by this variable. Multiple
-locations can be specified by separating them by : (; in Windows). The
-default location is \fB$ARC_LOCATION\fR/lib/arc (\\ in Windows).
-
-.SH COPYRIGHT
-
+[COPYRIGHT]
 APACHE LICENSE Version 2.0
 
-.SH AUTHOR
-
+[AUTHOR]
 ARC software is developed by the NorduGrid Collaboration 
 (http://www.nordugrid.org), please consult the AUTHORS file distributed with 
 ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 
-.SH SEE ALSO
-
+[SEE ALSO]
 .BR arccat (1),
 .BR arcclean (1),
 .BR arccp (1),
@@ -128,11 +44,9 @@ ARC. Please report bugs and feature requests to http://bugzilla.nordugrid.org
 .BR arcmkdir (1),
 .BR arcproxy (1),
 .BR arcrenew (1),
-.BR arcresub (1),
 .BR arcresume (1),
 .BR arcrm (1),
 .BR arcstat (1),
 .BR arcsub (1),
 .BR arcsync (1),
 .BR arctest (1)
-

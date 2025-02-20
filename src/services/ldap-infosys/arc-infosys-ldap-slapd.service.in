@@ -1,6 +1,6 @@
 [Unit]
 Description=ARC LDAP-based information services - SLAPD
-After=syslog.target network.target network-online.target
+After=network.target network-online.target nss-lookup.target
 PartOf=arc-infosys-ldap.service
 StopWhenUnneeded=true
 

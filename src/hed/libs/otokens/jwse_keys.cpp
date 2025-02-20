@@ -22,57 +22,6 @@ static EVP_PKEY* X509_get_privkey(X509*) {
   return NULL;
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-
-static int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d) {
-  /* If the fields n and e in r are NULL, the corresponding input
-   * parameters MUST be non-NULL for n and e.  d may be
-   * left NULL (in case only the public key is used).
-   */
-  if ((r->n == NULL && n == NULL)
-      || (r->e == NULL && e == NULL))
-    return 0;
-
-  if (n != NULL) {
-    BN_free(r->n);
-    r->n = n;
-  }
-  if (e != NULL) {
-    BN_free(r->e);
-    r->e = e;
-  }
-  if (d != NULL) {
-    BN_free(r->d);
-    r->d = d;
-  }
-
-  return 1;
-}
-
-static RSA *EVP_PKEY_get0_RSA(EVP_PKEY *pkey) {
-  if(pkey)
-    if((pkey->type == EVP_PKEY_RSA) || (pkey->type == EVP_PKEY_RSA2))
-      return pkey->pkey.rsa;
-  return NULL;
-}
-
-void RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e, const BIGNUM **d) {
-  if(n) *n = NULL;
-  if(e) *e = NULL;
-  if(d) *d = NULL;
-  if(!r) return;
-  if(n) *n = r->n;
-  if(e) *e = r->e;
-  if(d) *d = r->d;
-}
-
-int EVP_PKEY_up_ref(EVP_PKEY *r) {
-    int i = CRYPTO_add(&r->references, 1, CRYPTO_LOCK_EVP_PKEY);
-    return ((i > 1) ? 1 : 0);
-}
-
-#endif
-
 
 namespace Arc {
  
@@ -82,9 +31,16 @@ namespace Arc {
    public:
     IssuerInfo() {
       validTill = time(nullptr) + DefaultValidTime;
+      isNonexpiring = false;
+    }
+
+    bool IsExpired() const {
+      if(isNonexpiring) return false;
+      return (static_cast< std::make_signed_t<time_t> >(time(nullptr) - validTill) > 0);
     }
 
     time_t validTill;
+    bool   isNonexpiring;
     bool   isSafe;
     Arc::AutoPointer<OpenIDMetadata> metadata;
     Arc::AutoPointer<JWSEKeyHolderList> keys;
@@ -234,10 +190,10 @@ namespace Arc {
     for(int certN = 0; ; ++certN) {
       cJSON* certObject = cJSON_GetArrayItem(x5cObject, certN);
       if(certObject == NULL) break;
-      if(certObject->type != cJSON_String) return NULL;
+      if(certObject->type != cJSON_String) return false;
       // It should be PEM encoded certificate in single string and without header/footer           
       AutoPointer<BIO> mem(BIO_new(BIO_s_mem()), &BIO_deallocate);
-      if(!mem) return NULL;
+      if(!mem) return false;
       BIO_puts(mem.Ptr(), "-----BEGIN CERTIFICATE-----\n");
       BIO_puts(mem.Ptr(), certObject->valuestring);
       BIO_puts(mem.Ptr(), "\n-----END CERTIFICATE-----");
@@ -306,9 +262,8 @@ namespace Arc {
     return x5cObject.Release();
   }
 
-  bool JWSE::ExtractPublicKey() const {
+  bool JWSE::ExtractPublicKey(UserConfig& userconfig) const {
     key_.Release();
-
     // So far we are going to support only embedded keys jwk and x5c and external kid.
     cJSON* x5cObject = cJSON_GetObjectItem(header_.Ptr(), HeaderNameX509CertChain);
     cJSON* jwkObject = cJSON_GetObjectItem(header_.Ptr(), HeaderNameJSONWebKey);
@@ -338,16 +293,28 @@ namespace Arc {
       if(!issuerObj || (issuerObj->type != cJSON_String))
         return false;
       bool keyProtocolSafe = true;
-      if(strncasecmp("https:", issuerObj->valuestring, 6) != 0) keyProtocolSafe = false;
-
+      std::string issuerUrl(issuerObj->valuestring);
+	  // Issuer can be any application specific string. Typically that is URL.
+	  // Sometimes it is hostname (Google tokens). As we need URL anyway to fetch
+      // keys let's assume we have either HTTP(S) URL or hostname.	  
+      if(strncasecmp("https://", issuerUrl.c_str(), 8) == 0) {
+		// Use as is.
+	  } else if(strncasecmp("http://", issuerUrl.c_str(), 7) == 0) {
+		  keyProtocolSafe = false;
+	  } else {
+		issuerUrl = "https://" + issuerUrl + "/";
+	  }
+	  
       {
         Time now;
         Arc::AutoLock<Glib::Mutex> lock(issuersInfoLock);
         for(std::map<std::string, IssuerInfo>::iterator infoIt = issuersInfo.begin(); infoIt != issuersInfo.end();) {
           std::map<std::string, IssuerInfo>::iterator nextIt = infoIt;
           ++nextIt;
-          if(now > infoIt->second.validTill)
-          issuersInfo.erase(infoIt);
+          if(infoIt->second.IsExpired()) {
+            logger_.msg(DEBUG, "JWSE::ExtractPublicKey: deleting outdated info: %s", infoIt->first); 
+            issuersInfo.erase(infoIt);
+          }
           infoIt = nextIt;
         }
         std::map<std::string, IssuerInfo>::iterator infoIt = issuersInfo.find(issuerObj->valuestring);
@@ -363,7 +330,7 @@ namespace Arc {
       }
 
       Arc::AutoPointer<OpenIDMetadata> serviceMetadata(new OpenIDMetadata);
-      OpenIDMetadataFetcher metadataFetcher(issuerObj->valuestring);
+      OpenIDMetadataFetcher metadataFetcher(issuerUrl.c_str(), userconfig);
       if(!metadataFetcher.Fetch(*serviceMetadata))
         return false;
       if(serviceMetadata->Error())
@@ -372,10 +339,10 @@ namespace Arc {
       if(!jwksUri)
         return false;
 
-      if(strncasecmp("https:", jwksUri, 6) != 0) keyProtocolSafe = false;
+      if(strncasecmp("https://", jwksUri, 8) != 0) keyProtocolSafe = false;
 
       logger_.msg(DEBUG, "JWSE::ExtractPublicKey: fetching jws key from %s", jwksUri);
-      JWSEKeyFetcher keyFetcher(jwksUri);
+      JWSEKeyFetcher keyFetcher(jwksUri, userconfig);
       Arc::AutoPointer<JWSEKeyHolderList> keys(new JWSEKeyHolderList);
       if(!keyFetcher.Fetch(*keys, logger_))
         return false;
@@ -398,15 +365,7 @@ namespace Arc {
           }
         }
       }
-      {
-        Arc::AutoLock<Glib::Mutex> lock(issuersInfoLock);
-        IssuerInfo& info(issuersInfo[issuerObj->valuestring]);
-        info.isSafe = keyProtocolSafe;
-        info.metadata = serviceMetadata;
-        info.keys = keys;
-        if(validTill < info.validTill)
-          info.validTill = validTill.GetTime();
-      }
+      SetIssuerInfo(&validTill, keyProtocolSafe, issuerObj->valuestring, serviceMetadata, keys);
       if(keyFound)
         return true;
     } else {
@@ -416,6 +375,31 @@ namespace Arc {
     logger_.msg(ERROR, "JWSE::ExtractPublicKey: key parsing error");
 
     return false;
+  }
+
+  void JWSE::SetIssuerInfo(Time* validTill, bool isSafe, std::string const& issuer, Arc::AutoPointer<OpenIDMetadata>& metadata, Arc::AutoPointer<JWSEKeyHolderList>& keys) {
+    Arc::AutoLock<Glib::Mutex> lock(issuersInfoLock);
+    IssuerInfo& info(issuersInfo[issuer]);
+    info.isSafe = isSafe;
+    info.metadata = metadata;
+    info.keys = keys;
+    if(validTill) {
+      if(*validTill < info.validTill)
+        info.validTill = validTill->GetTime();
+    } else {
+      info.isNonexpiring = true;
+    }
+  }
+
+  bool JWSE::SetIssuerInfo(Time* validTill, bool isSafe, std::string const& issuer, std::string const& metadataStr, std::string const& keysStr, Logger& logger) {
+    AutoPointer<OpenIDMetadata> metadata(new OpenIDMetadata);
+    if(!OpenIDMetadataFetcher::Import(metadataStr.c_str(), *metadata)) return false;
+
+    AutoPointer<JWSEKeyHolderList> keys(new JWSEKeyHolderList);
+    if(!JWSEKeyFetcher::Import(keysStr.c_str(), *keys, logger)) return false;
+
+    SetIssuerInfo(validTill, isSafe, issuer, metadata, keys);
+    return true;
   }
   
   bool JWSE::InsertPublicKey(bool& keyAdded) const {
@@ -582,8 +566,14 @@ namespace Arc {
     return url;
   }
 
-  JWSEKeyFetcher::JWSEKeyFetcher(char const * endpoint_url):
-       url_(endpoint_url?url_no_cred(endpoint_url):URL()), client_(Arc::MCCConfig(), url_) {
+  static Arc::MCCConfig make_config(UserConfig& userconfig) {
+    Arc::MCCConfig config;
+    userconfig.ApplyToConfig(config);
+    return config;
+  }
+
+  JWSEKeyFetcher::JWSEKeyFetcher(char const * endpoint_url, UserConfig& userconfig):
+       url_(endpoint_url?url_no_cred(endpoint_url):URL()), client_(make_config(userconfig), url_) {
     client_.RelativeURI(true);
   }
 
@@ -622,5 +612,30 @@ namespace Arc {
     return true;
   }
 
+  bool JWSEKeyFetcher::Import(char const * contentStr, JWSEKeyHolderList& keys, Logger& logger) {
+    if(!contentStr) return false;
+    AutoPointer<cJSON> content(cJSON_Parse(contentStr), &cJSON_Delete);
+    if(!content)
+      return false;
+    cJSON* keysObj = cJSON_GetObjectItem(content.Ptr(), "keys");
+    if(!keysObj || (keysObj->type != cJSON_Array))
+      return false;
+    for(int idx = 0; idx < cJSON_GetArraySize(keysObj); ++idx) {
+      cJSON* keyObj = cJSON_GetArrayItem(keysObj, idx);
+      if(!keyObj || (keyObj->type != cJSON_Object))
+        continue;
+      cJSON* kidObj = cJSON_GetObjectItem(keyObj, "kid");
+      std::string id;
+      if(kidObj && (kidObj->type == cJSON_String))
+        id.assign(kidObj->valuestring);
+      Arc::AutoPointer<JWSEKeyHolder> key(new JWSEKeyHolder());
+      if(!key) continue;
+      if(!jwkParse(keyObj, *key.Ptr(), logger))
+        continue;
+      key->Id(id.c_str());
+      keys.add(key);
+    };
+    return true;
+  }
 
 } // namespace Arc

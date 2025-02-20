@@ -170,7 +170,13 @@ MCC_HTTP_Service::MCC_HTTP_Service(Config *cfg,PluginArgument* parg):MCC_HTTP(cf
 MCC_HTTP_Service::~MCC_HTTP_Service(void) {
 }
 
-static MCC_Status make_http_fault(Logger& logger, PayloadHTTPIn &inpayload, PayloadStreamInterface& stream, Message& outmsg, int code, std::list< std::pair<std::string,std::string> > & headers, const char* desc = NULL) {
+static MCC_Status make_http_fault(Logger& logger,
+				  PayloadHTTPIn &inpayload,
+				  PayloadStreamInterface& stream,
+				  Message& outmsg,
+				  int code,
+				  std::list< std::pair<std::string,std::string> > const & headers,
+				  const char* desc = NULL) {
   if((desc == NULL) || (*desc == 0)) {
     switch(code) {
       case HTTP_BAD_REQUEST:  desc="Bad Request"; break;
@@ -185,7 +191,9 @@ static MCC_Status make_http_fault(Logger& logger, PayloadHTTPIn &inpayload, Payl
   bool keep_alive = (!inpayload)?false:inpayload.KeepAlive();
   outpayload.KeepAlive(keep_alive);
   // Add forced headers
-  for(std::list< std::pair<std::string,std::string> >::iterator header = headers.begin(); header != headers.end(); ++header) {
+  for(std::list< std::pair<std::string,std::string> >::const_iterator header = headers.cbegin();
+      header != headers.cend();
+      ++header) {
     outpayload.Attribute(header->first, header->second);
   }
   if(!outpayload.Flush(stream)) return MCC_Status();
@@ -198,7 +206,13 @@ static MCC_Status make_http_fault(Logger& logger, PayloadHTTPIn &inpayload, Payl
   return MCC_Status(STATUS_OK);
 }
 
-static MCC_Status make_http_fault(Logger& logger, PayloadHTTPIn &inpayload, PayloadStreamInterface& stream, Message& outmsg, int code, std::list< std::pair<std::string,std::string> > const & headers, std::string const & desc) {
+static MCC_Status make_http_fault(Logger& logger,
+				  PayloadHTTPIn &inpayload,
+				  PayloadStreamInterface& stream,
+				  Message& outmsg,
+				  int code,
+				  std::list< std::pair<std::string,std::string> > const & headers,
+				  std::string const & desc) {
   return make_http_fault(logger, inpayload, stream, outmsg, code, headers, desc.empty()?"":desc.c_str());
 }
 
@@ -285,19 +299,32 @@ MCC_Status MCC_HTTP_Service::process(Message& inmsg,Message& outmsg) {
   {
     std::string::size_type p = endpoint.find("://");
     if(p == std::string::npos) {
-      // TODO: Use Host attribute of HTTP
+      std::string endpoint_host = nextpayload.Attribute("host");
+      std::string endpoint_port;
+      // parse info from URI
       std::string oendpoint = nextinmsg.Attributes()->get("ENDPOINT");
       p=oendpoint.find("://");
       if(p != std::string::npos) {
         oendpoint.erase(0,p+3);
       };
-      // Assuming we have host:port here
-      if(oendpoint.empty() ||
-         (oendpoint[oendpoint.length()-1] != '/')) {
-        if(endpoint[0] != '/') oendpoint+="/";
+      // trim slash
+      oendpoint = Arc::trim(oendpoint, "/");
+      // split host:port
+      p=oendpoint.find(":");
+      std::string ohost = oendpoint;
+      if(p != std::string::npos) {
+        ohost = oendpoint.substr(0,p);
+        endpoint_port = oendpoint.substr(p);
       };
-      // TODO: HTTPS detection
-      endpoint="http://"+oendpoint+endpoint;
+      if(endpoint_host.empty()) endpoint_host = ohost;
+      // add trailing slash
+      std::string sep;
+      if (endpoint[0] != '/') sep = "/";
+      // HTTPS detection
+      std::string protocol = "http";
+      if (!inmsg.Attributes()->get("TLS:LOCALDN").empty()) protocol+="s";
+      // Construct HTTP URL endpoint
+      endpoint=protocol+"://"+endpoint_host+endpoint_port+sep+endpoint;
     };
   };
   nextinmsg.Attributes()->set("ENDPOINT",endpoint);

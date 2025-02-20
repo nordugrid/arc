@@ -58,7 +58,7 @@ namespace Arc {
     std::cerr << "Node is " << (error.node == NULL ? "NULL" : "not NULL") << std::endl;
   }
 
-  void XMLNodeRecover::structured_error_handler(void *userData, xmlErrorPtr error) {
+  void XMLNodeRecover::structured_error_handler(void *userData, xmlErrorPtrType error) {
     if (error == NULL) {
       return;
     }

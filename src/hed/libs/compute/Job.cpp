@@ -880,16 +880,26 @@ namespace Arc {
 
     logger.msg(VERBOSE, "Downloading job: %s", JobID);
     
-    URL src, dst(destination);
+    URL src;
+    URL logsrc;
+    URL dst(destination);
     if (!jc->GetURLToJobResource(*this, STAGEOUTDIR, src)) {
-      logger.msg(ERROR, "Cant retrieve job files for job (%s) - unable to determine URL of stage out directory", JobID);
+      logger.msg(ERROR, "Can't retrieve job files for job (%s) - unable to determine URL of stage out directory", JobID);
       return false;
+    }
+    if (!LogDir.empty()) {
+      // retrieve log files only if corresponding in job description is specified
+      if (!jc->GetURLToJobResource(*this, LOGDIR, logsrc)) {
+        logger.msg(ERROR, "Can't retrieve job files for job (%s) - unable to determine URL of log directory", JobID);
+        return false;
+      }
     }
 
     if (!src) {
       logger.msg(ERROR, "Invalid stage out path specified (%s)", src.fullstr());
       return false;
     }
+    // logsrc is optional
 
     // TODO: can destination be remote?
 
@@ -898,10 +908,51 @@ namespace Arc {
       return false;
     }
 
-    std::list<std::string> files;
-    if (!ListFilesRecursive(uc, src, files)) {
-      logger.msg(ERROR, "Unable to retrieve list of job files to download for job %s", JobID);
-      return false;
+    const std::string srcpath = src.Path() + (src.Path().empty() || *src.Path().rbegin() != '/' ? "/" : "");
+    const std::string dstpath = dst.Path() + (dst.Path().empty() || *dst.Path().rbegin() != G_DIR_SEPARATOR ? G_DIR_SEPARATOR_S : "");
+
+    std::list<URLLocation> files;
+    bool data_files_listed = false;
+    if(src.Locations().empty()) {
+      std::list<std::string> paths;
+      if (!ListFilesRecursive(uc, src, paths)) {
+        logger.msg(ERROR, "Unable to retrieve list of job files to download for job %s", JobID);
+        return false;
+      }
+      for(std::list<std::string>::iterator it = paths.begin(); it != paths.end(); ++it) {
+        URLLocation file(src, *it);
+        file.ChangePath(srcpath + *it);
+        files.push_back(file);
+      }
+      data_files_listed = true;
+    } else {
+      std::list<URLLocation> const & locations = src.Locations();
+      files.insert(files.end(), locations.begin(), locations.end());
+    }
+    std::size_t data_files_num = files.size();
+
+    bool log_files_listed = false;
+    if (logsrc) {
+      const std::string logsrcpath = logsrc.Path() + (logsrc.Path().empty() || *logsrc.Path().rbegin() != '/' ? "/" : "");
+      if(logsrc.Locations().empty()) {
+        std::list<std::string> paths;
+        if (!ListFilesRecursive(uc, logsrc, paths)) {
+          logger.msg(ERROR, "Unable to retrieve list of log files to download for job %s", JobID);
+          return false;
+        }
+        for(std::list<std::string>::iterator it = paths.begin(); it != paths.end(); ++it) {
+	  URLLocation file(logsrc, LogDir+"/"+*it);
+          file.ChangePath(logsrcpath + *it);
+          files.push_back(file);
+        }
+        log_files_listed = true;
+      } else {
+        std::list<URLLocation> const & locations = logsrc.Locations();
+        for(std::list<URLLocation>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
+          URLLocation location(*it, LogDir+"/"+it->Name());
+          files.insert(files.end(), location);
+        }
+      }
     }
 
     if (files.empty()) {
@@ -915,13 +966,17 @@ namespace Arc {
       return false;
     }
 
-    const std::string srcpath = src.Path() + (src.Path().empty() || *src.Path().rbegin() != '/' ? "/" : "");
-    const std::string dstpath = dst.Path() + (dst.Path().empty() || *dst.Path().rbegin() != G_DIR_SEPARATOR ? G_DIR_SEPARATOR_S : "");
-
     bool ok = true;
-    for (std::list<std::string>::const_iterator it = files.begin(); it != files.end(); ++it) {
-      src.ChangePath(srcpath + *it);
-      dst.ChangePath(dstpath + *it);
+    std::set<std::string> processed;
+    for (std::list<URLLocation>::const_iterator it = files.begin(); it != files.end(); ++it) {
+      bool file_listed = log_files_listed;
+      if (data_files_num > 0) {
+        file_listed = data_files_listed;
+        --data_files_num;
+      }
+      src = *it;
+      dst.ChangePath(dstpath + it->Name());
+      if(!processed.insert(it->Name()).second) continue; // skip already processed input files
       if (Glib::file_test(dst.Path(), Glib::FILE_TEST_EXISTS)) {
         if (!force) {
           logger.msg(ERROR, "Failed downloading %s to %s, destination already exist", src.str(), dst.Path());
@@ -935,7 +990,8 @@ namespace Arc {
           continue;
         }
       }
-      if (!CopyJobFile(uc, src, dst)) {
+        
+      if (!CopyJobFile(uc, src, dst, file_listed)) {
         logger.msg(INFO, "Failed downloading %s to %s", src.str(), dst.Path());
         ok = false;
       }
@@ -989,9 +1045,10 @@ namespace Arc {
     return true;
   }
 
-  bool Job::CopyJobFile(const UserConfig& uc, const URL& src, const URL& dst) {
+  bool Job::CopyJobFile(const UserConfig& uc, const URL& src, const URL& dst, bool required) {
     DataMover mover;
-    mover.retry(true);
+    mover.retry(false);
+    mover.retry_retryable(true);
     mover.secure(false);
     mover.passive(true);
     mover.verbose(false);
@@ -1042,7 +1099,10 @@ namespace Arc {
       mover.Transfer(*source, *destination, cache, URLMap(), 0, 0, 0,
                      uc.Timeout());
     if (!res.Passed()) {
-      logger.msg(ERROR, "File download failed: %s", std::string(res));
+      // Missing file is not fatal error because dir listing or plugin query may provide incorrect information.
+      // If file is definitely not required fully suppress reporting about missing file.
+      bool noSourceFound = ((res.GetStatus() == DataStatus::ReadError) && (res.GetErrno() == ENOENT));
+      if (required || !noSourceFound) logger.msg(noSourceFound?WARNING:ERROR, "File download failed: %s", std::string(res));
       // Reset connection because one can't be sure how failure
       // affects server and/or connection state.
       // TODO: Investigate/define DMC behavior in such case.
@@ -1050,7 +1110,7 @@ namespace Arc {
       data_source = NULL;
       delete data_destination;
       data_destination = NULL;
-      return false;
+      return noSourceFound?true:false;
     }
 
     return true;

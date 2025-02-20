@@ -115,13 +115,6 @@ namespace Arc {
     job.StdErr = jobdesc.Application.Error;
   }
 
-  bool SubmitterPlugin::Migrate(const std::string& /*jobid*/, const JobDescription& /*jobdesc*/, const ExecutionTarget& et,
-                                bool /*forcemigration*/, Job& /*job*/) {
-    logger.msg(INFO, "Trying to migrate to %s: Migration to a %s interface is not supported.", et.ComputingEndpoint->URLString, !supportedInterfaces.empty() ? supportedInterfaces.front() : "<unknown>");
-    return false;
-  };
-
-
   SubmitterPluginLoader::SubmitterPluginLoader() : Loader(BaseConfig().MakeConfig(Config()).Parent()) {}
 
   SubmitterPluginLoader::~SubmitterPluginLoader() {

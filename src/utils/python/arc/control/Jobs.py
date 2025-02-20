@@ -340,6 +340,8 @@ class JobsControl(ComponentControl):
               'Modified\t: {modified}'.format(**self.jobs[args.jobid]))
 
     def job_stdout(self, args):
+        self.__get_jobs()
+        self.__job_exists(args.jobid)
         job_grami = self.__parse_job_attrs(args.jobid, 'grami')
         if not 'joboption_stdout' in job_grami:
             self.logger.error('Cannot find executable stdout location for job %s', args.jobid)
@@ -347,6 +349,8 @@ class JobsControl(ComponentControl):
         self.__follow_log(job_grami['joboption_stdout'], args.follow)
 
     def job_stderr(self, args):
+        self.__get_jobs()
+        self.__job_exists(args.jobid)
         job_grami = self.__parse_job_attrs(args.jobid, 'grami')
         if not 'joboption_stderr' in job_grami:
             self.logger.error('Cannot find executable stderr location for job %s', args.jobid)
@@ -354,6 +358,8 @@ class JobsControl(ComponentControl):
         self.__follow_log(job_grami['joboption_stderr'], args.follow)
 
     def job_getattr(self, args):
+        self.__get_jobs()
+        self.__job_exists(args.jobid)
         job_attrs = self.__parse_job_attrs(args.jobid)
         if args.attr:
             if args.attr in job_attrs:
@@ -428,6 +434,7 @@ class JobsControl(ComponentControl):
 
     def control(self, args):
         self.cache_ttl = args.cachettl
+        canonicalize_args_jobid(args)
         if args.action == 'list':
             self.list(args)
         elif args.action == 'killall':

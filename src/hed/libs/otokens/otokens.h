@@ -1,7 +1,9 @@
 #include <string>
 #include <set>
 #include <arc/Utils.h>
+#include <arc/DateTime.h>
 #include <arc/Logger.h>
+#include <arc/UserConfig.h>
 
 
 struct cJSON;
@@ -9,6 +11,8 @@ struct cJSON;
 namespace Arc {
 
   class JWSEKeyHolder;
+  class JWSEKeyHolderList;
+  class OpenIDMetadata;
 
   //! Class for parsing, verifying and extracting information
   //! from Tokens (JWS or JWE encoded).
@@ -36,9 +40,9 @@ namespace Arc {
     //! Parse token available as simple string.
     //! Mostly to be used for tokens embedded into something
     //! like HTTP header.
-    JWSE(std::string const& jwseCompact);
+    JWSE(std::string const& jwseCompact, UserConfig& userconfig);
 
-    //! Default contructor creates valid Token
+    //! Default constructor creates valid Token
     //! with empty information.
     JWSE();    
 
@@ -88,7 +92,7 @@ namespace Arc {
     void Claim(char const* name, char const* value);
 
     //! Parses passed Token and stores collected information in this object.
-    bool Input(std::string const& jwseCompact);
+    bool Input(std::string const& jwseCompact, UserConfig& userconfig);
 
     //! Returns information about how key used to validate signature is obtained.
     KeyOrigin InputKeyOrigin() const { return keyOrigin_; };
@@ -102,6 +106,8 @@ namespace Arc {
     //! Assigns certificate to use for signing
     void Certificate(char const* certificate = NULL);
  
+    static bool SetIssuerInfo(Time* validTill, bool isSafe, std::string const& issuer, std::string const& metadata, std::string const& keys, Logger& logger);
+
    private:    
 
     static Logger logger_;
@@ -120,8 +126,10 @@ namespace Arc {
 
     void Cleanup();
 
+    static void SetIssuerInfo(Time* validTill, bool isSafe, std::string const & issuer, AutoPointer<OpenIDMetadata>& metadata, AutoPointer<JWSEKeyHolderList>& keys);
+
     // Propagate information in header_ into key_
-    bool ExtractPublicKey() const;
+    bool ExtractPublicKey(UserConfig& userconfig) const;
 
     // Copy content of key_ into header_
     bool InsertPublicKey(bool& keyAdded) const;

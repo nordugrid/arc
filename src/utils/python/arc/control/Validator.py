@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from socket import socket, getfqdn, AF_INET, SOCK_DGRAM
 import glob
 import logging
@@ -142,7 +141,7 @@ class Validator(object):
             # Check for options allowed in this block
             for option, value in options.items():
                 if option not in config_defaults[block]['__options']:
-                    self.warning("'%s' is not a valid option in [%s]" % (option, block))
+                    self.error("'%s' is not a valid option in [%s]" % (option, block))
                     continue
 
                 if not value and option not in self.__empty_value_options:
@@ -151,6 +150,10 @@ class Validator(object):
 
                 if not isinstance(value, list):
                     value = [value]
+                elif self.arcconfref:
+                    # check multivalued is allowed
+                    if not reference.is_multivalued(self.arcconfref, block, option):
+                        self.error("%s option in [%s] block is not multivalued but specified multiple times" % (option, block))
 
                 for val in value:
                     if re.match(r'".*"', val) or re.match(r"'.*'", val):
@@ -158,20 +161,6 @@ class Validator(object):
                                    (option, val, block))
 
                     self._check_config_option(block, option, val, config_defaults)
-
-        # Check block order
-        if self.arcconfref:
-            block_order = reference.blocks_ordered(self.arcconfref)
-            # Make a unique set of blocks excluding unknown and stripping dynamic blocks
-            config_blocks = [b.split(':')[0] for b in config_blocks if b.split(':')[0] in block_order]
-            # Remove duplicates preserving order
-            config_blocks_uniq = list(OrderedDict.fromkeys(config_blocks))
-            # Sort the conf blocks according to the reference order and then compare
-            config_blocks_sorted = sorted(config_blocks_uniq, key=lambda x: block_order.index(x))
-            if config_blocks_sorted != config_blocks_uniq:
-                self.error("Configuration blocks are not in the correct order:\n%s\nShould be:\n%s" %
-                           (config_blocks_uniq, config_blocks_sorted))
-
 
     def _check_config_option(self, block, option, value, config_defaults):
 
@@ -183,21 +172,19 @@ class Validator(object):
             except ValueError:
                 return None
 
+
+
         # Check allowed values
         if self.arcconfref:
             allowed_values = reference.allowed_values(self.arcconfref, block, option)
+
             if allowed_values and value not in allowed_values:
-                self.error("Value '%s' for option '%s' in [%s] is not in allowed values (%s)" %
-                           (value, option, block, ','.join(allowed_values)))
+                #lrms has separate checks later on 
+                if not (block == 'lrms' and option == 'lrms'):
+                    self.error("Value '%s' for option '%s' in [%s] is not in allowed values (%s)" %
+                               (value, option, block, ','.join(allowed_values)))
 
         # Extra checks for certain options
-        if option == 'benchmark':
-            # Benchmark values have different syntax in different blocks
-            if block == 'lrms' and not re.match(r'\w+:\d+(\.\d*)?|\.\d+', value):
-                self.error("benchmark option '%s' in [lrms] has incorrect syntax" % value)
-            if block == 'queue' and not re.match(r'\w+ \d+(\.\d*)?|\.\d+', value):
-                self.error("benchmark option '%s' in [queue] has incorrect syntax" % value)
-
         if block == 'arex/cache' and option == 'cachedir':
             if not value.split()[0].startswith('/'):
                 self.error("cachedir must specify an absolute path")
@@ -205,10 +192,12 @@ class Validator(object):
                 self.warning("cachedir doesn't exist at %s" % value.split()[0])
 
         if block == 'arex' and option == 'sessiondir':
-            if not value.split()[0].startswith('/'):
-                self.error("sessiondir must specify an absolute path")
-            elif not os.path.exists(value.split()[0]):
-                self.warning("sessiondir doesn't exist at %s" % value.split()[0])
+            sessiondir = value.split()[0]
+            if sessiondir != '*':
+                if not sessiondir.startswith('/'):
+                    self.error("sessiondir %s is not an absolute path" % sessiondir)
+                elif not os.path.exists(sessiondir):
+                    self.warning("sessiondir doesn't exist at %s" % sessiondir)
             if len(value.split()) == 2 and value.split()[1] != 'drain':
                 self.error("Second option in sessiondir must be 'drain' or empty")
 
@@ -295,48 +284,77 @@ class Validator(object):
                          "Interface will be open for all mapped users")
 
         # Check lrms name is correct
-        lrms = config_dict['lrms']['lrms'].split()[0]
-        lrms_submit = os.path.join(ARC_DATA_DIR, 'submit-%s-job' % lrms)
-        if not os.path.exists(lrms_submit):
-            # Special exception for slurm/SLURM - maybe remove in ARC 7
-            if lrms.lower() != 'slurm':
-                self.error("%s is not an allowed lrms name" % lrms)
+        lrms_option_present = True
+        try:
+            lrms = config_dict['lrms']['lrms'].split()[0]
+        except KeyError:
+            lrms_option_present = False
+            self.error(f"Mandatory lrms option in the [lrms] block is missing.")
+        if lrms_option_present:
+            lrms_submit = os.path.join(ARC_DATA_DIR, 'submit-%s-job' % lrms)
+            if not os.path.exists(lrms_submit):
+                # LRMS-contrib
+                lrms_contrib = ['ll', 'lsf', 'sge']
+                if lrms in lrms_contrib:
+                    self.error("%s lrms requires installing nordugrid-arc-arex-lrms-contrib package" % lrms)
+                    # Special exception for slurm/SLURM
+                if lrms.lower() != 'slurm':
+                    self.error("%s is not an allowed lrms name" % lrms)
+
+                # If optional defaultqueue - check that the queue is defined
+                lrms_options = config_dict['lrms']['lrms'].split()
+                if len(lrms_options) == 2:
+                    defaultqueue = lrms_options[1]
+                    if not self.arcconf.check_blocks(f'queue:{defaultqueue}'):
+                        self.error(f"The default queue: {defaultqueue} specified in the lrms block is not defined in any queue blocks!")
+
 
     def validate_certificates(self):
         """Check the certificate setup is ok"""
-        config_dict = self.arcconf.get_config_dict()
-        x509_host_cert = config_dict['common']['x509_host_cert']
-        x509_host_key = config_dict['common']['x509_host_key']
-        x509_cert_dir = config_dict['common']['x509_cert_dir']
+        x509_host_cert = self.arcconf.get_value('x509_host_cert', 'common', force_list=True)[0]
+        x509_host_key = self.arcconf.get_value('x509_host_key', 'common', force_list=True)[0]
+        x509_cert_policy = self.arcconf.get_value('x509_cert_policy', 'common', force_list=True)[0]
+        if x509_cert_policy == 'grid':
+            x509_cert_dir = self.arcconf.get_value('x509_cert_dir', 'common', force_list=True)[0]
+        else:
+            x509_cert_dir = ''
 
         # Check cert
         if not os.path.exists(x509_host_cert):
             self.error("%s does not exist" % x509_host_cert)
         else:
+            # Warn about testCA
+            if 'testCA' in x509_host_cert:
+                self.warning("TestCA signed certificate is used as host certificate: %s" % x509_host_cert)
             # Verify cert
             try:
-                result = subprocess.run(["openssl", "verify", "-CApath", x509_cert_dir,
-                                         x509_host_cert], stdout=subprocess.PIPE,
-                                         stderr=subprocess.STDOUT)
-            except Exception as e:
-                self.error("Host certificate verification failed: %s" % str(e))
-                return
-            if result.returncode != 0:
-                self.error("Host certificate verification failed: %s" % result.stdout.decode('utf-8'))
-            else:
-                # Check expiration date, warn if less than one week away
-                result = subprocess.run(["openssl", "x509", "-enddate", "-noout", "-in",
-                                         x509_host_cert], stdout=subprocess.PIPE,
-                                         stderr=subprocess.STDOUT)
-                enddate = result.stdout.decode('utf-8').strip().split('=')[-1]
-                # Redirect output (-noout doesn't work in openssl1.1.1)
-                result = subprocess.run(["openssl", "x509", "-checkend", "604800", "-noout",
-                                         "-in", x509_host_cert], stdout=subprocess.DEVNULL,
-                                         stderr=subprocess.DEVNULL)
-                if result.returncode != 0:
-                    self.warning("Host certificate will expire on %s" % enddate)
+                if x509_cert_dir == '':
+                    result = subprocess.run(["openssl", "verify",
+                                             x509_host_cert], stdout=subprocess.PIPE,
+                                             stderr=subprocess.STDOUT)
                 else:
-                    self.logger.info("Host certificate will expire on %s" % enddate)
+                    result = subprocess.run(["openssl", "verify", "-CApath", x509_cert_dir,
+                                             x509_host_cert], stdout=subprocess.PIPE,
+                                             stderr=subprocess.STDOUT)
+                if result.returncode != 0:
+                    self.warning("Host certificate verification failed: %s" % result.stdout.decode('utf-8'))
+                else:
+                    # Check expiration date, warn if less than one week away
+                    result = subprocess.run(["openssl", "x509", "-enddate", "-noout", "-in",
+                                            x509_host_cert], stdout=subprocess.PIPE,
+                                            stderr=subprocess.STDOUT)
+                    enddate = result.stdout.decode('utf-8').strip().split('=')[-1]
+                    # Redirect output (-noout doesn't work in openssl1.1.1)
+                    result = subprocess.run(["openssl", "x509", "-checkend", "604800", "-noout",
+                                            "-in", x509_host_cert], stdout=subprocess.DEVNULL,
+                                            stderr=subprocess.DEVNULL)
+                    if result.returncode != 0:
+                        self.warning("Host certificate will expire on %s" % enddate)
+                    else:
+                        self.logger.info("Host certificate will expire on %s" % enddate)
+            except Exception as e:
+                self.error("Attempt to verify host certificate failed: %s" % str(e))
+                return
 
         # Check key
         if not os.path.exists(x509_host_key):
@@ -347,15 +365,16 @@ class Validator(object):
             self.error("%s is not owned by this user" % x509_host_key)
 
         # Check CA dir
-        if not os.path.isdir(x509_cert_dir):
-            self.error("Directory %s does not exist" % x509_cert_dir)
-        else:
-            # Check CRLs
-            crls = glob.glob(os.path.join(x509_cert_dir, "*.r0"))
-            if not crls:
-                self.warning("No certificate revocation lists in %s" % x509_cert_dir)
+        if x509_cert_dir != '':
+            if not os.path.isdir(x509_cert_dir):
+                self.error("Directory %s does not exist" % x509_cert_dir)
             else:
-                now = time.time()
-                for crl in crls:
-                    if now - os.path.getmtime(crl) > 2 * 86400:
-                        self.warning("%s is older than 2 days, rerun fetch-crl" % crl)
+                # Check CRLs
+                crls = glob.glob(os.path.join(x509_cert_dir, "*.r0"))
+                if not crls:
+                    self.warning("No certificate revocation lists in %s" % x509_cert_dir)
+                else:
+                    now = time.time()
+                    for crl in crls:
+                        if now - os.path.getmtime(crl) > 2 * 86400:
+                            self.warning("%s is older than 2 days, rerun fetch-crl" % crl)

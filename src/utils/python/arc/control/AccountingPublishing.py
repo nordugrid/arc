@@ -1,7 +1,8 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
-from .AccountingDB import AccountingDB, AAR
+from .ControlCommon import HTTPSClientAuthConnection, print_info
+from .AccountingDB import AccountingDB, AAR, ACCOUNTING_DB_FILE
 from arc.paths import ARC_VERSION, ARC_RUN_DIR
 
 import os
@@ -10,14 +11,6 @@ import logging
 import re
 import datetime
 import calendar
-
-# SGASSender and AMSDirectSender dependencies:
-import socket
-import ssl
-try:
-    import httplib
-except ImportError:
-    import http.client as httplib
 
 # AMSDirectSender dependencies
 import json
@@ -32,8 +25,10 @@ except ImportError:
     except ImportError:
         import StringIO
 
+ACCOUNTING_PUBLISHING_DB_FILE = "publishing.db"
+
 # module regexes init
-__voms_fqan_re = re.compile(r'(?P<group>/[-\w.]+(?:/[-\w.]+)*)(?P<role>/Role=[-\w.]+)?(?P<cap>/Capability=[-\w.]+)?')
+__voms_fqan_re = re.compile(r'(?P<group>/[-\w.]+(?:/(?!Role=)[-\w.]+)*)(?P<role>/Role=[-\w.]+)?(?P<cap>/Capability=[-\w.]+)?')
 
 __url_re = re.compile(r'^(?P<url>(?P<protocol>[^:/]+)://(?P<host>[^:/]+)(?::(?P<port>[0-9]+))?/*(?:(?P<path>/.*))?)$')
 
@@ -117,9 +112,8 @@ def get_apel_benchmark(logger, benchmark):
 #
 class RecordsPublisher(object):
     """Class for publishing accounting records to central network services"""
-    def __init__(self, arcconfig):
+    def __init__(self, arcconfig, adb=None):
         self.logger = logging.getLogger('ARC.Accounting.Publisher')
-        self.adb = None
         # arc config
         if arcconfig is None:
             self.logger.error('Failed to parse arc.conf. Accounting publishing is not possible.')
@@ -132,10 +126,12 @@ class RecordsPublisher(object):
         self.conf_targets += list(map(lambda t: ('apel', t), self.arcconfig.get_subblocks('arex/jura/apel')))
         # accounting database files and connection
         self.accounting_dir = arcconfig.get_value('controldir', 'arex').rstrip('/') + '/accounting'
-        adb_file = self.accounting_dir + '/accounting.db'
-        self.adb = AccountingDB(adb_file)
+        self.adb = adb
+        if self.adb is None:
+            adb_file = os.path.join(self.accounting_dir, ACCOUNTING_DB_FILE)
+            self.adb = AccountingDB(adb_file)
         # publishing state database file
-        self.pdb_file = self.accounting_dir + '/publishing.db'
+        self.pdb_file = os.path.join(self.accounting_dir, ACCOUNTING_PUBLISHING_DB_FILE)
         self.logger.debug('Accounting records publisher had been initialized')
 
     def __del__(self):
@@ -189,7 +185,7 @@ class RecordsPublisher(object):
         # only finished jobs
         self.adb.filter_statuses(['completed', 'failed'])
 
-    def publish_sgas(self, target_conf, endfrom, endtill=None):
+    def publish_sgas(self, target_conf, endfrom, endtill=None, dry_run=False):
         """Publish to SGAS target"""
         self.logger.debug('Assigning filters to SGAS publishing database query')
         self.__init_adb_filters(endfrom, endtill)
@@ -216,6 +212,7 @@ class RecordsPublisher(object):
             target_conf[k] = self.arcconfig.get_value(k, ['arex/jura'])
         # init SGAS sender
         sgassender = SGASSender(target_conf)
+        sgassender.set_dry_run(dry_run)
         # get AARs from database
         self.logger.debug('Querying AARS from accounting database')
         aars = self.adb.get_aars(resolve_ids=True)
@@ -239,7 +236,7 @@ class RecordsPublisher(object):
         self.logger.debug('Accounting records have been published to SGAS target %s', target_conf['targethost'])
         return latest_endtime
 
-    def publish_apel(self, target_conf, endfrom, endtill=None, regular=False):
+    def publish_apel(self, target_conf, endfrom, endtill=None, regular=False, dry_run=False):
         """Publish to all APEL targets"""
         # Parse targetURL and get necessary parameters for APEL publishing
         urldict = get_url_components(target_conf['targeturl'])
@@ -252,6 +249,7 @@ class RecordsPublisher(object):
         os.environ['RANDFILE'] = ARC_RUN_DIR + '/openssl.rnd'
         # init APEL AMS sender
         apel_sender = APELAMSDirectSender(target_conf)
+        apel_sender.set_dry_run(dry_run)
         # database query filters
         self.logger.debug('Assigning filters to APEL usage records database query.')
         self.__init_adb_filters(endfrom, endtill)
@@ -282,7 +280,7 @@ class RecordsPublisher(object):
                     return None
                 # enqueue CARs
                 apel_sender.publish_cars(cars)
-            if target_conf['apel_messages'] == 'summaries':
+            if target_conf['apel_messages'] == 'summaries' or target_conf['apel_messages'] == 'summaries-v04':
                 # define summaries time interval
                 summary_endfrom = endfrom
                 if regular:
@@ -301,8 +299,12 @@ class RecordsPublisher(object):
                 self.__add_vo_filter(target_conf)
                 # summary records
                 self.logger.debug('Querying APEL Summary data from accounting database')
-                apelsummaries = [APELSummaryRecord(rec, target_conf['gocdb_name'])
-                                 for rec in self.adb.get_apel_summaries()]
+                if target_conf['apel_messages'] == 'summaries-v04':
+                    apelsummaries = [APELSummaryRecordV04(rec, target_conf['gocdb_name'])
+                                    for rec in self.adb.get_apel_summaries()]
+                else:
+                    apelsummaries = [APELSummaryRecordV02(rec, target_conf['gocdb_name'])
+                                    for rec in self.adb.get_apel_summaries()]
                 if not apelsummaries:
                     self.logger.error('Failed to build APEL summaries for publishing')
                     return None
@@ -310,7 +312,24 @@ class RecordsPublisher(object):
                 apel_sender.publish_summaries(apelsummaries)
         # Sync messages are always sent and contains job counts for all periods
         self.logger.debug('Assigning filters to APEL sync database query')
-        self.__init_adb_filters()
+        sync_endtill = None
+        # Sync interval
+        if regular:
+            endfrom_year = endfrom.year - 1
+            sync_endfrom = endfrom.replace(day=1, year=endfrom_year, hour=0, minute=0, second=0)
+            self.logger.debug('Querying sync data for the last year')
+        else:
+            sync_endfrom = endfrom.replace(day=1, hour=0, minute=0, second=0)
+            if endtill:
+                endtillx = endtill - datetime.timedelta(seconds=1)
+                endtill_month = endtillx.month + 1
+                endtill_year = endtillx.year
+                if endtill_month == 13:
+                        endtill_year += 1
+                        endtill_month = 1
+                sync_endtill = endtillx.replace(day=1, month=endtill_month, year=endtill_year, hour=0, minute=0, second=0)
+            self.logger.debug('Querying sync data for the republished data months')
+        self.__init_adb_filters(sync_endfrom, sync_endtill)
         # optional WLCG VO filtering
         self.__add_vo_filter(target_conf)
         self.logger.debug('Querying APEL Sync data from accounting database')
@@ -333,7 +352,7 @@ class RecordsPublisher(object):
                 return targetconf, ttype
         return None, None
 
-    def republish(self, targettype, targetconf, endfrom, endtill=None):
+    def republish(self, targettype, targetconf, endfrom, endtill=None, dry_run=False):
         self.logger.info('Starting republishing process to %s target', targettype.upper())
         # check config for mandatory options
         if not self.__check_target_confdict(targettype, targetconf):
@@ -341,9 +360,9 @@ class RecordsPublisher(object):
         # publish without recording the last intervals
         latest = None
         if targettype == 'apel':
-            latest = self.publish_apel(targetconf, endfrom, endtill)
+            latest = self.publish_apel(targetconf, endfrom, endtill, dry_run=dry_run)
         elif targettype == 'sgas':
-            latest = self.publish_sgas(targetconf, endfrom, endtill)
+            latest = self.publish_sgas(targetconf, endfrom, endtill, dry_run=dry_run)
         if latest is None:
             return False
         return True
@@ -386,50 +405,17 @@ class RecordsPublisher(object):
                                  'have been successfully published to [%s] target',
                                  datetime.datetime.utcfromtimestamp(latest), target)
 
-
-class HTTPSClientAuthConnection(httplib.HTTPSConnection):
-    """ Class to make a HTTPS connection, with support for full client-based SSL Authentication"""
-
-    def __init__(self, host, port, key_file, cert_file, cacerts_path=None, timeout=None):
-        httplib.HTTPSConnection.__init__(self, host, port, key_file=key_file, cert_file=cert_file)
-        self.key_file = key_file
-        self.cert_file = cert_file
-        self.cacerts_path = cacerts_path
-        self.timeout = timeout
-
-    def connect(self):
-        """ Connect to a host on a given (SSL) port.
-            If ca_certs_path is pointing somewhere, use it to check Server Certificate.
-            This is needed to pass ssl.CERT_REQUIRED as parameter to SSLContext for Python 2.6+
-            which forces SSL to check server certificate against CA certificates in the defined location
-        """
-        sock = socket.create_connection((self.host, self.port), self.timeout)
-        if self._tunnel_host:
-            self.sock = sock
-            self._tunnel()
-        if self.cacerts_path and hasattr(ssl, 'SSLContext'):
-            protocol = ssl.PROTOCOL_SSLv23
-            if hasattr(ssl, 'PROTOCOL_TLS'):
-                protocol = ssl.PROTOCOL_TLS
-            # create SSL context with CA certificates verification
-            ssl_ctx = ssl.SSLContext(protocol)
-            ssl_ctx.load_verify_locations(capath=self.cacerts_path)
-            ssl_ctx.verify_mode = ssl.CERT_REQUIRED
-            ssl_ctx.load_cert_chain(self.cert_file, self.key_file)
-            ssl_ctx.check_hostname = True
-            self.sock = ssl_ctx.wrap_socket(sock, server_hostname=self.host)
-        else:
-            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file,
-                                        cert_reqs=ssl.CERT_NONE)
-
-
 class SGASSender(object):
     """Send messages to SGAS server"""
     def __init__(self, targetconf):
         self.logger = logging.getLogger('ARC.Accounting.SGAS')
+        self.dry_run = False
         self.conf = targetconf
         self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 50
         self.logger.debug('Initializing SGAS records sender for %s', self.conf['targethost'])
+
+    def set_dry_run(self, enable=True):
+        self.dry_run = enable
 
     def __post_xml(self, xmldata):
         self.logger.debug('Initializing HTTPS connection to %s:%s', self.conf['targethost'], self.conf['targetport'])
@@ -471,7 +457,12 @@ class SGASSender(object):
             buf.write(UsageRecord.batch_header())
             buf.write(UsageRecord.join_str().join(map(lambda ur: ur.get_xml(), urs[x:x + self.batchsize])))
             buf.write(UsageRecord.batch_footer())
-            published = self.__post_xml(buf.getvalue())
+            if not self.dry_run:
+                published = self.__post_xml(buf.getvalue())
+            else:
+                print_info(self.logger, 'Printing the content of JobUsageRecords insted of sending it to SGAS')
+                print(buf.getvalue())
+                published = True
             buf.close()
             del buf
             if not published:
@@ -483,17 +474,22 @@ class APELAMSDirectSender(object):
     """Send messages to APEL via AMS REST interface direct usage"""
     def __init__(self, targetconf):
         self.logger = logging.getLogger('ARC.Accounting.AMS')
+        self.dry_run = False
         self.conf = targetconf
         self.batchsize = int(self.conf['urbatchsize']) if 'urbatchsize' in self.conf else 500
+        # AMS project
+        self.ams_project = self.conf['project'] if 'project' in self.conf else 'accounting'
         # some hardcode matching APEL AMS publishing via SSM
         # introducing arc.conf parameters is overkill at this point
         self.ams_authport = 8443
-        self.ams_project = 'accounting'
         # auth token
         self.ams_token = None
         # publish error flag
         self.publish_error = False
         self.logger.debug('Initializing APEL publishing via AMS REST for %s', self.conf['targethost'])
+
+    def set_dry_run(self, enable=True):
+        self.dry_run = enable
 
     def _obtain_ams_token(self):
         if self.ams_token is not None:
@@ -607,8 +603,12 @@ class APELAMSDirectSender(object):
             buf.write(ComputeAccountingRecord.join_str().join(map(lambda ur: ur.get_xml(),
                                                                   carlist[x:x + self.batchsize])))
             buf.write(ComputeAccountingRecord.batch_footer())
-            if not self._msg_send(buf.getvalue()):
-                self.publish_error = True
+            if self.dry_run:
+                print_info(self.logger, 'Printing the content of the CAR instead of sending it to APEL')
+                print(buf.getvalue())
+            else:
+                if not self._msg_send(buf.getvalue()):
+                    self.publish_error = True
             buf.close()
             del buf
 
@@ -616,11 +616,15 @@ class APELAMSDirectSender(object):
         for x in range(0, len(summaries), self.batchsize):
             self.logger.debug('Preparing APEL Summaries batch of max %s records to be sent', self.batchsize)
             buf = StringIO.StringIO()
-            buf.write(APELSummaryRecord.header())
-            buf.write(APELSummaryRecord.join_str().join(map(lambda s: s.get_record(), summaries[x:x + self.batchsize])))
-            buf.write(APELSummaryRecord.footer())
-            if not self._msg_send(buf.getvalue()):
-                self.publish_error = True
+            buf.write(summaries[0].header())
+            buf.write(summaries[0].join_str().join(map(lambda s: s.get_record(), summaries[x:x + self.batchsize])))
+            buf.write(summaries[0].footer())
+            if self.dry_run:
+                print_info(self.logger, 'Printing the content of the APEL summary instead of sending it to APEL')
+                print(buf.getvalue())
+            else:
+                if not self._msg_send(buf.getvalue()):
+                    self.publish_error = True
             buf.close()
             del buf
 
@@ -631,8 +635,12 @@ class APELAMSDirectSender(object):
             buf.write(APELSyncRecord.header())
             buf.write(APELSyncRecord.join_str().join(map(lambda s: s.get_record(), syncs[x:x + self.batchsize])))
             buf.write(APELSyncRecord.footer())
-            if not self._msg_send(buf.getvalue()):
-                self.publish_error = True
+            if self.dry_run:
+                print_info(self.logger, 'Printing the content of the APEL Sync instead of sending it to APEL')
+                print(buf.getvalue())
+            else:
+                if not self._msg_send(buf.getvalue()):
+                    self.publish_error = True
             buf.close()
             del buf
 
@@ -642,7 +650,8 @@ class APELAMSDirectSender(object):
             self.logger.error('Failed to publish records to APEL AMS %s. See previous messages for details.',
                               self.conf['targethost'])
             return False
-        self.logger.debug('AMS direct records sending to %s has finished.', self.conf['targeturl'])
+        if not self.dry_run:
+            self.logger.debug('AMS direct records sending to %s has finished.', self.conf['targeturl'])
         return True
 
 
@@ -653,7 +662,9 @@ class JobAccountingRecord(object):
     """Base class for representing XML Job Accounting Records that implements common methots for all formats"""
     def __init__(self, aar):
         """Create XML representation of Accounting Record"""
+        self.logger = logging.getLogger('ARC.Accounting.Record')
         self.xml = ''
+        self.log = ''
         self.aar = aar  # type: AAR
 
     # General helper methods
@@ -670,6 +681,7 @@ class JobAccountingRecord(object):
 
     def get_xml(self):
         """Return record XML"""
+        self.logger.debug(self.log)
         return self.xml
 
 
@@ -703,6 +715,7 @@ class UsageRecord(JobAccountingRecord):
         self.extra_vogroups = extra_vogroups
         if self.extra_vogroups is None:
             self.extra_vogroups = []
+        self.log = 'UsageRecord'
         self.__create_xml()
 
     def __record_identity(self):
@@ -724,6 +737,7 @@ class UsageRecord(JobAccountingRecord):
                 localid = self.localid_prefix + localid
             # define localid XML
             localid = '<LocalJobId>{0}</LocalJobId>'.format(localid)
+        self.log += ' for job {0}'.format(self.aar.get()['JobID'])
         return self.__xml_templates['job-id'].format(**{
             'globalid': self.aar.get()['JobID'],
             'localid': localid
@@ -744,6 +758,7 @@ class UsageRecord(JobAccountingRecord):
                     voissuer = vomsless_data[1]
         if not wlcgvo:
             return vomsxml
+        self.log += ' (VO {0})'.format(wlcgvo)
         # VOMS FQAN info
         vomsfqans = [t[1] for t in self.aar.authtokens() if t[0] == 'vomsfqan' or t[0] == 'mainfqan']
         fqangroups = []
@@ -803,13 +818,15 @@ class UsageRecord(JobAccountingRecord):
             'physical': self.aar.get()['UsedMemory']
         })
         # Wall/CPUDuration (optional)
+        walltime = duration_to_iso8601(self.aar.get()['UsedWalltime'])
         xml += '<WallDuration>{walltime}</WallDuration>' \
                '<CpuDuration urf:usageType="user">{cpuusertime}</CpuDuration>' \
                '<CpuDuration urf:usageType="system">{cpukerneltime}</CpuDuration>'.format(**{
-            'walltime': duration_to_iso8601(self.aar.get()['UsedWalltime']),
+            'walltime': walltime,
             'cpuusertime': duration_to_iso8601(self.aar.get()['UsedCPUUserTime']),
             'cpukerneltime': duration_to_iso8601(self.aar.get()['UsedCPUKernelTime'])
         })
+        self.log += ' with walltime {walltime}'
         # Start/EndTime (optional)
         xml += '<StartTime>{stime}</StartTime>' \
                '<EndTime>{etime}</EndTime>'.format(**{
@@ -921,6 +938,7 @@ class ComputeAccountingRecord(JobAccountingRecord):
         if self.extra_vogroups is None:
             self.extra_vogroups = []
         self.gocdb_name = gocdb_name
+        self.log = 'Compute Accounting Record'
         self.__create_xml()
 
     def __record_identity(self):
@@ -936,6 +954,7 @@ class ComputeAccountingRecord(JobAccountingRecord):
         # ProcessID is another optional value we don't have
         localid = self.aar.get()['LocalJobID']
         globalid = self.aar.get()['JobID']
+        self.log += ' for job {0}'.format(globalid)
         if not localid:
             localid = globalid
         return self.__xml_templates['job-id'].format(**{
@@ -954,6 +973,7 @@ class ComputeAccountingRecord(JobAccountingRecord):
                 wlcgvo = vomsless_data[0]
         if wlcgvo:
             xml += '<Group>{0}</Group>'.format(wlcgvo)
+            self.log += ' (VO {0})'.format(wlcgvo)
         else:
             return xml
         # VOMS FQAN info
@@ -1021,15 +1041,17 @@ class ComputeAccountingRecord(JobAccountingRecord):
         # ExitStatus (optional)
         xml += self._add_aar_node('ExitStatus', 'ExitCode')
         # Wall/CPUDuration (mandatory)
+        walltime = duration_to_iso8601(self.aar.get()['UsedWalltime'])
         xml += '<WallDuration>{walltime}</WallDuration>' \
                '<CpuDuration urf:usageType="all">{cputime}</CpuDuration>' \
                '<CpuDuration urf:usageType="user">{cpuusertime}</CpuDuration>' \
                '<CpuDuration urf:usageType="system">{cpukerneltime}</CpuDuration>'.format(**{
-            'walltime': duration_to_iso8601(self.aar.get()['UsedWalltime']),
+            'walltime': walltime,
             'cputime': duration_to_iso8601(self.aar.get()['UsedCPUTime']),
             'cpuusertime': duration_to_iso8601(self.aar.get()['UsedCPUUserTime']),
             'cpukerneltime': duration_to_iso8601(self.aar.get()['UsedCPUKernelTime'])
         })
+        self.log += ' with walltime {0}'.format(walltime)
         # Start/EndTime (mandatory)
         xml += '<StartTime>{stime}</StartTime>' \
                '<EndTime>{etime}</EndTime>'.format(**{
@@ -1076,6 +1098,7 @@ class ComputeAccountingRecord(JobAccountingRecord):
             aar_extra['benchmark'] = ''
         (bechmark_type, bechmark_value) = get_apel_benchmark(self.logger, aar_extra['benchmark'])
         xml += '<ServiceLevel urf:type="{0}">{1}</ServiceLevel>'.format(bechmark_type, bechmark_value)
+        self.log += ' ({0}:{1})'.format(bechmark_type, bechmark_value)
         return xml
 
     def __create_xml(self):
@@ -1100,14 +1123,56 @@ class ComputeAccountingRecord(JobAccountingRecord):
         return '</UsageRecords>'
 
 
-class APELSummaryRecord(object):
-    """Class representing APEL Summary Record"""
-    __voinfo_template = '''
-VO: {wlcgvo}
-VOGroup: {fqangroup}
-VORole: {fqanrole}'''
+class APELSummaryRecordBase(object):
+    """Base class for APEL Summary Record"""
+    record_template = ''
+    log_template = ''
 
-    __record_template = '''Site: {gocdb_name}
+    def __init__(self, recorddata, gocdb_name):
+        self.logger = logging.getLogger('ARC.Accounting.APELSummary')
+        self.recorddata = recorddata
+        self.recorddata['gocdb_name'] = gocdb_name
+        self.__set_vo_info()
+
+    def __set_vo_info(self):
+        """Parse WLCG VO info"""
+        if not self.recorddata['wlcgvo']:
+            self.recorddata['voinfo'] = ''
+            self.recorddata['volog'] = '(without VO affiliation)'
+            return
+        wlcgvo = self.recorddata['wlcgvo']
+        (group, role) = ('/' + wlcgvo, 'Role=NULL')
+        if self.recorddata['fqan'] is not None:
+            (fqan_group, fqan_role, _) = get_fqan_components(self.recorddata['fqan'])
+            if fqan_group is not None:
+                group = fqan_group
+            if fqan_role is not None:
+                role = fqan_role
+        voinfo = '\nVO: {0}'.format(wlcgvo)
+        voinfo += '\nVOGroup: {0}'.format(group)
+        voinfo += '\nVORole: {0}'.format(role)
+        self.recorddata['voinfo'] = voinfo
+        self.recorddata['volog'] = '(VO: {0})'.format(wlcgvo)
+
+    def get_record(self):
+        self.logger.info(self.log_template.format(**self.recorddata))
+        return self.record_template.format(**self.recorddata)
+
+    @staticmethod
+    def header():
+        raise NotImplementedError()
+
+    @staticmethod
+    def join_str():
+        return '\n%%\n'
+
+    @staticmethod
+    def footer():
+        return '\n%%\n'
+
+class APELSummaryRecordV02(APELSummaryRecordBase):
+    """Class representing APEL Summary Record v0.2"""
+    record_template = '''Site: {gocdb_name}
 Month: {month}
 Year: {year}
 GlobalUserName: {userdn}{voinfo}
@@ -1122,57 +1187,55 @@ LatestEndTime: {timeend}
 WallDuration: {walltime}
 CpuDuration: {cputime}
 NumberOfJobs: {count}'''
-
+    log_template = 'Summary record for {year}/{month}: {count} jobs with total walltime {walltime} [{cpucount} CPU(s)/{nodecount} Node(s)] {{{benchmark_type}: {benchmark_value}}} from "{userdn}" {volog} via {endpoint}'
     def __init__(self, recorddata, gocdb_name):
-        self.logger = logging.getLogger('ARC.Accounting.APELSummary')
-        self.recorddata = recorddata
-        self.recorddata['gocdb_name'] = gocdb_name
-        self.recorddata['voinfo'] = self.__vo_info()
+        super(APELSummaryRecordV02, self).__init__(recorddata, gocdb_name)
         (benchmark_type, benchmark_value) = get_apel_benchmark(self.logger, self.recorddata['benchmark'])
         self.recorddata['benchmark_type'] = benchmark_type
         self.recorddata['benchmark_value'] = benchmark_value
-
-    def __vo_info(self):
-        """Parse WLCG VO info"""
-        if self.recorddata['wlcgvo'] is None:
-            return ''
-        wlcgvo = self.recorddata['wlcgvo']
-        (group, role) = ('/' + wlcgvo, 'Role=NULL')
-        if self.recorddata['fqan'] is not None:
-            (fqan_group, fqan_role, _) = get_fqan_components(self.recorddata['fqan'])
-            if fqan_group is not None:
-                group = fqan_group
-            if fqan_role is not None:
-                role = fqan_role
-        return self.__voinfo_template.format(**{
-            'wlcgvo': wlcgvo,
-            'fqangroup': group,
-            'fqanrole': role
-        })
-
-    def get_record(self):
-        return self.__record_template.format(**self.recorddata)
 
     @staticmethod
     def header():
         return 'APEL-summary-job-message: v0.2\n'
 
-    @staticmethod
-    def join_str():
-        return '\n%%\n'
+
+class APELSummaryRecordV04(APELSummaryRecordBase):
+    """Class representing APEL Summary Record v0.4"""
+    record_template = '''Site: {gocdb_name}
+Month: {month}
+Year: {year}
+GlobalUserName: {userdn}{voinfo}
+SubmitHost: {endpoint}
+InfrastructureType: grid
+ServiceLevel: {service_level}
+NodeCount: {nodecount}
+Processors: {cpucount}
+EarliestEndTime: {timestart}
+LatestEndTime: {timeend}
+WallDuration: {walltime}
+CpuDuration: {cputime}
+NumberOfJobs: {count}'''
+    log_template = 'Summary record for {year}/{month}: {count} jobs with total walltime {walltime} [{cpucount} CPU(s)/{nodecount} Node(s)] {service_level} from "{userdn}" {volog} via {endpoint}'
+
+    def __init__(self, recorddata, gocdb_name):
+        super(APELSummaryRecordV04, self).__init__(recorddata, gocdb_name)
+        (benchmark_type, benchmark_value) = get_apel_benchmark(self.logger, self.recorddata['benchmark'])
+        self.recorddata['service_level'] = '{{{0}: {1}}}'.format(benchmark_type, benchmark_value)
 
     @staticmethod
-    def footer():
-        return '\n%%\n'
+    def header():
+        return 'APEL-summary-job-message: v0.4\n'
 
 
 class APELSyncRecord(object):
     """Class representing APEL Sync Record"""
-    __record_template = '''Site: {gocdb_name}
+    record_template = '''Site: {gocdb_name}
 SubmitHost: {endpoint}
 NumberOfJobs: {count}
 Month: {month}
 Year: {year}'''
+
+    log_template = 'Sync Record for {year}-{month}: {count} jobs via {endpoint}'
 
     def __init__(self, recorddata, gocdb_name):
         self.logger = logging.getLogger('ARC.Accounting.APELSync')
@@ -1180,8 +1243,9 @@ Year: {year}'''
         self.recorddata['gocdb_name'] = gocdb_name
 
     def get_record(self):
-        return self.__record_template.format(**self.recorddata)
-
+        self.logger.info(self.log_template.format(**self.recorddata))
+        return self.record_template.format(**self.recorddata)
+    
     @staticmethod
     def header():
         return 'APEL-sync-message: v0.1\n'

@@ -4,23 +4,15 @@ from __future__ import absolute_import
 from .ControlCommon import *
 import sys
 import os
-try:
-    from urllib.request import Request, urlopen
-    from urllib.error import URLError
-except ImportError:
-    from urllib2 import Request, urlopen
-    from urllib2 import URLError
-try:
-    import httplib
-except ImportError:
-    import http.client as httplib
 import socket
 import ssl
 import re
+import shutil
 import subprocess
-import xml.etree.ElementTree as ET
+import tempfile
 from .OSPackage import OSPackageManagement
-
+from .TestJWT import JWTIssuer
+from .CertificateGenerator import CertificateKeyPair
 
 class ThirdPartyControl(ComponentControl):
     def __init__(self, arcconfig):
@@ -37,75 +29,29 @@ class ThirdPartyControl(ComponentControl):
             if x509_cert_dir:
                 self.x509_cert_dir = x509_cert_dir
 
-    def __egi_get_voms_xml(self, vo):
-        self.logger.info('Fetching information about VO %s from EGI Database', vo)
-        dburl = 'http://operations-portal.egi.eu/xml/voIDCard/public/voname/{0}'.format(vo)
-        # query database
-        req = Request(dburl)
-        try:
-            self.logger.debug('Contacting EGI VO Database at %s', dburl)
-            response = urlopen(req)
-        except URLError as e:
-            if hasattr(e, 'reason'):
-                self.logger.error('Failed to reach EGI VO Database server. Error: %s', e.reason)
-            else:
-                self.logger.error('EGI VO Database server failed to process the request. Error code: %s', e.code)
-            sys.exit(1)
-        # get response
-        rcontent = response.read()
-        if not isinstance(rcontent, str):
-            rcontent = rcontent.decode('utf-8', 'ignore')
-        if not rcontent.startswith('<?xml'):
-            self.logger.error('VO %s is not found in EGI database', vo)
-            sys.exit(1)
-        xml = ET.fromstring(rcontent)
-        return xml
+    def __egi_show_url(self, vo):
+        print_warn(self.logger, 'EGI API is not publicly accessible any longer. Printing URL to EGI Database web page with information about VO %s', vo)
+        dburl = 'https://operations-portal.egi.eu/vo/view/voname/{0}#VOV_section'.format(vo)
+        print(dburl)
+        sys.exit(1)
 
     def __egi_get_vomslsc(self, vo):
         vomslsc = {}
-        xml = self.__egi_get_voms_xml(vo)
-        # parse XML
-        for voms in xml.findall('.//VOMS_Server'):
-            host = voms.find('hostname').text
-            dn = voms.find('X509Cert/DN').text
-            ca = voms.find('X509Cert/CA_DN').text
-            vomslsc[host] = {'dn': dn, 'ca': ca}
+        self.__egi_show_url(vo)
         return vomslsc
 
     def __egi_get_vomses(self, vo):
         vomses = []
-        xml = self.__egi_get_voms_xml(vo)
-        for voms in xml.findall('.//VOMS_Server'):
-            port = None
-            if 'VomsesPort' in voms.attrib:
-                port = voms.attrib['VomsesPort']
-            host = voms.find('hostname').text
-            dn = voms.find('X509Cert/DN').text
-            if port is not None and host and dn:
-                vomses.append('"{0}" "{1}" "{2}" "{3}" "{0}"'.format(vo, host, port, dn))
+        self.__egi_show_url(vo)
         return vomses
 
-    def __get_socket_from_url(self, url):
-        port = 443
-        __uri_re = re.compile(r'^(?:(?:voms|http)s?://)?(?P<host>[^:/]+)(?::(?P<port>[0-9]+))?/*.*')
-        voms_re = __uri_re.match(url)
-        if voms_re:
-            url_params = voms_re.groupdict()
-            hostname = url_params['host']
-            if url_params['port'] is not None:
-                port = int(url_params['port'])
-        else:
-            self.logger.error('Failed to parse URL %s', url)
-            sys.exit(1)
-        return hostname, port
-
     def __vomsadmin_get_vomses(self, url, vo, secure=False):
-        (hostname, port) = self.__get_socket_from_url(url)
+        (hostname, port, _) = tokenize_url(url)
         vomsadmin_url = 'https://{0}:{1}/voms/{2}/configuration/configuration.action'.format(hostname, port, vo)
-        vomsadmin_path = '/voms/{0}/configuration/configuration.action'.format(vo)
-
         self.logger.debug('Contacting VOMS-Admin at %s', vomsadmin_url)
 
+        cert = None
+        key = None
         if secure:
             # try client cert
             if 'X509_USER_CERT' in os.environ and 'X509_USER_KEY' in os.environ:
@@ -121,48 +67,8 @@ class ThirdPartyControl(ComponentControl):
             if not os.path.exists(key):
                 self.logger.error('Cannon find any client certificate/key installed.')
                 sys.exit(1)
-
-            conn = HTTPSClientAuthConnection(hostname, port, key, cert)
-            try:
-                conn.request('GET', vomsadmin_path)
-                response = conn.getresponse()
-            except Exception as err:
-                self.logger.error('Failed to reach VOMS-Admin server. Error: %s', str(err))
-                sys.exit(1)
-            else:
-                if response.status != 200:
-                    conn.close()
-                    self.logger.error('VOMS-Admin server failed to process the request. '
-                                      'Error code %s (%s)', str(response.status), str(response.reason))
-                    sys.exit(1)
-                # get response
-                rcontent = response.read()
-                if not isinstance(rcontent, str):
-                    rcontent = rcontent.decode('utf-8', 'ignore')
-                conn.close()
-        else:
-            try:
-                req = Request(vomsadmin_url)
-                if hasattr(ssl, '_create_unverified_context'):
-                    # Python 2.7.9+ has SSL verification turned on and introduce context
-                    context = ssl._create_unverified_context()
-                    response = urlopen(req, context=context)
-                else:
-                    response = urlopen(req)
-            except URLError as e:
-                if hasattr(e, 'reason'):
-                    self.logger.error('Failed to reach VOMS-Admin server. Error: %s', e.reason)
-                else:
-                    self.logger.error('VOMS-Admin server failed to process the request. Error code: %s', e.code)
-                self.logger.error('Try to contact VOMS-Admin with client certificate '
-                                  '(using --use-client-cert option)')
-                sys.exit(1)
-            else:
-                # get response
-                rcontent = response.read()
-                if not isinstance(rcontent, str):
-                    rcontent = rcontent.decode('utf-8', 'ignore')
-
+        # fetch URL content
+        rcontent = fetch_url(vomsadmin_url, key, cert, err_description='VOMS-Admin server')
         # parse vomses from the response
         _re_vomses_header = re.compile(r'VOMSES')
         _re_vomses_content = re.compile(r'class="configurationInfo">(.*)$')
@@ -191,7 +97,7 @@ class ThirdPartyControl(ComponentControl):
 
     def __get_ssl_cert_openssl(self, url, compat=False):
         # parse connection parameters
-        (hostname, port) = self.__get_socket_from_url(url)
+        (hostname, port, _) = tokenize_url(url)
         # try to connect using openssl
         try:
             cmd = ['openssl', 's_client', '-connect'] + ['{0}:{1}'.format(hostname, port)]
@@ -236,7 +142,7 @@ class ThirdPartyControl(ComponentControl):
         return attr
 
     def __get_ssl_cert(self, url):
-        (hostname, port) = self.__get_socket_from_url(url)
+        (hostname, port, _) = tokenize_url(url)
         # try to establish connection with socket/ssl directly
         try:
             context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
@@ -353,15 +259,6 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
                 'yum-url': 'http://repository.egi.eu/sw/production/cas/1/current/repo-files/egi-trustanchors.repo'
             }
             pmobj.deploy_repository(repoconf)
-        elif repo == 'nordugrid':
-            print('Nordugrid repository is the general purpose repo that contains binary packages of Nordugid ARC ' \
-                  'and as a bonus includes third-party packages like IGTF CA certitificates.\n' \
-                  'Repositories installation depends on which version of Nordugrid ARC you want to use.\n' \
-                  'Please follow the http://download.nordugrid.org/repos.html and install \'nordugrid-release\' ' \
-                  'package for chosen version.\n' \
-                  'If you do not want to install Nordugrid ARC packages from the nordugrid repos ' \
-                  'consider the other sources of IGTF CA certificates.')
-            sys.exit(0)
         else:
             self.logger.error('Unsupported CA certificates repository %s', repo)
             sys.exit(1)
@@ -380,6 +277,94 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             self.logger.error('Can not install IGTF CA Certificate packages. '
                               'Make sure you have repositories installed (see --help for options).')
             sys.exit(exitcode)
+
+    def __ca_bundle(self, ca):
+        if ca == 'system':
+            return system_ca_bundle()
+        elif ca == 'grid':
+            return self.x509_cert_dir
+        elif ca == 'insecure':
+            return None
+        else:
+            self.logger.error('Failed to define CA bundle. %s is not a valid option', ca)
+            sys.exit(1)
+
+    def cacert_deploy(self, args):
+        location = args.crt
+        pem_file = None
+        if location is None:
+            print_info(self.logger, 'Reading CA Certificate PEM data from stdin')
+            pem_data = sys.stdin.read()
+        elif location.startswith('https://'):
+            # define CA bundle
+            capath = self.__ca_bundle(args.url_ca)
+            pem_data = fetch_url(location, cacerts_path=capath, err_description='Certificate file')
+        elif os.path.exists(location):
+            pem_file = location
+        else:
+            self.logger.error('Location %s is not supported. Use HTTPS URL or filesyste path.', location)
+            sys.exit(1)
+        # dump PEM to file
+        if pem_file is None:
+            if not pem_data:
+                self.logger.error('Cannot get PEM data from defined location')
+            pem_file = tempfile.mkstemp('.pem', 'arcctl-deploy-')[1]
+            with open(pem_file, 'w') as pem_fd:
+                pem_fd.write(pem_data)
+        # deploy
+        cert = CertificateKeyPair(None, pem_file, None)
+        certname = cert.dn[cert.dn.rfind('/'):].replace('/CN=', '').replace(' ', '') + '.pem'
+
+        ca_cert_dir = args.x509_cert_dir
+        if ca_cert_dir is None:
+            ca_cert_dir = self.x509_cert_dir
+        if not os.path.exists(ca_cert_dir):
+            self.logger.debug('Making CA certificates directory at %s', ca_cert_dir)
+            os.makedirs(ca_cert_dir, mode=0o755)
+
+        deploy_location = os.path.join(ca_cert_dir, certname)
+        if os.path.exists(deploy_location) and not args.force:
+            self.logger.error('CA Certificate %s is already exists. Use --force to overwrite', deploy_location)
+            sys.exit(1)
+
+        try:
+            shutil.move(cert.certLocation, deploy_location)
+            deploy_cert = CertificateKeyPair(None, deploy_location, cert.dn)
+            deploy_cert.setFilePermissions()
+            deploy_cert.makeHashLinks(args.force)
+            deploy_cert.writeCASigningPolicy(args.force)
+        except OSError as e:
+            self.logger.error('Failed to deploy CA certificate. Error: %s', str(e))
+            sys.exit(1)
+        print_info(self.logger, 'CA Certificate for %s is deployed successfully to %s', cert.dn, deploy_location)
+
+
+    def jwt_deploy(self, url, ca, deploy_conf=False):
+        if url.startswith('test-jwt://'):
+            iss = JWTIssuer.from_dump(url[11:])
+        elif url.startswith('https://'):
+            if not url.endswith('/.well-known/openid-configuration'):
+                url = url + '/.well-known/openid-configuration'
+            # define CA bundle
+            capath = self.__ca_bundle(ca)
+            # fetch metadata
+            jwt_metadata = JWTIssuer.parse_json(
+                fetch_url(url, cacerts_path=capath, err_description='JWT Issuer metadata'))
+            try:
+                iss = JWTIssuer(jwt_metadata['issuer'])
+                iss.define_metadata(jwt_metadata)
+                iss.define_jwks(JWTIssuer.parse_json(
+                    fetch_url(jwt_metadata['jwks_uri'], cacerts_path=capath, err_description='JWKS URI')
+                ))
+            except KeyError as err:
+                self.logger.error('Failed to process JWT issuer metadata. Error: %s', str(err))
+                sys.exit(1)
+        # installing metadata and keys to controldir
+        self.logger.info('Establishing trust with JWT Issuer: %s', iss.url())
+        iss.controldir_save(self.arcconfig)
+        print_info(self.logger, 'ARC CE now trust JWT signatures of %s issuer.', iss.url())
+        # deploy or inform about arc.conf changes needed
+        iss.arc_conf(conf_d=deploy_conf)
 
     def __globus_port_range(self, ports, proto, conf, iptables_config, subsys='data transfer'):
         if ports is None:
@@ -475,6 +460,10 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
             self.vomses_deploy(args)
         elif args.action == 'igtf-ca':
             self.igtf_deploy(args.bundle, args.installrepo)
+        elif args.action == 'ca-cert':
+            self.cacert_deploy(args)
+        elif args.action == 'jwt-issuer':
+            self.jwt_deploy(args.url, args.url_ca, args.deploy_conf)
         elif args.action == 'iptables-config':
             self.iptables_config(args.multiport, args.any_state)
         else:
@@ -494,13 +483,21 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         igtf_ca.add_argument('bundle', help='IGTF CA bundle name', nargs='+',
                              choices=['classic', 'iota', 'mics', 'slcs'])
         igtf_ca.add_argument('-i', '--installrepo', help='Add specified repository that contains IGTF CA certificates',
-                             choices=['igtf', 'egi-trustanchors', 'nordugrid'])
+                             choices=['igtf', 'egi-trustanchors'])
+
+        ca_cert = deploy_actions.add_parser('ca-cert', help='Deploy trusted CA certificate')
+        ca_cert.add_argument('-c', '--crt', help='CA Certificate PEM file location: HTTPS URL or path to file '
+                             '(default is to raad from stdin)')
+        ca_cert.add_argument('-f', '--force', help='Overwrite if already exists', action='store_true')
+        ca_cert.add_argument('--x509-cert-dir', help='Redefine CA Certificates dir location')
+        ca_cert.add_argument('--url-ca', help='PKI CA Bundle for URL locations (default is %(default)s)',
+                            action='store', default='system', choices=['system', 'grid', 'insecure'])
 
         deploy_vomses = deploy_actions.add_parser('vomses', help='Deploy VOMS client configuration files')
         deploy_vomses.add_argument('vo', help='VO Name')
         deploy_vomses_sources = deploy_vomses.add_mutually_exclusive_group(required=True)
         deploy_vomses_sources.add_argument('-v', '--voms', help='VOMS-Admin URL', action='append')
-        deploy_vomses_sources.add_argument('-e', '--egi-vo', help='NOTE: BROKEN due to an EGI server change. Fetch information from EGI VOs database',
+        deploy_vomses_sources.add_argument('-e', '--egi-vo', help='Print URL to EGI VOs database',
                                          action='store_true')
         deploy_vomses.add_argument('-u', '--user', help='Install to user\'s home instead of /etc',
                                    action='store_true')
@@ -512,46 +509,22 @@ deb http://dist.eugridpma.info/distribution/igtf/current igtf accredited
         deploy_voms_lsc.add_argument('vo', help='VO Name')
         deploy_voms_sources = deploy_voms_lsc.add_mutually_exclusive_group(required=True)
         deploy_voms_sources.add_argument('-v', '--voms', help='VOMS-Admin URL', action='append')
-        deploy_voms_sources.add_argument('-e', '--egi-vo', help='NOTE: BROKEN due to an EGI server change. Fetch information from EGI VOs database',
+        deploy_voms_sources.add_argument('-e', '--egi-vo', help='Print URL to EGI VOs database',
                                          action='store_true')
         deploy_voms_lsc.add_argument('--pythonssl', action='store_true',
                                      help='Use Python SSL module to establish TLS connection '
                                           '(default is to call external OpenSSL binary)')
         if arcctl_server_mode():
+            jwt_iss = deploy_actions.add_parser('jwt-issuer', help='Deploy JWT Issuer trust data')
+            jwt_iss.add_argument('url', help='Issuer metadata URL (.well-known/configuration or test-jwt://)')
+            jwt_iss.add_argument('--url-ca', help='PKI CA Bundle (default is %(default)s)', action='store', default='system',
+                                choices=['system', 'grid', 'insecure'])
+            jwt_iss.add_argument('-i', '--deploy-conf', help='Automatically add atuh configuration snipped to arc.conf.d',
+                                 action='store_true')
+
             iptables = deploy_actions.add_parser('iptables-config',
                                                  help='Generate iptables config to allow ARC CE configured services')
             iptables.add_argument('--any-state', action='store_true',
                                   help='Do not add \'--state NEW\' to filter configuration')
             iptables.add_argument('--multiport', action='store_true',
                                   help='Use one-line multiport filter instead of per-service entries')
-
-
-class HTTPSClientAuthConnection(httplib.HTTPSConnection):
-    """ Class to make a HTTPS connection, with support for full client-based SSL Authentication"""
-
-    def __init__(self, host, port, key_file, cert_file, ca_file=None, timeout=None):
-        httplib.HTTPSConnection.__init__(self, host, port, key_file=key_file, cert_file=cert_file)
-        self.key_file = key_file
-        self.cert_file = cert_file
-        self.ca_file = ca_file
-        self.timeout = timeout
-
-    def connect(self):
-        """ Connect to a host on a given (SSL) port.
-            If ca_file is pointing somewhere, use it to check Server Certificate.
-
-            Redefined/copied and extended from httplib.py:1105 (Python 2.6.x).
-            This is needed to pass cert_reqs=ssl.CERT_REQUIRED as parameter to ssl.wrap_socket(),
-            which forces SSL to check server certificate against our client certificate.
-        """
-        sock = socket.create_connection((self.host, self.port), self.timeout)
-        if self._tunnel_host:
-            self.sock = sock
-            self._tunnel()
-        # If there's no CA File, don't force Server Certificate Check
-        if self.ca_file:
-            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file,
-                                        ca_certs=self.ca_file, cert_reqs=ssl.CERT_REQUIRED)
-        else:
-            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file,
-                                        cert_reqs=ssl.CERT_NONE)

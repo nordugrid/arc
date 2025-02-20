@@ -113,30 +113,34 @@ namespace DataStaging {
         tmp_proxy_ = prepare_proxy(dtr->get_usercfg().ProxyPath(), child_uid, child_gid);
         if (!tmp_proxy_.empty()) {
           args.push_back("--sopt");
-          args.push_back("credential="+tmp_proxy_);
+          args.push_back(std::string("credential=")+tmp_proxy_);
           args.push_back("--dopt");
-          args.push_back("credential="+tmp_proxy_);
+          args.push_back(std::string("credential=")+tmp_proxy_);
         } else if(!dtr->get_usercfg().ProxyPath().empty()) {
           args.push_back("--sopt");
-          args.push_back("credential="+dtr->get_usercfg().ProxyPath());
+          args.push_back(std::string("credential=")+dtr->get_usercfg().ProxyPath());
           args.push_back("--dopt");
-          args.push_back("credential="+dtr->get_usercfg().ProxyPath());
+          args.push_back(std::string("credential=")+dtr->get_usercfg().ProxyPath());
         }
       }
       if (!dtr->get_usercfg().CACertificatesDirectory().empty()) {
         args.push_back("--sopt");
-        args.push_back("ca="+dtr->get_usercfg().CACertificatesDirectory());
+        args.push_back(std::string("ca=")+dtr->get_usercfg().CACertificatesDirectory());
         args.push_back("--dopt");
-        args.push_back("ca="+dtr->get_usercfg().CACertificatesDirectory());
+        args.push_back(std::string("ca=")+dtr->get_usercfg().CACertificatesDirectory());
       }
+      args.push_back("--sopt");
+      args.push_back(std::string("casystem=")+Arc::tostring((int)dtr->get_usercfg().CAUseSystem()));
+      args.push_back("--dopt");
+      args.push_back(std::string("casystem=")+Arc::tostring((int)dtr->get_usercfg().CAUseSystem()));
       args.push_back("--topt");
-      args.push_back("minspeed="+Arc::tostring(transfer_params.min_current_bandwidth));
+      args.push_back(std::string("minspeed=")+Arc::tostring(transfer_params.min_current_bandwidth));
       args.push_back("--topt");
-      args.push_back("minspeedtime="+Arc::tostring(transfer_params.averaging_time));
+      args.push_back(std::string("minspeedtime=")+Arc::tostring(transfer_params.averaging_time));
       args.push_back("--topt");
-      args.push_back("minavgspeed="+Arc::tostring(transfer_params.min_average_bandwidth));
+      args.push_back(std::string("minavgspeed=")+Arc::tostring(transfer_params.min_average_bandwidth));
       args.push_back("--topt");
-      args.push_back("maxinacttime="+Arc::tostring(transfer_params.max_inactivity_time));
+      args.push_back(std::string("maxinacttime=")+Arc::tostring(transfer_params.max_inactivity_time));
 
       if (dtr->get_source()->CheckSize()) {
         args.push_back("--size");
@@ -189,7 +193,7 @@ namespace DataStaging {
         return;
       }
     }
-    handler_->Add(this);
+    GetHandler().Add(this);
   }
 
   DataDeliveryLocalComm::~DataDeliveryLocalComm(void) {
@@ -201,7 +205,11 @@ namespace DataStaging {
       }
     }
     if(!tmp_proxy_.empty()) Arc::FileDelete(tmp_proxy_);
-    if(handler_) handler_->Remove(this);
+    GetHandler().Remove(this);
+  }
+
+  std::string DataDeliveryLocalComm::DeliveryId() const {
+    return "localhost";
   }
 
   void DataDeliveryLocalComm::PullStatus(void) {

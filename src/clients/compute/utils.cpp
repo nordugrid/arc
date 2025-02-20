@@ -155,7 +155,7 @@ void showplugins(const std::string& program, const std::list<std::string>& types
 bool checkproxy(const Arc::UserConfig& uc)
 {
   if (!uc.ProxyPath().empty() ) {
-    Arc::Credential holder(uc.ProxyPath(), "", "", "");
+    Arc::Credential holder(uc.ProxyPath(), "", "", "", false);
     if (holder.GetEndTime() < Arc::Time()){
       std::cout << Arc::IString("Proxy expired. Job submission aborted. Please run 'arcproxy'!") << std::endl;
       return false;
@@ -266,42 +266,13 @@ Arc::JobInformationStorage* createJobInformationStorage(const Arc::UserConfig& u
   return NULL;
 }
 
-bool ClientOptions::isARC6TargetSelectionOptions(Arc::Logger& logger, bool allow_cluster) {
-  bool arc6_target_options = false;
-  do {
-    if ( ! computing_elements.empty() ) { arc6_target_options = true; break; }
-    if ( ! registries.empty() ) { arc6_target_options = true; break; }
-    if ( ! requested_submission_endpoint_type.empty() ) { arc6_target_options = true; break; }
-    if ( ! requested_info_endpoint_type.empty() ) arc6_target_options = true;
-  } while (false);
-  bool legacy_target_options = false;
-  do {
-    if ( ! clusters.empty() && !allow_cluster ) { legacy_target_options = true; break; }
-    if ( ! indexurls.empty() ) { legacy_target_options = true; break; }
-    if ( ! requestedSubmissionInterfaceName.empty() ) { legacy_target_options = true; break; }
-    if ( ! infointerface.empty() ) { legacy_target_options = true; break; }
-    if ( direct_submission ) legacy_target_options = true;
-  } while (false);
-  if ( legacy_target_options && arc6_target_options ) {
-    logger.msg(Arc::ERROR, "It is impossible to mix ARC6 target selection options with legacy options. All legacy options will be ignored!");
-  }
-  return arc6_target_options;
-}
-
-bool ClientOptions::canonicalizeARC6InterfaceTypes(Arc::Logger& logger) {
+bool ClientOptions::canonicalizeARCInterfaceTypes(Arc::Logger& logger) {
   std::string s(requested_submission_endpoint_type);
   std::string i(requested_info_endpoint_type);
   // canonicalize submission endpoint
   if ( !s.empty() ) {
     if (s.find(".") == std::string::npos) {
       s = "org.nordugrid." + s;
-    }
-    // replace EMI-ES type
-    if (s == "org.nordugrid.emies") {
-      s = "org.ogf.glue.emies.activitycreation";
-    // allow to use gridftp as gridftpjob
-    } else if ( s == "org.nordugrid.gridftp" ) {
-      s += "job";
     }
   }
   // canonicalize information endpoint
@@ -313,13 +284,6 @@ bool ClientOptions::canonicalizeARC6InterfaceTypes(Arc::Logger& logger) {
     } else if ( i == "ldap.glue2" ) {
       i = "org.nordugrid.ldapglue2";
     }
-    // replace EMI-ES type
-    if (i == "org.nordugrid.emies") {
-      i = "org.ogf.glue.emies.resourceinfo";
-    // allow to use gridftp as gridftpjob
-    } else if ( s == "org.nordugrid.gridftp" ) {
-      s += "job";
-    }
   }
 
   // nothing specified - any interface can be used
@@ -328,12 +292,7 @@ bool ClientOptions::canonicalizeARC6InterfaceTypes(Arc::Logger& logger) {
   // define info based on submission (and verify submission type is supported)
   if ( !s.empty() ) {
     const std::string notify_template = "Automatically adding %s information endpoint type based on desired submission interface";
-    if ( s == "org.ogf.glue.emies.activitycreation" ) {
-      if ( i.empty() ) {
-        logger.msg(Arc::VERBOSE, notify_template, "org.ogf.glue.emies.resourceinfo");
-        info_types.push_back("org.ogf.glue.emies.resourceinfo");
-      }
-    } else if ( s == "org.nordugrid.arcrest" ) {
+    if ( s == "org.nordugrid.arcrest" ) {
       if ( i.empty() ) {
         logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.arcrest");
         info_types.push_back("org.nordugrid.arcrest");
@@ -342,13 +301,6 @@ bool ClientOptions::canonicalizeARC6InterfaceTypes(Arc::Logger& logger) {
       if ( i.empty() ) {
         logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.internal");
         info_types.push_back("org.nordugrid.internal");
-      }
-    } else if ( s == "org.nordugrid.gridftpjob" ) {
-      if ( i.empty() ) {
-        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.ldapng");
-        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.ldapglue2");
-        info_types.push_back("org.nordugrid.ldapng");
-        info_types.push_back("org.nordugrid.ldapglue2");
       }
     } else {
       logger.msg(Arc::ERROR, "Unsupported submission endpoint type: %s", s);
@@ -359,39 +311,19 @@ bool ClientOptions::canonicalizeARC6InterfaceTypes(Arc::Logger& logger) {
 
   // define submission type based on info (and verify info type is supported)
   if ( !i.empty() ) {
-    const std::string notify_template = "Automatically adding %s submission endpoint type based on desired information interface";
-    if ( i == "org.ogf.glue.emies.resourceinfo" ) {
-      if ( s.empty() ) {
-        logger.msg(Arc::VERBOSE, notify_template, "org.ogf.glue.emies.activitycreation");
-        submit_types.push_back("org.ogf.glue.emies.activitycreation");
-      }
-    } else if ( i == "org.nordugrid.arcrest" ) {
-      if ( s.empty() ) {
-        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.arcrest");
-        submit_types.push_back("org.nordugrid.arcrest");
-      }
+    const std::string notify_template = "Add arcrest submission endpoint type.";
+    if ( s.empty() ) {
+      logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.arcrest");
+      submit_types.push_back("org.nordugrid.arcrest");
     } else if ( i == "org.nordugrid.internal" ) {
       if ( s.empty() ) {
         logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.internal");
         submit_types.push_back("org.nordugrid.internal");
       }
-    } else if ( i == "org.nordugrid.ldapng" ) {
-      if ( s.empty() ) {
-        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.gridftpjob");
-        submit_types.push_back("org.nordugrid.gridftpjob");
-      }
-    } else if ( i == "org.nordugrid.ldapglue2" ) {
-      if ( s.empty() ) {
-        logger.msg(Arc::VERBOSE, notify_template, "org.ogf.glue.emies.activitycreation");
-        submit_types.push_back("org.ogf.glue.emies.activitycreation");
-        logger.msg(Arc::VERBOSE, notify_template, "org.nordugrid.gridftpjob");
-        submit_types.push_back("org.nordugrid.gridftpjob");
-      }
     } else if ( Arc::lower(i) == "none" ) {
       if ( s.empty() ) {
-        logger.msg(Arc::VERBOSE, "Requested to skip resource discovery. Will try direct submission to %s and %s submission endpoint types", "org.ogf.glue.emies.activitycreation", "org.nordugrid.gridftpjob");
-        submit_types.push_back("org.ogf.glue.emies.activitycreation");
-        submit_types.push_back("org.nordugrid.gridftpjob");
+        logger.msg(Arc::VERBOSE, "Requested to skip resource discovery. Will try direct submission to arcrest endpoint type.");
+        submit_types.push_back("org.nordugrid.arcrest");
       }
       return true;
     } else {
@@ -415,15 +347,12 @@ ClientOptions::ClientOptions(Client_t c,
     show_plugins(false),
     showversion(false),
     all(false),
-    forcemigration(false),
     keep(false),
     forcesync(false),
     truncate(false),
     convert(false),
     longlist(false),
     printids(false),
-    same(false),
-    notsame(false),
     forceclean(false),
     show_stdout(true),
     show_stderr(false),
@@ -431,15 +360,22 @@ ClientOptions::ClientOptions(Client_t c,
     show_json(false),
     usejobname(false),
     forcedownload(false),
-    list_configured_services(false),
     direct_submission(false),
     show_unavailable(false),
     no_delegation(false),
     x509_delegation(false),
     token_delegation(false),
+    no_authentication(false),
+    x509_authentication(false),
+    token_authentication(false),
+    force_system_ca(false),
+    force_grid_ca(false),
+    allow_insecure_connection(false),
     testjobid(-1),
     runtime(5),
-    timeout(-1)
+    timeout(-1),
+    instances_min(1),
+    instances_max(1)
 {
   bool cIsJobMan = (c == CO_CAT || c == CO_CLEAN || c == CO_GET || c == CO_KILL || c == CO_RENEW || c == CO_RESUME || c == CO_STAT || c == CO_ACL);
 
@@ -447,73 +383,56 @@ ClientOptions::ClientOptions(Client_t c,
   DefineOptionsGroup("filtering", istring("Brokering and filtering"));
   DefineOptionsGroup("format", istring("Output format modifiers"));
   DefineOptionsGroup("tuning", istring("Behaviour tuning"));
-  DefineOptionsGroup("arc6-target", istring("ARC6 submission endpoint selection"));
-  DefineOptionsGroup("legacy-target", istring("Legacy options set for defining targets"));
+  DefineOptionsGroup("arc-target", istring("Target endpoint selection"));
 
-  if ( c == CO_RESUB || c == CO_SUB || c == CO_TEST || c == CO_SYNC ) {
-    GroupAddOption("arc6-target", 'C', "computing-element",
-            istring("specify computing element hostname or a complete endpoint URL"),
+  if ( c == CO_SUB || c == CO_TEST || c == CO_SYNC || c == CO_INFO ) {
+    GroupAddOption("arc-target", 'C', "computing-element",
+            istring("computing element hostname or a complete endpoint URL"),
             istring("ce"),
             computing_elements);
 
-    GroupAddOption("arc6-target", 'Y', "registry",
+    GroupAddOption("arc-target", 'Y', "registry",
             istring("registry service URL with optional specification of protocol"),
             istring("registry"),
             registries);
+  } else {
+    GroupAddOption("filtering", 'C', "computing-element",
+            istring("only select jobs that were submitted to this computing element"),
+            istring("ce"),
+            computing_elements);
   }
 
-  if ( c == CO_RESUB || c == CO_SUB || c == CO_TEST ) {
-    GroupAddOption("arc6-target", 'T', "submission-endpoint-type",
+  if ( c == CO_SUB || c == CO_TEST ) {
+    GroupAddOption("arc-target", 'T', "submission-endpoint-type",
             istring("require the specified endpoint type for job submission.\n"
-                    "\tAllowed values are: arcrest, emies, gridftp or gridftpjob and internal."),
+                    "\tAllowed values are: arcrest and internal."),
             istring("type"),
             requested_submission_endpoint_type);
-
-    GroupAddOption("arc6-target", 'Q', "info-endpoint-type",
-            istring("require information query using the specified information endpoint type.\n"
-                    "\tSpecial value 'NONE' will disable all resource information queries and the following brokering.\n"
-                    "\tAllowed values are: ldap.nordugrid, ldap.glue2, emies, arcrest and internal."),
-            istring("type"),
-            requested_info_endpoint_type);
   }
 
-  if (c == CO_SUB || c == CO_TEST || c == CO_SYNC ) {
-    GroupAddOption("legacy-target", 'c', "cluster",
-              istring("select one or more computing elements: "
-                      "name can be an alias for a single CE, a group of CEs or a URL"),
-              istring("name"),
-              clusters);
-  } else {
-    GroupAddOption("filtering", 'c', "cluster",
-              istring("only select jobs that were submitted to this resource"),
-              istring("name"),
-              clusters);
-  }
-  
-  if (!cIsJobMan && c != CO_SYNC) {
-    GroupAddOption("legacy-target", 'I', "infointerface",
-              istring("the computing element specified by URL at the command line "
-                      "should be queried using this information interface.\n"
-                      "\tAllowed values are: org.nordugrid.ldapng, org.nordugrid.ldapglue2 and org.ogf.glue.emies.resourceinfo"),
-              istring("interfacename"),
-              infointerface);
+  if (c == CO_SUB || c == CO_TEST || c == CO_INFO) {
+    GroupAddOption("filtering", 'R', "rejectdiscovery",
+            istring("skip the service with the given URL during service discovery"),
+            istring("URL"),
+            rejectdiscovery);
+
+    GroupAddOption("arc-target", 'Q', "info-endpoint-type",
+          istring("require information query using the specified information endpoint type.\n"
+                  "\tSpecial value 'NONE' will disable all resource information queries and the following brokering.\n"
+                  "\tAllowed values are: ldap.nordugrid, ldap.glue2, arcrest and internal."),
+          istring("type"),
+          requested_info_endpoint_type);
   }
 
-  if (c == CO_RESUB || c == CO_MIGRATE) {
-    GroupAddOption("legacy-target", 'q', "qluster",
-              istring("selecting a computing element for the new jobs with a URL or an alias, "
-                      "or selecting a group of computing elements with the name of the group"),
-              istring("name"),
-              qlusters);
+  if (c == CO_INFO) {
+    GroupAddOption("arc-target", 'T', "submission-endpoint-type",
+          istring("only get information about executon targets that support this job submission endpoint type.\n"
+                  "\tAllowed values are: arcrest and internal."),
+          istring("type"),
+          requested_submission_endpoint_type);
   }
 
-  if (c == CO_MIGRATE) {
-    GroupAddOption("tuning", 'f', "force",
-              istring("force migration, ignore kill failure"),
-              forcemigration);
-  }
-
-  if (c == CO_GET || c == CO_KILL || c == CO_MIGRATE || c == CO_RESUB) {
+  if (c == CO_GET || c == CO_KILL ) {
     GroupAddOption("tuning", 'k', "keep",
               istring("keep the files on the server (do not clean)"),
               keep);
@@ -537,12 +456,6 @@ ClientOptions::ClientOptions(Client_t c,
     GroupAddOption("format", 'l', "long",
               istring("long format (more information)"),
               longlist);
-  }
-
-  if (c == CO_INFO) {
-    GroupAddOption("xaction", 'L', "list-configured-services",
-              istring("print a list of services configured in the client.conf"),
-              list_configured_services);
   }
 
   if (c == CO_CAT) {
@@ -602,29 +515,11 @@ ClientOptions::ClientOptions(Client_t c,
               show_json);
   }
 
-  if (c == CO_RESUB) {
-    GroupAddOption("filtering", 'm', "same",
-              istring("resubmit to the same resource"),
-              same);
-
-    GroupAddOption("filtering", 'M', "not-same",
-              istring("do not resubmit to the same resource"),
-              notsame);
-  }
-
   if (c == CO_CLEAN) {
     GroupAddOption("tuning", 'f', "force",
               istring("remove the job from the local list of jobs "
                       "even if the job is not found in the infosys"),
               forceclean);
-  }
-
-  if (!cIsJobMan) {
-    GroupAddOption("legacy-target", 'g', "index",
-              istring("select one or more registries: "
-                      "name can be an alias for a single registry, a group of registries or a URL"),
-              istring("name"),
-              indexurls);
   }
 
   if (c == CO_TEST) {
@@ -638,14 +533,12 @@ ClientOptions::ClientOptions(Client_t c,
               runtime);
   }
 
-  if (cIsJobMan || c == CO_RESUB) {
+  if (cIsJobMan) {
     GroupAddOption("filtering", 's', "status",
               istring("only select jobs whose status is statusstr"),
               istring("statusstr"),
               status);
-  }
 
-  if (cIsJobMan || c == CO_MIGRATE || c == CO_RESUB) {
     GroupAddOption("filtering", 'a', "all",
               istring("all jobs"),
               all);
@@ -665,7 +558,7 @@ ClientOptions::ClientOptions(Client_t c,
               jobdescriptionfiles);
   }
 
-  if (c == CO_MIGRATE || c == CO_RESUB || c == CO_SUB || c == CO_TEST) {
+  if (c == CO_SUB || c == CO_TEST) {
     GroupAddOption("filtering", 'b', "broker",
               istring("select broker method (list available brokers with --listplugins flag)"),
               istring("broker"), broker);
@@ -674,12 +567,6 @@ ClientOptions::ClientOptions(Client_t c,
               istring("the IDs of the submitted jobs will be appended to this file"),
               istring("filename"),
               jobidoutfile);
-    
-    GroupAddOption("legacy-target", 'S', "submissioninterface",
-              istring("only use this interface for submitting.\n"
-                      "\tAllowed values are: org.nordugrid.gridftpjob or org.nordugrid.gridftp, org.ogf.glue.emies.activitycreation and org.nordugrid.internal"),
-              istring("InterfaceName"),
-              requestedSubmissionInterfaceName);
 
     GroupAddOption("tuning", 'n', "no-delegation",
               istring("do not perform any delegation for submitted jobs"),
@@ -692,17 +579,17 @@ ClientOptions::ClientOptions(Client_t c,
     GroupAddOption("tuning", 'K', "token-delegation",
               istring("perform token delegation for submitted jobs"),
               token_delegation);
-  }
-  
-  if (c == CO_MIGRATE || c == CO_RESUB || c == CO_SUB || c == CO_TEST || c == CO_INFO) {
-    GroupAddOption("filtering", 'R', "rejectdiscovery",
-              istring("skip the service with the given URL during service discovery"),
-              istring("URL"),
-              rejectdiscovery);
-  }
-  
 
-  if (cIsJobMan || c == CO_MIGRATE || c == CO_RESUB) {
+    GroupAddOption("tuning", '\0', "instances-max",
+              istring("request at most this number of job instances submitted in single submit request"),
+              "", instances_max);
+
+    GroupAddOption("tuning", '\0', "instances-min",
+              istring("request at least this number of job instances submitted in single submit request"),
+              "", instances_min);
+  }
+
+  if (cIsJobMan) {
     GroupAddOption("tuning", 'i', "jobids-from-file",
               istring("a file containing a list of jobIDs"),
               istring("filename"),
@@ -718,25 +605,15 @@ ClientOptions::ClientOptions(Client_t c,
     GroupAddOption("xaction", 'D', "dryrun", istring("submit jobs as dry run (no submission to batch system)"),
               dryrun);
 
-    GroupAddOption("legacy-target", 0, "direct", istring("submit directly - no resource discovery or matchmaking"),
-              direct_submission);
-
     GroupAddOption("xaction", 'x', "dumpdescription",
               istring("do not submit - dump job description "
                       "in the language accepted by the target"),
               dumpdescription);
   }
   
-  if (c == CO_INFO) {
-    GroupAddOption("legacy-target", 'S', "submissioninterface",
-              istring("only get information about executon targets that support this job submission interface.\n"
-                      "\tAllowed values are org.nordugrid.gridftpjob or org.nordugrid.gridftp, org.ogf.glue.emies.activitycreation and org.nordugrid.internal"),
-              istring("InterfaceName"),
-              requestedSubmissionInterfaceName);
-  }
-
   if (c == CO_TEST) {
     GroupAddOption("xaction", 'E', "certificate", istring("prints info about installed user- and CA-certificates"), show_credentials);
+    GroupAddOption("tuning", '\0', "allowinsecureconnection", istring("allow TLS connection which failed verification"), allow_insecure_connection);
   }
 
   if (c != CO_INFO) {
@@ -766,4 +643,110 @@ ClientOptions::ClientOptions(Client_t c,
   AddOption('v', "version", istring("print version information"),
             showversion);
 
+  /* --- Common options below --- */
+
+  GroupAddOption("tuning", '\0', "no-authentication",
+              istring("do not perform any authentication for opened connections"),
+              no_authentication);
+
+  GroupAddOption("tuning", '\0', "x509-authentication",
+              istring("perform X.509 authentication for opened connections"),
+              x509_authentication);
+
+  GroupAddOption("tuning", '\0', "token-authentication",
+              istring("perform token authentication for opened connections"),
+              token_authentication);
+
+  GroupAddOption("tuning", '\0', "systemca",
+              istring("force using CA certificates configuration provided by OpenSSL"),
+              force_system_ca);
+
+  GroupAddOption("tuning", '\0', "gridca",
+              istring("force using CA certificates configuration for Grid services (typically IGTF)"),
+              force_grid_ca);
+
 }
+
+bool ClientOptions::getDelegationType(Arc::Logger& logger, Arc::UserConfig const& usercfg, DelegationType& delegation_type) const {
+  delegation_type = UndefinedDelegation;
+  if(no_delegation) {
+    if(delegation_type != UndefinedDelegation) {
+      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
+      return false;
+    }
+    delegation_type = NoDelegation;
+  }
+  if(x509_delegation) {
+    if(delegation_type != UndefinedDelegation) {
+      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
+      return false;
+    }
+    delegation_type = X509Delegation;
+  }
+  if(token_delegation) {
+    if(delegation_type != UndefinedDelegation) {
+      logger.msg(Arc::ERROR, "Conflicting delegation types specified.");
+      return false;
+    }
+    delegation_type = TokenDelegation;
+  }
+
+  // If delegation is not specified try to guess it
+  if(delegation_type == UndefinedDelegation) {
+    if(!usercfg.OToken().empty()) {
+      delegation_type = TokenDelegation;
+    } else {
+      delegation_type = X509Delegation;
+    }
+  }
+
+  if(delegation_type == X509Delegation) {
+    if (!checkproxy(usercfg)) {
+      return 1;
+    }
+  } else if(delegation_type == TokenDelegation) {
+    if (!checktoken(usercfg)) {
+      return 1;
+    }
+  }
+
+  return true;
+}
+
+bool ClientOptions::getAuthenticationType(Arc::Logger& logger, Arc::UserConfig const& usercfg, AuthenticationType& authentication_type) const {
+  authentication_type = UndefinedAuthentication;
+  if(no_authentication) {
+    if(authentication_type != UndefinedAuthentication) {
+      logger.msg(Arc::ERROR, "Conflicting authentication types specified.");
+      return false;
+    }
+    authentication_type = NoAuthentication;
+  }
+  if(x509_authentication) {
+    if(authentication_type != UndefinedAuthentication) {
+      logger.msg(Arc::ERROR, "Conflicting authentication types specified.");
+      return false;
+    }
+    authentication_type = X509Authentication;
+  }
+  if(token_authentication) {
+    if(authentication_type != UndefinedAuthentication) {
+      logger.msg(Arc::ERROR, "Conflicting authentication types specified.");
+      return false;
+    }
+    authentication_type = TokenAuthentication;
+  }
+
+  if(authentication_type == X509Authentication) {
+    if (!checkproxy(usercfg)) {
+      return 1;
+    }
+  } else if(authentication_type == TokenAuthentication) {
+    if (!checktoken(usercfg)) {
+      return 1;
+    }
+  }
+
+  return true;
+}
+

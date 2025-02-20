@@ -158,69 +158,6 @@ namespace ARex {
     };
   }
 
-  // ActivityStatus
-  //   Status
-  //     [accepted|preprocessing|
-  //      processing|processing-accepting|processing-queued|processing-running|
-  //      postprocessing|terminal]
-  //   Attribute 0- 
-  //     [validating|
-  //      server-paused|
-  //      client-paused|
-  //      client-stagein-possible|
-  //      client-stageout-possible|
-  //      provisioning|
-  //      deprovisioning|
-  //      server-stagein|
-  //      server-stageout|
-  //      batch-suspend|
-  //      app-running|
-  //      preprocessing-cancel|
-  //      processing-cancel|
-  //      postprocessing-cancel|
-  //      validation-failure|
-  //      preprocessing-failure|
-  //      processing-failure|
-  //      postprocessing-failure|
-  //      app-failure|
-  //      expired]
-  //   Timestamp (dateTime)
-  //   Description 0-1
-  Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,const std::string& gm_state,Arc::XMLNode glue_xml,bool failed,bool pending,const std::string& failedstate,const std::string& failedcause) {
-    std::string primary_state;
-    std::list<std::string> state_attributes;
-    std::string glue_state("");
-    convertActivityStatusES(gm_state,primary_state,state_attributes,failed,pending,failedstate,failedcause);
-    Arc::XMLNode state = pnode.NewChild("estypes:ActivityStatus");
-    state.NewChild("estypes:Status") = primary_state;
-    for(std::list<std::string>::iterator st = state_attributes.begin();
-                  st!=state_attributes.end();++st) {
-      state.NewChild("estypes:Attribute") = *st;
-    };
-    return state;
-  }
-
-  Arc::XMLNode addActivityStatusES(Arc::XMLNode pnode,Arc::XMLNode glue_xml) {
-    std::string primary_state;
-    std::list<std::string> state_attributes;
-    std::string glue_state("");
-    for(Arc::XMLNode snode = glue_xml["State"]; (bool)snode ; ++snode) {
-      std::string state_str = snode;
-      if(state_str.compare(0, 6, "emies:") == 0) {
-        primary_state = state_str.substr(6);
-      } else if(state_str.compare(0, 10, "emiesattr:") == 0) {
-        state_attributes.push_back(state_str.substr(10));
-      }
-    }
-    Arc::XMLNode state = pnode.NewChild("estypes:ActivityStatus");
-    state.NewChild("estypes:Status") = primary_state;
-    for(std::list<std::string>::iterator st = state_attributes.begin();
-                  st!=state_attributes.end();++st) {
-      state.NewChild("estypes:Attribute") = *st;
-    };
-    return state;
-  }
-
   /*
   JobIDGeneratorARC::JobIDGeneratorARC(const std::string& endpoint):endpoint_(endpoint) {
   }

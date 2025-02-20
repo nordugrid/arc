@@ -15,6 +15,16 @@ __parsed_blocks = []
 __default_config = {}
 __default_blocks = []
 
+# default blocks order (only used in case of missing parser defaults file)
+__blocks_order = ['common', 'authgroup', 'mapping', 'lrms', 'arex', 'arex/cache',
+                  'arex/cache/cleaner', 'arex/data-staging', 'arex/ws', 'arex/ws/jobs',
+                  'arex/ws/publicinfo', 'arex/ws/cache', 'arex/ws/candypond',
+                  'arex/jura', 'arex/jura/sgas', 'arex/jura/apel', 'arex/ganglia',
+                  'infosys', 'infosys/ldap', 'infosys/nordugrid', 'infosys/glue2',
+                  'infosys/glue2/ldap', 'infosys/cluster', 'queue',
+                  'datadelivery-service', 'custom'
+                  ]
+
 # processing constants and regexes
 __def_path_arcconf = ARC_CONF
 __def_path_defaults = ARC_DATA_DIR + '/arc.parser.defaults'
@@ -40,14 +50,31 @@ __arcconf_re = {
 # block name input
 __blockname_re = re.compile(r'(?P<block_id>[^:]+):\s*(?P<block_name>.*[^\s])\s*$')
 
+# additional arc.conf.d configuration files
+def get_arc_conf_d(conf_f=__def_path_arcconf):
+    """Retrurn list of extra configuration files in arc.conf.d directory"""
+    conf_d = []
+    if os.path.isdir(conf_f+'.d'):
+        for path, _, files in os.walk(conf_f+'.d', followlinks=True):
+            for f in sorted(files):
+                if f.endswith('~'):
+                    continue
+                if not f.endswith('.conf'):
+                    __logger.debug('File %s is ignored - not .conf file.', f)
+                    continue
+                conf_d.append(os.path.join(path, f))
+    return conf_d
 
 # arc.conf parsing function
 def parse_arc_conf(conf_f=__def_path_arcconf, defaults_f=__def_path_defaults):
     """General entry point for parsing arc.conf (with defaults substitutions if defined)"""
-    # parse /etc/arc.conf first
+    # parse arc.conf first
+    __logger.info('Parsing the main %s configuration file', conf_f)
     _parse_config(conf_f, __parsed_config, __parsed_blocks)
-    # pre-processing of values
-    _process_config()
+    # parse arc.conf.d
+    for conf_d_f in get_arc_conf_d(conf_f):
+        __logger.info('Parsing additional %s configuration file', conf_d_f)
+        _merge_conf_d(conf_d_f)
     # save parsed dictionary keys that holds arc.conf values without defaults
     for block, options_dict in __parsed_config.items():
         __parsed_config_admin_defined.update({block: options_dict.keys()})
@@ -55,11 +82,16 @@ def parse_arc_conf(conf_f=__def_path_arcconf, defaults_f=__def_path_defaults):
     if defaults_f is not None:
         if os.path.exists(defaults_f):
             # parse defaults
+            __logger.info('Parsing defaults configuration file %s', defaults_f)
             _parse_config(defaults_f, __default_config, __default_blocks)
             # merge defaults to parsed arc.conf
             _merge_defults()
         else:
             __logger.error('There is no defaults file at %s. Default values will not be substituted.', defaults_f)
+    # blocks ordering
+    _order_blocks(__parsed_blocks)
+    # processing of values
+    _process_config()
     # evaluate special values
     _evaluate_values()
 
@@ -204,7 +236,45 @@ def _process_config():
                 __logger.debug('Replacing loglevel %s with numeric value %s in [%s].',
                              loglevel_value, loglevel_num_value, block)
                 __parsed_config[block]['__values'][loglevel_idx] = loglevel_num_value
+    # Accept both colon (backward compatible and database way) and space (arc7 documented admin-friendly) 
+    # in [lrms] benchmark value
+    try:
+        benchmark_idx = __parsed_config['lrms']['__options'].index('benchmark')
+        benchmark_value = __parsed_config['lrms']['__values'][benchmark_idx]
+        benchmark_split = re.split(':|\s', benchmark_value)
+        __parsed_config['lrms']['__values'][benchmark_idx] = '{0}:{1}'.format(benchmark_split[0], benchmark_split[-1])
+    except KeyError:
+        pass
+    except IndexError:
+        pass
 
+
+def _order_blocks(parsed_blocks_ref):
+    """Order blocks according to the defined defaults order"""
+    order = __default_blocks if __default_blocks else __blocks_order
+    unordered_blocks = parsed_blocks_ref[:]
+    del parsed_blocks_ref[:]
+    for ob in order:
+        for pb in unordered_blocks:
+            pb_base = pb
+            if ':' in pb:
+                pb_base = pb.split(':')[0].strip()
+            if pb_base == ob:
+                parsed_blocks_ref.append(pb)
+
+def _merge_conf_d(conf_d_f):
+    """Incorporate the conf.d file to parsed options"""
+    confd_config = {}
+    confd_blocks = []
+    _parse_config(conf_d_f, confd_config, confd_blocks)
+    for block_id in confd_blocks:
+        # define new block in parsed config if not yet there
+        if block_id not in __parsed_blocks:
+            __parsed_blocks.append(block_id)
+            __parsed_config[block_id] = {'__options': [], '__values': []}
+        # extend block options
+        __parsed_config[block_id]['__options'].extend(confd_config[block_id]['__options'])
+        __parsed_config[block_id]['__values'].extend(confd_config[block_id]['__values'])
 
 def _merge_defults():
     """Add not specified config options from defaults file to parsed config dict (defined blocks only)"""

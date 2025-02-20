@@ -12,13 +12,12 @@ import shutil
 import random
 import tarfile
 import pwd
-import zlib
 from contextlib import closing
 
 
 def add_parser_digest_validity(parser, defvalidity=90):
-    parser.add_argument('-d', '--digest', help='Digest to use (default is %(default)s)', default='sha256',
-                        choices=['md2', 'md4', 'md5', 'mdc2', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512'])
+    parser.add_argument('-d', '--digest', help='Digest to use (default is %(default)s)', default='sha384',
+                        choices=['sha224', 'sha256', 'sha384', 'sha512'])
     parser.add_argument('-v', '--validity', type=int, default=defvalidity,
                         help='Validity of certificate in days (default is %(default)s)')
 
@@ -28,11 +27,40 @@ class TestCAControl(ComponentControl):
     __test_hostkey = '/etc/grid-security/testCA-hostkey.pem'
     __test_authfile = '/etc/grid-security/testCA.allowed-subjects'
 
+    __conf_d_access = '10-testCA-access.conf'
+    __conf_d_hostcert = '00-testCA-hostcert.conf'
+
+    def __arc_conf_access(self):
+        """Template for arc.conf: allow access to testCA issued certs"""
+        conf = [
+            "#\n# Allow testCA issued certificates to submit jobs\n#",
+            "\n[authgroup:testCA]",
+            "file = {0}",
+            "\n[mapping]",
+            "map_to_user = testCA nobody:nobody",
+            "\n[arex/ws/jobs]",
+            "allowaccess = testCA"
+        ]
+        return '\n'.join(conf).format(self.__test_authfile)
+
+    def __arc_conf_hostcert(self):
+        """Template for arc.conf: hostcerts from testCA"""
+        conf = [
+            "#\n# Use host certificate signed by testCA\n#",
+            "\n[common]",
+            "x509_host_key = {0}",
+            "x509_host_cert = {1}"
+        ]
+        return '\n'.join(conf).format(
+            self.__test_hostkey,
+            self.__test_hostcert
+        )
+
     def __define_CA_ID(self, caid=None):
         """Internal function to define CA ID and file paths"""
         if caid is None:
             # CRC32 hostname-based hash used by default
-            caid = hex(zlib.crc32(self.hostname.encode('utf-8')) & 0xffffffff)[2:]
+            caid = crc32_id(self.hostname)
         self.caName = 'ARC TestCA {0}'.format(caid)
         self.caKey = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '-key.pem')
         self.caCert = os.path.join(self.x509_cert_dir, self.caName.replace(' ', '-') + '.pem')
@@ -90,19 +118,49 @@ class TestCAControl(ComponentControl):
         # CA name from hostname
         cg = CertificateGenerator(self.x509_cert_dir)
         cg.generateCA(self.caName, validityperiod=args.validity, messagedigest=args.digest, force=args.force)
+        # create empty allowed-subjects file
+        if arcctl_server_mode():
+            try:
+                open(self.__test_authfile, 'a').close()
+            except IOError as err:
+                self.logger.error('Failed to create %s file. Error %s', self.__test_authfile, str(err))
+                sys.exit(1)
+            # add arc.conf to authorize testCA users
+            write_conf_d(self.__conf_d_access, self.__arc_conf_access())
+
+    def ca_info(self, args):
+        if not os.path.exists(self.caCert):
+            self.logger.error('TestCA "%s" does not exists. Run init.', self.caName)
+            sys.exit(0)
+        ca = CertificateKeyPair(self.caKey, self.caCert, None)
+        if args.output == 'dn':
+            self.logger.debug('Printing CA Issuer DN for %s', self.caName)
+            print(ca.dn)
+        elif args.output == 'files':
+            self.logger.debug('Showing CA files locatino for %s', self.caName)
+            print('Certificate: {0}'.format(ca.certLocation))
+            print('Key: {0}'.format(ca.keyLocation))
+        elif args.output == 'ca-cert':
+            self.logger.debug('Printing CA Certificate PEM for %s', self.caName)
+            with open(ca.certLocation, 'r') as ca_pem:
+                print(ca_pem.read().strip())
 
     def cleanup_files(self):
         # CA certificates dir
         if not os.path.exists(self.x509_cert_dir):
-            self.logger.debug('Making CA certificates directory at %s', self.x509_cert_dir)
-            os.makedirs(self.x509_cert_dir, mode=0o755)
+            self.logger.error('CA certificates directory %s does not exists', self.x509_cert_dir)
+            sys.exit(1)
         # CA files cleanup
         cg = CertificateGenerator(self.x509_cert_dir)
         cg.cleanupCAfiles(self.caName)
-        # hostcert/key and auth files cleanup
-        for f in (self.__test_hostcert, self.__test_hostkey, self.__test_authfile):
+        # hostcert/key, auth and conf.d files cleanup
+        for f in (self.__test_hostcert,
+                  self.__test_hostkey,
+                  self.__test_authfile,
+                  conf_d(self.__conf_d_access),
+                  conf_d(self.__conf_d_hostcert)):
             if os.path.exists(f):
-                self.logger.debug('Removing the file: %s', f)
+                self.logger.info('Removing the file: %s', f)
                 os.unlink(f)
 
     def signhostcert(self, args):
@@ -134,6 +192,7 @@ class TestCAControl(ComponentControl):
             # create tarball
             with closing(tarfile.open(os.path.join(workdir, tarball), 'w:gz')) as tarf:
                 tarf.add('.')
+            print_info(self.logger, 'Certificate and key for host %s are exported to %s', hostname, tarball)
             # cleanup
             os.chdir(workdir)
             shutil.rmtree(exportdir)
@@ -149,17 +208,20 @@ class TestCAControl(ComponentControl):
             shutil.move(hostcertfiles.certLocation, os.path.join(workdir, certfname))
             shutil.move(hostcertfiles.keyLocation, os.path.join(workdir, keyfname))
             os.chmod(os.path.join(workdir, keyfname), stat.S_IRUSR | stat.S_IWUSR)
-            print('Host certificate and key are saved to {0} and {1} respectively.'.format(certfname, keyfname))
+            print_info(self.logger, 'Host certificate written to %s', certfname)
+            print_info(self.logger, 'Host key written to %s', keyfname)
         else:
             if not args.force:
                 if os.path.exists(self.__test_hostcert) or os.path.exists(self.__test_hostkey):
                     logger.error('Host certificate already exists.')
                     shutil.rmtree(tmpdir)
                     sys.exit(1)
-            logger.info('Installing generated host certificate to %s', self.__test_hostcert)
+            print_info(self.logger, 'Installing generated host certificate to %s', self.__test_hostcert)
             shutil.move(hostcertfiles.certLocation, self.__test_hostcert)
-            logger.info('Installing generated host key to %s', self.__test_hostkey)
+            print_info(self.logger, 'Installing generated host key to %s', self.__test_hostkey)
             shutil.move(hostcertfiles.keyLocation, self.__test_hostkey)
+            conf_d = write_conf_d(self.__conf_d_hostcert, self.__arc_conf_hostcert())
+            print_info(self.logger, 'TestCA hostcert ARC CE configuration written to %s', conf_d)
         shutil.rmtree(tmpdir)
 
     @staticmethod
@@ -210,8 +272,8 @@ class TestCAControl(ComponentControl):
             self.logger.debug('Installing user certificate and key')
             os.chown(usercertsdir + '/usercert.pem', pw.pw_uid, pw.pw_gid)
             os.chown(usercertsdir + '/userkey.pem', pw.pw_uid, pw.pw_gid)
-            print('User certificate and key are installed to default {0} location for user {1}.'
-                  .format(usercertsdir, args.install_user))
+            print_info(self.logger, 'Certificate and key for user %s are installed to default location: %s',
+                       args.install_user, usercertsdir)
         elif args.export_tar:
             workdir = os.getcwd()
             tarball = 'usercert-{0}.tar.gz'.format(username.replace(' ', '-'))
@@ -237,21 +299,21 @@ class TestCAControl(ComponentControl):
             # make a tarball
             with closing(tarfile.open(os.path.join(workdir, tarball), 'w:gz')) as tarf:
                 tarf.add(export_dir)
-            print('User certificate and key are exported to {0}.\n'
-                  'To use it with arc* tools on the other machine, copy the tarball and run the following commands:\n'
-                  '  tar xzf {0}\n'
-                  '  source {1}/setenv.sh'.format(tarball, export_dir))
+            print_info(self.logger, 'Certificate and key for user %s are exported to %s', username, tarball)
+            print_info(self.logger, 'Printing usage instructions for tarball')
+            print('tar xzf {0}\n'
+                  'source {1}/setenv.sh'.format(tarball, export_dir))
             # cleanup
             os.chdir(workdir)
             shutil.rmtree(tmpdir)
         else:
-            print('User certificate and key are saved to {0} and {1} respectively.\n'
-                  'To use test cert with arc* tools export the following variables:\n'
-                  '  export X509_USER_CERT="{2}/{0}"\n'
-                  '  export X509_USER_KEY="{2}/{1}"'.format(
-                        usercertfiles.certLocation,
-                        usercertfiles.keyLocation,
-                        os.getcwd()))
+            usercertpath = os.path.join(os.getcwd(), usercertfiles.certLocation)
+            userkeypath = os.path.join(os.getcwd(), usercertfiles.keyLocation)
+            print_info(self.logger, 'User certificate written to %s',usercertpath)
+            print_info(self.logger, 'User key written to %s', userkeypath)
+            print_info(self.logger, 'Printing usage instructions')
+            print('export X509_USER_CERT="{0}"\n'
+                  'export X509_USER_KEY="{1}"'.format(usercertpath, userkeypath))
         # add subject to allowed list
         if arcctl_server_mode():
             if not args.no_auth:
@@ -268,14 +330,15 @@ class TestCAControl(ComponentControl):
         # define CA dir if provided
         if args.ca_dir is not None:
             self.__define_ca_dir(args.ca_dir)
-        # no need to go further if it CA dir is not writable
-        ensure_path_writable(self.x509_cert_dir)
         # define CA ID if provided
         if args.ca_id is not None:
             self.__define_CA_ID(args.ca_id)
         # parse actions
         if args.action == 'init':
+            ensure_path_writable(self.x509_cert_dir)
             self.createca(args)
+        elif args.action == 'info':
+            self.ca_info(args)
         elif args.action == 'cleanup':
             self.cleanup_files()
         elif args.action == 'hostcert':
@@ -303,6 +366,10 @@ class TestCAControl(ComponentControl):
         testca_init = testca_actions.add_parser('init', help='Generate self-signed TestCA files')
         add_parser_digest_validity(testca_init)
         testca_init.add_argument('-f', '--force', action='store_true', help='Overwrite files if exist')
+
+        testca_info = testca_actions.add_parser('info', help='Show information about TestCA')
+        testca_info.add_argument('-o', '--output', help='Specify what information to show (default is %(default)s)',
+                                 choices=['dn', 'files', 'ca-cert'], default='dn')
 
         testca_cleanup = testca_actions.add_parser('cleanup', help='Cleanup TestCA files')
 

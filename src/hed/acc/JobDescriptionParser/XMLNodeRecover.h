@@ -5,6 +5,13 @@
 
 #include <arc/XMLNode.h>
 
+#include <libxml/xmlversion.h>
+#if LIBXML_VERSION < 21200
+#define xmlErrorPtrType xmlErrorPtr
+#else
+#define xmlErrorPtrType const xmlError*
+#endif
+
 namespace Arc {
 
   class XMLNodeRecover
@@ -17,7 +24,7 @@ namespace Arc {
     const std::list<xmlErrorPtr>& GetErrors() const { return errors; };
 
     void print_error(const xmlError& error);
-    static void structured_error_handler(void *userData, xmlErrorPtr error);
+    static void structured_error_handler(void *userData, xmlErrorPtrType error);
 
   private:
     XMLNodeRecover(void) {};

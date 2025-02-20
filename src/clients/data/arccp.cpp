@@ -26,6 +26,8 @@
 #include <arc/loader/FinderLoader.h>
 #include <arc/OptionParser.h>
 
+#include "utils.h"
+
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arccp");
 static Arc::SimpleCondition cond;
 static bool cancelled = false;
@@ -82,24 +84,6 @@ static void mover_callback(Arc::DataMover* mover, Arc::DataStatus status, void* 
   cond.broadcast();
 }
 
-static bool checkProxy(Arc::UserConfig& usercfg, const Arc::URL& src_file) {
-  if (!usercfg.InitializeCredentials(Arc::initializeCredentialsType::RequireCredentials)) {
-    logger.msg(Arc::ERROR, "Unable to copy %s", src_file.str());
-    logger.msg(Arc::ERROR, "Invalid credentials, please check proxy and/or CA certificates");
-    return false;
-  }
-  Arc::Credential holder(usercfg);
-  if (!holder.IsValid()) {
-    if (holder.GetEndTime() < Arc::Time()) {
-      logger.msg(Arc::ERROR, "Proxy expired");
-    }
-    logger.msg(Arc::ERROR, "Unable to copy %s", src_file.str());
-    logger.msg(Arc::ERROR, "Invalid credentials, please check proxy and/or CA certificates");
-    return false;
-  }
-  return true;
-}
-
 bool arctransfer(const Arc::URL& source_url,
                  const Arc::URL& destination_url,
                  const std::list<std::string>& locations,
@@ -117,7 +101,7 @@ bool arctransfer(const Arc::URL& source_url,
     return false;
   }
   // Credentials are always required for 3rd party transfer
-  if (!checkProxy(usercfg, source_url)) return false;
+  if (!initProxy(logger, usercfg, source_url)) return false;
   if (timeout > 0) usercfg.Timeout(timeout);
 
   Arc::DataStatus res = Arc::DataPoint::Transfer3rdParty(source_url, destination_url, usercfg, verbose ? &transfer_cb : NULL);
@@ -227,7 +211,7 @@ bool arcregister(const Arc::URL& source_url,
     return false;
   }
   if ((source->RequiresCredentials() || destination->RequiresCredentials())
-      && !checkProxy(usercfg, source_url)) return false;
+      && !initProxy(logger, usercfg, source_url)) return false;
 
   if (source->IsIndex() || !destination->IsIndex()) {
     logger.msg(Arc::ERROR, "For registration source must be ordinary URL"
@@ -300,7 +284,7 @@ static Arc::DataStatus do_mover(const Arc::URL& s_url,
     return Arc::DataStatus::WriteAcquireError;
   }
   if ((source->RequiresCredentials() || destination->RequiresCredentials())
-      && !checkProxy(usercfg, s_url)) return Arc::DataStatus::CredentialsExpiredError;
+      && !initProxy(logger, usercfg, s_url)) return Arc::DataStatus::CredentialsExpiredError;
 
   if (!locations.empty()) {
     std::string meta(destination->GetURL().Protocol()+"://"+destination->GetURL().Host());
@@ -456,7 +440,7 @@ bool arccp(const Arc::URL& source_url_,
         logger.msg(Arc::ERROR, "Unsupported source url: %s", source_url.str());
         return false;
       }
-      if (source->RequiresCredentials() && !checkProxy(usercfg, source_url)) return false;
+      if (source->RequiresCredentials() && !initProxy(logger, usercfg, source_url)) return false;
 
       std::list<Arc::FileInfo> files;
       Arc::DataStatus result = source->List(files, (Arc::DataPoint::DataPointInfoType)
@@ -617,6 +601,36 @@ static int runmain(int argc, char **argv) {
                     istring("configuration file (default ~/.arc/client.conf)"),
                     istring("filename"), conffile);
 
+  bool no_authentication = false;
+  options.AddOption('\0', "no-authentication",
+              istring("do not perform any authentication for opened connections"),
+              no_authentication);
+
+  bool x509_authentication = false;
+  options.AddOption('\0', "x509-authentication",
+              istring("perform X.509 authentication for opened connections"),
+              x509_authentication);
+
+  bool token_authentication = false;
+  options.AddOption('\0', "token-authentication",
+              istring("perform token authentication for opened connections"),
+              token_authentication);
+
+  bool force_system_ca = false;
+  options.AddOption('\0', "systemca",
+              istring("force using CA certificates configuration provided by OpenSSL"),
+              force_system_ca);
+    
+  bool force_grid_ca = false;
+  options.AddOption('\0', "gridca",
+              istring("force using CA certificates configuration for Grid services (typically IGTF)"),
+              force_grid_ca);
+
+  bool allow_insecure_connection = false;
+  options.AddOption('\0', "allowinsecureconnection",
+              istring("allow TLS connection which failed verification"),
+              allow_insecure_connection);
+
   std::string debug;
   options.AddOption('d', "debug",
                     istring("FATAL, ERROR, WARNING, INFO, VERBOSE or DEBUG"),
@@ -663,6 +677,28 @@ static int runmain(int argc, char **argv) {
     return 1;
   }
   usercfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY());
+  if (force_system_ca) usercfg.CAUseSystem(true);
+  if (force_grid_ca) usercfg.CAUseSystem(false);
+  if (allow_insecure_connection) usercfg.TLSAllowInsecure(true);
+ 
+  AuthenticationType authentication_type = UndefinedAuthentication;
+  if(!getAuthenticationType(logger, usercfg, no_authentication, x509_authentication, token_authentication, authentication_type))
+    return 1;
+  switch(authentication_type) {
+    case NoAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeNone);
+      break;
+    case X509Authentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeCert);
+      break;
+    case TokenAuthentication:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeToken);
+      break;
+    case UndefinedAuthentication:
+    default:
+      usercfg.CommunicationAuthType(Arc::UserConfig::AuthTypeUndefined);
+      break;
+  }
 
   if (debug.empty() && !usercfg.Verbosity().empty()) {
     Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(usercfg.Verbosity()));

@@ -102,17 +102,23 @@ class ARexJob {
   uid_t uid_; /* local user id this job is mapped to - not always same as in config_.user_ */
   gid_t gid_;
   JobLocalDescription job_;
-  bool make_job_id(void);
-  bool delete_job_id(void);
+  bool make_job_id();
+  static std::size_t make_job_id(ARexGMConfig& config_, Arc::Logger& logger_, std::vector<std::string>& ids);
+  bool delete_job_id();
+  static bool delete_job_id(ARexGMConfig& config_, Arc::User user_, std::string const& sessiondir, std::vector<std::string>& ids, std::size_t offset = 0);
   bool update_credentials(const std::string& credentials);
-  void make_new_job(std::string const& job_desc_str,const std::string& delegid,const std::string& queue,const std::string& clientid,JobIDGenerator& idgenerator,Arc::XMLNode migration);
+  static void make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min_jobs, int& max_jobs, std::string const& job_desc_str,
+                           const std::string& delegid,const std::string& queue,const std::string& clientid,JobIDGenerator& idgenerator,
+                           std::vector<std::string>& ids, JobLocalDescription& job_, ARexJobFailure& failure_type_, std::string& failure_);
  public:
+  static bool Generate(Arc::XMLNode xmljobdesc,int& min_jobs,int& max_jobs,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator,std::vector<std::string>& ids,std::string& failure);
+  static bool Generate(std::string const& job_desc_str,int min_jobs,int max_jobs,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator,std::vector<std::string>& ids,std::string& failure);
   /** Create instance which is an interface to existing job */
   ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,bool fast_auth_check = false);
   /** Create new job with provided description */
-  ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator,Arc::XMLNode migration = Arc::XMLNode());
+  ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator);
   /** Create new job with provided textual description */
-  ARexJob(std::string const& job_desc_str,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator,Arc::XMLNode migration = Arc::XMLNode());
+  ARexJob(std::string const& job_desc_str,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator);
   operator bool(void) { return !id_.empty(); };
   bool operator!(void) { return id_.empty(); };
   /** Returns textual description of failure of last operation */
@@ -173,7 +179,7 @@ class ARexJob {
   /** Updates job credentials */
   bool UpdateCredentials(const std::string& credentials);
   /** Select a session dir to use for this job */
-  bool ChooseSessionDir(const std::string& jobid, std::string& sessiondir);
+  static bool ChooseSessionDir(ARexGMConfig& config_,Arc::Logger& logger_,std::string& sessiondir);
 };
 
 } // namespace ARex

@@ -107,8 +107,9 @@ ARexConfigContext* ARexConfigContext::GetRutimeConfiguration(Arc::Message& inmsg
   std::string grid_name = inmsg.Attributes()->get("TLS:IDENTITYDN");
   if(grid_name.empty()) {
     // Try tokens if TLS has no information about user identity
-    logger.msg(Arc::ERROR, "TLS provides no identity, going for OTokens");
+    logger.msg(Arc::INFO, "TLS provides no identity, going for OTokens");
     grid_name = inmsg.Attributes()->get("OTOKENS:IDENTITYDN");
+
     /*
     Below is an example on how obtained token can be exchanged.
 
@@ -416,7 +417,12 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
   gid_ = st.st_gid; 
 }
 
-ARexJob::ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator,Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
+ARexJob::ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator):id_(""),logger_(logger),config_(config) {
+  if(!config_) return;
+
+  uid_ = config_.User().get_uid();
+  gid_ = config_.User().get_gid();
+
   std::string job_desc_str;
   // Make full XML doc out of subtree
   {
@@ -424,17 +430,64 @@ ARexJob::ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string&
     xmljobdesc.New(doc);
     doc.GetDoc(job_desc_str);
   };
-  make_new_job(job_desc_str,delegid,queue,clientid,idgenerator,migration);
+  std::vector<std::string> id;
+  int max_jobs = 1;
+  int min_jobs = 1;
+  make_new_job(config_,logger_,min_jobs,max_jobs,job_desc_str,delegid,queue,clientid,idgenerator,id,job_,failure_type_,failure_);
+  if(!id.empty()) id_ = id[0];
 }
 
-ARexJob::ARexJob(std::string const& job_desc_str,ARexGMConfig& config,const std::string& delegid,const std::string& clientid,const std::string& queue,Arc::Logger& logger,JobIDGenerator& idgenerator,Arc::XMLNode migration):id_(""),logger_(logger),config_(config) {
-  make_new_job(job_desc_str,delegid,queue,clientid,idgenerator,migration);
-}
-
-void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& delegid,const std::string& queue,const std::string& clientid,JobIDGenerator& idgenerator,Arc::XMLNode migration) {
+ARexJob::ARexJob(std::string const& job_desc_str,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid, Arc::Logger& logger,JobIDGenerator& idgenerator):id_(""),logger_(logger),config_(config) {
   if(!config_) return;
+
   uid_ = config_.User().get_uid();
   gid_ = config_.User().get_gid();
+  std::vector<std::string> id;
+  int max_jobs = 1;
+  int min_jobs = 1;
+  make_new_job(config_,logger_,min_jobs,max_jobs,job_desc_str,delegid,queue,clientid,idgenerator,id,job_,failure_type_,failure_);
+  if(!id.empty()) id_ = id[0];
+}
+
+bool ARexJob::Generate(Arc::XMLNode xmljobdesc,int& min_jobs,int& max_jobs,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator,std::vector<std::string>& ids,std::string& failure) {
+  std::string job_desc_str;
+  // Make full XML doc out of subtree
+  {
+    Arc::XMLNode doc;
+    xmljobdesc.New(doc);
+    doc.GetDoc(job_desc_str);
+  };
+  JobLocalDescription job_;
+  ARexJobFailure failure_type_;
+  make_new_job(config,logger,min_jobs,max_jobs,job_desc_str,delegid,queue,clientid,idgenerator,ids,job_,failure_type_,failure);
+  return !ids.empty();
+}
+
+bool ARexJob::Generate(std::string const& job_desc_str,int min_jobs,int max_jobs,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator,std::vector<std::string>& ids,std::string& failure) {
+  JobLocalDescription job_;
+  ARexJobFailure failure_type_;
+  make_new_job(config,logger,min_jobs,max_jobs,job_desc_str,delegid,queue,clientid,idgenerator,ids,job_,failure_type_,failure);
+  return !ids.empty();
+}
+
+void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min_jobs, int& max_jobs, std::string const& job_desc_str,
+                           const std::string& delegid, const std::string& queue, const std::string& clientid, JobIDGenerator& idgenerator,
+                           std::vector<std::string>& ids, JobLocalDescription& job_, ARexJobFailure& failure_type_, std::string& failure_) {
+  ids.clear();
+  if(!config_) return;
+
+  uid_t uid_ = config_.User().get_uid();
+  gid_t gid_ = config_.User().get_gid();
+
+  // Common part - do it once for multiple jobs
+
+  // Configuration related part
+  if((max_jobs < 1) || (min_jobs < 1) || (min_jobs > max_jobs)) {
+    max_jobs = min_jobs-1;
+    failure_="Job instance numbers are wrong";
+    failure_type_=ARexJobInternalError;
+    return;
+  }
   if(!config_.GmConfig().AllowNew()) {
     std::list<std::string> const & groups = config_.GmConfig().AllowSubmit();
     if(!match_groups(groups, config_)) {
@@ -443,6 +496,11 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
       return;
     };
   };
+  if((config_.GmConfig().MaxJobDescSize() > 0) && (job_desc_str.size() > config_.GmConfig().MaxJobDescSize())) {
+    failure_="Job description is too big";
+    failure_type_=ARexJobConfigurationError;
+    return;
+  }
   DelegationStores* delegs = config_.GmConfig().GetDelegations();
   if(!delegs) {
     failure_="Failed to find delegation store";
@@ -450,52 +508,36 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
     return;
   }
   DelegationStore& deleg = delegs->operator[](config_.GmConfig().DelegationDir());
-  // New job is created here
-  // First get and acquire new id
-  if(!make_job_id()) return;
-  if((config_.GmConfig().MaxJobDescSize() > 0) && (job_desc_str.size() > config_.GmConfig().MaxJobDescSize())) {
-    delete_job_id();
-    failure_="Job description is too big";
-    failure_type_=ARexJobConfigurationError;
-    return;
-  };
+
   // Choose session directory
   std::string sessiondir;
-  if (!ChooseSessionDir(id_, sessiondir)) {
-    delete_job_id();
+  if (!ChooseSessionDir(config_,logger_,sessiondir)) {
     failure_="Failed to find valid session directory";
     failure_type_=ARexJobInternalError;
     return;
   };
-  job_.sessiondir = sessiondir+"/"+id_;
-  GMJob job(id_,Arc::User(uid_),job_.sessiondir,JOB_STATE_ACCEPTED);
-  // Store description
-  if(!job_description_write_file(job,config_.GmConfig(),job_desc_str)) {
-    delete_job_id();
-    failure_="Failed to store job description";
-    failure_type_=ARexJobInternalError;
-    return;
-  };
+
+
+
   // Analyze job description (checking, substituting, etc)
   JobDescriptionHandler job_desc_handler(config_.GmConfig());
   Arc::JobDescription desc;
-  JobReqResult parse_result = job_desc_handler.parse_job_req(id_,job_,desc,true);
+  JobReqResult parse_result = job_desc_handler.parse_job_req_from_mem(job_,desc,job_desc_str,true);
   if((failure_type_=setfail(parse_result)) != ARexJobNoError) {
     failure_ = parse_result.failure;
     if(failure_.empty()) {
       failure_="Failed to parse job description";
       failure_type_=ARexJobInternalError;
     };
-    delete_job_id();
     return;
   };
   std::string acl(parse_result.acl);
   if((!job_.action.empty()) && (job_.action != "request")) {
     failure_="Wrong action in job request: "+job_.action;
     failure_type_=ARexJobInternalError;
-    delete_job_id();
     return;
   };
+
   // Check for proper LRMS name in request. If there is no LRMS name
   // in user configuration that means service is opaque frontend and
   // accepts any LRMS in request.
@@ -504,7 +546,6 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
       failure_="Requested LRMS is not supported by this service";
       failure_type_=ARexJobInternalError;
       //failure_type_=ARexJobDescriptionLogicalError;
-      delete_job_id();
       return;
     };
   };
@@ -556,7 +597,6 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
         failure_type_=ARexJobConfigurationError;
       };
     };
-    delete_job_id();
     return;
   };
 
@@ -564,13 +604,11 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
   if(!job_.preexecs.empty()) {
     failure_="Pre-executables are not supported by this service";
     failure_type_=ARexJobDescriptionUnsupportedError;
-    delete_job_id();
     return;
   };
   if(!job_.postexecs.empty()) {
     failure_="Post-executables are not supported by this service";
     failure_type_=ARexJobDescriptionUnsupportedError;
-    delete_job_id();
     return;
   };
   for(std::list<Arc::OutputFileType>::iterator f = desc.DataStaging.OutputFiles.begin();f != desc.DataStaging.OutputFiles.end();++f) {
@@ -583,7 +621,6 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
         default:
           failure_="Unsupported creation mode for Target";
           failure_type_=ARexJobDescriptionUnsupportedError;
-          delete_job_id();
           return;
       };
     };
@@ -618,13 +655,11 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
      (desc.Resources.SlotRequirement.NumberOfSlots % desc.Resources.SlotRequirement.SlotsPerHost != 0)) {
     failure_="SlotsPerHost exceeding NumberOfSlots is not supported";
     failure_type_=ARexJobDescriptionUnsupportedError;
-    delete_job_id();
     return;
   };
   if(!desc.Resources.Coprocessor.v.empty()) {
     failure_="Coprocessor is not supported yet.";
     failure_type_=ARexJobDescriptionUnsupportedError;
-    delete_job_id();
     return;
   };
   // There may be 3 sources of delegated credentials:
@@ -682,42 +717,24 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
       // Missing most probably required delegation - play safely
       failure_="Dynamic output files and no delegation assigned to job are incompatible.";
       failure_type_=ARexJobDescriptionUnsupportedError;
-      delete_job_id();
       return;
     };
   };
 
-  // Start local file (some local attributes are already defined at this point)
+  // Start local file (some local attributes are already defined at this point) - only common parts
   /* !!!!! some parameters are unchecked here - rerun,diskspace !!!!! */
-  job_.jobid=id_;
   job_.starttime=Arc::Time();
   job_.DN=config_.GridName();
   job_.clientname=clientid;
-  job_.migrateactivityid=(std::string)migration["ActivityIdentifier"];
-  job_.forcemigration=(migration["ForceMigration"]=="true");
-  // BES ActivityIdentifier is global job ID
-  idgenerator.SetLocalID(id_);
-  job_.globalid = idgenerator.GetGlobalID();
-  job_.headnode = idgenerator.GetManagerURL();
-  job_.headhost = idgenerator.GetHostname();
-  job_.globalurl = idgenerator.GetJobURL();
-  job_.interface = idgenerator.GetInterface();
   std::string certificates;
   job_.expiretime = time(NULL);
 #if 1
-  // For compatibility reasons during transitional period store full proxy if possible
   if(!job_.delegationid.empty()) {
     (void)deleg.GetCred(job_.delegationid, config_.GridName(), certificates);
   }
   if(!certificates.empty()) {
-    if(!job_proxy_write_file(job,config_.GmConfig(),certificates)) {
-      delete_job_id();
-      failure_="Failed to write job proxy file";
-      failure_type_=ARexJobInternalError;
-      return;
-    };
     try {
-      Arc::Credential cred(certificates,"","","","",false);
+      Arc::Credential cred(certificates,"","","",false,"",false);
       job_.expiretime = cred.GetEndTime();
       logger_.msg(Arc::VERBOSE, "Credential expires at %s", job_.expiretime.str());
     } catch(std::exception const& e) {
@@ -734,14 +751,8 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
           certificates = sattr->get("CERTIFICATE");
           if(!certificates.empty()) {
             certificates += sattr->get("CERTIFICATECHAIN");
-            if(!job_proxy_write_file(job,config_.GmConfig(),certificates)) {
-              delete_job_id();
-              failure_="Failed to write job proxy file";
-              failure_type_=ARexJobInternalError;
-              return;
-            };
             try {
-              Arc::Credential cred(certificates,"","","","",false);
+              Arc::Credential cred(certificates,"","","",false,"",false);
               job_.expiretime = cred.GetEndTime();
               logger_.msg(Arc::VERBOSE, "Credential expires at %s", job_.expiretime.str());
             } catch(std::exception const& e) {
@@ -780,110 +791,174 @@ void ARexJob::make_new_job(std::string const& job_desc_str,const std::string& de
       job_.voms.push_back(forced_voms);
     };
   };
-  // Write local file
-  if(!job_local_write_file(job,config_.GmConfig(),job_)) {
-    delete_job_id();
-    failure_="Failed to store internal job description";
+  // Pull token claims if available
+  for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
+    if(*a) {
+      Arc::SecAttr* sattr = (*a)->get("OTOKENS");
+      if(sattr) job_.tokenclaim = sattr->getAll();
+      if(!job_.tokenclaim.empty()) break;
+    }
+  }
+
+  Arc::User user(uid_);
+
+  // For each instance allocate job id and create control files (job description placeholder)
+  ids.resize(max_jobs);
+  max_jobs = make_job_id(config_,logger_,ids);
+  ids.resize(max_jobs);
+  if(max_jobs < min_jobs) {
+    delete_job_id(config_,user,sessiondir,ids);
+    failure_="Failed to allocate enough job identifiers";
     failure_type_=ARexJobInternalError;
     return;
-  };
-  // Write grami file
-  if(!job_desc_handler.write_grami(desc,job,NULL)) {
-    delete_job_id();
-    failure_="Failed to create grami file";
-    failure_type_=ARexJobInternalError;
-    return;
-  };
-  // Write ACL file
-  if(!acl.empty()) {
-    if(!job_acl_write_file(id_,config_.GmConfig(),acl)) {
-      delete_job_id();
-      failure_="Failed to process/store job ACL";
+  }
+
+  int num_jobs = 0;
+  for(; num_jobs<max_jobs; ++num_jobs) {
+    // New job is created here
+    job_.sessiondir = sessiondir+"/"+ids[num_jobs];
+    job_.jobid=ids[num_jobs];
+    // BES ActivityIdentifier is global job ID
+    idgenerator.SetLocalID(job_.jobid);
+    job_.globalid = idgenerator.GetGlobalID();
+    job_.headnode = idgenerator.GetManagerURL();
+    job_.headhost = idgenerator.GetHostname();
+    job_.globalurl = idgenerator.GetJobURL();
+    job_.interface = idgenerator.GetInterface();
+
+    GMJob job(job_.jobid,user,job_.sessiondir,JOB_STATE_ACCEPTED);
+    // Write job description file
+    if(!job_description_write_file(job,config_.GmConfig(),job_desc_str)) {
+      if(num_jobs >= min_jobs) break; 
+      delete_job_id(config_,user,sessiondir,ids);
+      failure_="Failed to store job description";
       failure_type_=ARexJobInternalError;
+      max_jobs=num_jobs;
       return;
-    };
-  };
-  // Call authentication/authorization plugin/exec
-  {
-    // talk to external plugin to ask if we can proceed
-    std::list<ContinuationPlugins::result_t> results;
-    ContinuationPlugins* plugins = config_.GmConfig().GetContPlugins();
-    if(plugins) plugins->run(job,config_.GmConfig(),results);
-    std::list<ContinuationPlugins::result_t>::iterator result = results.begin();
-    while(result != results.end()) {
-      // analyze results
-      if(result->action == ContinuationPlugins::act_fail) {
-        delete_job_id();
-        failure_="Job is not allowed by external plugin: "+result->response;
+    }
+
+    // For compatibility reasons during transitional period store full proxy if possible
+    if(!certificates.empty()) {
+      if(!job_proxy_write_file(job,config_.GmConfig(),certificates)) {
+        if(num_jobs >= min_jobs) break; 
+        delete_job_id(config_,user,sessiondir,ids);
+        failure_="Failed to write job proxy file";
         failure_type_=ARexJobInternalError;
-        return;
-      } else if(result->action == ContinuationPlugins::act_log) {
-        // Scream but go ahead
-        logger_.msg(Arc::WARNING, "Failed to run external plugin: %s", result->response);
-      } else if(result->action == ContinuationPlugins::act_pass) {
-        // Just continue
-        if(result->response.length()) {
-          logger_.msg(Arc::INFO, "Plugin response: %s", result->response);
-        };
-      } else {
-        delete_job_id();
-        failure_="Failed to pass external plugin: "+result->response;
-        failure_type_=ARexJobInternalError;
+        max_jobs=num_jobs;
         return;
       };
-      ++result;
     };
-  };
-/*@
-  // Make access to filesystem on behalf of local user
-  if(cred_plugin && (*cred_plugin)) {
-    job_subst_t subst_arg;
-    subst_arg.user=user;
-    subst_arg.job=&job_id;
-    subst_arg.reason="new";
-    // run external plugin to acquire non-unix local credentials
-    if(!cred_plugin->run(job_subst,&subst_arg)) {
-      olog << "Failed to run plugin" << std::endl;
-      delete_job_id();
+
+    // Write local file
+    if(!job_local_write_file(job,config_.GmConfig(),job_)) {
+      if(num_jobs >= min_jobs) break; 
+      delete_job_id(config_,user,sessiondir,ids);
+      failure_="Failed to store internal job description";
       failure_type_=ARexJobInternalError;
-      error_description="Failed to obtain external credentials";
-      return 1;
+      max_jobs=num_jobs;
+      return;
     };
-    if(cred_plugin->result() != 0) {
-      olog << "Plugin failed: " << cred_plugin->result() << std::endl;
-      delete_job_id();
-      error_description="Failed to obtain external credentials";
+
+    // Write grami file
+    if(!job_desc_handler.write_grami(desc,job,NULL)) {
+      if(num_jobs >= min_jobs) break; 
+      delete_job_id(config_,user,sessiondir,ids);
+      failure_="Failed to create grami file";
       failure_type_=ARexJobInternalError;
-      return 1;
+      max_jobs=num_jobs;
+      return;
     };
-  };
-*/
-  // Create session directory
-  if(!config_.GmConfig().CreateSessionDirectory(job.SessionDir(), job.get_user())) {
-    delete_job_id();
-    failure_="Failed to create session directory";
-    failure_type_=ARexJobInternalError;
-    return;
-  };
-  // Create input status file to tell downloader we
-  // are handling input in clever way.
-  job_input_status_add_file(job,config_.GmConfig());
-  // Create status file (do it last so GM picks job up here)
-  if(!job_state_write_file(job,config_.GmConfig(),JOB_STATE_ACCEPTED,false)) {
-    delete_job_id();
-    failure_="Failed registering job in A-REX";
-    failure_type_=ARexJobInternalError;
-    return;
-  };
-  // Put lock on all delegated credentials of this job.
+
+    // Write ACL file
+    if(!acl.empty()) {
+      if(!job_acl_write_file(job_.jobid,config_.GmConfig(),acl)) {
+        if(num_jobs >= min_jobs) break; 
+        delete_job_id(config_,user,sessiondir,ids);
+        failure_="Failed to process/store job ACL";
+        failure_type_=ARexJobInternalError;
+        max_jobs=num_jobs;
+        return;
+      };
+    };
+    
+    // Call authentication/authorization plugin/exec
+    // Thre is no sense in calling it for each of same jobs - do it only for first one.
+    if(num_jobs == 0) {
+      // talk to external plugin to ask if we can proceed
+      std::list<ContinuationPlugins::result_t> results;
+      ContinuationPlugins* plugins = config_.GmConfig().GetContPlugins();
+      if(plugins) plugins->run(job,config_.GmConfig(),results);
+      std::list<ContinuationPlugins::result_t>::iterator result = results.begin();
+      while(result != results.end()) {
+        // analyze results
+        if(result->action == ContinuationPlugins::act_fail) {
+          delete_job_id(config_,user,sessiondir,ids);
+          failure_="Job is not allowed by external plugin: "+result->response;
+          failure_type_=ARexJobInternalError;
+          return;
+        } else if(result->action == ContinuationPlugins::act_log) {
+          // Scream but go ahead
+          logger_.msg(Arc::WARNING, "Failed to run external plugin: %s", result->response);
+        } else if(result->action == ContinuationPlugins::act_pass) {
+          // Just continue
+          if(result->response.length()) {
+            logger_.msg(Arc::INFO, "Plugin response: %s", result->response);
+          };
+        } else {
+          delete_job_id(config_,user,sessiondir,ids);
+          failure_="Failed to pass external plugin: "+result->response;
+          failure_type_=ARexJobInternalError;
+          return;
+        };
+        ++result;
+      };
+    };
+
+    // Create session directory
+    if(!config_.GmConfig().CreateSessionDirectory(job.SessionDir(), job.get_user())) {
+      if(num_jobs >= min_jobs) break; 
+      delete_job_id(config_,user,sessiondir,ids);
+      failure_="Failed to create session directory";
+      failure_type_=ARexJobInternalError;
+      max_jobs=num_jobs;
+      return;
+    };
+
+    // Create input status file to tell downloader we
+    // are handling input in clever way.
+    job_input_status_add_file(job,config_.GmConfig());
+  }; // for num_jobs
+  max_jobs = num_jobs;
+  delete_job_id(config_,user,sessiondir,ids,max_jobs);
+  ids.resize(max_jobs);
+
+  // Create status files (do it last so GM picks job up here)
+  for(num_jobs=0; num_jobs<max_jobs; ++num_jobs) {
+    GMJob job(ids[num_jobs],Arc::User(uid_));
+    if(!job_state_write_file(job,config_.GmConfig(),JOB_STATE_ACCEPTED,false)) {
+      if(num_jobs >= min_jobs) break; 
+      delete_job_id(config_,user,sessiondir,ids);
+      failure_="Failed registering job in A-REX";
+      failure_type_=ARexJobInternalError;
+      max_jobs=num_jobs;
+      return;
+    };
+  }; // for num_jobs
+  max_jobs = num_jobs;
+  delete_job_id(config_,user,sessiondir,ids,max_jobs);
+  ids.resize(max_jobs);
+
+  // Put lock on all delegated credentials of these jobs.
   // Because same delegation id can be used multiple times remove
   // duplicates to avoid adding multiple identical locking records.
   deleg_ids.sort();
   deleg_ids.unique();
-  deleg.LockCred(id_,deleg_ids,config_.GridName());
+  for(num_jobs=0; num_jobs<max_jobs; ++num_jobs) {
+    deleg.LockCred(ids[num_jobs],deleg_ids,config_.GridName());
+  }
 
-  // Tell main loop new job has arrived
-  CommFIFO::Signal(config_.GmConfig().ControlDir(),id_);
+  // Tell main loop new jobs have arrived
+  CommFIFO::Signal(config_.GmConfig().ControlDir(),ids);
   return;
 }
 
@@ -988,7 +1063,7 @@ bool ARexJob::update_credentials(const std::string& credentials) {
   if(!delegs) return false;
   DelegationStore& deleg = delegs->operator[](config_.GmConfig().DelegationDir());
   if(!deleg.PutCred(job_.delegationid, config_.GridName(), credentials)) return false;
-  Arc::Credential cred(credentials,"","","","",false);
+  Arc::Credential cred(credentials,"","","",false,"",false);
   job_.expiretime = cred.GetEndTime();
   GMJob job(id_,Arc::User(uid_),
             job_.sessiondir,JOB_STATE_ACCEPTED);
@@ -1005,48 +1080,69 @@ bool ARexJob::update_credentials(const std::string& credentials) {
   return true;
 }
 
-bool ARexJob::make_job_id(void) {
-  if(!config_) return false;
-  int i;
-  //@ delete_job_id();
-  for(i=0;i<100;i++) {
-    //id_=Arc::tostring((unsigned int)getpid())+
-    //    Arc::tostring((unsigned int)time(NULL))+
-    //    Arc::tostring(rand(),1);
-    id_ = rand_uid64().substr(4);
-    std::string fname=job_control_path(config_.GmConfig().ControlDir(),id_,sfx_desc);
-    struct stat st;
-    if(stat(fname.c_str(),&st) == 0) continue;
-    std::string::size_type sep_pos = fname.rfind('/');
-    if(sep_pos != std::string::npos) {
-      if(!Arc::DirCreate(fname.substr(0,sep_pos),S_IRWXU|S_IXGRP|S_IRGRP|S_IXOTH|S_IROTH,true)) continue;
-    };
-    int h = ::open(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
-    // So far assume control directory is on local fs.
-    // TODO: add locks or links for NFS
-    int err = errno;
-    if(h == -1) {
-      if(err == EEXIST) continue;
-      logger_.msg(Arc::ERROR, "Failed to create job in %s", config_.GmConfig().ControlDir());
-      id_="";
-      return false;
-    };
-    fix_file_owner(fname,config_.User());
-    close(h);
-    return true;
-  };
-  logger_.msg(Arc::ERROR, "Out of tries while allocating new job ID in %s", config_.GmConfig().ControlDir());
-  id_="";
-  return false;
+bool ARexJob::make_job_id() {
+  std::vector<std::string> id(1);
+  std::size_t num = make_job_id(config_, logger_, id);
+  if (num != 1) return false;
+  id_ = id[0];
+  return true;
 }
 
-bool ARexJob::delete_job_id(void) {
-  if(!config_) return true;
-  if(!id_.empty()) {
-    // it is ok to have empty sessiondir because job_clean_final can handle such case
-    job_clean_final(GMJob(id_,Arc::User(uid_),job_.sessiondir),config_.GmConfig());
-    id_="";
+// Allocates job id(s) by creating empty job description file
+std::size_t ARexJob::make_job_id(ARexGMConfig& config_, Arc::Logger& logger_, std::vector<std::string>& ids) {
+  if(!config_) return 0;
+  if(ids.empty()) return 0;
+  for(std::size_t idx = 0;idx < ids.size();++idx) { 
+    ids[idx].clear();
+    for(int i=0;i<100;i++) {
+      //id_=Arc::tostring((unsigned int)getpid())+
+      //    Arc::tostring((unsigned int)time(NULL))+
+      //    Arc::tostring(rand(),1);
+      std::string id = rand_uid64().substr(4); // 16-4=12 chars in id
+      std::string fname=job_control_path(config_.GmConfig().ControlDir(),id,sfx_desc);
+      struct stat st;
+      if(stat(fname.c_str(),&st) == 0) continue;
+      std::string::size_type sep_pos = fname.rfind('/');
+      if(sep_pos != std::string::npos) {
+        if(!Arc::DirCreate(fname.substr(0,sep_pos),S_IRWXU|S_IXGRP|S_IRGRP|S_IXOTH|S_IROTH,true)) continue;
+      };
+      int h = ::open(fname.c_str(),O_RDWR | O_CREAT | O_EXCL,0600);
+      // So far assume control directory is on local fs.
+      // TODO: add locks or links for NFS
+      int err = errno;
+      if(h == -1) {
+        if(err == EEXIST) continue;
+        logger_.msg(Arc::ERROR, "Failed to create job in %s", config_.GmConfig().ControlDir());
+        return idx;
+      };
+      fix_file_owner(fname,config_.User());
+      close(h);
+      ids[idx] = id;
+      break;
+    };
+    if(ids[idx].empty()) {
+      logger_.msg(Arc::ERROR, "Out of tries while allocating new job ID in %s", config_.GmConfig().ControlDir());
+      return idx;
+    };
   };
+  return ids.size();;
+}
+
+bool ARexJob::delete_job_id() {
+  if(!config_) return true;
+  if(id_.empty()) return true;
+  // it is ok to have empty sessiondir because job_clean_final can handle such case
+  job_clean_final(GMJob(id_,Arc::User(uid_),job_.sessiondir),config_.GmConfig());
+  id_="";
+  return true;
+}
+
+bool ARexJob::delete_job_id(ARexGMConfig& config_, Arc::User user_, std::string const & sessiondir, std::vector<std::string>& ids, std::size_t offset) {
+  if(!config_) return false;
+  for(std::size_t idx = offset; idx < ids.size(); ++idx) {
+    job_clean_final(GMJob(ids[idx],user_,sessiondir+"/"+ids[idx]),config_.GmConfig());
+  }
+  ids.resize(offset);
   return true;
 }
 
@@ -1272,7 +1368,7 @@ std::string ARexJob::GetLogFilePath(const std::string& name) {
   return job_control_path(config_.GmConfig().ControlDir(),id_,name.c_str());
 }
 
-bool ARexJob::ChooseSessionDir(const std::string& /* jobid */, std::string& sessiondir) {
+bool ARexJob::ChooseSessionDir(ARexGMConfig& config_,Arc::Logger& logger_,std::string& sessiondir) {
   if (config_.SessionRootsNonDraining().size() == 0) {
     // no active session dirs available
     logger_.msg(Arc::ERROR, "No non-draining session dirs available");
@@ -1282,3 +1378,4 @@ bool ARexJob::ChooseSessionDir(const std::string& /* jobid */, std::string& sess
   sessiondir = config_.SessionRootsNonDraining().at(rand() % config_.SessionRootsNonDraining().size());
   return true;
 }
+

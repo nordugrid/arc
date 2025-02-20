@@ -290,7 +290,7 @@ namespace Arc {
       //Since the certificate from idp.testshib.org which signs the saml response is self-signed
       //certificate, only check the signature here, while do not check the whole chain of 
       //certificates
-      if (sec_samlresp_nd.VerifyNode(idname, "", "", false))
+      if (sec_samlresp_nd.VerifyNode(idname, "", "", false, false))
         logger.msg(Arc::INFO, "Succeeded to verify the signature under <samlp:Response/>");
       else
         logger.msg(Arc::ERROR, "Failed to verify the signature under <samlp:Response/>");

@@ -4,9 +4,11 @@ import logging
 import calendar
 import datetime
 import sqlite3
+import shutil
 
-from .ControlCommon import get_human_readable_size
+from .ControlCommon import get_human_readable_size, print_info
 
+ACCOUNTING_DB_FILE = "accounting_v2.db"
 
 class SQLFilter(object):
     """Helper object to aggregate SQL where statements"""
@@ -42,18 +44,22 @@ class SQLFilter(object):
 
 class AccountingDB(object):
     """A-REX Accounting Records database interface for python tools"""
-    def __init__(self, db_file):
+    def __init__(self, db_file, must_exists=True):
         """Try to init connection in constructor to ensure database is accessible"""
         self.logger = logging.getLogger('ARC.AccountingDB')
         self.db_file = db_file
+        self.db_version = 0
         self.con = None
         self.pub_con = None
         # don't try to initialize database if not exists
-        if not os.path.exists(db_file):
-            self.logger.error('Accounting database file is not exists at %s', db_file)
+        if must_exists and not os.path.exists(db_file):
+            self.logger.error('Accounting database file does not exists at %s', db_file)
             sys.exit(1)
         # try to make a connection
         self.adb_connect()
+        # fetch database version
+        if must_exists:
+            self.adb_version()
         # ensure Write-Ahead Logging mode
         jmode = self.__get_value('PRAGMA journal_mode=WAL', errstr='SQLite journal mode')
         if jmode != 'wal':
@@ -73,7 +79,9 @@ class AccountingDB(object):
         self.queues = {}
         self.users = {}
         self.wlcgvos = {}
+        self.fqans = {}  # v2
         self.statuses = {}
+        self.benchmarks = {}  # v2
         self.endpoints = {}
 
         # select aggregate filtering
@@ -83,7 +91,7 @@ class AccountingDB(object):
         """Initialize database connection"""
         if self.con is not None:
             self.logger.debug('Using already established SQLite connection to accounting database %s', self.db_file)
-            return
+            return self.con
         try:
             self.con = sqlite3.connect(self.db_file)
         except sqlite3.Error as e:
@@ -91,6 +99,7 @@ class AccountingDB(object):
             sys.exit(1)
         if self.con is not None:
             self.logger.debug('Connection to accounting database (%s) has been established successfully', self.db_file)
+            return self.con
 
     def adb_close(self):
         """Terminate database connection"""
@@ -98,6 +107,126 @@ class AccountingDB(object):
             self.logger.debug('Closing connection to accounting database')
             self.con.close()
             self.con = None
+
+    def adb_commit(self):
+        """Commit transaction"""
+        if self.con is not None:
+            self.logger.debug('Commiting changes to accounting database')
+            self.con.commit()
+
+    def adb_version(self):
+        """Return accounting database version"""
+        if not self.db_version:
+            self.db_version = int(self.__get_value('SELECT KeyValue FROM DBConfig WHERE KeyName = "DBSCHEMA_VERSION"'))
+            self.logger.info('Accounting database schema version for %s is %s', self.db_file, self.db_version)
+        return self.db_version
+
+    def _wal_checkpoint(self):
+        """Trigger the WAL checkpoint to write data to main database file"""
+        self.adb_connect()
+        self.logger.debug('Triggering the WAL checkpoint to dump data to the main database file')
+        self.__sql_query('PRAGMA wal_checkpoint(FULL)', errorstr='Failed to make WAL checkpoint', 
+                         filtered=False, exit_on_error=True)
+
+    def _backup_progress(self, status, remaining, total):
+        """Log database backup progress"""
+        progress = ( total - remaining ) * 100 // total
+        if progress >= self._backup_progress_log_threshold:
+            self.logger.info('Backup progress: %s%% database pages copied...', progress)
+            self._backup_progress_log_threshold += 10
+        else:
+            self.logger.debug('Backup progress: %s%% database pages copied...', progress)
+
+    def backup(self, backup_adb):
+        """Backup database to another database defined as AccountingDB object"""
+        self.adb_connect()
+        backup_con = backup_adb.adb_connect()
+        try:
+            self._backup_progress_log_threshold = 0
+            self.con.backup(backup_con, pages=1, progress=self._backup_progress)
+            backup_adb.adb_close()
+        except AttributeError as e:
+            self.logger.warning('SQlite backup method not found (Python < 3.7). Falling back to backup via vacuuming into file.')
+            backup_file = backup_adb.db_file
+            backup_adb.adb_close()
+            os.unlink(backup_file)
+            try:
+                self.con.execute('VACUUM INTO ?', (backup_file,))
+            except sqlite3.Error as e:
+                self.logger.debug('Failed to execute query: VACUUM INTO %s. Error: %s', backup_file, str(e))
+                self.logger.warning('SQlite backup via vacuuming unavailable (SQLite < 3.27). Falling back to file copy.')
+                self._wal_checkpoint()
+                self.adb_close()
+                try:
+                    shutil.copyfile(src=self.db_file, dst=backup_file)
+                except OSError as e:
+                    self.logger.error('Failed to backup database using file copy. Error: %s', str(e))
+                    sys.exit(1)
+        except sqlite3.Error as e:
+            self.logger.error('Failed to backup accounting database to %s. Error %s', backup_file, str(e))
+            sys.exit(1)
+        self.adb_close()
+        del self._backup_progress_log_threshold
+
+    def migrate_to_v2(self, targetdb_path):
+        """Run queries to copy data from v1 database to v2"""
+        self.adb_connect()
+        # connect to v2 database
+        try:
+            self.con.execute("ATTACH DATABASE '{0}' AS v2".format(targetdb_path.replace("'","''")))
+        except sqlite3.Error as e:
+            self.logger.error('Failed to attach destination database at %s. '
+                              'Error: %s', targetdb_path, str(e))
+            sys.exit(1)
+        else:
+            self.con.commit()
+        self.logger.info('Starting database records migration from %s to %s', 
+                         self.db_file, targetdb_path)
+        # run transactions from migration playbook
+        for m in _MIGRATION_V1_TO_V2:
+            table = m['table']
+            sql = m['sql']
+            filtered = '<FILTERS>' in sql
+            self.logger.info('Migrating data to v2 %s table', table)
+            cursor = self.__sql_query(sql, errorstr='Failed to migrate data to v2 {0} table.'.format(table),
+                                      filtered=filtered, exit_on_error=True)
+            self.adb_commit()
+            print_info(self.logger,'Data migrated to v2 %s table. %s records inserted.', table, cursor.rowcount)
+        self.adb_close()
+
+    def optimize(self):
+        """Make sure indexes are in place and run database ANALYZE after typical queries"""
+        self.adb_connect()
+        # run optimize queries playbook
+        for q in _DATABASE_OPTIMIZE:
+            print_info(self.logger, q['info'])
+            self.__sql_query(q['sql'], errorstr='Failed to run the optimize query', filtered=False, exit_on_error=True)
+            self.adb_commit()
+        # run typical queries
+        print_info(self.logger, 'Running typical APEL summary query to analyze')
+        self.get_apel_summaries(keep_db_con=True)
+        print_info(self.logger, 'Running typical job stats queries to analyze')
+        self.get_stats(keep_db_con=True)
+        # run ANALYZE
+        print_info(self.logger, 'Analyzing the database to optimize query performance')
+        self.__sql_query('PRAGMA optimize', errorstr='Failed to run PRAGMA optimize', filtered=False, exit_on_error=True)
+        self.adb_commit()
+        self.adb_close()
+
+    def adb_cleanup(self):
+        """Delete records from the database"""
+        self.adb_connect()
+        self.__sql_query('PRAGMA foreign_keys = ON', errorstr='Failed to enable foreign keys support', filtered=False, exit_on_error=True)
+        self.__sql_query('DELETE FROM AAR', errorstr='Failed to delete records from database', filtered=True, exit_on_error=True)
+        self.adb_commit()
+        self.adb_close()
+
+    def adb_vacuum(self):
+        """Vacuum the database file"""
+        self.adb_connect()
+        self.__sql_query('VACUUM', errorstr='Failed to vacuum database', filtered=False, exit_on_error=True)
+        self.adb_commit()
+        self.adb_close()
 
     def __del__(self):
         self.adb_close()
@@ -130,6 +259,17 @@ class AccountingDB(object):
                 errstr = errstr.format(*params)
             self.logger.debug('Failed to get %s from the accounting database. Error: %s', errstr, str(e))
         return values
+
+    # get unsigned integer (stored in SQLite as signed)
+    def __get_unsigned_int(self, value):
+        """Mitigate the unsigned integer for records written by ARC6"""
+        if value > 0:
+            return value
+        if abs(value) < 2**31:
+            return value + (1 << 32)
+        else:
+            return value + (1 << 64)
+
 
     # helpers to fetch accounting DB normalization databases to internal class structures
     def __fetch_idname_table(self, table):
@@ -164,10 +304,24 @@ class AccountingDB(object):
             self.logger.debug('Fetching WLCG VOs from accounting database')
             self.wlcgvos = self.__fetch_idname_table('WLCGVOs')
 
+    def __fetch_fqans(self, force=False):
+        if self.db_version < 2:
+            return
+        if not self.fqans or force:
+            self.logger.debug('Fetching FQANs from accounting database')
+            self.fqans = self.__fetch_idname_table('FQANs')
+
     def __fetch_statuses(self, force=False):
         if not self.statuses or force:
             self.logger.debug('Fetching available job statuses from accounting database')
             self.statuses = self.__fetch_idname_table('Status')
+
+    def __fetch_benchmarks(self, force=False):
+        if self.db_version < 2:
+            return
+        if not self.benchmarks or force:
+            self.logger.debug('Fetching available node benchmarks from accounting database')
+            self.benchmarks = self.__fetch_idname_table('Benchmarks')
 
     def __fetch_endpoints(self, force=False):
         if not self.endpoints or force:
@@ -203,9 +357,21 @@ class AccountingDB(object):
         self.__fetch_wlcgvos()
         return self.wlcgvos['byname'].keys()
 
+    def get_fqans(self):
+        if self.db_version < 2:
+            return []
+        self.__fetch_fqans()
+        return self.fqans['byname'].keys()
+
     def get_statuses(self):
         self.__fetch_statuses()
         return self.statuses['byname'].keys()
+
+    def get_benchmarks(self):
+        if self.db_version < 2:
+            return []
+        self.__fetch_benchmarks()
+        return self.benchmarks['byname'].keys()
 
     def get_endpoint_types(self):
         self.__fetch_endpoints()
@@ -254,6 +420,14 @@ class AccountingDB(object):
         """Add WLCG VOs filtering to the select queries"""
         self.__fetch_wlcgvos()
         self.__filter_nameid(wlcgvos, self.wlcgvos, 'WLCG VO', 'VOID')
+
+    def filter_fqans(self, fqans):
+        """Add FQANs filtering to the select queries"""
+        if self.db_version < 2:
+            self.logger.warning('FQAN filtering is only available for v2 accounting database. Use "--filter-extra mainfqan" instead on legacy data.')
+            return
+        self.__fetch_fqans()
+        self.__filter_nameid(fqans, self.fqans, 'FQAN', 'FQANID')
 
     def filter_statuses(self, statuses):
         """Add job status filtering to the select queries"""
@@ -315,6 +489,8 @@ class AccountingDB(object):
             'rte': "AND RecordID IN ( SELECT RecordID FROM RunTimeEnvironments WHERE RTEName IN ({0}) )",
             'dtrurl': "AND RecordID IN ( SELECT RecordID FROM DataTransfers WHERE URL IN ({0}) )"
         }
+        # 'RecordID IN' and 'JOIN' are showing comparable query time
+        # 'RecordID IN' has kept for simplicity of filtering framework
         for f in fdict.keys():
             values = fdict[f][:]
             if f in filters:
@@ -332,54 +508,52 @@ class AccountingDB(object):
         """Remove all defined SQL query filters"""
         self.sqlfilter.clean()
 
-    def __filtered_query(self, sql, params=(), errorstr=''):
-        """Add defined filters to SQL query and execute it returning the results iterator"""
-        # NOTE: this function does not close DB connection and return sqlite3.Cursor object on successful query
-        if not self.sqlfilter.isresult():
-            return []
-        if '<FILTERS>' in sql:
-            # substitute filters to <FILTERS> placeholder if defined
-            sql = sql.replace('<FILTERS>', self.sqlfilter.getsql())
-        else:
-            # add to the end of query otherwise
-            if 'WHERE' not in sql:
-                sql += ' WHERE 1=1'  # verified that this does not affect performance
-            sql += ' ' + self.sqlfilter.getsql()
-        params += self.sqlfilter.getparams()
+    def __sql_query(self, sql, params=(), errorstr='', filtered=True, exit_on_error=False):
+        """Execute SQL query, adding defined filters if requested. Does not close the connection and return sqlite3.Cursor"""
+        qparams = ()
+        if filtered:
+            if not self.sqlfilter.isresult():
+                return []
+            filters_count = sql.count('<FILTERS>')
+            if filters_count:
+                # substitute filters to <FILTERS> placeholder if defined
+                sql = sql.replace('<FILTERS>', self.sqlfilter.getsql())
+                for _ in range(filters_count):
+                    qparams += self.sqlfilter.getparams()
+            else:
+                # add to the end of query otherwise
+                if 'WHERE' not in sql:
+                    sql += ' WHERE 1=1'  # verified that this does not affect performance
+                sql += ' ' + self.sqlfilter.getsql()
+                qparams += self.sqlfilter.getparams()
+        qparams += params
         self.adb_connect()
         try:
-            res = self.con.execute(sql, params)
+            self.logger.debug('Executing query: {0}'.format(sql.replace('%', '%%').replace('?', '%s')), *qparams)
+            res = self.con.execute(sql, qparams)
             return res
         except sqlite3.Error as e:
-            params += (str(e),)
+            qparams += (str(e),)
             self.logger.debug('Failed to execute query: {0}. Error: %s'.format(
-                sql.replace('%', '%%').replace('?', '%s')), *params)
+                sql.replace('%', '%%').replace('?', '%s')), *qparams)
             if errorstr:
                 self.logger.error(errorstr + ' Something goes wrong during SQL query. '
                                              'Use DEBUG loglevel to troubleshoot.')
             self.adb_close()
+            if exit_on_error:
+                sys.exit(1)
             return []
 
-    #
-    # Testing 10M jobs SQLite database from legacy jura archive conversion (4 year of records from Andrej) shows that:
-    #   a) using SQL functions works a bit faster that python post-processing
-    #   b) calculating several things at once in SQlite does not affect performance, so it is worth to do it in one shot
-    #
-    # ALSO NOTE: in where clause filters order is very important!
-    #   Filtering time range first (using less/greater than comparision on column index) and value match filters later
-    #   MUCH faster compared to opposite order of filters.
-    #
-
-    def get_stats(self):
+    def get_stats(self, keep_db_con=False):
         """Return jobs statistics counters for records that match applied filters"""
         stats = {
             'count': 0, 'walltime': 0, 'cpuusertime': 0, 'cpukerneltime': 0,
-            'stagein': 0, 'stageout': 0, 'rangestart': 0, 'rangeend': 0
+            'stagein': 0, 'stageout': 0, 'minstarttime': 0, 'maxendtime': 0, 'minendtime': 0
         }
-        for res in self.__filtered_query('SELECT COUNT(RecordID), SUM(UsedWalltime), SUM(UsedCPUUserTime),'
-                                         'SUM(UsedCPUKernelTime), SUM(StageInVolume), SUM(StageOutVolume),'
-                                         'MIN(SubmitTime), MAX(EndTime) FROM AAR',
-                                         errorstr='Failed to get accounting statistics'):
+        for res in self.__sql_query('SELECT COUNT(RecordID), SUM(UsedWalltime), SUM(UsedCPUUserTime),'
+                                    'SUM(UsedCPUKernelTime), SUM(StageInVolume), SUM(StageOutVolume),'
+                                    'MIN(SubmitTime), MAX(EndTime), MIN(EndTime) FROM AAR',
+                                    errorstr='Failed to get accounting statistics'):
             if res[0] != 0:
                 stats = {
                     'count': res[0],
@@ -388,17 +562,21 @@ class AccountingDB(object):
                     'cpukerneltime': res[3],
                     'stagein': res[4],
                     'stageout': res[5],
-                    'rangestart': res[6],
-                    'rangeend': res[7]
+                    'minstarttime': res[6],
+                    'maxendtime': res[7],
+                    'minendtime': res[8]
                 }
-        self.adb_close()
+        if not keep_db_con:
+            self.adb_close()
         return stats
 
     def get_job_owners(self):
         """Return list of job owners distinguished names that match applied filters"""
         userids = []
-        for res in self.__filtered_query('SELECT DISTINCT UserID FROM AAR',
-                                         errorstr='Failed to get accounted job owners'):
+        sql = '''SELECT DISTINCT ID FROM Users
+                 JOIN ( SELECT UserID FROM AAR WHERE 1=1 <FILTERS> ) fAAR
+                 ON fAAR.UserID = Users.ID'''
+        for res in self.__sql_query(sql, errorstr='Failed to get accounted job owners'):
             userids.append(res[0])
         self.adb_close()
         if userids:
@@ -407,10 +585,12 @@ class AccountingDB(object):
         return []
 
     def get_job_wlcgvos(self):
-        """Return list of WLCG VOs jobs matching applied filters"""
+        """Return list of job owners WLCG VOs matching applied filters"""
         voids = []
-        for res in self.__filtered_query('SELECT DISTINCT VOID FROM AAR',
-                                         errorstr='Failed to get accounted WLCG VOs for jobs'):
+        sql = '''SELECT DISTINCT ID FROM WLCGVOs
+                 JOIN ( SELECT VOID FROM AAR WHERE 1=1 <FILTERS> ) fAAR
+                 ON fAAR.VOID = WLCGVOs.ID'''
+        for res in self.__sql_query(sql, errorstr='Failed to get accounted WLCG VOs for jobs'):
             voids.append(res[0])
         self.adb_close()
         if voids:
@@ -418,11 +598,46 @@ class AccountingDB(object):
             return [self.wlcgvos['byid'][v] for v in voids]
         return []
 
+    def get_job_authtokens(self, attribute=None):
+        """Return list of authoken attribute values matching job applied filters"""
+        if attribute is None:
+            return []
+        attrvalues = []
+        sql ='''SELECT DISTINCT AttrValue
+                FROM ( SELECT RecordID FROM AAR WHERE 1=1 <FILTERS> ) a
+                LEFT JOIN AuthTokenAttributes
+                    ON a.RecordID = AuthTokenAttributes.RecordID
+                    AND AuthTokenAttributes.AttrKey = ?'''
+        for res in self.__sql_query(sql, params=(attribute,),
+                                    errorstr='Failed to get accounted authtokens {0} for jobs'.format(attribute)):
+            if res[0]:
+                attrvalues.append(res[0])
+        return attrvalues
+
+    def get_job_fqans(self):
+        """Return list of job owners FQANs matching applied filters"""
+        jobfqans = []
+        if self.db_version < 2:
+            jobfqans = self.get_job_authtokens(attribute='mainfqan')
+        else:
+            fqanids = []
+            sql = '''SELECT DISTINCT ID FROM FQANs
+                    JOIN ( SELECT FQANID FROM AAR WHERE 1=1 <FILTERS> ) fAAR
+                    ON fAAR.FQANID = FQANs.ID'''
+            for res in self.__sql_query(sql, errorstr='Failed to get accounted WLCG VOs for jobs'):
+                fqanids.append(res[0])
+            self.adb_close()
+            if fqanids:
+                self.__fetch_fqans()
+                for v in fqanids:
+                    jobfqans.append(self.fqans['byid'][v])
+        return jobfqans
+
     def get_job_ids(self):
         """Return list of JobIDs matching applied filters"""
         jobids = []
-        for res in self.__filtered_query('SELECT JobID FROM AAR',
-                                         errorstr='Failed to get JobIDs'):
+        for res in self.__sql_query('SELECT JobID FROM AAR',
+                                    errorstr='Failed to get JobIDs'):
             jobids.append(res[0])
         self.adb_close()
         return jobids
@@ -434,7 +649,7 @@ class AccountingDB(object):
         self.logger.debug('Fetching auth token attributes for AARs from database')
         sql = 'SELECT RecordID, AttrKey, AttrValue FROM AuthTokenAttributes ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
-        for row in self.__filtered_query(sql, errorstr='Failed to get AuthTokenAttributes for AAR(s) from database'):
+        for row in self.__sql_query(sql, errorstr='Failed to get AuthTokenAttributes for AAR(s) from database'):
             if row[0] not in result:
                 result[row[0]] = []
             result[row[0]].append((row[1], row[2]))
@@ -446,8 +661,8 @@ class AccountingDB(object):
         result = {}
         self.logger.debug('Fetching job events for AARs from database')
         sql = 'SELECT RecordID, EventKey, EventTime FROM JobEvents ' \
-              'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>) ORDER BY EventTime ASC'
-        for row in self.__filtered_query(sql, errorstr='Failed to get JobEvents for AAR(s) from database'):
+              'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
+        for row in self.__sql_query(sql, errorstr='Failed to get JobEvents for AAR(s) from database'):
             if row[0] not in result:
                 result[row[0]] = []
             result[row[0]].append((row[1], row[2]))
@@ -460,7 +675,7 @@ class AccountingDB(object):
         self.logger.debug('Fetching used RTEs for AARs from database')
         sql = 'SELECT RecordID, RTEName FROM RunTimeEnvironments ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
-        for row in self.__filtered_query(sql, errorstr='Failed to get RTEs for AAR(s) from database'):
+        for row in self.__sql_query(sql, errorstr='Failed to get RTEs for AAR(s) from database'):
             if row[0] not in result:
                 result[row[0]] = []
             result[row[0]].append(row[1])
@@ -473,7 +688,7 @@ class AccountingDB(object):
         self.logger.debug('Fetching jobs datatransfer records for AARs from database')
         sql = 'SELECT RecordID, URL, FileSize, TransferStart, TransferEnd, TransferType FROM DataTransfers ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
-        for row in self.__filtered_query(sql, errorstr='Failed to get DataTransfers for AAR(s) from database'):
+        for row in self.__sql_query(sql, errorstr='Failed to get DataTransfers for AAR(s) from database'):
             if row[0] not in result:
                 result[row[0]] = []
             # in accordance to C++ enum values
@@ -484,7 +699,7 @@ class AccountingDB(object):
                 ttype = 'output'
             result[row[0]].append({
                 'url': row[1],
-                'size': row[2],
+                'size': self.__get_unsigned_int(row[2]),
                 'timestart': datetime.datetime.utcfromtimestamp(row[3]),
                 'timeend': datetime.datetime.utcfromtimestamp(row[4]),
                 'type':  ttype
@@ -498,7 +713,7 @@ class AccountingDB(object):
         result = {}
         sql = 'SELECT RecordID, InfoKey, InfoValue FROM JobExtraInfo ' \
               'WHERE RecordID IN (SELECT RecordID FROM AAR WHERE 1=1 <FILTERS>)'
-        for row in self.__filtered_query(sql, errorstr='Failed to get DataTransfers for AAR(s) from database'):
+        for row in self.__sql_query(sql, errorstr='Failed to get DataTransfers for AAR(s) from database'):
             if row[0] not in result:
                 result[row[0]] = {}
             result[row[0]][row[1]] = row[2]
@@ -509,16 +724,18 @@ class AccountingDB(object):
         """Return list of AARs corresponding to filtered query"""
         self.logger.debug('Fetching AARs main data from database')
         aars = []
-        for res in self.__filtered_query('SELECT * FROM AAR', errorstr='Failed to get AAR(s) from database'):
-            aar = AAR()
+        for res in self.__sql_query('SELECT * FROM AAR', errorstr='Failed to get AAR(s) from database'):
+            aar = AAR(version=self.db_version)
             aar.fromDB(res)
             aars.append(aar)
         if resolve_ids:
             self.__fetch_statuses()
             self.__fetch_users()
             self.__fetch_wlcgvos()
+            self.__fetch_fqans()
             self.__fetch_queues()
             self.__fetch_endpoints()
+            self.__fetch_benchmarks()
             for a in aars:
                 a.aar['Status'] = self.statuses['byid'][a.aar['StatusID']]
                 a.aar['UserSN'] = self.users['byid'][a.aar['UserID']]
@@ -527,6 +744,9 @@ class AccountingDB(object):
                 endpoint = self.endpoints['byid'][a.aar['EndpointID']]
                 a.aar['Interface'] = endpoint[0]
                 a.aar['EndpointURL'] = endpoint[1]
+                if self.db_version >= 2:
+                    a.aar['Benchmark'] = self.benchmarks['byid'][a.aar['BenchmarkID']]
+                    a.aar['FQAN'] = self.fqans['byid'][a.aar['FQANID']]
         self.adb_close()
         return aars
 
@@ -534,7 +754,6 @@ class AccountingDB(object):
         """Add info from extra tables to the list of AAR objects.
         This method assumes that the optional info will be queried just after basic info about AARs (when needed)
         The same query filtering object should be used! Do not clear filters between get_aars and enrich_aars"""
-        recordids = [a.recordid() for a in aars]
         auth_data = None
         events_data = None
         rtes_data = None
@@ -563,19 +782,35 @@ class AccountingDB(object):
             if extra_data is not None and rid in extra_data:
                 a.aar['JobExtraInfo'] = extra_data[rid]
 
-    def get_apel_summaries(self):
-        """Return info corresponding to APEL aggregated summary records"""
+    def get_apel_summaries(self, keep_db_con=False):
+        """Return data for APEL aggregated summary records"""
+        if self.db_version < 2:
+            return self.__get_apel_summaries_v1(keep_db_con)
+        else:
+            return self.__get_apel_summaries_v2(keep_db_con)
+
+    def __format_apel_submithost(self, endpointid):
+        """Return endpoint string for APEL SubmitHost"""
+        (etype, eurl) = self.endpoints['byid'][endpointid]
+        # return URL for gridftp and emies for backward compatibility
+        if etype == 'org.ogf.glue.emies.activitycreation' or etype == 'org.nordugrid.gridftpjob':
+            return eurl
+        return '{0}:{1}'.format(etype.lstrip('org.nordugrid.'), eurl)
+
+    def __get_apel_summaries_v1(self, keep_db_con=False):
+        """Query data for APEL aggregated summary records from v1 database"""
         summaries = []
         # get RecordID range to limit further filtering
         record_start = None
         record_end = None
-        for res in self.__filtered_query('SELECT min(RecordID), max(RecordID) FROM AAR',
-                                         errorstr='Failed to get records range from database'):
+        for res in self.__sql_query('SELECT min(RecordID), max(RecordID) FROM AAR',
+                                    errorstr='Failed to get records range from database'):
             record_start = res[0]
             record_end = res[1]
         if record_start is None or record_end is None:
             self.logger.error('Database query error. Failed to proceed with APEL summary generation')
-            self.adb_close()
+            if not keep_db_con:
+                self.adb_close()
             return summaries
         self.logger.debug('Will query extra table for the records in range [%s, %s]', record_start, record_end)
         # invoke heavy summary query with extra table pre-filtering
@@ -588,24 +823,25 @@ class AccountingDB(object):
                      WHERE 1=1 <FILTERS>) a
               LEFT JOIN ( SELECT * FROM JobExtraInfo
                           WHERE JobExtraInfo.RecordID >= {0} AND JobExtraInfo.RecordID <= {1}
-                          AND JobExtraInfo.InfoKey = "benchmark" ) e ON e.RecordID = a.RecordID
+                          AND JobExtraInfo.InfoKey = "benchmark" GROUP BY JobExtraInfo.RecordID ) e
+                          ON e.RecordID = a.RecordID
               LEFT JOIN ( SELECT * FROM AuthTokenAttributes
                           WHERE AuthTokenAttributes.RecordID >= {0} AND AuthTokenAttributes.RecordID <= {1}
                           AND AuthTokenAttributes.AttrKey = "mainfqan" ) t ON t.RecordID = a.RecordID
               GROUP BY YearMonth, a.UserID, a.VOID, a.EndpointID,
-                       a.NodeCount, a.CPUCount, RBenchmark'''.format(record_start, record_end)
+                       a.NodeCount, a.CPUCount, AuthToken, RBenchmark'''.format(record_start, record_end)
         self.__fetch_users()
         self.__fetch_wlcgvos()
         self.__fetch_endpoints()
         self.logger.debug('Invoking query to fetch APEL summaries data from database')
-        for res in self.__filtered_query(sql, errorstr='Failed to get APEL summary info from database'):
+        for res in self.__sql_query(sql, errorstr='Failed to get APEL summary info from v1 database'):
             (year, month) = res[12].split('-')
             summaries.append({
                 'year': year,
                 'month': month.lstrip('0'),
                 'userdn': self.users['byid'][res[0]],
                 'wlcgvo': self.wlcgvos['byid'][res[1]],
-                'endpoint': self.endpoints['byid'][res[2]][1],
+                'endpoint': self.__format_apel_submithost(res[2]),
                 'nodecount': res[3],
                 'cpucount': res[4],
                 'fqan': res[5],
@@ -616,7 +852,47 @@ class AccountingDB(object):
                 'timestart': res[10],
                 'timeend': res[11]
             })
-        self.adb_close()
+        if not keep_db_con:
+            self.adb_close()
+        return summaries
+
+    def __get_apel_summaries_v2(self, keep_db_con=False):
+        """Query data for APEL aggregated summary records from v2 database"""
+        summaries = []
+        # UserID(0), VOID(1), EndpointID(2), NodeCount(3), CPUCount(4), FQANID(5), BenchmarkID(6),
+        # COUNT(RecordID)(7), SUM(UsedWalltime)(8), SUM(UsedCPUUserTime)(9), SUM(UsedCPUKernelTime)(10),
+        # MIN(EndTime)(11), MAX(EndTime)(12), YearMonth(13)
+        sql = '''SELECT UserID, VOID, EndpointID, NodeCount, CPUCount, FQANID, BenchmarkID,
+              COUNT(RecordID), SUM(UsedWalltime), SUM(UsedCPUUserTime), SUM(UsedCPUKernelTime),
+              MIN(EndTime), MAX(EndTime), strftime("%Y-%m", endTime, "unixepoch") AS YearMonth
+              FROM AAR WHERE 1=1 <FILTERS>
+              GROUP BY YearMonth, UserID, VOID, EndpointID, NodeCount, CPUCount, FQANID, BenchmarkID'''
+        self.__fetch_users()
+        self.__fetch_wlcgvos()
+        self.__fetch_fqans()
+        self.__fetch_benchmarks()
+        self.__fetch_endpoints()
+        self.logger.debug('Invoking query to fetch APEL summaries data from database')
+        for res in self.__sql_query(sql, errorstr='Failed to get APEL summary info from database'):
+            (year, month) = res[13].split('-')
+            summaries.append({
+                'year': year,
+                'month': month.lstrip('0'),
+                'userdn': self.users['byid'][res[0]],
+                'wlcgvo': self.wlcgvos['byid'][res[1]],
+                'endpoint': self.__format_apel_submithost(res[2]),
+                'nodecount': res[3],
+                'cpucount': res[4],
+                'fqan': self.fqans['byid'][res[5]],
+                'benchmark': self.benchmarks['byid'][res[6]],
+                'count': res[7],
+                'walltime': res[8],
+                'cputime': res[9] + res[10],
+                'timestart': res[11],
+                'timeend': res[12]
+            })
+        if not keep_db_con:
+            self.adb_close()
         return summaries
 
     def get_apel_sync(self):
@@ -625,13 +901,13 @@ class AccountingDB(object):
               FROM AAR WHERE 1=1 <FILTERS> GROUP BY YearMonth, EndpointID'''
         syncs = []
         self.__fetch_endpoints()
-        for res in self.__filtered_query(sql, errorstr='Failed to get APEL sync info from database'):
+        for res in self.__sql_query(sql, errorstr='Failed to get APEL sync info from database'):
             (year, month) = res[0].split('-')
             syncs.append({
                 'year': year,
                 'month': month.lstrip('0'),
                 'count': res[1],
-                'endpoint': self.endpoints['byid'][res[2]][1]
+                'endpoint': self.__format_apel_submithost(res[2])
             })
         self.adb_close()
         return syncs
@@ -640,7 +916,7 @@ class AccountingDB(object):
         """Return latest endtime for records matching defined filters"""
         endtime = None
         sql = 'SELECT MAX(EndTime) FROM AAR'
-        for res in self.__filtered_query(sql, errorstr='Failed to get latest endtime for records from database'):
+        for res in self.__sql_query(sql, errorstr='Failed to get latest endtime for records from database'):
             endtime = res[0]
             break
         self.adb_close()
@@ -724,14 +1000,64 @@ class AccountingDB(object):
             updatetime = 0
         return updatetime
 
-
 class AAR(object):
     """AAR representation in Python"""
-    def __init__(self):
-        # define AAR dict structure
+    def __init__(self, version=2):
+        self.logger = logging.getLogger('ARC.AccountingDB.AAR')
         self.aar = {}
+        self.version = version
 
     def fromDB(self, res):
+        if self.version == 2:
+            return self.__fromDB_v2(res)
+        elif self.version == 1:
+            return self.__fromDB_v1(res)
+        else:
+            self.logger.fatal('AAR version %s is not supported.', self.version)
+            sys.exit(1)
+
+    def __fromDB_v2(self, res):
+        self.aar = {
+            'RecordID': res[0],
+            'JobID': res[1],
+            'LocalJobID': res[2],
+            'EndpointID': res[3],
+            'Interface': None,
+            'EndpointURL': None,
+            'QueueID': res[4],
+            'Queue': None,
+            'UserID': res[5],
+            'UserSN': None,
+            'VOID': res[6],
+            'WLCGVO': None,
+            'FQANID': res[7],
+            'FQAN': None,
+            'StatusID': res[8],
+            'Status': None,
+            'ExitCode': res[9],
+            'BenchmarkID': res[10],
+            'Benchmark': None,
+            'SubmitTime': datetime.datetime.utcfromtimestamp(res[11]),
+            'EndTime': datetime.datetime.utcfromtimestamp(res[12]),
+            'NodeCount': res[13],
+            'CPUCount': res[14],
+            'UsedMemory': res[15],
+            'UsedVirtMem': res[16],
+            'UsedWalltime': res[17],
+            'UsedCPUUserTime': res[18],
+            'UsedCPUKernelTime': res[19],
+            'UsedCPUTime': res[18] + res[19],
+            'UsedScratch': res[20],
+            'StageInVolume': res[21],
+            'StageOutVolume': res[22],
+            'AuthTokenAttributes': [],
+            'JobEvents': [],
+            'RunTimeEnvironments': [],
+            'DataTransfers': [],
+            'JobExtraInfo': {}
+        }
+
+    def __fromDB_v1(self, res):
         self.aar = {
             'RecordID': res[0],
             'JobID': res[1],
@@ -782,6 +1108,11 @@ class AAR(object):
     def wlcgvo(self):
         return self.aar['WLCGVO']
 
+    def fqan(self):
+        if self.version < 2:
+            return None
+        return self.aar['FQAN']
+
     # dedicated lists with extra info
     def events(self):
         return self.aar['JobEvents']
@@ -813,3 +1144,162 @@ class AAR(object):
         submithost = submithost.split('/')[0]  # [exmple.org]/jobs...
         return submithost
 
+#
+# SQL QUERY PLAYBOOKS
+#
+
+_DATABASE_OPTIMIZE = [
+    {
+        'info': 'Creating composite index if not exists on AAR(StatusID, EndTime)',
+        'sql': 'CREATE INDEX IF NOT EXISTS AAR_StatusID_EndTime_IDX ON AAR(StatusID, EndTime)'
+    },
+    {
+        'info': 'Creating composite index if not exists on AuthTokenAttributes(RecordID, AttrKey)',
+        'sql': 'CREATE INDEX IF NOT EXISTS AuthTokenAttributes_RecordID_AttrKey_IDX ON AuthTokenAttributes(RecordID, AttrKey)'
+    },
+    {
+        'info': 'Creating composite index if not exists on JobExtraInfo(RecordID, InfoKey)',
+        'sql': 'CREATE INDEX IF NOT EXISTS JobExtraInfo_RecordID_InfoKey_IDX ON JobExtraInfo(RecordID, InfoKey)'
+    }
+]
+
+_MIGRATION_V1_TO_V2 = [
+    {
+        'table': 'Queues',
+        'sql': 'INSERT OR IGNORE INTO v2.Queues(Name) SELECT Name FROM main.Queues'
+    },
+    {
+        'table': 'Users',
+        'sql': 'INSERT OR IGNORE INTO v2.Users(Name) SELECT Name FROM main.Users'
+    },
+    {
+        'table': 'WLCGVOs',
+        'sql': 'INSERT OR IGNORE INTO v2.WLCGVOs(Name) SELECT Name FROM main.WLCGVOs'
+    },
+    {
+        'table': 'Status',
+        'sql': 'INSERT OR IGNORE INTO v2.Status(Name) SELECT Name FROM main.Status'
+    },
+    {
+        'table': 'Endpoints',
+        'sql': 'INSERT OR IGNORE INTO v2.Endpoints(Interface,URL) SELECT Interface,URL FROM main.Endpoints'
+    },
+    {
+        'table': 'Benchmarks',
+        'sql': '''INSERT OR IGNORE INTO v2.Benchmarks(Name)
+            SELECT DISTINCT main.JobExtraInfo.InfoValue
+            FROM ( SELECT main.AAR.RecordID FROM main.AAR WHERE 1=1 <FILTERS> ) a
+            LEFT JOIN main.JobExtraInfo
+                ON a.RecordID = main.JobExtraInfo.RecordID
+                AND main.JobExtraInfo.InfoKey = "benchmark"'''
+    },
+    {
+        'table': 'FQANS',
+        'sql': '''INSERT OR IGNORE INTO v2.FQANs(Name)
+            SELECT DISTINCT main.AuthTokenAttributes.AttrValue
+            FROM ( SELECT main.AAR.RecordID FROM main.AAR WHERE 1=1 <FILTERS> ) a
+            LEFT JOIN main.AuthTokenAttributes
+                ON a.RecordID = main.AuthTokenAttributes.RecordID
+                AND main.AuthTokenAttributes.AttrKey = "mainfqan"'''
+    },
+    {
+        'table': 'AAR',
+        'sql': '''INSERT OR IGNORE INTO v2.AAR(
+                    JobID,LocalJobID,EndpointID,QueueID,UserID,VOID,
+                    StatusID,ExitCode,SubmitTime,EndTime,NodeCount,CPUCount,
+                    UsedMemory,UsedVirtMem,UsedWalltime,UsedCPUUserTime,UsedCPUKernelTime,
+                    UsedScratch,StageInVolume,StageOutVolume,FQANID,BenchmarkID)
+            SELECT a.JobID,a.LocalJobID,v2.Endpoints.ID,v2.Queues.ID,v2.Users.ID,v2.WLCGVOs.ID,
+                    v2.Status.ID,a.ExitCode,a.SubmitTime,a.EndTime,a.NodeCount,a.CPUCount,
+                    a.UsedMemory,a.UsedVirtMem,a.UsedWalltime,a.UsedCPUUserTime,a.UsedCPUKernelTime,
+                    a.UsedScratch,a.StageInVolume,a.StageOutVolume,v2.FQANs.ID,v2.Benchmarks.ID
+            FROM ( SELECT * FROM AAR WHERE 1=1 <FILTERS> ) a
+            LEFT JOIN JobExtraInfo 
+                ON a.RecordID = JobExtraInfo.RecordID 
+                AND JobExtraInfo.InfoKey = "benchmark"
+            LEFT JOIN AuthTokenAttributes 
+                ON a.RecordID = AuthTokenAttributes.RecordID 
+                AND AuthTokenAttributes.AttrKey = "mainfqan" 
+            JOIN v2.Benchmarks 
+                ON COALESCE(JobExtraInfo.InfoValue, '') = v2.Benchmarks.Name
+            JOIN v2.FQANs 
+                ON COALESCE(AuthTokenAttributes.AttrValue, '') = v2.FQANs.Name
+            JOIN main.Users ON a.UserID = main.Users.ID
+            JOIN v2.Users ON main.Users.Name = v2.Users.Name
+            JOIN main.Queues ON a.QueueID = main.Queues.ID
+            JOIN v2.Queues ON main.Queues.Name = v2.Queues.Name
+            JOIN main.WLCGVOs ON a.VOID = main.WLCGVOs.ID
+            JOIN v2.WLCGVOs ON main.WLCGVOs.Name = v2.WLCGVOs.Name
+            JOIN main.Status ON a.StatusID = main.Status.ID
+            JOIN v2.Status ON main.Status.Name = v2.Status.Name
+            JOIN main.Endpoints ON a.EndpointID = main.Endpoints.ID
+            JOIN v2.Endpoints 
+                ON main.Endpoints.URL = v2.Endpoints.URL 
+                AND main.Endpoints.Interface = v2.Endpoints.Interface'''
+    },
+    {
+        'table': 'AuthTokenAttributes',
+        'sql': '''INSERT OR IGNORE INTO v2.AuthTokenAttributes(RecordID,AttrKey,AttrValue)
+            SELECT v2.AAR.RecordID, main.AuthTokenAttributes.AttrKey, main.AuthTokenAttributes.AttrValue
+            FROM (  SELECT RecordID, JobID
+                    FROM main.AAR
+                    WHERE 1=1 <FILTERS>
+            ) AS fAAR
+            JOIN main.AuthTokenAttributes
+                ON fAAR.RecordID = main.AuthTokenAttributes.RecordID
+            JOIN v2.AAR ON fAAR.JobID = v2.AAR.JobID'''
+    },
+    {
+        'table': 'JobEvents',
+        'sql': '''INSERT OR IGNORE INTO v2.JobEvents(RecordID,EventKey,EventTime)
+            SELECT v2.AAR.RecordID, main.JobEvents.EventKey, main.JobEvents.EventTime
+            FROM (  SELECT RecordID, JobID
+                    FROM main.AAR
+                    WHERE 1=1 <FILTERS>
+            ) AS fAAR
+            JOIN main.JobEvents
+                ON fAAR.RecordID = main.JobEvents.RecordID
+            JOIN v2.AAR ON fAAR.JobID = v2.AAR.JobID'''
+    },
+    {
+        'table': 'RunTimeEnvironments',
+        'sql': '''INSERT OR IGNORE INTO v2.RunTimeEnvironments(RecordID,RTEName)
+            SELECT v2.AAR.RecordID, main.RunTimeEnvironments.RTEName
+            FROM (  SELECT RecordID, JobID
+                    FROM main.AAR
+                    WHERE 1=1 <FILTERS>
+            ) AS fAAR
+            JOIN main.RunTimeEnvironments
+                ON fAAR.RecordID = main.RunTimeEnvironments.RecordID
+            JOIN v2.AAR ON fAAR.JobID = v2.AAR.JobID'''
+    },
+    {
+        'table': 'DataTransfers',
+        'sql': '''INSERT OR IGNORE INTO v2.DataTransfers(
+                RecordID, URL, FileSize,
+                TransferStart, TransferEnd, TransferType
+            )
+            SELECT v2.AAR.RecordID, main.DataTransfers.URL,
+                    main.DataTransfers.FileSize, main.DataTransfers.TransferStart,
+                    main.DataTransfers.TransferEnd, main.DataTransfers.TransferType
+            FROM (  SELECT RecordID, JobID
+                    FROM main.AAR
+                    WHERE 1=1 <FILTERS>
+            ) AS fAAR
+            JOIN main.DataTransfers
+                ON fAAR.RecordID = main.DataTransfers.RecordID
+            JOIN v2.AAR ON fAAR.JobID = v2.AAR.JobID'''
+    },
+    {
+        'table': 'JobExtraInfo',
+        'sql': '''INSERT OR IGNORE INTO v2.JobExtraInfo(RecordID,InfoKey,InfoValue)
+            SELECT v2.AAR.RecordID, main.JobExtraInfo.InfoKey, main.JobExtraInfo.InfoValue
+            FROM (  SELECT RecordID, JobID
+                    FROM main.AAR
+                    WHERE 1=1 <FILTERS>
+            ) AS fAAR
+            JOIN main.JobExtraInfo
+                ON fAAR.RecordID = main.JobExtraInfo.RecordID
+            JOIN v2.AAR ON fAAR.JobID = v2.AAR.JobID'''
+    }
+]

@@ -13,7 +13,6 @@ Build-Depends:
  libssl-dev,
  libglibmm-2.4-dev,
  libltdl-dev,
- libldap2-dev,
  uuid-dev,
  libcppunit-dev,
  pkg-config,
@@ -24,6 +23,7 @@ Build-Depends:
  libglobus-ftp-control-dev,
  libxrootd-client-dev | dpkg (<< 1.20.9),
  libgfal2-dev,
+ libs3-dev,
  openssl,
  swig,
  libnss3-dev,
@@ -34,6 +34,10 @@ Build-Depends:
  libldns-dev,
  libsystemd-dev [linux-any] | debhelper (<< 9.20150101) [linux-any],
  bash-completion,
+ help2man,
+ python3-pip,
+ python3-setuptools,
+ python3-wheel,
  python3-dev
 Standards-Version: 4.4.1
 Homepage: http://www.nordugrid.org
@@ -65,7 +69,9 @@ Conflicts:
  nordugrid-arc-python (<< 7.0.0~),
  python-nordugrid-arc (<< 7.0.0~),
  nordugrid-arc-nordugridmap (<< 7.0.0~),
- nordugrid-arc-gridmap-utils (<< 6.0.0~)
+ nordugrid-arc-gridmap-utils (<< 6.0.0~),
+ nordugrid-arc-plugins-gridftpjob (<< 7.0.0~),
+ nordugrid-arc-plugins-ldap (<< 7.0.0~)
 Breaks:
  nordugrid-arc-hed (<< 1.0.1~rc2~),
  nordugrid-arc-arex (<< 2.0.1~),
@@ -267,6 +273,7 @@ Depends:
  nordugrid-arc-plugins-needed (= ${binary:Version}),
  libjson-xs-perl,
  libxml-simple-perl,
+ procps,
  lsb-base (>= 3.0-6)
 Description: ARC Resource-coupled EXecution service
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -280,6 +287,25 @@ Description: ARC Resource-coupled EXecution service
  staging, data caching, software environment provisioning, information
  collection and exposure, accounting information gathering and
  publishing.
+
+Package: nordugrid-arc-arex-lrms-contrib
+Replaces:
+ nordugrid-arc-arex (<< 7.0.0~)
+Breaks:
+ nordugrid-arc-arex (<< 7.0.0~)
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${perl:Depends},
+ ${python3:Depends},
+ nordugrid-arc-arex (= ${binary:Version})
+Description: ARC Resource-coupled EXecution service - conributed LRMS backends
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ The AREX contributed LRMS backends package contains additional LRMS
+ support script contributed by the ARC user community.
 
 Package: nordugrid-arc-community-rtes
 Architecture: all
@@ -305,7 +331,7 @@ Provides:
  nordugrid-arc-plugins-arcrest
 Replaces:
  nordugrid-arc-plugins-arcrest (<< 7.0.0~)
-Conflifts:
+Conflicts:
  nordugrid-arc-plugins-arcrest (<< 7.0.0~)
 Depends:
  ${shlibs:Depends},
@@ -319,39 +345,20 @@ Description: ARC base plugins
  ARC base plugins. This includes the Message Chain Components (MCCs)
  and Data Manager Components (DMCs).
 
-Package: nordugrid-arc-plugins-ldap
-Replaces:
- nordugrid-arc-plugins-needed (<< 7.0.0~)
-Breaks:
- nordugrid-arc-plugins-needed (<< 7.0.0~)
-Architecture: any
-Depends:
- ${shlibs:Depends},
- ${misc:Depends},
- libarccommon4 (= ${binary:Version})
-Description: ARC LDAP plugins
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the middleware, known as the Advanced Resource
- Connector (ARC).
- .
- ARC LDAP plugins. These allow access to data through the ldap
- protocol.
-
 Package: nordugrid-arc-plugins-globus
 Architecture: all
 Section: oldlibs
 Depends:
  ${misc:Depends},
  nordugrid-arc-plugins-gridftp (>= ${source:Version}),
- nordugrid-arc-plugins-gridftpjob (>= ${source:Version}),
  nordugrid-arc-plugins-lcas-lcmaps (>= ${source:Version})
 Description: ARC Globus plugins (transitional package)
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the  Advanced Resource
  Connector (ARC).
  .
- ARC Globus plugins. This compat metapackage brings all Globus dependent
- plugins at once, including: Data Manager Components (DMCs), Client plugin
+ ARC Globus plugins. This compat metapackage brings all Globus
+ dependent plugins at once, including: Data Manager Components (DMCs)
  and LCAS/LCMAPS tools.
  .
  This is a transitional package. It is meant to allow smooth transition
@@ -414,25 +421,6 @@ Description: ARC LCAS/LCMAPS plugins
  ARC LCAS/LCMAPS tools allow configuring ARC CE to use LCAS/LCMAPS
  services for authorization and mapping.
 
-Package: nordugrid-arc-plugins-gridftpjob
-Replaces:
- nordugrid-arc-plugins-globus (<< 6.5.0~)
-Breaks:
- nordugrid-arc-plugins-globus (<< 6.5.0~)
-Architecture: any
-Depends:
- ${shlibs:Depends},
- ${misc:Depends},
- libarccommon4 (= ${binary:Version}),
- libarcglobusutils4 (= ${binary:Version}),
- nordugrid-arc-plugins-gridftp (= ${binary:Version})
-Description: ARC GRIDFTPJOB client plugin
- NorduGrid is a collaboration aiming at development, maintenance and
- support of the middleware, known as the Advanced Resource
- Connector (ARC).
- .
- ARC GRIDFTPJOB plugin allows submitting jobs via the gridftpd interface.
-
 Package: nordugrid-arc-plugins-xrootd
 Architecture: any
 Depends:
@@ -445,6 +433,20 @@ Description: ARC xrootd plugins
  Connector (ARC).
  .
  ARC xrootd plugins. These allow access to data through the xrootd
+ protocol.
+
+Package: nordugrid-arc-plugins-s3
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ libarccommon4 (= ${binary:Version}),
+Description: ARC S3 plugins
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ ARC plugins for S3. These allow access to data through the S3
  protocol.
 
 Package: nordugrid-arc-plugins-gfal
@@ -587,3 +589,38 @@ Description: ARC optional worker nodes components
  .
  This package contains the optional components that provide new job
  management features on the worker nodes (WN).
+
+Package: python3-arcrest
+Provides:
+ ${python3:Provides}
+Architecture: all
+Section: python
+Depends:
+ ${misc:Depends},
+ ${python3:Depends}
+Description: ARC REST client
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ This package contains the ARC REST client.
+
+
+
+Package: nordugrid-arc-arc-exporter
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ python3-prometheus-client,
+ python3-datetime,
+ python3-collections,
+ python3-xml
+Description: ARC prometheus exporter
+ NorduGrid is a collaboration aiming at development, maintenance and
+ support of the middleware, known as the Advanced Resource
+ Connector (ARC).
+ .
+ This package contains the Prometheus arc-exporter which collects and publishes metrics
+ about jobs and datastaging on the ARC-CE. 
+

@@ -99,7 +99,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   static const int emies_secnum       = 3;
   cf.AddSection("arex/ws/jobs");
   static const int publicinfo_secnum  = 4;
-  cf.AddSection("arex/ws/publicinfo");
+  cf.AddSection("infosys/accesscontrol");
   static const int ws_secnum          = 5;
   cf.AddSection("arex/ws");
   static const int jura_secnum        = 6;
@@ -395,6 +395,18 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             }
           }
         }
+        else if (command == "authtokenmap") {
+          if (config.job_log) {
+            std::list<std::string> pairs;
+            Arc::tokenize(rest, pairs, ",");
+            for(std::list<std::string>::iterator pair = pairs.begin(); pair != pairs.end(); ++pair) {
+              std::string::size_type seppos = pair->find(':');
+              if(seppos != std::string::npos) {
+                config.job_log->AddTokenMap(pair->substr(0,seppos),pair->substr(seppos+1));
+              }
+            }
+          }
+        }
         /*
           #infoproviders_timelimit
           Currently information provider timeout is not implemented,
@@ -489,7 +501,6 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
 
     if (cf.SectionNum() == publicinfo_secnum) { // arex/ws/publicinfo
       if (cf.SubSection()[0] == '\0') {
-        config.enable_publicinfo = true;
         if (command == "allowaccess") {
           while(!rest.empty()) {
             std::string str = Arc::ConfigIni::NextArg(rest);

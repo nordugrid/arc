@@ -43,13 +43,13 @@ namespace Arc {
     valid_ = true;
   }
 
-  JWSE::JWSE(std::string const& jwseCompact): valid_(false), header_(NULL, &cJSON_Delete), keyOrigin_(NoKey) {
+  JWSE::JWSE(std::string const& jwseCompact, UserConfig& userconfig): valid_(false), header_(NULL, &cJSON_Delete), keyOrigin_(NoKey) {
     OpenSSLInit();
 
-    (void)Input(jwseCompact);
+    (void)Input(jwseCompact, userconfig);
   }
 
-  bool JWSE::Input(std::string const& jwseCompact) {
+  bool JWSE::Input(std::string const& jwseCompact, UserConfig& userconfig) {
     Cleanup();
 
     logger_.msg(DEBUG, "JWSE::Input: token: %s", jwseCompact);
@@ -123,7 +123,7 @@ namespace Arc {
       }
 
       // Signature
-      if(!ExtractPublicKey()) return false;
+      if(!ExtractPublicKey(userconfig)) return false;
       char const* signatureStart = pos;
       char const* signatureEnd = jwseCompact.c_str() + jwseCompact.length();
       std::string signature = Base64::decodeURLSafe(signatureStart, signatureEnd-signatureStart);

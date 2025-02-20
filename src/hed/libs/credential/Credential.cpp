@@ -27,43 +27,6 @@ using namespace ArcCredential;
 
 namespace Arc {
 
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-
-static BN_GENCB* BN_GENCB_new(void) {
-  BN_GENCB* bn = (BN_GENCB*)std::malloc(sizeof(BN_GENCB));
-  if(bn) std::memset(bn, 0, sizeof(BN_GENCB));
-  return bn;
-}
-
-static void BN_GENCB_free(BN_GENCB* bn) {
-  if(bn) std::free(bn);
-}
-
-#define X509_getm_notAfter X509_get_notAfter
-#define X509_getm_notBefore X509_get_notBefore
-#define X509_set1_notAfter X509_set_notAfter
-#define X509_set1_notBefore X509_set_notBefore
-
-static const unsigned char* ASN1_STRING_get0_data(const ASN1_STRING* x) {
-    return x->data;
-}
-
-#endif
-
-
-#if (OPENSSL_VERSION_NUMBER < 0x10002000L)
-
-static int X509_get_signature_nid(const X509 *x) {
-    return OBJ_obj2nid(x->sig_alg->algorithm);
-}
-
-static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const X509 *x) {
-    if (psig) *psig = x->signature;
-    if (palg) *palg = x->sig_alg;
-}
-
-#endif
-
 
 #if (OPENSSL_VERSION_NUMBER < 0x30000000L)
 #define OPENSSL_CONST
@@ -376,7 +339,7 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
   }
 
   std::string Credential::GetProxyPolicy(void) const {
-    return verification_proxy_policy;
+    return verification_proxy_policy_;
   }
 
   Period Credential::GetLifeTime(void) const {
@@ -441,12 +404,20 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     return
     Credential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
                !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
-               usercfg.CACertificatesDirectory(), usercfg.CACertificatePath()).IsValid();
+               usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseSystem()).IsValid();
   }
 
-  bool Credential::IsValid(void) {
+  bool Credential::IsValid() const {
     Time t;
-    return verification_valid && (GetStartTime() <= t) && (t < GetEndTime());
+    return verification_valid_ && (GetStartTime() <= t) && (t < GetEndTime());
+  }
+
+  Credential::operator bool() const {
+    return initialized_;
+  }
+
+  bool Credential::operator!() const {
+    return !initialized_;
   }
 
   static BIO* OpenFileBIO(const std::string& file) {
@@ -707,16 +678,16 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
   }
 
   bool Credential::Verify(void) {
-    verification_proxy_policy.clear();
-    if(verify_cert_chain(cert_, &cert_chain_, cacertfile_, cacertdir_, verification_proxy_policy)) {
+    verification_proxy_policy_.clear();
+    if(verify_cert_chain(cert_, &cert_chain_, cacertfile_, cacertdir_, verification_proxy_policy_)) {
       CredentialLogger.msg(VERBOSE, "Certificate verification succeeded");
-      verification_valid = true;
+      verification_valid_ = true;
       return true;
     }
     else { CredentialLogger.msg(INFO, "Certificate verification failed"); LogError(); return false;}
   }
 
-  Credential::Credential() : verification_valid(false), cert_(NULL), pkey_(NULL),
+  Credential::Credential() : verification_valid_(false), initialized_(false), cert_(NULL), pkey_(NULL),
         cert_chain_(NULL), proxy_cert_info_(NULL), format(CRED_UNKNOWN),
         start_(Time()), lifetime_(Period("PT12H")),
         req_(NULL), rsa_key_(NULL), signing_alg_(NULL), keybits_(0),
@@ -732,9 +703,11 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
     //Initiate the proxy certificate constant and  method which is required by openssl
     if(!proxy_init_) InitProxyCertInfo();
+
+    initialized_ = true;
   }
 
-  Credential::Credential(const int keybits) : verification_valid(false),
+  Credential::Credential(const int keybits) : verification_valid_(false), initialized_(false),
     cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
     start_(Time()), lifetime_(Period("PT12H")),
     req_(NULL), rsa_key_(NULL), signing_alg_(NULL), keybits_(keybits),
@@ -750,11 +723,13 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
 
     //Initiate the proxy certificate constant and  method which is required by openssl
     if(!proxy_init_) InitProxyCertInfo();
+
+    initialized_ = true;
   }
 
   Credential::Credential(Time start, Period lifetime, int keybits, std::string proxyversion,
         std::string policylang, std::string policy, int pathlength) :
-        verification_valid(false), cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
+        verification_valid_(false), initialized_(false), cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
         start_(start), lifetime_(lifetime), req_(NULL), rsa_key_(NULL),
         signing_alg_(NULL), keybits_(keybits), extensions_(NULL) {
 
@@ -770,6 +745,8 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     if(!proxy_init_) InitProxyCertInfo();
 
     SetProxyPolicy(proxyversion, policylang, policy, pathlength);
+
+    initialized_ = true;
   }
 
   void Credential::SetProxyPolicy(const std::string& proxyversion, const std::string& policylang,
@@ -913,13 +890,13 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
   }
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile,
-        const std::string& cadir, const std::string& cafile,
+        const std::string& cadir, const std::string& cafile, bool causesystem,
         PasswordSource& passphrase4key, const bool is_file) {
-    InitCredential(certfile,keyfile,cadir,cafile,passphrase4key,is_file);
+    InitCredential(certfile,keyfile,cadir,cafile,causesystem,passphrase4key,is_file);
   }
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile,
-        const std::string& cadir, const std::string& cafile,
+        const std::string& cadir, const std::string& cafile, bool causesystem,
         const std::string& passphrase4key, const bool is_file) {
     PasswordSource* pass = NULL;
     if(passphrase4key.empty()) {
@@ -929,19 +906,29 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
     } else {
       pass = new PasswordSourceString(passphrase4key);
     }
-    InitCredential(certfile,keyfile,cadir,cafile,*pass,is_file);
+    InitCredential(certfile,keyfile,cadir,cafile,causesystem,*pass,is_file);
     delete pass;
   }
 
   Credential::Credential(const UserConfig& usercfg, PasswordSource& passphrase4key) {
     if (usercfg.CredentialString().empty()) {
-      InitCredential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
-                     !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
-                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
-                     passphrase4key, true);
+      std::string certpath = usercfg.ProxyPath();
+      if(certpath.empty()) certpath = usercfg.CertificatePath();
+      std::string keypath = usercfg.ProxyPath();
+      if(keypath.empty()) keypath = usercfg.KeyPath();
+      // Skip attempt to initialize credentials if no credentials are specified.
+      if(!certpath.empty()) {
+        InitCredential(certpath, keypath,
+                       usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseSystem(),
+                       passphrase4key, true);
+      } else {
+        // That is not exactly an error because UserConfig may be set to use different type of credentials.
+        CredentialLogger.msg(INFO, "Certificate/Proxy path is empty");
+        InitEmpty();
+      }
     } else {
       InitCredential(usercfg.CredentialString(), "",
-                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
+                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseSystem(),
                      passphrase4key, false);
     }
   }
@@ -956,27 +943,60 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
       pass = new PasswordSourceString(passphrase4key);
     }
     if (usercfg.CredentialString().empty()) {
-      InitCredential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
-                     !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
-                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
-                     *pass, true);
+      std::string certpath = usercfg.ProxyPath();
+      if(certpath.empty()) certpath = usercfg.CertificatePath();
+      std::string keypath = usercfg.ProxyPath();
+      if(keypath.empty()) keypath = usercfg.KeyPath();
+      // Skip attempt to initialize credentials if no credentials are specified.
+      if(!certpath.empty()) {
+        InitCredential(certpath, keypath,
+                       usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseSystem(),
+                       *pass, true);
+      } else {
+        // That is not exactly an error because UserConfig may be set to use different type of credentials.
+        CredentialLogger.msg(INFO, "Certificate/Proxy path is empty");
+        InitEmpty();
+      }
     } else {
       InitCredential(usercfg.CredentialString(), "",
-                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
+                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseSystem(),
                      *pass, false);
     }
     delete pass;
   }
 
+  void Credential::InitEmpty() {
+    initialized_ = false;
+    cacertfile_ = "";
+    cacertdir_ = "";
+    certfile_ = "";
+    keyfile_ = "";
+    verification_valid_ = false;
+    cert_ = NULL;
+    pkey_ = NULL;
+    cert_chain_ = NULL;
+    proxy_cert_info_ = NULL;
+    req_ = NULL;
+    rsa_key_ = NULL;
+    signing_alg_ = NULL;
+    keybits_ = 0;
+    proxyver_ = 0;
+    pathlength_ = 0;
+    extensions_ = NULL;
+
+    OpenSSLInit();
+  }
+
   void Credential::InitCredential(const std::string& certfile, const std::string& keyfile,
-        const std::string& cadir, const std::string& cafile,
+        const std::string& cadir, const std::string& cafile, bool causesystem,
         PasswordSource& passphrase4key, const bool is_file) {
 
-    cacertfile_ = cafile;
-    cacertdir_ = cadir;
+    initialized_ = false;
+    cacertfile_ = !causesystem ? cafile : "";
+    cacertdir_ = !causesystem ? cadir : "";
     certfile_ = certfile;
     keyfile_ = keyfile;
-    verification_valid = false;
+    verification_valid_ = false;
     cert_ = NULL;
     pkey_ = NULL;
     cert_chain_ = NULL;
@@ -1065,12 +1085,13 @@ static void X509_get0_signature(ASN1_BIT_STRING **psig, X509_ALGOR **palg, const
           LogError(); break;
         }
       }
+      initialized_ = true;
     }
 
-    if(!cacertfile_.empty() || !cacertdir_.empty()) {
+    if(!cacertfile_.empty() || !cacertdir_.empty() || causesystem) {
       Verify();
     } else {
-      if(!collect_cert_chain(cert_, &cert_chain_, verification_proxy_policy)) {
+      if(!collect_cert_chain(cert_, &cert_chain_, verification_proxy_policy_)) {
         CredentialLogger.msg(INFO, "Certificate information collection failed");
         LogError();
       }
@@ -2353,7 +2374,7 @@ err:
   Credential::Credential(const std::string& CAcertfile, const std::string& CAkeyfile,
        const std::string& CAserial, const std::string& extfile,
        const std::string& extsect, PasswordSource& passphrase4key) :
-       certfile_(CAcertfile), keyfile_(CAkeyfile), verification_valid(false),
+       certfile_(CAcertfile), keyfile_(CAkeyfile), verification_valid_(false), initialized_(false),
        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
        req_(NULL), rsa_key_(NULL), signing_alg_(NULL), keybits_(0),
        proxyver_(0), pathlength_(0), extensions_(NULL),
@@ -2373,6 +2394,7 @@ err:
       loadCertificateFile(CAcertfile, cert_, &cert_chain_);
       if(cert_) check_cert_type(cert_,cert_type_);
       loadKeyFile(CAkeyfile, pkey_, passphrase4key);
+      initialized_ = true;
     } catch(std::exception& err){
       CredentialLogger.msg(ERROR, "ERROR: %s", err.what());
       LogError();
@@ -2382,7 +2404,7 @@ err:
   Credential::Credential(const std::string& CAcertfile, const std::string& CAkeyfile,
        const std::string& CAserial, const std::string& extfile,
        const std::string& extsect, const std::string& passphrase4key) :
-       certfile_(CAcertfile), keyfile_(CAkeyfile), verification_valid(false),
+       certfile_(CAcertfile), keyfile_(CAkeyfile), verification_valid_(false), initialized_(false),
        cert_(NULL), pkey_(NULL), cert_chain_(NULL), proxy_cert_info_(NULL),
        req_(NULL), rsa_key_(NULL), signing_alg_(NULL), keybits_(0),
        proxyver_(0), pathlength_(0), extensions_(NULL),
@@ -2411,6 +2433,7 @@ err:
       if(cert_) check_cert_type(cert_,cert_type_);
       loadKeyFile(CAkeyfile, pkey_, *pass);
       delete pass;
+      initialized_ = true;
     } catch(std::exception& err){
       CredentialLogger.msg(ERROR, "ERROR: %s", err.what());
       LogError();

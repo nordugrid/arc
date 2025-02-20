@@ -433,13 +433,15 @@ template <class Type> struct traits_from<const Type *> {
 %}
 #ifdef SWIGPYTHON
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) Arc::SubmitterPluginTestACCControl::submitJob;
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) Arc::SubmitterPluginTestACCControl::migrateJob;
 %rename(_BrokerPluginTestACCControl) Arc::BrokerPluginTestACCControl;
 %rename(_JobDescriptionParserPluginTestACCControl) Arc::JobDescriptionParserPluginTestACCControl;
 %rename(_JobControllerPluginTestACCControl) Arc::JobControllerPluginTestACCControl;
 %rename(_SubmitterPluginTestACCControl) Arc::SubmitterPluginTestACCControl;
 %rename(_ServiceEndpointRetrieverPluginTESTControl) Arc::ServiceEndpointRetrieverPluginTESTControl;
 %rename(_TargetInformationRetrieverPluginTESTControl) Arc::TargetInformationRetrieverPluginTESTControl;
+#endif
+#if SWIG_VERSION < 0x040201
+%typemap(varout) std::list< Arc::SimpleCondition * >;
 #endif
 %include "../src/hed/libs/compute/TestACCControl.h"
 %template(EndpointListList) std::list< std::list<Arc::Endpoint> >;

@@ -197,7 +197,7 @@ int main(int argc, char *argv[]) {
 
     // Get FQANs information from user's proxy
     // P.S. validity check is not enforced, proxy can be even expired long time before job finished
-    Arc::Credential holder(user_proxy_f, "", "", "");
+    Arc::Credential holder(user_proxy_f, "", "", "", false);
     std::vector<Arc::VOMSACInfo> voms_attributes;
     Arc::VOMSTrustList vomscert_trust_dn;
 
