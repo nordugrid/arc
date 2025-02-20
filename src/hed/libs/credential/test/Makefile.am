@@ -17,7 +17,7 @@ VOMSUtilTest_CXXFLAGS = -I$(top_srcdir)/include \
 VOMSUtilTest_LDADD = \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 
 listfuncTest_SOURCES = $(top_srcdir)/src/Test.cpp listfuncTest.cpp
 listfuncTest_CXXFLAGS = -I$(top_srcdir)/include \
@@ -25,7 +25,7 @@ listfuncTest_CXXFLAGS = -I$(top_srcdir)/include \
 listfuncTest_LDADD = \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS)
+	$(CPPUNIT_LIBS) $(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 
 ca_key.pem ca_cert.pem:
 	openssl req -x509 -set_serial 1 -passout pass:password -newkey rsa:2048 -keyout ca_key.pem -out ca_cert.pem -config $(srcdir)/ca.cnf
