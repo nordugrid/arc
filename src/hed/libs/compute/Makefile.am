@@ -49,14 +49,14 @@ test_jobdescription_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 test_jobdescription_LDADD = libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS)
 
 test_JobInformationStorage_SOURCES = test_JobInformationStorage.cpp
 test_JobInformationStorage_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 test_JobInformationStorage_LDADD = libarccompute.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS)
 
 testjobdir = $(pkgdatadir)/test-jobs
 testjob_DATA = test-job-1 test-job-2 test-job-3

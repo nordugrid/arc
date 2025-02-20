@@ -130,6 +130,9 @@ namespace Arc {
 
   void InitVOMSAttribute(void);
 
+  /* Returns FQDN of current host suitable for verifying target in VOMS proxy. */
+  std::string getHostFQDN();
+
   /* This method is used to create an AC. It is supposed 
    * to be used by the voms server
    * @param issuer 	The issuer which will be used to sign the AC, it is also 
@@ -252,7 +255,7 @@ namespace Arc {
                    const std::string& vomsdir, 
                    VOMSTrustList& vomscert_trust_dn,
                    std::vector<VOMSACInfo>& output, 
-                   bool verify = true, bool reportall = false);
+                   bool verify = true, bool reportall = false, std::string const & targetFQDN = getHostFQDN());
 
   /**Parse the certificate. Similar to above one, but collects information
     From all certificates in a chain. */
@@ -262,7 +265,7 @@ namespace Arc {
                    const std::string& vomsdir, 
                    VOMSTrustList& vomscert_trust_dn,
                    std::vector<VOMSACInfo>& output,
-                   bool verify = true, bool reportall = false);
+                   bool verify = true, bool reportall = false, std::string const & targetFQDN = getHostFQDN());
 
   /**Parse the certificate or a chain of certificates, in string format */
   bool parseVOMSAC(const std::string& cert_str,

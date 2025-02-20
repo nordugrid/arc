@@ -11,6 +11,48 @@
 namespace ArcCredential {
 
 
+IMPLEMENT_ASN1_FUNCTIONS(AC_SEQ)
+ASN1_SEQUENCE(AC_SEQ) = {
+  ASN1_SEQUENCE_OF(AC_SEQ, acs, AC)
+} ASN1_SEQUENCE_END(AC_SEQ)
+
+IMPLEMENT_ASN1_FUNCTIONS(AC_CERTS)
+ASN1_SEQUENCE(AC_CERTS) = {
+  ASN1_SEQUENCE_OF(AC_CERTS, stackcert, X509)
+} ASN1_SEQUENCE_END(AC_CERTS)
+
+IMPLEMENT_ASN1_FUNCTIONS(AC_ATTRIBUTE)
+ASN1_SEQUENCE(AC_ATTRIBUTE) = {
+  ASN1_SIMPLE(AC_ATTRIBUTE, name,      ASN1_OCTET_STRING),
+  ASN1_SIMPLE(AC_ATTRIBUTE, value,     ASN1_OCTET_STRING),
+  ASN1_SIMPLE(AC_ATTRIBUTE, qualifier, ASN1_OCTET_STRING)
+} ASN1_SEQUENCE_END(AC_ATTRIBUTE)
+
+IMPLEMENT_ASN1_FUNCTIONS(AC_ATT_HOLDER)
+ASN1_SEQUENCE(AC_ATT_HOLDER) = {
+  ASN1_SIMPLE(AC_ATT_HOLDER, grantor, GENERAL_NAMES),
+  ASN1_SEQUENCE_OF(AC_ATT_HOLDER, attributes, AC_ATTRIBUTE)
+} ASN1_SEQUENCE_END(AC_ATT_HOLDER)
+
+IMPLEMENT_ASN1_FUNCTIONS(AC_FULL_ATTRIBUTES)
+ASN1_SEQUENCE(AC_FULL_ATTRIBUTES) = {
+  ASN1_SEQUENCE_OF(AC_FULL_ATTRIBUTES, providers, AC_ATT_HOLDER)
+} ASN1_SEQUENCE_END(AC_FULL_ATTRIBUTES)
+
+
+static char *norep()
+{
+  static char buffer[] = "";
+  return buffer;
+}
+
+
+
+#if (OPENSSL_VERSION_NUMBER < 0x30400000L)
+// --------------------------------
+// Definitions for OpenSSL < 3.4.0
+// --------------------------------
+
 IMPLEMENT_ASN1_FUNCTIONS(AC_DIGEST)
 ASN1_SEQUENCE(AC_DIGEST) = {
   ASN1_SIMPLE(AC_DIGEST, type, ASN1_ENUMERATED),
@@ -80,7 +122,7 @@ ASN1_SEQUENCE(AC_ATTR) = {
     return 0;
   else if (!((strcmp(text, "idacagroup") == 0) || (strcmp(text,"idatcap") == 0)))
     return 0;
-  
+
 
   ASN1_OBJECT * type;
   int get_type;
@@ -110,121 +152,7 @@ ASN1_SEQUENCE(AC) = {
   ASN1_SIMPLE(AC, signature, ASN1_BIT_STRING)
 } ASN1_SEQUENCE_END(AC)
 
-IMPLEMENT_ASN1_FUNCTIONS(AC_SEQ)
-ASN1_SEQUENCE(AC_SEQ) = {
-  ASN1_SEQUENCE_OF(AC_SEQ, acs, AC)
-} ASN1_SEQUENCE_END(AC_SEQ)
-
-IMPLEMENT_ASN1_FUNCTIONS(AC_CERTS)
-ASN1_SEQUENCE(AC_CERTS) = {
-  ASN1_SEQUENCE_OF(AC_CERTS, stackcert, X509)
-} ASN1_SEQUENCE_END(AC_CERTS)
-
-IMPLEMENT_ASN1_FUNCTIONS(AC_ATTRIBUTE)
-ASN1_SEQUENCE(AC_ATTRIBUTE) = {
-  ASN1_SIMPLE(AC_ATTRIBUTE, name,      ASN1_OCTET_STRING),
-  ASN1_SIMPLE(AC_ATTRIBUTE, value,     ASN1_OCTET_STRING),
-  ASN1_SIMPLE(AC_ATTRIBUTE, qualifier, ASN1_OCTET_STRING)
-} ASN1_SEQUENCE_END(AC_ATTRIBUTE)
-
-IMPLEMENT_ASN1_FUNCTIONS(AC_ATT_HOLDER)
-ASN1_SEQUENCE(AC_ATT_HOLDER) = {
-  ASN1_SIMPLE(AC_ATT_HOLDER, grantor, GENERAL_NAMES),
-  ASN1_SEQUENCE_OF(AC_ATT_HOLDER, attributes, AC_ATTRIBUTE)
-} ASN1_SEQUENCE_END(AC_ATT_HOLDER)
-
-IMPLEMENT_ASN1_FUNCTIONS(AC_FULL_ATTRIBUTES)
-ASN1_SEQUENCE(AC_FULL_ATTRIBUTES) = {
-  ASN1_SEQUENCE_OF(AC_FULL_ATTRIBUTES, providers, AC_ATT_HOLDER)
-} ASN1_SEQUENCE_END(AC_FULL_ATTRIBUTES)
-
-
-static char *norep()
-{
-  static char buffer[] = "";
-  return buffer;
-}
-
-/*
-char *acseq_i2s(struct v3_ext_method*, void* data)
-{
-  AC **aclist = NULL;
- 
-  AC *item = NULL;
-  AC_SEQ *seq = (AC_SEQ*)data;
-  if(!seq) return NULL;
-
-  int num = sk_AC_num(seq->acs);
-  if(num > 0) aclist = (AC **)OPENSSL_malloc(num * sizeof(AC*));
-  for (int i =0; i < num; i++) {
-    item = sk_AC_value(seq->acs, i);
-    // AC itself is not duplicated
-    aclist[i] = item;
-  }
- 
-  if(aclist == NULL) return NULL;
-  return (char *)aclist;
-  // return norep();
-}
-*/
-
-char *acseq_i2s(struct v3_ext_method*, void* data)
-{
-  AC_SEQ* acseq = NULL;
-  acseq = (AC_SEQ *)data;
-  if(!acseq) return NULL;
-  std::string encoded_acseq;
-
-  AC *item = NULL;
-  int num = sk_AC_num(acseq->acs);
-  for (int i =0; i < num; i++) {
-    item = sk_AC_value(acseq->acs, i);
-    unsigned int len = i2d_AC(item, NULL);
-    unsigned char *tmp = (unsigned char *)OPENSSL_malloc(len);
-    std::string ac_str;
-    if(tmp) {
-      unsigned char *ttmp = tmp;
-      i2d_AC(item, &ttmp);
-      //ac_str = std::string((char *)tmp, len);
-      ac_str.append((const char*)tmp, len);
-      free(tmp);
-    }
-
-    // encode the AC string
-    int size;
-    char* enc = NULL;
-    std::string encodedac;
-    enc = Arc::VOMSEncode((char*)(ac_str.c_str()), ac_str.length(), &size);
-    if (enc != NULL) {
-      encodedac.append(enc, size);
-      free(enc);
-      enc = NULL;
-    }
-    encoded_acseq.append(VOMS_AC_HEADER).append("\n");
-    encoded_acseq.append(encodedac).append("\n");
-    encoded_acseq.append(VOMS_AC_TRAILER).append("\n");
-  }
-  
-  char* ret = NULL;
-  int len = encoded_acseq.length();
-  if(len) {
-    ret = (char*)OPENSSL_malloc(len + 1);
-    memset(ret, 0, len + 1);
-    memcpy(ret, encoded_acseq.c_str(), len);
-/*
-    ret = (char*)OPENSSL_malloc(len);
-    strncpy(ret, encoded_acseq.c_str(), len);
-*/
-  }
-  return (char *) ret;
-}
-
 char *targets_i2s(struct v3_ext_method*, void*)
-{
-  return norep();
-}
-
-char *certs_i2s(struct v3_ext_method*, void*)
 {
   return norep();
 }
@@ -234,27 +162,147 @@ char *null_i2s(struct v3_ext_method*, void*)
   return norep();
 }
 
-char *attributes_i2s(struct v3_ext_method*, void*)
+void *targets_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
+{
+  char* list = strdup(data);
+  char* pos = list;
+  AC_TARGETS *a = AC_TARGETS_new();
+
+  while(pos) {
+    char* cpos = strchr(pos, ',');
+    if (cpos) *cpos = '\0';
+    {
+      GENERAL_NAME *g = GENERAL_NAME_new();
+      ASN1_IA5STRING *tmpr = ASN1_IA5STRING_new();
+      AC_TARGET *targ = AC_TARGET_new();
+
+      if (!g || !tmpr || !targ) {
+        GENERAL_NAME_free(g);
+        ASN1_IA5STRING_free(tmpr);
+        AC_TARGET_free(targ);
+        goto err;
+      }
+      ASN1_STRING_set(tmpr, pos, strlen(list));
+      g->type = GEN_URI;
+      g->d.ia5 = tmpr;
+      targ->name = g;
+      sk_AC_TARGET_push(a->targets, targ);
+    }
+    pos = cpos;
+    if (pos) ++pos;
+  };
+  free(list);
+
+  return a;
+
+ err:
+  free(list);
+  AC_TARGETS_free(a);
+  return NULL;
+}
+
+void *null_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char*)
+{
+  return ASN1_NULL_new();
+}
+
+char *authkey_i2s(struct v3_ext_method*, void*)
 {
   return norep();
 }
 
-/*
-void *acseq_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
+void *authkey_s2i(struct v3_ext_method*, struct v3_ext_ctx* ctx, char *data)
 {
-  AC **list = (AC **)data;
-  AC_SEQ *a;
-
-  if (!list) return NULL;
-
-  a = AC_SEQ_new();
-
-  while (*list)
-    sk_AC_push(a->acs, *list++);
-
-  return (void *)a;
+  AUTHORITY_KEYID* keyid = NULL;
+  X509* cert = ctx ? ctx->issuer_cert : NULL;
+  if(cert) {
+    ASN1_BIT_STRING* pkeystr = X509_get0_pubkey_bitstr(cert);
+    if(pkeystr) {
+      ASN1_OCTET_STRING *str = ASN1_OCTET_STRING_new();
+      if(str) {
+        keyid = AUTHORITY_KEYID_new();
+        if(keyid) {
+          char digest[21];
+          SHA1(pkeystr->data,
+              pkeystr->length,
+              (unsigned char*)digest);
+          ASN1_OCTET_STRING_set(str, (unsigned char*)digest, 20);
+          if(keyid->keyid) ASN1_OCTET_STRING_free(keyid->keyid);
+          keyid->keyid = str; str = NULL;
+        }
+        if (str) ASN1_OCTET_STRING_free(str);
+      }
+    }
+  }
+  return keyid;
 }
-*/
+
+X509V3_EXT_METHOD * VOMSAttribute_auth_x509v3_ext_meth() {
+  static X509V3_EXT_METHOD vomsattribute_auth_x509v3_ext_meth =
+  {
+    -1,
+    0,
+    NULL,
+    (X509V3_EXT_NEW) AUTHORITY_KEYID_new,
+    (X509V3_EXT_FREE) AUTHORITY_KEYID_free,
+    (X509V3_EXT_D2I) d2i_AUTHORITY_KEYID,
+    (X509V3_EXT_I2D) i2d_AUTHORITY_KEYID,
+    (X509V3_EXT_I2S) authkey_i2s,
+    (X509V3_EXT_S2I) authkey_s2i,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+  };
+  return (&vomsattribute_auth_x509v3_ext_meth);
+}
+
+X509V3_EXT_METHOD * VOMSAttribute_avail_x509v3_ext_meth() {
+  static X509V3_EXT_METHOD vomsattribute_avail_x509v3_ext_meth =
+  {
+    -1,
+    0,
+    NULL,
+    (X509V3_EXT_NEW) ASN1_NULL_new,
+    (X509V3_EXT_FREE) ASN1_NULL_free,
+    (X509V3_EXT_D2I) d2i_ASN1_NULL,
+    (X509V3_EXT_I2D) i2d_ASN1_NULL,
+    (X509V3_EXT_I2S) null_i2s,
+    (X509V3_EXT_S2I) null_s2i,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+  };
+  return (&vomsattribute_avail_x509v3_ext_meth);
+}
+
+X509V3_EXT_METHOD * VOMSAttribute_targets_x509v3_ext_meth() {
+  static X509V3_EXT_METHOD vomsattribute_targets_x509v3_ext_meth =
+  {
+    -1,
+    0,
+    NULL,
+    (X509V3_EXT_NEW) AC_TARGETS_new,
+    (X509V3_EXT_FREE) AC_TARGETS_free,
+    (X509V3_EXT_D2I) d2i_AC_TARGETS,
+    (X509V3_EXT_I2D) i2d_AC_TARGETS,
+    (X509V3_EXT_I2S) targets_i2s,
+    (X509V3_EXT_S2I) targets_s2i,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL
+  };
+  return (&vomsattribute_targets_x509v3_ext_meth);
+}
+
+
+#endif // (OPENSSL_VERSION_NUMBER < 0x30400000L)
+
 
 void *acseq_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
 {
@@ -320,44 +368,51 @@ void *acseq_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
   return (void *)acseq;
 }
 
-void *targets_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
+char *acseq_i2s(struct v3_ext_method*, void* data)
 {
-  char* list = strdup(data);
-  char* pos = list;
-  AC_TARGETS *a = AC_TARGETS_new();
+  AC_SEQ* acseq = NULL;
+  acseq = (AC_SEQ *)data;
+  if(!acseq) return NULL;
+  std::string encoded_acseq;
 
-  while(pos) {
-    char* cpos = strchr(pos, ',');
-    if (cpos) *cpos = '\0';
-    {
-      GENERAL_NAME *g = GENERAL_NAME_new();
-      ASN1_IA5STRING *tmpr = ASN1_IA5STRING_new();
-      AC_TARGET *targ = AC_TARGET_new();
-
-      if (!g || !tmpr || !targ) {
-        GENERAL_NAME_free(g);
-        ASN1_IA5STRING_free(tmpr);
-        AC_TARGET_free(targ);
-        goto err;
-      }
-      ASN1_STRING_set(tmpr, pos, strlen(list));
-      g->type = GEN_URI;
-      g->d.ia5 = tmpr;
-      targ->name = g;
-      sk_AC_TARGET_push(a->targets, targ);
+  AC *item = NULL;
+  int num = sk_AC_num(acseq->acs);
+  for (int i =0; i < num; i++) {
+    item = sk_AC_value(acseq->acs, i);
+    unsigned int len = i2d_AC(item, NULL);
+    unsigned char *tmp = (unsigned char *)OPENSSL_malloc(len);
+    std::string ac_str;
+    if(tmp) {
+      unsigned char *ttmp = tmp;
+      i2d_AC(item, &ttmp);
+      //ac_str = std::string((char *)tmp, len);
+      ac_str.append((const char*)tmp, len);
+      free(tmp);
     }
-    pos = cpos;
-    if (pos) ++pos;
-  };
-  free(list);
 
-  return a;
-
- err:
-  free(list);
-  AC_TARGETS_free(a);
-  return NULL;    
-
+    // encode the AC string
+    int size;
+    char* enc = NULL;
+    std::string encodedac;
+    enc = Arc::VOMSEncode((char*)(ac_str.c_str()), ac_str.length(), &size);
+    if (enc != NULL) {
+      encodedac.append(enc, size);
+      free(enc);
+      enc = NULL;
+    }
+    encoded_acseq.append(VOMS_AC_HEADER).append("\n");
+    encoded_acseq.append(encodedac).append("\n");
+    encoded_acseq.append(VOMS_AC_TRAILER).append("\n");
+  }
+  
+  char* ret = NULL;
+  int len = encoded_acseq.length();
+  if(len) {
+    ret = (char*)OPENSSL_malloc(len + 1);
+    memset(ret, 0, len + 1);
+    memcpy(ret, encoded_acseq.c_str(), len);
+  }
+  return (char *) ret;
 }
 
 void *certs_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
@@ -372,7 +427,6 @@ void *certs_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
     sk_X509_pop_free(a->stackcert, X509_free);
     a->stackcert = sk_X509_new_null();
 
-/*     a->stackcert = sk_X509_dup(certs); */
     for (i =0; i < sk_X509_num(certs); i++)
       sk_X509_push(a->stackcert, X509_dup(sk_X509_value(certs, i)));
 
@@ -380,6 +434,11 @@ void *certs_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
   }
 
   return NULL;    
+}
+
+char *certs_i2s(struct v3_ext_method*, void*)
+{
+  return norep();
 }
 
 void *attributes_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
@@ -393,7 +452,6 @@ void *attributes_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
     AC_FULL_ATTRIBUTES *a = AC_FULL_ATTRIBUTES_new();
     sk_AC_ATT_HOLDER_pop_free(a->providers, AC_ATT_HOLDER_free);
     a->providers = sk_AC_ATT_HOLDER_new_null();
-/*     a->providers = sk_AC_ATT_HOLDER_dup(stack); */
     for (i = 0; i < sk_AC_ATT_HOLDER_num(stack); i++) {
       sk_AC_ATT_HOLDER_push(a->providers,
            ASN1_dup_of(AC_ATT_HOLDER, i2d_AC_ATT_HOLDER,
@@ -405,127 +463,11 @@ void *attributes_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
   return NULL;
 }
 
-void *null_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char*)
-{
-  return ASN1_NULL_new();
-}
-
-char *authkey_i2s(struct v3_ext_method*, void*)
+char *attributes_i2s(struct v3_ext_method*, void*)
 {
   return norep();
 }
 
-void *authkey_s2i(struct v3_ext_method*, struct v3_ext_ctx* ctx, char *data)
-{
-  AUTHORITY_KEYID* keyid = NULL;
-  X509* cert = ctx ? ctx->issuer_cert : NULL;
-  if(cert) {
-    ASN1_BIT_STRING* pkeystr = X509_get0_pubkey_bitstr(cert);
-    if(pkeystr) {
-      ASN1_OCTET_STRING *str = ASN1_OCTET_STRING_new();
-      if(str) {
-        keyid = AUTHORITY_KEYID_new();
-        if(keyid) {
-          char digest[21];
-          SHA1(pkeystr->data,
-	       pkeystr->length,
-	       (unsigned char*)digest);
-          ASN1_OCTET_STRING_set(str, (unsigned char*)digest, 20);
-          if(keyid->keyid) ASN1_OCTET_STRING_free(keyid->keyid);
-          keyid->keyid = str; str = NULL;
-        }
-        if (str) ASN1_OCTET_STRING_free(str);
-      }
-    }
-  }
-  return keyid;
-}
-
-
-/*
-IMPL_STACK(AC_IETFATTR)
-IMPL_STACK(AC_IETFATTRVAL)
-IMPL_STACK(AC_ATTR)
-IMPL_STACK(AC)
-IMPL_STACK(AC_INFO)
-IMPL_STACK(AC_VAL)
-IMPL_STACK(AC_HOLDER)
-IMPL_STACK(AC_ACI)
-IMPL_STACK(AC_FORM)
-IMPL_STACK(AC_IS)
-IMPL_STACK(AC_DIGEST)
-IMPL_STACK(AC_TARGETS)
-IMPL_STACK(AC_TARGET)
-IMPL_STACK(AC_CERTS)
-
-IMPL_STACK(AC_ATTRIBUTE)
-IMPL_STACK(AC_ATT_HOLDER)
-IMPL_STACK(AC_FULL_ATTRIBUTES)
-*/
-
-
-X509V3_EXT_METHOD * VOMSAttribute_auth_x509v3_ext_meth() {
-  static X509V3_EXT_METHOD vomsattribute_auth_x509v3_ext_meth =
-  {
-    -1,
-    0,  
-    NULL, 
-    (X509V3_EXT_NEW) AUTHORITY_KEYID_new,
-    (X509V3_EXT_FREE) AUTHORITY_KEYID_free,
-    (X509V3_EXT_D2I) d2i_AUTHORITY_KEYID,
-    (X509V3_EXT_I2D) i2d_AUTHORITY_KEYID,
-    (X509V3_EXT_I2S) authkey_i2s, 
-    (X509V3_EXT_S2I) authkey_s2i,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL
-  };
-  return (&vomsattribute_auth_x509v3_ext_meth);
-}
-
-X509V3_EXT_METHOD * VOMSAttribute_avail_x509v3_ext_meth() {
-  static X509V3_EXT_METHOD vomsattribute_avail_x509v3_ext_meth =
-  {
-    -1,
-    0,  
-    NULL,
-    (X509V3_EXT_NEW) ASN1_NULL_new,
-    (X509V3_EXT_FREE) ASN1_NULL_free,
-    (X509V3_EXT_D2I) d2i_ASN1_NULL,
-    (X509V3_EXT_I2D) i2d_ASN1_NULL,
-    (X509V3_EXT_I2S) null_i2s, 
-    (X509V3_EXT_S2I) null_s2i,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL
-  };
-  return (&vomsattribute_avail_x509v3_ext_meth);
-}  
-
-X509V3_EXT_METHOD * VOMSAttribute_targets_x509v3_ext_meth() {
-  static X509V3_EXT_METHOD vomsattribute_targets_x509v3_ext_meth =
-  {
-    -1,
-    0,  
-    NULL,
-    (X509V3_EXT_NEW) AC_TARGETS_new,
-    (X509V3_EXT_FREE) AC_TARGETS_free,
-    (X509V3_EXT_D2I) d2i_AC_TARGETS,
-    (X509V3_EXT_I2D) i2d_AC_TARGETS,
-    (X509V3_EXT_I2S) targets_i2s, 
-    (X509V3_EXT_S2I) targets_s2i,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL
-  };
-  return (&vomsattribute_targets_x509v3_ext_meth);
-}  
 
 X509V3_EXT_METHOD * VOMSAttribute_acseq_x509v3_ext_meth() {
   static X509V3_EXT_METHOD vomsattribute_acseq_x509v3_ext_meth =
@@ -589,5 +531,6 @@ X509V3_EXT_METHOD * VOMSAttribute_attribs_x509v3_ext_meth() {
   };
   return (&vomsattribute_attribs_x509v3_ext_meth);
 }
+
 
 } //namespace ArcCredential
