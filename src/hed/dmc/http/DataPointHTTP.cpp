@@ -729,7 +729,7 @@ using namespace Arc;
 
   DataStatus DataPointHTTP::Stat(FileInfo& file, DataPointInfoType verb) {
     // verb is not used
-    URL curl = url;
+    URL curl = dav2http(url);
     DataStatus r = do_stat_webdav(curl, file);
     if(!r) {
       if(r.GetErrno() != ENOSYS) return r;
@@ -764,7 +764,7 @@ using namespace Arc;
 
   DataStatus DataPointHTTP::List(std::list<FileInfo>& files, DataPointInfoType verb) {
     if (transfers_started.get() != 0) return DataStatus(DataStatus::ListError, EARCLOGIC, "Currently reading");
-    URL curl = url;
+    URL curl = dav2http(url);
     DataStatus r;
     bool webdav_supported = true;
     {
@@ -995,9 +995,10 @@ using namespace Arc;
     PayloadRaw request;
     PayloadRawInterface *inbuf = NULL;
     HTTPClientInfo info;
-    AutoPointer<ClientHTTP> client(acquire_client(url));
+    URL curl = dav2http(url);
+    AutoPointer<ClientHTTP> client(acquire_client(curl));
     if (!client) return DataStatus::CheckError;
-    MCC_Status r = client->process("GET", url.FullPathURIEncoded(), 0, 15,
+    MCC_Status r = client->process("GET", curl.FullPathURIEncoded(), 0, 15,
                                   &request, &info, &inbuf);
     PayloadRawInterface::Size_t logsize = 0;
     if (inbuf){
@@ -1005,8 +1006,8 @@ using namespace Arc;
       delete inbuf; inbuf = NULL;
     }
     if (!r) {
-      client = acquire_new_client(url);
-      if(client) r = client->process("GET", url.FullPathURIEncoded(), 0, 15,
+      client = acquire_new_client(curl);
+      if(client) r = client->process("GET", curl.FullPathURIEncoded(), 0, 15,
                                     &request, &info, &inbuf);
       if (inbuf){
         logsize = inbuf->Size();
@@ -1014,7 +1015,7 @@ using namespace Arc;
       }
       if(!r) return DataStatus(DataStatus::CheckError,r.getExplanation());
     }
-    release_client(url,client.Release());
+    release_client(curl,client.Release());
     if ((info.code != 200) && (info.code != 206)) return DataStatus(DataStatus::CheckError, http2errno(info.code), info.reason);
     size = logsize;
     logger.msg(VERBOSE, "Check: obtained size %llu", size);
@@ -1024,21 +1025,22 @@ using namespace Arc;
   }
 
   DataStatus DataPointHTTP::Remove() {
-    AutoPointer<ClientHTTP> client(acquire_client(url));
+    URL curl = dav2http(url);
+    AutoPointer<ClientHTTP> client(acquire_client(curl));
     PayloadRaw request;
     PayloadRawInterface *inbuf = NULL;
     HTTPClientInfo info;
-    MCC_Status r = client->process("DELETE", url.FullPathURIEncoded(),
+    MCC_Status r = client->process("DELETE", curl.FullPathURIEncoded(),
                                   &request, &info, &inbuf);
     if (inbuf) { delete inbuf; inbuf = NULL; }
     if(!r) {
-      client = acquire_new_client(url);
-      if(client) r = client->process("DELETE", url.FullPathURIEncoded(),
+      client = acquire_new_client(curl);
+      if(client) r = client->process("DELETE", curl.FullPathURIEncoded(),
                                     &request, &info, &inbuf);
       if (inbuf) { delete inbuf; inbuf = NULL; }
       if(!r) return DataStatus(DataStatus::DeleteError,r.getExplanation());
     }
-    release_client(url,client.Release());
+    release_client(curl,client.Release());
     if ((info.code != 200) && (info.code != 202) && (info.code != 204)) {
       return DataStatus(DataStatus::DeleteError, http2errno(info.code), info.reason);
     }
@@ -1046,23 +1048,24 @@ using namespace Arc;
   }
 
   DataStatus DataPointHTTP::Rename(const URL& destination) {
-    AutoPointer<ClientHTTP> client(acquire_client(url));
+    URL curl = dav2http(url);
+    AutoPointer<ClientHTTP> client(acquire_client(curl));
     PayloadRaw request;
     PayloadRawInterface *inbuf = NULL;
     HTTPClientInfo info;
     std::multimap<std::string, std::string> attributes;
-    attributes.insert(std::pair<std::string, std::string>("Destination", url.ConnectionURL() + destination.FullPathURIEncoded()));
+    attributes.insert(std::pair<std::string, std::string>("Destination", curl.ConnectionURL() + destination.FullPathURIEncoded()));
     MCC_Status r = client->process("MOVE", url.FullPathURIEncoded(),
                                    attributes, &request, &info, &inbuf);
     if (inbuf) { delete inbuf; inbuf = NULL; }
     if(!r) {
-      client = acquire_new_client(url);
-      if(client) r = client->process("MOVE", url.FullPathURIEncoded(),
+      client = acquire_new_client(curl);
+      if(client) r = client->process("MOVE", curl.FullPathURIEncoded(),
                                      attributes, &request, &info, &inbuf);
       if (inbuf) { delete inbuf; inbuf = NULL; }
       if(!r) return DataStatus(DataStatus::RenameError,r.getExplanation());
     }
-    release_client(url,client.Release());
+    release_client(curl,client.Release());
     if ((info.code != 201) && (info.code != 204)) { 
       return DataStatus(DataStatus::RenameError, http2errno(info.code), info.reason);
     }
@@ -1072,7 +1075,7 @@ using namespace Arc;
   bool DataPointHTTP::read_single(void *arg) {
     HTTPInfo_t& info = *((HTTPInfo_t*)arg);
     DataPointHTTP& point = *(info.point);
-    URL client_url = point.url;
+    URL client_url = dav2http(point.url);
     AutoPointer<ClientHTTP> client(point.acquire_client(client_url));
     bool transfer_failure = false;
     int retries = 0;
@@ -1185,7 +1188,7 @@ using namespace Arc;
     DataPointHTTP& point = *(info.point);
     point.transfer_lock.lock();
     point.transfer_lock.unlock();
-    URL client_url = point.url;
+    URL client_url = dav2http(point.url);
     AutoPointer<ClientHTTP> client(point.acquire_client(client_url));
     bool transfer_failure = false;
     int retries = 0;
@@ -1364,7 +1367,7 @@ using namespace Arc;
   bool DataPointHTTP::write_single(void *arg) {
     HTTPInfo_t& info = *((HTTPInfo_t*)arg);
     DataPointHTTP& point = *(info.point);
-    URL client_url = point.url;
+    URL client_url = dav2http(point.url);
     AutoPointer<ClientHTTP> client(point.acquire_client(client_url));
     if (!client) return false;
     std::string path = client_url.FullPathURIEncoded();
@@ -1477,7 +1480,7 @@ using namespace Arc;
     DataPointHTTP& point = *(info.point);
     point.transfer_lock.lock();
     point.transfer_lock.unlock();
-    URL client_url = point.url;
+    URL client_url = dav2http(point.url);
     AutoPointer<ClientHTTP> client(point.acquire_client(client_url));
     bool transfer_failure = false;
     int retries = 0;
@@ -1633,29 +1636,30 @@ using namespace Arc;
   }
 
   DataStatus DataPointHTTP::CreateDirectory(bool with_parents) {
+    URL curl = dav2http(url);
 
     if (!with_parents) {
-      logger.msg(VERBOSE, "Creating directory %s", url.plainstr());
-      return makedir(url);
+      logger.msg(VERBOSE, "Creating directory %s", curl.plainstr());
+      return makedir(curl);
     }
 
-    std::string::size_type slashpos = url.Path().find("/", 1); // don't create root dir
-    URL dir(url);
+    std::string::size_type slashpos = curl.Path().find("/", 1); // don't create root dir
+    URL dir(curl);
 
     while (slashpos != std::string::npos) {
-      dir.ChangePath(url.Path().substr(0, slashpos));
+      dir.ChangePath(curl.Path().substr(0, slashpos));
       // stat dir to see if it exists
       FileInfo finfo;
       DataStatus r = do_stat_http(dir, finfo);
       if (r) {
-        slashpos = url.Path().find("/", slashpos + 1);
+        slashpos = curl.Path().find("/", slashpos + 1);
         continue;
       }
 
       // Assume failure means dir doesn't exist, so try to create it
       logger.msg(VERBOSE, "Creating directory %s", dir.plainstr());
       r = makedir(dir);
-      slashpos = url.Path().find("/", slashpos + 1);
+      slashpos = curl.Path().find("/", slashpos + 1);
       if (!r && slashpos == std::string::npos) {
         // Only return error if failing to create the final dir
         return r;
@@ -1766,6 +1770,13 @@ using namespace Arc;
       default:
         return EARCOTHER;
     }
+  }
+
+  URL DataPointHTTP::dav2http(const URL &rurl) {
+    URL curl = rurl;
+    if(rurl.Protocol() == "dav") curl.ChangeProtocol("http");
+    else if(rurl.Protocol() == "davs") curl.ChangeProtocol("https");
+    return curl;
   }
 
 } // namespace Arc
