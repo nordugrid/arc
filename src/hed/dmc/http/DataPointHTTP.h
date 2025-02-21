@@ -39,7 +39,7 @@ using namespace Arc;
     virtual DataStatus StopWriting();
     virtual const std::string DefaultCheckSum() const;
     virtual bool ProvidesMeta() const;
-    virtual bool RequiresCredentials() const { return url.Protocol() != "http"; };
+    virtual bool RequiresCredentials() const { return ((url.Protocol() != "http")&&(url.Protocol() != "dav")); };
     virtual bool WriteOutOfOrder() const { return partial_write_allowed; };
   private:
     static void read_thread(void *arg);
@@ -56,6 +56,8 @@ using namespace Arc;
     void release_client(const URL& curl, ClientHTTP* client);
     /// Convert HTTP return code to errno
     int http2errno(int http_code) const;
+    /// Convert davs?:// URLs to https?://
+    static URL dav2http(const URL &rurl);
     static Logger logger;
     bool reading;
     bool writing;
