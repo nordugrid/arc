@@ -66,7 +66,7 @@ void CredentialTest::setUp() {
   CAkey = "ca_key.pem";
   CAserial = "ca_serial";
   CApassphrase = "capassword";
-  CAdn = "/O=Grid/OU=ARC/CN=CA";
+  CAdn = "/O=Grid/OU=ARC/CN=ARC CA";
   CAconf = srcdir + "/ca.cnf";
   ca_ext_sect = "v3_ca";
   host_cert_ext_sect = "host_cert";

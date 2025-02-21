@@ -40,6 +40,6 @@ arc_dmc_LDADD = \
         libarcdata.la \
         $(top_builddir)/src/hed/libs/loader/libarcloader.la \
         $(top_builddir)/src/hed/libs/common/libarccommon.la \
-        $(LIBXML2_LIBS) $(GLIBMM_LIBS)
+        $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(OPENSSL_LIBS)
 
 man_MANS = cache-clean.1 cache-list.1

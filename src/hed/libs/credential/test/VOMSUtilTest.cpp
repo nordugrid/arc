@@ -59,8 +59,8 @@ void VOMSUtilTest::VOMSTrustListTest() {
   std::string uri = "voms.nordugrid.org:50000";
 
   std::string ac_str;
-  Arc::createVOMSAC(ac_str, ac_issuer_cred, holder_cred, fqan, targets, attrs, voname, uri, 3600*12);
- 
+  CPPUNIT_ASSERT(Arc::createVOMSAC(ac_str, ac_issuer_cred, holder_cred, fqan, targets, attrs, voname, uri, 3600*12));
+  CPPUNIT_ASSERT(!ac_str.empty()); 
  
   //
   // Create the full AC which is an ordered list of AC 
@@ -70,12 +70,10 @@ void VOMSUtilTest::VOMSTrustListTest() {
   int size;
   char* enc = NULL;
   std::string ac_str_b64;
-  enc = Arc::VOMSEncode((char*)(ac_str.c_str()), ac_str.length(), &size);
-  if (enc != NULL) {
-    ac_str_b64.append(enc, size);
-    free(enc);
-    enc = NULL;
-  }
+  CPPUNIT_ASSERT(NULL != (enc = Arc::VOMSEncode((char*)(ac_str.c_str()), ac_str.length(), &size)));
+  ac_str_b64.append(enc, size);
+  free(enc);
+  enc = NULL;
   std::string aclist_str;
   aclist_str.append(VOMS_AC_HEADER).append("\n");
   aclist_str.append(ac_str_b64).append("\n");
@@ -115,13 +113,13 @@ void VOMSUtilTest::VOMSTrustListTest() {
   vomscert_trust_dn.push_back("NEXT CHAIN");
   vomscert_trust_dn.push_back("^/O=Grid/OU=ARC");
 
-  // Read and pars VOMS proxy
+  // Read and parse VOMS proxy
 
   Arc::Credential voms_proxy(voms_proxy_file, "", ".", CAcert, false);
 
   std::vector<Arc::VOMSACInfo> attributes;
   Arc::VOMSTrustList trust_dn(vomscert_trust_dn);
-  Arc::parseVOMSAC(voms_proxy, ".", CAcert, "", trust_dn, attributes, true); 
+  CPPUNIT_ASSERT(Arc::parseVOMSAC(voms_proxy, ".", CAcert, "", trust_dn, attributes, true, false, std::string("www.nordugrid.org"))); 
   
   for(size_t n=0; n<attributes.size(); n++) {
     for(size_t i=0; i<attributes[n].attributes.size(); i++) {

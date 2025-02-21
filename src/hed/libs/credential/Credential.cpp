@@ -1237,7 +1237,7 @@ namespace Arc {
           req = X509_REQ_new();
           CredentialLogger.msg(VERBOSE, "Generate new X509 request!");
           if(req) {
-            if (X509_REQ_set_version(req,3L)) {
+            if (X509_REQ_set_version(req,0L)) {
               X509_NAME *name = NULL;
               name = parse_name((char*)(dn.c_str()), MBSTRING_ASC, 0);
               CredentialLogger.msg(VERBOSE, "Setting subject name!");
@@ -1398,7 +1398,7 @@ namespace Arc {
         if(EVP_PKEY_set1_RSA(pkey, rsa_key)) {
           req = X509_REQ_new();
           if(req) {
-            if(X509_REQ_set_version(req,2L)) {
+            if(X509_REQ_set_version(req,0L)) {
               //set the DN
               X509_NAME* name = NULL;
               X509_NAME_ENTRY* entry = NULL;
