@@ -340,6 +340,8 @@ namespace Arc {
       if (protocol == "http") port = HTTP_DEFAULT_PORT;
       if (protocol == "https") port = HTTPS_DEFAULT_PORT;
       if (protocol == "httpg") port = HTTPG_DEFAULT_PORT;
+      if (protocol == "dav") port = DAV_DEFAULT_PORT;
+      if (protocol == "davs") port = DAVS_DEFAULT_PORT;
       if (protocol == "ldap") port = LDAP_DEFAULT_PORT;
       if (protocol == "ftp") port = FTP_DEFAULT_PORT;
       if (protocol == "gsiftp") port = GSIFTP_DEFAULT_PORT;
