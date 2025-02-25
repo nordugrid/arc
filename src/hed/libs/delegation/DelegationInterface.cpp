@@ -473,8 +473,7 @@ bool DelegationConsumer::Request(std::string& content) {
       if(EVP_PKEY_set1_RSA(pkey, rsa)) {
         X509_REQ *req = X509_REQ_new();
         if(req) {
-          //if(X509_REQ_set_version(req,0L)) {
-          if(X509_REQ_set_version(req,2L)) {
+          if(X509_REQ_set_version(req,0L)) {
             if(X509_REQ_set_pubkey(req,pkey)) {
               if(X509_REQ_sign(req,pkey,digest)) {
                 BIO *out = BIO_new(BIO_s_mem());
