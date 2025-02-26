@@ -13,6 +13,15 @@
 #include <openssl/x509v3.h>
 
 
+#define VOMS_AC_HEADER "-----BEGIN VOMS AC-----"
+#define VOMS_AC_TRAILER "-----END VOMS AC-----"
+
+#if (OPENSSL_VERSION_NUMBER < 0x30400000L)
+// --------------------------------
+// Definitions for OpenSSL < 3.4.0
+// --------------------------------
+
+
 #if (OPENSSL_VERSION_NUMBER < 0x10100000L)
 
 #define DEFINE_STACK_OF(S) \
@@ -25,29 +34,9 @@ inline int sk_##S##_push(STACK_OF(S)* st, S* val) { return SKM_sk_push(S, st, va
 inline S* sk_##S##_value(STACK_OF(S) const* st, int i) { return SKM_sk_value(S, st, i); } \
 inline void sk_##S##_pop_free(STACK_OF(S)* st, void (*free_func)(S*)) { SKM_sk_pop_free(S, st, free_func); } \
 DECLARE_STACK_OF(S)
-/*
-# define sk_ASN1_GENERALSTRING_set(st, i, val) SKM_sk_set(ASN1_GENERALSTRING, (st), (i), (val))
-# define sk_ASN1_GENERALSTRING_zero(st) SKM_sk_zero(ASN1_GENERALSTRING, (st))
-# define sk_ASN1_GENERALSTRING_unshift(st, val) SKM_sk_unshift(ASN1_GENERALSTRING, (st), (val))
-# define sk_ASN1_GENERALSTRING_find(st, val) SKM_sk_find(ASN1_GENERALSTRING, (st), (val))
-# define sk_ASN1_GENERALSTRING_find_ex(st, val) SKM_sk_find_ex(ASN1_GENERALSTRING, (st), (val))
-# define sk_ASN1_GENERALSTRING_delete(st, i) SKM_sk_delete(ASN1_GENERALSTRING, (st), (i))
-# define sk_ASN1_GENERALSTRING_delete_ptr(st, ptr) SKM_sk_delete_ptr(ASN1_GENERALSTRING, (st), (ptr))
-# define sk_ASN1_GENERALSTRING_insert(st, val, i) SKM_sk_insert(ASN1_GENERALSTRING, (st), (val), (i))
-# define sk_ASN1_GENERALSTRING_set_cmp_func(st, cmp) SKM_sk_set_cmp_func(ASN1_GENERALSTRING, (st), (cmp))
-# define sk_ASN1_GENERALSTRING_dup(st) SKM_sk_dup(ASN1_GENERALSTRING, st)
-# define sk_ASN1_GENERALSTRING_deep_copy(st, copy_func, free_func) SKM_sk_deep_copy(ASN1_GENERALSTRING, (st),
- (copy_func), (free_func))
-# define sk_ASN1_GENERALSTRING_shift(st) SKM_sk_shift(ASN1_GENERALSTRING, (st))
-# define sk_ASN1_GENERALSTRING_pop(st) SKM_sk_pop(ASN1_GENERALSTRING, (st))
-# define sk_ASN1_GENERALSTRING_sort(st) SKM_sk_sort(ASN1_GENERALSTRING, (st))
-*/
 
-#endif
+#endif // (OPENSSL_VERSION_NUMBER < 0x10100000L)
 
-
-#define VOMS_AC_HEADER "-----BEGIN VOMS AC-----"
-#define VOMS_AC_TRAILER "-----END VOMS AC-----"
 
 namespace ArcCredential {
 
@@ -233,6 +222,106 @@ typedef struct ACC {
 
 DECLARE_ASN1_FUNCTIONS(AC)
 
+
+DEFINE_STACK_OF(AC_TARGET)
+DEFINE_STACK_OF(AC_TARGETS)
+DEFINE_STACK_OF(AC_IETFATTR)
+DEFINE_STACK_OF(AC_ATTR)
+DEFINE_STACK_OF(AC)
+DEFINE_STACK_OF(AC_INFO)
+DEFINE_STACK_OF(AC_VAL)
+DEFINE_STACK_OF(AC_HOLDER)
+DEFINE_STACK_OF(AC_ACI)
+DEFINE_STACK_OF(AC_FORM)
+DEFINE_STACK_OF(AC_IS)
+DEFINE_STACK_OF(AC_DIGEST)
+
+
+X509V3_EXT_METHOD * VOMSAttribute_auth_x509v3_ext_meth();
+X509V3_EXT_METHOD * VOMSAttribute_avail_x509v3_ext_meth();
+X509V3_EXT_METHOD * VOMSAttribute_targets_x509v3_ext_meth();
+
+} // namespace ArcCredential
+
+#else // (OPENSSL_VERSION_NUMBER < 0x30400000L)
+// --------------------------------
+// Definitions for OpenSSL >= 3.4.0
+// --------------------------------
+
+extern "C" {
+#include <openssl/x509_acert.h>
+}
+
+namespace ArcCredential {
+
+#define AC_ERR_UNSET                5025
+#define AC_ERR_SET                  5026
+#define AC_ERR_SIGNATURE            5027
+#define AC_ERR_VERSION              5028
+#define AC_ERR_HOLDER_SERIAL        5029
+#define AC_ERR_HOLDER               5030
+#define AC_ERR_UID_MISMATCH         5031
+#define AC_ERR_ISSUER_NAME          5032
+#define AC_ERR_SERIAL               5033
+#define AC_ERR_DATES                5034
+#define AC_ERR_ATTRIBS              5035
+#define AC_ERR_ATTRIB_URI           5040
+#define AC_ERR_ATTRIB_FQAN          5041
+#define AC_ERR_EXTS_ABSENT          5042
+#define AC_ERR_MEMORY               5043
+#define AC_ERR_EXT_CRIT             5044
+#define AC_ERR_EXT_TARGET           5045
+#define AC_ERR_EXT_KEY              5046
+#define AC_ERR_UNKNOWN              5047
+#define AC_ERR_PARAMETERS           5048
+#define X509_ERR_ISSUER_NAME        5049
+#define X509_ERR_HOLDER_NAME        5050
+#define AC_ERR_NO_EXTENSION         5051
+#define AC_ERR_ATTRIB               5063
+
+#define AC_IETFATTRVAL OSSL_IETF_ATTR_SYNTAX_VALUE
+#define AC_IETFATTRVAL_new OSSL_IETF_ATTR_SYNTAX_VALUE_new
+#define AC_IETFATTRVAL_free OSSL_IETF_ATTR_SYNTAX_VALUE_free
+
+#define AC_IETFATTR OSSL_IETF_ATTR_SYNTAX
+#define AC_IETFATTR_new OSSL_IETF_ATTR_SYNTAX_new
+#define AC_IETFATTR_free OSSL_IETF_ATTR_SYNTAX_free
+
+#define AC_ATTR_new X509_ATTRIBUTE_new
+#define AC_ATTR_free X509_ATTRIBUTE_free
+#define i2d_AC_ATTR i2d_X509_ATTRIBUTE
+#define d2i_AC_ATTR d2i_X509_ATTRIBUTE
+#define AC_ATTR_it X509_ATTRIBUTE_it
+typedef X509_ATTRIBUTE AC_ATTR;
+
+#define AC_INFO_new X509_ACERT_INFO_new
+#define AC_INFO_free X509_ACERT_INFO_free
+#define i2d_AC_INFO i2d_X509_ACERT_INFO
+#define d2i_AC_INFO d2i_X509_ACERT_INFO
+#define AC_INFO_it X509_ACERT_INFO_it
+typedef X509_ACERT_INFO AC_INFO;
+
+#define AC_new X509_ACERT_new
+#define AC_free X509_ACERT_free
+#define i2d_AC i2d_X509_ACERT
+#define d2i_AC d2i_X509_ACERT
+#define AC_it X509_ACERT_it
+#define sk_AC_num sk_X509_ACERT_num
+#define sk_AC_push sk_X509_ACERT_push
+#define sk_AC_value sk_X509_ACERT_value
+#define stack_st_AC stack_st_X509_ACERT
+typedef X509_ACERT AC;
+DEFINE_STACK_OF(X509_ACERT)
+
+
+} // namespace ArcCredential
+
+#endif // (OPENSSL_VERSION_NUMBER < 0x30400000L)
+
+
+namespace ArcCredential {
+
+
 typedef struct ACSEQ {
   STACK_OF(AC) *acs;
 } AC_SEQ;
@@ -266,34 +355,18 @@ typedef struct ACFULLATTRIBUTES {
 
 DECLARE_ASN1_FUNCTIONS(AC_FULL_ATTRIBUTES)
 
-
-DEFINE_STACK_OF(AC_TARGET)
-DEFINE_STACK_OF(AC_TARGETS)
-DEFINE_STACK_OF(AC_IETFATTR)
-//DEFINE_STACK_OF(AC_IETFATTRVAL)
-DEFINE_STACK_OF(AC_ATTR)
-DEFINE_STACK_OF(AC)
-DEFINE_STACK_OF(AC_INFO)
-DEFINE_STACK_OF(AC_VAL)
-DEFINE_STACK_OF(AC_HOLDER)
-DEFINE_STACK_OF(AC_ACI)
-DEFINE_STACK_OF(AC_FORM)
-DEFINE_STACK_OF(AC_IS)
-DEFINE_STACK_OF(AC_DIGEST)
 DEFINE_STACK_OF(AC_CERTS)
 DEFINE_STACK_OF(AC_ATTRIBUTE)
 DEFINE_STACK_OF(AC_ATT_HOLDER)
 DEFINE_STACK_OF(AC_FULL_ATTRIBUTES)
 
-
-X509V3_EXT_METHOD * VOMSAttribute_auth_x509v3_ext_meth();
-X509V3_EXT_METHOD * VOMSAttribute_avail_x509v3_ext_meth();
-X509V3_EXT_METHOD * VOMSAttribute_targets_x509v3_ext_meth();
 X509V3_EXT_METHOD * VOMSAttribute_acseq_x509v3_ext_meth();
 X509V3_EXT_METHOD * VOMSAttribute_certseq_x509v3_ext_meth();
 X509V3_EXT_METHOD * VOMSAttribute_attribs_x509v3_ext_meth();
 
+
 } // namespace ArcCredential
 
-#endif
+
+#endif // ARC_VOMSATTRIBUTE_H
 /// \endcond

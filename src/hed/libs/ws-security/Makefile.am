@@ -42,7 +42,7 @@ test_usernametoken_LDADD = \
 	libarcwssecurity.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS)
+	$(LIBXML2_LIBS) $(OPENSSL_LIBS)
 
 if XMLSEC_ENABLED
 test_x509token_SOURCES = test_x509token.cpp
