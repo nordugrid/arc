@@ -116,14 +116,6 @@ variables:
   allow_failure: false
 
         
-###############
-#    CENTOS 7
-###############
-build_el7:
-    extends: .template_build_rhel
-    variables:
-        BUILD_IMAGE: maikenp/arc-build-centos7
-    
 
 ####################
 #    CENTOS STREAM 9
@@ -225,22 +217,6 @@ build_ubuntu2204:
       - $CI_PROJECT_DIR/arc-testlogs/
   allow_failure: true
 
-
-##################
-#    CENTOS 7
-##################
-deploy_el7:
-  extends: .deploy
-  variables: 
-    OS_V: el7
-    ARC_IMAGE: maikenp/arc-deploy-centos7
-    BUILD_VOL: /rpmbuild
-    BUILD_DIR: $CI_PROJECT_DIR/$BUILD_VOL/*
-  tags:
-    - deploy
-  needs:
-    - job: build_el7
-      artifacts: true
 
 
 #####################
@@ -362,41 +338,6 @@ deploy_ubuntu2204:
     - generic
 
 
-############################
-##### EL7 DEPLOY CHECK
-############################
-gridftp_el7_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'gridftp'
-  needs:
-    - job: deploy_el7
-      artifacts: true
-
-emies_el7_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'emies'
-  needs:
-    - job: deploy_el7
-      artifacts: true
-
-arcrest_el7_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcrest'
-  needs:
-    - job: deploy_el7
-      artifacts: true
-
-arcconf_el7_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcconf'
-  needs:
-    - job: deploy_el7
-      artifacts: true
-    
 
 ############################
 ##### EL9 DEPLOY CHECK
