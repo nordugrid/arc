@@ -1092,7 +1092,11 @@ err:
     return (res == 1);
   }
 
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+  static std::string x509name2ascii(X509_NAME * name) {
+#else
   static std::string x509name2ascii(X509_NAME const * name) {
+#endif
     std::string str;
     if(name!=NULL) {
       char* buf = X509_NAME_oneline(name, NULL, 0);
