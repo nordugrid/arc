@@ -246,6 +246,8 @@ public:
   bool MatchShareUid(uid_t suid) const { return ((share_uid==0) || (share_uid==suid)); };
   /// Returns true if any of the shared gids matches the given gid
   bool MatchShareGid(gid_t sgid) const;
+  /// Returns true id token's claims from WLCG profile to be treated as VOMS attributes
+  bool WLCGtoVOMS() const;
   /// Returns forced VOMS attributes for users which have none.
   /// If queue is not specified value for server is returned.
   const std::string & ForcedVOMS(const char * queue = "") const;
@@ -362,6 +364,8 @@ private:
   std::string arex_endpoint;
   /// Delegation db type
   deleg_db_t deleg_db;
+  /// Either id token's claims from WLCG profile to be treated as VOMS attributes
+  bool wlcg_to_voms;
   /// Forced VOMS attribute for non-VOMS credentials per queue
   std::map<std::string,std::string> forced_voms;
   /// VOs authorized per queue

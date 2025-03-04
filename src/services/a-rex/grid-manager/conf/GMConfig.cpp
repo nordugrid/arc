@@ -104,6 +104,7 @@ void GMConfig::SetDefaults() {
   voms_dir = Arc::GetEnv("X509_VOMS_DIR");
 
   sshfs_mounts_enabled = false;
+  wlcg_to_voms = false;
 }
 
 bool GMConfig::Load() {
@@ -279,6 +280,10 @@ std::string GMConfig::DelegationDir() const {
 
 GMConfig::deleg_db_t GMConfig::DelegationDBType() const {
   return deleg_db;
+}
+
+bool GMConfig::WLCGtoVOMS() const {
+  return wlcg_to_voms;
 }
 
 const std::string & GMConfig::ForcedVOMS(const char * queue) const {

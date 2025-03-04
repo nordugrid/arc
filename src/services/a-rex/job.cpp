@@ -783,6 +783,22 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
       };
     };
   };
+  // Add WLCG information from tokens as VOMS if nothing was collected from proxy
+  if(job_.voms.empty()) {
+    if(config_.GmConfig().WLCGtoVOMS()) {
+      for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
+        if(*a) {
+          Arc::SecAttr* sattr = (*a)->get("OTOKENS");
+          if(sattr) {
+            std::list<std::string> wgroups = sattr->getAll("wlcg.groups");
+            for(std::list<std::string>::iterator wgroup = wgroups.begin();wgroup!=wgroups.end();++wgroup) {
+              job_.voms.insert(job_.voms.end(),*wgroup);
+            }; 
+          }; 
+        };
+      };
+    };
+  };
   // If still no VOMS information is available take forced one from configuration
   if(job_.voms.empty()) {
     std::string forced_voms = config_.GmConfig().ForcedVOMS(job_.queue.c_str());

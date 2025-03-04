@@ -364,6 +364,9 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             logger.msg(Arc::ERROR, "Wrong option in delegationdb"); return false;
           };
         }
+        else if (command == "usetokenforvoms") {
+          if (!CheckYesNoCommand(config.wlcg_to_voms, command, rest)) return false;
+        }
         else if (command == "forcedefaultvoms") {
           std::string str = rest;
           if (str.empty()) {
