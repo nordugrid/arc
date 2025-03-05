@@ -61,13 +61,21 @@ class Validator(object):
         self.warnings += 1
         self.logger.warning(msg)
 
-    def validate(self):
+
+    def validate_startup(self):
         """Run all the validation checks"""
         self.errors = 0
         self.warnings = 0
         self.validate_time()
         self.validate_configuration()
         self.validate_certificates()
+
+    def validate_config(self):
+        """Run all the validation checks"""
+        self.errors = 0
+        self.warnings = 0
+        self.validate_configuration()
+
 
     def validate_time(self):
         """Check host time against NTP server"""
