@@ -260,7 +260,7 @@ prepare() {
     if [ ! -z "$CONTROLDIR" ] ; then
         DHPARAM_PATH="$CONTROLDIR/dhparam.pem"
         if [ -f "$DHPARAM_PATH" ] ; then
-            openssl dhparam -in "$DHPARAM_PATH" -check -noout &>/dev/null
+            openssl dhparam -in "$DHPARAM_PATH" -noout &>/dev/null
             if [ $? -ne 0 ] ; then
                rm -f "$DHPARAM_PATH"
             fi
