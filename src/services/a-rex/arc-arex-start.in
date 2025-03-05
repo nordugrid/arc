@@ -382,7 +382,7 @@ validate() {
         log_failure_msg "Could not find or execute arcctl tool"
         return 1
     fi
-    eval "$CHECK_CMD $@ --config $ARC_CONFIG config verify"
+    eval "$CHECK_CMD $@ --config $ARC_CONFIG startup verify"
     RETVAL=$?
     return $RETVAL
 }
