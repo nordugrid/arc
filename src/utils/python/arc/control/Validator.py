@@ -71,7 +71,7 @@ class Validator(object):
         self.validate_certificates()
 
     def validate_config(self):
-        """Run all the validation checks"""
+        """Run only config check"""
         self.errors = 0
         self.warnings = 0
         self.validate_configuration()
