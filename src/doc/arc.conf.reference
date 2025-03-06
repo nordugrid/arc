@@ -967,6 +967,13 @@
 ## default: undefined
 #forcedefaultvoms=/vo/group/subgroup
 
+## usetokenforvoms = yes/no - Whether claims from WLCG complaint tokens 
+## to be used as VOMS attributes.
+## allowedvalues: yes no
+## default: no
+#usetokenforvoms=yes
+## CHANGE: NEW in 7.0.0.
+
 ## tokenscopes = action=scope[,action=scope[...]] - assigns JWT token scopes required
 ## to perform specific actions. Multiple tokenscopes entries are allowed.
 ## Following actions are supported:
