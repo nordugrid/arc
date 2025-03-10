@@ -62,7 +62,7 @@ class Validator(object):
         self.logger.warning(msg)
 
 
-    def validate_startup(self):
+    def validate_services(self):
         """Run all the validation checks"""
         self.errors = 0
         self.warnings = 0

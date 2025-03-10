@@ -22,14 +22,6 @@ CTL_COMPONENTS = [
 # arcctl controllers for server side
 #
 
-# arcctl startup
-try:
-    from .Startup import StartupControl
-except ImportError as e:
-    pass
-else:
-    CTL_COMPONENTS.append(StartupControl)
-
 # arcctl config
 try:
     from .Config import ConfigControl
