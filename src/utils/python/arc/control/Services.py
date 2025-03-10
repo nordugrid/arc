@@ -156,7 +156,7 @@ class ServicesControl(ComponentControl):
         
     def verify(self, args):
         validator = Validator(args.reference, self.arcconfig, args.config)
-        validator.validate_services()
+        validator.validate_service()
         if validator.errors:
             self.logger.error("Validation returned %d error(s) and %d warning(s)", validator.errors, validator.warnings)
         elif validator.warnings:
