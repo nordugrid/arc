@@ -2,6 +2,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 from .ControlCommon import *
+from .Validator import Validator
 import sys
 from .OSService import OSServiceManagement
 from .OSPackage import OSPackageManagement
@@ -152,6 +153,17 @@ class ServicesControl(ComponentControl):
         self.__services_disable(list(services_all - services_needed), sm, now)
         # enable necessary services
         self.__services_enable(services_needed, sm, now)
+        
+    def verify(self, args):
+        validator = Validator(args.reference, self.arcconfig, args.config)
+        validator.validate_service()
+        if validator.errors:
+            self.logger.error("Validation returned %d error(s) and %d warning(s)", validator.errors, validator.warnings)
+        elif validator.warnings:
+            self.logger.warning("Validation returned no errors and %d warning(s)", validator.warnings)
+        else:
+            self.logger.info("Validation returned no errors or warnings")
+        return validator.errors
 
     def list_services(self, args):
         pm, sm = self.__get_pm_sm()
@@ -224,6 +236,8 @@ class ServicesControl(ComponentControl):
                 self.__services_stop(args.service, sm)
                 self.__services_start(args.service, sm)
             pass
+        elif args.action == 'verify':
+            self.verify(args)
         elif args.action == 'list':
             self.list_services(args)
         else:
@@ -262,6 +276,10 @@ class ServicesControl(ComponentControl):
 
         services_stop = services_actions.add_parser('stop', help='Stop ARC CE services')
         add_services_to_parser(services_stop)
+
+        services_verify = services_actions.add_parser('verify', help='Verify ARC CE')
+        services_verify.add_argument('-r', '--reference', default=ARC_DOC_DIR+'/arc.conf.reference',
+                                   help='Redefine arc.conf.reference location (default is %(default)s)')
 
         services_list = services_actions.add_parser('list', help='List ARC CE services and their states')
         services_filter = services_list.add_mutually_exclusive_group(required=False)

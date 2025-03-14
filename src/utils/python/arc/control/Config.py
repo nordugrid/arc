@@ -105,7 +105,7 @@ class ConfigControl(ComponentControl):
 
     def verify(self, args):
         validator = Validator(args.reference, self.arcconfig, args.config)
-        validator.validate()
+        validator.validate_config()
         if validator.errors:
             self.logger.error("Validation returned %d error(s) and %d warning(s)", validator.errors, validator.warnings)
         elif validator.warnings:

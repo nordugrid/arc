@@ -260,7 +260,7 @@ prepare() {
     if [ ! -z "$CONTROLDIR" ] ; then
         DHPARAM_PATH="$CONTROLDIR/dhparam.pem"
         if [ -f "$DHPARAM_PATH" ] ; then
-            openssl dhparam -in "$DHPARAM_PATH" -check -noout &>/dev/null
+            openssl dhparam -in "$DHPARAM_PATH" -noout &>/dev/null
             if [ $? -ne 0 ] ; then
                rm -f "$DHPARAM_PATH"
             fi
@@ -636,7 +636,7 @@ validate() {
         log_failure_msg "Could not find or execute arcctl tool"
         return 1
     fi
-    eval "$CHECK_CMD $@ --config $ARC_CONFIG config verify"
+    eval "$CHECK_CMD $@ --config $ARC_CONFIG service verify"
     RETVAL=$?
     return $RETVAL
 }
