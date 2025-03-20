@@ -596,6 +596,10 @@ bool JobLocalDescription::write(const std::string& fname) const {
       vf != voms.end(); ++vf) {
     if(!write_pair(f,"voms",(*vf))) return false;
   };
+  for(std::list<std::string>::const_iterator ag=authgroups.begin();
+      ag != authgroups.end(); ++ag) {
+    if(!write_pair(f,"auth",(*ag))) return false;
+  };
   for(std::list<std::string>::const_iterator act_id=activityid.begin();
       act_id != activityid.end(); ++act_id) {
     if(!write_pair(f,"activityid",(*act_id))) return false;
@@ -621,6 +625,7 @@ bool JobLocalDescription::read(const std::string& fname) {
   tokenclaim.clear();
   localvo.clear();
   voms.clear();
+  authgroups.clear();
   for(;;) {
     std::string name;
     std::string buf;
@@ -720,6 +725,9 @@ bool JobLocalDescription::read(const std::string& fname) {
     }
     else if(name == "voms") {
       voms.push_back(buf);
+    }
+    else if(name == "auth") {
+      authgroups.push_back(buf);
     }
     else if(name == "diskspace") {
       unsigned long long int n;

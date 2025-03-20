@@ -561,6 +561,18 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             config.job_log->SetCredentials("", "", jobreport_cadir);
           }
         }
+        else if (command == "vomsless_vo") {
+          if (config.job_log) {
+            std::string vomsless_vo = rest;
+            std::string authgroup;
+            std::string::size_type seppos = vomsless_vo.find(' ');
+            if(seppos != std::string::npos) {
+              authgroup = vomsless_vo.substr(0, seppos);
+              vomsless_vo.erase(0, seppos+1);
+            }
+            config.job_log->AddVomslessVo(authgroup, vomsless_vo);
+          }
+        }
       };
       continue;
     };

@@ -791,6 +791,14 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
       job_.voms.push_back(forced_voms);
     };
   };
+  // Store information about matched auth groups
+  for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
+    if(*a) {
+      Arc::SecAttr* sattr = (*a)->get("ARCLEGACY");
+      if(sattr) job_.authgroups = sattr->getAll("GROUP");
+      if(!job_.authgroups.empty()) break;
+    }
+  }
   // Pull token claims if available
   for(std::list<Arc::MessageAuth*>::iterator a = config_.beginAuth();a!=config_.endAuth();++a) {
     if(*a) {

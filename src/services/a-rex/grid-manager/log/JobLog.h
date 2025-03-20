@@ -24,6 +24,7 @@ class JobLog {
   std::string certificate_path;
   std::string ca_certificates_dir;
   std::map<std::string,std::list<std::string> > token_map;
+  std::list<std::pair<std::string,std::string> > vomsless_vo;
   // reporter tool vars
   std::string reporter_tool;
   std::string reporter_logfile;
@@ -61,6 +62,8 @@ class JobLog {
   void SetOptions(std::string const &options) { report_config.push_back(std::string("accounting_options=")+options); }
   /* Add mapping entry from token claim to accounting attribute */
   void AddTokenMap(std::string const& source, std::string const& dest) { token_map[source].push_back(dest); }
+  /* Add VO name to use in case VOMS information is not available for specific auth group */
+  void AddVomslessVo(std::string const& authgroup, std::string const& vo) { vomsless_vo.emplace_back(authgroup, vo); }
 };
 
 } // namespace ARex
