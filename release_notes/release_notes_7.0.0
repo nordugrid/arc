@@ -25,7 +25,7 @@ To upgrade from ARC 6, consult the migration guide: https://www.nordugrid.org/ar
 
 
 Highlights in this release
---------------------------
+---------------------------
 
 - Tokens (http://www.nordugrid.org/arc/arc7/tech/oidc_tokens/oidc_tokens.html)
   - Major improvements and added features compared to the token preview in ARC 6
@@ -68,9 +68,6 @@ Highlights in this release
  
 
 
-
-
-
 Backwards compatibilities and incompatibilities
 ------------------------------------------------
 
@@ -78,13 +75,13 @@ Backwards compatibilities and incompatibilities
 
 - Both authtokens and x509 authentication is enabled by default. 
 
-- Support for the EMIES interface was completely removed. 
+- Support for the EMIES interface and the gridftp job interface was completely removed. 
 
-- Publshing cluster information via REST interface is enabled by default [arex/ws/publicinfo] block is added to zero.conf
+- Publishing cluster information via REST interface is enabled by default [arex/ws/publicinfo] block is added to zero.conf
 
 - No incompatible changes in the ARC7 accounting subsystem. APEL and SGAS supported.
 
-- The internal structure of the controldir files have been changed, ARC internal scripts were updated but custom scripts may be broken because of the changed file structure in the controldir.
+- The internal structure of the controldir files have been changed, ARC internal scripts were updated but note that any custom scripts may break because of the changed file structure in the controldir.
 
 - ARC 7 supports XRSL and ADL as job description languages, no backward incompatible changes were introduced, all ARC6 job files should work with ARC7. 
 
@@ -97,24 +94,23 @@ Backwards compatibilities and incompatibilities
 
 Documentation
 ==============
-The ARC 7 documentation can be found at
+The ARC 7 documentation can be found at https://www.nordugrid.org/arc/arc7
 
 If you miss something or have questions, please contact us!
 
-Links to Technology papers, specs
-----------------------------------
- Token support in ARC tech white paper
 
 
 Installing ARC 7 
 =================
 We recommend to install ARC release using the Nordugrid repository.
 
+* Start with the basics: Token-version: https://www.nordugrid.org/arc/arc7/admins/quickstart_jwt.html, x509-version: https://www.nordugrid.org/arc/arc7/admins/quickstart_x509.html
+* Get production ready: https://www.nordugrid.org/arc/arc7/admins/arc_install_guide.html#arc-install-guide
 
-We provide binary builds for all supported versions of
-  
+There is also a nice ARC tutorial which you can follow if you are new to ARC: https://www.nordugrid.org/arc/arc7/admins/tutorial/tutorial.html
 
-In addition we build nightly packages for older platforms. 
+
+* We provide binary builds for all supported versions of Debian, Ubuntu, Fedora, Rocky (compatible with AlmaLinux), and CentOS Stream.  
 
 
 
@@ -131,11 +127,23 @@ Getting in touch
 ==================
 If you need help with the configuration file or have any other questions related to ARC, please contact us via
 * Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
-* Skype channel dedicated to ARC support: https://join.skype.com/dyf3A6Uutjy2
+* You can still reach us on our Skype channel dedicated to ARC support: https://join.skype.com/dyf3A6Uutjy2
+  * We will eventually be migrating to another service since Skype is shutting down in May, the new contact info will be announced later. 
 
 
 Future support of ARC 6-series
 ===============================
+
+Now that ARC 7.0.0 is released, we expect one final ARC 6 release, but after that we will only provide security updates of ARC 6.
+In particular:
+1) No new feature development is planned or going on for ARC6 and no bug-fixing development 
+   will happen on ARC6 code base in the future except for security issues.
+2) Security fixes for ARC6 will be provided till end of March 2026.
+3) Production Sites already running ARC 6 will be able to get deployment and configuration 
+   troubleshooting help via GGUS Helpdesk till end March 2027. This we call "operational site support".
+4) In EPEL ARC packages have their major release number as part of the package name, arc6 and arc7 packages can not be confused. 
+5) In the Nordugrid repository, you have to specifically enable the ARC 7 repo to get the ARC 7 update. See: https://www.nordugrid.org/arc/arc7/common/repos/repository.html 
+
 
 
 
