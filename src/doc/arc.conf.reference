@@ -351,7 +351,7 @@
 ## sequenced
 ## default: undefined
 #authtokensgen = (sub=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0) & (iss="https://wlcg.cloud.cnaf.infn.it/")
-## CHANGE: NEW in 7.0.0.
+## CHANGE: NEW in 7.0.0
 
 ## all = yes|no - Matches any or none user identity. For "yes" argument this rule
 ## always returns positive match. For "no" it is always no match.
@@ -972,7 +972,7 @@
 ## allowedvalues: yes no
 ## default: no
 #usetokenforvoms=yes
-## CHANGE: NEW in 7.0.0.
+## CHANGE: NEW in 7.0.0
 
 ## tokenscopes = action=scope[,action=scope[...]] - assigns JWT token scopes required
 ## to perform specific actions. Multiple tokenscopes entries are allowed.
@@ -992,13 +992,13 @@
 ## can be defined by "tokenscopes=wlcg".
 #tokenscopes=jobinfo=compute.read,jobcreate=compute.create,jobcancel=compute.cancel,jobdelete=compute.cancel
 #tokenscopes=datainfo=compute.read,datawrite=compute.modify,dataread=compute.read
-## CHANGE: NEW in 7.0.0.
+## CHANGE: NEW in 7.0.0
 
 ## authtokenmap = claim:attrname[,...]
 ## multivalued
 ## default: name:name,email:email,preferred_username:username,wlcg_groups:group
 #authtokenmap=sub:user
-## CHANGE: NEW in 7.0.0.
+## CHANGE: NEW in 7.0.0
 ##
 ##
 ### end of the [arex] block ###################################
@@ -1322,7 +1322,7 @@
 ## tlsserverorder = yes - Force priority order of ciphers for TLS connection to be decided on server sid
 ## default: no
 #tlsserverorder=yes
-## CHANGE: NEW in 7.0.0.
+## CHANGE: NEW in 7.0.0
 
 ## tlsprotocols = SSL/TLS protocols - Specify which protocols to enable
 ## This is space separated list of values - SSLv2 SSLv3 TLSv1.0 TLSv1.1 TLSv1.2 TLSv1.3
@@ -1568,7 +1568,6 @@
 ## project = project_name - Sets the name of the APEL project to use.
 ## default: accounting
 #project=accounting-nl
-## CHANGE: NEW in 6.19.0
 
 ## *gocdb_name = name - Can be used to specify the GOCDB name of the resource.
 ## This value would be seen as Site attribute in the generated APEL records.
@@ -2117,6 +2116,7 @@
 ## AREX allows to control access to public informaton for non-authorized users.
 ## If this block contains no entries public information is available to anyone.
 #[infosys/accesscontrol]
+## CHANGE: NEW in 7.0.0
 
 ## allowaccess = authgroup - Defines that only the specified authgroup members are authorized to access
 ## public information. For more information see similar configuration option in [arex/ws/jobs] block.
