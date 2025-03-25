@@ -2117,6 +2117,7 @@
 ## AREX allows to control access to public informaton for non-authorized users.
 ## If this block contains no entries public information is available to anyone.
 #[infosys/accesscontrol]
+## CHANGE: NEW in 7.0.0.
 
 ## allowaccess = authgroup - Defines that only the specified authgroup members are authorized to access
 ## public information. For more information see similar configuration option in [arex/ws/jobs] block.
