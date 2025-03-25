@@ -120,7 +120,6 @@ class RecordsPublisher(object):
             sys.exit(1)
         self.arcconfig = arcconfig
         # get configured accounting targets and options
-        self.vomsless_vo = self.arcconfig.get_value('vomsless_vo', ['arex/jura'])
         self.extra_vogroups = self.arcconfig.get_value('vo_group', ['arex/jura'], force_list=True)
         self.conf_targets = list(map(lambda t: ('sgas', t), self.arcconfig.get_subblocks('arex/jura/sgas')))
         self.conf_targets += list(map(lambda t: ('apel', t), self.arcconfig.get_subblocks('arex/jura/apel')))
@@ -224,7 +223,7 @@ class RecordsPublisher(object):
         # build URs
         self.logger.debug('Going to create OGF.98 Usage Records based on the AARs')
         urs = [UsageRecord(aar, localid_prefix=localid_prefix,
-                           vomsless_vo=self.vomsless_vo, extra_vogroups=self.extra_vogroups) for aar in aars]
+                           extra_vogroups=self.extra_vogroups) for aar in aars]
         if not urs:
             self.logger.error('Failed to build OGF.98 Usage Records for SGAS publishing')
             return None
@@ -274,7 +273,7 @@ class RecordsPublisher(object):
                 # create EMI CAR URs
                 self.logger.debug('Going to create EMI CAR v1.2 Compute Accounting Records based on the AARs')
                 cars = [ComputeAccountingRecord(aar, gocdb_name=target_conf['gocdb_name'],
-                               vomsless_vo=self.vomsless_vo, extra_vogroups=self.extra_vogroups) for aar in aars]
+                                                extra_vogroups=self.extra_vogroups) for aar in aars]
                 if not cars:
                     self.logger.error('Failed to build EMI CAR v1.2 records for APEL publishing.')
                     return None
@@ -706,12 +705,11 @@ class UsageRecord(JobAccountingRecord):
                       '<tr:StartTime>{tstart}</tr:StartTime><tr:EndTime>{tend}</tr:EndTime></tr:FileUpload>'
     }
 
-    def __init__(self, aar, localid_prefix=None, vomsless_vo=None, extra_vogroups=None):
+    def __init__(self, aar, localid_prefix=None, extra_vogroups=None):
         """Create XML representation of UsageRecord"""
         JobAccountingRecord.__init__(self, aar)
         self.logger = logging.getLogger('ARC.Accounting.UR')
         self.localid_prefix = localid_prefix
-        self.vomsless_vo = vomsless_vo
         self.extra_vogroups = extra_vogroups
         if self.extra_vogroups is None:
             self.extra_vogroups = []
@@ -750,12 +748,11 @@ class UsageRecord(JobAccountingRecord):
         wlcgvo = self.aar.wlcgvo()
         voissuer = ''  # no issuer info in current implementation, is this mandatory?
         if not wlcgvo:
-            # arc.conf: vomsless VO
-            if self.vomsless_vo is not None:
-                vomsless_data = self.vomsless_vo.split('#')
-                wlcgvo = vomsless_data[0]
-                if len(vomsless_data) > 1:
-                    voissuer = vomsless_data[1]
+            return vomsxml
+        vomsless_data = wlcgvo.split('#')
+        wlcgvo = vomsless_data[0]
+        if len(vomsless_data) > 1:
+            voissuer = vomsless_data[1]
         if not wlcgvo:
             return vomsxml
         self.log += ' (VO {0})'.format(wlcgvo)
@@ -929,11 +926,10 @@ class ComputeAccountingRecord(JobAccountingRecord):
                    '{localuser}{localgroup}{groups}</UserIdentity>',
     }
 
-    def __init__(self, aar, vomsless_vo=None, extra_vogroups=None, gocdb_name=None):
+    def __init__(self, aar, extra_vogroups=None, gocdb_name=None):
         """Create XML representation of Compute Accounting Record"""
         JobAccountingRecord.__init__(self, aar)
         self.logger = logging.getLogger('ARC.Accounting.CAR')
-        self.vomsless_vo = vomsless_vo
         self.extra_vogroups = extra_vogroups
         if self.extra_vogroups is None:
             self.extra_vogroups = []
@@ -966,11 +962,6 @@ class ComputeAccountingRecord(JobAccountingRecord):
         xml = ''
         # Group (optional recommended) - the effective User VO of the user running the job
         wlcgvo = self.aar.wlcgvo()
-        if not wlcgvo:
-            # arc.conf: vomsless VO
-            if self.vomsless_vo is not None:
-                vomsless_data = self.vomsless_vo.split('#')
-                wlcgvo = vomsless_data[0]
         if wlcgvo:
             xml += '<Group>{0}</Group>'.format(wlcgvo)
             self.log += ' (VO {0})'.format(wlcgvo)

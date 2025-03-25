@@ -58,7 +58,7 @@ namespace ARex {
         return owner;
     }
 
-    bool AAR::FetchJobData(const GMJob &job,const GMConfig& config,std::map<std::string,std::list<std::string> > const& tokenmap) {
+    bool AAR::FetchJobData(const GMJob &job,const GMConfig& config,std::map<std::string,std::list<std::string> > const& tokenmap, std::list<std::pair<std::string,std::string> > const& vomsless_vo) {
         // jobid
         jobid = job.get_id();
 
@@ -98,6 +98,17 @@ namespace ARex {
                     fqan = (*it);
                     mainfqan = false;
                 }
+            }
+        } else {
+            // apply local.authgroups to vomsless_vo
+            for(auto const & vv: vomsless_vo) {
+                if(vv.first.empty()) {
+                    // untagged vomsless_vo applies always but is overwritten if authgroup is matched
+                    wlcgvo = vv.second;
+                } else if(std::count(local.authgroups.begin(), local.authgroups.end(), vv.first)) {
+                    wlcgvo = vv.second;
+                    break;
+                } 
             }
         }
         // token claims to auth attributes

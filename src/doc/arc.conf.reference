@@ -1468,13 +1468,15 @@
 ## default: 3
 #loglevel=3
 
-## vomsless_vo = voname[#voissuer] - This parameter allows the sysadmin to manually assign
+## vomsless_vo = [authgroup ]voname[#voissuer] - This parameter allows the sysadmin to manually assign
 ## VOs during pubishing to jobs that were submitted with "VOMS-less grid proxies".
 ## "voname" is the VO name to be used in the generated records (the same as expected in voms-proxy)
 ## optional "voissuer" (relevant to SGAS only) value is the VOMS server identity (certificate DN).
+## If authgroup is specified then this parameter is applied only if user belongs to specified authgroup.
 ## default: undefined
 #vomsless_vo=atlas
 #vomsless_vo=atlas#/DC=ch/DC=cern/OU=computers/CN=lcg-voms.cern.ch
+#vomsless_vo=atlasgroup atlas
 
 ## vo_group = group - Adds an additional VO group attribute(s) to the usage records.
 ## multivalued
