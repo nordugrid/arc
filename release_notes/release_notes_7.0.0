@@ -5,33 +5,76 @@ Advanced Resource Connector (ARC)
 
 Release Notes for NorduGrid ARC  7.0.0     XX.XX.2023
 =======================================================
-Draft release notes
+We are happy to announce the release of ARC 7.0.0, with REST as the primary interface, and with token support in addition to x509.
+
+ARC 7 is backwards compatible with ARC 6 except for the deprecated components.
+This means that your arc configuration file will not need major changes.
+But pay attention when you restart your services after update, so that you can remove any blocks and options that are no longer supported. 
+
+The larger internal change in ARC 7 is the restructuring of the job metadata folder, the ARC control directory.
+
+The restructuring will be done seamlessly from your ARC 6 control directory to the new restructured ARC 7 control directory.
+If you have any custom scripts that use per-job metadata files, make sure to update these to the new structure: https://www.nordugrid.org/arc/arc7/tech/arex_internals/internal_files.html
+
+
+
+
+For more details about the main changes in ARC 7: https://www.nordugrid.org/arc/arc7/common/changelog/arc6_to_arc7_changes.html
+
+To upgrade from ARC 6, consult the migration guide: https://www.nordugrid.org/arc/arc7/admins/migrating6to7.html#migration-6-to-7
+
 
 Highlights in this release
 --------------------------
 
 - Tokens (http://www.nordugrid.org/arc/arc7/tech/oidc_tokens/oidc_tokens.html)
-  - Major improvements
+  - Major improvements and added features compared to the token preview in ARC 6
   - Community compliance
   - Enhancements
   - Added support for using JWT compute scopes for token-based authorization via allowaccess arc.conf parameter authtokens (http://www.nordugrid.org/arc/arc7/admins/reference.html#authtokens)
   - Token information is part of the accounting records
 
-- The ARC server can use operating system provided CA bundles via configurable x509_cert_policy in the common block  in arc.conf. An ARC-CE must use *either* the default grid option *or* the system option. 
+- New options in arc.conf 
+  - usetokenforvoms: wheterh claims from WLCG compliant tokens should be used as VOMS attributes - currently wlcg.group claim is supported
+  - tokenscopes: assigns JWT token scopes to perform specific actions
+  - authtokenmap: map claims to ...
+  - authtokensgen: ...
+  - tlsserverorder: force priority order of ciphers for TLS connections to be decided on server sid
 
+- New blocks in arc.conf
+  - infosys/accesscontrol: AREX allows to control access to public information for non-authorized users. If this block contains no entries, public information is available to anyone. The allowaccess and denyaccess options are used to control access. 
+
+
+- The ldap interface is still present in ARC 7, but marked as legacy.
+
+- The ARC server can use operating system provided CA bundles instead of the traditional IGTF CAs via configurable x509_cert_policy in the common block in arc.conf.
+  - An ARC-CE must currently use *either* the default grid option *or* the system option.
+  
 - REST 1.1 (http://www.nordugrid.org/arc/arc7/tech/rest/rest.html)
   - A new optional delegation parameter type extension to support tokens
   - A new optional queue parameter to define the default queue of the compute element
+  - Support for bulk job submission of identical jobs
 
 - A tidy up has been done to gain consistent handling of the benchmark parameters over the various arc.conf blocks
 
 - A restructured controldir for increased scalability (link)
   - When upgrading from ARC 6 to ARC 7, the controldir will seamlessly restructure itself.
 
+- The arc control tool (arcctl) has several new capabilites.
+  - test token issuer (test-jwt) - similar to the test CA functionality (test-ca)
+  - cleanup functionality, to cleanup job metadata in control dir, test-jwt and test-ca related files and accounting database
+
+ 
+ 
+
+
+
+
+
 Backwards compatibilities and incompatibilities
 ------------------------------------------------
 
-- ARC7 still suports x509 proxies in addition to the tokens.
+- ARC7 still suports x509 proxies in addition to tokens.
 
 - Both authtokens and x509 authentication is enabled by default. 
 
