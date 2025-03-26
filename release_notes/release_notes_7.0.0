@@ -63,9 +63,42 @@ Highlights in this release
 - The arc control tool (arcctl) has several new capabilites.
   - test token issuer (test-jwt) - similar to the test CA functionality (test-ca)
   - cleanup functionality, to cleanup job metadata in control dir, test-jwt and test-ca related files and accounting database
+  - ``arcctl config verify`` behaviour has changed, it now only verifies arc.conf
+  - ``arcctl service verify`` behaves as ``arcctl config verify`` earlier did, checks arc.conf, time sync and certificiates
+ 
+ 
+Removed and obsoleted components:
+------------------------------------
 
- 
- 
+- Server-side gridftp-based ARC solutions both for job management and data storage
+
+- Both server and client-side support for EMIES job management interface- ARC Cache Index (ACIX), that was a distributed system that maintained a catalog of locations of cached files stored in various A-REX caches.
+
+- userlists generation and mapping support by nordugridmap utility
+
+- Archiving of the JURA accounting service (got removed already in the 6.8.0 release)
+
+- GLUE1 and site-BDII support within the LDAP-based components of the ARC information system
+
+- Remote batch system backend support via SSH
+
+- Python-based LRMS backend framework (it never progressed beyond technology preview status)
+
+- Support for ARGUS via AREX/WS component
+
+- Support for python2
+
+- LDAP information system support in the ARC7 clients
+
+- EGIS resource discovery in the ARC 7 clients
+
+- The following components and functionalities have been kept but labelled as DEPRECATED and target for near-future removal:
+
+- OBSOLETED: LDAP-based server-side information system with GLUE2 and nordugrid schema rendering
+
+- OBSOLETED: gridftp protocol for data staging (still available in ARC 7 and provided as a separate plugin package)
+
+- OBSOLETED: Support for Loadleveler and LSF batch systems
 
 
 Backwards compatibilities and incompatibilities
