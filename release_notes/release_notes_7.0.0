@@ -15,8 +15,7 @@ The larger internal change in ARC 7 is the restructuring of the job metadata fol
 
 The restructuring will be done seamlessly from your ARC 6 control directory to the new restructured ARC 7 control directory.
 If you have any custom scripts that use per-job metadata files, make sure to update these to the new structure: https://www.nordugrid.org/arc/arc7/tech/arex_internals/internal_files.html
-
-
+You can use the arcctl tool to fetch the directory path: arcctl job path <jobid>. 
 
 
 For more details about the main changes in ARC 7: https://www.nordugrid.org/arc/arc7/common/changelog/arc6_to_arc7_changes.html
@@ -29,17 +28,18 @@ Highlights in this release
 
 - Tokens (http://www.nordugrid.org/arc/arc7/tech/oidc_tokens/oidc_tokens.html)
   - Major improvements and added features compared to the token preview in ARC 6
-  - Community compliance
-  - Enhancements
+  - Community compliance ..add examples
+  - Enhancements ..examples
   - Added support for using JWT compute scopes for token-based authorization via allowaccess arc.conf parameter authtokens (http://www.nordugrid.org/arc/arc7/admins/reference.html#authtokens)
   - Token information is part of the accounting records
 
-- New options in arc.conf 
-  - usetokenforvoms: wheterh claims from WLCG compliant tokens should be used as VOMS attributes - currently wlcg.group claim is supported
+- New or changed options in arc.conf 
+  - usetokenforvoms: whether claims from WLCG compliant tokens should be used as VOMS attributes - currently wlcg.group claim is supported
   - tokenscopes: assigns JWT token scopes to perform specific actions
-  - authtokenmap: map claims to ...
-  - authtokensgen: ...
+  - authtokenmap: map your token claims to some custom chosen attribute name for accounting
+  - authtokensgen: advanced possibility using logical expression in order to map claims in a token to an authgroup. Can be used 
   - tlsserverorder: force priority order of ciphers for TLS connections to be decided on server sid
+  - vomsless_vo: Added additional option to vomsless_vo configuration command. It is now possible to assign VO to jobs submitted without VOMS proxy differently for users matching different authgroups. This means that you can use this to assign an authgroup to a certain VO. For the token use-case you would first match a token to an authgroup using any of the available methods, and then use the vomsless_vo to assign the authgroup to the appropriate VO.
 
 - New blocks in arc.conf
   - infosys/accesscontrol: AREX allows to control access to public information for non-authorized users. If this block contains no entries, public information is available to anyone. The allowaccess and denyaccess options are used to control access. 
@@ -71,9 +71,9 @@ Highlights in this release
 Backwards compatibilities and incompatibilities
 ------------------------------------------------
 
-- ARC7 still suports x509 proxies in addition to tokens.
+- ARC7 still supports x509 proxies in addition to tokens.
 
-- Both authtokens and x509 authentication is enabled by default. 
+- Both authtokens and x509 authentication are enabled by default. 
 
 - Support for the EMIES interface and the gridftp job interface was completely removed. 
 
