@@ -46,19 +46,25 @@ Highlights in this release
 
   - authtokenmap: map your token claims to some custom chosen attribute name for accounting
 
-  - authtokensgen: advanced possibility using logical expression in order to map claims in a token to an authgroup. Can be used 
+  - authtokensgen: advanced possibility using logical expression in order to map claims in a token to an authgroup. 
 
-  - tlsserverorder: force priority order of ciphers for TLS connections to be decided on server sid
+  - tlsserverorder: force priority order of ciphers for TLS connections to be decided on server side
 
-  - vomsless_vo: Added additional option to vomsless_vo configuration command. It is now possible to assign VO to jobs submitted without VOMS proxy differently for users matching different authgroups. This means that you can use this to assign an authgroup to a certain VO. For the token use-case you would first match a token to an authgroup using any of the available methods, and then use the vomsless_vo to assign the authgroup to the appropriate VO.
+  - vomsless_vo: Added additional option to vomsless_vo configuration command. 
+    It is now possible to assign VO to jobs submitted without VOMS proxy differently for users matching different authgroups. 
+    This means that you can use this to assign an authgroup to a certain VO. For the token use-case you would first match a token to an authgroup using any of the available methods, 
+    and then use the vomsless_vo to assign the authgroup to the appropriate VO.
 
 - New blocks in arc.conf
-  - infosys/accesscontrol: AREX allows to control access to public information for non-authorized users. If this block contains no entries, public information is available to anyone. The allowaccess and denyaccess options are used to control access. 
+  - infosys/accesscontrol: AREX allows to control access to public information for non-authorized users. 
+    If this block contains no entries, public information is available to anyone. 
+    The allowaccess and denyaccess options are used to control access. 
 
 
 - The ldap interface is still present in ARC 7, but marked as legacy.
 
-- The ARC server can use operating system provided CA bundles instead of the traditional IGTF CAs via configurable x509_cert_policy in the common block in arc.conf.
+- The ARC server can use operating system provided CA bundles instead of the traditional IGTF CAs 
+  via the configurable x509_cert_policy in the common block in arc.conf.
   - An ARC-CE must currently use *either* the default grid option *or* the system option.
   
 - REST 1.1 (http://www.nordugrid.org/arc/arc7/tech/rest/rest.html)
@@ -68,7 +74,7 @@ Highlights in this release
 
 - A tidy up has been done to gain consistent handling of the benchmark parameters over the various arc.conf blocks
 
-- A restructured controldir for increased scalability (link)
+- A restructured controldir for increased scalability (https://www.nordugrid.org/arc/arc7/tech/arex_internals/internal_files.html)
   - When upgrading from ARC 6 to ARC 7, the controldir will seamlessly restructure itself.
 
 - The arc control tool (arcctl) has several new capabilites.
@@ -77,13 +83,15 @@ Highlights in this release
   - ``arcctl config verify`` behaviour has changed, it now only verifies arc.conf
   - ``arcctl service verify`` behaves as ``arcctl config verify`` earlier did, checks arc.conf, time sync and certificiates
  
+ - The accounting subsystem in ARC7 is updated to improve operational efficiency - the database has undergone a redesign. Please see https://www.nordugrid.org/arc/arc7/common/changelog/arc6_to_arc7_changes.html for details.
  
 Removed and obsoleted components:
 ------------------------------------
 
 - Server-side gridftp-based ARC solutions both for job management and data storage
 
-- Both server and client-side support for EMIES job management interface- ARC Cache Index (ACIX), that was a distributed system that maintained a catalog of locations of cached files stored in various A-REX caches.
+- Both server and client-side support for EMIES job management interface- ARC Cache Index (ACIX), 
+  that was a distributed system that maintained a catalog of locations of cached files stored in various A-REX caches.
 
 - userlists generation and mapping support by nordugridmap utility
 
