@@ -5,43 +5,135 @@ Advanced Resource Connector (ARC)
 
 Release Notes for NorduGrid ARC  7.0.0     XX.XX.2023
 =======================================================
-Draft release notes
+We are happy to announce the release of ARC 7.0.0, with REST as the primary interface, and with token support in addition to x509.
+
+ARC 7 is backwards compatible with ARC 6 except for the deprecated components.
+This means that your arc configuration file will not need major changes.
+But pay attention when you restart your services after update, so that you can remove any blocks and options that are no longer supported. 
+
+The larger internal change in ARC 7 is the restructuring of the job metadata folder, the ARC control directory.
+
+The restructuring will be done seamlessly from your ARC 6 control directory to the new restructured ARC 7 control directory.
+If you have any custom scripts that use per-job metadata files, make sure to update these to the new structure: https://www.nordugrid.org/arc/arc7/tech/arex_internals/internal_files.html
+You can use the arcctl tool to fetch the directory path: arcctl job path <jobid>. 
+
+
+For more details about the changes in ARC 7: https://www.nordugrid.org/arc/arc7/common/changelog/arc6_to_arc7_changes.html
+
+To upgrade from ARC 6, consult the migration guide: https://www.nordugrid.org/arc/arc7/admins/migrating6to7.html#migration-6-to-7
+
 
 Highlights in this release
---------------------------
+---------------------------
 
 - Tokens (http://www.nordugrid.org/arc/arc7/tech/oidc_tokens/oidc_tokens.html)
-  - Major improvements
-  - Community compliance
-  - Enhancements
-  - Added support for using JWT compute scopes for token-based authorization via allowaccess arc.conf parameter authtokens (http://www.nordugrid.org/arc/arc7/admins/reference.html#authtokens)
+
+  - Major improvements and added features compared to the token preview in ARC 6
+  
+  - Extended support for using token information (scopes) for authorization and identity mapping
+  
+  - Token based authentication is now enabled by default together with x509
+  
   - Token information is part of the accounting records
+  
+  - Token claims can be used to link a token to a VO for accounting - either automatically if the claim wlcg.group is present, or manually in arc.conf with the vomsless_vo option (see below).  
 
-- The ARC server can use operating system provided CA bundles via configurable x509_cert_policy in the common block  in arc.conf. An ARC-CE must use *either* the default grid option *or* the system option. 
+- New or changed options in arc.conf 
 
+  - usetokenforvoms: whether claims from WLCG compliant tokens should be used as VOMS attributes - currently wlcg.group claim is supported
+
+  - tokenscopes: assigns JWT token scopes to perform specific actions
+
+  - authtokenmap: map your token claims to some custom chosen attribute name for accounting
+
+  - authtokensgen: advanced possibility using logical expression in order to map claims in a token to an authgroup. 
+
+  - tlsserverorder: force priority order of ciphers for TLS connections to be decided on server side
+
+  - vomsless_vo: Added additional option to vomsless_vo configuration command. 
+    It is now possible to assign VO to jobs submitted without VOMS proxy differently for users matching different authgroups. 
+    This means that you can use this to assign an authgroup to a certain VO. For the token use-case you would first match a token to an authgroup using any of the available methods, 
+    and then use the vomsless_vo to assign the authgroup to the appropriate VO.
+
+- New blocks in arc.conf
+  - infosys/accesscontrol: AREX allows to control access to public information for non-authorized users. 
+    If this block contains no entries, public information is available to anyone. 
+    The allowaccess and denyaccess options are used to control access. 
+
+
+- The ldap interface is still present in ARC 7, but marked as legacy.
+
+- The ARC server can use operating system provided CA bundles instead of the traditional IGTF CAs 
+  via the configurable x509_cert_policy in the common block in arc.conf.
+  - An ARC-CE must currently use *either* the default grid option *or* the system option.
+  
 - REST 1.1 (http://www.nordugrid.org/arc/arc7/tech/rest/rest.html)
   - A new optional delegation parameter type extension to support tokens
   - A new optional queue parameter to define the default queue of the compute element
+  - Support for bulk job submission of identical jobs
 
 - A tidy up has been done to gain consistent handling of the benchmark parameters over the various arc.conf blocks
 
-- A restructured controldir for increased scalability (link)
+- A restructured controldir for increased scalability (https://www.nordugrid.org/arc/arc7/tech/arex_internals/internal_files.html)
   - When upgrading from ARC 6 to ARC 7, the controldir will seamlessly restructure itself.
+
+- The arc control tool (arcctl) has several new capabilites.
+  - test token issuer (test-jwt) - similar to the test CA functionality (test-ca)
+  - cleanup functionality, to cleanup job metadata in control dir, test-jwt and test-ca related files and accounting database
+  - ``arcctl config verify`` behaviour has changed, it now only verifies arc.conf
+  - ``arcctl service verify`` behaves as ``arcctl config verify`` earlier did, checks arc.conf, time sync and certificiates
+ 
+ - The accounting subsystem in ARC7 is updated to improve operational efficiency - the database has undergone a redesign. Please see https://www.nordugrid.org/arc/arc7/common/changelog/arc6_to_arc7_changes.html for details.
+ 
+Removed and obsoleted components:
+------------------------------------
+
+- Server-side gridftp-based ARC solutions both for job management and data storage
+
+- Both server and client-side support for EMIES job management interface- ARC Cache Index (ACIX), 
+  that was a distributed system that maintained a catalog of locations of cached files stored in various A-REX caches.
+
+- userlists generation and mapping support by nordugridmap utility
+
+- Archiving of the JURA accounting service (got removed already in the 6.8.0 release)
+
+- GLUE1 and site-BDII support within the LDAP-based components of the ARC information system
+
+- Remote batch system backend support via SSH
+
+- Python-based LRMS backend framework (it never progressed beyond technology preview status)
+
+- Support for ARGUS via AREX/WS component
+
+- Support for python2
+
+- LDAP information system support in the ARC7 clients
+
+- EGIS resource discovery in the ARC 7 clients
+
+- The following components and functionalities have been kept but labelled as DEPRECATED and target for near-future removal:
+
+- OBSOLETED: LDAP-based server-side information system with GLUE2 and nordugrid schema rendering
+
+- OBSOLETED: gridftp protocol for data staging (still available in ARC 7 and provided as a separate plugin package)
+
+- OBSOLETED: Support for Loadleveler and LSF batch systems
+
 
 Backwards compatibilities and incompatibilities
 ------------------------------------------------
 
-- ARC7 still suports x509 proxies in addition to the tokens.
+- ARC7 still supports x509 proxies in addition to tokens.
 
-- Both authtokens and x509 authentication is enabled by default. 
+- Both authtokens and x509 authentication are enabled by default. 
 
-- Support for the EMIES interface was completely removed. 
+- Support for the EMIES interface and the gridftp job interface was completely removed. 
 
-- Publshing cluster information via REST interface is enabled by default [arex/ws/publicinfo] block is added to zero.conf
+- Publishing cluster information via REST interface is enabled by default [arex/ws/publicinfo] block is added to zero.conf
 
 - No incompatible changes in the ARC7 accounting subsystem. APEL and SGAS supported.
 
-- The internal structure of the controldir files have been changed, ARC internal scripts were updated but custom scripts may be broken because of the changed file structure in the controldir.
+- The internal structure of the controldir files have been changed, ARC internal scripts were updated but note that any custom scripts may break because of the changed file structure in the controldir.
 
 - ARC 7 supports XRSL and ADL as job description languages, no backward incompatible changes were introduced, all ARC6 job files should work with ARC7. 
 
@@ -54,24 +146,23 @@ Backwards compatibilities and incompatibilities
 
 Documentation
 ==============
-The ARC 7 documentation can be found at
+The ARC 7 documentation can be found at https://www.nordugrid.org/arc/arc7
 
 If you miss something or have questions, please contact us!
 
-Links to Technology papers, specs
-----------------------------------
- Token support in ARC tech white paper
 
 
 Installing ARC 7 
 =================
 We recommend to install ARC release using the Nordugrid repository.
 
+* Start with the basics: Token-version: https://www.nordugrid.org/arc/arc7/admins/quickstart_jwt.html, x509-version: https://www.nordugrid.org/arc/arc7/admins/quickstart_x509.html
+* Get production ready: https://www.nordugrid.org/arc/arc7/admins/arc_install_guide.html#arc-install-guide
 
-We provide binary builds for all supported versions of
-  
+There is also a nice ARC tutorial which you can follow if you are new to ARC: https://www.nordugrid.org/arc/arc7/admins/tutorial/tutorial.html
 
-In addition we build nightly packages for older platforms. 
+
+* We provide binary builds for all supported versions of Debian, Ubuntu, Fedora, Rocky (compatible with AlmaLinux), and CentOS Stream.  
 
 
 
@@ -88,11 +179,23 @@ Getting in touch
 ==================
 If you need help with the configuration file or have any other questions related to ARC, please contact us via
 * Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
-* Skype channel dedicated to ARC support: https://join.skype.com/dyf3A6Uutjy2
+* You can still reach us on our Skype channel dedicated to ARC support: https://join.skype.com/dyf3A6Uutjy2
+  * We will eventually be migrating to another service since Skype is shutting down in May, the new contact info will be announced later. 
 
 
 Future support of ARC 6-series
 ===============================
+
+Now that ARC 7.0.0 is released, we expect one final ARC 6 release, but after that we will only provide security updates of ARC 6.
+In particular:
+1) No new feature development is planned or going on for ARC6 and no bug-fixing development 
+   will happen on ARC6 code base in the future except for security issues.
+2) Security fixes for ARC6 will be provided till end of March 2026.
+3) Production Sites already running ARC 6 will be able to get deployment and configuration 
+   troubleshooting help via GGUS Helpdesk till end March 2027. This we call "operational site support".
+4) In EPEL ARC packages have their major release number as part of the package name, arc6 and arc7 packages can not be confused. 
+5) In the Nordugrid repository, you have to specifically enable the ARC 7 repo to get the ARC 7 update. See: https://www.nordugrid.org/arc/arc7/common/repos/repository.html 
+
 
 
 
