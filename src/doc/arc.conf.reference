@@ -994,7 +994,7 @@
 #tokenscopes=datainfo=compute.read,datawrite=compute.modify,dataread=compute.read
 ## CHANGE: NEW in 7.0.0
 
-## authtokenmap = claim:attrname[,...]
+## authtokenmap = claim:attrname[,...] - map your token claim key to a custom attribute name to be used in accounting
 ## multivalued
 ## default: name:name,email:email,preferred_username:username,wlcg_groups:group
 #authtokenmap=sub:user
