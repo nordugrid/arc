@@ -18,7 +18,7 @@ If you have any custom scripts that use per-job metadata files, make sure to upd
 You can use the arcctl tool to fetch the directory path: arcctl job path <jobid>. 
 
 
-For more details about the main changes in ARC 7: https://www.nordugrid.org/arc/arc7/common/changelog/arc6_to_arc7_changes.html
+For more details about the changes in ARC 7: https://www.nordugrid.org/arc/arc7/common/changelog/arc6_to_arc7_changes.html
 
 To upgrade from ARC 6, consult the migration guide: https://www.nordugrid.org/arc/arc7/admins/migrating6to7.html#migration-6-to-7
 
@@ -27,18 +27,29 @@ Highlights in this release
 ---------------------------
 
 - Tokens (http://www.nordugrid.org/arc/arc7/tech/oidc_tokens/oidc_tokens.html)
+
   - Major improvements and added features compared to the token preview in ARC 6
-  - Community compliance ..add examples
-  - Enhancements ..examples
-  - Added support for using JWT compute scopes for token-based authorization via allowaccess arc.conf parameter authtokens (http://www.nordugrid.org/arc/arc7/admins/reference.html#authtokens)
+  
+  - Extended support for using token information (scopes) for authorization and identity mapping
+  
+  - Token based authentication is now enabled by default together with x509
+  
   - Token information is part of the accounting records
+  
+  - Token claims can be used to link a token to a VO for accounting - either automatically if the claim wlcg.group is present, or manually in arc.conf with the vomsless_vo option (see below).  
 
 - New or changed options in arc.conf 
+
   - usetokenforvoms: whether claims from WLCG compliant tokens should be used as VOMS attributes - currently wlcg.group claim is supported
+
   - tokenscopes: assigns JWT token scopes to perform specific actions
+
   - authtokenmap: map your token claims to some custom chosen attribute name for accounting
+
   - authtokensgen: advanced possibility using logical expression in order to map claims in a token to an authgroup. Can be used 
+
   - tlsserverorder: force priority order of ciphers for TLS connections to be decided on server sid
+
   - vomsless_vo: Added additional option to vomsless_vo configuration command. It is now possible to assign VO to jobs submitted without VOMS proxy differently for users matching different authgroups. This means that you can use this to assign an authgroup to a certain VO. For the token use-case you would first match a token to an authgroup using any of the available methods, and then use the vomsless_vo to assign the authgroup to the appropriate VO.
 
 - New blocks in arc.conf
