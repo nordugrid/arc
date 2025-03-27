@@ -3,7 +3,7 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  7.0.0     XX.XX.2023
+Release Notes for NorduGrid ARC  7.0.0     27.03.2025
 =======================================================
 We are happy to announce the release of ARC 7.0.0, with REST as the primary interface, and with token support in addition to x509.
 
