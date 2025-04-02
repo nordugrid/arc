@@ -157,10 +157,10 @@ do
       continue
   fi
   numelem=$((numelem+1))
-  donefile=$(control_path "${control_dir}" "${jobid}" "lrms_done"
+  donefile=$(control_path "${control_dir}" "${jobid}" "lrms_done")
   statusfile="${control_dir}/processing/${jobid}.status"
-  jobfile=$(control_path "${control_dir}" "${jobid}" "local"
-  errorsfile=$(control_path "${control_dir}" "${jobid}" "errors"
+  jobfile=$(control_path "${control_dir}" "${jobid}" "local")
+  errorsfile=$(control_path "${control_dir}" "${jobid}" "errors")
 
   # Continue if the job is already flagged as done?
   test -f "$donefile" && continue

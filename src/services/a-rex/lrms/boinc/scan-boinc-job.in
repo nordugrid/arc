@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #  Periodically monitor for jobs which has finished or failed but not
 #  reported an exitcode

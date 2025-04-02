@@ -436,7 +436,7 @@ for ctr_dir in $control_dirs ; do
     countfile=$(control_path "${ctr_dir}" "${gridid}" "lrms_job")
     failedfile=$(control_path "${ctr_dir}" "${gridid}" "failed")
     errorsfile=$(control_path "${ctr_dir}" "${gridid}" "errors")
-    localfile="$(control_path ${ctr_dir}" "${gridid}" "local")
+    localfile=$(control_path "${ctr_dir}" "${gridid}" "local")
     xmlfile=$(control_path "${ctr_dir}" "${gridid}" "xml")
     if [ -f "$donefile" ] ; then continue ; fi
     statusfile="${ctr_dir}/processing/${gridid}.status"
