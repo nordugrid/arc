@@ -124,7 +124,7 @@ for ctr_dir in $control_dir ; do
         gridid=""
         for gid in $gridids; do
             grep "^localid=$id" $(control_path "${ctr_dir}" "$gid" "local") 2>/dev/null 1>/dev/null
-            if [ $? -eq '1' ] ; do
+            if [ $? -eq '1' ] ; then
                 gridid="$gid"
                 break
             fi
