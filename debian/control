@@ -49,8 +49,7 @@ Replaces:
  libarccommon0,
  libarccommon1,
  libarccommon2,
- libarccommon3,
- libarccommon3v5
+ libarccommon3
 Conflicts:
  nordugrid-arc-chelonia (<< 2.0.0~),
  nordugrid-arc-hopi (<< 2.0.0~),
@@ -77,7 +76,8 @@ Breaks:
  nordugrid-arc-arex (<< 2.0.1~),
  libarccommon0,
  libarccommon1,
- libarccommon2
+ libarccommon2,
+ libarccommon3
 Architecture: any
 Section: libs
 Depends:
@@ -165,6 +165,7 @@ Depends:
  ${misc:Depends},
  ${perl:Depends},
  slapd,
+ glue-schema (>= 2.0.10),
  bdii,
  nordugrid-arc-arcctl-service (= ${source:Version}),
  lsb-base (>= 3.0-6)
@@ -211,6 +212,7 @@ Architecture: all
 Depends:
  ${misc:Depends},
  ${python3:Depends},
+ python3-jwcrypto,
  libarccommon4 (>= ${source:Version})
 Description: ARC Control Tool
  NorduGrid is a collaboration aiming at development, maintenance and
@@ -298,7 +300,7 @@ Depends:
  ${misc:Depends},
  ${perl:Depends},
  ${python3:Depends},
- nordugrid-arc-arex (= ${binary:Version})
+ nordugrid-arc-arex (>= ${source:Version})
 Description: ARC Resource-coupled EXecution service - conributed LRMS backends
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
@@ -315,7 +317,7 @@ Depends:
  nordugrid-arc-arex (>= ${source:Version}),
  nordugrid-arc-arcctl (= ${source:Version}),
  python3-dnspython
-Description: ARC Community defined RTEs support
+Description: ARC community defined RTEs support
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
@@ -366,10 +368,13 @@ Description: ARC Globus plugins (transitional package)
 
 Package: libarcglobusutils4
 Replaces:
+ libarcglobusutils3,
  nordugrid-arc-plugins-globus (<< 6.5.0~)
 Breaks:
+ libarcglobusutils3,
  nordugrid-arc-plugins-globus (<< 6.5.0~)
 Architecture: any
+Section: libs
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
@@ -605,22 +610,16 @@ Description: ARC REST client
  .
  This package contains the ARC REST client.
 
-
-
 Package: nordugrid-arc-arc-exporter
 Architecture: all
 Depends:
  ${misc:Depends},
  ${python3:Depends},
- python3-prometheus-client,
- python3-datetime,
- python3-collections,
- python3-xml
+ python3-prometheus-client
 Description: ARC prometheus exporter
  NorduGrid is a collaboration aiming at development, maintenance and
  support of the middleware, known as the Advanced Resource
  Connector (ARC).
  .
- This package contains the Prometheus arc-exporter which collects and publishes metrics
- about jobs and datastaging on the ARC-CE. 
-
+ This package contains the Prometheus arc-exporter which collects and
+ publishes metrics about jobs and datastaging on the ARC-CE.

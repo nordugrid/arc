@@ -1,2 +1,2 @@
 version = 3
-http://download.nordugrid.org/packages/nordugrid-arc/releases/(\d+\.\d+\.\d+)/src/nordugrid-arc-(\d+\.\d+\.\d+)\.tar\.gz debian uupdate
+https://download.nordugrid.org/packages/nordugrid-arc/releases/(\d+\.\d+\.\d+)/src/nordugrid-arc-(\d+\.\d+\.\d+)\.tar\.gz debian uupdate

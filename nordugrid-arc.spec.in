@@ -454,7 +454,7 @@ The AREX contributed LRMS backends package contains additional LRMS
 support script contributed by the ARC user community.
 
 %package community-rtes
-Summary:	ARC Community defined RTEs support
+Summary:	ARC community defined RTEs support
 Group:		System Environment/Libraries
 Requires:	%{name}-arex = %{version}-%{release}
 Requires:	%{name}-arcctl = %{version}-%{release}
@@ -722,10 +722,7 @@ Group:		Applications/Internet
 %if %{?fedora}%{!?fedora:0} >= 10 || %{?rhel}%{!?rhel:0} >= 6
 BuildArch:	noarch
 %endif
-Requires:	python3-prometheus-client
-Requires:	python3-datetime
-Requires:	python3-collections
-Requires:	python3-xml
+Requires:	python3-prometheus_client
 
 %description arc-exporter
 NorduGrid is a collaboration aiming at development, maintenance and
@@ -798,6 +795,8 @@ find $RPM_BUILD_ROOT -type f -name \*.pyo -exec rm -fv '{}' ';'
 
 # libarcglobusutils is not part of the ARC api.
 find $RPM_BUILD_ROOT -name libarcglobusutils.so -exec rm -fv '{}' ';'
+
+rm -f $RPM_BUILD_ROOT%{python3_sitelib}/pyarcrest-*.*-info/direct_url.json
 
 # Create log directory
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/arc

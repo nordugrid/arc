@@ -98,6 +98,8 @@ override_dh_auto_install:
 
 	rm -f debian/tmp/usr/lib/libarcglobusutils.so
 
+	rm -f debian/tmp/usr/lib/python3*/*-packages/pyarcrest-*.*-info/direct_url.json
+
 	find debian/tmp -depth -name __pycache__ -exec rm -rf '{}' ';'
 
 	if [ -d debian/tmp/etc/bash_completion.d ]; then \
