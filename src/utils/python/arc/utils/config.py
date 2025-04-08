@@ -236,12 +236,12 @@ def _process_config():
                 __logger.debug('Replacing loglevel %s with numeric value %s in [%s].',
                              loglevel_value, loglevel_num_value, block)
                 __parsed_config[block]['__values'][loglevel_idx] = loglevel_num_value
-    # Accept both colon (backward compatible and database way) and space (arc7 documented admin-friendly) 
+    # Accept both colon (backward compatible and database way) and space (arc7 documented admin-friendly)
     # in [lrms] benchmark value
     try:
         benchmark_idx = __parsed_config['lrms']['__options'].index('benchmark')
         benchmark_value = __parsed_config['lrms']['__values'][benchmark_idx]
-        benchmark_split = re.split(':|\s', benchmark_value)
+        benchmark_split = re.split(r':|\s', benchmark_value)
         __parsed_config['lrms']['__values'][benchmark_idx] = '{0}:{1}'.format(benchmark_split[0], benchmark_split[-1])
     except KeyError:
         pass
