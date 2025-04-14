@@ -141,7 +141,7 @@ bool KeyValueFile::Read(std::string& name, std::string& value) {
       };
     } else {
       value += c;
-      if(value.length() > data_max_) return false; 
+      if(value.length() > data_max_) return false;
     };
   };
   return true;

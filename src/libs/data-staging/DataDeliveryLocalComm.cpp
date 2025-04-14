@@ -102,8 +102,8 @@ namespace DataStaging {
         // If file-based credentials are not required then send through stdin
         if (!dtr->get_usercfg().OToken().empty()) {
           stdin_ = "token ";
-	  stdin_ += dtr->get_usercfg().OToken();
-	} else {
+          stdin_ += dtr->get_usercfg().OToken();
+        } else {
           stdin_ = "x509 ";
           stdin_ += dtr->get_usercfg().CredentialString();
         }

@@ -125,7 +125,7 @@ void GMJob::DestroyReference(void) {
     lock.release();
     delete this;
   } else {
-    if(queue) 
+    if(queue)
       logger.msg(Arc::ERROR,"%s: Job monitoring stop requested with %u active references and %s queue associated",job_id,ref_count,queue->name_);
     else
       logger.msg(Arc::ERROR,"%s: Job monitoring stop requested with %u active references",job_id,ref_count);
@@ -136,7 +136,7 @@ bool GMJobQueue::CanSwitch(GMJob const& job, GMJobQueue const& new_queue, bool t
   if(!to_front) {
     if(!(new_queue.priority_ > priority_)) return false;
  } else {
-    // If moving to first place in queue accept same priority 
+    // If moving to first place in queue accept same priority
     if(!(new_queue.priority_ >= priority_)) return false;
   };
   return true;
@@ -147,7 +147,7 @@ bool GMJobQueue::CanRemove(GMJob const& job) {
 }
 
 bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool to_front) {
-  // Simply use global lock. It will protect both queue content and 
+  // Simply use global lock. It will protect both queue content and
   // reference to queue inside job.
   Glib::RecMutex::Lock qlock(GMJobQueue::lock_);
 
@@ -273,10 +273,10 @@ bool GMJobQueue::PushSorted(GMJobRef& ref, comparator_t compare) {
     };
     ++opos;
   };
-  // Job is not found in queue - can only happen in case of bug in the code. 
+  // Job is not found in queue - can only happen in case of bug in the code.
   // Try to recover and bail out.
   logger.msg(Arc::FATAL,"%s: PushSorted failed to find job where expected",ref->job_id);
-  ref->SwitchQueue(old_queue); 
+  ref->SwitchQueue(old_queue);
   return false;
 }
 
@@ -291,7 +291,7 @@ GMJobRef GMJobQueue::Pop() {
   Glib::RecMutex::Lock qlock(lock_);
   if(queue_.empty()) return GMJobRef();
   GMJobRef ref(queue_.front());
-  ref->SwitchQueue(NULL); 
+  ref->SwitchQueue(NULL);
   return ref;
 }
 

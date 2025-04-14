@@ -62,7 +62,7 @@ namespace ArcDMCGridFTP {
       // must be very old stuck communication - too old to keep
       globus_mutex_t* pos_mutex = &pos->second->mutex;
       globus_mutex_lock(pos_mutex);
-      callback_args.erase(pos);      
+      callback_args.erase(pos);
       globus_mutex_unlock(pos_mutex);
     };
     callback_args[last_arg] = it;
@@ -89,7 +89,7 @@ namespace ArcDMCGridFTP {
     if(pos != callback_args.end()) {
       globus_mutex_t* pos_mutex = &pos->second->mutex;
       globus_mutex_lock(pos_mutex);
-      callback_args.erase(pos);      
+      callback_args.erase(pos);
       globus_mutex_unlock(pos_mutex);
     };
     callback_args_mutex.unlock();

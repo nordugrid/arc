@@ -11,7 +11,7 @@
 namespace ARex {
 
   DelegationStores::DelegationStores(DelegationStore::DbType db_type):db_type_(db_type) {
-  }  
+  }
 
   DelegationStores::~DelegationStores(void) {
     Glib::Mutex::Lock lock(lock_);

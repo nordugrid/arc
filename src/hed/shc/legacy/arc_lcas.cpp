@@ -91,7 +91,7 @@ gss_cred_id_t read_globus_credentials(const std::string& filename) {
   X509* cert = NULL;
   STACK_OF(X509)* cchain = NULL;
   EVP_PKEY* key = NULL;
-  
+
   LoadCertificateFile(filename, cert, cchain);
   LoadKeyFile(filename, key);
 

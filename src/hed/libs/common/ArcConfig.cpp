@@ -73,7 +73,7 @@ namespace Arc {
     if(v.empty()) return true; // default
     for(int n = 0;opts[n];++n) {
       if(v == opts[n]) { val = n; return true; };
-    }; 
+    };
     return false;
   }
 

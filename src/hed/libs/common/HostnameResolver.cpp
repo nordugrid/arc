@@ -101,7 +101,7 @@ namespace Arc {
 
   HostnameResolver::SockAddr::SockAddr():family(0),length(0),addr(NULL) {
   }
- 
+
   HostnameResolver::SockAddr::SockAddr(SockAddr const& other):family(0),length(0),addr(NULL) {
     operator=(other);
   }

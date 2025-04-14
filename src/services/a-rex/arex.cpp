@@ -37,7 +37,7 @@ namespace ARex {
 #define DEFAULT_INFOSYS_MAX_CLIENTS (1)
 #define DEFAULT_JOBCONTROL_MAX_CLIENTS (100)
 #define DEFAULT_DATATRANSFER_MAX_CLIENTS (100)
- 
+
 static const std::string BES_ARC_NPREFIX("a-rex");
 static const std::string BES_ARC_NAMESPACE("http://www.nordugrid.org/schemas/a-rex");
 
@@ -56,12 +56,12 @@ char const* ARexService::RestPath = "rest";
 #define AREX_POLICY_OPERATION_INFO  "Info"
 
 // Id: http://www.nordugrid.org/schemas/policy-arc/types/arex/joboperation
-// Value: 
+// Value:
 //        Create - creation of new job
 //        Modify - modification of job paramaeters - change state, write data.
 //        Read   - accessing job information - get status information, read data.
 // Id: http://www.nordugrid.org/schemas/policy-arc/types/arex/operation
-// Value: 
+// Value:
 //        Admin  - administrator level operation
 //        Info   - information about service
 
@@ -411,7 +411,7 @@ Arc::MCC_Status ARexService::postProcessSecurity(Arc::Message& outmsg, bool& pas
 }
 
 Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
-  // Split request path into parts: service, job and file path. 
+  // Split request path into parts: service, job and file path.
   // TODO: make it HTTP independent
   std::string endpoint;
   std::string method = inmsg.Attributes()->get("HTTP:METHOD");
@@ -522,7 +522,7 @@ Arc::MCC_Status ARexService::process(Arc::Message& inmsg,Arc::Message& outmsg) {
   // Using simplified algorithm - POST for SOAP messages,
   // GET and PUT for data transfer
   if(method == "POST") {
-    // Check if request is for top of tree (factory) or particular 
+    // Check if request is for top of tree (factory) or particular
     // job (listing activity)
     // It must be base URL in request
     if(sub_op != SubOpNone) {
@@ -887,7 +887,7 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
     publishstaticinfo_=false;
   }
   config_.SetDelegations(&delegation_stores_);
-	config_.SetConfigFile(gmconfig);
+        config_.SetConfigFile(gmconfig);
   if (!config_.Load()) {
     logger_.msg(Arc::ERROR, "Failed to process configuration in %s", gmconfig);
     return;
@@ -992,9 +992,9 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
         std::string issuer_path   = base_path + "/" + d->d_name + "/issuer";
         std::string metadata_path = base_path + "/" + d->d_name + "/metadata";
         std::string keys_path     = base_path + "/" + d->d_name + "/keys";
-	std::string issuer;
-	std::string metadata;
-	std::string keys;
+        std::string issuer;
+        std::string metadata;
+        std::string keys;
         if(Arc::FileRead(issuer_path, issuer) &&
            Arc::FileRead(metadata_path, metadata) &&
            Arc::FileRead(keys_path, keys)) {
@@ -1002,7 +1002,7 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
             // Assign validity enough to the future
             if(Arc::JWSE::SetIssuerInfo(nullptr, true, issuer, metadata, keys, logger_)) {
               logger_.msg(Arc::INFO, "Created entry for JWT issuer %s", d->d_name);
-	    } else {
+            } else {
               logger_.msg(Arc::ERROR, "Failed to create entry for JWT issuer %s", d->d_name);
             }
           } else {

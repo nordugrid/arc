@@ -75,7 +75,7 @@ namespace Arc {
         if((user.Name() != *member) && ((pwd_p == NULL) || (user.Name() != root_pwd.pw_name))) {
           return file_test_wrong_permissions;
         }
-	++member;
+        ++member;
       }
     }
     return file_test_success;
@@ -105,7 +105,7 @@ namespace Arc {
   }
 
   static file_test_status private_file_test(const std::string& path, const User& user) {
-    // Check if access to file content is protected. It must be readable and writable by our 
+    // Check if access to file content is protected. It must be readable and writable by our
     // user only with exception of root.
     struct stat st;
     if(::stat(path.c_str(),&st) != 0) return file_test_missing;
@@ -860,7 +860,7 @@ namespace Arc {
           }
           HANDLESTRATT("cacertificatepath", CACertificatePath)
           HANDLESTRATT("cacertificatesdirectory", CACertificatesDirectory)
-	  HANDLESTRATT("causesystem", CAUseSystem)
+          HANDLESTRATT("causesystem", CAUseSystem)
           if (common["certificatelifetime"]) {
             certificateLifeTime = Period((std::string)common["certificatelifetime"]);
             common["certificatelifetime"].Destroy();

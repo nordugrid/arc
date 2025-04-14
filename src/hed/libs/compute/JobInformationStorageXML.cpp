@@ -61,7 +61,7 @@ namespace Arc {
     }
 
     jobs.clear();
-    
+
     XMLNodeList xmljobs = jobstorage.Path("Job");
     for (XMLNodeList::iterator xit = xmljobs.begin(); xit != xmljobs.end(); ++xit) {
       jobs.push_back(*xit);
@@ -128,7 +128,7 @@ namespace Arc {
     if (!isValid) {
       return false;
     }
-    
+
     if (remove(name.c_str()) != 0) {
       if (errno == ENOENT) {
         jobstorage.Destroy();
@@ -138,7 +138,7 @@ namespace Arc {
       perror("Error");
       return false;
     }
-    
+
     jobstorage.Destroy();
     return true;
   }
@@ -233,7 +233,7 @@ namespace Arc {
     if (!isValid) {
       return false;
     }
-    
+
     if (jobids.empty()) {
       return true;
     }

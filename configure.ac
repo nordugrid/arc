@@ -999,7 +999,7 @@ if test "x$enables_xmlsec1" = "xyes"; then
     # Find number of backslashes in XMLSEC_CFLAGS
     n=$(echo $XMLSEC_CFLAGS|sed 's/.*-DXMLSEC_CRYPTO=\([[^ ]]*\).*/\1/'|tr -d '[[A-Za-z0-1\n"]]'| wc -c)
 
-    # Fixes due to bugs in pkg-config and/or xmlsec1 
+    # Fixes due to bugs in pkg-config and/or xmlsec1
     #
     # 0: Indicates a bug in pkg-config which removes the escaping of the quotes
     # 2: Correct value with escaped quotes
@@ -1007,7 +1007,7 @@ if test "x$enables_xmlsec1" = "xyes"; then
     #    See eg. https://bugzilla.redhat.com/show_bug.cgi?id=675334
 
     # Make sure that the quotes are escaped with single backslash
-    if test $n = 0 -o $n = 6; then 
+    if test $n = 0 -o $n = 6; then
       AC_MSG_NOTICE([Working around bad combination of pkgconfig and xmlsec1 with $n back-slashes])
       XMLSEC_CFLAGS=$(echo $XMLSEC_CFLAGS|sed 's/\(.*-DXMLSEC_CRYPTO=\)\\*"\([[^ \\"]]*\)\\*" \(.*\)/\1\\"\2\\" \3/')
       XMLSEC_OPENSSL_CFLAGS=$(echo $XMLSEC_OPENSSL_CFLAGS|sed 's/\(.*-DXMLSEC_CRYPTO=\)\\*"\([[^ \\"]]*\)\\*" \(.*\)/\1\\"\2\\" \3/')

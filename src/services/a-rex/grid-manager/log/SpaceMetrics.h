@@ -30,7 +30,7 @@ class SpaceMetrics {
   double freeSession;
   double totalFreeSession;
   bool freeSession_update;
-  
+
   Arc::Run *proc;
   std::string proc_stderr;
 

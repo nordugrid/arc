@@ -187,7 +187,7 @@ CommFIFO::add_result CommFIFO::take_pipe(const std::string& dir_path, elem_t& el
   std::string path = dir_path + fifo_file;
   if(mkfifo(path.c_str(),S_IRUSR | S_IWUSR) != 0) {
     if(errno != EEXIST) {
-      return add_error; 
+      return add_error;
     };
   };
   (void)chmod(path.c_str(),S_IRUSR | S_IWUSR);

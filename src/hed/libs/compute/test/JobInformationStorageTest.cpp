@@ -36,7 +36,7 @@ public:
   void tearDown() { Arc::DirDelete(tmpdir, true); }
   void GeneralTest();
   void ReadJobsTest();
-  
+
 private:
   Arc::XMLNode xmlJob;
   std::string tmpdir;
@@ -127,7 +127,7 @@ void JobInformationStorageTest::GeneralTest() {
     JISTEST_ASSERT(jis->IsValid(), jisType);
 
     std::list<Arc::Job> inJobs, outJobs;
-  
+
     inJobs.push_back(xmlJob);
     inJobs.back().Name = "Job0";
     inJobs.back().JobID = "https://ce00.niif.hu:60000/arex/job0";
@@ -148,7 +148,7 @@ void JobInformationStorageTest::GeneralTest() {
     inJobs.back().Name = "Other Job";
     inJobs.back().JobID = "https://ce-other.niif.hu:60000/arex/other-job";
     inJobs.back().ServiceInformationURL = Arc::URL("https://info-other.niif.hu:2135/aris");
-  
+
     // Write and read jobs.
     JISTEST_ASSERT(jis->Clean(), jisType);
     JISTEST_ASSERT(jis->Write(inJobs), jisType);
@@ -162,7 +162,7 @@ void JobInformationStorageTest::GeneralTest() {
       CPPUNIT_ASSERT_EQUAL_MESSAGE("JobInformationStorage" + jisType + ": Job with name \"" + itJ->Name + "\" was unexpected" , 1, (int)jobNames.erase(itJ->Name));
     }
     }
-  
+
     inJobs.clear();
     std::set<std::string> prunedServices;
     prunedServices.insert("info01.niif.hu");
@@ -171,12 +171,12 @@ void JobInformationStorageTest::GeneralTest() {
     inJobs.back().Name = "Job4";
     inJobs.back().JobID = "https://ce02.niif.hu:60000/arex/job4";
     inJobs.back().ServiceInformationURL = Arc::URL("https://info02.niif.hu:2135/aris");
-  
+
     inJobs.push_back(xmlJob);
     inJobs.back().Name = "Job2";
     inJobs.back().JobID = "https://ce01.niif.hu:60000/arex/job2";
     inJobs.back().ServiceInformationURL = Arc::URL("https://info01.niif.hu:2135/aris");
-  
+
     // Check that pointers to new jobs are added to the list, and that jobs on services specified to be pruned are removed.
     std::list<const Arc::Job*> newJobs;
     JISTEST_ASSERT(jis->Write(inJobs, prunedServices, newJobs), jisType);
@@ -193,7 +193,7 @@ void JobInformationStorageTest::GeneralTest() {
       CPPUNIT_ASSERT_EQUAL_MESSAGE("JobInformationStorage" + jisType + ": Job with name \"" + itJ->Name + "\" was unexpected" , 1, (int)jobNames.erase(itJ->Name));
     }
     }
-  
+
     // Check whether file is truncated.
     JISTEST_ASSERT(jis->Clean(), jisType);
     JISTEST_ASSERT(jis->Write(inJobs), jisType);
@@ -201,13 +201,13 @@ void JobInformationStorageTest::GeneralTest() {
     JISTEST_ASSERT_EQUAL(2, (int)outJobs.size(), jisType);
     if      ("https://ce02.niif.hu:60000/arex/job4" == outJobs.front().JobID) {
       JISTEST_ASSERT_EQUAL((std::string)"Job4", outJobs.front().Name, jisType);
-  
+
       JISTEST_ASSERT_EQUAL((std::string)"Job2", outJobs.back().Name, jisType);
       JISTEST_ASSERT_EQUAL((std::string)"https://ce01.niif.hu:60000/arex/job2", outJobs.back().JobID, jisType);
     }
     else if ("https://ce01.niif.hu:60000/arex/job2" == outJobs.front().JobID) {
       JISTEST_ASSERT_EQUAL((std::string)"Job2", outJobs.front().Name, jisType);
-  
+
       JISTEST_ASSERT_EQUAL((std::string)"Job4", outJobs.back().Name, jisType);
       JISTEST_ASSERT_EQUAL((std::string)"https://ce02.niif.hu:60000/arex/job4", outJobs.back().JobID, jisType);
     }
@@ -215,19 +215,19 @@ void JobInformationStorageTest::GeneralTest() {
       CPPUNIT_FAIL((  "JobInformationStorage" + jisType + "\n"
                     "- Expected: \"https://ce01.niif.hu:60000/arex/job2\" or \"https://ce02.niif.hu:60000/arex/job4\"\n"
                     "- Actual:   \"" + outJobs.front().JobID + "\"").c_str());
-    } 
-  
+    }
+
     inJobs.push_back(xmlJob);
     inJobs.back().Name = "Job5";
     inJobs.back().JobID = "https://ce01.niif.hu:60000/arex/job5";
-  
+
     inJobs.push_back(xmlJob);
     inJobs.back().Name = "Job6";
     inJobs.back().JobID = "https://ce01.niif.hu:60000/arex/job6";
-  
+
     inJobs.push_back(inJobs.back());
     inJobs.back().Name = "Job6New";
-  
+
     // Duplicate jobs will be overwritten.
     JISTEST_ASSERT(jis->Clean(), jisType);
     JISTEST_ASSERT(jis->Write(inJobs), jisType);
@@ -240,7 +240,7 @@ void JobInformationStorageTest::GeneralTest() {
       if (itJob->Name == "Job6New") job6NewExists = true;
     }
     JISTEST_ASSERT(job6NewExists, jisType);
-  
+
     // Truncate file.
     JISTEST_ASSERT(jis->Clean(), jisType);
     newJobs.clear();
@@ -255,19 +255,19 @@ void JobInformationStorageTest::GeneralTest() {
       if (itJob->Name == "Job6New") job6NewExists = true;
     }
     JISTEST_ASSERT(job6NewExists, jisType);
-  
+
     inJobs.pop_back();
-  
+
     // Adding more jobs to file.
     JISTEST_ASSERT(jis->Clean(), jisType);
     JISTEST_ASSERT(jis->Write(inJobs), jisType);
     JISTEST_ASSERT(jis->ReadAll(outJobs), jisType);
     JISTEST_ASSERT_EQUAL(4, (int)outJobs.size(), jisType);
-  
+
     std::list<std::string> toberemoved;
     toberemoved.push_back("https://ce02.niif.hu:60000/arex/job4");
     toberemoved.push_back("https://ce01.niif.hu:60000/arex/job5");
-  
+
     // Check whether jobs are removed correctly.
     JISTEST_ASSERT(jis->Remove(toberemoved), jisType);
     JISTEST_ASSERT(jis->ReadAll(outJobs), jisType);
@@ -291,7 +291,7 @@ void JobInformationStorageTest::ReadJobsTest() {
     JISTEST_ASSERT(jis->IsValid(), jisType);
 
     std::list<Arc::Job> inJobs, outJobs;
-  
+
     // Check if jobs are read when specified by the jobIdentifiers argument.
     // Also check that the jobIdentifiers list is modified according to found jobs.
     {
@@ -305,7 +305,7 @@ void JobInformationStorageTest::ReadJobsTest() {
       inJobs.back().JobStatusInterfaceName = "org.nordugrid.test";
       inJobs.back().JobManagementURL = Arc::URL("https://ce.grid.org/");
       inJobs.back().JobManagementInterfaceName = "org.nordugrid.test";
-  
+
       inJobs.push_back(Arc::Job());
       inJobs.back().Name = "foo-job-2";
       inJobs.back().JobID = "https://ce.grid.org/1234567890-foo-job-2";
@@ -316,7 +316,7 @@ void JobInformationStorageTest::ReadJobsTest() {
       inJobs.back().JobStatusInterfaceName = "org.nordugrid.test";
       inJobs.back().JobManagementURL = Arc::URL("https://ce.grid.org/");
       inJobs.back().JobManagementInterfaceName = "org.nordugrid.test";
-  
+
       inJobs.push_back(Arc::Job());
       inJobs.back().Name = "foo-job-2";
       inJobs.back().JobID = "https://ce.grid.org/0987654321-foo-job-2";
@@ -327,7 +327,7 @@ void JobInformationStorageTest::ReadJobsTest() {
       inJobs.back().JobStatusInterfaceName = "org.nordugrid.test";
       inJobs.back().JobManagementURL = Arc::URL("https://ce.grid.org/");
       inJobs.back().JobManagementInterfaceName = "org.nordugrid.test";
-  
+
       inJobs.push_back(Arc::Job());
       inJobs.back().Name = "foo-job-3";
       inJobs.back().JobID = "https://ce.grid.org/1234567890-foo-job-3";
@@ -338,17 +338,17 @@ void JobInformationStorageTest::ReadJobsTest() {
       inJobs.back().JobStatusInterfaceName = "org.nordugrid.test";
       inJobs.back().JobManagementURL = Arc::URL("https://ce.grid.org/");
       inJobs.back().JobManagementInterfaceName = "org.nordugrid.test";
-  
+
       JISTEST_ASSERT(jis->Clean(), jisType);
       JISTEST_ASSERT(jis->Write(inJobs), jisType);
-  
+
       std::list<std::string> jobIdentifiers;
       jobIdentifiers.push_back("https://ce.grid.org/1234567890-foo-job-1");
       // Having the same identifier twice should only result in one Job object being added to the list.
       jobIdentifiers.push_back("https://ce.grid.org/1234567890-foo-job-1");
       jobIdentifiers.push_back("foo-job-2");
       jobIdentifiers.push_back("nonexistent-job");
-      
+
       JISTEST_ASSERT(jis->Read(outJobs, jobIdentifiers), jisType);
       JISTEST_ASSERT_EQUAL(3, (int)outJobs.size(), jisType);
       std::list<Arc::Job>::const_iterator itJ = outJobs.begin();
@@ -371,16 +371,16 @@ void JobInformationStorageTest::ReadJobsTest() {
                       "- Expected: \"https://ce.grid.org/1234567890-foo-job-2\" or \"https://ce.grid.org/0987654321-foo-job-2\"\n"
                       "- Actual:   \"" + itJ->JobID + "\"").c_str());
       }
-  
+
       JISTEST_ASSERT_EQUAL(1, (int)jobIdentifiers.size(), jisType);
       JISTEST_ASSERT_EQUAL((std::string)"nonexistent-job", jobIdentifiers.front(), jisType);
     }
-  
+
     // Check if jobs are read when specified by the endpoints argument.
     // Also check if jobs are read when specified by the rejectEndpoints argument.
     {
       inJobs.clear();
-  
+
       inJobs.push_back(Arc::Job());
       inJobs.back().Name = "foo-job-1";
       inJobs.back().JobID = "https://ce1.grid.org/1234567890-foo-job-1";
@@ -391,7 +391,7 @@ void JobInformationStorageTest::ReadJobsTest() {
       inJobs.back().JobStatusInterfaceName = "org.nordugrid.test";
       inJobs.back().JobManagementURL = Arc::URL("https://ce1.grid.org/");
       inJobs.back().JobManagementInterfaceName = "org.nordugrid.test";
-  
+
       inJobs.push_back(Arc::Job());
       inJobs.back().Name = "foo-job-2";
       inJobs.back().JobID = "https://ce2.grid.org/1234567890-foo-job-2";
@@ -402,7 +402,7 @@ void JobInformationStorageTest::ReadJobsTest() {
       inJobs.back().JobStatusInterfaceName = "org.nordugrid.test";
       inJobs.back().JobManagementURL = Arc::URL("https://ce2.grid.org/");
       inJobs.back().JobManagementInterfaceName = "org.nordugrid.test";
-  
+
       inJobs.push_back(Arc::Job());
       inJobs.back().Name = "foo-job-3";
       inJobs.back().JobID = "https://ce2.grid.org/1234567890-foo-job-3";
@@ -413,7 +413,7 @@ void JobInformationStorageTest::ReadJobsTest() {
       inJobs.back().JobStatusInterfaceName = "org.nordugrid.test";
       inJobs.back().JobManagementURL = Arc::URL("https://ce2.grid.org/");
       inJobs.back().JobManagementInterfaceName = "org.nordugrid.test";
-  
+
       inJobs.push_back(Arc::Job());
       inJobs.back().Name = "foo-job-4";
       inJobs.back().JobID = "https://ce3.grid.org/1234567890-foo-job-4";
@@ -424,33 +424,33 @@ void JobInformationStorageTest::ReadJobsTest() {
       inJobs.back().JobStatusInterfaceName = "org.nordugrid.test";
       inJobs.back().JobManagementURL = Arc::URL("https://ce3.grid.org/");
       inJobs.back().JobManagementInterfaceName = "org.nordugrid.test";
-  
+
       JISTEST_ASSERT(jis->Clean(), jisType);
       JISTEST_ASSERT(jis->Write(inJobs), jisType);
-  
+
       std::list<std::string> jobIdentifiers, endpoints, rejectEndpoints;
       endpoints.push_back("ce2.grid.org");
-  
+
       JISTEST_ASSERT(jis->Read(outJobs, jobIdentifiers, endpoints), jisType);
       JISTEST_ASSERT_EQUAL(2, (int)outJobs.size(), jisType);
-  
+
       JISTEST_ASSERT_EQUAL((std::string)"foo-job-2", outJobs.front().Name, jisType);
       JISTEST_ASSERT_EQUAL((std::string)"https://ce2.grid.org/1234567890-foo-job-2", outJobs.front().JobID, jisType);
       JISTEST_ASSERT_EQUAL((std::string)"foo-job-3", outJobs.back().Name, jisType);
       JISTEST_ASSERT_EQUAL((std::string)"https://ce2.grid.org/1234567890-foo-job-3", outJobs.back().JobID, jisType);
-  
+
       outJobs.clear();
       rejectEndpoints.push_back("ce2.grid.org");
-  
+
       JISTEST_ASSERT(jis->ReadAll(outJobs, rejectEndpoints), jisType);
       JISTEST_ASSERT_EQUAL(2, (int)outJobs.size(), jisType);
-  
+
       JISTEST_ASSERT_EQUAL((std::string)"foo-job-1", outJobs.front().Name, jisType);
       JISTEST_ASSERT_EQUAL((std::string)"https://ce1.grid.org/1234567890-foo-job-1", outJobs.front().JobID, jisType);
       JISTEST_ASSERT_EQUAL((std::string)"foo-job-4", outJobs.back().Name, jisType);
       JISTEST_ASSERT_EQUAL((std::string)"https://ce3.grid.org/1234567890-foo-job-4", outJobs.back().JobID, jisType);
     }
-    
+
     remove(tmpfile.c_str());
     delete jis;
   }

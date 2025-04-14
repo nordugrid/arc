@@ -39,7 +39,7 @@ void HeartBeatMetrics::SetEnabled(bool val) {
 void HeartBeatMetrics::SetConfig(const char* fname) {
   config_filename = fname;
 }
-  
+
 void HeartBeatMetrics::SetGmetricPath(const char* path) {
   tool_path = path;
 }
@@ -61,7 +61,7 @@ void HeartBeatMetrics::ReportHeartBeatChange(const GMConfig& config) {
     logger.msg(Arc::ERROR,"Error with hearbeatfile: %s",heartbeat_file.c_str());
     time_update = false;
   }
-    
+
   Sync();
 }
 
@@ -88,9 +88,9 @@ void HeartBeatMetrics::Sync(void) {
 
   if(time_update){
     if(RunMetrics(
-		  std::string("AREX-HEARTBEAT_LAST_SEEN"),
-		  Arc::tostring(time_delta), "int32", "sec"
-		  )) {
+                  std::string("AREX-HEARTBEAT_LAST_SEEN"),
+                  Arc::tostring(time_delta), "int32", "sec"
+                  )) {
       time_update = false;
       return;
     };
@@ -99,7 +99,7 @@ void HeartBeatMetrics::Sync(void) {
 
 }
 
- 
+
 bool HeartBeatMetrics::RunMetrics(const std::string name, const std::string& value, const std::string unit_type, const std::string unit) {
   if(proc) return false;
   std::list<std::string> cmd;
@@ -123,7 +123,7 @@ bool HeartBeatMetrics::RunMetrics(const std::string name, const std::string& val
   cmd.push_back(unit_type);
   cmd.push_back("-u");//unit
   cmd.push_back(unit);
-  
+
   proc = new Arc::Run(cmd);
   proc->AssignStderr(proc_stderr);
   proc->AssignKicker(&RunMetricsKicker, this);

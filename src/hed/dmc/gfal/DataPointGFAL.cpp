@@ -140,7 +140,7 @@ namespace ArcDMCGFAL {
     if (reading) return DataStatus::IsReadingError;
     if (writing) return DataStatus::IsWritingError;
     reading = true;
-    
+
     // Open the file
     {
       GFALEnvLocker gfal_lock(usercfg, lfc_host);
@@ -152,7 +152,7 @@ namespace ArcDMCGFAL {
       reading = false;
       return DataStatus(DataStatus::ReadStartError, error_no);
     }
-    
+
     // Remember the DataBuffer we got: the separate reading thread will use it
     buffer = &buf;
     // StopReading will wait for this condition,
@@ -167,11 +167,11 @@ namespace ArcDMCGFAL {
     }
     return DataStatus::Success;
   }
-  
+
   void DataPointGFAL::read_file_start(void *object) {
     ((DataPointGFAL*)object)->read_file();
   }
-  
+
   void DataPointGFAL::read_file() {
     int handle;
     unsigned int length;
@@ -197,13 +197,13 @@ namespace ArcDMCGFAL {
         buffer->error_read(true);
         break;
       }
-      
+
       // If there was no more to read
       if (bytes_read == 0) {
         buffer->is_read(handle, 0, offset);
         break;
       }
-      
+
       // Tell the DataBuffer that we read something into it
       buffer->is_read(handle, bytes_read, offset);
       // Keep track of where we are in the file
@@ -225,7 +225,7 @@ namespace ArcDMCGFAL {
       fd = -1;
     }
   }
-  
+
   DataStatus DataPointGFAL::StopReading() {
     if (!reading) return DataStatus(DataStatus::ReadStopError, EARCLOGIC, "Not reading");
     reading = false;
@@ -259,7 +259,7 @@ namespace ArcDMCGFAL {
     buffer = NULL;
     return DataStatus::Success;
   }
-  
+
   DataStatus DataPointGFAL::StartWriting(DataBuffer& buf, DataCallback *space_cb) {
     if (reading) return DataStatus(DataStatus::IsReadingError, EARCLOGIC);
     if (writing) return DataStatus(DataStatus::IsWritingError, EARCLOGIC);
@@ -313,7 +313,7 @@ namespace ArcDMCGFAL {
         return DataStatus(DataStatus::WriteStartError, error_no);
       }
     }
-    
+
     // Remember the DataBuffer we got, the separate writing thread will use it
     buffer = &buf;
     // StopWriting will wait for this condition,
@@ -325,14 +325,14 @@ namespace ArcDMCGFAL {
       }
       writing = false;
       return DataStatus(DataStatus::WriteStartError, "Failed to create writing thread");
-    }    
+    }
     return DataStatus::Success;
   }
-  
+
   void DataPointGFAL::write_file_start(void *object) {
     ((DataPointGFAL*)object)->write_file();
   }
-  
+
   void DataPointGFAL::write_file() {
     int handle;
     unsigned int length;
@@ -340,7 +340,7 @@ namespace ArcDMCGFAL {
     unsigned long long int offset = 0;
     ssize_t bytes_written = 0;
     unsigned int chunk_offset;
-    
+
     for (;;) {
       // Ask the DataBuffer for a buffer with data to write,
       // and the length and position where to write to
@@ -351,7 +351,7 @@ namespace ArcDMCGFAL {
           buffer->error_write(true);
         }
         break;
-      }      
+      }
 
       // if the buffer gives different position than we are currently in the
       // destination, then we have to seek there
@@ -363,7 +363,7 @@ namespace ArcDMCGFAL {
         }
         offset = position;
       }
-      
+
       // we want to write the chunk we got from the buffer,
       // but we may not be able to write it in one shot
       chunk_offset = 0;
@@ -405,12 +405,12 @@ namespace ArcDMCGFAL {
       fd = -1;
     }
   }
-    
+
   DataStatus DataPointGFAL::StopWriting() {
     if (!writing) return DataStatus(DataStatus::WriteStopError, EARCLOGIC, "Not writing");
     writing = false;
     if (!buffer) return DataStatus(DataStatus::WriteStopError, EARCLOGIC, "Not writing");
-    
+
     // If the writing is not finished, trigger writing error
     if (!buffer->eof_write()) buffer->error_write(true);
 
@@ -438,8 +438,8 @@ namespace ArcDMCGFAL {
     }
     buffer = NULL;
     return DataStatus::Success;
-  }  
-  
+  }
+
   DataStatus DataPointGFAL::do_stat(const URL& stat_url, FileInfo& file, DataPointInfoType verb) {
     struct stat st;
     int res;
@@ -502,25 +502,25 @@ namespace ArcDMCGFAL {
         }
       }
     }
-    return DataStatus::Success;    
+    return DataStatus::Success;
   }
 
   DataStatus DataPointGFAL::Check(bool check_meta) {
     if (reading) return DataStatus(DataStatus::IsReadingError, EARCLOGIC);
     if (writing) return DataStatus(DataStatus::IsWritingError, EARCLOGIC);
-    
+
     FileInfo file;
     DataStatus status_from_stat = do_stat(url, file, (DataPointInfoType)(INFO_TYPE_ACCESS | INFO_TYPE_CONTENT));
-    
+
     if (!status_from_stat) {
       return DataStatus(DataStatus::CheckError, status_from_stat.GetErrno());
     }
-    
+
     SetSize(file.GetSize());
     SetModified(file.GetModified());
     return DataStatus::Success;
   }
-  
+
   DataStatus DataPointGFAL::Stat(FileInfo& file, DataPointInfoType verb) {
     return do_stat(url, file, verb);
   }
@@ -528,7 +528,7 @@ namespace ArcDMCGFAL {
   DataStatus DataPointGFAL::List(std::list<FileInfo>& files, DataPointInfoType verb) {
     // Open the directory
     struct dirent *d;
-    DIR *dir;    
+    DIR *dir;
     {
       GFALEnvLocker gfal_lock(usercfg, lfc_host);
       dir = gfal_opendir(GFALUtils::GFALURL(url).c_str());
@@ -538,7 +538,7 @@ namespace ArcDMCGFAL {
       int error_no = GFALUtils::HandleGFALError(logger);
       return DataStatus(DataStatus::ListError, error_no);
     }
-    
+
     // Loop over the content of the directory
     while ((d = gfal_readdir (dir))) {
       // Create a new FileInfo object and add it to the list of files
@@ -550,17 +550,17 @@ namespace ArcDMCGFAL {
         do_stat(child_url, *f, verb);
       }
     }
-    
+
     // Then close the dir
     if (gfal_closedir (dir) < 0) {
       logger.msg(WARNING, "gfal_closedir failed: %s", StrError(gfal_posix_code_error()));
       int error_no = GFALUtils::HandleGFALError(logger);
       return DataStatus(DataStatus::ListError, error_no);
     }
-    
+
     return DataStatus::Success;
   }
-  
+
   DataStatus DataPointGFAL::Remove() {
     if (reading) return DataStatus(DataStatus::IsReadingError, EARCLOGIC);
     if (writing) return DataStatus(DataStatus::IsWritingError, EARCLOGIC);
@@ -591,7 +591,7 @@ namespace ArcDMCGFAL {
     }
     return DataStatus::Success;
   }
-  
+
   DataStatus DataPointGFAL::CreateDirectory(bool with_parents) {
 
     int res;
@@ -605,9 +605,9 @@ namespace ArcDMCGFAL {
       int error_no = GFALUtils::HandleGFALError(logger);
       return DataStatus(DataStatus::CreateDirectoryError, error_no);
     }
-    return DataStatus::Success;    
+    return DataStatus::Success;
   }
-  
+
   DataStatus DataPointGFAL::Rename(const URL& newurl) {
 
     int res;

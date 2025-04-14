@@ -118,7 +118,7 @@ PDPStatus GACLPDP::isPermitted(Message *msg) const{
     if(!eval) logger.msg(ERROR, "Can not dynamically produce Evaluator");
   }
   if(!eval) {
-    logger.msg(ERROR,"Evaluator for GACLPDP was not loaded"); 
+    logger.msg(ERROR,"Evaluator for GACLPDP was not loaded");
     return false;
   };
 

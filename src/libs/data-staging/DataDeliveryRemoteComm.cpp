@@ -71,7 +71,7 @@ namespace DataStaging {
     // connect to service and make a new transfer request
     logger_->msg(Arc::VERBOSE, "Connecting to Delivery service at %s", endpoint.str());
     // TODO: implement pool of ClientSOAP objects instead of having one for each Comm
-    // object. That shall reduce number of TCP connections. 
+    // object. That shall reduce number of TCP connections.
     client = new Arc::ClientSOAP(cfg, endpoint, timeout);
 
     Arc::NS ns;

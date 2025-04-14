@@ -287,7 +287,7 @@ namespace Arc {
     if (source.Cache() && destination.Local() && cache) {
       cacheable = true;
       try {
-        // TODO (important) load credential in unified way or 
+        // TODO (important) load credential in unified way or
         // use already loaded one
         Credential ci(source.GetUserConfig().ProxyPath(), source.GetUserConfig().ProxyPath(),
                       source.GetUserConfig().CACertificatesDirectory(), "", source.GetUserConfig().CAUseSystem());

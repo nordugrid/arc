@@ -85,7 +85,7 @@ SRMInfo::SRMInfo(std::string dir) {
       return;
     }
     filelock.release();
-  
+
     for (std::list<std::string>::iterator line = filedata.begin(); line != filedata.end(); ++line) {
       if (line->empty() || (*line)[0] == '#') continue;
       // split line

@@ -196,20 +196,20 @@ namespace Arc {
             continue;
           };
           size_t idx = 0;
-          handles[idx].fd = loop_kick_[0]; handles[idx].events = POLLIN; handles[idx].revents = 0; 
+          handles[idx].fd = loop_kick_[0]; handles[idx].events = POLLIN; handles[idx].revents = 0;
           ++idx;
           for(std::set<Run*>::iterator it = monitored_.begin(); it != monitored_.end(); ++it) {
             Run* r = *it;
             if (r->stdout_str_ && !(r->stdout_keep_) && (r->stdout_ != -1)) {
-              handles[idx].fd = r->stdout_; handles[idx].events = POLLIN; handles[idx].revents = 0; 
+              handles[idx].fd = r->stdout_; handles[idx].events = POLLIN; handles[idx].revents = 0;
               ++idx;
             }
             if (r->stderr_str_ && !(r->stderr_keep_) && (r->stderr_ != -1)) {
-              handles[idx].fd = r->stderr_; handles[idx].events = POLLIN; handles[idx].revents = 0; 
+              handles[idx].fd = r->stderr_; handles[idx].events = POLLIN; handles[idx].revents = 0;
               ++idx;
             }
             if (r->stdin_str_ && !(r->stdin_keep_) && (r->stdin_ != -1)) {
-              handles[idx].fd = r->stdin_; handles[idx].events = POLLOUT; handles[idx].revents = 0; 
+              handles[idx].fd = r->stdin_; handles[idx].events = POLLOUT; handles[idx].revents = 0;
               ++idx;
             }
           }
@@ -365,7 +365,7 @@ namespace Arc {
         // it is the process we are monitoring
         if(r->running_ && (r->pid_ > 0)) {
           // so keep monitoring it just for waitpid calls
-          abandoned_.insert(r->pid_); 
+          abandoned_.insert(r->pid_);
         }
         r->running_ = false; // let Run instance think it finished
       }
@@ -494,7 +494,7 @@ namespace Arc {
     try {
       running_ = true;
       pid_t pid = -1;
-      // Locking user switching to make sure fork is 
+      // Locking user switching to make sure fork is
       // is done with proper uid
       usw = new UserSwitch(0,0);
       arg = new RunInitializerArgument(initializer_func_, initializer_arg_, usw.Ptr(), user_id_, group_id_);
@@ -505,14 +505,14 @@ namespace Arc {
       int pipe_stdout[2] = { -1, -1 };
       int pipe_stderr[2] = { -1, -1 };
       std::string strerr;
-      if((stdin_keep_  || (::pipe(pipe_stdin) == 0)) && 
+      if((stdin_keep_  || (::pipe(pipe_stdin) == 0)) &&
          (stdout_keep_ || (::pipe(pipe_stdout) == 0)) &&
          (stderr_keep_ || (::pipe(pipe_stderr) == 0))) {
 
         uint64_t max_files = RLIM_INFINITY;
         struct rlimit lim;
         if(getrlimit(RLIMIT_NOFILE,&lim) == 0) { max_files=lim.rlim_cur; };
-        if(max_files == RLIM_INFINITY) max_files=4096; // some safe value 
+        if(max_files == RLIM_INFINITY) max_files=4096; // some safe value
         char * * argv = new char*[argv_.size()+1];
         char * * envp = new char*[envp_tmp.size()+1];
         int n = 0;

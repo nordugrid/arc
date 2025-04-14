@@ -171,11 +171,11 @@ void sendRequests(){
   Arc::NS saml_ns;
   saml_ns["saml"] = SAML_NAMESPACE;
   saml_ns["samlp"] = SAMLP_NAMESPACE;
- 
+
   Arc::init_xmlsec();
- 
+
   while(run){
-    
+
     // Create a Client.
     Arc::ClientSOAP *client = NULL;
     client = new Arc::ClientSOAP(mcc_cfg,url,60);
@@ -200,7 +200,7 @@ void sendRequests(){
       Arc::MCC_Status status = client->process(&req,&resp);
 
       tAfter.assign_current_time();
-      
+
       if(!status) {
         // Request failed.
         failedRequests++;
@@ -269,7 +269,7 @@ int main(int argc, char* argv[]){
     } else {
       break;
     };
-  } 
+  }
   if(debug_level >= 0) {
     Arc::Logger::getRootLogger().setThreshold((Arc::LogLevel)debug_level);
     Arc::Logger::getRootLogger().addDestination(logcerr);
@@ -277,20 +277,20 @@ int main(int argc, char* argv[]){
   // Extract command line arguments.
   if (argc!=4){
     std::cerr << "Wrong number of arguments!" << std::endl
-	      << std::endl
-	      << "Usage:" << std::endl
-	      << "perftest [-c config] [-d debug] [-r] url threads duration" << std::endl
-	      << std::endl
-	      << "Arguments:" << std::endl
-	      << "url       The url of the service." << std::endl
-	      << "threads   The number of concurrent requests." << std::endl
-	      << "duration  The duration of the test in seconds." << std::endl
-	      << "-c config The file containing client chain XML configuration with " << std::endl
+              << std::endl
+              << "Usage:" << std::endl
+              << "perftest [-c config] [-d debug] [-r] url threads duration" << std::endl
+              << std::endl
+              << "Arguments:" << std::endl
+              << "url       The url of the service." << std::endl
+              << "threads   The number of concurrent requests." << std::endl
+              << "duration  The duration of the test in seconds." << std::endl
+              << "-c config The file containing client chain XML configuration with " << std::endl
               << "          'soap' entry point and HOSTNAME, PORTNUMBER and PATH " << std::endl
               << "           keyword for hostname, port and HTTP path of 'echo' service." << std::endl
-	      << "-d debug   The textual representation of desired debug level. Available " << std::endl
+              << "-d debug   The textual representation of desired debug level. Available " << std::endl
               << "           levels: DEBUG, VERBOSE, INFO, WARNING, ERROR, FATAL." << std::endl
-	      << "-r         If specified close connection and reconnect after " << std::endl
+              << "-r         If specified close connection and reconnect after " << std::endl
               << "           every request." << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -321,35 +321,35 @@ int main(int argc, char* argv[]){
   totalTime = completedTime+failedTime;
   std::cout << "========================================" << std::endl;
   std::cout << "URL: "
-	    << url_str << std::endl;
+            << url_str << std::endl;
   std::cout << "Number of threads: "
-	    << numberOfThreads << std::endl;
+            << numberOfThreads << std::endl;
   std::cout << "Duration: "
-	    << duration << " s" << std::endl;
+            << duration << " s" << std::endl;
   std::cout << "Number of requests: "
-	    << totalRequests << std::endl;
+            << totalRequests << std::endl;
   std::cout << "Completed requests: "
-	    << completedRequests << " ("
-	    << Round(completedRequests*100.0/totalRequests)
-	    << "%)" << std::endl;
+            << completedRequests << " ("
+            << Round(completedRequests*100.0/totalRequests)
+            << "%)" << std::endl;
   std::cout << "Failed requests: "
-	    << failedRequests << " ("
-	    << Round(failedRequests*100.0/totalRequests)
-	    << "%)" << std::endl;
+            << failedRequests << " ("
+            << Round(failedRequests*100.0/totalRequests)
+            << "%)" << std::endl;
   std::cout << "Completed requests per second: "
             << Round(completedRequests/duration)
             << std::endl;
   std::cout << "Average response time for all requests: "
-	    << Round(1000*totalTime.as_double()/totalRequests)
-	    << " ms" << std::endl;
+            << Round(1000*totalTime.as_double()/totalRequests)
+            << " ms" << std::endl;
   if (completedRequests!=0)
     std::cout << "Average response time for completed requests: "
-	      << Round(1000*completedTime.as_double()/completedRequests)
-	      << " ms" << std::endl;
+              << Round(1000*completedTime.as_double()/completedRequests)
+              << " ms" << std::endl;
   if (failedRequests!=0)
     std::cout << "Average response time for failed requests: "
-	      << Round(1000*failedTime.as_double()/failedRequests)
-	      << " ms" << std::endl;
+              << Round(1000*failedTime.as_double()/failedRequests)
+              << " ms" << std::endl;
   std::cout << "========================================" << std::endl;
 
   return 0;

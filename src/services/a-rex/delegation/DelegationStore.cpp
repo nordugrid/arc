@@ -88,12 +88,12 @@ namespace ARex {
     // already died and keeps locks forewer.
     delete mrec_;
     delete fstore_;
-    /* Following code is not executed because there must be no active 
+    /* Following code is not executed because there must be no active
       consumers when store being destroyed. It is probably safer to
       leave hanging consumers than to destroy them.
-      Anyway by design this destructor is supposed to be called only 
+      Anyway by design this destructor is supposed to be called only
       when applications exits.
-       
+
     while(acquired_.size() > 0) {
       std::map<Arc::DelegationConsumerSOAP*,Consumer>::iterator i = acquired_.begin();
       delete i->first;
@@ -286,7 +286,7 @@ namespace ARex {
               // So reporting only for debuging purposes.
               logger_.msg(Arc::DEBUG,"DelegationStore: PeriodicCheckConsumers failed to remove old delegation %s - %s", mrec_->uid(), fstore_->Error());
             };
-          };    
+          };
         };
       };
       delete mrec_; mrec_ = NULL;
@@ -419,7 +419,7 @@ namespace ARex {
     std::list<std::pair<std::string,std::string> > ids;
     if(!fstore_->RemoveLock(lock_id,ids)) return false;
     for(std::list<std::pair<std::string,std::string> >::iterator i = ids.begin();
-                        i != ids.end(); ++i) {    
+                        i != ids.end(); ++i) {
       if(touch) {
         std::list<std::string> meta;
         std::string path = fstore_->Find(i->first,i->second,meta);

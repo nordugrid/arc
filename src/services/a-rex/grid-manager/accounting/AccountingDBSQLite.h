@@ -61,8 +61,8 @@ namespace ARex {
         /// General helper to execute UPDATE statement
         bool GeneralSQLUpdate(const std::string& sql);
 
-        /// General helper that return accounting database ID for requested iname 
-        /** 
+        /// General helper that return accounting database ID for requested iname
+        /**
          * Performs lookup in the specified table with the [ID, Name] columns
          * Updates the name_id_map map of the object
          **/

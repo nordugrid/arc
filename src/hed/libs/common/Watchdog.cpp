@@ -160,7 +160,7 @@ namespace Arc {
   WatchdogChannel::~WatchdogChannel(void) {
     Watchdog::Instance().Close(id_);
   }
- 
+
   void WatchdogChannel::Kick(void) {
     Watchdog::Instance().Kick(id_);
   }

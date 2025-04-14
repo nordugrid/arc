@@ -14,7 +14,7 @@ namespace Arc {
     PythonBrokerPlugin(BrokerPluginArgument* parg);
     virtual ~PythonBrokerPlugin();
     static Plugin* Instance(PluginArgument *arg);
-    
+
     bool operator()(const ExecutionTarget&, const ExecutionTarget&) const;
     bool match(const ExecutionTarget&) const;
     void set(const JobDescription&) const;

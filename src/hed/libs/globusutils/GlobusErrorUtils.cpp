@@ -14,9 +14,9 @@ static Logger logger(Logger::getRootLogger(), "GLOBUS");
   // and returns cache index as error code. If object is not retrived
   // from cache it is effectiviely leaked. So each error code must be passed
   // through though globus_error_get() (or even better GlobusResult class
-  // implemented here). Unfortunately Globus code itself does not always 
-  // follow this pattern and hence is effectively leaking memory. 
-  // Here we have adjust_last_processed() trying to pick up such lost 
+  // implemented here). Unfortunately Globus code itself does not always
+  // follow this pattern and hence is effectively leaking memory.
+  // Here we have adjust_last_processed() trying to pick up such lost
   // error object and free them.
 
   static Glib::StaticMutex last_processed_lock = GLIBMM_STATIC_MUTEX_INIT;
@@ -53,12 +53,12 @@ static Logger logger(Logger::getRootLogger(), "GLOBUS");
       adjust_last_processed(r);
     }
   }
-  
+
   GlobusResult::~GlobusResult() {
     if(o)
       globus_object_free(o);
   }
- 
+
   GlobusResult& GlobusResult::operator=(const globus_result_t result) {
     if(o)
       globus_object_free(o);
@@ -77,16 +77,16 @@ static Logger logger(Logger::getRootLogger(), "GLOBUS");
       return "<success>";
     std::string s;
     for (globus_object_t *err_ = o; err_;
-	 err_ = globus_error_base_get_cause(err_)) {
+         err_ = globus_error_base_get_cause(err_)) {
       if (err_ != o)
-	s += "/";
+        s += "/";
       char *tmp = globus_object_printable_to_string(err_);
       if (tmp) {
-	s += tmp;
-	free(tmp);
+        s += tmp;
+        free(tmp);
       }
       else
-	s += "unknown error";
+        s += "unknown error";
     }
     return trim(s);
   }
@@ -96,16 +96,16 @@ static Logger logger(Logger::getRootLogger(), "GLOBUS");
       return (o << "<success>");
     globus_object_t *err = static_cast<globus_object_t*>(res);
     for (globus_object_t *err_ = err; err_;
-	 err_ = globus_error_base_get_cause(err_)) {
+         err_ = globus_error_base_get_cause(err_)) {
       if (err_ != err)
-	o << "/";
+        o << "/";
       char *tmp = globus_object_printable_to_string(err_);
       if (tmp) {
-	o << tmp;
-	free(tmp);
+        o << tmp;
+        free(tmp);
       }
       else
-	o << "unknown error";
+        o << "unknown error";
     }
     return o;
   }
@@ -114,16 +114,16 @@ static Logger logger(Logger::getRootLogger(), "GLOBUS");
     if (err == GLOBUS_NULL)
       return (o << "<success>");
     for (globus_object_t *err_ = err; err_;
-	 err_ = globus_error_base_get_cause(err_)) {
+         err_ = globus_error_base_get_cause(err_)) {
       if (err_ != err)
-	o << "/";
+        o << "/";
       char *tmp = globus_object_printable_to_string(err_);
       if (tmp) {
-	o << tmp;
-	free(tmp);
+        o << tmp;
+        free(tmp);
       }
       else
-	o << "unknown error";
+        o << "unknown error";
     }
     return o;
   }
@@ -133,16 +133,16 @@ static Logger logger(Logger::getRootLogger(), "GLOBUS");
       return "<success>";
     std::string s;
     for (globus_object_t *err_ = err; err_;
-	 err_ = globus_error_base_get_cause(err_)) {
+         err_ = globus_error_base_get_cause(err_)) {
       if (err_ != err)
-	s += "/";
+        s += "/";
       char *tmp = globus_object_printable_to_string(err_);
       if (tmp) {
-	s += tmp;
-	free(tmp);
+        s += tmp;
+        free(tmp);
       }
       else
-	s += "unknown error";
+        s += "unknown error";
     }
     return s;
   }

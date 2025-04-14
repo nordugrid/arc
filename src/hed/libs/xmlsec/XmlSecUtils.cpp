@@ -32,7 +32,7 @@
 #include <openssl/rand.h>
 #ifdef CHARSET_EBCDIC
 #include <openssl/ebcdic.h>
-#endif 
+#endif
 
 #include <arc/Thread.h>
 
@@ -133,8 +133,8 @@ bool final_xmlsec(void) {
 
     //Shutdown xmlsec-crypto library
     xmlSecCryptoShutdown();
-    //Shutdown crypto library 
-    xmlSecCryptoAppShutdown();  
+    //Shutdown crypto library
+    xmlSecCryptoAppShutdown();
     //Shutdown xmlsec library
     xmlSecShutdown();
     //Shutdown libxml
@@ -169,8 +169,8 @@ xmlSecKey* get_key_from_keyfile(const char* keyfile) {
   return key;
 }
 
-//Get key from a binary key 
-xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool usage) { 
+//Get key from a binary key
+xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool usage) {
   xmlSecKey *key = NULL;
   xmlSecKeyDataFormat key_formats[] = {
     xmlSecKeyDataFormatDer,
@@ -185,7 +185,7 @@ xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool usage) 
 
   xmlSecSize len;
 
-  //We need to remove the "BEGIN RSA PRIVATE KEY" and "END RSA PRIVATE KEY" 
+  //We need to remove the "BEGIN RSA PRIVATE KEY" and "END RSA PRIVATE KEY"
   //if they exit in the input parameter
   std::string v;
   std::size_t pos1, pos2;
@@ -225,7 +225,7 @@ std::string get_key_from_certfile(const char* certfile) {
   BIO* certbio = NULL;
   certbio = BIO_new_file(certfile, "r");
   X509* cert = NULL;
-  cert = PEM_read_bio_X509(certbio, NULL, NULL, NULL); 
+  cert = PEM_read_bio_X509(certbio, NULL, NULL, NULL);
   EVP_PKEY* key = NULL;
   key = X509_get_pubkey(cert);
 
@@ -421,7 +421,7 @@ xmlSecKeysMngrPtr load_trusted_cert_str(xmlSecKeysMngrPtr* keys_manager, const s
 
   //load cert from memory
   if(!cert_str.empty())
-    if(xmlSecCryptoAppKeysMngrCertLoadMemory(keys_mngr, (const xmlSecByte*)(cert_str.c_str()), 
+    if(xmlSecCryptoAppKeysMngrCertLoadMemory(keys_mngr, (const xmlSecByte*)(cert_str.c_str()),
           (xmlSecSize)(cert_str.size()), xmlSecKeyDataFormatPem, xmlSecKeyDataTypeTrusted) < 0) {
       xmlSecKeysMngrDestroy(keys_mngr);
       return NULL;
@@ -445,7 +445,7 @@ xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, const char
   if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
 
   //load ca certs into keys manager, the two method used here could not work in some old xmlsec verion,
-  //because of some bug about X509_FILETYPE_DEFAULT and X509_FILETYPE_PEM 
+  //because of some bug about X509_FILETYPE_DEFAULT and X509_FILETYPE_PEM
   //load a ca path
   if(capath && (strlen(capath) != 0))
     if(xmlSecOpenSSLAppKeysMngrAddCertsPath(keys_mngr, capath) < 0) {
@@ -454,7 +454,7 @@ xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, const char
     }
 #if 0
   //load a ca file  TODO: can only be used in some new version of xmlsec
-  if(cafile && (strlen(cafile) != 0))  
+  if(cafile && (strlen(cafile) != 0))
     if(xmlSecOpenSSLAppKeysMngrAddCertsFile(keys_mngr, cafile) < 0) {
       xmlSecKeysMngrDestroy(keys_mngr);
       return NULL;
@@ -468,7 +468,7 @@ xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, const char
 
   if(keys_manager != NULL) *keys_manager = keys_mngr;
   return keys_mngr;
-} 
+}
 
 XMLNode get_node(XMLNode& parent,const char* name) {
   XMLNode n = parent[name];

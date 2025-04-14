@@ -136,7 +136,7 @@ VOMSConfigLine::VOMSConfigLine(const std::string& line) {
   if(line[p] == '#') return;
   std::vector<std::string> tokens;
   Arc::tokenize(line, tokens, " \t", "\"", "\"");
-  // Normally there must be 5 items in line. 
+  // Normally there must be 5 items in line.
   // But older voms files (still in use) have 6 parameters.
   if((tokens.size() != 5) && (tokens.size() != 6)) {
     CredentialLogger.msg(ERROR,"ERROR: VOMS configuration line contains too many tokens. Expecting 5 or 6. Line was: %s", line);

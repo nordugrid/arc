@@ -298,7 +298,7 @@ int main(int argc,char* argv[]) {
           };
         } else {
           logger.msg(Arc::ERROR,"LCMAPS returned invalid UID: %u",(unsigned int)uid);
-        };        
+        };
       } else {
         logger.msg(Arc::ERROR,"LCMAPS did not return any UID");
       };

@@ -148,7 +148,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     if (!certificate_issuer.empty()) {
       std::cout << Arc::IString("Certificate issuer: %s", certificate_issuer) << std::endl << std::endl;
     }
-    
+
     bool issuer_certificate_found = false;
     std::cout << Arc::IString("CA-certificates installed:") << std::endl;
     Glib::Dir cadir(usercfg.CACertificatesDirectory());
@@ -157,20 +157,20 @@ int RUNMAIN(arctest)(int argc, char **argv) {
       // Assume certificates have file ending ".0", ".1" or ".2". Very OpenSSL specific.
       if (Glib::file_test(cafile, Glib::FILE_TEST_IS_REGULAR) && (*it)[(*it).size()-2] == '.' &&
           ((*it)[(*it).size()-1] == '0' || (*it)[(*it).size()-1] == '1' || (*it)[(*it).size()-1] == '2')) {
-        
+
         Arc::Credential cred(cafile, "", "", "", false);
         std::string dn = cred.GetDN();
         if (dn.empty()) continue;
-          
+
         std::string hash;
         // Only accept certificates with correct hash.
         if (!get_hash_value(cred, hash) || hash != (*it).substr(0, (*it).size()-2)) continue;
-        
+
         if (dn == certificate_issuer) issuer_certificate_found = true;
         std::cout << "  " << dn << std::endl;
       }
     }
-    
+
     if (certificate_issuer.empty()) {
       std::cout << std::endl << Arc::IString("Unable to detect if issuer certificate is installed.") << std::endl;
     }
@@ -280,7 +280,7 @@ int test(const Arc::UserConfig& usercfg, Arc::ExecutionTargetSorter& ets, const 
       break;
     }
   }
-  
+
   if (ets.endOfList()) {
     std::cout << Arc::IString("Test failed, no more possible targets") << std::endl;
     submittedJobs.pop_back();
@@ -308,20 +308,20 @@ int dumpjobdescription_arctest_legacy(const Arc::UserConfig& usercfg, Arc::Execu
     std::string jobdesc;
     // Prepare the test jobdescription according to the chosen ExecutionTarget
     if (!preparedTestJob.Prepare(*ets)) {
-      logger.msg(Arc::INFO, "Unable to prepare job description according to needs of the target resource (%s).", ets->ComputingEndpoint->URLString); 
+      logger.msg(Arc::INFO, "Unable to prepare job description according to needs of the target resource (%s).", ets->ComputingEndpoint->URLString);
       continue;
     }
-  
+
     std::string jobdesclang = "emies:adl";
     if (ets->ComputingEndpoint->InterfaceName == "org.nordugrid.gridftpjob") {
       jobdesclang = "nordugrid:xrsl";
     }
-    
+
     if (!preparedTestJob.UnParse(jobdesc, jobdesclang)) {
-      logger.msg(Arc::INFO, "An error occurred during the generation of job description to be sent to %s", ets->ComputingEndpoint->URLString); 
+      logger.msg(Arc::INFO, "An error occurred during the generation of job description to be sent to %s", ets->ComputingEndpoint->URLString);
       continue;
     }
-  
+
     std::cout << Arc::IString("Job description to be sent to %s:", ets->AdminDomain->Name) << std::endl;
     std::cout << jobdesc << std::endl;
     break;

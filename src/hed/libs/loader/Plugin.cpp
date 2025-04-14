@@ -399,7 +399,7 @@ namespace Arc {
           return NULL;
         };
         module = NULL; // initial handler is not valid anymore
-       
+
         // Re-acqire lock before working with modules_
         lock.acquire();
         // Make descriptor and register it in the cache

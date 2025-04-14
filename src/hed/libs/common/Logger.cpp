@@ -362,7 +362,7 @@ namespace Arc {
     // To avoid blocking high performance threads do as many outside lock as possible.
     // Hence prepare whole message before acquiring file mutex.
     int cache_size = 0;
-    { 
+    {
     std::string* str = new std::string;
     StringBuf buf(*str);
     std::ostream stream(&buf);;

@@ -124,12 +124,12 @@ namespace Arc {
                 // lock is taken
                 logger.msg(INFO, "Could not create lock file %s as it already exists", lock_file);
                 sleep(1);
-                continue; // retry 
+                continue; // retry
               }
               logger.msg(ERROR, "Error creating lock file %s: %s", lock_file, StrError(errno));
               return false;
             }
-            // success - for filesystems without hardlinks 
+            // success - for filesystems without hardlinks
             if (!write_pid(h)) {
               logger.msg(ERROR, "Error writing to lock file %s: %s", lock_file, StrError(errno));
               remove(lock_file.c_str());
@@ -143,7 +143,7 @@ namespace Arc {
             return false;
           }
         } else {
-          // success - for filesystems with hardlinks 
+          // success - for filesystems with hardlinks
           remove(tmpfile.c_str());
         }
         // success creating lock file - check it's really there with the correct pid and hostname

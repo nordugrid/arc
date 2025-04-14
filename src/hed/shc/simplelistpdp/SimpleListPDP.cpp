@@ -53,7 +53,7 @@ PDPStatus SimpleListPDP::isPermitted(Message *msg) const {
   if(fs.fail()) {
     logger.msg(ERROR, "The policy file setup for simplelist.pdp does not exist, please check location attribute for simplelist PDP node in service configuration");
     return PDPStatus(PDPStatus::STATUS_DENY, "Misconfigured authorization list");
-  }   
+  }
 
   while (fs.good()) {
     std::string::size_type p;

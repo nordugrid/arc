@@ -442,7 +442,7 @@ bool JobsList::FailedJob(GMJobRef i,bool cancel) {
         std::list<std::string> meta;
         if(delegs && i->local) path = (*delegs)[config.DelegationDir()].FindCred(f->cred,i->local->DN,meta);
         f->cred = path;
-	f->cred_type = (!meta.empty())?meta.front():"";
+        f->cred_type = (!meta.empty())?meta.front():"";
       }
       if(i->local) ++(i->local->uploads);
     }
@@ -520,7 +520,7 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
       // returning true but not advancing to next state should cause retry
       return true;
     }
-    // Just in case we are recovering from restart or failure check if we already have 
+    // Just in case we are recovering from restart or failure check if we already have
     // LRMS id (previously run submission script succeeded).
     std::string local_id=job_desc_handler.get_local_id(i->job_id);
     if(!local_id.empty()) {
@@ -921,9 +921,9 @@ JobsList::ActJobResult JobsList::ActJobUndefined(GMJobRef i) {
       //if(config.GetJobLog()) config.GetJobLog()->WriteJobRecord(*i,config);
       // Write initial XML job information file. That should ensure combination of quick job
       // and slow infosys is not going to produce incomplete job information at next states.
-      // Such effect was detected through observing finished job without exit code. 
+      // Such effect was detected through observing finished job without exit code.
       if(!job_xml_check_file(i->job_id,config)) { // in case job is restarted and we already have xml
-        static const char* job_xml_template = 
+        static const char* job_xml_template =
   "<ComputingActivity xmlns=\"http://schemas.ogf.org/glue/2009/03/spec_2.0_r1\" BaseType=\"Activity\" CreationTime=\"\" Validity=\"60\">"
     "<ID></ID>"
     "<Name></Name>"
@@ -1605,7 +1605,7 @@ JobsList::ActJobResult JobsList::ActJobFailed(GMJobRef i) {
     } else if(i->job_state == JOB_STATE_INLRMS) {
       // This happens either if job processing failed or continuation
       // plugin failed. But that also means job is probably being
-      // processed by batch system. So safest is to act as if cncel 
+      // processed by batch system. So safest is to act as if cncel
       // request arrived.
       SetJobState(i, JOB_STATE_CANCELING, "Job failure detected");
       RequestReprocess(i);

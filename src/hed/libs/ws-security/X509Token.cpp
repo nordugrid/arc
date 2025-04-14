@@ -31,7 +31,7 @@
 #include <openssl/rand.h>
 #ifdef CHARSET_EBCDIC
 #include <openssl/ebcdic.h>
-#endif 
+#endif
 
 #include <arc/DateTime.h>
 #include <arc/StringConv.h>
@@ -41,7 +41,7 @@
 
 namespace Arc {
 
-#define WSSE_NAMESPACE   "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" 
+#define WSSE_NAMESPACE   "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
 #define WSSE11_NAMESPACE "http://docs.oasis-open.org/wss/oasis-wss-wssecurity-secext-1.1.xsd"
 #define WSU_NAMESPACE    "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
 #define XENC_NAMESPACE   "http://www.w3.org/2001/04/xmlenc#"
@@ -85,11 +85,11 @@ X509Token::operator bool(void) {
 
 X509Token::X509Token(SOAPEnvelope& soap, const std::string& keyfile) : SOAPEnvelope(soap){
   if(!Check(soap)){
-    return;    
+    return;
   }
 
-  //if(!init_xmlsec()) return; 
- 
+  //if(!init_xmlsec()) return;
+
   if(tokentype == Signature) {
     // Apply predefined namespace prefix
     NS ns;
@@ -98,7 +98,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& keyfile) : SOAPEnvel
     ns["wsu"]=WSU_NAMESPACE;
     header.Namespaces(ns);
 
-    XMLNode xt = header["wsse:Security"];   
+    XMLNode xt = header["wsse:Security"];
     XMLNode signature = xt["Signature"];
     XMLNode token = xt["wsse:BinarySecurityToken"];
     cert_str = (std::string)token;
@@ -116,8 +116,8 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& keyfile) : SOAPEnvel
     id_attr = xmlHasProp(tokenPtr, (xmlChar *)"Id");
     xmlAddID(NULL, docPtr, (xmlChar *)"binarytoken", id_attr);
 
-    //Signature 
-    signature_nd = ((X509Token*)(&signature))->node_; 
+    //Signature
+    signature_nd = ((X509Token*)(&signature))->node_;
     if(!signature_nd) { std::cerr<<"No Signature node in SOAP header"<<std::endl; return; }
   }
   else{
@@ -129,7 +129,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& keyfile) : SOAPEnvel
     encrypted_data.NewAttribute("Id") = (std::string)(body["xenc:EncryptedData"].Attribute("Id"));
     encrypted_data.NewAttribute("Type") = (std::string)(body["xenc:EncryptedData"].Attribute("Type"));
     XMLNode enc_method1 = get_node(encrypted_data, "xenc:EncryptionMethod");
-    enc_method1.NewAttribute("Algorithm") = "http://www.w3.org/2001/04/xmlenc#tripledes-cbc"; 
+    enc_method1.NewAttribute("Algorithm") = "http://www.w3.org/2001/04/xmlenc#tripledes-cbc";
     XMLNode keyinfo1 = get_node(encrypted_data, "ds:KeyInfo");
     XMLNode enc_key = get_node(keyinfo1, "xenc:EncryptedKey");
     XMLNode enc_method2 = get_node(enc_key, "xenc:EncryptionMethod");
@@ -140,7 +140,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& keyfile) : SOAPEnvel
 
     XMLNode cipherdata = get_node(encrypted_data, "xenc:CipherData");
     XMLNode ciphervalue = get_node(cipherdata, "xenc:CipherValue");
-    ciphervalue = (std::string)(body["xenc:EncryptedData"]["xenc:CipherData"]["xenc:CipherValue"]); 
+    ciphervalue = (std::string)(body["xenc:EncryptedData"]["xenc:CipherData"]["xenc:CipherValue"]);
 
     std::string str;
     encrypted_data.GetXML(str);
@@ -150,11 +150,11 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& keyfile) : SOAPEnvel
 
     //Create encryption context
     xmlSecKeysMngr* keys_mngr = NULL;
-    //TODO: which key file will be used should be got according to the issuer name and 
+    //TODO: which key file will be used should be got according to the issuer name and
     //serial number information in incoming soap head
     std::string issuer_name = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["ds:KeyInfo"]["wsse:SecurityTokenReference"]["ds:X509Data"]["ds:X509IssuerSerial"]["ds:X509IssuerName"]);
     std::string serial_number = (std::string)(header["wsse:Security"]["xenc:EncryptedKey"]["ds:KeyInfo"]["wsse:SecurityTokenReference"]["ds:X509Data"]["ds:X509IssuerSerial"]["ds:X509SerialNumber"]);
- 
+
     keys_mngr = load_key_from_keyfile(&keys_mngr, keyfile.c_str());
 
     xmlSecEncCtxPtr encCtx = NULL;
@@ -185,7 +185,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& keyfile) : SOAPEnvel
 
     //Insert the decrypted data into soap body
     std::string decrypted_str((const char*)decrypted_buf->data);
-    XMLNode decrypted_data(decrypted_str); 
+    XMLNode decrypted_data(decrypted_str);
     // TODO: less copies
     //body.Replace(decrypted_data); //if the node is replaced with whole <Body/>, then node_ will be lost.
     //body.Child().Replace(decrypted_data.Child());
@@ -212,7 +212,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& keyfile) : SOAPEnvel
     if(keys_mngr != NULL)xmlSecKeysMngrDestroy(keys_mngr);
   }
 
-} 
+}
 
 bool X509Token::Authenticate(void) {
   xmlSecDSigCtx *dsigCtx;
@@ -244,10 +244,10 @@ bool X509Token::Authenticate(const std::string& cafile, const std::string& capat
   xmlSecDSigCtx *dsigCtx;
 
   keys_manager = load_trusted_certs(&keys_manager, cafile.c_str(), capath.c_str());
-  //Load keyInfo. Because xmlsec only accept standard <X509Data/>, here we are using some 
-  //kind of hack method by insertinga <X509Data/> into <KeyInfo/>, after verification, we 
+  //Load keyInfo. Because xmlsec only accept standard <X509Data/>, here we are using some
+  //kind of hack method by insertinga <X509Data/> into <KeyInfo/>, after verification, we
   //delete the node.
-  //TODO. The other option is to implement a "key data" object and some "read" "write" method as 
+  //TODO. The other option is to implement a "key data" object and some "read" "write" method as
   //xmlsec does, it will be more complicated but it is a more correct way. Put it as TODO
   XMLNode keyinfo_nd = header["wsse:Security"]["Signature"]["KeyInfo"];
   XMLNode st_ref_nd = keyinfo_nd["wsse:SecurityTokenReference"];
@@ -263,7 +263,7 @@ bool X509Token::Authenticate(const std::string& cafile, const std::string& capat
     x509data_node.Destroy();
     return false;
   }
-  
+
   if(keys_manager != NULL)xmlSecKeysMngrDestroy(keys_manager);
   if(dsigCtx->status == xmlSecDSigStatusSucceeded) {
     std::cout<<"Succeed to verify the signature in SOAP message (with trusted certificate checking)"<<std::endl;
@@ -304,12 +304,12 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     token.NewAttribute("wsu:Id") = "binarytoken";
     token.NewAttribute("ValueType") = X509V3;
     token.NewAttribute("EncodingType") = BASE64BINARY;
-    token = cert; 
+    token = cert;
 
-    //Add signature template 
+    //Add signature template
     signature = xmlSecTmplSignatureCreate(NULL,
-				xmlSecTransformExclC14NId,
-				xmlSecTransformRsaSha256Id, NULL);
+                                xmlSecTransformExclC14NId,
+                                xmlSecTransformRsaSha256Id, NULL);
 
     //Add signature into wsse
     xmlNodePtr wsse_nd = ((X509Token*)(&wsse))->node_;
@@ -322,7 +322,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
 
     xmlChar* id = NULL;
     id =  xmlGetProp(bodyPtr, (xmlChar *)"Id");
-    if(!id) { 
+    if(!id) {
       std::cout<<"There is not wsu:Id attribute in soap body, add a new one"<<std::endl;
       body.NewAttribute("wsu:Id") = "body";
     }
@@ -331,24 +331,24 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     std::string body_uri; body_uri.append("#"); body_uri.append((char*)id);
 
     reference = xmlSecTmplSignatureAddReference(signature, xmlSecTransformSha256Id,
-						    NULL, (xmlChar *)(body_uri.c_str()), NULL);
+                                                    NULL, (xmlChar *)(body_uri.c_str()), NULL);
     xmlSecTmplReferenceAddTransform(reference, xmlSecTransformEnvelopedId);
     xmlSecTmplReferenceAddTransform(reference, xmlSecTransformExclC14NId);
-  
+
     xmlAttrPtr id_attr = xmlHasProp(bodyPtr, (xmlChar *)"Id");
     xmlAddID(NULL, docPtr, (xmlChar *)id, id_attr);
     xmlFree(id);
 
     //BinaryToken reference
     xmlNodePtr tokenPtr = ((X509Token*)(&token))->node_;
- 
+
     std::string token_uri; token_uri.append("#").append("binarytoken");
 
     reference = xmlSecTmplSignatureAddReference(signature, xmlSecTransformSha256Id,
                                                     NULL, (xmlChar *)(token_uri.c_str()), NULL);
     xmlSecTmplReferenceAddTransform(reference, xmlSecTransformEnvelopedId);
     xmlSecTmplReferenceAddTransform(reference, xmlSecTransformExclC14NId);
-  
+
     id_attr = xmlHasProp(tokenPtr, (xmlChar *)"Id");
     xmlAddID(NULL, docPtr, (xmlChar *)"binarytoken", id_attr);
 
@@ -371,7 +371,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     /* the following code could be necessary if we need <dsig:X509Data/>
     if(xmlSecCryptoAppKeyCertLoad(dsigCtx->signKey, certfile.c_str(), xmlSecKeyDataFormatPem) < 0) {
       xmlSecDSigCtxDestroy(dsigCtx);
-      std::cerr<<"Can not load certificate"<<std::endl; return;	
+      std::cerr<<"Can not load certificate"<<std::endl; return;
     }
     */
     if (xmlSecDSigCtxSign(dsigCtx, signature) < 0) {
@@ -397,7 +397,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     ns = envelope.Namespaces();
     ns["xenc"]=XENC_NAMESPACE;
     envelope.Namespaces(ns);
- 
+
     // Insert the wsse:Security element
     XMLNode wsse = get_node(header,"wsse:Security");
 
@@ -414,32 +414,32 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     xmlNodePtr encKeyNode = NULL;
     xmlNodePtr keyInfoNode2 = NULL;
     xmlSecEncCtxPtr encCtx = NULL;
- 
+
     //Create encryption template for a specific symetric key type
     encDataNode = xmlSecTmplEncDataCreate(docPtr , xmlSecTransformDes3CbcId,
-				(const xmlChar*)"encrypted", xmlSecTypeEncElement, NULL, NULL);
+                                (const xmlChar*)"encrypted", xmlSecTypeEncElement, NULL, NULL);
     if(encDataNode == NULL) { std::cerr<<"Failed to create encryption template"<<std::endl; return; }
 
     // Put encrypted data in the <enc:CipherValue/> node
     if(xmlSecTmplEncDataEnsureCipherValue(encDataNode) == NULL){
-     std::cerr<<"Failed to add CipherValue node"<<std::endl;   
+     std::cerr<<"Failed to add CipherValue node"<<std::endl;
      if(encDataNode != NULL) xmlFreeNode(encDataNode);
      return;
     }
 
     // Add <dsig:KeyInfo/>
     keyInfoNode = xmlSecTmplEncDataEnsureKeyInfo(encDataNode, NULL);
-    if(keyInfoNode == NULL) { 
+    if(keyInfoNode == NULL) {
       std::cerr<<"Failed to add key info"<<std::endl;
       if(encDataNode != NULL) xmlFreeNode(encDataNode);
       return;
     }
 
     // Add <enc:EncryptedKey/> to store the encrypted session key
-    encKeyNode = xmlSecTmplKeyInfoAddEncryptedKey(keyInfoNode, 
-				    xmlSecTransformRsaPkcs1Id, 
-				    NULL, NULL, NULL);
-    if(encKeyNode == NULL) { 
+    encKeyNode = xmlSecTmplKeyInfoAddEncryptedKey(keyInfoNode,
+                                    xmlSecTransformRsaPkcs1Id,
+                                    NULL, NULL, NULL);
+    if(encKeyNode == NULL) {
       std::cerr<<"Failed to add key info"<<std::endl;
       if(encDataNode != NULL) xmlFreeNode(encDataNode);
       return;
@@ -448,7 +448,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     // Put encrypted key in the <enc:CipherValue/> node
     if(xmlSecTmplEncDataEnsureCipherValue(encKeyNode) == NULL) std::cerr<<"Error: failed to add CipherValue node"<<std::endl;
 
-    // Add <dsig:KeyInfo/> and <dsig:KeyName/> nodes to <enc:EncryptedKey/> 
+    // Add <dsig:KeyInfo/> and <dsig:KeyName/> nodes to <enc:EncryptedKey/>
     keyInfoNode2 = xmlSecTmplEncDataEnsureKeyInfo(encKeyNode, NULL);
     if(keyInfoNode2 == NULL){
       std::cerr<<"Failed to add key info"<<std::endl;
@@ -482,7 +482,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     }
     // Encrypt the soap body, here the body node is encrypted, not only the content under body node
     // TODO: not sure whether the body node, or the content under body node shoud be encrypted
-    if(xmlSecEncCtxXmlEncrypt(encCtx, encDataNode, bodyPtr) < 0) { 
+    if(xmlSecEncCtxXmlEncrypt(encCtx, encDataNode, bodyPtr) < 0) {
       std::cerr<<"Encryption failed"<<std::endl;
       if(encCtx != NULL) xmlSecEncCtxDestroy(encCtx);
       if(encDataNode != NULL) xmlFreeNode(encDataNode);
@@ -493,7 +493,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     encDataNode = NULL;
 
     //if(encCtx != NULL){ xmlSecEncCtxDestroy(encCtx); encCtx = NULL; }
-    
+
     std::string str;
     body_cp.GetDoc(str);
     std::cout<<"Body new : "<<str<<std::endl;
@@ -502,7 +502,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
 
     XMLNode encrypted_data = body_cp;//.GetRoot();
     encrypted_data.GetXML(str);
-    std::cout<<"Encrypted data : "<<str<<std::endl; 
+    std::cout<<"Encrypted data : "<<str<<std::endl;
 
     //Delete the existing element under <Body/>
     for(int i=0;;i++) {
@@ -514,15 +514,15 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     XMLNode body_encdata = get_node(body,"xenc:EncryptedData");
     body_encdata.NewAttribute("wsu:Id") = (std::string)(encrypted_data.Attribute("Id"));
     body_encdata.NewAttribute("Type") = (std::string)(encrypted_data.Attribute("Type"));
-    
-    XMLNode body_cipherdata = get_node(body_encdata,"xenc:CipherData");
-    get_node(body_cipherdata,"xenc:CipherValue") = (std::string)(encrypted_data["CipherData"]["CipherValue"]); 
 
- 
+    XMLNode body_cipherdata = get_node(body_encdata,"xenc:CipherData");
+    get_node(body_cipherdata,"xenc:CipherValue") = (std::string)(encrypted_data["CipherData"]["CipherValue"]);
+
+
     XMLNode enc_key = get_node(wsse,"xenc:EncryptedKey");
 
-    XMLNode enc_method = get_node(enc_key,"xenc:EncryptionMethod");   
-    enc_method.NewAttribute("Algorithm") = (std::string)(encrypted_data["KeyInfo"]["EncryptedKey"]["EncryptionMethod"].Attribute("Algorithm"));  
+    XMLNode enc_method = get_node(enc_key,"xenc:EncryptionMethod");
+    enc_method.NewAttribute("Algorithm") = (std::string)(encrypted_data["KeyInfo"]["EncryptedKey"]["EncryptionMethod"].Attribute("Algorithm"));
 
     XMLNode keyinfo = get_node(enc_key, "ds:KeyInfo");
     XMLNode sec_token_ref = get_node(keyinfo, "wsse:SecurityTokenReference");
@@ -532,7 +532,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     XMLNode x509_serial_number = get_node(x509_issuer_serial, "ds:X509SerialNumber");
     //TODO: issuer name and issuer number should be extracted from certificate
     //There should be some way by which the sender could get the peer certificate
-    //and use the public key inside this certificate to encrypt the message. 
+    //and use the public key inside this certificate to encrypt the message.
     X509* cert = NULL;
     BIO* certbio = NULL;
     certbio = BIO_new_file(certfile.c_str(), "r");
@@ -542,7 +542,7 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     BIO* namebio = NULL;
     namebio = BIO_new(BIO_s_mem());
     X509_NAME_print_ex(namebio, X509_get_issuer_name(cert), 0, XN_FLAG_SEP_CPLUS_SPC);
-    char name[256]; 
+    char name[256];
     memset(name,0,256);
     BIO_read(namebio, name, 256);
     //char* name = X509_NAME_oneline(X509_get_issuer_name(cert), NULL, 0);

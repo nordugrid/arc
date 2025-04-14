@@ -392,7 +392,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
         finished_jobs[jobid] = std::string("Invalid Data Transfer Request");
         active_dtrs.erase(jobid);
       }
-      // Because it is not possible to find out if there will be more 
+      // Because it is not possible to find out if there will be more
       // job's DTR coming, if possible return job back to jobs processing queue.
       if(job) {
         jobs_processing.Erase(job);
@@ -427,7 +427,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
   }
 
   std::string dtr_transfer_statistics;
-  
+
   if (dtr->error() && dtr->is_mandatory() && dtr->get_status() != DataStaging::DTRStatus::CANCELLED) {
     // for uploads, report error but let other transfers continue
     // for downloads, cancel all other transfers
@@ -507,7 +507,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
       }
       if (dtr->get_source()->CheckSize()) dtr_transfer_statistics += "size=" + Arc::tostring(dtr->get_source()->GetSize()) + ',';
       dtr_transfer_statistics += "starttime=" + dtr->get_creation_time().str(Arc::UTCTime) + ',';
-      dtr_transfer_statistics += "endtime=" + Arc::Time().str(Arc::UTCTime); 
+      dtr_transfer_statistics += "endtime=" + Arc::Time().str(Arc::UTCTime);
     }
     else if (dtr->get_destination()->Local()) {
       // input files
@@ -540,7 +540,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
       if (dtr->get_cache_state() == DataStaging::CACHE_ALREADY_PRESENT)
         dtr_transfer_statistics += "fromcache=yes";
       else
-        dtr_transfer_statistics += "fromcache=no"; 
+        dtr_transfer_statistics += "fromcache=no";
     }
     else {
       // transfer between two remote endpoints, shouldn't happen...
@@ -562,15 +562,15 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
     jobs.RequestAttention(job);
     return true;
   }
-  
+
   // Print transfer statistics
   std::string fname = job_control_path(config.ControlDir(),job->get_id(),sfx_statistics);
   std::ofstream f(fname.c_str(),std::ios::out | std::ios::app);
   if(f.is_open() ) {
-    f << dtr_transfer_statistics << std::endl;  
+    f << dtr_transfer_statistics << std::endl;
   }
   f.close();
-  
+
   // remove this DTR from list
   for (std::multimap<std::string, std::string>::iterator i = dtr_iterator.first; i != dtr_iterator.second; ++i) {
     if (i->second == dtr->get_id()) {
@@ -697,11 +697,11 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
       ARex::DelegationStores* delegs = config.GetDelegations();
       if(delegs) {
         DelegationStore& deleg = delegs->operator[](config.DelegationDir());
-	std::list<std::string> meta;
+        std::list<std::string> meta;
         std::string fname = deleg.FindCred(job_desc.delegationid, job_desc.DN, meta);
         if(!fname.empty()) {
           default_cred = fname;
-	  if(!meta.empty()) default_cred_type = meta.front();
+          if(!meta.empty()) default_cred_type = meta.front();
         }
       }
     }
@@ -785,11 +785,11 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     // resolve directories
     for (it = files.begin(); it != files.end() ;) {
       if (it->pfn.find("@") == 1) { // GM puts a slash on the front of the local file
-        // Following is always empty currently. But it will start working as soon as 
+        // Following is always empty currently. But it will start working as soon as
         // there is a way to pass credentials for dynamic files. But so far default_cred
         // is always picked up.
         std::string cred(it->cred);
-	std::string cred_type(it->cred_type);
+        std::string cred_type(it->cred_type);
         if(cred.empty()) {
           cred = default_cred;
           cred_type = default_cred_type;

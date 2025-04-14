@@ -28,7 +28,7 @@ namespace Arc {
   }
 
   // This class takes care of cleaning OpenSSL data stored per-thread.
-  // Here assumption is that every thread dealing with OpenSSL either 
+  // Here assumption is that every thread dealing with OpenSSL either
   // calls OpenSSLInit or is started by thread which called OpenSSLInit.
   class OpenSSLThreadCleaner: private ThreadDataItem {
    public:

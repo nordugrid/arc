@@ -187,7 +187,7 @@ namespace Arc {
   };
 
   ThreadPool::ThreadPool(void):max_count(0),count(0) {
-    // Estimating amount of available memory 
+    // Estimating amount of available memory
     uint64_t n_max;
     {
       // This is very estimation of size of virtual memory available for process
@@ -199,7 +199,7 @@ namespace Arc {
       if(bits > 48) bits = 48;
       // It is common to have half taken by OS
       bits = bits - 1;
-      // Dividing by 2 assuming each thread will equally use 
+      // Dividing by 2 assuming each thread will equally use
       // stack and heap
       uint64_t n = (((uint64_t)1)<<bits)/thread_stacksize/2;
       n_max = n;
@@ -436,7 +436,7 @@ namespace Arc {
       threadLogger.msg(ERROR, e.what());
       delete argument;
       return false;
-    };    
+    };
     thr = thread;
     return true;
   }
@@ -787,7 +787,7 @@ namespace Arc {
     };
     lock_.unlock();
   }
- 
+
   void ThreadData::AddItem(const std::string& key,ThreadDataItem* item) {
     lock_.lock();
     items_iterator i = items_.find(key);

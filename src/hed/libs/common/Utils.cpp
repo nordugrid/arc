@@ -193,7 +193,7 @@ namespace Arc {
 
   // Below is a set of mutexes for protecting environment
   // variables. Current implementation is very simplistic.
-  // There are 2 mutexes. 'env_read_lock' protects any 
+  // There are 2 mutexes. 'env_read_lock' protects any
   // access to the pool of environment variables. It is
   // exposed to outside through EnvLockWrap() and EnvLockUnwrap()
   // functions. Any third party code doing setenv()/getenv()
@@ -217,7 +217,7 @@ namespace Arc {
   // Current implementation locks too many resources and has
   // negative performance impact. In a future (unless there
   // will be no need for all that at all) EnvLockAcquire will
-  // must provide lock per variable. And EnvLockWrap must 
+  // must provide lock per variable. And EnvLockWrap must
   // provide different functionality depending on setenv() or
   // getenv() is going to be wrapped.
 
@@ -230,7 +230,7 @@ namespace Arc {
   }
 
   // And this mutex is needed because it seems like none if
-  // underlying functions provide proper thread protection  
+  // underlying functions provide proper thread protection
   // of environment variables. Also calls to external libraries
   // using getenv() need to be protected by this lock.
   static SharedMutex& env_read_lock(void) {
@@ -287,7 +287,7 @@ namespace Arc {
     SharedMutexShared env_lock(env_read_lock());
 #if defined(HAVE_GLIBMM_LISTENV) && defined(HAVE_GLIBMM_GETENV)
     std::list<std::string> envp = Glib::listenv();
-    for(std::list<std::string>::iterator env = envp.begin(); 
+    for(std::list<std::string>::iterator env = envp.begin();
                          env != envp.end(); ++env) {
       *env = *env + "=" + Glib::getenv(*env);
     };
@@ -333,7 +333,7 @@ namespace Arc {
 #else // TRICKED_ENVIRONMENT
     // This is compromise and will not work if third party
     // code distinguishes between empty and unset variable.
-    // But without this pair of setenv/unsetenv will 
+    // But without this pair of setenv/unsetenv will
     // definitely leak memory.
     TrickEnvRecord::Unset(var);
 #endif // TRICKED_ENVIRONMENT
@@ -396,18 +396,18 @@ namespace Arc {
     return strerror(errnum);
 #endif
   }
-  
+
   static Glib::Mutex persistent_libraries_lock;
   static std::list<std::string> persistent_libraries_list;
 
   bool PersistentLibraryInit(const std::string& name) {
     // Library is made persistent by loading intermediate
     // module which depends on that library. So passed name
-    // is name of that module. Modules usually reside in 
+    // is name of that module. Modules usually reside in
     // ARC_LOCATION/lib/arc. This approach is needed because
     // on some platforms shared libraries can't be dlopen'ed.
     std::string arc_lib_path = ArcLocation::Get();
-    if(!arc_lib_path.empty()) 
+    if(!arc_lib_path.empty())
       arc_lib_path = arc_lib_path + G_DIR_SEPARATOR_S + PKGLIBSUBDIR;
     std::string libpath = Glib::build_filename(arc_lib_path,"lib"+name+"."+G_MODULE_SUFFIX);
 

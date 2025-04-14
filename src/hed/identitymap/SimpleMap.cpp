@@ -128,7 +128,7 @@ std::string SimpleMap::map(const std::string& subject) {
       if(!S_ISREG(st.st_mode)) continue;
       std::ifstream f(filename.c_str());
       if(!f.is_open()) { // trash in directory
-        failure("can't open one of mapping files"); 
+        failure("can't open one of mapping files");
       };
       std::string name;
       std::getline(f,name);
@@ -136,7 +136,7 @@ std::string SimpleMap::map(const std::string& subject) {
       std::list<std::string>::iterator i = names.begin();
       for(;i!=names.end();++i) if(*i == name) break;
       if(i == names.end()) {
-        // Always try to destroy old mappings without corresponding 
+        // Always try to destroy old mappings without corresponding
         // entry in the pool file
         if(((unsigned int)(time(NULL) - st.st_mtime)) >= SELFUNMAP_TIME) {
           unlink(filename.c_str());
@@ -186,4 +186,4 @@ bool SimpleMap::unmap(const std::string& subject) {
   return false;
 }
 
-} 
+}

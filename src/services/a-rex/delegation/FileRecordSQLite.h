@@ -51,7 +51,7 @@ class FileRecordSQLite: public FileRecord {
   virtual bool AddLock(const std::string& lock_id, const std::list<std::string>& ids, const std::string& owner);
   // Reomove lock lock_id from all associated credentials
   virtual bool RemoveLock(const std::string& lock_id);
-  // Reomove lock lock_id from all associated credentials and store 
+  // Reomove lock lock_id from all associated credentials and store
   // identifiers of associated credentials into ids
   virtual bool RemoveLock(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids);
   // Fills locks with all known lock ids.

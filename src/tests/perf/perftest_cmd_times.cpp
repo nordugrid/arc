@@ -82,7 +82,7 @@ void execCommand() {
         finishedProcesses++;
       }
     }
-  } 
+  }
 
   std::cout << "Number of finished processes: " << finishedProcesses << std::endl;
 
@@ -93,16 +93,16 @@ void execCommand() {
 int main(int argc, char* argv[]){
   // Some variables...
   //int numberOfProcesses;
- 
+
   // Extract command line arguments.
   if (argc<3){
     std::cerr << "Wrong number of arguments!" << std::endl
-	      << std::endl
-	      << "Usage:" << std::endl
-	      << "perftest_cmd_times processes " << std::endl
-	      << std::endl
-	      << "Arguments:" << std::endl
-	      << "processes  The number of concurrent commands." << std::endl;
+              << std::endl
+              << "Usage:" << std::endl
+              << "perftest_cmd_times processes " << std::endl
+              << std::endl
+              << "Arguments:" << std::endl
+              << "processes  The number of concurrent commands." << std::endl;
     exit(EXIT_FAILURE);
   }
 
@@ -129,28 +129,28 @@ int main(int argc, char* argv[]){
   totalTime = completedTime+failedTime;
   std::cout << "========================================" << std::endl;
   std::cout << "Number of processes: "
-	    << numberOfProcesses << std::endl;
+            << numberOfProcesses << std::endl;
   std::cout << "Number of commands: "
-	    << totalCommands << std::endl;
+            << totalCommands << std::endl;
   std::cout << "Completed commands: "
-	    << completedCommands << " ("
-	    << Round(completedCommands*100.0/totalCommands)
-	    << "%)" << std::endl;
+            << completedCommands << " ("
+            << Round(completedCommands*100.0/totalCommands)
+            << "%)" << std::endl;
   std::cout << "Failed commands: "
-	    << failedCommands << " ("
-	    << Round(failedCommands*100.0/totalCommands)
-	    << "%)" << std::endl;
+            << failedCommands << " ("
+            << Round(failedCommands*100.0/totalCommands)
+            << "%)" << std::endl;
   std::cout << "Average response time for all commands: "
-	    << Round(1000*totalTime.as_double()/totalCommands)
-	    << " ms" << std::endl;
+            << Round(1000*totalTime.as_double()/totalCommands)
+            << " ms" << std::endl;
   if (completedCommands!=0)
     std::cout << "Average response time for completed commands: "
-	      << Round(1000*completedTime.as_double()/completedCommands)
-	      << " ms" << std::endl;
+              << Round(1000*completedTime.as_double()/completedCommands)
+              << " ms" << std::endl;
   if (failedCommands!=0)
     std::cout << "Average response time for failed commands: "
-	      << Round(1000*failedTime.as_double()/failedCommands)
-	      << " ms" << std::endl;
+              << Round(1000*failedTime.as_double()/failedCommands)
+              << " ms" << std::endl;
   std::cout << "========================================" << std::endl;
 
   return 0;

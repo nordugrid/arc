@@ -27,20 +27,20 @@ namespace ArcMCCTLS {
     ConfigTLSMCC config_;
   };
 
-/** This MCC implements TLS server side functionality. Upon creation this 
+/** This MCC implements TLS server side functionality. Upon creation this
   object creats SSL_CTX object and configures SSL_CTX object with some environment
-  information about credential. 
-  Because we cannot know the "socket" when the creation of MCC_TLS_Service/MCC_TLS_Client 
-  object (not like MCC_TCP_Client, which can creat socket in the constructor method 
-  by using information in configuration file), we can only creat "ssl" object which is 
-  binded to specified "socket", when MCC_HTTP_Client calls the process() method of 
-  MCC_TLS_Client object, or MCC_TCP_Service calls the process() method of MCC_TLS_Service 
+  information about credential.
+  Because we cannot know the "socket" when the creation of MCC_TLS_Service/MCC_TLS_Client
+  object (not like MCC_TCP_Client, which can creat socket in the constructor method
+  by using information in configuration file), we can only creat "ssl" object which is
+  binded to specified "socket", when MCC_HTTP_Client calls the process() method of
+  MCC_TLS_Client object, or MCC_TCP_Service calls the process() method of MCC_TLS_Service
   object. The "ssl" object is embeded in a payload called PayloadTLSSocket.
 
-  The process() method of MCC_TLS_Service is passed payload implementing 
-  PayloadStreamInterface and the method returns empty PayloadRaw payload in "outmsg". 
-  The ssl object is created and bound to Stream payload when constructing the PayloadTLSSocket 
-  in the process() method. 
+  The process() method of MCC_TLS_Service is passed payload implementing
+  PayloadStreamInterface and the method returns empty PayloadRaw payload in "outmsg".
+  The ssl object is created and bound to Stream payload when constructing the PayloadTLSSocket
+  in the process() method.
 
   During processing of message this MCC generates attribute TLS:PEERDN which contains
   Distinguished Name of remoote peer.

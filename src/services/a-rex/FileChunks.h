@@ -36,13 +36,13 @@ class FileChunks {
   bool Complete(void);
   /// Prints chunks delivered so far. For debuging purposes.
   void Print(void);
-  /// Release reference obtained through FileChunksList::Get() method. 
+  /// Release reference obtained through FileChunksList::Get() method.
   /// This operation may lead to destruction of FileChunk instance
   /// hence previously obtained refrence must not be used.
   void Release(void);
   /// Relases reference obtained through Get() method and destroys its instance.
-  /// Normally this method to be called instead of Release() after whole 
-  /// file is delivered in order to free resources associated with 
+  /// Normally this method to be called instead of Release() after whole
+  /// file is delivered in order to free resources associated with
   /// FileChunks instance.
   void Remove(void);
 };
@@ -66,7 +66,7 @@ class FileChunksList {
   ~FileChunksList(void);
   /// Returns previously created FileChunks object with associated path.
   /// If such instance does not exist new one is created.
-  /// Obtained reference may be used for other operations. 
+  /// Obtained reference may be used for other operations.
   /// Obtained reference must be Release()ed after it is not longer needed.
   FileChunks& Get(std::string path);
   /// Assign timeout value (seconds) for file transfers

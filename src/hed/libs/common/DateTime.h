@@ -99,7 +99,7 @@ namespace Arc {
 
     /// Comparing two Period objects.
     bool operator!=(const Period&) const;
-    
+
     Period& operator+=(const Period&);
 
   private:
@@ -145,7 +145,7 @@ namespace Arc {
 
     /// Assignment operator from a char pointer.
     Time& operator=(const char*);
-    
+
     /// Assignment operator from a string.
     Time& operator=(const std::string&);
 

@@ -51,7 +51,7 @@ static int spoll(int h, int timeout, unsigned int& events) {
   return r;
 }
 
-int PayloadTCPSocket::connect_socket(const char* hostname,int port) 
+int PayloadTCPSocket::connect_socket(const char* hostname,int port)
 {
   std::string port_str = tostring(port);
 #ifndef USE_REMOTE_HOSTNAME_RESOLVER
@@ -63,7 +63,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
   struct addrinfo *info = NULL;
   int ret = getaddrinfo(hostname, port_str.c_str(), &hint, &info);
   if ((ret != 0) || (!info)) {
-    std::string err_str = gai_strerror(ret); 
+    std::string err_str = gai_strerror(ret);
     error_ = IString("Failed to resolve %s (%s)", hostname, err_str).str();
     logger.msg(VERBOSE, "%s", error_);
     return -1;
@@ -79,7 +79,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
   int ret = hr->hr_resolve(hostname, port_str, false, info);
   HostnameResolver::Release(hr);
   if ((ret != 0) || (info.empty())) {
-    std::string err_str = gai_strerror(ret); 
+    std::string err_str = gai_strerror(ret);
     error_ = IString("Failed to resolve %s (%s)", hostname, err_str).str();
     logger.msg(VERBOSE, "%s", error_);
     return -1;
@@ -100,7 +100,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
       logger.msg(VERBOSE, "%s", error_);
       continue;
     }
-    // In *NIX we can use non-blocking socket because poll() will 
+    // In *NIX we can use non-blocking socket because poll() will
     // be used for waiting.
     int s_flags = ::fcntl(s, F_GETFL, 0);
     if(s_flags != -1) {
@@ -139,7 +139,7 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
         continue;
       }
       // man connect says one has to check SO_ERROR, but poll() returns
-      // POLLERR and POLLHUP so we can use them directly. 
+      // POLLERR and POLLHUP so we can use them directly.
       if(events & (POLLERR | POLLHUP)) {
         error_ = IString("Failed to connect to %s(%s):%i",
                         hostname,family==AF_INET6?"IPv6":"IPv4",port).str();
@@ -169,7 +169,7 @@ PayloadTCPSocket::PayloadTCPSocket(const char* hostname,
 }
 
 PayloadTCPSocket::PayloadTCPSocket(const std::string& endpoint, int timeout,
-				                   Logger& logger) :
+                                                   Logger& logger) :
   logger(logger)
 {
   handle_ = -1;
@@ -229,7 +229,7 @@ bool PayloadTCPSocket::Put(const char* buf,Size_t size) {
     l=::send(handle_, buf, size, 0);
     if(l == -1) return false;
     buf+=l; size-=l;
-  };  
+  };
   return true;
 }
 

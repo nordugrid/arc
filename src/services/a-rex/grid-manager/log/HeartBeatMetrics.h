@@ -30,7 +30,7 @@ class HeartBeatMetrics {
   double totalfree;
 
   bool time_update;
-  
+
   Arc::Run *proc;
   std::string proc_stderr;
 

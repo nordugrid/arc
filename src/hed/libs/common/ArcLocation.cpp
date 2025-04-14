@@ -94,7 +94,7 @@ namespace Arc {
         pos = sep + 1;
       }
     }
-    return full_path; 
+    return full_path;
   }
 
   void ArcLocation::Init(std::string path) {

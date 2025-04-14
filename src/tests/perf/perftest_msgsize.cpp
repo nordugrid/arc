@@ -68,7 +68,7 @@ void sendRequests(){
   mcc_cfg.AddCADir("../echo/certificates");
 
   Arc::NS echo_ns; echo_ns["echo"]="http://www.nordugrid.org/schemas/echo";
-  
+
   std::string size;
   Arc::ClientSOAP *client = NULL;
   while(run){
@@ -81,7 +81,7 @@ void sendRequests(){
         client = new Arc::ClientSOAP(mcc_cfg,url,60);
         connected = true;
       }
-      
+
       // Prepare the request.
       Arc::PayloadSOAP req(echo_ns);
       std::stringstream sstr;
@@ -92,14 +92,14 @@ void sendRequests(){
       // Send the request and time it.
       tBefore.assign_current_time();
       Arc::PayloadSOAP* resp = NULL;
-       
+
       //std::string str;
       //req.GetXML(str);
       //std::cout<<"request: "<<str<<std::endl;
       Arc::MCC_Status status = client->process(&req,&resp);
-      
+
       tAfter.assign_current_time();
-      
+
       if(!status) {
         // Request failed.
         failedRequests++;
@@ -132,7 +132,7 @@ void sendRequests(){
       if(alwaysReconnect) connected=false;
     }
     if(client) delete client;
-  
+
   }
 
   // Update global variables.
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]){
     } else {
       break;
     };
-  } 
+  }
   if(debug_level >= 0) {
     Arc::Logger::getRootLogger().setThreshold((Arc::LogLevel)debug_level);
     Arc::Logger::getRootLogger().addDestination(logcerr);

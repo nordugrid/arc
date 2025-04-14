@@ -77,7 +77,7 @@ class JobsMetrics {
   //id,state
   std::map<std::string,job_state_t> jobs_state_old_map;
   std::map<std::string,job_state_t> jobs_state_new_map;
-  
+
   Arc::Run *proc;
   std::string proc_stderr;
 

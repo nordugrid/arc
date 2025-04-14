@@ -183,7 +183,7 @@ void FileUtilsTest::TestMakeAndDeleteDir() {
   CPPUNIT_ASSERT(!Arc::DirDelete(testroot, false));
   CPPUNIT_ASSERT(Arc::DirDelete(testroot, true));
   CPPUNIT_ASSERT(stat(testroot.c_str(), &st) != 0);
-  
+
 }
 
 void FileUtilsTest::TestTmpDirCreate() {

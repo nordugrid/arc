@@ -50,7 +50,7 @@ class GMJob {
   job_state_t job_state;
   // Flag to indicate job stays at this stage due to limits imposed.
   // Such jobs are not counted in counters
-  bool job_pending; 
+  bool job_pending;
   // Job identifier
   JobId job_id;
   // Directory to run job in
@@ -220,9 +220,9 @@ class GMJobQueue {
  friend class GMJob;
  private:
   // Using global lock intentionally.
-  // It would be possible to have per-queue lock but rules to avoid 
+  // It would be possible to have per-queue lock but rules to avoid
   // deadlocks between 2 queues and queue+job locks would be too complex
-  // and too easy to break. So as long as we have not so many queues 
+  // and too easy to break. So as long as we have not so many queues
   // global lock is acceptable.
   static Glib::RecMutex lock_;
   int const priority_;

@@ -379,7 +379,7 @@ void ModuleManager::LoadableModuleDescription::shift(Glib::Module* source, Loada
   target.module = module;
   target.count = count;
   module = source;
-  count = 0;  
+  count = 0;
   load(); // accepting new module handler
   target.unload(NULL); // removing reference taken by new module
 }

@@ -224,7 +224,7 @@ bool FileCreate(const std::string& filename, const std::string& data, uid_t uid,
   return true;
 }
 
-// TODO: maybe by using open + fstat it would be possible to 
+// TODO: maybe by using open + fstat it would be possible to
 // make this functin less blocking
 bool FileStat(const std::string& path,struct stat *st,uid_t uid,gid_t gid,bool follow_symlinks) {
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
@@ -312,7 +312,7 @@ std::string FileReadLink(const std::string& path) {
   if(l<0) {
     l = 0;
   } else if(l>bufsize) {
-    l = bufsize; 
+    l = bufsize;
   }
   return std::string(buf.str(),l);
 }
@@ -347,10 +347,10 @@ bool DirCreate(const std::string& path,uid_t uid,gid_t gid,mode_t mode,bool with
     exists = created;
     if(!created) {
       // Normally following should be done only if errno is EEXIST.
-      // But some file systems may return different error even if 
+      // But some file systems may return different error even if
       // directory exists. Lustre for example returns EACCESS
       // if user can't create directory even if directory already exists.
-      // So doing stat in order to check if directory exists and that it 
+      // So doing stat in order to check if directory exists and that it
       // is directory. That still does not solve problem with parent
       // directory without x access right.
       struct stat st;
@@ -368,7 +368,7 @@ bool DirCreate(const std::string& path,uid_t uid,gid_t gid,mode_t mode,bool with
       return false;
     }
     if(!created) {
-      // Directory was created by another actor. 
+      // Directory was created by another actor.
       // There is no sense to apply permissions in that case.
       errno = EEXIST;
       return true;
@@ -421,7 +421,7 @@ bool DirDelete(const std::string& path,bool recursive,uid_t uid,gid_t gid) {
     return true;
   }
   return DirDelete(path, recursive);
-}  
+}
 
 bool DirDelete(const std::string& path, bool recursive) {
 
@@ -445,13 +445,13 @@ bool DirDelete(const std::string& path, bool recursive) {
           return false;
         }
       }
-    } 
+    }
   }
   catch (Glib::FileError& e) {
     return false;
   }
   if (rmdir(path.c_str()) != 0) return false;
-      
+
   return true;
 }
 

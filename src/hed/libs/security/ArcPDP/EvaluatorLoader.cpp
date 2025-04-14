@@ -1,5 +1,5 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h> 
+#include <config.h>
 #endif
 
 #include <iostream>
@@ -129,7 +129,7 @@ Evaluator* EvaluatorLoader::getEvaluator(const std::string& classname) {
   }
   Arc::Config modulecfg(node);
   classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
-  //Dynamically load Evaluator object according to configure information. 
+  //Dynamically load Evaluator object according to configure information.
   //It should be the caller to free the object
   eval = (Evaluator*)(classloader->Instance(classname, &node, "__arc_evaluator_modules__"));
 
@@ -150,7 +150,7 @@ Evaluator* EvaluatorLoader::getEvaluator(const Request* request) {
 Request* EvaluatorLoader::getRequest(const std::string& classname, const Source& requestsource) {
   ArcSec::Request* req = NULL;
   Arc::ClassLoader* classloader = NULL;
-  
+
   //Get the request node
   Arc::XMLNode reqnode = requestsource.Get();
 
@@ -179,11 +179,11 @@ Request* EvaluatorLoader::getRequest(const std::string& classname, const Source&
 
     Arc::Config modulecfg(node);
     classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
-    //Dynamically load Request object according to configure information. 
+    //Dynamically load Request object according to configure information.
     //It should be the caller to free the object
     req = (Request*)(classloader->Instance(classname, &reqnode, "__arc_request_modules__"));
   }
-  
+
   if(!req) logger.msg(Arc::ERROR, "Can not load ARC request object: %s",classname);
   return req;
 }
@@ -220,12 +220,12 @@ Policy* EvaluatorLoader::getPolicy(const std::string& classname, const Source& p
 
     Arc::Config modulecfg(node);
     classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
-    //Dynamically load Policy object according to configure information. 
+    //Dynamically load Policy object according to configure information.
     //It should be the caller to free the object
     policy = (Policy*)(classloader->Instance(classname, &policynode, "__arc_policy_modules__"));
   }
 
-  if(!policy) logger.msg(Arc::ERROR, "Can not load policy object: %s",classname); 
+  if(!policy) logger.msg(Arc::ERROR, "Can not load policy object: %s",classname);
   return policy;
 }
 
@@ -269,11 +269,11 @@ Policy* EvaluatorLoader::getPolicy(const Source& policysource) {
 
   Arc::Config modulecfg(cfg);
   classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
-  //Dynamically load Policy object according to configure information. 
+  //Dynamically load Policy object according to configure information.
   //It should be the caller to free the object
   policy = (Policy*)(classloader->Instance(&policynode, "__arc_policy_modules__"));
 
-  if(!policy) logger.msg(Arc::ERROR, "Can not load policy object"); 
+  if(!policy) logger.msg(Arc::ERROR, "Can not load policy object");
   return policy;
 }
 
@@ -317,11 +317,11 @@ Request* EvaluatorLoader::getRequest(const Source& requestsource) {
 
   Arc::Config modulecfg(cfg);
   classloader = Arc::ClassLoader::getClassLoader(&modulecfg);
-  //Dynamically load Request object according to configure information. 
+  //Dynamically load Request object according to configure information.
   //It should be the caller to free the object
   request = (Request*)(classloader->Instance(&requestnode, "__arc_request_modules__"));
 
-  if(!request) logger.msg(Arc::ERROR, "Can not load request object"); 
+  if(!request) logger.msg(Arc::ERROR, "Can not load request object");
   return request;
 }
 

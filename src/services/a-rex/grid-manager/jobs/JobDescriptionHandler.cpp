@@ -309,7 +309,7 @@ bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc,
 
     }else{
       f<<"joboption_count=1"<<std::endl;
-    } 
+    }
   }
 
   if (arc_job_desc.Resources.SlotRequirement.ExclusiveExecution == Arc::SlotRequirementType::EE_TRUE){

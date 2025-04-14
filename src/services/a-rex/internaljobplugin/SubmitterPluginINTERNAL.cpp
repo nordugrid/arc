@@ -29,21 +29,21 @@ using namespace Arc;
 
 namespace ARexINTERNAL {
 
-  
+
   bool SubmitterPluginINTERNAL::isEndpointNotSupported(const std::string& endpoint) const {
     const std::string::size_type pos = endpoint.find("://");
     return pos != std::string::npos && lower(endpoint.substr(0, pos)) != "file";
   }
-  
+
 
   bool SubmitterPluginINTERNAL::getDelegationID(const URL& durl, std::string& delegation_id) {
     if(!durl) {
       logger.msg(INFO, "Failed to delegate credentials to server - no delegation interface found");
       return false;
     }
-    
+
     INTERNALClient ac(durl,*usercfg);
-    
+
     if(!ac.CreateDelegation(delegation_id)) {
       logger.msg(INFO, "Failed to delegate credentials to server - %s",ac.failure());
       return false;
@@ -55,9 +55,9 @@ namespace ARexINTERNAL {
 
 
   Arc::SubmissionStatus SubmitterPluginINTERNAL::Submit(const std::list<JobDescription>& jobdescs, const ExecutionTarget& et, EntityConsumer<Job>& jc, std::list<const JobDescription*>& notSubmitted){
- 
 
-    Arc::SubmissionStatus retval; 
+
+    Arc::SubmissionStatus retval;
     std::string endpoint = et.ComputingEndpoint->URLString;
     retval = Submit(jobdescs, endpoint, jc, notSubmitted);
 
@@ -70,7 +70,7 @@ namespace ARexINTERNAL {
     // TODO: this is multi step process. So having retries would be nice.
     // TODO: If delegation interface is not on same endpoint as submission interface this method is faulty.
 
-      
+
     URL url((endpoint.find("://") == std::string::npos ? "file://" : "") + endpoint, false);
 
     /*for accessing jobs*/
@@ -108,7 +108,7 @@ namespace ARexINTERNAL {
 
       for(std::list<OutputFileType>::const_iterator itOF = itJ->DataStaging.OutputFiles.begin();
           itOF != itJ->DataStaging.OutputFiles.end() && !need_delegation; ++itOF) {
-        if((!itOF->Targets.empty()) || 
+        if((!itOF->Targets.empty()) ||
            (itOF->Name[0] == '@')) { // ARC specific - dynamic list of output files
           need_delegation = true;
         }
@@ -123,7 +123,7 @@ namespace ARexINTERNAL {
           continue;
         }
       }
-      std::list<INTERNALJob> localjobs;   
+      std::list<INTERNALJob> localjobs;
       std::list<JobDescription> preparedjobdescs;
       preparedjobdescs.push_back(preparedjobdesc);
       if((!ac.submit(preparedjobdescs, localjobs, delegation_id)) || (localjobs.empty())) {
@@ -146,7 +146,7 @@ namespace ARexINTERNAL {
       AddJobDetails(preparedjobdesc, job);
       jc.addEntity(job);
     }//end loop over jobdescriptions
-    
+
     return retval;
   }
 

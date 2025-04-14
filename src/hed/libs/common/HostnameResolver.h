@@ -37,7 +37,7 @@ namespace Arc {
    private:
      int family;
      socklen_t length;
-     sockaddr *addr; 
+     sockaddr *addr;
    };
 
     /// New HostnameResolver object.
@@ -107,7 +107,7 @@ namespace Arc {
     void KeepRange(void);
   };
 
-} // namespace Arc 
+} // namespace Arc
 
 #endif // __ARC_HOSTNAMERESOLVER_H__
 

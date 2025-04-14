@@ -105,7 +105,7 @@ namespace Arc {
   class Thread {
    friend class ThreadArgument;
    public:
-    /// Start thread 
+    /// Start thread
     /** This method provides functionality similar to CreateThreadFunction
        but runs thread() method instead of specified function. */
     bool start(SimpleCounter* count = NULL);
@@ -376,7 +376,7 @@ namespace Arc {
   /// Shared lock for SharedMutex.
   class SharedMutexSharedLock {
    private:
-    SharedMutex& mutex_; 
+    SharedMutex& mutex_;
    public:
     SharedMutexSharedLock(SharedMutex& mutex):mutex_(mutex) {
       mutex_.lockShared();
@@ -389,7 +389,7 @@ namespace Arc {
   /// Exclusive lock for SharedMutex.
   class SharedMutexExclusiveLock {
    private:
-    SharedMutex& mutex_; 
+    SharedMutex& mutex_;
    public:
     SharedMutexExclusiveLock(SharedMutex& mutex):mutex_(mutex) {
       mutex_.lockExclusive();
@@ -631,7 +631,7 @@ namespace Arc {
   // This is done intentionally to make sure glibmm is
   // properly initialized before every module starts
   // using threads functionality. To make it work this
-  // header must be included before defining any 
+  // header must be included before defining any
   // variable/class instance using static threads-related
   // elements. The simplest way to do that is to use
   // this header instead of glibmm/thread.h

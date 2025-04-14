@@ -600,7 +600,7 @@ DelegationProvider::DelegationProvider(const std::string& cert_file,const std::s
   STACK_OF(X509) *cert_sk = NULL;
   bool res = false;
 
-  
+
   OpenSSLInit();
   EVP_add_digest(EVP_sha256());
 
@@ -678,7 +678,7 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   if((!PEM_read_bio_X509_REQ(in,&req,NULL,NULL)) || (!req)) goto err;
   BIO_free_all(in); in=NULL;
 
- 
+
   //subject=X509_REQ_get_subject_name(req);
   //char* buf = X509_NAME_oneline(subject, 0, 0);
   //std::cerr<<"subject="<<buf<<std::endl;
@@ -717,10 +717,10 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
    If a certificate is a Proxy Certificate, then the proxyCertInfo
    extension MUST be present, and this extension MUST be marked as
    critical.
-  
+
    The pCPathLenConstraint field, if present, specifies the maximum
    depth of the path of Proxy Certificates that can be signed by this
-   Proxy Certificate. 
+   Proxy Certificate.
 
    The proxyPolicy field specifies a policy on the use of this
    certificate for the purposes of authorization.  Within the
@@ -1071,7 +1071,7 @@ bool DelegationProviderSOAP::DelegateCredentialsInit(MCCInterface& interface,Mes
             (stype == DelegationProviderSOAP::EMIDSRENEW)) {
     NS ns; ns["deleg"]=EMIDS_NAMESPACE;
     PayloadSOAP req_soap(ns);
-    if((!id_.empty()) && 
+    if((!id_.empty()) &&
        ((stype == DelegationProviderSOAP::GDS20RENEW) ||
         (stype == DelegationProviderSOAP::EMIDSRENEW))) {
       req_soap.NewChild("deleg:renewProxyReq").NewChild("deleg:delegationID") = id_;
@@ -1410,8 +1410,8 @@ bool DelegationContainerSOAP::remove(ConsumerIterator i) {
   ConsumerIterator next = i->second->next;
   if(previous != consumers_.end()) previous->second->next=next;
   if(next != consumers_.end()) next->second->previous=previous;
-  if(consumers_first_ == i) consumers_first_=next; 
-  if(consumers_last_ == i) consumers_last_=previous; 
+  if(consumers_first_ == i) consumers_first_=next;
+  if(consumers_last_ == i) consumers_last_=previous;
   if(i->second->deleg) delete i->second->deleg;
   delete i->second;
   consumers_.erase(i);

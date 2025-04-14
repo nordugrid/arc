@@ -57,8 +57,8 @@ std::string confString = "\
 
 // Replace a substring by another substring.
 void replace(std::string& str,
-	     const std::string& out,
-	     const std::string& in)
+             const std::string& out,
+             const std::string& in)
 {
   std::string::size_type index = str.find(out);
   if (index!=std::string::npos)
@@ -80,9 +80,9 @@ void sendRequests(){
   Glib::TimeVal tBefore;
   Glib::TimeVal tAfter;
   bool connected;
-      
+
   while(run){
-    
+
     // Create a client chain.
     Arc::Config client_config(confString);
     if(!client_config) {
@@ -113,17 +113,17 @@ void sendRequests(){
       reqmsg.Payload(&req);
       repmsg.Attributes(&attributes_rep);
       repmsg.Context(&context);
-      
+
       // Send the request and time it.
       tBefore.assign_current_time();
       Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
       tAfter.assign_current_time();
-      
+
       if(!status) {
         // Request failed.
         failedRequests++;
         failedTime+=tAfter-tBefore;
-	    connected=false;
+        connected=false;
       } else {
         Arc::PayloadSOAP* resp = NULL;
         if(repmsg.Payload() != NULL) {
@@ -192,7 +192,7 @@ int main(int argc, char* argv[]){
     } else {
       break;
     };
-  } 
+  }
   if(config_file) {
     std::ifstream f(config_file);
     if(!f) {
@@ -208,19 +208,19 @@ int main(int argc, char* argv[]){
   // Extract command line arguments.
   if (argc!=5){
     std::cerr << "Wrong number of arguments!" << std::endl
-	      << std::endl
-	      << "Usage:" << std::endl
-	      << "perftest [-c config] [-d debug] host port threads duration" << std::endl
-	      << std::endl
-	      << "Arguments:" << std::endl
-	      << "host     The name of the host of the service." << std::endl
-	      << "port     The port to use on the host." << std::endl
-	      << "threads  The number of concurrent requests." << std::endl
-	      << "duration The duration of the test in seconds." << std::endl
-	      << "config   The file containing client chain XML configuration with " << std::endl
+              << std::endl
+              << "Usage:" << std::endl
+              << "perftest [-c config] [-d debug] host port threads duration" << std::endl
+              << std::endl
+              << "Arguments:" << std::endl
+              << "host     The name of the host of the service." << std::endl
+              << "port     The port to use on the host." << std::endl
+              << "threads  The number of concurrent requests." << std::endl
+              << "duration The duration of the test in seconds." << std::endl
+              << "config   The file containing client chain XML configuration with " << std::endl
               << "         'soap' entry point and HOSTNAME, PORTNUMBER and PATH " << std::endl
               << "         keyword for hostname, port and HTTP path of 'echo' service." << std::endl
-	      << "debug    The textual representation of desired debug level. Available " << std::endl
+              << "debug    The textual representation of desired debug level. Available " << std::endl
               << "         levels: DEBUG, VERBOSE, INFO, WARNING, ERROR, FATAL." << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -228,7 +228,7 @@ int main(int argc, char* argv[]){
   portNumber = std::string(argv[2]);
   numberOfThreads = atoi(argv[3]);
   duration = atoi(argv[4]);
-  
+
   // Insert host name and port number into the configuration string.
   replace(confString, "HOSTNAME", serviceHost);
   replace(confString, "PORTNUMBER", portNumber);
@@ -257,34 +257,34 @@ int main(int argc, char* argv[]){
   totalTime = completedTime+failedTime;
   std::cout << "========================================" << std::endl;
   std::cout << "Host: "
-	    << serviceHost << std::endl;
+            << serviceHost << std::endl;
   std::cout << "Port: "
-	    << portNumber << std::endl;
+            << portNumber << std::endl;
   std::cout << "Number of threads: "
-	    << numberOfThreads << std::endl;
+            << numberOfThreads << std::endl;
   std::cout << "Duration: "
-	    << duration << " s" << std::endl;
+            << duration << " s" << std::endl;
   std::cout << "Number of requests: "
-	    << totalRequests << std::endl;
+            << totalRequests << std::endl;
   std::cout << "Completed requests: "
-	    << completedRequests << " ("
-	    << Round(completedRequests*100.0/totalRequests)
-	    << "%)" << std::endl;
+            << completedRequests << " ("
+            << Round(completedRequests*100.0/totalRequests)
+            << "%)" << std::endl;
   std::cout << "Failed requests: "
-	    << failedRequests << " ("
-	    << Round(failedRequests*100.0/totalRequests)
-	    << "%)" << std::endl;
+            << failedRequests << " ("
+            << Round(failedRequests*100.0/totalRequests)
+            << "%)" << std::endl;
   std::cout << "Average response time for all requests: "
-	    << Round(1000*totalTime.as_double()/totalRequests)
-	    << " ms" << std::endl;
+            << Round(1000*totalTime.as_double()/totalRequests)
+            << " ms" << std::endl;
   if (completedRequests!=0)
     std::cout << "Average response time for completed requests: "
-	      << Round(1000*completedTime.as_double()/completedRequests)
-	      << " ms" << std::endl;
+              << Round(1000*completedTime.as_double()/completedRequests)
+              << " ms" << std::endl;
   if (failedRequests!=0)
     std::cout << "Average response time for failed requests: "
-	      << Round(1000*failedTime.as_double()/failedRequests)
-	      << " ms" << std::endl;
+              << Round(1000*failedTime.as_double()/failedRequests)
+              << " ms" << std::endl;
   std::cout << "========================================" << std::endl;
 
   return 0;

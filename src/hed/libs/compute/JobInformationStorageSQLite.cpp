@@ -100,7 +100,7 @@ namespace Arc {
             "workingareaerasetime, proxyexpirationtime, submissionhost, submissionclienttime, " \
             "othermessages, activityoldid"
 
- 
+
   JobInformationStorageSQLite::JobDB::JobDB(const std::string& name, bool create): jobDB(NULL)
   {
     int err;
@@ -121,7 +121,7 @@ namespace Arc {
     }
 
     if(create) {
-      err = sqlite3_exec_nobusy(jobDB, "CREATE TABLE IF NOT EXISTS jobs(" JOBS_COLUMNS ", UNIQUE(id))", NULL, NULL, NULL);   
+      err = sqlite3_exec_nobusy(jobDB, "CREATE TABLE IF NOT EXISTS jobs(" JOBS_COLUMNS ", UNIQUE(id))", NULL, NULL, NULL);
       if(err != SQLITE_OK) {
         handleError(NULL, err);
         tearDown();
@@ -130,25 +130,25 @@ namespace Arc {
       err = sqlite3_table_column_metadata(jobDB, NULL, "jobs", "activityoldid", NULL, NULL, NULL, NULL, NULL);
       if(err != SQLITE_OK) {
         // No latest column => recreate table
-        err = sqlite3_exec_nobusy(jobDB, "CREATE TABLE IF NOT EXISTS jobs_new(" JOBS_COLUMNS ", UNIQUE(id))", NULL, NULL, NULL);   
+        err = sqlite3_exec_nobusy(jobDB, "CREATE TABLE IF NOT EXISTS jobs_new(" JOBS_COLUMNS ", UNIQUE(id))", NULL, NULL, NULL);
         if(err != SQLITE_OK) {
           handleError(NULL, err);
           tearDown();
           throw SQLiteException(IString("Unable to create jobs_new table in data base (%s)", name).str(), err);
         }
-        err = sqlite3_exec_nobusy(jobDB, "INSERT INTO jobs_new (" JOBS_COLUMNS_OLD ") SELECT " JOBS_COLUMNS_OLD " FROM jobs", NULL, NULL, NULL);   
+        err = sqlite3_exec_nobusy(jobDB, "INSERT INTO jobs_new (" JOBS_COLUMNS_OLD ") SELECT " JOBS_COLUMNS_OLD " FROM jobs", NULL, NULL, NULL);
         if(err != SQLITE_OK) {
           handleError(NULL, err);
           tearDown();
           throw SQLiteException(IString("Unable to transfer from jobs to jobs_new in data base (%s)", name).str(), err);
         }
-        err = sqlite3_exec_nobusy(jobDB, "DROP TABLE jobs", NULL, NULL, NULL);   
+        err = sqlite3_exec_nobusy(jobDB, "DROP TABLE jobs", NULL, NULL, NULL);
         if(err != SQLITE_OK) {
           handleError(NULL, err);
           tearDown();
           throw SQLiteException(IString("Unable to drop jobs in data base (%s)", name).str(), err);
         }
-        err = sqlite3_exec_nobusy(jobDB, "ALTER TABLE jobs_new RENAME TO jobs", NULL, NULL, NULL);   
+        err = sqlite3_exec_nobusy(jobDB, "ALTER TABLE jobs_new RENAME TO jobs", NULL, NULL, NULL);
         if(err != SQLITE_OK) {
           handleError(NULL, err);
           tearDown();
@@ -158,7 +158,7 @@ namespace Arc {
 
       err = sqlite3_exec_nobusy(jobDB,
           "CREATE INDEX IF NOT EXISTS serviceinformationhost ON jobs(serviceinformationhost)",
-           NULL, NULL, NULL);   
+           NULL, NULL, NULL);
       if(err != SQLITE_OK) {
         handleError(NULL, err);
         tearDown();
@@ -264,7 +264,7 @@ namespace Arc {
       return false;
     }
     if (jobs.empty()) return true;
-    
+
     try {
       JobDB db(name, true);
       // Identify jobs to remove
@@ -392,7 +392,7 @@ namespace Arc {
     const std::list<std::string>* endpoints;
     const std::list<std::string>* rejectEndpoints;
     std::list<std::string> jobIdentifiersMatched;
-    ReadJobsCallbackArg(std::list<Job>& jobs, 
+    ReadJobsCallbackArg(std::list<Job>& jobs,
                         std::list<std::string>* jobIdentifiers,
                         const std::list<std::string>* endpoints,
                         const std::list<std::string>* rejectEndpoints):
@@ -578,10 +578,10 @@ namespace Arc {
     } catch (const SQLiteException& e) {
       return false;
     }
-    
+
     return true;
   }
-  
+
   bool JobInformationStorageSQLite::Read(std::list<Job>& jobs, std::list<std::string>& jobIdentifiers,
                                       const std::list<std::string>& endpoints,
                                       const std::list<std::string>& rejectEndpoints) {
@@ -589,7 +589,7 @@ namespace Arc {
       return false;
     }
     jobs.clear();
-    
+
     try {
       JobDB db(name);
       std::string sqlcmd = "SELECT * FROM jobs";
@@ -623,10 +623,10 @@ namespace Arc {
       perror("Error");
       return false;
     }
-    
+
     return true;
   }
-  
+
   bool JobInformationStorageSQLite::Remove(const std::list<std::string>& jobids) {
     if (!isValid) {
       return false;
@@ -637,7 +637,7 @@ namespace Arc {
       for (std::list<std::string>::const_iterator it = jobids.begin();
            it != jobids.end(); ++it) {
         std::string sqlcmd = "DELETE FROM jobs WHERE (id = '"+sql_escape(*it)+"')";
-        int err = sqlite3_exec_nobusy(db.handle(), sqlcmd.c_str(), NULL, NULL, NULL); 
+        int err = sqlite3_exec_nobusy(db.handle(), sqlcmd.c_str(), NULL, NULL, NULL);
         if(err != SQLITE_OK) {
         } else if(sqlite3_changes(db.handle()) < 1) {
         }
@@ -645,10 +645,10 @@ namespace Arc {
     } catch (const SQLiteException& e) {
       return false;
     }
-    
+
     return true;
   }
-  
+
   void JobInformationStorageSQLite::logErrorMessage(int err) {
     switch (err) {
     default:

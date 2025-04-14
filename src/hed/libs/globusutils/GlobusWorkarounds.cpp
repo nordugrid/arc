@@ -20,7 +20,7 @@ namespace Arc {
   static Glib::Mutex lock_;
 
   bool GlobusRecoverProxyOpenSSL(void) {
-    // No harm even if not needed - shall trun proxies on for code 
+    // No harm even if not needed - shall trun proxies on for code
     // which was written with no proxies in mind
     SetEnv("OPENSSL_ALLOW_PROXY_CERTS","1");
     return true;

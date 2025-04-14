@@ -34,7 +34,7 @@ Plugin* PDPServiceInvoker::get_pdpservice_invoker(PluginArgument* arg) {
     return new PDPServiceInvoker((Config*)(*pdparg),arg);
 }
 
-PDPServiceInvoker::PDPServiceInvoker(Config* cfg,Arc::PluginArgument* parg):PDP(cfg,parg), client(NULL), 
+PDPServiceInvoker::PDPServiceInvoker(Config* cfg,Arc::PluginArgument* parg):PDP(cfg,parg), client(NULL),
   system_ca(false), is_xacml(false), is_saml(false) {
   XMLNode filter = (*cfg)["Filter"];
   if((bool)filter) {
@@ -50,7 +50,7 @@ PDPServiceInvoker::PDPServiceInvoker(Config* cfg,Arc::PluginArgument* parg):PDP(
   std::string url_str;
   url_str = (std::string)((*cfg)["Endpoint"]);
   Arc::URL url(url_str);
-  
+
   std::cout<<"URL: "<<url_str<<std::endl;
 
   Arc::MCCConfig mcc_cfg;
@@ -195,12 +195,12 @@ PDPStatus PDPServiceInvoker::isPermitted(Message *msg) const {
       std::string str;
       resp->GetXML(str);
       logger.msg(Arc::INFO, "Response: %s", str);
-  
+
       // TODO: Fix namespaces
       authz_res=(std::string)((*resp)["pdp:GetPolicyDecisionResponse"]["response:Response"]["response:AuthZResult"]);
 
       delete resp;
-    } 
+    }
 
     if(authz_res == "PERMIT") { logger.msg(Arc::INFO,"Authorized from remote pdp service"); return true; }
     else { logger.msg(Arc::INFO,"Unauthorized from remote pdp service"); return false; }

@@ -59,7 +59,7 @@ ArcPDPContext::ArcPDPContext(Evaluator* e):eval(e) {
 }
 
 ArcPDPContext::ArcPDPContext(void):eval(NULL) {
-  std::string evaluator = "arc.evaluator"; 
+  std::string evaluator = "arc.evaluator";
   EvaluatorLoader eval_loader;
   eval = eval_loader.getEvaluator(evaluator);
 }
@@ -155,7 +155,7 @@ PDPStatus ArcPDP::isPermitted(Message *msg) const {
     if(!eval) logger.msg(ERROR, "Can not dynamically produce Evaluator");
   }
   if(!eval) {
-    logger.msg(ERROR,"Evaluator for ArcPDP was not loaded"); 
+    logger.msg(ERROR,"Evaluator for ArcPDP was not loaded");
     return false;
   };
 
@@ -206,7 +206,7 @@ PDPStatus ArcPDP::isPermitted(Message *msg) const {
   // those services which are based on HED.
   //  Each message/session comes with one unique <Subject/> (with a number of <Attribute/>s),
   // and different <Resource/> and <Action/> elements (possibly plus <Context/>).
-  //  The results from all tuples are combined using following decision algorithm: 
+  //  The results from all tuples are combined using following decision algorithm:
   // 1. If any of tuples made of <Subject/>, <Resource/>, <Action/> and <Context/> gets "DENY"
   //    then final result is negative (false).
   // 2. Otherwise if any of tuples gets "PERMIT" then final result is positive (true).
@@ -235,8 +235,8 @@ PDPStatus ArcPDP::isPermitted(Message *msg) const {
         if(attrval) logger.msg(DEBUG, "%s", attrval->encode());
       }
     }
-  } 
-  
+  }
+
   bool result = false;
   if(atleast_onedeny) result = false;
   else if(atleast_onepermit) result = true;
@@ -244,9 +244,9 @@ PDPStatus ArcPDP::isPermitted(Message *msg) const {
 
   if(result) logger.msg(VERBOSE, "Authorized by arc.pdp");
   else logger.msg(INFO, "Not authorized by arc.pdp - some of the RequestItem elements do not satisfy Policy");
-  
+
   if(resp) delete resp;
-    
+
   return result;
 }
 

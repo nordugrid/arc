@@ -55,7 +55,7 @@ namespace ARex {
     close();
   }
 
-  int FileRecordSQLite::sqlite3_exec_nobusy(const char *sql, int (*callback)(void*,int,char**,char**), 
+  int FileRecordSQLite::sqlite3_exec_nobusy(const char *sql, int (*callback)(void*,int,char**,char**),
     void *arg, char **errmsg) {
       int err;
       while((err = sqlite3_exec(db_, sql, callback, arg, errmsg)) == SQLITE_BUSY) {
@@ -132,7 +132,7 @@ namespace ARex {
     if(!strs.empty()) {
       for(std::list<std::string>::const_iterator str = strs.begin(); ; ) {
         buf += sql_escape(*str);
-	++str;
+        ++str;
         if (str == strs.end()) break;
         buf += '#';
       };
@@ -425,7 +425,7 @@ namespace ARex {
   bool FileRecordSQLite::RemoveLock(const std::string& lock_id) {
     if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
-    // map lock to id,owner 
+    // map lock to id,owner
     {
       std::string sqlcmd = "DELETE FROM lock WHERE (lockid = '"+sql_escape(lock_id)+"')";
       if(!dberr("removelock:del",sqlite3_exec_nobusy(sqlcmd.c_str(), NULL, NULL, NULL))) {
@@ -442,7 +442,7 @@ namespace ARex {
   bool FileRecordSQLite::RemoveLock(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids) {
     if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
-    // map lock to id,owner 
+    // map lock to id,owner
     {
       std::string sqlcmd = "SELECT id,owner FROM rec WHERE uid IN (SELECT uid FROM lock WHERE (lockid = '"+sql_escape(lock_id)+"'))";
       FindCallbackIdOwnerArg arg(ids);
@@ -467,7 +467,7 @@ namespace ARex {
   bool FileRecordSQLite::ListLocked(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids) {
     if(!valid_) return false;
     Glib::Mutex::Lock lock(lock_);
-    // map lock to id,owner 
+    // map lock to id,owner
     {
       std::string sqlcmd = "SELECT id,owner FROM rec WHERE uid IN (SELECT uid FROM lock WHERE (lockid = '"+sql_escape(lock_id)+"'))";
       FindCallbackIdOwnerArg arg(ids);

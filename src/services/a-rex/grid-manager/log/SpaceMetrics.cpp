@@ -41,7 +41,7 @@ namespace ARex {
   void SpaceMetrics::SetConfig(const char* fname) {
     config_filename = fname;
   }
-  
+
   void SpaceMetrics::SetGmetricPath(const char* path) {
     tool_path = path;
   }
@@ -84,7 +84,7 @@ namespace ARex {
         freeSession = (float)(info_session.f_bfree * info_session.f_bsize) / (float)(1024 * 1024 * 1024);
         totalFreeSession += freeSession;
         logger.msg(Arc::DEBUG, "Sessiondir %s: Free space %f GB", path, totalFreeSession);
-	
+
         freeSession_update = true;
 
       }
@@ -107,7 +107,7 @@ namespace ARex {
         if ((*i).find(" ") != std::string::npos){
           path = (*i).substr((*i).find_last_of(" ")+1, (*i).length()-(*i).find_last_of(" ")+1);
         }
-      
+
         if (statvfs(path.c_str(), &info_cache) != 0) {
           logger.msg(Arc::ERROR,"Error getting info from statvfs for the path %s: %s", path, Arc::StrError(errno));
         }
@@ -116,13 +116,13 @@ namespace ARex {
           freeCache = (float)(info_cache.f_bfree * info_cache.f_bsize) / (float)(1024 * 1024 * 1024);
           totalFreeCache += freeCache;
           logger.msg(Arc::DEBUG, "Cache %s: Free space %f GB", path, totalFreeCache);
-	
+
           freeCache_update = true;
         }
       }
     }
     else{
-      logger.msg(Arc::DEBUG,"No cachedirs found/configured for calculation of free space.");    
+      logger.msg(Arc::DEBUG,"No cachedirs found/configured for calculation of free space.");
     }
 
     Sync();
@@ -170,7 +170,7 @@ namespace ARex {
 
   }
 
- 
+
   bool SpaceMetrics::RunMetrics(const std::string name, const std::string& value, const std::string unit_type, const std::string unit) {
     if(proc) return false;
     std::list<std::string> cmd;
@@ -194,7 +194,7 @@ namespace ARex {
     cmd.push_back(unit_type);
     cmd.push_back("-u");//unit
     cmd.push_back(unit);
-  
+
     proc = new Arc::Run(cmd);
     proc->AssignStderr(proc_stderr);
     proc->AssignKicker(&RunMetricsKicker, this);

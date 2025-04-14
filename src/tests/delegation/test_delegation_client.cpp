@@ -20,7 +20,7 @@
 #include <arc/communication/ClientX509Delegation.h>
 
 //The following is for showing how to use the specific client API
-// (ClientX509Delegation) to delegate a proxy to ARC delegation 
+// (ClientX509Delegation) to delegate a proxy to ARC delegation
 //service, and gLite (gridsite) delegation service individually.
 int main(void) {
   signal(SIGTTOU,SIG_IGN);
@@ -30,7 +30,7 @@ int main(void) {
   Arc::Logger::rootLogger.addDestination(logcerr);
 
   /******** Test to ARC delegation service **********/
-  //Note the endpoint here should be changed 
+  //Note the endpoint here should be changed
   //into the actual endpoint of delegation service.
 
 //  std::string arc_deleg_url_str("https://127.0.0.1:60000/delegation");
@@ -41,7 +41,7 @@ int main(void) {
   arc_deleg_mcc_cfg.AddCertificate("../echo/testcert.pem");
   arc_deleg_mcc_cfg.AddCAFile("../echo/testcacert.pem");
   arc_deleg_mcc_cfg.AddCADir("../echo/certificates");
-  //Create a delegation SOAP client 
+  //Create a delegation SOAP client
   logger.msg(Arc::INFO, "Creating a delegation soap client");
   Arc::ClientX509Delegation *arc_deleg_client = NULL;
   arc_deleg_client = new Arc::ClientX509Delegation(arc_deleg_mcc_cfg, arc_deleg_url);
@@ -54,7 +54,7 @@ int main(void) {
     }
   }
   logger.msg(Arc::INFO, "Delegation ID: %s", arc_delegation_id.c_str());
-  if(arc_deleg_client) delete arc_deleg_client;  
+  if(arc_deleg_client) delete arc_deleg_client;
 
   /******** Test to gridsite delegation service **********/
   std::string gs_deleg_url_str("https://cream.grid.upjs.sk:8443/ce-cream/services/gridsite-delegation");

@@ -994,7 +994,7 @@ namespace Arc {
       }
     }
 
-    /// \mapattr Application.StartTime <- ProcessingStartTime 
+    /// \mapattr Application.StartTime <- ProcessingStartTime
     if(job.Application.ProcessingStartTime != -1) {
       XMLNode start = application.NewChild("nordugrid-adl:StartTime");
       start = job.Application.ProcessingStartTime.str(MDSTime);
