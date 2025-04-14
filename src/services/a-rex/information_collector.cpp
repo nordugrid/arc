@@ -12,7 +12,7 @@
 #include <errno.h>
 #include <time.h>
 
-#include <glibmm.h>
+#include <glibmm/fileutils.h>
 
 #include <arc/ArcLocation.h>
 #include <arc/Run.h>

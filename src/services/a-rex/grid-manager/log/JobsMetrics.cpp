@@ -102,7 +102,7 @@ void JobsMetrics::SetGmetricPath(const char* path) {
 
 void JobsMetrics::ReportJobStateChange(const GMConfig& config,  GMJobRef i, job_state_t old_state,  job_state_t new_state) {
   if(!enabled) return; // not configured
-  Glib::RecMutex::Lock lock_(lock);
+  std::unique_lock<std::recursive_mutex> lock_(lock);
 
 
   std::string job_id = i->job_id;
@@ -145,7 +145,7 @@ bool JobsMetrics::CheckRunMetrics(void) {
 
 void JobsMetrics::Sync(void) {
   if(!enabled) return; // not configured
-  Glib::RecMutex::Lock lock_(lock);
+  std::unique_lock<std::recursive_mutex> lock_(lock);
   if(!CheckRunMetrics()) return;
   // Run gmetric to report one change at a time
   //since only one process can be started from Sync(), only 1 histogram can be sent at a time, therefore return for each call;
@@ -217,7 +217,7 @@ bool JobsMetrics::RunMetrics(const std::string name, const std::string& value, c
 void JobsMetrics::SyncAsync(void* arg) {
   if(arg) {
     JobsMetrics& it = *reinterpret_cast<JobsMetrics*>(arg);
-    Glib::RecMutex::Lock lock_(it.lock);
+    std::unique_lock<std::recursive_mutex> lock_(it.lock);
     if(it.proc) {
       // Continue only if no failure in previous call.
       // Otherwise it can cause storm of failed calls.

@@ -6,12 +6,10 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
+#include <mutex>
 #include <string>
-#include <sstream>
 #include <fstream>
 #include <iostream>
-
-#include <glibmm.h>
 
 // Workaround for include bugs in xmlsec
 #include <libxml/parser.h>
@@ -33,8 +31,6 @@
 #ifdef CHARSET_EBCDIC
 #include <openssl/ebcdic.h>
 #endif
-
-#include <arc/Thread.h>
 
 #include "XmlSecUtils.h"
 
@@ -66,7 +62,7 @@ int passphrase_callback(char* buf, int size, int /* rwflag */, void *) {
   return len;
 }
 
-static Glib::Mutex init_lock_;
+static std::mutex init_lock_;
 static bool has_init = false;
 
 bool init_xmlsec(void) {
@@ -202,7 +198,7 @@ xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool usage) 
   }
   else v = value;
 
-  xmlSecErrorsDefaultCallbackEnableOutput(FALSE);
+  xmlSecErrorsDefaultCallbackEnableOutput(0);
   xmlSecByte* tmp_str = new xmlSecByte[v.size()];
   memset(tmp_str,0,v.size());
 
@@ -215,7 +211,7 @@ xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool usage) 
     key = xmlSecCryptoAppKeyLoadMemory(tmp_str, len, key_formats[i], NULL, NULL, NULL);
   }
   delete[] tmp_str;
-  xmlSecErrorsDefaultCallbackEnableOutput(TRUE);
+  xmlSecErrorsDefaultCallbackEnableOutput(1);
 
   return key;
 }
@@ -274,7 +270,7 @@ xmlSecKey* get_key_from_certstr(const std::string& value) {
     (xmlSecKeyDataFormat)0
   };
 
-  xmlSecErrorsDefaultCallbackEnableOutput(FALSE);
+  xmlSecErrorsDefaultCallbackEnableOutput(0);
 
   BIO* certbio = NULL;
   std::string cert_value;
@@ -293,7 +289,7 @@ xmlSecKey* get_key_from_certstr(const std::string& value) {
     }
   }
 
-  xmlSecErrorsDefaultCallbackEnableOutput(TRUE);
+  xmlSecErrorsDefaultCallbackEnableOutput(1);
 
   return key;
 }

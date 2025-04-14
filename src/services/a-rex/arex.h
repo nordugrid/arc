@@ -28,8 +28,8 @@ class CountedResource {
   ~CountedResource(void);
   void MaxConsumers(int maxconsumers);
  private:
-  Glib::Cond cond_;
-  Glib::Mutex lock_;
+  std::condition_variable cond_;
+  std::mutex lock_;
   int limit_;
   int count_;
   void Acquire(void);
@@ -54,7 +54,7 @@ class OptimizedInformationContainer: public Arc::InformationContainer {
   std::string filename_;
   int handle_;
   Arc::XMLNode doc_;
-  Glib::Mutex olock_;
+  std::mutex olock_;
  public:
   OptimizedInformationContainer(bool parse_xml = true);
   ~OptimizedInformationContainer(void);
@@ -86,7 +86,7 @@ class ARexService: public Arc::Service {
   std::string gmrun_;
   unsigned int infoprovider_wakeup_period_;
   unsigned int all_jobs_count_;
-  //Glib::Mutex glue_states_lock_;
+  //std::mutex glue_states_lock_;
   //std::map<std::string,std::string> glue_states_;
   FileChunksList files_chunks_;
   GMConfig config_;

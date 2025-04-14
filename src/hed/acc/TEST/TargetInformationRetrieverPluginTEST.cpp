@@ -4,6 +4,8 @@
 #include <config.h>
 #endif
 
+#include <unistd.h>
+
 #include <arc/compute/EndpointQueryingStatus.h>
 #include <arc/compute/ExecutionTarget.h>
 #include <arc/compute/TestACCControl.h>
@@ -20,7 +22,7 @@ EndpointQueryingStatus TargetInformationRetrieverPluginTEST::Query(const UserCon
                                                                    const Endpoint& endpoint,
                                                                    std::list<ComputingServiceType>& csList,
                                                                    const EndpointQueryOptions<ComputingServiceType>&) const {
-  Glib::usleep(TargetInformationRetrieverPluginTESTControl::delay*1000000);
+  usleep(TargetInformationRetrieverPluginTESTControl::delay*1000000);
   csList = TargetInformationRetrieverPluginTESTControl::targets;
   return TargetInformationRetrieverPluginTESTControl::status;
 };

@@ -1,7 +1,6 @@
 #ifndef __ARC_MCCTLS_H__
 #define __ARC_MCCTLS_H__
 
-#include <arc/Thread.h>
 #include <arc/Logger.h>
 #include <arc/message/MCC.h>
 
@@ -17,8 +16,8 @@ namespace ArcMCCTLS {
   protected:
     //bool tls_random_seed(std::string filename, long n);
     static unsigned int ssl_initialized_;
-    static Glib::Mutex lock_;
-    static Glib::Mutex* ssl_locks_;
+    static std::mutex lock_;
+    static std::mutex* ssl_locks_;
     static int ssl_locks_num_;
     static Logger logger;
     static void ssl_locking_cb(int mode, int n, const char *file, int line);

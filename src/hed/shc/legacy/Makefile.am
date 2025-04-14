@@ -32,7 +32,7 @@ libarcshclegacy_la_LDFLAGS = -no-undefined -avoid-version -module
 
 arc_lcas_SOURCES  = arc_lcas.cpp cert_util.cpp cert_util.h
 arc_lcas_CXXFLAGS = -I$(top_srcdir)/include \
-        $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) \
+        $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
         $(OPENSSL_CFLAGS) $(LCAS_CFLAGS) \
         $(GLOBUS_GSSAPI_GSI_CFLAGS) $(GLOBUS_GSI_CREDENTIAL_CFLAGS) \
         $(GLOBUS_GSI_CERT_UTILS_CFLAGS) $(AM_CXXFLAGS)
@@ -46,7 +46,7 @@ arc_lcas_LDADD    = \
 
 arc_lcmaps_SOURCES  = arc_lcmaps.cpp cert_util.cpp cert_util.h
 arc_lcmaps_CXXFLAGS = -I$(top_srcdir)/include \
-        $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) \
+        $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) \
         $(OPENSSL_CFLAGS) $(LCMAPS_CFLAGS) \
         $(GLOBUS_GSSAPI_GSI_CFLAGS) $(GLOBUS_GSI_CREDENTIAL_CFLAGS) \
         $(GLOBUS_GSI_CERT_UTILS_CFLAGS) $(AM_CXXFLAGS)

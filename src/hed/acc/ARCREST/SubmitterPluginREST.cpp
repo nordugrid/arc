@@ -5,11 +5,8 @@
 #endif
 
 #include <string>
-#include <sstream>
 
 #include <sys/stat.h>
-
-#include <glibmm.h>
 
 #include <arc/XMLNode.h>
 #include <arc/CheckSum.h>

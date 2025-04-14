@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#include <glibmm/miscutils.h>
+
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <arc/DateTime.h>

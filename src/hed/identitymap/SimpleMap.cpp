@@ -19,7 +19,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <glibmm.h>
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
 
 #define odlog(LEVEL) std::cerr
 

@@ -9,7 +9,12 @@
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
 
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
+
 #include "JobInformationStorageSQLite.h"
+
+#include "glibmm-compat.h"
 
 namespace Arc {
 

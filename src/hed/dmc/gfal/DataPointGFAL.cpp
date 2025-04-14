@@ -14,7 +14,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <glibmm.h>
+#include <glibmm/miscutils.h>
 
 #include <gfal_api.h>
 

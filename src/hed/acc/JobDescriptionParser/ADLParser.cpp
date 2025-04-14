@@ -5,7 +5,6 @@
 #endif
 
 #include <string>
-#include <glibmm.h>
 
 #include <arc/DateTime.h>
 #include <arc/Logger.h>

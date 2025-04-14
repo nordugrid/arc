@@ -4,10 +4,14 @@
 #include <config.h>
 #endif
 
+#include <algorithm>
+
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <cppunit/extensions/HelperMacros.h>
+
+#include <glibmm/miscutils.h>
 
 #include <arc/FileAccess.h>
 #include <arc/FileUtils.h>

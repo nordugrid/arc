@@ -14,7 +14,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <glibmm.h>
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
 
 #include <arc/Thread.h>
 #include <arc/Logger.h>

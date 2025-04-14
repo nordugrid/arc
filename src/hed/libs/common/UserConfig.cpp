@@ -11,18 +11,24 @@
 #include <pwd.h>
 #include <grp.h>
 
+#include <algorithm>
 #include <fstream>
-#include <glibmm.h>
-#include <arc/FileUtils.h>
+
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
 
 #include <arc/ArcLocation.h>
+#include <arc/FileUtils.h>
 #include <arc/IniConfig.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>
 #include <arc/User.h>
 #include <arc/Utils.h>
+
 #include "UserConfig.h"
+
+#include "glibmm-compat.h"
 
 #define HANDLESTRATT(ATT, SETTER) \
   if (common[ATT]) {\
@@ -1131,17 +1137,6 @@ namespace Arc {
   }
 
   bool UserConfig::copyFile(const std::string& source, const std::string& destination) {
-/*
-TODO: Make FileUtils function to this
-#ifdef HAVE_GIOMM
-    try {
-      return Gio::File::create_for_path(source)->copy(Gio::File::create_for_path(destination), Gio::FILE_COPY_NONE);
-    } catch (Gio::Error e) {
-      logger.msg(WARNING, "%s", (std::string)e.what());
-      return false;
-    }
-#else
-*/
     std::ifstream ifsSource(source.c_str(), std::ios::in | std::ios::binary);
     if (!ifsSource)
       return false;
@@ -1159,7 +1154,6 @@ TODO: Make FileUtils function to this
     }
 
     return true;
-//#endif
   }
 
   bool UserConfig::UtilsDirPath(const std::string& dir) {

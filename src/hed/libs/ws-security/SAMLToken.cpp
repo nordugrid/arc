@@ -6,12 +6,8 @@
 #include <sys/time.h>
 
 #include <string>
-#include <sstream>
-#include <fstream>
 #include <iostream>
 //#include <iomanip>
-
-#include <glibmm.h>
 
 #include <libxml/parser.h>
 

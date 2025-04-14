@@ -9,7 +9,6 @@
 #include <arc/data/DataStatus.h>
 #include <arc/data/FileInfo.h>
 #include <arc/URL.h>
-#include <arc/Thread.h>
 #include <arc/globusutils/GSSCredential.h>
 
 #include <globus_ftp_control.h>
@@ -80,7 +79,7 @@ namespace ArcDMCGridFTP {
                                    globus_object_t *error);
 
     static std::map<void*,Lister*> callback_args;
-    static Glib::Mutex callback_args_mutex;
+    static std::mutex callback_args_mutex;
     static void* remember_for_callback(Lister* it);
     static Lister* recall_for_callback(void* arg);
     static void forget_about_callback(void* arg);

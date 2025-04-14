@@ -8,7 +8,7 @@
 #include <ostream>
 
 #include <sigc++/slot.h>
-#include <glibmm.h>
+#include <glibmm/ustring.h>
 
 #include <stdio.h>  // snprintf
 #include <stdlib.h> // free
@@ -155,7 +155,7 @@ namespace Arc {
     }
 
     // sigc::slot<const char*>*
-    inline static const char* Get(const sigc::slot<const char*> *t) {
+    inline static const char* Get(const sigc::slot<const char*()> *t) {
       return (*t)();
     }
 

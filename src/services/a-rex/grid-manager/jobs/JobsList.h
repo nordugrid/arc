@@ -3,7 +3,8 @@
 
 #include <sys/types.h>
 #include <list>
-#include <glib.h>
+
+#include <glibmm/fileutils.h>
 
 #include <arc/Thread.h>
 
@@ -51,7 +52,7 @@ class JobsList {
   // subfolders in controldir.
   std::map<JobId,GMJobRef> jobs;
 
-  mutable Glib::RecMutex jobs_lock;
+  mutable std::recursive_mutex jobs_lock;
 
   GMJobQueue jobs_processing;   // List of jobs currently scheduled for processing
 

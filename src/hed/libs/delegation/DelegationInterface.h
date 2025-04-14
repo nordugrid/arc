@@ -1,11 +1,11 @@
 #ifndef __ARC_DELEGATIONINTERFACE_H__
 #define __ARC_DELEGATIONINTERFACE_H__
 
-#include <string>
 #include <list>
 #include <map>
+#include <mutex>
+#include <string>
 
-#include <arc/Thread.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/MCC.h>
 #include <arc/message/Message.h>
@@ -179,7 +179,7 @@ class DelegationProviderSOAP: public DelegationProvider {
   execution to one of managed DelegationConsumerSOAP instances. */
 class DelegationContainerSOAP {
  protected:
-  Glib::Mutex lock_;
+  std::mutex lock_;
   /// Stores description of last error. Derived classes should store their errors here.
   std::string failure_;
   class Consumer;

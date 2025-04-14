@@ -5,7 +5,6 @@
 #include <map>
 #include <sqlite3.h>
 #include <arc/Logger.h>
-#include <arc/Thread.h>
 
 #include "AccountingDB.h"
 
@@ -26,7 +25,7 @@ namespace ARex {
         bool addJobEvent(aar_jobevent_t& events, const std::string& jobid);
       private:
         static Arc::Logger logger;
-        Glib::Mutex lock_;
+        std::mutex lock_;
         // General Name-ID tables
         name_id_map_t db_queue;
         name_id_map_t db_users;

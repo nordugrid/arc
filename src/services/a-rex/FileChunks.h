@@ -1,9 +1,9 @@
-#include <string>
+#include <list>
 #include <map>
+#include <mutex>
+#include <string>
 
 #include <unistd.h>
-
-#include <glibmm.h>
 
 namespace ARex {
 
@@ -13,7 +13,7 @@ class FileChunksList;
 class FileChunks {
  friend class FileChunksList;
  private:
-  Glib::Mutex lock;
+  std::mutex lock;
   FileChunksList& list;
   std::map<std::string,FileChunks*>::iterator self;
   typedef std::list<std::pair<off_t,off_t> > chunks_t;
@@ -51,7 +51,7 @@ class FileChunks {
 class FileChunksList {
  friend class FileChunks;
  private:
-  Glib::Mutex lock;
+  std::mutex lock;
   typedef std::map<std::string,FileChunks*> files_t;
   files_t files;
   int timeout;

@@ -3,7 +3,6 @@
 #ifndef __ARCDMCHTTP_DATAPOINTHTTP_H__
 #define __ARCDMCHTTP_DATAPOINTHTTP_H__
 
-#include <arc/Thread.h>
 #include <arc/communication/ClientInterface.h>
 #include <arc/data/DataPointDirect.h>
 
@@ -65,8 +64,8 @@ using namespace Arc;
     std::multimap<std::string,ClientHTTP*> clients;
     SimpleCounter transfers_started;
     int transfers_tofinish;
-    Glib::Mutex transfer_lock;
-    Glib::Mutex clients_lock;
+    std::mutex transfer_lock;
+    std::mutex clients_lock;
     bool partial_read_allowed;
     bool partial_write_allowed;
   };

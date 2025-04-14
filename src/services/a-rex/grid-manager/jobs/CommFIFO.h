@@ -2,9 +2,8 @@
 #define GM_COMMFIFO_H
 
 #include <list>
+#include <mutex>
 #include <vector>
-
-#include <arc/Thread.h>
 
 namespace ARex {
 
@@ -33,7 +32,7 @@ class CommFIFO {
   int kick_in;
   int kick_out;
   // Multi-threading protection
-  Glib::RecMutex lock;
+  std::recursive_mutex lock;
   int timeout_;
   // Create internal pipe
   bool make_pipe(void);

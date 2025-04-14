@@ -69,7 +69,7 @@ namespace ArcDMCRucio {
     /// In-memory cache of auth tokens
     static RucioTokenStore tokens;
     /// Lock to protect access to tokens
-    static Glib::Mutex lock;
+    static std::mutex lock;
     /// Rucio auth url
     Arc::URL auth_url;
     /// Our hostname

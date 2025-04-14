@@ -6,7 +6,6 @@
 
 #include <string>
 #include <fstream>
-#include <glibmm.h>
 
 #include <arc/UserConfig.h>
 

@@ -13,7 +13,9 @@
 #include <unistd.h>
 #include <utime.h>
 
-#include <glibmm.h>
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
+#include <glibmm/random.h>
 
 #include <arc/DateTime.h>
 #include <arc/FileLock.h>
@@ -59,7 +61,7 @@ namespace Arc {
   DataMover::~DataMover() {
     Cancel();
     // Wait for Transfer() to finish with lock
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
   }
 
   bool DataMover::verbose() {
@@ -452,7 +454,7 @@ namespace Arc {
     DataStatus res = DataStatus::TransferError;
     int try_num;
     for (try_num = 0;; try_num++) { /* cycle for retries */
-      Glib::Mutex::Lock lock(lock_);
+      std::unique_lock<std::mutex> lock(lock_);
       logger.msg(VERBOSE, "DataMover: cycle");
       if ((try_num != 0) && (!do_retries && (!do_retries_retryable || !res.Retryable()))) {
         logger.msg(VERBOSE, "DataMover: no retries requested - exit");

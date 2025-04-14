@@ -51,7 +51,7 @@ namespace Arc {
         corresponding MCCInterface from this set in own process() method. */
     std::map<std::string, MCCInterface *> next_;
     /** Mutex to protect access to next_. */
-    Glib::Mutex next_lock_;
+    std::mutex next_lock_;
     /** Returns "next" component associated with provided label. */
     MCCInterface *Next(const std::string& label = "");
 

@@ -16,7 +16,7 @@ namespace Arc {
 class InformationInterface {
  protected:
   /** Mutex used to protect access to Get methods in multi-threaded env. */
-  Glib::Mutex lock_;
+  std::mutex lock_;
   bool to_lock_;
   /** This method is called by this object's Process method.
     Real implementation of this class should return (sub)tree

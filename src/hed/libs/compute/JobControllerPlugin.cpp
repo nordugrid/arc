@@ -12,8 +12,6 @@
 #include <map>
 
 #include <unistd.h>
-#include <glibmm/fileutils.h>
-#include <glibmm.h>
 
 #include <arc/IString.h>
 #include <arc/UserConfig.h>

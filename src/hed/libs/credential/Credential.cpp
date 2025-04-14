@@ -14,7 +14,6 @@
 
 #include <glibmm/fileutils.h>
 
-#include <arc/Thread.h>
 #include <arc/Utils.h>
 #include <arc/User.h>
 #include <arc/crypto/OpenSSL.h>
@@ -22,6 +21,8 @@
 #include <arc/credential/VOMSUtil.h>
 
 #include "Credential.h"
+
+#include "glibmm-compat.h"
 
 using namespace ArcCredential;
 
@@ -649,7 +650,7 @@ namespace Arc {
   static bool proxy_init_ = false;
 
   void Credential::InitProxyCertInfo(void) {
-    static Glib::Mutex lock_;
+    static std::mutex lock_;
 
     // At least in some versions of OpenSSL functions manupulating
     // global lists seems to be not thread-safe despite locks
@@ -657,7 +658,7 @@ namespace Arc {
     // such calls.
     // It is also good idea to protect proxy_init_ too.
 
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     if(proxy_init_) return;
 
     /* Proxy Certificate Extension's related objects */

@@ -4,7 +4,7 @@
 #include <config.h>
 #endif
 
-#include <glibmm.h>
+#include <glibmm/fileutils.h>
 
 #include <arc/ArcConfig.h>
 #include <arc/IString.h>
@@ -16,6 +16,8 @@
 
 #include <unistd.h>
 #include <termios.h>
+
+#include "glibmm-compat.h"
 
 ConsoleRecovery::ConsoleRecovery(void) {
   ti = new termios;

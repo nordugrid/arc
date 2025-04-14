@@ -15,7 +15,8 @@
 #include <libintl.h>
 #endif
 
-#include <glibmm.h>
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
 
 #include "ArcLocation.h"
 

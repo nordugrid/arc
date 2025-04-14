@@ -7,6 +7,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <glibmm/fileutils.h>
+
 #include <algorithm>
 
 #include <arc/ArcConfig.h>
@@ -23,6 +25,8 @@
 #include <arc/data/FileCache.h>
 
 #include "Job.h"
+
+#include "glibmm-compat.h"
 
 #define JXMLTOSTRING(NAME) \
     if (job[ #NAME ]) {\
@@ -1144,7 +1148,7 @@ namespace Arc {
         logger.msg(WARNING, "Waiting for lock on file %s", filename);
       }
 
-      Glib::usleep(tryInterval);
+      usleep(tryInterval);
     }
 
     return false;
@@ -1173,7 +1177,7 @@ namespace Arc {
         logger.msg(WARNING, "Waiting for lock on file %s", filename);
       }
 
-      Glib::usleep(tryInterval);
+      usleep(tryInterval);
     }
 
     return false;
@@ -1205,7 +1209,7 @@ namespace Arc {
         logger.msg(WARNING, "Waiting for lock on file %s", filename);
       }
 
-      Glib::usleep(tryInterval);
+      usleep(tryInterval);
     }
 
     return false;
@@ -1238,7 +1242,7 @@ namespace Arc {
         logger.msg(WARNING, "Waiting for lock on file %s", filename);
       }
 
-      Glib::usleep(tryInterval);
+      usleep(tryInterval);
     }
 
     return false;

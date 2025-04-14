@@ -7,7 +7,6 @@
 #include <stdio.h>
 
 #include <arc/Logger.h>
-//#include <arc/Thread.h>
 #include <arc/ArcLocation.h>
 
 //#include "../misc/escaped.h"

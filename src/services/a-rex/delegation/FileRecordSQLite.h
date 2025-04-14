@@ -2,11 +2,10 @@
 #define __ARC_DELEGATION_FILERECORDSQLITE_H__
 
 #include <list>
+#include <mutex>
 #include <string>
 
 #include <sqlite3.h>
-
-#include <arc/Thread.h>
 
 #include "FileRecord.h"
 
@@ -14,7 +13,7 @@ namespace ARex {
 
 class FileRecordSQLite: public FileRecord {
  private:
-  Glib::Mutex lock_; // TODO: use DB locking
+  std::mutex lock_; // TODO: use DB locking
   sqlite3* db_;
   int sqlite3_exec_nobusy(const char *sql, int (*callback)(void*,int,char**,char**), void *arg, char **errmsg);
   bool dberr(const char* s, int err);

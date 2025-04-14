@@ -7,6 +7,8 @@
 #include <pwd.h>
 #include <grp.h>
 
+#include <algorithm>
+
 #include <arc/DateTime.h>
 #include <arc/FileUtils.h>
 #include <arc/StringConv.h>

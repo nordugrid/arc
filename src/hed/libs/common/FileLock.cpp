@@ -10,7 +10,6 @@
 
 #include <fcntl.h>
 #include <unistd.h>
-#include <glibmm.h>
 #include <signal.h>
 #include <sys/stat.h>
 

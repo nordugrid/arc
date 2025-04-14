@@ -263,7 +263,7 @@ namespace Arc {
        appear mixed in the stream and prevent race on modification of
        internal members. It is mutable to provide protection while reading members.
      */
-    mutable Glib::Mutex mutex;
+    mutable std::mutex mutex;
 
     /// Format to use in this LogDestination.
     LogFormat format;
@@ -413,7 +413,7 @@ namespace Arc {
     bool reopen;
     std::list<std::string*> cache;
     int maxcachesize;
-    Glib::Mutex file_mutex;
+    std::mutex file_mutex;
   };
 
   class LoggerContextRef;
@@ -428,7 +428,7 @@ namespace Arc {
       int usage_count;
 
       /// Protection for usage_count.
-      Glib::Mutex mutex;
+      std::mutex mutex;
 
       /// A list of pointers to LogDestinations.
       std::list<LogDestination*> destinations;

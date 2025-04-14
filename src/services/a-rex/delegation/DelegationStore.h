@@ -23,8 +23,8 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
        id(id_),client(client_),path(path_) {
     };
   };
-  Glib::Mutex lock_;
-  Glib::Mutex check_lock_;
+  std::mutex lock_;
+  std::mutex check_lock_;
   FileRecord* fstore_;
   std::map<Arc::DelegationConsumerSOAP*,Consumer> acquired_;
   unsigned int expiration_;

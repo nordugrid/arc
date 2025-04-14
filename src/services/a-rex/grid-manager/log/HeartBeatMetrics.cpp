@@ -47,7 +47,7 @@ void HeartBeatMetrics::SetGmetricPath(const char* path) {
 
 void HeartBeatMetrics::ReportHeartBeatChange(const GMConfig& config) {
   if(!enabled) return; // not configured
-  Glib::RecMutex::Lock lock_(lock);
+  std::unique_lock<std::recursive_mutex> lock_(lock);
 
   struct stat st;
   std::string heartbeat_file(config.ControlDir()  + "/gm-heartbeat");
@@ -79,7 +79,7 @@ bool HeartBeatMetrics::CheckRunMetrics(void) {
 
 void HeartBeatMetrics::Sync(void) {
   if(!enabled) return; // not configured
-  Glib::RecMutex::Lock lock_(lock);
+  std::unique_lock<std::recursive_mutex> lock_(lock);
   if(!CheckRunMetrics()) return;
   // Run gmetric to report one change at a time
   //since only one process can be started from Sync(), only 1 histogram can be sent at a time, therefore return for each call;
@@ -138,7 +138,7 @@ bool HeartBeatMetrics::RunMetrics(const std::string name, const std::string& val
 void HeartBeatMetrics::SyncAsync(void* arg) {
   if(arg) {
     HeartBeatMetrics& it = *reinterpret_cast<HeartBeatMetrics*>(arg);
-    Glib::RecMutex::Lock lock_(it.lock);
+    std::unique_lock<std::recursive_mutex> lock_(it.lock);
     if(it.proc) {
       // Continue only if no failure in previous call.
       // Otherwise it can cause storm of failed calls.

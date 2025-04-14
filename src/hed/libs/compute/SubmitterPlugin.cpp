@@ -7,7 +7,6 @@
 #include <arc/ArcConfig.h>
 #include <arc/FileLock.h>
 #include <arc/StringConv.h>
-#include <arc/Thread.h>
 #include <arc/compute/ExecutionTarget.h>
 #include <arc/compute/Job.h>
 #include <arc/compute/JobDescription.h>

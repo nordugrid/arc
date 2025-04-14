@@ -18,10 +18,10 @@ namespace DataStaging {
   Arc::Logger Scheduler::logger(Arc::Logger::getRootLogger(), "DataStaging.Scheduler");
 
   Scheduler* Scheduler::scheduler_instance = NULL;
-  Glib::Mutex Scheduler::instance_lock;
+  std::mutex Scheduler::instance_lock;
 
   Scheduler* Scheduler::getInstance() {
-    Glib::Mutex::Lock lock(instance_lock);
+    std::unique_lock<std::mutex> lock(instance_lock);
     if (!scheduler_instance) {
       scheduler_instance = new Scheduler();
     }
@@ -1431,7 +1431,7 @@ namespace DataStaging {
       // Revise all the internal queues and take actions
       revise_queues();
 
-      Glib::usleep(50000);
+      usleep(50000);
     }
     // make sure final state is dumped before exit
     dump_signal.signal();

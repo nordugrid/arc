@@ -68,7 +68,7 @@ _arc_la_CXXFLAGS = -include $(top_builddir)/config.h \
         $(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(OPENSSL_CFLAGS) $(PYTHON_CFLAGS) $(ZLIB_CFLAGS) $(SQLITE_CFLAGS) \
         -fno-strict-aliasing -DSWIG_COBJECT_TYPES -DPY_SSIZE_T_CLEAN $(AM_CXXFLAGS)
 _arc_la_LIBADD = \
-        $(ARCLIBS) $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(PYTHON_LIBS) $(ZLIB_LIBS) $(SQLITE_LIBS)
+        $(ARCLIBS) $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(PYTHON_LIBS) $(ZLIB_LIBS) $(SQLITE_LIBS) -lpthread
 _arc_la_LDFLAGS = -no-undefined -avoid-version -module
 
 CLEANFILES = $(ARCWRAPPERS) $(ARCWRAPHDRS) $(ARCPYLIBS) $(BUILT_SOURCES) pydoxygen.i $(ARCPYLIBS:.py=.pyc)

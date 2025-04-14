@@ -11,14 +11,16 @@
 #include <stdint.h>
 #endif
 
+#include <sstream>
 #include <stdexcept>
 #include <unistd.h>
 #include <pthread.h>
 #include <signal.h>
+
+#include <glibmm/error.h>
 #include <glibmm/init.h>
 
 #ifdef USE_THREAD_POOL
-#include <sys/time.h>
 #include <sys/resource.h>
 #endif
 
@@ -33,20 +35,18 @@ namespace Arc {
 
   static Logger threadLogger(Logger::getRootLogger(), "Thread");
 
-  static Glib::Thread* ThreadCreate(const sigc::slot< void >& slot,
-                                    unsigned long stack_size,
-                                    bool joinable,
-                                    bool bound,
-                                    Glib::ThreadPriority priority) {
+  static std::thread ThreadCreate(const sigc::slot<void()>& slot,
+                                  bool joinable) {
     UserSwitch usw(0,0);
-    // Create new thread with all sinals blocked. Each thread should unblock signals it handles.
+    // Create new thread with all signals blocked. Each thread should unblock signals it handles.
     sigset_t newsig; sigfillset(&newsig);
     sigset_t oldsig; sigemptyset(&oldsig);
     if(pthread_sigmask(SIG_BLOCK,&newsig,&oldsig) != 0)
       throw std::runtime_error("Failed to block signals");
-    Glib::Thread* new_thread = NULL;
+    std::thread new_thread;
     try {
-      new_thread = Glib::Thread::create(slot, stack_size, joinable, bound, priority);
+      new_thread = std::thread(slot);
+      if (!joinable) new_thread.detach();
     } catch(...) {
       pthread_sigmask(SIG_SETMASK,&oldsig,NULL);
       throw;
@@ -64,7 +64,7 @@ namespace Arc {
     std::map<std::string,ThreadDataItem*> items_;
     typedef std::map<std::string,ThreadDataItem*>::iterator items_iterator;
     typedef std::pair<std::string,ThreadDataItem*> items_pair;
-    Glib::Mutex lock_;
+    std::mutex lock_;
     // This counter is needed because due to delayed thread creation
     // parent instance may be already destroyed while child is not yet
     // created. Another solution would be to do Inherit() in parent thread.
@@ -175,8 +175,8 @@ namespace Arc {
    private:
     int max_count;
     int count;
-    Glib::Mutex count_lock;
-    Glib::Mutex queue_lock;
+    std::mutex count_lock;
+    std::mutex queue_lock;
     std::list<ThreadArgument*> queue;
     int CheckQueue(void);
     ~ThreadPool(void) { };
@@ -226,22 +226,17 @@ namespace Arc {
   }
 
   int ThreadPool::CheckQueue(void) {
-    Glib::Mutex::Lock lock(queue_lock, Glib::TRY_LOCK);
-    if(!lock.locked()) return -1;
+    std::unique_lock<std::mutex> lock(queue_lock, std::try_to_lock);
+    if(!lock.owns_lock()) return -1;
     int size = queue.size();
     while((count < max_count) && (size > 0)) {
       ThreadArgument* argument = *(queue.begin());
       argument->acquire();
       try {
-        ThreadCreate(sigc::mem_fun(*argument,
-                     &ThreadArgument::thread),
-                     thread_stacksize, false, false,
-                     Glib::THREAD_PRIORITY_NORMAL);
+        ThreadCreate(sigc::mem_fun(*argument, &ThreadArgument::thread),
+                     false);
         queue.erase(queue.begin());
       } catch (Glib::Error& e) {
-        threadLogger.msg(ERROR, "%s", e.what());
-        argument->release();
-      } catch (Glib::Exception& e) {
         threadLogger.msg(ERROR, "%s", e.what());
         argument->release();
       } catch (std::exception& e) {
@@ -254,9 +249,9 @@ namespace Arc {
   }
 
   void ThreadPool::PushQueue(ThreadArgument* arg) {
-    Glib::Mutex::Lock lock(queue_lock);
+    std::unique_lock<std::mutex> lock(queue_lock);
     queue.push_back(arg);
-    lock.release();
+    lock.unlock();
     if(CheckQueue() > 0)
       threadLogger.msg(INFO, "Maximum number of threads running - putting new request into queue");
   }
@@ -307,8 +302,6 @@ namespace Arc {
       }
     } catch (Glib::Error& e) {
       threadLogger.msg(ERROR, "Thread exited with Glib error: %s", e.what());
-    } catch (Glib::Exception& e) {
-      threadLogger.msg(ERROR, "Thread exited with Glib exception: %s", e.what());
     } catch (std::exception& e) {
       threadLogger.msg(ERROR, "Thread exited with generic exception: %s", e.what());
     };
@@ -330,32 +323,36 @@ namespace Arc {
 
   void ThreadId::add() {
 #ifdef USE_SEQUENTIAL_THREAD_ID
-    Glib::Mutex::Lock lock(mutex);
+    std::unique_lock<std::mutex> lock(mutex);
     if (thread_no == ULONG_MAX) thread_no = 0;
-    thread_ids[(size_t)(void*)Glib::Thread::self()] = ++thread_no;
+    thread_ids[std::this_thread::get_id()] = ++thread_no;
 #endif
   }
 
   void ThreadId::remove() {
 #ifdef USE_SEQUENTIAL_THREAD_ID
-    Glib::Mutex::Lock lock(mutex);
-    thread_ids.erase((size_t)(void*)Glib::Thread::self());
+    std::unique_lock<std::mutex> lock(mutex);
+    thread_ids.erase(std::this_thread::get_id());
 #endif
   }
 
   unsigned long int ThreadId::get() {
+    std::thread::id id = std::this_thread::get_id();
 #ifdef USE_SEQUENTIAL_THREAD_ID
-    Glib::Mutex::Lock lock(mutex);
-    size_t id = (size_t)(void*)Glib::Thread::self();
-    if (thread_ids.count(id) == 0) return id;
-    return thread_ids[id];
-#else
-    return (unsigned long int)(void*)Glib::Thread::self();
+    std::unique_lock<std::mutex> lock(mutex);
+    if (thread_ids.count(id) > 0)
+      return thread_ids[id];
 #endif
+    std::stringstream s;
+    s << id;
+    unsigned long int i;
+    s >> i;
+    return i;
   }
 
-  bool CreateThreadFunction(void (*func)(void*), void *arg, SimpleCounter* count
-) {
+  bool CreateThreadFunction(void (*func)(void*),
+                            void *arg,
+                            SimpleCounter* count) {
 #ifdef USE_THREAD_POOL
     if(!pool) return false;
 #ifdef USE_THREAD_DATA
@@ -374,8 +371,7 @@ namespace Arc {
     if(count) count->inc();
     try {
       ThreadCreate(sigc::mem_fun(*argument, &ThreadArgument::thread),
-                                 thread_stacksize, false, false,
-                                 Glib::THREAD_PRIORITY_NORMAL);
+                   false);
     } catch (std::exception& e) {
       threadLogger.msg(ERROR, e.what());
       if(count) count->dec();
@@ -387,6 +383,7 @@ namespace Arc {
   }
 
   bool Thread::start(SimpleCounter* count) {
+
 #ifdef USE_THREAD_POOL
 
     if(!pool) return false;
@@ -408,8 +405,7 @@ namespace Arc {
     if(count) count->inc();
     try {
       ThreadCreate(sigc::mem_fun(*argument, &ThreadArgument::thread),
-                                 thread_stacksize, false, false,
-                                 Glib::THREAD_PRIORITY_NORMAL);
+                   false);
     } catch (std::exception& e) {
       threadLogger.msg(ERROR, e.what());
       if(count) count->dec();
@@ -421,58 +417,20 @@ namespace Arc {
     return true;
   }
 
-
-/*
-  bool CreateThreadFunction(void (*func)(void*), void *arg, Glib::Thread *&thr) {
-    ThreadArgument *argument = new ThreadArgument(func, arg);
-    Glib::Thread *thread;
-    try {
-      thread = ThreadCreate(sigc::mem_fun(*argument, &ThreadArgument::thread),
-                            thread_stacksize,
-                            true,  // thread joinable
-                            false,
-                            Glib::THREAD_PRIORITY_NORMAL);
-    } catch (std::exception& e) {
-      threadLogger.msg(ERROR, e.what());
-      delete argument;
-      return false;
-    };
-    thr = thread;
-    return true;
-  }
-*/
-
-  /*
-     Example of how to use CreateThreadClass macro
-
-     class testclass {
-      public:
-          int a;
-          testclass(int v) { a=v; };
-          void run(void) { a=0; };
-     };
-
-     void test(void) {
-     testclass tc(1);
-     CreateThreadClass(tc,testclass::run);
-     }
-   */
-
-
   // ----------------------------------------
 
   SimpleCounter::~SimpleCounter(void) {
     /* race condition ? */
     lock_.lock();
     count_ = 0;
-    cond_.broadcast();
+    cond_.notify_all();
     lock_.unlock();
   }
 
   int SimpleCounter::inc(void) {
     lock_.lock();
     ++count_;
-    cond_.broadcast();
+    cond_.notify_all();
     int r = count_;
     lock_.unlock();
     return r;
@@ -481,14 +439,14 @@ namespace Arc {
   int SimpleCounter::dec(void) {
     lock_.lock();
     if(count_ > 0) --count_;
-    cond_.broadcast();
+    cond_.notify_all();
     int r = count_;
     lock_.unlock();
     return r;
   }
 
   int SimpleCounter::get(void) const {
-    Glib::Mutex& vlock = const_cast<Glib::Mutex&>(lock_);
+    std::mutex& vlock = const_cast<std::mutex&>(lock_);
     vlock.lock();
     int r = count_;
     vlock.unlock();
@@ -498,50 +456,41 @@ namespace Arc {
   int SimpleCounter::set(int v) {
     lock_.lock();
     count_ = v;
-    cond_.broadcast();
+    cond_.notify_all();
     int r = count_;
     lock_.unlock();
     return r;
   }
 
   void SimpleCounter::wait(void) const {
-    Glib::Mutex& vlock = const_cast<Glib::Mutex&>(lock_);
-    Glib::Cond& vcond = const_cast<Glib::Cond&>(cond_);
-    vlock.lock();
-    while (count_ > 0) vcond.wait(vlock);
-    vlock.unlock();
+    std::mutex& vlock = const_cast<std::mutex&>(lock_);
+    std::condition_variable& vcond = const_cast<std::condition_variable&>(cond_);
+    std::unique_lock<std::mutex> lock(vlock);
+    vcond.wait(lock, [this]() { return count_ <= 0; });
   }
 
   bool SimpleCounter::wait(int t) const {
     if(t < 0) { wait(); return true; }
-    Glib::Mutex& vlock = const_cast<Glib::Mutex&>(lock_);
-    Glib::Cond& vcond = const_cast<Glib::Cond&>(cond_);
-    vlock.lock();
-    Glib::TimeVal etime;
-    etime.assign_current_time();
-    etime.add_milliseconds(t);
-    bool res(true);
-    while (count_ > 0) {
-      res = vcond.timed_wait(vlock, etime);
-      if (!res) break;
-    }
-    vlock.unlock();
-    return res;
+    std::mutex& vlock = const_cast<std::mutex&>(lock_);
+    std::condition_variable& vcond = const_cast<std::condition_variable&>(cond_);
+    std::unique_lock<std::mutex> lock(vlock);
+    return vcond.wait_for(lock, std::chrono::milliseconds(t),
+                          [this]() { return count_ <= 0; });
   }
 
   // ----------------------------------------
 
   void SharedMutex::add_shared_lock(void) {
-    shared_list::iterator s = shared_.find(Glib::Thread::self());
+    shared_list::iterator s = shared_.find(std::this_thread::get_id());
     if(s != shared_.end()) {
       ++(s->second);
     } else {
-      shared_[Glib::Thread::self()] = 1;
+      shared_[std::this_thread::get_id()] = 1;
     };
   }
 
   void SharedMutex::remove_shared_lock(void) {
-    shared_list::iterator s = shared_.find(Glib::Thread::self());
+    shared_list::iterator s = shared_.find(std::this_thread::get_id());
     if(s != shared_.end()) {
       --(s->second);
       if(!(s->second)) {
@@ -553,44 +502,39 @@ namespace Arc {
   bool SharedMutex::have_shared_lock(void) {
     if(shared_.size() >= 2) return true;
     if(shared_.size() == 1) {
-      if(shared_.begin()->first != Glib::Thread::self()) return true;
+      if(shared_.begin()->first != std::this_thread::get_id()) return true;
     };
     return false;
   }
 
   void SharedMutex::lockShared(void) {
-    lock_.lock();
-    while(have_exclusive_lock()) {
-      cond_.wait(lock_);
-    };
+    std::unique_lock<std::mutex> lock(lock_);
+    cond_.wait(lock, [this]() { return !have_exclusive_lock(); });
     add_shared_lock();
-    lock_.unlock();
   };
 
   void SharedMutex::unlockShared(void) {
     lock_.lock();
     remove_shared_lock();
-    cond_.broadcast();
+    cond_.notify_all();
     lock_.unlock();
   };
 
   void SharedMutex::lockExclusive(void) {
-    lock_.lock();
-    while(have_exclusive_lock() || have_shared_lock()) {
-      cond_.wait(lock_);
-    };
+    std::unique_lock<std::mutex> lock(lock_);
+    cond_.wait(lock, [this]() { return !have_exclusive_lock() &&
+                                       !have_shared_lock(); });
     ++exclusive_;
-    thread_ = Glib::Thread::self();
-    lock_.unlock();
+    thread_ = std::this_thread::get_id();
   }
 
   void SharedMutex::unlockExclusive(void) {
     lock_.lock();
-    if(thread_ == Glib::Thread::self()) {
+    if(thread_ == std::this_thread::get_id()) {
       if(exclusive_) --exclusive_;
-      if(!exclusive_) thread_ = NULL;
+      if(!exclusive_) thread_ = std::thread::id();
     };
-    cond_.broadcast();
+    cond_.notify_all();
     lock_.unlock();
   }
 
@@ -608,18 +552,18 @@ namespace Arc {
   }
 
   ThreadedPointerBase* ThreadedPointerBase::add(void) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     ++cnt_;
-    cond_.broadcast();
+    cond_.notify_all();
     return this;
   }
 
   void* ThreadedPointerBase::rem(void) {
-    Glib::Mutex::Lock lock(lock_);
-    cond_.broadcast();
+    std::unique_lock<std::mutex> lock(lock_);
+    cond_.notify_all();
     if (--cnt_ == 0) {
       void* p = released_?NULL:ptr_;
-      lock.release();
+      lock.unlock();
       delete this;
       return p;
     }
@@ -643,48 +587,31 @@ namespace Arc {
   void ThreadRegistry::UnregisterThread(void) {
     lock_.lock();
     --counter_;
-    cond_.broadcast();
+    cond_.notify_all();
     lock_.unlock();
   }
 
   bool ThreadRegistry::WaitOrCancel(int timeout) {
-    bool v = false;
-    lock_.lock();
-    Glib::TimeVal etime;
-    etime.assign_current_time();
-    etime.add_milliseconds(timeout);
-    while (!cancel_) {
-      if(!cond_.timed_wait(lock_, etime)) break;
-    }
-    v = cancel_;
-    lock_.unlock();
-    return v;
+    std::unique_lock<std::mutex> lock(lock_);
+    return cond_.wait_for(lock, std::chrono::milliseconds(timeout),
+                          [this]() { return cancel_; });
   }
 
   bool ThreadRegistry::WaitForExit(int timeout) {
-    int n = 0;
-    lock_.lock();
+    std::unique_lock<std::mutex> lock(lock_);
     if(timeout >= 0) {
-      Glib::TimeVal etime;
-      etime.assign_current_time();
-      etime.add_milliseconds(timeout);
-      while (counter_ > 0) {
-        if(!cond_.timed_wait(lock_, etime)) break;
-      }
+      return cond_.wait_for(lock, std::chrono::milliseconds(timeout),
+                            [this]() { return counter_ <= 0; });
     } else {
-      while (counter_ > 0) {
-        cond_.wait(lock_);
-      }
+      cond_.wait(lock, [this]() { return counter_ <= 0; });
+      return true;
     }
-    n = counter_;
-    lock_.unlock();
-    return (n <= 0);
   }
 
   void ThreadRegistry::RequestCancel(void) {
     lock_.lock();
     cancel_=true;
-    cond_.broadcast();
+    cond_.notify_all();
     lock_.unlock();
   }
 
@@ -693,10 +620,10 @@ namespace Arc {
 #ifdef USE_THREAD_DATA
   class ThreadDataPool {
   private:
-    std::map<Glib::Thread*,ThreadData*> datas_;
-    typedef std::map<Glib::Thread*,ThreadData*>::iterator datas_iterator;
-    typedef std::pair<Glib::Thread*,ThreadData*> datas_pair;
-    Glib::Mutex lock_;
+    std::map<std::thread::id, ThreadData*> datas_;
+    typedef std::map<std::thread::id, ThreadData*>::iterator datas_iterator;
+    typedef std::pair<std::thread::id ,ThreadData*> datas_pair;
+    std::mutex lock_;
     ~ThreadDataPool(void);
   public:
     ThreadDataPool(void);
@@ -711,7 +638,7 @@ namespace Arc {
 
   ThreadData* ThreadDataPool::GetData(void) {
     ThreadData* data = NULL;
-    Glib::Thread* self = Glib::Thread::self();
+    std::thread::id self = std::this_thread::get_id();
     lock_.lock();
     datas_iterator d = datas_.find(self);
     if(d == datas_.end()) {
@@ -725,7 +652,7 @@ namespace Arc {
   }
 
   void ThreadDataPool::RemoveData(void) {
-    Glib::Thread* self = Glib::Thread::self();
+    std::thread::id self = std::this_thread::get_id();
     lock_.lock();
     datas_iterator d = datas_.find(self);
     if(d != datas_.end()) {
@@ -878,8 +805,10 @@ namespace Arc {
   // ----------------------------------------
 
   void GlibThreadInitialize(void) {
+#ifdef HAVE_GLIBMM_268
+    Glib::set_init_to_users_preferred_locale(false);
+#endif
     Glib::init();
-    if (!Glib::thread_supported()) Glib::thread_init();
 #ifdef USE_THREAD_POOL
     if (!pool) {
 #ifdef USE_THREAD_DATA

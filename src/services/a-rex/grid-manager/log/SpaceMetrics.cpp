@@ -49,7 +49,7 @@ namespace ARex {
 
   void SpaceMetrics::ReportSpaceChange(const GMConfig& config) {
     if(!enabled) return; // not configured
-    Glib::RecMutex::Lock lock_(lock);
+    std::unique_lock<std::recursive_mutex> lock_(lock);
 
     /*Free sessiondir space*/
     struct statvfs info_session;
@@ -142,7 +142,7 @@ namespace ARex {
 
   void SpaceMetrics::Sync(void) {
     if(!enabled) return; // not configured
-    Glib::RecMutex::Lock lock_(lock);
+    std::unique_lock<std::recursive_mutex> lock_(lock);
     if(!CheckRunMetrics()) return;
     // Run gmetric to report one change at a time
     //since only one process can be started from Sync(), only 1 histogram can be sent at a time, therefore return for each call;
@@ -209,7 +209,7 @@ namespace ARex {
   void SpaceMetrics::SyncAsync(void* arg) {
     if(arg) {
       SpaceMetrics& it = *reinterpret_cast<SpaceMetrics*>(arg);
-      Glib::RecMutex::Lock lock_(it.lock);
+      std::unique_lock<std::recursive_mutex> lock_(it.lock);
       if(it.proc) {
         // Continue only if no failure in previous call.
         // Otherwise it can cause storm of failed calls.

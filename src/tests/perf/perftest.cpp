@@ -4,12 +4,12 @@
 
 // perftest.cpp
 
+#include <chrono>
+#include <cmath>
 #include <iostream>
-#include <fstream>
+#include <mutex>
 #include <string>
-#include <stdlib.h>
-#include <glibmm/thread.h>
-#include <glibmm/timer.h>
+#include <thread>
 
 #include <arc/GUID.h>
 #include <arc/ArcConfig.h>
@@ -21,32 +21,25 @@
 #include <arc/communication/ClientInterface.h>
 
 // Some global shared variables...
-Glib::Mutex* mutex;
+std::mutex mutex;
 bool run;
 int finishedThreads;
 unsigned long completedRequests;
 unsigned long failedRequests;
 unsigned long totalRequests;
-Glib::TimeVal completedTime;
-Glib::TimeVal failedTime;
-Glib::TimeVal totalTime;
+std::chrono::system_clock::duration completedTime;
+std::chrono::system_clock::duration failedTime;
+std::chrono::system_clock::duration totalTime;
 std::string url_str;
 bool alwaysReconnect = false;
-
-// Round off a double to an integer.
-int Round(double x){
-  return int(x+0.5);
-}
 
 // Send requests and collect statistics.
 void sendRequests(){
   // Some variables...
   unsigned long completedRequests = 0;
   unsigned long failedRequests = 0;
-  Glib::TimeVal completedTime(0,0);
-  Glib::TimeVal failedTime(0,0);
-  Glib::TimeVal tBefore;
-  Glib::TimeVal tAfter;
+  std::chrono::system_clock::duration completedTime;
+  std::chrono::system_clock::duration failedTime;
   bool connected;
 
   //std::string url_str("https://127.0.0.1:60000/echo");
@@ -71,7 +64,7 @@ void sendRequests(){
       req.NewChild("echo:echo").NewChild("echo:say")="HELLO";
 
       // Send the request and time it.
-      tBefore.assign_current_time();
+      auto tBefore = std::chrono::system_clock::now();
       Arc::PayloadSOAP* resp = NULL;
 
       //std::string str;
@@ -79,7 +72,7 @@ void sendRequests(){
       //std::cout<<"request: "<<str<<std::endl;
       Arc::MCC_Status status = client->process(&req,&resp);
 
-      tAfter.assign_current_time();
+      auto tAfter = std::chrono::system_clock::now();
 
       if(!status) {
         // Request failed.
@@ -115,7 +108,7 @@ void sendRequests(){
   }
 
   // Update global variables.
-  Glib::Mutex::Lock lock(*mutex);
+  std::unique_lock<std::mutex> lock(mutex);
   ::completedRequests+=completedRequests;
   ::failedRequests+=failedRequests;
   ::completedTime+=completedTime;
@@ -129,12 +122,11 @@ int main(int argc, char* argv[]){
   int numberOfThreads;
   int duration;
   int i;
-  Glib::Thread** threads;
+  std::thread* threads;
   const char* config_file = NULL;
   int debug_level = -1;
   Arc::LogStream logcerr(std::cerr);
 
-  // Process options - quick hack, must use Glib options later
   while(argc >= 3) {
     if(strcmp(argv[1],"-c") == 0) {
       config_file = argv[2];
@@ -179,22 +171,20 @@ int main(int argc, char* argv[]){
   // Start threads.
   run=true;
   finishedThreads=0;
-  //Glib::thread_init();
-  mutex=new Glib::Mutex;
-  threads = new Glib::Thread*[numberOfThreads];
+  threads = new std::thread[numberOfThreads];
   for (i=0; i<numberOfThreads; i++)
-    threads[i]=Glib::Thread::create(sigc::ptr_fun(sendRequests),true);
+    threads[i] = std::thread(sendRequests);
 
   // Sleep while the threads are working.
-  Glib::usleep(duration*1000000);
+  std::this_thread::sleep_for(std::chrono::seconds(duration));
 
   // Stop the threads
   run=false;
   while(finishedThreads<numberOfThreads)
-    Glib::usleep(100000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Print the result of the test.
-  Glib::Mutex::Lock lock(*mutex);
+  std::unique_lock<std::mutex> lock(mutex);
   totalRequests = completedRequests+failedRequests;
   totalTime = completedTime+failedTime;
   std::cout << "========================================" << std::endl;
@@ -208,25 +198,25 @@ int main(int argc, char* argv[]){
             << totalRequests << std::endl;
   std::cout << "Completed requests: "
             << completedRequests << " ("
-            << Round(completedRequests*100.0/totalRequests)
+            << rint(completedRequests * 100.0 / totalRequests)
             << "%)" << std::endl;
   std::cout << "Failed requests: "
             << failedRequests << " ("
-            << Round(failedRequests*100.0/totalRequests)
+            << rint(failedRequests * 100.0 / totalRequests)
             << "%)" << std::endl;
   std::cout << "Completed requests per second: "
-            << Round(completedRequests/duration)
+            << rint((double)completedRequests / duration)
             << std::endl;
   std::cout << "Average response time for all requests: "
-            << Round(1000*totalTime.as_double()/totalRequests)
+            << rint(std::chrono::duration<double, std::milli>(totalTime).count() / totalRequests)
             << " ms" << std::endl;
   if (completedRequests!=0)
     std::cout << "Average response time for completed requests: "
-              << Round(1000*completedTime.as_double()/completedRequests)
+              << rint(std::chrono::duration<double, std::milli>(completedTime).count() / completedRequests)
               << " ms" << std::endl;
   if (failedRequests!=0)
     std::cout << "Average response time for failed requests: "
-              << Round(1000*failedTime.as_double()/failedRequests)
+              << rint(std::chrono::duration<double, std::milli>(failedTime).count() / failedRequests)
               << " ms" << std::endl;
   std::cout << "========================================" << std::endl;
 

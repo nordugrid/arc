@@ -6,7 +6,6 @@
 #include <sys/types.h>
 
 #include <arc/XMLNode.h>
-#include <arc/Thread.h>
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 

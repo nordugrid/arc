@@ -6,7 +6,8 @@
 #include <signal.h>
 #include <stdexcept>
 
-#include <glibmm.h>
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
 
 #include <arc/User.h>
 #include <arc/StringConv.h>

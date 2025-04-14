@@ -18,7 +18,6 @@
 
 
 #include <arc/DateTime.h>
-#include <arc/Thread.h>
 #include <arc/StringConv.h>
 #include <arc/FileUtils.h>
 #include <arc/Utils.h>

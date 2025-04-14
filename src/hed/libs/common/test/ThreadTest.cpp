@@ -29,7 +29,7 @@ private:
   static void func(void*);
   static void func_wait(void* arg);
   static int counter;
-  static Glib::Mutex* lock;
+  static std::mutex lock;
   Arc::SimpleCondition cond;
 };
 
@@ -68,14 +68,10 @@ void TItem::Dup(void) {
 void ThreadTest::setUp() {
   counter = 0;
   cond.reset();
-  lock = new Glib::Mutex;
   new TItem;
 }
 
-
-void ThreadTest::tearDown() {
-  if(lock) delete lock;
-}
+void ThreadTest::tearDown() {}
 
 void ThreadTest::TestThread() {
   // Simply run 500 threads and see if executable crashes
@@ -109,20 +105,20 @@ void ThreadTest::TestBroadcast() {
 void ThreadTest::func_wait(void* arg) {
   ThreadTest* test = (ThreadTest*)arg;
   test->cond.wait();
-  lock->lock();
+  lock.lock();
   test->counter++;
-  lock->unlock();
+  lock.unlock();
 }
 
 void ThreadTest::func(void*) {
   sleep(1);
-  lock->lock();
+  lock.lock();
   ++counter;
-  lock->unlock();
+  lock.unlock();
 }
 
 int ThreadTest::counter = 0;
-Glib::Mutex* ThreadTest::lock = NULL;
+std::mutex ThreadTest::lock;
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ThreadTest);
 

@@ -6,7 +6,6 @@
 #include <list>
 #include <libs3.h>
 
-#include <arc/Thread.h>
 #include <arc/data/DataPointDirect.h>
 
 namespace ArcDMCS3 {

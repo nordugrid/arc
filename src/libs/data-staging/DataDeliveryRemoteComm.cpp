@@ -23,7 +23,7 @@ namespace DataStaging {
       valid(false) {
 
     {
-      Glib::Mutex::Lock lock(lock_);
+      std::unique_lock<std::mutex> lock(lock_);
       // Initial empty status
       memset(&status_,0,sizeof(status_));
       FillStatus();
@@ -163,7 +163,7 @@ namespace DataStaging {
     // If transfer is still going, send cancellation request to service
     if (valid) CancelDTR();
     GetHandler().Remove(this);
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     delete client;
   }
 
@@ -172,7 +172,7 @@ namespace DataStaging {
   }
 
   void DataDeliveryRemoteComm::CancelDTR() {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     if (!client) return;
     Arc::NS ns;
     Arc::PayloadSOAP request(ns);
@@ -231,7 +231,7 @@ namespace DataStaging {
 
   void DataDeliveryRemoteComm::PullStatus() {
     // send query request to service and fill status_
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     if (!client) return;
 
     // check time since last query - check every second for the first 20s and

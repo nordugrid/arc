@@ -6,9 +6,6 @@
 
 #include <unistd.h>
 #include <string>
-#include <sstream>
-
-#include <glibmm.h>
 
 #include <arc/StringConv.h>
 #include <arc/UserConfig.h>

@@ -36,7 +36,7 @@ private:
   Arc::LogStream *output_thread;
   Arc::Logger *logger;
   static void thread(void* arg);
-  Glib::Mutex thread_lock;
+  std::mutex thread_lock;
 };
 
 

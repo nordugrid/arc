@@ -15,8 +15,6 @@
 #include <sys/utsname.h>
 #include <sys/statvfs.h>
 
-#include <glibmm.h>
-
 #include <arc/FileAccess.h>
 #include <arc/FileUtils.h>
 #include <arc/FileLock.h>

@@ -13,7 +13,7 @@ namespace ARex {
 
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
-Glib::RecMutex GMJobQueue::lock_;
+std::recursive_mutex GMJobQueue::lock_;
 
 GMJob::job_state_rec_t const GMJob::states_all[JOB_STATE_NUM] = {
   { "ACCEPTED",   ' ' }, // JOB_STATE_ACCEPTED
@@ -103,26 +103,26 @@ GMJob::~GMJob(void){
 
 
 void GMJob::AddReference(void) {
-  Glib::RecMutex::Lock lock(ref_lock);
+  std::unique_lock<std::recursive_mutex> lock(ref_lock);
   if(++ref_count == 0) {
     logger.msg(Arc::FATAL,"%s: Job monitoring counter is broken",job_id);
   }
 }
 
 void GMJob::RemoveReference(void) {
-  Glib::RecMutex::Lock lock(ref_lock);
+  std::unique_lock<std::recursive_mutex> lock(ref_lock);
   if(--ref_count == 0) {
     logger.msg(Arc::ERROR,"%s: Job monitoring is unintentionally lost",job_id);
-    lock.release();
+    lock.unlock();
     delete this;
   };
 }
 
 void GMJob::DestroyReference(void) {
-  Glib::RecMutex::Lock lock(ref_lock);
+  std::unique_lock<std::recursive_mutex> lock(ref_lock);
   if(--ref_count == 0) {
     logger.msg(Arc::VERBOSE,"%s: Job monitoring stop success",job_id);
-    lock.release();
+    lock.unlock();
     delete this;
   } else {
     if(queue)
@@ -149,7 +149,7 @@ bool GMJobQueue::CanRemove(GMJob const& job) {
 bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool to_front) {
   // Simply use global lock. It will protect both queue content and
   // reference to queue inside job.
-  Glib::RecMutex::Lock qlock(GMJobQueue::lock_);
+  std::unique_lock<std::recursive_mutex> qlock(GMJobQueue::lock_);
 
   GMJobQueue* old_queue = queue;
   if (old_queue == new_queue) {
@@ -185,15 +185,15 @@ bool GMJob::SwitchQueue(GMJobQueue* new_queue, bool to_front) {
   };
   // Handle reference counter
   if(new_queue && !old_queue) {
-    Glib::RecMutex::Lock lock(ref_lock);
+    std::unique_lock<std::recursive_mutex> lock(ref_lock);
     if(++ref_count == 0) {
       logger.msg(Arc::FATAL,"%s: Job monitoring counter is broken",job_id);
     }
   } else if(!new_queue && old_queue) {
-    Glib::RecMutex::Lock lock(ref_lock);
+    std::unique_lock<std::recursive_mutex> lock(ref_lock);
     if(--ref_count == 0) {
       logger.msg(Arc::ERROR,"%s: Job monitoring is lost due to removal from queue",job_id);
-      lock.release(); // release before deleting referenced object
+      lock.unlock(); // release before deleting referenced object
       delete this;
     };
   };
@@ -249,7 +249,7 @@ bool GMJobQueue::Push(GMJobRef& ref) {
 
 bool GMJobQueue::PushSorted(GMJobRef& ref, comparator_t compare) {
   if(!ref) return false;
-  Glib::RecMutex::Lock qlock(lock_);
+  std::unique_lock<std::recursive_mutex> qlock(lock_);
   GMJobQueue* old_queue = ref->queue;
   if(!ref->SwitchQueue(this)) return false;
   // Most of the cases job lands last in list
@@ -281,14 +281,14 @@ bool GMJobQueue::PushSorted(GMJobRef& ref, comparator_t compare) {
 }
 
 GMJobRef GMJobQueue::Front() {
-  Glib::RecMutex::Lock qlock(lock_);
+  std::unique_lock<std::recursive_mutex> qlock(lock_);
   if(queue_.empty()) return GMJobRef();
   GMJobRef ref(queue_.front());
   return ref;
 }
 
 GMJobRef GMJobQueue::Pop() {
-  Glib::RecMutex::Lock qlock(lock_);
+  std::unique_lock<std::recursive_mutex> qlock(lock_);
   if(queue_.empty()) return GMJobRef();
   GMJobRef ref(queue_.front());
   ref->SwitchQueue(NULL);
@@ -302,7 +302,7 @@ bool GMJobQueue::Unpop(GMJobRef& ref) {
 
 bool GMJobQueue::Erase(GMJobRef& ref) {
   if(!ref) return false;
-  Glib::RecMutex::Lock lock(lock_);
+  std::unique_lock<std::recursive_mutex> lock(lock_);
   if(ref->queue == this) {
     ref->SwitchQueue(NULL);
     return true;
@@ -312,22 +312,22 @@ bool GMJobQueue::Erase(GMJobRef& ref) {
 
 bool GMJobQueue::Exists(const GMJobRef& ref) const {
   if(!ref) return false;
-  Glib::RecMutex::Lock lock(lock_);
+  std::unique_lock<std::recursive_mutex> lock(lock_);
   return (ref->queue == this);
 }
 
 bool GMJobQueue::IsEmpty() const {
-  Glib::RecMutex::Lock lock(lock_);
+  std::unique_lock<std::recursive_mutex> lock(lock_);
   return queue_.empty();
 }
 
 int GMJobQueue::Size() const {
-  Glib::RecMutex::Lock lock(lock_);
+  std::unique_lock<std::recursive_mutex> lock(lock_);
   return queue_.size();
 }
 
 void GMJobQueue::Sort(comparator_t compare) {
-  Glib::RecMutex::Lock lock(lock_);
+  std::unique_lock<std::recursive_mutex> lock(lock_);
   queue_.sort(compare);
 }
 

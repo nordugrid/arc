@@ -50,7 +50,7 @@ namespace DataStaging {
       return;
     }
     {
-      Glib::Mutex::Lock lock(lock_);
+      std::unique_lock<std::mutex> lock(lock_);
       // Generate options for child
       std::list<std::string> args;
       std::string execpath = Arc::ArcLocation::GetLibDir()+G_DIR_SEPARATOR_S+"DataStagingDelivery";
@@ -198,7 +198,7 @@ namespace DataStaging {
 
   DataDeliveryLocalComm::~DataDeliveryLocalComm(void) {
     {
-      Glib::Mutex::Lock lock(lock_);
+      std::unique_lock<std::mutex> lock(lock_);
       if(child_) {
         child_->Kill(10); // Give it a chance
         delete child_; child_=NULL;  // And then kill for sure
@@ -213,7 +213,7 @@ namespace DataStaging {
   }
 
   void DataDeliveryLocalComm::PullStatus(void) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     if(!child_) return;
     for(;;) {
       if(status_pos_ < sizeof(status_buf_)) {

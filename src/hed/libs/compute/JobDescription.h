@@ -1060,7 +1060,7 @@ namespace Arc {
     std::list<JobDescription> alternatives;
     std::list<JobDescription>::iterator current;
 
-    static Glib::Mutex jdpl_lock;
+    static std::mutex jdpl_lock;
     static JobDescriptionParserPluginLoader *jdpl;
 
     static Logger logger;

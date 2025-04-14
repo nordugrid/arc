@@ -835,8 +835,8 @@ namespace Arc {
     return nanoseconds;
   }
 
-  const sigc::slot<const char*>* Period::istr() const {
-    const_cast<Period*>(this)->slot = sigc::mem_fun(this, &Arc::Period::IStr);
+  const sigc::slot<const char*()>* Period::istr() const {
+    const_cast<Period*>(this)->slot = sigc::mem_fun(*this, &Arc::Period::IStr);
     return &slot;
   }
 

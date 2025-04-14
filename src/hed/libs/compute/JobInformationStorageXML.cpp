@@ -4,12 +4,21 @@
 #include <config.h>
 #endif
 
+#include <unistd.h>
+
+#include <algorithm>
+
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
+
 #include <arc/FileLock.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
 
 #include "JobInformationStorageXML.h"
+
+#include "glibmm-compat.h"
 
 namespace Arc {
 
@@ -51,7 +60,7 @@ namespace Arc {
         logger.msg(VERBOSE, "Waiting for lock on job list file %s", name);
       }
 
-      Glib::usleep(tryInterval);
+      usleep(tryInterval);
     }
   }
 
@@ -223,7 +232,7 @@ namespace Arc {
         logger.msg(WARNING, "Waiting for lock on job list file %s", name);
       }
 
-      Glib::usleep(tryInterval);
+      usleep(tryInterval);
     }
 
     return false;
@@ -263,7 +272,7 @@ namespace Arc {
       if (tries == 6) {
         logger.msg(VERBOSE, "Waiting for lock on job list file %s", name);
       }
-      Glib::usleep(tryInterval);
+      usleep(tryInterval);
     }
 
     return false;

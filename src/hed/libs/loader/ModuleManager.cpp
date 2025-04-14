@@ -10,6 +10,8 @@
 #include <arc/ArcLocation.h>
 #include <arc/loader/ModuleManager.h>
 
+#include "glibmm-compat.h"
+
 namespace Arc {
   Logger ModuleManager::logger(Logger::rootLogger, "ModuleManager");
 
@@ -44,7 +46,7 @@ ModuleManager::ModuleManager(XMLNode cfg)
 
 ModuleManager::~ModuleManager(void)
 {
-  Glib::Mutex::Lock lock(mlock);
+  std::unique_lock<std::mutex> lock(mlock);
   // Try to unload all modules
   // Remove unloaded plugins from cache
   for(plugin_cache_t::iterator i = plugin_cache.begin(); i != plugin_cache.end();) {
@@ -71,9 +73,9 @@ ModuleManager::~ModuleManager(void)
   logger.msg(WARNING, "Busy plugins found while unloading Module Manager. Waiting for them to be released.");
   for(;;) {
     // wait for plugins to be released
-    lock.release();
+    lock.unlock();
     sleep(1);
-    lock.acquire();
+    lock.lock();
     // Check again
     // Just in case something called load() - unloading them again
     for(plugin_cache_t::iterator i = plugin_cache.begin(); i != plugin_cache.end();) {
@@ -99,7 +101,7 @@ ModuleManager::~ModuleManager(void)
 
 std::string ModuleManager::findLocation(const std::string& name)
 {
-  Glib::Mutex::Lock lock(mlock);
+  std::unique_lock<std::mutex> lock(mlock);
   std::string path;
   std::list<std::string>::const_iterator i = plugin_dir.begin();
   for (; i != plugin_dir.end(); i++) {
@@ -119,7 +121,7 @@ std::string ModuleManager::findLocation(const std::string& name)
 
 void ModuleManager::unload(Glib::Module *module)
 {
-  Glib::Mutex::Lock lock(mlock);
+  std::unique_lock<std::mutex> lock(mlock);
   for(plugin_cache_t::iterator p = plugin_cache.begin();
                                p!=plugin_cache.end();++p) {
     if(p->second == module) {
@@ -145,7 +147,7 @@ void ModuleManager::unload(Glib::Module *module)
 
 void ModuleManager::use(Glib::Module *module)
 {
-  Glib::Mutex::Lock lock(mlock);
+  std::unique_lock<std::mutex> lock(mlock);
   for(plugin_cache_t::iterator p = plugin_cache.begin();
                                p!=plugin_cache.end();++p) {
     if(p->second == module) {
@@ -164,7 +166,7 @@ void ModuleManager::use(Glib::Module *module)
 
 void ModuleManager::unuse(Glib::Module *module)
 {
-  Glib::Mutex::Lock lock(mlock);
+  std::unique_lock<std::mutex> lock(mlock);
   for(plugin_cache_t::iterator p = plugin_cache.begin();
                                p!=plugin_cache.end();++p) {
     if(p->second == module) {
@@ -199,7 +201,7 @@ Glib::Module* ModuleManager::load(const std::string& name,bool probe)
   }
   // find name in plugin_cache
   {
-    Glib::Mutex::Lock lock(mlock);
+    std::unique_lock<std::mutex> lock(mlock);
     plugin_cache_t::iterator p = plugin_cache.find(name);
     if (p != plugin_cache.end()) {
       ModuleManager::logger.msg(DEBUG, "Found %s in cache", name);
@@ -210,7 +212,7 @@ Glib::Module* ModuleManager::load(const std::string& name,bool probe)
   std::string path = findLocation(name);
   if(path.empty()) {
     ModuleManager::logger.msg(VERBOSE, "Could not locate module %s in following paths:", name);
-    Glib::Mutex::Lock lock(mlock);
+    std::unique_lock<std::mutex> lock(mlock);
     std::list<std::string>::const_iterator i = plugin_dir.begin();
     for (; i != plugin_dir.end(); i++) {
       ModuleManager::logger.msg(VERBOSE, "\t%s", *i);
@@ -218,7 +220,7 @@ Glib::Module* ModuleManager::load(const std::string& name,bool probe)
     return NULL;
   };
   // race!
-  Glib::Mutex::Lock lock(mlock);
+  std::unique_lock<std::mutex> lock(mlock);
   Glib::ModuleFlags flags = Glib::ModuleFlags(0);
   if(probe) flags|=Glib::MODULE_BIND_LAZY;
   Glib::Module *module = new Glib::Module(path,flags);
@@ -233,9 +235,9 @@ Glib::Module* ModuleManager::load(const std::string& name,bool probe)
   if(!module->get_symbol(ARC_MODULE_CONSTRUCTOR_SYMB,func)) func = NULL;
   if(func) {
     plugin_cache[name].use();
-    lock.release(); // Avoid deadlock if manager called from module constructor
+    lock.unlock(); // Avoid deadlock if manager called from module constructor
     (*(arc_module_constructor_func)func)(module,this);
-    lock.acquire();
+    lock.lock();
     plugin_cache[name].unuse();
   }
   return module;
@@ -243,7 +245,7 @@ Glib::Module* ModuleManager::load(const std::string& name,bool probe)
 
 Glib::Module* ModuleManager::reload(Glib::Module* omodule)
 {
-  Glib::Mutex::Lock lock(mlock);
+  std::unique_lock<std::mutex> lock(mlock);
   plugin_cache_t::iterator p = plugin_cache.begin();
   for(;p!=plugin_cache.end();++p) {
     if(p->second == omodule) break;
@@ -281,7 +283,7 @@ void ModuleManager::setCfg (XMLNode cfg) {
       break;
     }
     if (MatchXMLName(path, "Path")) {
-      Glib::Mutex::Lock lock(mlock);
+      std::unique_lock<std::mutex> lock(mlock);
       //std::cout<<"Size:"<<plugin_dir.size()<<"plugin cache size:"<<plugin_cache.size()<<std::endl;
       std::list<std::string>::const_iterator it;
       for( it = plugin_dir.begin(); it != plugin_dir.end(); it++){
@@ -291,7 +293,7 @@ void ModuleManager::setCfg (XMLNode cfg) {
       if(it == plugin_dir.end()) plugin_dir.push_back((std::string)path);
     }
   }
-  Glib::Mutex::Lock lock(mlock);
+  std::unique_lock<std::mutex> lock(mlock);
   if (plugin_dir.empty()) {
     plugin_dir = ArcLocation::GetPlugins();
   }
@@ -303,7 +305,7 @@ bool ModuleManager::makePersistent(const std::string& name) {
   }
   // find name in plugin_cache
   {
-    Glib::Mutex::Lock lock(mlock);
+    std::unique_lock<std::mutex> lock(mlock);
     plugin_cache_t::iterator p = plugin_cache.find(name);
     if (p != plugin_cache.end()) {
       p->second.makePersistent();
@@ -316,7 +318,7 @@ bool ModuleManager::makePersistent(const std::string& name) {
 }
 
 bool ModuleManager::makePersistent(Glib::Module* module) {
-  Glib::Mutex::Lock lock(mlock);
+  std::unique_lock<std::mutex> lock(mlock);
   for(plugin_cache_t::iterator p = plugin_cache.begin();
                                p!=plugin_cache.end();++p) {
     if(p->second == module) {

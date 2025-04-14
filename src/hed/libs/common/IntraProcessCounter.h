@@ -115,10 +115,11 @@ namespace Arc {
        @return A CounterTicket that can be queried about the status of
        the reservation as well as for cancellations and extensions.
      */
-    virtual CounterTicket reserve(int amount = 1,
-                                  Glib::TimeVal duration = ETERNAL,
-                                  bool prioritized = false,
-                                  Glib::TimeVal timeOut = ETERNAL);
+    virtual CounterTicket
+    reserve(int amount = 1,
+            std::chrono::system_clock::duration duration = ETERNAL,
+            bool prioritized = false,
+            std::chrono::system_clock::duration timeOut = ETERNAL);
 
   protected:
 
@@ -145,9 +146,10 @@ namespace Arc {
        new expiration time is computed based on the current time, NOT
        the previous expiration time.
      */
-    virtual void extend(IDType& reservationID,
-                        Glib::TimeVal& expiryTime,
-                        Glib::TimeVal duration = ETERNAL);
+    virtual void
+    extend(IDType& reservationID,
+           std::chrono::system_clock::time_point& expiryTime,
+           std::chrono::system_clock::duration duration = ETERNAL);
 
   private:
 
@@ -200,7 +202,8 @@ namespace Arc {
        @duration The duration of the reservation.
        @return The identification number of the reservation.
      */
-    IDType unsafeReserve(int amount, Glib::TimeVal duration);
+    IDType unsafeReserve(int amount,
+                         std::chrono::system_clock::time_point expiryTime);
 
     /// Returns the expiry time for the next expiring reservation.
     /** Returns the expiry time for the next expiring reservation,
@@ -208,7 +211,7 @@ namespace Arc {
        selfExpiringReservations priority queue.
        @return The expiry time for the next expiring reservation.
      */
-    Glib::TimeVal unsafeGetNextExpiration();
+    std::chrono::system_clock::time_point unsafeGetNextExpiration();
 
     /// The limit of the counter.
     /** The current limit of the counter. Should not be altered unless
@@ -255,14 +258,14 @@ namespace Arc {
        concurrent access from several threads. Any method that alter an
        attribute should lock this mutex.
      */
-    Glib::Mutex synchMutex;
+    std::mutex synchMutex;
 
     /// A condition used for waiting for waiting for a higher value.
     /** This condition is used when a reservation cannot be made
        immediately because the amount that shall be reserved is larger
        than what is currently available.
      */
-    Glib::Cond synchCond;
+    std::condition_variable synchCond;
 
   };
 

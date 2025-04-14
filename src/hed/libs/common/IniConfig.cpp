@@ -11,7 +11,10 @@
 #include <arc/ArcLocation.h>
 #include <arc/Profile.h>
 #include <arc/StringConv.h>
+
 #include "IniConfig.h"
+
+#include "glibmm-compat.h"
 
 namespace Arc {
 

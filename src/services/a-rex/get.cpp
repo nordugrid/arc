@@ -9,8 +9,6 @@
 
 #include <string>
 
-#include <glibmm.h>
-
 #include <arc/FileLock.h>
 #include <arc/FileUtils.h>
 #include <arc/StringConv.h>

@@ -47,7 +47,7 @@ namespace Arc {
   };
 
   static std::map<std::string, IssuerInfo> issuersInfo;
-  static Glib::Mutex issuersInfoLock;
+  static std::mutex issuersInfoLock;
 
   char const * const JWSE::HeaderNameX509CertChain = "x5c";
   char const * const JWSE::HeaderNameJSONWebKey = "jwk";
@@ -307,7 +307,7 @@ namespace Arc {
 
       {
         Time now;
-        Arc::AutoLock<Glib::Mutex> lock(issuersInfoLock);
+        Arc::AutoLock<std::mutex> lock(issuersInfoLock);
         for(std::map<std::string, IssuerInfo>::iterator infoIt = issuersInfo.begin(); infoIt != issuersInfo.end();) {
           std::map<std::string, IssuerInfo>::iterator nextIt = infoIt;
           ++nextIt;
@@ -378,7 +378,7 @@ namespace Arc {
   }
 
   void JWSE::SetIssuerInfo(Time* validTill, bool isSafe, std::string const& issuer, Arc::AutoPointer<OpenIDMetadata>& metadata, Arc::AutoPointer<JWSEKeyHolderList>& keys) {
-    Arc::AutoLock<Glib::Mutex> lock(issuersInfoLock);
+    Arc::AutoLock<std::mutex> lock(issuersInfoLock);
     IssuerInfo& info(issuersInfo[issuer]);
     info.isSafe = isSafe;
     info.metadata = metadata;

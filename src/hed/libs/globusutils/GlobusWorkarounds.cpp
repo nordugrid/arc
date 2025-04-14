@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <mutex>
 #include <iostream>
 
 #include <openssl/objects.h>
@@ -9,7 +10,6 @@
 
 #include <globus_gsi_callback.h>
 
-#include <arc/Thread.h>
 #include <arc/Utils.h>
 
 #include "GlobusErrorUtils.h"
@@ -17,7 +17,7 @@
 
 namespace Arc {
 
-  static Glib::Mutex lock_;
+  static std::mutex lock_;
 
   bool GlobusRecoverProxyOpenSSL(void) {
     // No harm even if not needed - shall trun proxies on for code
@@ -27,7 +27,7 @@ namespace Arc {
   }
 
   bool GlobusPrepareGSSAPI(void) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     int index = -1;
     GlobusResult(globus_gsi_callback_get_X509_STORE_callback_data_index(&index));
     GlobusResult(globus_gsi_callback_get_SSL_callback_data_index(&index));
@@ -35,7 +35,7 @@ namespace Arc {
   }
 
   bool GlobusModuleActivate(globus_module_descriptor_t* module) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     return (GlobusResult(globus_module_activate(module)));
   }
 }

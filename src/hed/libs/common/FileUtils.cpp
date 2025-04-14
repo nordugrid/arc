@@ -14,9 +14,11 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
-#include <glibmm.h>
 #include <poll.h>
 #include <sys/mman.h>
+
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
 
 #include <arc/StringConv.h>
 #include <arc/DateTime.h>
@@ -29,7 +31,7 @@
 
 namespace Arc {
 
-Glib::Mutex suid_lock;
+std::mutex suid_lock;
 
 static bool write_all(int h,const void* buf,size_t l) {
   for(;l>0;) {

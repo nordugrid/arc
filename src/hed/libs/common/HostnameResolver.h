@@ -9,8 +9,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#include <glibmm.h>
-
 namespace Arc {
 
   class Run;
@@ -61,7 +59,7 @@ namespace Arc {
     /// Special method for using in unit tests.
     static void testtune(void);
   private:
-    Glib::Mutex lock_;
+    std::mutex lock_;
     Run* hostname_resolver_;
     int errno_;
   public:
@@ -100,7 +98,7 @@ namespace Arc {
     /// Adjust maximal number of stored objects.
     void SetMax(unsigned int val);
   private:
-    Glib::Mutex lock_;
+    std::mutex lock_;
     unsigned int min_;
     unsigned int max_;
     std::list<HostnameResolver*> hrs_;

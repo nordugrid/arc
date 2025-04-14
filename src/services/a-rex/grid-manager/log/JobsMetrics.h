@@ -55,7 +55,7 @@ namespace ARex {
 
 class JobsMetrics {
  private:
-  Glib::RecMutex lock;
+  std::recursive_mutex lock;
   bool enabled;
   std::string config_filename;
   std::string tool_path;

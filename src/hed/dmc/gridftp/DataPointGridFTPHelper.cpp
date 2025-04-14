@@ -6,6 +6,8 @@
 
 #include <openssl/ssl.h>
 
+#include <algorithm>
+
 #include <arc/Logger.h>
 #include <arc/ArcLocation.h>
 #include <arc/OptionParser.h>

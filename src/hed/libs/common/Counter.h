@@ -5,15 +5,15 @@
 #ifndef __Counter__
 #define __Counter__
 
-#include <glibmm/timeval.h>
+#include <chrono>
 
 namespace Arc {
 
   /// A time very far in the future.
-  extern const Glib::TimeVal ETERNAL;
+  extern const std::chrono::system_clock::duration ETERNAL;
 
   /// A time very far in the past.
-  extern const Glib::TimeVal HISTORIC;
+  extern const std::chrono::system_clock::duration HISTORIC;
 
 
 
@@ -205,10 +205,11 @@ namespace Arc {
        @return A CounterTicket that can be queried about the status of
        the reservation as well as for cancellations and extensions.
      */
-    virtual CounterTicket reserve(int amount = 1,
-                                  Glib::TimeVal duration = ETERNAL,
-                                  bool prioritized = false,
-                                  Glib::TimeVal timeOut = ETERNAL) = 0;
+    virtual CounterTicket
+    reserve(int amount = 1,
+            std::chrono::system_clock::duration duration = ETERNAL,
+            bool prioritized = false,
+            std::chrono::system_clock::duration timeOut = ETERNAL) = 0;
 
   protected:
 
@@ -234,16 +235,17 @@ namespace Arc {
        new expiration time is computed based on the current time, NOT
        the previous expiration time.
      */
-    virtual void extend(IDType& reservationID,
-                        Glib::TimeVal& expiryTime,
-                        Glib::TimeVal duration = ETERNAL) = 0;
+    virtual void
+    extend(IDType& reservationID,
+           std::chrono::system_clock::time_point& expiryTime,
+           std::chrono::system_clock::duration duration = ETERNAL) = 0;
 
     /// Get the current time.
     /** Returns the current time. An "adapter method" for the
        assign_current_time() method in the Glib::TimeVal class.
        return The current time.
      */
-    Glib::TimeVal getCurrentTime();
+    std::chrono::system_clock::time_point getCurrentTime();
 
     /// Computes an expiry time.
     /** This method computes an expiry time by adding a duration to
@@ -251,7 +253,8 @@ namespace Arc {
        @param duration The duration.
        @return The expiry time.
      */
-    Glib::TimeVal getExpiryTime(Glib::TimeVal duration);
+    std::chrono::system_clock::time_point
+    getExpiryTime(std::chrono::system_clock::duration duration);
 
     /// A "relay method" for a constructor of the CounterTicket class.
     /** This method acts as a relay for one of the constructors of the
@@ -271,9 +274,10 @@ namespace Arc {
        made.
        @return The counter ticket that has been created.
      */
-    CounterTicket getCounterTicket(Counter::IDType reservationID,
-                                   Glib::TimeVal expiryTime,
-                                   Counter *counter);
+    CounterTicket
+    getCounterTicket(Counter::IDType reservationID,
+                     std::chrono::system_clock::time_point expiryTime,
+                     Counter *counter);
 
     /// A "relay method" for the constructor of ExpirationReminder.
     /** This method acts as a relay for one of the constructors of the
@@ -291,8 +295,9 @@ namespace Arc {
        corresponding to the ExpirationReminder.
        @return The ExpirationReminder that has been created.
      */
-    ExpirationReminder getExpirationReminder(Glib::TimeVal expTime,
-                                             Counter::IDType resID);
+    ExpirationReminder
+    getExpirationReminder(std::chrono::system_clock::time_point expTime,
+                          Counter::IDType resID);
   private:
 
     /// Copy constructor, should not be used.
@@ -372,7 +377,7 @@ namespace Arc {
        new expiration time is computed based on the current time, NOT
        the previous expiration time.
      */
-    void extend(Glib::TimeVal duration);
+    void extend(std::chrono::system_clock::duration duration);
 
     /// Cancels a reservation.
     /** This method is called to cancel a reservation. It may be
@@ -396,14 +401,14 @@ namespace Arc {
        reservation was made.
      */
     CounterTicket(Counter::IDType reservationID,
-                  Glib::TimeVal expiryTime,
+                  std::chrono::system_clock::time_point expiryTime,
                   Counter *counter);
 
     /// The identification number of the corresponding reservation.
     Counter::IDType reservationID;
 
     /// The expiry time of the corresponding reservation.
-    Glib::TimeVal expiryTime;
+    std::chrono::system_clock::time_point expiryTime;
 
     /// A pointer to the Counter from which the reservation was made.
     Counter *counter;
@@ -439,7 +444,7 @@ namespace Arc {
        this ExpirationReminder is associated with.
        @return The expiry time.
      */
-    Glib::TimeVal getExpiryTime() const;
+    std::chrono::system_clock::time_point getExpiryTime() const;
 
     /// Returns the identification number of the reservation.
     /** This method returns the identification number of the
@@ -460,11 +465,11 @@ namespace Arc {
        @param expiryTime The expiry time of the reservation.
        @param reservationID The identification number of the reservation.
      */
-    ExpirationReminder(Glib::TimeVal expiryTime,
+    ExpirationReminder(std::chrono::system_clock::time_point expiryTime,
                        Counter::IDType reservationID);
 
     /// The expiry time of the corresponding reservation.
-    Glib::TimeVal expiryTime;
+    std::chrono::system_clock::time_point expiryTime;
 
     /// The identification number of t he corresponding reservation.
     Counter::IDType reservationID;

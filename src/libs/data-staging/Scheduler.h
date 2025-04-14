@@ -119,7 +119,7 @@ class Scheduler: public DTRCallback {
     static Scheduler* scheduler_instance;
 
     /// Lock for multiple threads getting static Scheduler instance
-    static Glib::Mutex instance_lock;
+    static std::mutex instance_lock;
 
     /// Copy constructor is private because Scheduler should not be copied
     Scheduler(const Scheduler&); // should not happen

@@ -219,18 +219,15 @@ static Arc::Plugin* get_service(Arc::PluginArgument* arg) {
 }
 
 void CountedResource::Acquire(void) {
-  lock_.lock();
-  while((limit_ >= 0) && (count_ >= limit_)) {
-    cond_.wait(lock_);
-  };
+  std::unique_lock<std::mutex> lock(lock_);
+  cond_.wait(lock, [this]() { return (limit_ < 0) || (count_ < limit_); });
   ++count_;
-  lock_.unlock();
 }
 
 void CountedResource::Release(void) {
   lock_.lock();
   --count_;
-  cond_.signal();
+  cond_.notify_one();
   lock_.unlock();
 }
 

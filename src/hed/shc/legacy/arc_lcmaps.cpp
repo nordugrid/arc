@@ -7,7 +7,7 @@
 #include <pwd.h>
 #include <grp.h>
 
-#include <glibmm.h>
+#include <glibmm/module.h>
 
 #include <openssl/x509.h>
 #include <openssl/evp.h>
@@ -23,6 +23,8 @@
 #include "cert_util.h"
 
 #include "unixmap.h"
+
+#include "glibmm-compat.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"LCMAPS");
 

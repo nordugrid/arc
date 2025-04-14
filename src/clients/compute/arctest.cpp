@@ -13,6 +13,7 @@
 #include <unistd.h>
 
 #include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
 
 #include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
@@ -33,6 +34,8 @@
 
 #include "utils.h"
 #include "submit.h"
+
+#include "glibmm-compat.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(), "arcsub");
 

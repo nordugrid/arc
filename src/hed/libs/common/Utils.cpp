@@ -144,7 +144,7 @@ namespace Arc {
       if(getenv(name.c_str())) return false;
     };
     for(std::list<TrickEnvRecord>::iterator r = records_.begin();
-                                                r != records_.end(); ++r) {
+        r != records_.end(); ++r) {
       if(r->name_ == name) { // TODO: more optimal search
         return r->Set(value);
       };
@@ -175,7 +175,7 @@ namespace Arc {
 
   bool TrickEnvRecord::Unset(const std::string& name) {
     for(std::list<TrickEnvRecord>::iterator r = records_.begin();
-                                                r != records_.end(); ++r) {
+        r != records_.end(); ++r) {
       if(r->name_ == name) { // TODO: more optimal search
         return r->Unset();
       };
@@ -224,8 +224,8 @@ namespace Arc {
   // The purpose of this mutex is to 'solve' problem with
   // some third party libraries which use environment variables
   // as input arguments :(
-  static Glib::Mutex& env_write_lock(void) {
-    static Glib::Mutex* mutex = new Glib::Mutex;
+  static std::mutex& env_write_lock(void) {
+    static std::mutex* mutex = new std::mutex;
     return *mutex;
   }
 
@@ -286,10 +286,9 @@ namespace Arc {
   std::list<std::string> GetEnv(void) {
     SharedMutexShared env_lock(env_read_lock());
 #if defined(HAVE_GLIBMM_LISTENV) && defined(HAVE_GLIBMM_GETENV)
-    std::list<std::string> envp = Glib::listenv();
-    for(std::list<std::string>::iterator env = envp.begin();
-                         env != envp.end(); ++env) {
-      *env = *env + "=" + Glib::getenv(*env);
+    std::list<std::string> envp;
+    for(const auto& env : Glib::listenv()) {
+      envp.push_back(env + "=" + Glib::getenv(env));
     };
     return envp;
 #else
@@ -368,7 +367,7 @@ namespace Arc {
     // there is no safe way to reset locks after call to fork().
   }
 
-  static Glib::Mutex signal_lock;
+  static std::mutex signal_lock;
 
   InterruptGuard::InterruptGuard() {
     signal_lock.lock();
@@ -397,7 +396,7 @@ namespace Arc {
 #endif
   }
 
-  static Glib::Mutex persistent_libraries_lock;
+  static std::mutex persistent_libraries_lock;
   static std::list<std::string> persistent_libraries_list;
 
   bool PersistentLibraryInit(const std::string& name) {
@@ -413,7 +412,7 @@ namespace Arc {
 
     persistent_libraries_lock.lock();
     for(std::list<std::string>::iterator l = persistent_libraries_list.begin();
-            l != persistent_libraries_list.end();++l) {
+        l != persistent_libraries_list.end();++l) {
       if(*l == libpath) {
         persistent_libraries_lock.unlock();
         return true;

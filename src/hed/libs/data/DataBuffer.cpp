@@ -25,7 +25,7 @@ namespace Arc {
       bufs_n = 0;
       bufs = NULL;
       set_counter++;
-      cond.broadcast(); /* make all waiting loops to exit */
+      cond.notify_all(); /* make all waiting loops to exit */
     }
     if ((size == 0) || (blocks == 0)) {
       lock.unlock();
@@ -137,14 +137,14 @@ namespace Arc {
       }
     }
     eof_read_flag = eof_;
-    cond.broadcast();
+    cond.notify_all();
     lock.unlock();
   }
 
   void DataBuffer::eof_write(bool eof_) {
     lock.lock();
     eof_write_flag = eof_;
-    cond.broadcast();
+    cond.notify_all();
     lock.unlock();
   }
 
@@ -165,7 +165,7 @@ namespace Arc {
     } else {
       error_read_flag = false;
     }
-    cond.broadcast();
+    cond.notify_all();
     lock.unlock();
   }
 
@@ -178,59 +178,37 @@ namespace Arc {
     } else {
       error_write_flag = false;
     }
-    cond.broadcast();
+    cond.notify_all();
     lock.unlock();
   }
 
   bool DataBuffer::wait_eof_read() {
-    lock.lock();
-    for (;;) {
-      if (eof_read_flag) break;
-      cond.wait(lock);
-    }
-    lock.unlock();
+    std::unique_lock<std::mutex> lock_(lock);
+    cond.wait(lock_, [this]() { return eof_read_flag; } );
     return true;
   }
 
   bool DataBuffer::wait_read() {
-    lock.lock();
-    for (;;) {
-      if (eof_read_flag) break;
-      if (error_read_flag) break;
-      cond.wait(lock);
-    }
-    lock.unlock();
+    std::unique_lock<std::mutex> lock_(lock);
+    cond.wait(lock_, [this]() { return eof_read_flag || error_read_flag; } );
     return true;
   }
 
   bool DataBuffer::wait_eof_write() {
-    lock.lock();
-    for (;;) {
-      if (eof_write_flag) break;
-      cond.wait(lock);
-    }
-    lock.unlock();
+    std::unique_lock<std::mutex> lock_(lock);
+    cond.wait(lock_, [this]() { return eof_write_flag; } );
     return true;
   }
 
   bool DataBuffer::wait_write() {
-    lock.lock();
-    for (;;) {
-      if (eof_write_flag) break;
-      if (error_write_flag) break;
-      cond.wait(lock);
-    }
-    lock.unlock();
+    std::unique_lock<std::mutex> lock_(lock);
+    cond.wait(lock_, [this]() { return eof_write_flag || error_write_flag; } );
     return true;
   }
 
   bool DataBuffer::wait_eof() {
-    lock.lock();
-    for (;;) {
-      if (eof_read_flag && eof_write_flag) break;
-      cond.wait(lock);
-    }
-    lock.unlock();
+    std::unique_lock<std::mutex> lock_(lock);
+    cond.wait(lock_, [this]() { return eof_read_flag && eof_write_flag; } );
     return true;
   }
 
@@ -248,9 +226,9 @@ namespace Arc {
           error_transfer_flag = true;
         }
       }
-      if (eof_read_flag && eof_write_flag) { // there wil be no more events
+      if (eof_read_flag && eof_write_flag) { // there will be no more events
         lock.unlock();
-        Glib::Thread::yield();
+        std::this_thread::yield();
         lock.lock();
         return true;
       }
@@ -259,11 +237,9 @@ namespace Arc {
       if (error()) return false; // useless to wait for - better fail
       if (set_counter != tmp) return false;
       if (err) break; // Some event
-      int t = 60;
-      Glib::TimeVal stime;
-      stime.assign_current_time();
       // Using timeout to workaround lost signal
-      err = cond.timed_wait(lock, stime + t);
+      std::unique_lock<std::mutex> lock_(lock, std::defer_lock);
+      err = cond.wait_for(lock_, std::chrono::seconds(60)) == std::cv_status::no_timeout;
     }
     return true;
   }
@@ -303,7 +279,7 @@ namespace Arc {
           handle = i;
           bufs[i].taken_for_read = true;
           length = bufs[i].size;
-          cond.broadcast();
+          cond.notify_all();
           lock.unlock();
           return true;
         }
@@ -381,7 +357,7 @@ namespace Arc {
         }
       }
     }
-    cond.broadcast();
+    cond.notify_all();
     lock.unlock();
     return true;
   }
@@ -459,7 +435,7 @@ namespace Arc {
         bufs[handle].taken_for_write = true;
         length = bufs[handle].used;
         offset = bufs[handle].offset;
-        cond.broadcast();
+        cond.notify_all();
         lock.unlock();
         return true;
       }
@@ -528,7 +504,7 @@ namespace Arc {
     bufs[handle].taken_for_write = false;
     bufs[handle].used = 0;
     bufs[handle].offset = 0;
-    cond.broadcast();
+    cond.notify_all();
     lock.unlock();
     return true;
   }
@@ -548,7 +524,7 @@ namespace Arc {
       return false;
     }
     bufs[handle].taken_for_write = false;
-    cond.broadcast();
+    cond.notify_all();
     lock.unlock();
     return true;
   }

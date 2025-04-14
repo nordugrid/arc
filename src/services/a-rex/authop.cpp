@@ -2,9 +2,11 @@
 #include <config.h>
 #endif
 
-#include <arc/Thread.h>
+#include <algorithm>
+
 #include <arc/Utils.h>
 #include <arc/message/PayloadSOAP.h>
+
 #include "arex.h"
 
 namespace ARex {

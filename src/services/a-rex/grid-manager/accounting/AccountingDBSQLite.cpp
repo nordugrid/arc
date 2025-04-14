@@ -2,6 +2,9 @@
 #include <config.h>
 #endif
 
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
+
 #include <arc/FileUtils.h>
 #include <arc/DateTime.h>
 #include <arc/ArcLocation.h>
@@ -10,6 +13,8 @@
 #include "../../SQLhelpers.h"
 
 #include "AccountingDBSQLite.h"
+
+#include "glibmm-compat.h"
 
 #define DB_SCHEMA_FILE "arex_accounting_db_schema_v2.sql"
 
@@ -112,7 +117,7 @@ namespace ARex {
                 return;
             }
             // initialize new database
-            Glib::Mutex::Lock lock(lock_);
+            std::unique_lock<std::mutex> lock(lock_);
             db = new SQLiteDB(name, true);
             if (!db->isConnected()){
                 logger.msg(Arc::ERROR, "Failed to initialize accounting database");
@@ -162,7 +167,7 @@ namespace ARex {
     unsigned int AccountingDBSQLite::GeneralSQLInsert(const std::string& sql) {
         if (!isValid) return 0;
         initSQLiteDB();
-        Glib::Mutex::Lock lock(lock_);
+        std::unique_lock<std::mutex> lock(lock_);
         int err;
         err = db->exec(sql.c_str(), NULL, NULL, NULL);
         if (err != SQLITE_OK) {
@@ -184,7 +189,7 @@ namespace ARex {
     bool AccountingDBSQLite::GeneralSQLUpdate(const std::string& sql) {
         if (!isValid) return false;
         initSQLiteDB();
-        Glib::Mutex::Lock lock(lock_);
+        std::unique_lock<std::mutex> lock(lock_);
         int err;
         err = db->exec(sql.c_str(), NULL, NULL, NULL);
         if (err != SQLITE_OK ) {

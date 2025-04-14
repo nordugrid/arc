@@ -6,9 +6,6 @@
 
 #include <cstdlib>
 
-#include <glibmm/fileutils.h>
-
-#include <arc/Thread.h>
 #include <arc/StringConv.h>
 #include <arc/Logger.h>
 #include <arc/URL.h>

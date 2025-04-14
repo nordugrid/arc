@@ -8,7 +8,6 @@
 
 #include "PayloadTLSMCC.h"
 #include <openssl/err.h>
-#include <glibmm/miscutils.h>
 #include <arc/DateTime.h>
 #include <arc/StringConv.h>
 #include <arc/crypto/OpenSSL.h>

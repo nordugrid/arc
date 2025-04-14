@@ -7,12 +7,17 @@
 #include <string>
 #include <fstream>
 
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
+
 #include <arc/FileUtils.h>
 #include <arc/StringConv.h>
 
 #include "Credential.h"
 
 #include "VOMSConfig.h"
+
+#include "glibmm-compat.h"
 
 namespace Arc {
 

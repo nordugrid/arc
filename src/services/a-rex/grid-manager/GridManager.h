@@ -1,8 +1,6 @@
 #ifndef GRID_MANAGER_H
 #define GRID_MANAGER_H
 
-#include <arc/Thread.h>
-
 namespace ARex {
 
 class JobsList;

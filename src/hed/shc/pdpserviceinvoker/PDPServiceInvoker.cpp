@@ -5,7 +5,6 @@
 #include <stdexcept>
 
 #include <arc/XMLNode.h>
-#include <arc/Thread.h>
 #include <arc/ArcConfig.h>
 #include <arc/Logger.h>
 #include <arc/URL.h>

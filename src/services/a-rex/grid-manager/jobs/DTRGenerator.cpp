@@ -5,6 +5,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <algorithm>
+
 #include <arc/FileUtils.h>
 #include <arc/FileAccess.h>
 #include <arc/data/FileCache.h>

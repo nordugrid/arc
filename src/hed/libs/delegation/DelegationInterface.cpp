@@ -1345,7 +1345,7 @@ DelegationConsumerSOAP* DelegationContainerSOAP::AddConsumer(std::string& id,con
 }
 
 bool DelegationContainerSOAP::TouchConsumer(DelegationConsumerSOAP* c,const std::string& /*credentials*/) {
-  Glib::Mutex::Lock lock(lock_);
+  std::unique_lock<std::mutex> lock(lock_);
   ConsumerIterator i = find(c);
   if(i == consumers_.end()) { failure_ = "Delegation not found"; return false; };
   i->second->last_used=time(NULL);
@@ -1367,7 +1367,7 @@ bool DelegationContainerSOAP::TouchConsumer(DelegationConsumerSOAP* c,const std:
 }
 
 bool DelegationContainerSOAP::QueryConsumer(DelegationConsumerSOAP* c,std::string& credentials) {
-  Glib::Mutex::Lock lock(lock_);
+  std::unique_lock<std::mutex> lock(lock_);
   ConsumerIterator i = find(c);
   if(i == consumers_.end()) { failure_ = "Delegation not found"; return false; };
   if(i->second->deleg) i->second->deleg->Backup(credentials); // only key is available
@@ -1477,7 +1477,7 @@ bool DelegationContainerSOAP::UpdateCredentials(std::string& credentials,const S
   ( ((consumer)->client_id.empty()) || ((consumer)->client_id == (client)) )
 
 DelegationConsumerSOAP* DelegationContainerSOAP::FindConsumer(const std::string& id,const std::string& client) {
-  Glib::Mutex::Lock lock(lock_);
+  std::unique_lock<std::mutex> lock(lock_);
   ConsumerIterator i = consumers_.find(id);
   if(i == consumers_.end()) { failure_ = "Identifier not found"; return NULL; };
   if(!(i->second->deleg)) { failure_ = "Identifier has no delegation associated"; return NULL; };

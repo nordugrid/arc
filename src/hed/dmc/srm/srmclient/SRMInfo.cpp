@@ -6,8 +6,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <sys/stat.h>
-
-#include <glibmm.h>
+#include <unistd.h>
 
 #include <arc/FileLock.h>
 #include <arc/FileUtils.h>
@@ -70,7 +69,7 @@ SRMInfo::SRMInfo(std::string dir) {
       if (acquired) break;
       // sleep random time to minimise clashes
       int sleeptime = rand() % 500000 + 100000;
-      Glib::usleep(sleeptime);
+      usleep(sleeptime);
     }
     if (!acquired) {
       logger.msg(Arc::WARNING, "Failed to acquire lock on file %s", srm_info_filename);
@@ -156,7 +155,7 @@ void SRMInfo::putSRMFileInfo(const SRMFileInfo& srm_file_info) {
     if (acquired) break;
     // sleep random time to minimise clashes
     int sleeptime = rand() % 500000 + 100000;
-    Glib::usleep(sleeptime);
+    usleep(sleeptime);
   }
   if (!acquired) {
     logger.msg(Arc::WARNING, "Failed to acquire lock on file %s", srm_info_filename);

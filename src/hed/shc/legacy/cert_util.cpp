@@ -1,7 +1,13 @@
-#include <glibmm.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <glibmm/fileutils.h>
 #include <openssl/err.h>
 
 #include "cert_util.h"
+
+#include "glibmm-compat.h"
 
   static BIO* OpenFileBIO(const std::string& file) {
     if(!Glib::file_test(file,Glib::FILE_TEST_IS_REGULAR)) return NULL;

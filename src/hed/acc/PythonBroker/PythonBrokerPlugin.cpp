@@ -25,7 +25,7 @@ namespace Arc {
   Logger PythonBrokerPlugin::logger(Logger::getRootLogger(), "Broker.PythonBrokerPlugin");
   PyThreadState* PythonBrokerPlugin::tstate = NULL;
   int PythonBrokerPlugin::refcount = 0;
-  Glib::Mutex PythonBrokerPlugin::lock;
+  std::mutex PythonBrokerPlugin::lock;
 
   class PythonLock {
   public:

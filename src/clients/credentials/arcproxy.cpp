@@ -9,6 +9,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
+
 #include <arc/ArcLocation.h>
 #include <arc/OptionParser.h>
 #include <arc/StringConv.h>
@@ -29,6 +32,8 @@
 #endif
 
 #include "arcproxy.h"
+
+#include "glibmm-compat.h"
 
 using namespace ArcCredential;
 

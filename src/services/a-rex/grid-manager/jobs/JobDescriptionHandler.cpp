@@ -5,8 +5,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <glibmm.h>
-
 #include <arc/FileUtils.h>
 #include <arc/StringConv.h>
 #include <arc/URL.h>

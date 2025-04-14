@@ -22,7 +22,8 @@
 #include <iostream>
 #include <set>
 
-#include <glibmm.h>
+#include <glibmm/shell.h>
+#include <glibmm/spawn.h>
 
 #include <arc/Thread.h>
 #include <arc/Logger.h>
@@ -40,7 +41,7 @@ namespace Arc {
   class RunPump {
     friend class Run;
   private:
-    static Glib::StaticMutex instance_lock_;
+    static std::mutex instance_lock_;
     static RunPump *instance_;
     static unsigned int mark_;
 #define RunPumpMagic (0xA73E771F)
@@ -50,18 +51,18 @@ namespace Arc {
     // Processes to monitor
     std::set<Run*> monitored_;
     // Lock for containers of monitored handles and pids.
-    Glib::Mutex list_lock_;
+    std::mutex list_lock_;
     // pipe for kicking main loop.
     int loop_kick_[2];
     // Barrier for slowing down main loop.
-    Glib::Mutex loop_lock_;
+    std::mutex loop_lock_;
     // Thread which performs monitoring.
-    Glib::Thread *thread_;
+    std::thread thread_;
     RunPump(void);
     ~RunPump(void);
     static RunPump& Instance(void);
-    operator bool(void) const { return (thread_ != NULL); }
-    bool operator!(void) const { return (thread_ == NULL); }
+    operator bool(void) const { return thread_.get_id() != std::thread::id(); }
+    bool operator!(void) const { return thread_.get_id() == std::thread::id(); }
     void Pump(void);
     // Add process and associated handles to those monitored by this instance
     void Add(Run *r);
@@ -72,7 +73,7 @@ namespace Arc {
     static void sigchld_handler(int);
   };
 
-  Glib::StaticMutex RunPump::instance_lock_ = GLIBMM_STATIC_MUTEX_INIT;
+  std::mutex RunPump::instance_lock_;
   RunPump* RunPump::instance_ = NULL;
   unsigned int RunPump::mark_ = ~RunPumpMagic;
 
@@ -126,8 +127,7 @@ namespace Arc {
     return;
   }
 
-  RunPump::RunPump()
-    : thread_(NULL)/*, storm_count(0)*/ {
+  RunPump::RunPump() {
     loop_kick_[0] = -1;
     loop_kick_[1] = -1;
     try {
@@ -135,9 +135,8 @@ namespace Arc {
         return;
       (void)fcntl(loop_kick_[0], F_SETFL, fcntl(loop_kick_[0], F_GETFL) | O_NONBLOCK);
       (void)fcntl(loop_kick_[1], F_SETFL, fcntl(loop_kick_[1], F_GETFL) | O_NONBLOCK);
-      thread_ = Glib::Thread::create(sigc::mem_fun(*this, &RunPump::Pump), false);
-    } catch (Glib::Exception& e) {} catch (std::exception& e) {};
-    if (thread_ == NULL) return;
+      thread_ = std::thread(sigc::mem_fun(*this, &RunPump::Pump));
+    } catch (std::exception& e) {};
   }
 
   RunPump::~RunPump() {
@@ -160,7 +159,7 @@ namespace Arc {
   }
 
   RunPump& RunPump::Instance(void) {
-    Glib::Mutex::Lock lock(instance_lock_);
+    std::unique_lock<std::mutex> lock(instance_lock_);
     // Check against fork_handler
     if ((instance_ == NULL) || (mark_ != RunPumpMagic)) {
       instance_ = new RunPump();
@@ -185,13 +184,13 @@ namespace Arc {
     try {
       while(true) {
         {
-          Glib::Mutex::Lock lock(list_lock_);
+          std::unique_lock<std::mutex> lock(list_lock_);
           nfds_t handles_num = monitored_.size()*3 + 1;
           AutoPointer<pollfd> handles(reinterpret_cast<pollfd*>(malloc(sizeof(pollfd[handles_num]))), &pollfd_free);
           // wait for events on pipe handles and signals from child exit
           if(!handles) {
             // memory exhaustion?
-            lock.release();
+            lock.unlock();
             sleep(1);
             continue;
           };
@@ -227,7 +226,7 @@ namespace Arc {
             } else {
               int err = errno;
               // Some error. Only expected error is some handles already closed.
-              lock.release();
+              lock.unlock();
               logger.msg(DEBUG, "Child monitoring error: %i", err);
               sleep(1);
               continue;
@@ -328,9 +327,9 @@ namespace Arc {
         } // End of main lock
         // TODO: storm protection
         // Acquire barrier lock to allow modification of monitored handles
-        Glib::Mutex::Lock llock(loop_lock_);
+        std::unique_lock<std::mutex> llock(loop_lock_);
       }
-    } catch (Glib::Exception& e) {} catch (std::exception& e) {};
+    } catch (std::exception& e) {};
   }
 
   void RunPump::Add(Run *r) {
@@ -340,13 +339,13 @@ namespace Arc {
     if (!(*this)) return;
     try {
       // Take full control over context
-      Glib::Mutex::Lock llock(loop_lock_); // barrier
+      std::unique_lock<std::mutex> llock(loop_lock_); // barrier
       char dummy;
       (void)write(loop_kick_[1], &dummy, 1);
-      Glib::Mutex::Lock lock(list_lock_);
+      std::unique_lock<std::mutex> lock(list_lock_);
       // Add sources to context
       monitored_.insert(r);
-    } catch (Glib::Exception& e) {} catch (std::exception& e) {}
+    } catch (std::exception& e) {}
   }
 
   void RunPump::Remove(Run *r) {
@@ -356,10 +355,10 @@ namespace Arc {
     if (!(*this)) return;
     try {
       // Take full control over context
-      Glib::Mutex::Lock llock(loop_lock_); // barrier
+      std::unique_lock<std::mutex> llock(loop_lock_); // barrier
       char dummy;
       (void)write(loop_kick_[1], &dummy, 1);
-      Glib::Mutex::Lock lock(list_lock_);
+      std::unique_lock<std::mutex> lock(list_lock_);
       // Disconnect sources from context
       if(monitored_.erase(r) > 0) {
         // it is the process we are monitoring
@@ -369,7 +368,7 @@ namespace Arc {
         }
         r->running_ = false; // let Run instance think it finished
       }
-    } catch (Glib::Exception& e) {} catch (std::exception& e) {}
+    } catch (std::exception& e) {}
   }
 
   Run::Run(const std::string& cmdline)
@@ -384,7 +383,6 @@ namespace Arc {
       stderr_keep_(false),
       stdin_keep_(false),
       pid_(-1),
-      argv_(Glib::shell_parse_argv(cmdline)),
       initializer_func_(NULL),
       initializer_arg_(NULL),
       initializer_is_complex_(false),
@@ -398,6 +396,9 @@ namespace Arc {
       group_id_(0),
       run_time_(Time::UNDEFINED),
       exit_time_(Time::UNDEFINED) {
+    for (const auto& arg : Glib::shell_parse_argv(cmdline)) {
+      argv_.push_back(arg);
+    }
   }
 
   Run::Run(const std::list<std::string>& argv)
@@ -452,7 +453,7 @@ namespace Arc {
 
   static void remove_env(std::list<std::string>& envp, const std::list<std::string>& keys) {
     for(std::list<std::string>::const_iterator key = keys.begin();
-                   key != keys.end(); ++key) {
+        key != keys.end(); ++key) {
       remove_env(envp, *key);
     };
   }
@@ -467,7 +468,7 @@ namespace Arc {
 
   static void add_env(std::list<std::string>& envp, const std::list<std::string>& recs) {
     for(std::list<std::string>::const_iterator rec = recs.begin();
-                   rec != recs.end(); ++rec) {
+        rec != recs.end(); ++rec) {
       add_env(envp, *rec);
     };
   }
@@ -616,11 +617,6 @@ namespace Arc {
       };
       run_time_ = Time();
       started_ = true;
-    } catch (Glib::Exception& e) {
-      logger.msg(ERROR, "Excepton while trying to start external process: %s", e.what().c_str());
-      running_ = false;
-      // TODO: report error
-      return false;
     } catch (std::exception& e) {
       logger.msg(ERROR, "Excepton while trying to start external process: %s", e.what());
       running_ = false;
@@ -713,8 +709,8 @@ namespace Arc {
     if (stderr_str_) for (;;) if (!stderr_handler()) break;
     CloseStdin();
     {
-      Glib::Mutex::Lock lock(lock_);
-      cond_.signal();
+      std::unique_lock<std::mutex> lock(lock_);
+      cond_.notify_one();
       if(result == -1) { // special value to indicate lost child
         result_ = -1;
       } else {
@@ -797,33 +793,17 @@ namespace Arc {
   bool Run::Wait(int timeout) {
     if (!started_) return false;
     if (!running_) return true;
-    Glib::TimeVal till;
-    till.assign_current_time();
-    till += timeout;
-    lock_.lock();
-    while (running_) {
-      Glib::TimeVal t;
-      t.assign_current_time();
-      t.subtract(till);
-      if (!t.negative()) break;
-      cond_.timed_wait(lock_, till);
-    }
-    lock_.unlock();
-    return (!running_);
+    std::unique_lock<std::mutex> lock(lock_);
+    return cond_.wait_for(lock, std::chrono::seconds(timeout),
+                          [this]() { return !running_; } );
   }
 
   bool Run::Wait(void) {
     if (!started_) return false;
     if (!running_) return true;
-    lock_.lock();
-    Glib::TimeVal till;
-    while (running_) {
-      till.assign_current_time();
-      till += 1; // one sec later
-      cond_.timed_wait(lock_, till);
-    }
-    lock_.unlock();
-    return (!running_);
+    std::unique_lock<std::mutex> lock(lock_);
+    cond_.wait(lock, [this]() { return !running_; } );
+    return true;
   }
 
   void Run::AssignStdout(std::string& str, int max_size) {

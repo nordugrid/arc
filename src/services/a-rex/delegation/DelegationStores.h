@@ -4,7 +4,6 @@
 #include <string>
 #include <map>
 
-#include <arc/Thread.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/XMLNode.h>
 
@@ -15,7 +14,7 @@ namespace ARex {
 /// Set of service storing delegated credentials
 class DelegationStores {
  private:
-  Glib::Mutex lock_;
+  std::mutex lock_;
   std::map<std::string,DelegationStore*> stores_;
   DelegationStore::DbType db_type_;
   DelegationStores(const DelegationStores&) { };

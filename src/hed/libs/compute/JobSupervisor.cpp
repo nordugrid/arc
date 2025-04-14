@@ -9,6 +9,8 @@
 
 #include <unistd.h>
 
+#include <glibmm/fileutils.h>
+
 #include <arc/CheckSum.h>
 #include <arc/Logger.h>
 #include <arc/UserConfig.h>
@@ -18,6 +20,8 @@
 #include <arc/compute/SubmitterPlugin.h>
 
 #include "JobSupervisor.h"
+
+#include "glibmm-compat.h"
 
 namespace Arc {
 

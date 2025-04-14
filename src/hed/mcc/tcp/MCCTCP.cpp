@@ -307,15 +307,13 @@ void MCC_TCP_Service::listener(void* arg) {
                         } else {
                             if(first_time)
                                 logger.msg(WARNING, "Too many connections - waiting for old to close");
-                            Glib::TimeVal etime;
-                            etime.assign_current_time();
-                            etime.add_milliseconds(10000); // 10 s
-                            it.cond_.timed_wait(it.lock_,etime);
+                            std::unique_lock<std::mutex> lock(it.lock_, std::defer_lock);
+                            it.cond_.wait_for(lock, std::chrono::seconds(10));
                             first_time = false;
                         };
                     };
                     if(!rejected) {
-                      mcc_tcp_exec_t t(&it,h,i->timeout,i->no_delay);
+                        mcc_tcp_exec_t t(&it,h,i->timeout,i->no_delay);
                     };
                 };
             };
@@ -591,7 +589,7 @@ void MCC_TCP_Service::executer(void* arg) {
     };
     ::shutdown(s,2);
     ::close(s);
-    it.cond_.signal();
+    it.cond_.notify_one();
     it.lock_.unlock();
     return;
 }

@@ -32,7 +32,7 @@ namespace Arc {
     static Logger logger;
     static PyThreadState *tstate;
     static int refcount;
-    static Glib::Mutex lock;
+    static std::mutex lock;
   };
 
 } // namespace Arc

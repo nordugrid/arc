@@ -7,7 +7,6 @@
 #include <unistd.h>
 
 #include <arc/DateTime.h>
-#include <arc/Thread.h>
 #include <arc/ArcRegex.h>
 #include <arc/Utils.h>
 #include <arc/StringConv.h>
@@ -16,6 +15,8 @@
 #include <arc/credential/VOMSAttribute.h>
 #include <arc/credential/VOMSUtil.h>
 #include "listfunc.h"
+
+#include "glibmm-compat.h"
 
 #if (OPENSSL_VERSION_NUMBER < 0x30400000L)
 // --------------------------------
@@ -147,10 +148,10 @@ namespace Arc {
 
     OpenSSLInit();
 
-    static Glib::Mutex lock_;
+    static std::mutex lock_;
     static bool done = false;
 
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     if (done) return;
 
     /* VOMS Attribute related objects*/

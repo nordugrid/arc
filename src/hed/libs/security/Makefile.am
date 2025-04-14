@@ -12,5 +12,5 @@ libarcsecurity_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS)
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
 libarcsecurity_la_LDFLAGS  = -version-info 4:0:0

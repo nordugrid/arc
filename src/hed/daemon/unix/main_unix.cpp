@@ -9,6 +9,8 @@
 #include <grp.h>
 #include <signal.h>
 #include <errno.h>
+
+#include <glibmm/exceptionhandler.h>
 #include <glibmm/fileutils.h>
 #include <glibmm/miscutils.h>
 
@@ -23,6 +25,8 @@
 
 #include "daemon.h"
 #include "../options.h"
+
+#include "glibmm-compat.h"
 
 static Arc::Daemon *main_daemon = NULL;
 static Arc::Config config;

@@ -6,7 +6,6 @@
 #include <list>
 #include <glibmm/module.h>
 #include <arc/XMLNode.h>
-#include <arc/Thread.h>
 #include <arc/Logger.h>
 
 namespace Arc {
@@ -99,7 +98,7 @@ class ModuleManager
         typedef std::map<std::string, LoadableModuleDescription> plugin_cache_t;
         typedef std::list<LoadableModuleDescription> plugin_trash_t;
 
-        Glib::Mutex mlock;
+        std::mutex mlock;
         static Logger logger;
         std::list<std::string> plugin_dir; /** collection of path to directory for modules */
         plugin_cache_t plugin_cache; /** Cache of handles of loaded modules */

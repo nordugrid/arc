@@ -3,9 +3,11 @@
 #ifndef __ARC_THREAD_H__
 #define __ARC_THREAD_H__
 
+#include <chrono>
+#include <condition_variable>
 #include <map>
-
-#include <glibmm/thread.h>
+#include <mutex>
+#include <thread>
 
 namespace Arc {
 
@@ -41,8 +43,8 @@ namespace Arc {
      an incremental counter, for easier debugging. */
   class ThreadId {
   private:
-    Glib::Mutex mutex;
-    std::map<unsigned long int, unsigned long int> thread_ids;
+    std::mutex mutex;
+    std::map<std::thread::id, unsigned long int> thread_ids;
     unsigned long int thread_no;
     ThreadId();
    public:
@@ -149,8 +151,8 @@ namespace Arc {
       \headerfile Thread.h arc/Thread.h  */
   class SimpleCondition {
   private:
-    Glib::Cond cond_;
-    Glib::Mutex lock_;
+    std::condition_variable cond_;
+    std::mutex lock_;
     unsigned int flag_;
     unsigned int waiting_;
   public:
@@ -172,56 +174,49 @@ namespace Arc {
     void signal(void) {
       lock_.lock();
       flag_ = 1;
-      cond_.signal();
+      cond_.notify_one();
       lock_.unlock();
     }
     /// Signal about condition without using semaphor.
     /** Call it *only* with lock acquired. */
     void signal_nonblock(void) {
       flag_ = 1;
-      cond_.signal();
+      cond_.notify_one();
     }
     /// Signal about condition to all waiting threads.
     /** If there are no waiting threads, it works like signal(). */
     void broadcast(void) {
       lock_.lock();
       flag_ = waiting_?waiting_:1;
-      cond_.broadcast();
+      cond_.notify_all();
       lock_.unlock();
     }
     /// Wait for condition.
     void wait(void) {
-      lock_.lock();
+      std::unique_lock<std::mutex> lock(lock_);
       ++waiting_;
-      while (!flag_) cond_.wait(lock_);
+      cond_.wait(lock, [this]() { return flag_ > 0; });
       --waiting_;
       --flag_;
-      lock_.unlock();
     }
     /// Wait for condition without using semaphor.
     /** Call it *only* with lock acquired. */
     void wait_nonblock(void) {
       ++waiting_;
-      while (!flag_) cond_.wait(lock_);
+      std::unique_lock<std::mutex> lock(lock_, std::defer_lock);
+      cond_.wait(lock, [this]() { return flag_ > 0; });
       --waiting_;
       --flag_;
     }
     /// Wait for condition no longer than t milliseconds.
     /** \return false if timeout occurred */
     bool wait(int t) {
-      lock_.lock();
-      Glib::TimeVal etime;
-      etime.assign_current_time();
-      etime.add_milliseconds(t);
-      bool res(true);
+      std::unique_lock<std::mutex> lock(lock_);
       ++waiting_;
-      while (!flag_) {
-        res = cond_.timed_wait(lock_, etime);
-        if (!res) break;
-      }
+      bool res = cond_.wait_for(lock, std::chrono::milliseconds(t),
+                                [this]() { return flag_ > 0; });
       --waiting_;
       if(res) --flag_;
-      lock_.unlock();
       return res;
     }
     /// Reset object to initial state.
@@ -243,8 +238,8 @@ namespace Arc {
       \headerfile Thread.h arc/Thread.h */
   class SimpleCounter {
   private:
-    Glib::Cond cond_;
-    Glib::Mutex lock_;
+    std::condition_variable cond_;
+    std::mutex lock_;
     int count_;
   public:
     SimpleCounter(void) : count_(0) {}
@@ -278,8 +273,8 @@ namespace Arc {
   /** \headerfile Thread.h arc/Thread.h */
   class TimedMutex {
   private:
-    Glib::Cond cond_;
-    Glib::Mutex lock_;
+    std::condition_variable cond_;
+    std::mutex lock_;
     bool locked_;
   public:
     TimedMutex(void):locked_(false) { };
@@ -287,22 +282,15 @@ namespace Arc {
     /// Lock mutex, but wait no longer than t milliseconds.
     /** \return false if timeout occurred. */
     bool lock(int t = -1) {
-      lock_.lock();
+      std::unique_lock<std::mutex> lock(lock_);
       if(t < 0) { // infinite
-        while(locked_) {
-          cond_.wait(lock_);
-        };
+        cond_.wait(lock, [this]() { return !locked_; });
       } else if(t > 0) { // timed
-        Glib::TimeVal etime;
-        etime.assign_current_time();
-        etime.add_milliseconds(t);
-        while(locked_) {
-          if(!cond_.timed_wait(lock_, etime)) break;
-        };
+        cond_.wait_for(lock, std::chrono::milliseconds(t),
+                       [this]() { return !locked_; });
       };
       bool res = !locked_;
-      locked_=true;
-      lock_.unlock();
+      if (res) locked_ = true;
       return res;
     };
     /// Returns true if mutex is currently locked, but does not attempt to acquire lock.
@@ -315,7 +303,7 @@ namespace Arc {
       bool res = locked_;
       if(res) {
         locked_ = false;
-        cond_.signal();
+        cond_.notify_one();
       };
       lock_.unlock();
       return true;
@@ -332,22 +320,22 @@ namespace Arc {
   /** \headerfile Thread.h arc/Thread.h */
   class SharedMutex {
   private:
-    Glib::Cond cond_;
-    Glib::Mutex lock_;
+    std::condition_variable cond_;
+    std::mutex lock_;
     unsigned int exclusive_;
-    Glib::Thread* thread_;
-    typedef std::map<Glib::Thread*,unsigned int> shared_list;
+    std::thread::id thread_;
+    typedef std::map<std::thread::id, unsigned int> shared_list;
     shared_list shared_;
     void add_shared_lock(void);
     void remove_shared_lock(void);
     bool have_shared_lock(void);
     inline bool have_exclusive_lock(void) {
       if(!exclusive_) return false;
-      if(thread_ == Glib::Thread::self()) return false;
+      if(thread_ == std::this_thread::get_id()) return false;
       return true;
     };
   public:
-    SharedMutex(void):exclusive_(0),thread_(NULL) { };
+    SharedMutex(void):exclusive_(0) { };
     ~SharedMutex(void) { };
     /// Acquire a shared lock. Blocks until exclusive lock is released.
     void lockShared(void);
@@ -403,8 +391,8 @@ namespace Arc {
      \headerfile Thread.h arc/Thread.h */
   class ThreadedPointerBase {
   private:
-    Glib::Mutex lock_;
-    Glib::Cond cond_;
+    std::mutex lock_;
+    std::condition_variable cond_;
     unsigned int cnt_;
     void *ptr_;
     bool released_;
@@ -419,9 +407,15 @@ namespace Arc {
     unsigned int cnt(void) const { return cnt_; };
     void lock(void) { lock_.lock(); };
     void unlock(void) { lock_.unlock(); };
-    void wait(void) { cond_.wait(lock_); };
-    bool wait(Glib::TimeVal etime) {
-      return cond_.timed_wait(lock_,etime);
+    template<class Predicate>
+    void wait(Predicate pred) {
+      std::unique_lock<std::mutex> lock (lock_);
+      cond_.wait(lock, pred);
+    };
+    template<class Predicate>
+    bool wait(int timeout, Predicate pred) {
+      std::unique_lock<std::mutex> lock (lock_);
+      return cond_.wait_for(lock, std::chrono::milliseconds(timeout), pred);
     };
   };
   /** \endcond */
@@ -509,15 +503,11 @@ namespace Arc {
     /// Waits till number of ThreadedPointer instances <= minThr or >= maxThr
     /* Returns current number of instances. */
     unsigned int WaitOutRange(unsigned int minThr, unsigned int maxThr) {
-      unsigned int r = 0;
-      object_->lock();
-      for(;;) {
+      unsigned int r;
+      object_->wait([this, &r, minThr, maxThr]() {
         r = object_->cnt();
-        if(r <= minThr) break;
-        if(r >= maxThr) break;
-        object_->wait();
-      };
-      object_->unlock();
+        return (r <= minThr) || (r >= maxThr);
+      });
       return r;
     }
     /// Waits till number of ThreadedPointer instances <= minThr or >= maxThr
@@ -525,31 +515,21 @@ namespace Arc {
        wait forever. Returns current number of instances. */
     unsigned int WaitOutRange(unsigned int minThr, unsigned int maxThr, int timeout) {
       if(timeout < 0) return WaitOutRange(minThr, maxThr);
-      unsigned int r = 0;
-      object_->lock();
-      Glib::TimeVal etime;
-      etime.assign_current_time();
-      etime.add_milliseconds(timeout);
-      for(;;) {
+      unsigned int r;
+      object_->wait(timeout, [this, &r, minThr, maxThr]() {
         r = object_->cnt();
-        if(r <= minThr) break;
-        if(r >= maxThr) break;
-        if(!object_->wait(etime)) break;
-      };
-      object_->unlock();
+        return (r <= minThr) || (r >= maxThr);
+      });
       return r;
     }
     /// Waits till number of ThreadedPointer instances >= minThr and <= maxThr
     /* Returns current number of instances. */
     unsigned int WaitInRange(unsigned int minThr, unsigned int maxThr) {
-      unsigned int r = 0;
-      object_->lock();
-      for(;;) {
+      unsigned int r;
+      object_->wait([this, &r, minThr, maxThr]() {
         r = object_->cnt();
-        if((r >= minThr) && (r <= maxThr)) break;
-        object_->wait();
-      };
-      object_->unlock();
+        return (r >= minThr) && (r <= maxThr);
+      });
       return r;
     }
     /// Waits till number of ThreadedPointer instances >= minThr and <= maxThr
@@ -557,17 +537,11 @@ namespace Arc {
        wait forever. Returns current number of instances. */
     unsigned int WaitInRange(unsigned int minThr, unsigned int maxThr, int timeout) {
       if(timeout < 0) return WaitInRange(minThr, maxThr);
-      unsigned int r = 0;
-      object_->lock();
-      Glib::TimeVal etime;
-      etime.assign_current_time();
-      etime.add_milliseconds(timeout);
-      for(;;) {
+      unsigned int r;
+      object_->wait(timeout, [this, &r, minThr, maxThr]() {
         r = object_->cnt();
-        if((r >= minThr) && (r <= maxThr)) break;
-        if(!object_->wait(etime)) break;
-      };
-      object_->unlock();
+        return (r >= minThr) && (r <= maxThr);
+      });
       return r;
     }
 
@@ -580,8 +554,8 @@ namespace Arc {
   private:
     int counter_;
     bool cancel_;
-    Glib::Cond cond_;
-    Glib::Mutex lock_;
+    std::condition_variable cond_;
+    std::mutex lock_;
   public:
     ThreadRegistry(void);
     ~ThreadRegistry(void);

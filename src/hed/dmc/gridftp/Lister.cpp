@@ -51,7 +51,7 @@ namespace ArcDMCGridFTP {
 
   std::map<void*,Lister*> Lister::callback_args;
 
-  Glib::Mutex Lister::callback_args_mutex;
+  std::mutex Lister::callback_args_mutex;
 
   void* Lister::remember_for_callback(Lister* it) {
     static void* last_arg = NULL;

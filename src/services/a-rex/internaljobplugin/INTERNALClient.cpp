@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include <sys/stat.h>
 
+#include <glibmm/fileutils.h>
+
 #include <arc/credential/Credential.h>
 #include <arc/credential/VOMSUtil.h>
 #include <arc/FileUtils.h>

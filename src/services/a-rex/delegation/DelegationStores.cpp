@@ -14,7 +14,7 @@ namespace ARex {
   }
 
   DelegationStores::~DelegationStores(void) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     for(std::map<std::string,DelegationStore*>::iterator i = stores_.begin();
                    i != stores_.end(); ++i) {
       delete i->second;
@@ -22,7 +22,7 @@ namespace ARex {
   }
 
   DelegationStore& DelegationStores::operator[](const std::string& path) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     std::map<std::string,DelegationStore*>::iterator i = stores_.find(path);
     if(i != stores_.end()) return *(i->second);
     DelegationStore* store = new DelegationStore(path,db_type_);

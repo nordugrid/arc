@@ -3,7 +3,10 @@
 #endif
 
 #include <iostream>
-#include <glibmm.h>
+
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
+
 #include <arc/XMLNode.h>
 #include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
@@ -12,6 +15,8 @@
 #include <arc/security/ArcPDP/Evaluator.h>
 
 #include "EvaluatorLoader.h"
+
+#include "glibmm-compat.h"
 
 Arc::Logger ArcSec::EvaluatorLoader::logger(Arc::Logger::rootLogger, "EvaluatorLoader");
 

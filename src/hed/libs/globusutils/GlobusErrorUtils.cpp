@@ -19,7 +19,7 @@ static Logger logger(Logger::getRootLogger(), "GLOBUS");
   // Here we have adjust_last_processed() trying to pick up such lost
   // error object and free them.
 
-  static Glib::StaticMutex last_processed_lock = GLIBMM_STATIC_MUTEX_INIT;
+  static std::mutex last_processed_lock;
   static globus_result_t last_processed = GLOBUS_SUCCESS+1;
   static const long int safety_gap = 10; // leave 10 last errors in cache in case something still needs them
   static const long int processing_limit = 100; // process no more than 100 lost error object at once

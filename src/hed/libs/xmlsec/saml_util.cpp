@@ -6,7 +6,6 @@
 #include <fstream>
 #include <sstream>
 
-#include <glibmm/fileutils.h>
 #include <unistd.h>
 #include <cstring>
 #include <zlib.h>

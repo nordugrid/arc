@@ -15,8 +15,6 @@
 #include <netinet/tcp.h>
 #include <fcntl.h>
 
-#include <glibmm.h>
-
 #include <arc/StringConv.h>
 #include <arc/Utils.h>
 #include <arc/HostnameResolver.h>

@@ -9,7 +9,10 @@
 #include <stdint.h>
 #endif
 #include <unistd.h>
+
 #include <map>
+
+#include <glibmm/miscutils.h>
 
 #include <arc/CheckSum.h>
 #include <arc/Logger.h>
@@ -56,7 +59,7 @@ using namespace Arc;
       uint64_t end;
     } chunk_t;
     std::list<chunk_t> chunks_;
-    Glib::Mutex lock_;
+    std::mutex lock_;
   public:
     ChunkControl(uint64_t size = UINT64_MAX);
     ~ChunkControl();

@@ -23,6 +23,8 @@
 
 #include "CoreConfig.h"
 
+#include "glibmm-compat.h"
+
 namespace ARex {
 
 Arc::Logger CoreConfig::logger(Arc::Logger::getRootLogger(), "CoreConfig");

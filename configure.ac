@@ -683,22 +683,15 @@ LIBS=$systemd_daemon_save_LIBS
 fi
 AC_SUBST(SYSTEMD_DAEMON_LIBS)
 
-# check gthread
-if test "$enables_hed" = "yes"; then
-PKG_CHECK_MODULES(GTHREAD, [gthread-2.0 >= 2.4.7])
-AC_SUBST(GTHREAD_CFLAGS)
-AC_SUBST(GTHREAD_LIBS)
-fi
-
 # check glibmm
-# check for giomm which became a part of glibmm as of version 2.16
+# check for API version 2.68 first, then API version 2.4
 if test "$enables_hed" = "yes"; then
-"$PKG_CONFIG" giomm-2.4
+"$PKG_CONFIG" glibmm-2.68
 if test "$?" = '1'; then
-  PKG_CHECK_MODULES(GLIBMM, [glibmm-2.4 >= 2.4.7])
+  PKG_CHECK_MODULES(GLIBMM, [giomm-2.4 glibmm-2.4])
 else
-  PKG_CHECK_MODULES(GLIBMM, [giomm-2.4])
-  AC_DEFINE(HAVE_GIOMM, 1, [define if giomm is supported in glibmm])
+  PKG_CHECK_MODULES(GLIBMM, [giomm-2.68 glibmm-2.68])
+  AC_DEFINE(HAVE_GLIBMM_268, 1, [define if using glibmm 2.68 API])
 fi
 AC_SUBST(GLIBMM_CFLAGS)
 AC_SUBST(GLIBMM_LIBS)

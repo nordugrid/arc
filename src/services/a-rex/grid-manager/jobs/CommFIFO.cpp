@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <string>
 #include <string.h>
 
 #include <sys/types.h>

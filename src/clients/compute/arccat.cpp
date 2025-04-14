@@ -8,6 +8,9 @@
 #include <list>
 #include <string>
 
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
+
 #include <arc/ArcLocation.h>
 #include <arc/IString.h>
 #include <arc/Logger.h>

@@ -1,15 +1,13 @@
 #ifndef __ARC_FILEACCESS_H__
 #define __ARC_FILEACCESS_H__
 
-#include <string>
 #include <list>
+#include <mutex>
+#include <string>
 
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-
-#include <glibmm.h>
-
 
 namespace Arc {
 
@@ -201,7 +199,7 @@ namespace Arc {
     /// Special method for using in unit tests.
     static void testtune(void);
   private:
-    Glib::Mutex lock_;
+    std::mutex lock_;
     Run* file_access_;
     int errno_;
     uid_t uid_;
@@ -242,7 +240,7 @@ namespace Arc {
     /// Adjust maximal number of stored objects.
     void SetMax(unsigned int val);
   private:
-    Glib::Mutex lock_;
+    std::mutex lock_;
     unsigned int min_;
     unsigned int max_;
     std::list<FileAccess*> fas_;

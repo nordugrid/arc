@@ -13,6 +13,7 @@
 #include <arc/StringConv.h>
 #include <arc/ArcRegex.h>
 
+#include "glibmm-compat.h"
 
 std::list< std::pair<Arc::RegularExpression,uint32_t> > priorities_map;
 

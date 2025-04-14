@@ -11,7 +11,6 @@
 #include <stdint.h>
 #endif
 
-#include <arc/Thread.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
 #include <arc/loader/ModuleManager.h>
@@ -153,7 +152,7 @@ namespace Arc {
   class PluginsFactory: public ModuleManager {
     friend class PluginArgument;
     private:
-      Glib::Mutex lock_;
+      std::mutex lock_;
 
       // Combined convenient description of module and
       // its representation inside module.
