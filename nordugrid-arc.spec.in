@@ -1,17 +1,6 @@
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
 
 #
-# Build dependency descrepancies across platforms
-#
-%if %{?suse_version:1}%{!?suse_version:0}
-%global glibmm2_devel  glibmm2-devel
-%global nss_devel mozilla-nss-devel
-%else
-%global glibmm2_devel  glibmm24-devel
-%global nss_devel nss-devel
-%endif
-
-#
 # xROOTd
 #
 %if %{?fedora}%{!?fedora:0} >= 24 || %{?rhel}%{!?rhel:0}
@@ -175,7 +164,11 @@ BuildRequires:	python%{python3_pkgversion}-wheel
 %if %{with_pylint}
 BuildRequires:	pylint
 %endif
-BuildRequires:	%{glibmm2_devel}
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 10
+BuildRequires:	glibmm2.68-devel
+%else
+BuildRequires:	glibmm24-devel
+%endif
 BuildRequires:	glib2-devel
 BuildRequires:	libxml2-devel
 BuildRequires:	openssl
@@ -184,7 +177,7 @@ BuildRequires:	openssl-devel
 BuildRequires:	xmlsec1-devel >= 1.2.4
 BuildRequires:	xmlsec1-openssl-devel >= 1.2.4
 %endif
-BuildRequires:	%{nss_devel}
+BuildRequires:	nss-devel
 BuildRequires:	globus-common-devel
 BuildRequires:	globus-ftp-client-devel
 BuildRequires:	globus-ftp-control-devel
@@ -629,7 +622,11 @@ ARC plugins dependent on Python.
 Summary:	ARC development files
 Group:		Development/Libraries
 Requires:	%{name} = %{version}-%{release}
-Requires:	%{glibmm2_devel}
+%if %{?fedora}%{!?fedora:0} || %{?rhel}%{!?rhel:0} >= 10
+Requires:	glibmm2.68-devel
+%else
+Requires:	glibmm24-devel
+%endif
 Requires:	glib2-devel
 Requires:	libxml2-devel
 Requires:	openssl-devel
