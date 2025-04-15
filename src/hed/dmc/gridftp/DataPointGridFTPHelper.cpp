@@ -6,6 +6,8 @@
 
 #include <openssl/ssl.h>
 
+#include <algorithm>
+
 #include <arc/Logger.h>
 #include <arc/ArcLocation.h>
 #include <arc/OptionParser.h>
@@ -42,7 +44,7 @@ namespace ArcDMCGridFTP {
     ChunkOffsetMatch(unsigned long long int offset):offset(offset) {};
     bool operator()(DataExternalComm::DataChunkClient const& other) const { return offset == other.getOffset(); };
    private:
-    unsigned long long int offset; 
+    unsigned long long int offset;
   };
 
   void DataPointGridFTPHelper::ftp_complete_callback(void *arg,
@@ -122,7 +124,7 @@ namespace ArcDMCGridFTP {
     if (!lister->retrieve_file_info(url,true)) return DataStatus::CheckError;
     if (lister->size() == 0) return DataStatus::CheckError;
     if (lister->size() != 1) {
-      // guess - that probably means it is directory 
+      // guess - that probably means it is directory
       // successful stat is enough to report successful access to a directory
       return DataStatus::Success;
     } else {
@@ -285,7 +287,7 @@ namespace ArcDMCGridFTP {
       }
       if (!cond.wait(1000*usercfg.Timeout())) {
         logger.msg(INFO, "mkdir_ftp: timeout waiting for mkdir");
-        // timeout - have to cancel operation here 
+        // timeout - have to cancel operation here
         GlobusResult(globus_ftp_client_abort(&ftp_handle));
         cond.wait();
         return false;
@@ -406,7 +408,7 @@ namespace ArcDMCGridFTP {
     }
     if(must_detach) {
       logger.msg(VERBOSE, "ftp_read_thread: failed to release buffers - leaking");
-      // Detach globus 
+      // Detach globus
       CBArg* cbarg_old = cbarg;
       cbarg = new CBArg(this);
       cbarg_old->abandon();
@@ -616,7 +618,7 @@ namespace ArcDMCGridFTP {
         break;
       }
       if(length != 0) dataChunk.release(); // pass ownership to globus
-      if((offset+length) > max_offset) max_offset = offset+length; 
+      if((offset+length) > max_offset) max_offset = offset+length;
 
       // Do we have any delayed buffers we could release?
       while(!delayed_chunks.empty()) {
@@ -642,10 +644,10 @@ namespace ArcDMCGridFTP {
           break;
         }
         if(length != 0) dataChunk.release(); // pass ownership to globus
-        max_offset = offset+length; 
+        max_offset = offset+length;
       }
       if(!res) break;
-      
+
       // Prevent pile up of buffers in memory
       while(data_counter.get() >= (ftp_threads*2)) {
         // Wait for some buffers to be released
@@ -807,7 +809,7 @@ namespace ArcDMCGridFTP {
         // reset to success since failing to get checksum should not trigger an error
         if (callback_status == EOPNOTSUPP)
           logger.msg(INFO, "list_files_ftp: no checksum information supported");
-        else 
+        else
           logger.msg(INFO, "list_files_ftp: no checksum information returned");
         callback_status = DataStatus::Success;
       }
@@ -837,7 +839,7 @@ namespace ArcDMCGridFTP {
     FileInfo file;
     if(lister->size() != 1) {
       logger.msg(VERBOSE, "Wrong number of objects (%i) for stat from ftp: %s", lister->size(), url.plainstr());
-      // guess - that probably means it is directory 
+      // guess - that probably means it is directory
       file.SetName(FileInfo(url.Path()).GetName());
       file.SetType(FileInfo::file_type_dir);
       return DataStatus::Success;
@@ -971,7 +973,7 @@ namespace ArcDMCGridFTP {
     //globus_module_activate(GLOBUS_FTP_CLIENT_MODULE);
     //if (!proxy_initialized)
     //  proxy_initialized = GlobusRecoverProxyOpenSSL();
-    // Activating globus only once because it looks like 
+    // Activating globus only once because it looks like
     // deactivation of GLOBUS_FTP_CONTROL_MODULE is not
     // handled properly on Windows. This should not cause
     // problems (except for valgrind) because this plugin
@@ -1154,7 +1156,7 @@ namespace ArcDMCGridFTP {
         if(!(--destroy_timeout)) break;
         // Unfortunately there is no sutable condition to wait for.
         // But such situation should happen very rarely if ever. I hope so.
-        // It is also expected Globus will call all pending callbacks here 
+        // It is also expected Globus will call all pending callbacks here
         // so it is free to destroy DataPointGridFTP and related objects.
         sleep(1);
       }
@@ -1166,7 +1168,7 @@ namespace ArcDMCGridFTP {
     if(destroy_timeout) {
       delete cbarg;
     } else {
-      // So globus maybe did not call all callbacks. Keeping 
+      // So globus maybe did not call all callbacks. Keeping
       // intermediate object.
       logger.msg(VERBOSE, "~DataPoint: failed to destroy ftp_handle - leaking");
     }

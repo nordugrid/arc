@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <unistd.h>
+
 #include <cppunit/extensions/HelperMacros.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -73,7 +75,7 @@ void ProcessorTest::TestPreClean() {
   processor.start();
   processor.receiveDTR(dtr);
   // sleep while thread deletes
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::PRE_CLEANED) Glib::usleep(100);
+  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::PRE_CLEANED) usleep(100);
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::PRE_CLEANED, dtr->get_status().GetStatus());
 
@@ -87,7 +89,7 @@ void ProcessorTest::TestPreClean() {
   processor.receiveDTR(dtr);
 
   // sleep while thread deletes
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::PRE_CLEANED) Glib::usleep(100);
+  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::PRE_CLEANED) usleep(100);
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR, dtr->get_error_status().GetErrorStatus());
   // PRE_CLEANED is the correct status even after an error
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::PRE_CLEANED, dtr->get_status().GetStatus());
@@ -134,7 +136,7 @@ void ProcessorTest::TestCacheCheck() {
   processor.receiveDTR(dtr);
 
   // sleep while thread checks cache
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_CHECKED) Glib::usleep(100);
+  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_CHECKED) usleep(100);
 
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::CACHE_CHECKED, dtr->get_status().GetStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::CACHEABLE, dtr->get_cache_state());
@@ -153,7 +155,7 @@ void ProcessorTest::TestCacheCheck() {
   processor.receiveDTR(dtr);
 
   // sleep while thread checks cache
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_WAIT) Glib::usleep(100);
+  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_WAIT) usleep(100);
 
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::CACHE_WAIT, dtr->get_status().GetStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::CACHE_LOCKED, dtr->get_cache_state());
@@ -172,7 +174,7 @@ void ProcessorTest::TestCacheCheck() {
   processor.receiveDTR(dtr);
 
   // sleep while thread checks cache
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_CHECKED) Glib::usleep(100);
+  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_CHECKED) usleep(100);
 
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::CACHE_CHECKED, dtr->get_status().GetStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::CACHE_ALREADY_PRESENT, dtr->get_cache_state());
@@ -193,7 +195,7 @@ void ProcessorTest::TestCacheCheck() {
   processor.receiveDTR(dtr);
 
   // sleep while thread checks cache
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_CHECKED) Glib::usleep(100);
+  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_CHECKED) usleep(100);
 
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::CACHE_CHECKED, dtr->get_status().GetStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::CACHEABLE, dtr->get_cache_state());
@@ -221,7 +223,7 @@ void ProcessorTest::TestResolve() {
 
   // sleep while thread resolves
   while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED)
-    Glib::usleep(100);
+    usleep(100);
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
 
@@ -241,7 +243,7 @@ void ProcessorTest::TestResolve() {
   processor.receiveDTR(dtr);
 
   // sleep while thread resolves
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) Glib::usleep(100);
+  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) usleep(100);
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
 
@@ -266,7 +268,7 @@ void ProcessorTest::TestResolve() {
   processor.receiveDTR(dtr);
 
   // sleep while thread resolves
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) Glib::usleep(100);
+  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) usleep(100);
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
 
@@ -289,7 +291,7 @@ void ProcessorTest::TestResolve() {
   processor.receiveDTR(dtr);
 
   // sleep while thread resolves
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) Glib::usleep(100);
+  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) usleep(100);
   // will fail since force_registration is not set
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::PERMANENT_REMOTE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
@@ -302,7 +304,7 @@ void ProcessorTest::TestResolve() {
   processor.receiveDTR(dtr);
 
   // sleep while thread resolves
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) Glib::usleep(100);
+  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::RESOLVED) usleep(100);
   // should be successful now
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::RESOLVED, dtr->get_status().GetStatus());
@@ -331,7 +333,7 @@ void ProcessorTest::TestQueryReplica() {
   processor.receiveDTR(dtr);
 
   // sleep while replica is queried
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::REPLICA_QUERIED) Glib::usleep(100);
+  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::REPLICA_QUERIED) usleep(100);
 
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::REPLICA_QUERIED, dtr->get_status().GetStatus());
@@ -347,7 +349,7 @@ void ProcessorTest::TestQueryReplica() {
   processor.receiveDTR(dtr);
 
   // sleep while replica is queried
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::REPLICA_QUERIED) Glib::usleep(100);
+  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::REPLICA_QUERIED) usleep(100);
 
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::REPLICA_QUERIED, dtr->get_status().GetStatus());
@@ -384,7 +386,7 @@ void ProcessorTest::TestReplicaRegister() {
   processor.receiveDTR(dtr);
 
   // sleep while thread resgisters
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::REPLICA_REGISTERED) Glib::usleep(100);
+  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::REPLICA_REGISTERED) usleep(100);
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::REPLICA_REGISTERED, dtr->get_status().GetStatus());
 
@@ -433,7 +435,7 @@ void ProcessorTest::TestCacheProcess() {
   processor.receiveDTR(dtr);
 
   // sleep while cache is processed
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_PROCESSED) Glib::usleep(100);
+  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_PROCESSED) usleep(100);
 
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::CACHE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::CACHE_PROCESSED, dtr->get_status().GetStatus());
@@ -452,7 +454,7 @@ void ProcessorTest::TestCacheProcess() {
   processor.receiveDTR(dtr);
 
   // sleep while cache is processed
-  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_PROCESSED) Glib::usleep(100);
+  while (dtr->get_status().GetStatus() != DataStaging::DTRStatus::CACHE_PROCESSED) usleep(100);
 
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::CACHE_PROCESSED, dtr->get_status().GetStatus());

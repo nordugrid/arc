@@ -14,14 +14,14 @@
 #include "DataDeliveryRemoteComm.h"
 
 namespace DataStaging {
-	
+
   Arc::Logger Scheduler::logger(Arc::Logger::getRootLogger(), "DataStaging.Scheduler");
-  
+
   Scheduler* Scheduler::scheduler_instance = NULL;
-  Glib::Mutex Scheduler::instance_lock;
+  std::mutex Scheduler::instance_lock;
 
   Scheduler* Scheduler::getInstance() {
-    Glib::Mutex::Lock lock(instance_lock);
+    std::unique_lock<std::mutex> lock(instance_lock);
     if (!scheduler_instance) {
       scheduler_instance = new Scheduler();
     }
@@ -118,7 +118,7 @@ namespace DataStaging {
     Arc::Logger::getRootLogger().removeDestinations();
   }
 
-  /* Function to sort the list of the pointers to DTRs 
+  /* Function to sort the list of the pointers to DTRs
    * according to the priorities the DTRs have.
    * DTRs with higher priority go first to the beginning,
    * with lower -- to the end
@@ -234,7 +234,7 @@ namespace DataStaging {
     else {
       // Ready to copy mapped file
       // Assume that mapped urls are not index services or stageable
-      // TODO: handle case when mapped url is index 
+      // TODO: handle case when mapped url is index
       request->set_mapped_source(mapped_url.str());
       request->set_status(DTRStatus::STAGED_PREPARED);
       return true;
@@ -269,7 +269,7 @@ namespace DataStaging {
       }
     }
   }
-  
+
   void Scheduler::ProcessDTRCACHE_WAIT(DTR_ptr request){
     // The waiting time should be calculated within DTRList so
     // by the time we are here we know to query the cache again
@@ -294,16 +294,16 @@ namespace DataStaging {
       request->set_status(DTRStatus::CHECK_CACHE);
     }
   }
-  
+
   void Scheduler::ProcessDTRCACHE_CHECKED(DTR_ptr request){
     // There's no need to check additionally for cache error
     // If the error has occurred -- we just proceed the normal
     // workflow as if it was not cached at all.
     // But we should clear error flag if it was set by the pre-processor
 
-    //setting timeout back to 1 hour, was set to 1 day in ProcessDTRNEW(). 
+    //setting timeout back to 1 hour, was set to 1 day in ProcessDTRNEW().
     request->set_timeout(3600);
-    
+
     request->reset_error_status();
     if (request->get_cache_state() == CACHEABLE) DtrList.caching_started(request);
 
@@ -321,7 +321,7 @@ namespace DataStaging {
       request->set_status(DTRStatus::RESOLVED);
     }
   }
-  
+
   void Scheduler::ProcessDTRRESOLVED(DTR_ptr request){
     if(request->error()){
       // It's impossible to download anything, since no replica location is resolved
@@ -346,7 +346,7 @@ namespace DataStaging {
       request->set_status(DTRStatus::QUERY_REPLICA);
     }
   }
-  
+
   void Scheduler::ProcessDTRREPLICA_QUERIED(DTR_ptr request){
     if(request->error()){
       // go to finalising replica
@@ -410,7 +410,7 @@ namespace DataStaging {
       request->set_status(DTRStatus::STAGED_PREPARED);
     }
   }
-  
+
   void Scheduler::ProcessDTRSTAGING_PREPARING_WAIT(DTR_ptr request){
     // The waiting time should be calculated within DTRList so
     // by the time we are here we know to query the request again
@@ -444,7 +444,7 @@ namespace DataStaging {
       request->set_status(DTRStatus::STAGE_PREPARE);
     }
   }
-  
+
   void Scheduler::ProcessDTRSTAGED_PREPARED(DTR_ptr request){
     if(request->error()){
       // We have to try another replica if the source failed to stage
@@ -481,7 +481,7 @@ namespace DataStaging {
     request->set_timeout(7200);
     request->set_status(DTRStatus::TRANSFER);
   }
-  
+
   void Scheduler::ProcessDTRTRANSFERRED(DTR_ptr request){
     // We don't check if error has happened - if it has the post-processor
     // will take needed steps in RELEASE_REQUEST in any case. The error flag
@@ -561,7 +561,7 @@ namespace DataStaging {
       request->set_status(DTRStatus::CACHE_PROCESSED);
     }
   }
-  
+
   void Scheduler::ProcessDTRCACHE_PROCESSED(DTR_ptr request){
     // Final stage within scheduler. Retries are initiated from here if necessary,
     // otherwise report success or failure to generator
@@ -657,18 +657,18 @@ namespace DataStaging {
       request->set_status(DTRStatus::DONE);
     }
   }
-  
-  void Scheduler::ProcessDTRFINAL_STATE(DTR_ptr request){
-  	// This is the only place where the DTR is returned to the generator
-  	// and deleted from the global list
 
-  	// Return to the generator
+  void Scheduler::ProcessDTRFINAL_STATE(DTR_ptr request){
+        // This is the only place where the DTR is returned to the generator
+        // and deleted from the global list
+
+        // Return to the generator
     request->get_logger()->msg(Arc::INFO, "Returning to generator");
     DTR::push(request, GENERATOR);
     // Delete from the global list
     DtrList.delete_dtr(request);
   }
-  
+
   void Scheduler::map_state_and_process(DTR_ptr request){
     // For cancelled DTRs set the appropriate post-processor state
     if(request->cancel_requested()) map_cancel_state(request);
@@ -702,7 +702,7 @@ namespace DataStaging {
     }
 
   }
-  
+
   void Scheduler::map_cancel_state(DTR_ptr request){
     switch (request->get_status().GetStatus()) {
       case DTRStatus::NEW:
@@ -768,7 +768,7 @@ namespace DataStaging {
       default: break; //Do Nothing
     }
   }
-  
+
   void Scheduler::map_stuck_state(DTR_ptr request) {
     switch (request->get_status().GetStatus()) {
       case DTRStatus::CHECKING_CACHE:
@@ -980,7 +980,7 @@ namespace DataStaging {
   }
 
   void Scheduler::process_events(void){
-    
+
     Arc::Time now;
     event_lock.lock();
 
@@ -1328,11 +1328,11 @@ namespace DataStaging {
     if (in_reference && !transferSharesConf.is_configured(DtrTransferShare)) {
       transferSharesConf.set_reference_share(DtrTransferShare, priority);
     }
-    
+
     // Compute the priority this DTR receives - this is the priority of the
     // share adjusted by the priority of the parent job
     request->set_priority(int(transferSharesConf.get_basic_priority(DtrTransferShare) * request->get_priority() * 0.01));
-    /* Shares part ends*/               
+    /* Shares part ends*/
 
     DtrList.add_dtr(request);
     add_event(request);
@@ -1386,7 +1386,7 @@ namespace DataStaging {
   }
 
   void Scheduler::main_thread (void) {
-  	
+
     logger.msg(Arc::INFO, "Scheduler starting up");
     logger.msg(Arc::INFO, "Scheduler configuration:");
     logger.msg(Arc::INFO, "  Pre-processor slots: %u", PreProcessorSlots);
@@ -1431,7 +1431,7 @@ namespace DataStaging {
       // Revise all the internal queues and take actions
       revise_queues();
 
-      Glib::usleep(50000);
+      usleep(50000);
     }
     // make sure final state is dumped before exit
     dump_signal.signal();
@@ -1440,5 +1440,5 @@ namespace DataStaging {
     log_to_root_logger(Arc::INFO, "Scheduler loop exited");
     run_signal.signal();
   }
-  
+
 } // namespace DataStaging

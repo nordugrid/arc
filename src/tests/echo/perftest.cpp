@@ -4,12 +4,13 @@
 
 // perftest.cpp
 
-#include <iostream>
+#include <chrono>
+#include <cmath>
 #include <fstream>
+#include <iostream>
+#include <mutex>
 #include <string>
-#include <stdlib.h>
-#include <glibmm/thread.h>
-#include <glibmm/timer.h>
+#include <thread>
 
 #include <arc/ArcConfig.h>
 #include <arc/message/MCCLoader.h>
@@ -20,15 +21,15 @@
 #include <arc/Logger.h>
 
 // Some global shared variables...
-Glib::Mutex* mutex;
+std::mutex mutex;
 bool run;
 int finishedThreads;
 unsigned long completedRequests;
 unsigned long failedRequests;
 unsigned long totalRequests;
-Glib::TimeVal completedTime;
-Glib::TimeVal failedTime;
-Glib::TimeVal totalTime;
+std::chrono::system_clock::duration completedTime;
+std::chrono::system_clock::duration failedTime;
+std::chrono::system_clock::duration totalTime;
 
 // The configuration string.
 std::string confString = "\
@@ -57,17 +58,12 @@ std::string confString = "\
 
 // Replace a substring by another substring.
 void replace(std::string& str,
-	     const std::string& out,
-	     const std::string& in)
+             const std::string& out,
+             const std::string& in)
 {
   std::string::size_type index = str.find(out);
   if (index!=std::string::npos)
     str.replace(index, out.size(), in);
-}
-
-// Round off a double to an integer.
-int Round(double x){
-  return int(x+0.5);
 }
 
 // Send requests and collect statistics.
@@ -75,14 +71,12 @@ void sendRequests(){
   // Some variables...
   unsigned long completedRequests = 0;
   unsigned long failedRequests = 0;
-  Glib::TimeVal completedTime(0,0);
-  Glib::TimeVal failedTime(0,0);
-  Glib::TimeVal tBefore;
-  Glib::TimeVal tAfter;
+  std::chrono::system_clock::duration completedTime;
+  std::chrono::system_clock::duration failedTime;
   bool connected;
-      
+
   while(run){
-    
+
     // Create a client chain.
     Arc::Config client_config(confString);
     if(!client_config) {
@@ -113,17 +107,17 @@ void sendRequests(){
       reqmsg.Payload(&req);
       repmsg.Attributes(&attributes_rep);
       repmsg.Context(&context);
-      
+
       // Send the request and time it.
-      tBefore.assign_current_time();
+      auto tBefore = std::chrono::system_clock::now();
       Arc::MCC_Status status = client_entry->process(reqmsg,repmsg);
-      tAfter.assign_current_time();
-      
+      auto tAfter = std::chrono::system_clock::now();
+
       if(!status) {
         // Request failed.
         failedRequests++;
         failedTime+=tAfter-tBefore;
-	    connected=false;
+        connected=false;
       } else {
         Arc::PayloadSOAP* resp = NULL;
         if(repmsg.Payload() != NULL) {
@@ -159,7 +153,7 @@ void sendRequests(){
   }
 
   // Update global variables.
-  Glib::Mutex::Lock lock(*mutex);
+  std::unique_lock<std::mutex> lock(mutex);
   ::completedRequests+=completedRequests;
   ::failedRequests+=failedRequests;
   ::completedTime+=completedTime;
@@ -176,12 +170,11 @@ int main(int argc, char* argv[]){
   int numberOfThreads;
   int duration;
   int i;
-  Glib::Thread** threads;
+  std::thread* threads;
   const char* config_file = NULL;
   int debug_level = -1;
   Arc::LogStream logcerr(std::cerr);
 
-  // Process options - quick hack, must use Glib options later
   while(argc >= 3) {
     if(strcmp(argv[1],"-c") == 0) {
       config_file = argv[2];
@@ -192,7 +185,7 @@ int main(int argc, char* argv[]){
     } else {
       break;
     };
-  } 
+  }
   if(config_file) {
     std::ifstream f(config_file);
     if(!f) {
@@ -208,19 +201,19 @@ int main(int argc, char* argv[]){
   // Extract command line arguments.
   if (argc!=5){
     std::cerr << "Wrong number of arguments!" << std::endl
-	      << std::endl
-	      << "Usage:" << std::endl
-	      << "perftest [-c config] [-d debug] host port threads duration" << std::endl
-	      << std::endl
-	      << "Arguments:" << std::endl
-	      << "host     The name of the host of the service." << std::endl
-	      << "port     The port to use on the host." << std::endl
-	      << "threads  The number of concurrent requests." << std::endl
-	      << "duration The duration of the test in seconds." << std::endl
-	      << "config   The file containing client chain XML configuration with " << std::endl
+              << std::endl
+              << "Usage:" << std::endl
+              << "perftest [-c config] [-d debug] host port threads duration" << std::endl
+              << std::endl
+              << "Arguments:" << std::endl
+              << "host     The name of the host of the service." << std::endl
+              << "port     The port to use on the host." << std::endl
+              << "threads  The number of concurrent requests." << std::endl
+              << "duration The duration of the test in seconds." << std::endl
+              << "config   The file containing client chain XML configuration with " << std::endl
               << "         'soap' entry point and HOSTNAME, PORTNUMBER and PATH " << std::endl
               << "         keyword for hostname, port and HTTP path of 'echo' service." << std::endl
-	      << "debug    The textual representation of desired debug level. Available " << std::endl
+              << "debug    The textual representation of desired debug level. Available " << std::endl
               << "         levels: DEBUG, VERBOSE, INFO, WARNING, ERROR, FATAL." << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -228,7 +221,7 @@ int main(int argc, char* argv[]){
   portNumber = std::string(argv[2]);
   numberOfThreads = atoi(argv[3]);
   duration = atoi(argv[4]);
-  
+
   // Insert host name and port number into the configuration string.
   replace(confString, "HOSTNAME", serviceHost);
   replace(confString, "PORTNUMBER", portNumber);
@@ -237,54 +230,52 @@ int main(int argc, char* argv[]){
   // Start threads.
   run=true;
   finishedThreads=0;
-  //Glib::thread_init();
-  mutex=new Glib::Mutex;
-  threads = new Glib::Thread*[numberOfThreads];
+  threads = new std::thread[numberOfThreads];
   for (i=0; i<numberOfThreads; i++)
-    threads[i]=Glib::Thread::create(sigc::ptr_fun(sendRequests),true);
+    threads[i] = std::thread(sendRequests);
 
   // Sleep while the threads are working.
-  Glib::usleep(duration*1000000);
+  std::this_thread::sleep_for(std::chrono::seconds(duration));
 
   // Stop the threads
   run=false;
   while(finishedThreads<numberOfThreads)
-    Glib::usleep(100000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Print the result of the test.
-  Glib::Mutex::Lock lock(*mutex);
+  std::unique_lock<std::mutex> lock(mutex);
   totalRequests = completedRequests+failedRequests;
   totalTime = completedTime+failedTime;
   std::cout << "========================================" << std::endl;
   std::cout << "Host: "
-	    << serviceHost << std::endl;
+            << serviceHost << std::endl;
   std::cout << "Port: "
-	    << portNumber << std::endl;
+            << portNumber << std::endl;
   std::cout << "Number of threads: "
-	    << numberOfThreads << std::endl;
+            << numberOfThreads << std::endl;
   std::cout << "Duration: "
-	    << duration << " s" << std::endl;
+            << duration << " s" << std::endl;
   std::cout << "Number of requests: "
-	    << totalRequests << std::endl;
+            << totalRequests << std::endl;
   std::cout << "Completed requests: "
-	    << completedRequests << " ("
-	    << Round(completedRequests*100.0/totalRequests)
-	    << "%)" << std::endl;
+            << completedRequests << " ("
+            << rint(completedRequests * 100.0 / totalRequests)
+            << "%)" << std::endl;
   std::cout << "Failed requests: "
-	    << failedRequests << " ("
-	    << Round(failedRequests*100.0/totalRequests)
-	    << "%)" << std::endl;
+            << failedRequests << " ("
+            << rint(failedRequests * 100.0 / totalRequests)
+            << "%)" << std::endl;
   std::cout << "Average response time for all requests: "
-	    << Round(1000*totalTime.as_double()/totalRequests)
-	    << " ms" << std::endl;
+            << rint(std::chrono::duration<double, std::milli>(totalTime).count() / totalRequests)
+            << " ms" << std::endl;
   if (completedRequests!=0)
     std::cout << "Average response time for completed requests: "
-	      << Round(1000*completedTime.as_double()/completedRequests)
-	      << " ms" << std::endl;
+              << rint(std::chrono::duration<double, std::milli>(completedTime).count() / completedRequests)
+              << " ms" << std::endl;
   if (failedRequests!=0)
     std::cout << "Average response time for failed requests: "
-	      << Round(1000*failedTime.as_double()/failedRequests)
-	      << " ms" << std::endl;
+              << rint(std::chrono::duration<double, std::milli>(failedTime).count() / failedRequests)
+              << " ms" << std::endl;
   std::cout << "========================================" << std::endl;
 
   return 0;

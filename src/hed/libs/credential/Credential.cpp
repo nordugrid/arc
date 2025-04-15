@@ -14,7 +14,6 @@
 
 #include <glibmm/fileutils.h>
 
-#include <arc/Thread.h>
 #include <arc/Utils.h>
 #include <arc/User.h>
 #include <arc/crypto/OpenSSL.h>
@@ -22,6 +21,8 @@
 #include <arc/credential/VOMSUtil.h>
 
 #include "Credential.h"
+
+#include "glibmm-compat.h"
 
 using namespace ArcCredential;
 
@@ -624,7 +625,7 @@ namespace Arc {
         cb_data.password = &passphrase;
         if(!(pkey = PEM_read_bio_PrivateKey(keybio, NULL, passwordcb, &cb_data))) {
           int reason = ERR_GET_REASON(ERR_peek_error());
-          if(reason == PEM_R_BAD_BASE64_DECODE) 
+          if(reason == PEM_R_BAD_BASE64_DECODE)
             throw CredentialError("Can not read PEM private key: probably bad password");
           if(reason == PEM_R_BAD_DECRYPT)
             throw CredentialError("Can not read PEM private key: failed to decrypt");
@@ -649,7 +650,7 @@ namespace Arc {
   static bool proxy_init_ = false;
 
   void Credential::InitProxyCertInfo(void) {
-    static Glib::Mutex lock_;
+    static std::mutex lock_;
 
     // At least in some versions of OpenSSL functions manupulating
     // global lists seems to be not thread-safe despite locks
@@ -657,7 +658,7 @@ namespace Arc {
     // such calls.
     // It is also good idea to protect proxy_init_ too.
 
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     if(proxy_init_) return;
 
     /* Proxy Certificate Extension's related objects */
@@ -1021,7 +1022,7 @@ namespace Arc {
       CredentialLogger.msg(ERROR, "Certificate/Proxy path is empty");
       return;
     }
-    
+
     //Initiate the proxy certificate constant and  method which is required by openssl
     if(!proxy_init_) InitProxyCertInfo();
 
@@ -1080,7 +1081,7 @@ namespace Arc {
           LogError(); break; //return;
         }
         if (!sk_X509_EXTENSION_push(extensions_, ext)) {
-          CredentialLogger.msg(ERROR,"Failed to add extension into credential extensions"); 
+          CredentialLogger.msg(ERROR,"Failed to add extension into credential extensions");
           X509_EXTENSION_free(ext);
           LogError(); break;
         }
@@ -1909,7 +1910,7 @@ err:
 
   bool Credential::AddExtension(const std::string& name, const std::string& data, bool crit, int type) {
     X509_EXTENSION* ext = NULL;
-    
+
     if(type == -1) { // -1 - raw
       ext = CreateExtension(name, data, crit);
     } else {
@@ -1969,19 +1970,19 @@ err:
                //New style ASN1
                extstr = ASN1_item_d2i(NULL, &ext_value_data, extvalue->length,
                                       ASN1_ITEM_ptr(method->it));
-          } 
+          }
           else {
                //Old style ASN1
                extstr = method->d2i(NULL, &ext_value_data, extvalue->length);
           }
-          
+
           val = method->i2v(method, extstr, NULL);
           for (int j = 0; j < sk_CONF_VALUE_num(val); j++) {
             nval = sk_CONF_VALUE_value(val, j);
             std::string name = nval->name;
             std::string val = nval->value;
             if(!val.empty()) res = name + ":" + val;
-            else res = name;   
+            else res = name;
           }
         }
       }
@@ -2232,9 +2233,9 @@ err:
      * has not been considered for now
      */
     for(X509_EXTENSION* ext = X509_delete_ext(proxy_cert,0); ext; ext = X509_delete_ext(proxy_cert,0)) {
-    	X509_EXTENSION_free(ext);
-    }; 
-    
+        X509_EXTENSION_free(ext);
+    };
+
     /*Set the serialNumber*/
     //cert_info->serialNumber = M_ASN1_INTEGER_dup(X509_get_serialNumber(proxy_cert));;
 
@@ -2569,8 +2570,8 @@ err:
     if(!serialfile.empty()) serial_f = serialfile;
     else if(!CAfile.empty()){
       std::size_t pos; pos = CAfile.rfind(".");
-      if(pos != std::string::npos) serial_f = CAfile.substr(0, pos); 
-      serial_f.append(".srl"); 
+      if(pos != std::string::npos) serial_f = CAfile.substr(0, pos);
+      serial_f.append(".srl");
     }
     else{ return bs;}
 
@@ -2615,8 +2616,8 @@ err:
       if( bs == NULL || !rand_serial(NULL,bs)) {
         CredentialLogger.msg(ERROR,"Out of memory when generate random serial");
         goto end;
-      } 
-      //bs = s2i_ASN1_INTEGER(NULL, "1"); 
+      }
+      //bs = s2i_ASN1_INTEGER(NULL, "1");
     }
 
     //X509_STORE_CTX_set_cert(&xsc,x);
@@ -2787,7 +2788,7 @@ error:
   bool Credential::SelfSignEECRequest(const std::string& dn, const char* extfile, const std::string& extsect, const char* certfile) {
     if(extfile != NULL){ extfile_ = extfile; }
     if(!extsect.empty()){ extsect_ = extsect; }
-    cert_ = X509_new(); 
+    cert_ = X509_new();
     if(!dn.empty()) {
       X509_NAME *name = parse_name((char*)(dn.c_str()), MBSTRING_ASC, 0);
       X509_set_subject_name(cert_, name);
@@ -2919,9 +2920,9 @@ error:
 
     //Add extensions to certificate object
     for(X509_EXTENSION* ext = X509_delete_ext(eec_cert, 0); ext; ext = X509_delete_ext(eec_cert, 0)) {
-    	X509_EXTENSION_free(ext);
+        X509_EXTENSION_free(ext);
     }
-   
+
     for (int i=0; i<sk_X509_EXTENSION_num(eec->extensions_); i++) {
       X509_EXTENSION* ext = sk_X509_EXTENSION_value(eec->extensions_, i);
       if (ext == NULL) {

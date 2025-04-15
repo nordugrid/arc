@@ -23,15 +23,15 @@ namespace DataStaging {
  * \ingroup datastaging
  * \headerfile Scheduler.h arc/data-staging/Scheduler.h
  */
-class Scheduler: public DTRCallback {	
+class Scheduler: public DTRCallback {
 
   private:
-  
+
     /// All the DTRs the scheduler is aware of.
     /** The DTR comes to this list once received from the generator
      * and leaves the list only when pushed back to the generator. */
     DTRList DtrList;
-    
+
     /// A list of jobs that have been requested to be cancelled.
     /** External threads add items to this list, and the Scheduler
      * processes it during the main loop. */
@@ -54,7 +54,7 @@ class Scheduler: public DTRCallback {
 
     /// Preferred pattern to match replicas defined in configuration
     std::string preferred_pattern;
-      
+
     /// Lock to protect multi-threaded access to start() and stop()
     Arc::SimpleCondition state_lock;
 
@@ -119,7 +119,7 @@ class Scheduler: public DTRCallback {
     static Scheduler* scheduler_instance;
 
     /// Lock for multiple threads getting static Scheduler instance
-    static Glib::Mutex instance_lock;
+    static std::mutex instance_lock;
 
     /// Copy constructor is private because Scheduler should not be copied
     Scheduler(const Scheduler&); // should not happen
@@ -158,7 +158,7 @@ class Scheduler: public DTRCallback {
     /* This is a special function to deal with states after which
      * the DTR is returned to the generator, i.e. DONE, ERROR, CANCELLED */
     void ProcessDTRFINAL_STATE(DTR_ptr request);
-    
+
     /// Log a message to the root logger. This sends the message to the log
     /// destinations attached to the root logger at the point the Scheduler
     /// was started.
@@ -166,12 +166,12 @@ class Scheduler: public DTRCallback {
 
     /// Call the appropriate Process method depending on the DTR state
     void map_state_and_process(DTR_ptr request);
-    
+
     /// Maps the DTR to the appropriate state when it is cancelled.
     /** This is a separate function, since cancellation request
      * can arrive at any time, breaking the normal workflow. */
     void map_cancel_state(DTR_ptr request);
-    
+
     /// Map a DTR stuck in a processing state to new state from which it can
     /// recover and retry.
     void map_stuck_state(DTR_ptr request);
@@ -190,7 +190,7 @@ class Scheduler: public DTRCallback {
 
     /// Process the pool of DTRs which have arrived from other processes
     void process_events(void);
-    
+
     /// Move to the next replica in the DTR.
     /** Utility function which should be called in the case of error
      * if the next replica should be tried. It takes care of sending
@@ -216,7 +216,7 @@ class Scheduler: public DTRCallback {
     void main_thread(void);
 
   public:
-  
+
     /// Get static instance of Scheduler, to use one DTR instance with multiple generators.
     /**
      * Configuration of Scheduler by Set* methods can only be done before
@@ -283,7 +283,7 @@ class Scheduler: public DTRCallback {
      * by destroying its instance.
      */
     bool start(void);
-    
+
     /// Callback method implemented from DTRCallback.
     /**
      * This method is called by the generator when it wants to pass a DTR
@@ -291,7 +291,7 @@ class Scheduler: public DTRCallback {
      * scheduler after processing.
      */
     virtual void receiveDTR(DTR_ptr dtr);
-    
+
     /// Tell the Scheduler to cancel all the DTRs in the given job description
     bool cancelDTRs(const std::string& jobid);
 

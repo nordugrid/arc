@@ -10,10 +10,10 @@ namespace Arc {
 
 class MutexSLock {
  private:
-  Glib::Mutex& mutex_;
+  std::mutex& mutex_;
   bool locked_;
  public:
-  MutexSLock(Glib::Mutex& mutex,bool lock = true):mutex_(mutex),locked_(false) {
+  MutexSLock(std::mutex& mutex,bool lock = true):mutex_(mutex),locked_(false) {
     if(lock) { mutex_.lock(); locked_=true; };
   };
   ~MutexSLock(void) {

@@ -6,14 +6,14 @@
 
 // Counter.cpp
 
-#include <cstdlib>
-
 #include "Counter.h"
 
 namespace Arc {
 
-  const Glib::TimeVal ETERNAL(G_MAXLONG, 0);
-  const Glib::TimeVal HISTORIC(G_MINLONG, 0);
+  const std::chrono::system_clock::duration ETERNAL =
+    std::chrono::system_clock::duration::max();
+  const std::chrono::system_clock::duration HISTORIC =
+    std::chrono::system_clock::duration::min();
 
   Counter::Counter() {
     // Nothing needs to be done.
@@ -23,27 +23,28 @@ namespace Arc {
     // Nothing needs to be done.
   }
 
-  Glib::TimeVal Counter::getCurrentTime() {
-    Glib::TimeVal currentTime;
-    currentTime.assign_current_time();
-    return currentTime;
+  std::chrono::system_clock::time_point Counter::getCurrentTime() {
+    return std::chrono::system_clock::now();
   }
 
-  Glib::TimeVal Counter::getExpiryTime(Glib::TimeVal duration) {
+  std::chrono::system_clock::time_point
+  Counter::getExpiryTime(std::chrono::system_clock::duration duration) {
     if (duration < ETERNAL)
       return getCurrentTime() + duration;
     else
-      return ETERNAL;
+      return std::chrono::system_clock::time_point(ETERNAL);
   }
 
-  CounterTicket Counter::getCounterTicket(Counter::IDType reservationID,
-                                          Glib::TimeVal expiryTime,
-                                          Counter *counter) {
+  CounterTicket
+  Counter::getCounterTicket(Counter::IDType reservationID,
+                            std::chrono::system_clock::time_point expiryTime,
+                            Counter *counter) {
     return CounterTicket(reservationID, expiryTime, counter);
   }
 
-  ExpirationReminder Counter::getExpirationReminder(Glib::TimeVal expTime,
-                                                    Counter::IDType resID) {
+  ExpirationReminder
+  Counter::getExpirationReminder(std::chrono::system_clock::time_point expTime,
+                                 Counter::IDType resID) {
     return ExpirationReminder(expTime, resID);
   }
 
@@ -55,7 +56,7 @@ namespace Arc {
   }
 
   CounterTicket::CounterTicket(Counter::IDType reservationID,
-                               Glib::TimeVal expiryTime,
+                               std::chrono::system_clock::time_point expiryTime,
                                Counter *counter)
     : reservationID(reservationID),
       expiryTime(expiryTime),
@@ -67,18 +68,18 @@ namespace Arc {
     return expiryTime > counter->getCurrentTime();
   }
 
-  void CounterTicket::extend(Glib::TimeVal duration) {
+  void CounterTicket::extend(std::chrono::system_clock::duration duration) {
     counter->extend(reservationID, expiryTime, duration);
   }
 
   void CounterTicket::cancel() {
     counter->cancel(reservationID);
     reservationID = 0;
-    expiryTime = HISTORIC;
+    expiryTime = std::chrono::system_clock::time_point(HISTORIC);
     counter = 0;
   }
 
-  ExpirationReminder::ExpirationReminder(Glib::TimeVal expiryTime,
+  ExpirationReminder::ExpirationReminder(std::chrono::system_clock::time_point expiryTime,
                                          Counter::IDType reservationID)
     : expiryTime(expiryTime),
       reservationID(reservationID) {
@@ -90,11 +91,13 @@ namespace Arc {
     return expiryTime > other.expiryTime;
   }
 
-  Glib::TimeVal ExpirationReminder::getExpiryTime() const {
+  std::chrono::system_clock::time_point
+  ExpirationReminder::getExpiryTime() const {
     return expiryTime;
   }
 
-  Counter::IDType ExpirationReminder::getReservationID() const {
+  Counter::IDType
+  ExpirationReminder::getReservationID() const {
     return reservationID;
   }
 

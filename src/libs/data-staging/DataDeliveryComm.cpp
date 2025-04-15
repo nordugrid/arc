@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <unistd.h>
+
 #include "DataDeliveryComm.h"
 #include "DataDeliveryRemoteComm.h"
 #include "DataDeliveryLocalComm.h"
@@ -24,7 +26,7 @@ namespace DataStaging {
   }
 
   DataDeliveryComm::Status DataDeliveryComm::GetStatus(void) const {
-    Glib::Mutex::Lock lock(*(const_cast<Glib::Mutex*>(&lock_)));
+    std::unique_lock<std::mutex> lock(*(const_cast<std::mutex*>(&lock_)));
     DataDeliveryComm::Status tmp = status_;
     return tmp;
   }
@@ -36,17 +38,17 @@ namespace DataStaging {
   }
 
   DataDeliveryCommHandler::DataDeliveryCommHandler(void) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     Arc::CreateThreadFunction(&func,this);
   }
 
   void DataDeliveryCommHandler::Add(DataDeliveryComm* item) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     items_.push_back(item);
   }
 
   void DataDeliveryCommHandler::Remove(DataDeliveryComm* item) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     for(std::list<DataDeliveryComm*>::iterator i = items_.begin();
                         i!=items_.end();) {
       if(*i == item) {
@@ -57,11 +59,11 @@ namespace DataStaging {
     }
   }
 
-  Glib::Mutex DataDeliveryCommHandler::comm_lock;
+  std::mutex DataDeliveryCommHandler::comm_lock;
   std::map<std::string, DataDeliveryCommHandler*> DataDeliveryCommHandler::comm_handler;
 
   DataDeliveryCommHandler* DataDeliveryCommHandler::getInstance(std::string const & id) {
-    Glib::Mutex::Lock lock(comm_lock);
+    std::unique_lock<std::mutex> lock(comm_lock);
     std::map<std::string, DataDeliveryCommHandler*>::iterator it = comm_handler.find(id);
     if(it != comm_handler.end()) return it->second;
     return (comm_handler[id] = new DataDeliveryCommHandler);
@@ -81,7 +83,7 @@ namespace DataStaging {
     DataDeliveryCommHandler& it = *(DataDeliveryCommHandler*)arg;
     for(;;) {
       {
-        Glib::Mutex::Lock lock(it.lock_);
+        std::unique_lock<std::mutex> lock(it.lock_);
         for(std::list<DataDeliveryComm*>::iterator i = it.items_.begin();
                   i != it.items_.end();++i) {
           DataDeliveryComm* comm = *i;
@@ -89,7 +91,7 @@ namespace DataStaging {
             comm->PullStatus();
         }
       }
-      Glib::usleep(500000);
+      usleep(500000);
     }
   }
 

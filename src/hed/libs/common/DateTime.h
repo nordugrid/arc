@@ -77,7 +77,7 @@ namespace Arc {
     uint32_t GetPeriodNanoseconds() const;
 
     /// For use with IString.
-    const sigc::slot<const char*>* istr() const;
+    const sigc::slot<const char*()>* istr() const;
 
     /// Returns a string representation of the period.
     operator std::string() const;
@@ -99,7 +99,7 @@ namespace Arc {
 
     /// Comparing two Period objects.
     bool operator!=(const Period&) const;
-    
+
     Period& operator+=(const Period&);
 
   private:
@@ -109,7 +109,7 @@ namespace Arc {
 
     /// Internal IString implementation
     const char* IStr() const;
-    sigc::slot<const char*> slot;
+    sigc::slot<const char*()> slot;
     std::string is;
   };
 
@@ -145,7 +145,7 @@ namespace Arc {
 
     /// Assignment operator from a char pointer.
     Time& operator=(const char*);
-    
+
     /// Assignment operator from a string.
     Time& operator=(const std::string&);
 

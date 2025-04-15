@@ -683,22 +683,15 @@ LIBS=$systemd_daemon_save_LIBS
 fi
 AC_SUBST(SYSTEMD_DAEMON_LIBS)
 
-# check gthread
-if test "$enables_hed" = "yes"; then
-PKG_CHECK_MODULES(GTHREAD, [gthread-2.0 >= 2.4.7])
-AC_SUBST(GTHREAD_CFLAGS)
-AC_SUBST(GTHREAD_LIBS)
-fi
-
 # check glibmm
-# check for giomm which became a part of glibmm as of version 2.16
+# check for API version 2.68 first, then API version 2.4
 if test "$enables_hed" = "yes"; then
-"$PKG_CONFIG" giomm-2.4
+"$PKG_CONFIG" glibmm-2.68
 if test "$?" = '1'; then
-  PKG_CHECK_MODULES(GLIBMM, [glibmm-2.4 >= 2.4.7])
+  PKG_CHECK_MODULES(GLIBMM, [giomm-2.4 glibmm-2.4])
 else
-  PKG_CHECK_MODULES(GLIBMM, [giomm-2.4])
-  AC_DEFINE(HAVE_GIOMM, 1, [define if giomm is supported in glibmm])
+  PKG_CHECK_MODULES(GLIBMM, [giomm-2.68 glibmm-2.68])
+  AC_DEFINE(HAVE_GLIBMM_268, 1, [define if using glibmm 2.68 API])
 fi
 AC_SUBST(GLIBMM_CFLAGS)
 AC_SUBST(GLIBMM_LIBS)
@@ -999,7 +992,7 @@ if test "x$enables_xmlsec1" = "xyes"; then
     # Find number of backslashes in XMLSEC_CFLAGS
     n=$(echo $XMLSEC_CFLAGS|sed 's/.*-DXMLSEC_CRYPTO=\([[^ ]]*\).*/\1/'|tr -d '[[A-Za-z0-1\n"]]'| wc -c)
 
-    # Fixes due to bugs in pkg-config and/or xmlsec1 
+    # Fixes due to bugs in pkg-config and/or xmlsec1
     #
     # 0: Indicates a bug in pkg-config which removes the escaping of the quotes
     # 2: Correct value with escaped quotes
@@ -1007,7 +1000,7 @@ if test "x$enables_xmlsec1" = "xyes"; then
     #    See eg. https://bugzilla.redhat.com/show_bug.cgi?id=675334
 
     # Make sure that the quotes are escaped with single backslash
-    if test $n = 0 -o $n = 6; then 
+    if test $n = 0 -o $n = 6; then
       AC_MSG_NOTICE([Working around bad combination of pkgconfig and xmlsec1 with $n back-slashes])
       XMLSEC_CFLAGS=$(echo $XMLSEC_CFLAGS|sed 's/\(.*-DXMLSEC_CRYPTO=\)\\*"\([[^ \\"]]*\)\\*" \(.*\)/\1\\"\2\\" \3/')
       XMLSEC_OPENSSL_CFLAGS=$(echo $XMLSEC_OPENSSL_CFLAGS|sed 's/\(.*-DXMLSEC_CRYPTO=\)\\*"\([[^ \\"]]*\)\\*" \(.*\)/\1\\"\2\\" \3/')

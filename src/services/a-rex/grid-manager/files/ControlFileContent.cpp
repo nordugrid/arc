@@ -21,7 +21,7 @@
 
 namespace ARex {
 
-static Glib::Mutex local_lock;
+static std::mutex local_lock;
 static Arc::Logger& logger = Arc::Logger::getRootLogger();
 
 class KeyValueFile {
@@ -141,7 +141,7 @@ bool KeyValueFile::Read(std::string& name, std::string& value) {
       };
     } else {
       value += c;
-      if(value.length() > data_max_) return false; 
+      if(value.length() > data_max_) return false;
     };
   };
   return true;
@@ -541,7 +541,7 @@ static inline bool parse_boolean(const std::string& buf) {
 }
 
 bool JobLocalDescription::write(const std::string& fname) const {
-  Glib::Mutex::Lock lock_(local_lock);
+  std::unique_lock<std::mutex> lock_(local_lock);
   // *.local file is accessed concurently. To avoid improper readings lock is acquired.
   KeyValueFile f(fname,KeyValueFile::Create);
   if(!f) return false;
@@ -617,7 +617,7 @@ bool JobLocalDescription::write(const std::string& fname) const {
 }
 
 bool JobLocalDescription::read(const std::string& fname) {
-  Glib::Mutex::Lock lock_(local_lock);
+  std::unique_lock<std::mutex> lock_(local_lock);
   // *.local file is accessed concurently. To avoid improper readings lock is acquired.
   KeyValueFile f(fname,KeyValueFile::Fetch);
   if(!f) return false;
@@ -752,7 +752,7 @@ bool JobLocalDescription::read(const std::string& fname) {
 }
 
 bool JobLocalDescription::read_var(const std::string &fname,const std::string &vnam,std::string &value) {
-  Glib::Mutex::Lock lock_(local_lock);
+  std::unique_lock<std::mutex> lock_(local_lock);
   // *.local file is accessed concurently. To avoid improper readings lock is acquired.
   KeyValueFile f(fname,KeyValueFile::Fetch);
   if(!f) return false;

@@ -39,7 +39,7 @@ void HeartBeatMetrics::SetEnabled(bool val) {
 void HeartBeatMetrics::SetConfig(const char* fname) {
   config_filename = fname;
 }
-  
+
 void HeartBeatMetrics::SetGmetricPath(const char* path) {
   tool_path = path;
 }
@@ -47,7 +47,7 @@ void HeartBeatMetrics::SetGmetricPath(const char* path) {
 
 void HeartBeatMetrics::ReportHeartBeatChange(const GMConfig& config) {
   if(!enabled) return; // not configured
-  Glib::RecMutex::Lock lock_(lock);
+  std::unique_lock<std::recursive_mutex> lock_(lock);
 
   struct stat st;
   std::string heartbeat_file(config.ControlDir()  + "/gm-heartbeat");
@@ -61,7 +61,7 @@ void HeartBeatMetrics::ReportHeartBeatChange(const GMConfig& config) {
     logger.msg(Arc::ERROR,"Error with hearbeatfile: %s",heartbeat_file.c_str());
     time_update = false;
   }
-    
+
   Sync();
 }
 
@@ -79,7 +79,7 @@ bool HeartBeatMetrics::CheckRunMetrics(void) {
 
 void HeartBeatMetrics::Sync(void) {
   if(!enabled) return; // not configured
-  Glib::RecMutex::Lock lock_(lock);
+  std::unique_lock<std::recursive_mutex> lock_(lock);
   if(!CheckRunMetrics()) return;
   // Run gmetric to report one change at a time
   //since only one process can be started from Sync(), only 1 histogram can be sent at a time, therefore return for each call;
@@ -88,9 +88,9 @@ void HeartBeatMetrics::Sync(void) {
 
   if(time_update){
     if(RunMetrics(
-		  std::string("AREX-HEARTBEAT_LAST_SEEN"),
-		  Arc::tostring(time_delta), "int32", "sec"
-		  )) {
+                  std::string("AREX-HEARTBEAT_LAST_SEEN"),
+                  Arc::tostring(time_delta), "int32", "sec"
+                  )) {
       time_update = false;
       return;
     };
@@ -99,7 +99,7 @@ void HeartBeatMetrics::Sync(void) {
 
 }
 
- 
+
 bool HeartBeatMetrics::RunMetrics(const std::string name, const std::string& value, const std::string unit_type, const std::string unit) {
   if(proc) return false;
   std::list<std::string> cmd;
@@ -123,7 +123,7 @@ bool HeartBeatMetrics::RunMetrics(const std::string name, const std::string& val
   cmd.push_back(unit_type);
   cmd.push_back("-u");//unit
   cmd.push_back(unit);
-  
+
   proc = new Arc::Run(cmd);
   proc->AssignStderr(proc_stderr);
   proc->AssignKicker(&RunMetricsKicker, this);
@@ -138,7 +138,7 @@ bool HeartBeatMetrics::RunMetrics(const std::string name, const std::string& val
 void HeartBeatMetrics::SyncAsync(void* arg) {
   if(arg) {
     HeartBeatMetrics& it = *reinterpret_cast<HeartBeatMetrics*>(arg);
-    Glib::RecMutex::Lock lock_(it.lock);
+    std::unique_lock<std::recursive_mutex> lock_(it.lock);
     if(it.proc) {
       // Continue only if no failure in previous call.
       // Otherwise it can cause storm of failed calls.

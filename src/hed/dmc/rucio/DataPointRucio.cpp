@@ -17,7 +17,7 @@ namespace ArcDMCRucio {
 
   Arc::Logger DataPointRucio::logger(Arc::Logger::getRootLogger(), "DataPoint.Rucio");
   RucioTokenStore DataPointRucio::tokens;
-  Glib::Mutex DataPointRucio::lock;
+  std::mutex DataPointRucio::lock;
   const Period DataPointRucio::token_validity(3600); // token lifetime is 1h
   Arc::Logger RucioTokenStore::logger(Arc::Logger::getRootLogger(), "DataPoint.RucioTokenStore");
 
@@ -296,7 +296,7 @@ namespace ArcDMCRucio {
   DataStatus DataPointRucio::checkToken(std::string& token) {
 
     // Locking the entire method prevents multiple concurrent calls to get tokens
-    Glib::Mutex::Lock l(lock);
+    std::unique_lock<std::mutex> l(lock);
     std::string t = tokens.GetToken(account);
     if (!t.empty()) {
       token = t;

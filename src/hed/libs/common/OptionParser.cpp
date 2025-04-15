@@ -287,7 +287,7 @@ namespace Arc {
     ctx.set_translation_domain(PACKAGE);
 
 #ifdef HAVE_GLIBMM_OPTIONCONTEXT_GET_HELP
-    // if get_help() is supported disable native -? --help processing 
+    // if get_help() is supported disable native -? --help processing
     // etc to show --help-all by default
     ctx.set_help_enabled(false);
 #endif
@@ -336,11 +336,7 @@ namespace Arc {
     try {
       ctx.parse(argc, argv);
     } catch (const Glib::OptionError& err) {
-      try {
-        std::cerr << err.what() << std::endl;
-      } catch (const Glib::Exception& err2) {
-        std::cerr << IString("Failed to parse command line options") << std::endl;
-      }
+      std::cerr << err.what() << std::endl;
       exit(1);
     }
     if(h_value) {

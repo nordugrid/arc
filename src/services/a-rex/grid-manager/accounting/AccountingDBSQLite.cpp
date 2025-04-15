@@ -2,6 +2,9 @@
 #include <config.h>
 #endif
 
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
+
 #include <arc/FileUtils.h>
 #include <arc/DateTime.h>
 #include <arc/ArcLocation.h>
@@ -11,12 +14,14 @@
 
 #include "AccountingDBSQLite.h"
 
+#include "glibmm-compat.h"
+
 #define DB_SCHEMA_FILE "arex_accounting_db_schema_v2.sql"
 
 namespace ARex {
     Arc::Logger AccountingDBSQLite::logger(Arc::Logger::getRootLogger(), "AccountingDBSQLite");
 
-    int AccountingDBSQLite::SQLiteDB::exec(const char *sql, int (*callback)(void*,int,char**,char**), 
+    int AccountingDBSQLite::SQLiteDB::exec(const char *sql, int (*callback)(void*,int,char**,char**),
         void *arg, char **errmsg) {
         int err;
         while((err = sqlite3_exec(aDB, sql, callback, arg, errmsg)) == SQLITE_BUSY) {
@@ -47,7 +52,7 @@ namespace ARex {
         };
         if (create) {
             std::string db_schema_str;
-            std::string sql_file = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + PKGDATASUBDIR + 
+            std::string sql_file = Arc::ArcLocation::Get() + G_DIR_SEPARATOR_S + PKGDATASUBDIR +
                 G_DIR_SEPARATOR_S + "sql-schema" + G_DIR_SEPARATOR_S + DB_SCHEMA_FILE;
             if(!Arc::FileRead(sql_file, db_schema_str)) {
                 AccountingDBSQLite::logger.msg(Arc::ERROR, "Failed to read database schema file at %s", sql_file);
@@ -112,7 +117,7 @@ namespace ARex {
                 return;
             }
             // initialize new database
-            Glib::Mutex::Lock lock(lock_);
+            std::unique_lock<std::mutex> lock(lock_);
             db = new SQLiteDB(name, true);
             if (!db->isConnected()){
                 logger.msg(Arc::ERROR, "Failed to initialize accounting database");
@@ -162,7 +167,7 @@ namespace ARex {
     unsigned int AccountingDBSQLite::GeneralSQLInsert(const std::string& sql) {
         if (!isValid) return 0;
         initSQLiteDB();
-        Glib::Mutex::Lock lock(lock_);
+        std::unique_lock<std::mutex> lock(lock_);
         int err;
         err = db->exec(sql.c_str(), NULL, NULL, NULL);
         if (err != SQLITE_OK) {
@@ -184,7 +189,7 @@ namespace ARex {
     bool AccountingDBSQLite::GeneralSQLUpdate(const std::string& sql) {
         if (!isValid) return false;
         initSQLiteDB();
-        Glib::Mutex::Lock lock(lock_);
+        std::unique_lock<std::mutex> lock(lock_);
         int err;
         err = db->exec(sql.c_str(), NULL, NULL, NULL);
         if (err != SQLITE_OK ) {
@@ -296,7 +301,7 @@ namespace ARex {
                     rec.first.interface = sql_unescape(texts[n]);
                 } else if (strcmp(names[n], "URL") == 0) {
                     rec.first.url = sql_unescape(texts[n]);
-                } 
+                }
             }
         }
         endpoints_map->insert(rec);
@@ -341,7 +346,7 @@ namespace ARex {
         }
         return 0;
     }
-    
+
     // callback to get id from database table
     static int ReadIdCallback(void* arg, int colnum, char** texts, char** names) {
         unsigned int* dbid = static_cast<unsigned int*>(arg);
@@ -400,25 +405,25 @@ namespace ARex {
             "VALUES ('" +
                 sql_escape(aar.jobid) + "', '" +
                 sql_escape(aar.localid) + "', " +
-                sql_escape(endpointid) + ", " + 
-                sql_escape(queueid) + ", " + 
-                sql_escape(userid) + ", " + 
-                sql_escape(wlcgvoid) + ", " + 
+                sql_escape(endpointid) + ", " +
+                sql_escape(queueid) + ", " +
+                sql_escape(userid) + ", " +
+                sql_escape(wlcgvoid) + ", " +
                 sql_escape(fqanid) + ", " +
                 sql_escape(statusid) + ", " +
                 sql_escape(aar.exitcode) + ", " +
                 sql_escape(benchmarkid) + ", " +
-                sql_escape(aar.submittime.GetTime()) + ", " + 
+                sql_escape(aar.submittime.GetTime()) + ", " +
                 sql_escape(aar.endtime.GetTime()) + ", " +
-                sql_escape(aar.nodecount) + ", " + 
-                sql_escape(aar.cpucount) + ", " + 
-                sql_escape(aar.usedmemory) + ", " + 
+                sql_escape(aar.nodecount) + ", " +
+                sql_escape(aar.cpucount) + ", " +
+                sql_escape(aar.usedmemory) + ", " +
                 sql_escape(aar.usedvirtmemory) + ", " +
-                sql_escape(aar.usedwalltime) + ", " + 
-                sql_escape(aar.usedcpuusertime) + ", " + 
+                sql_escape(aar.usedwalltime) + ", " +
+                sql_escape(aar.usedcpuusertime) + ", " +
                 sql_escape(aar.usedcpukerneltime) + ", " +
-                sql_escape(aar.usedscratch) + ", " + 
-                sql_escape(aar.stageinvolume) + ", " + 
+                sql_escape(aar.usedscratch) + ", " +
+                sql_escape(aar.stageinvolume) + ", " +
                 sql_escape(aar.stageoutvolume) +
             ")";
         unsigned int recordid = GeneralSQLInsert(sql);
@@ -450,8 +455,8 @@ namespace ARex {
         // get the corresponding IDs in connected tables
         unsigned int statusid = getDBStatusId(aar.status);
         unsigned int benchmarkid = getDBBenchmarkId(aar.benchmark);
-        
-        // construct update statement 
+
+        // construct update statement
         // NOTE: it only make sense update the dynamic information not available on submission time
         std::string sql = "UPDATE AAR SET "
             "LocalJobID = '" + sql_escape(aar.localid) + "', " +
@@ -459,15 +464,15 @@ namespace ARex {
             "ExitCode = " + sql_escape(aar.exitcode) + ", " +
             "BenchmarkID = " + sql_escape(benchmarkid) + ", " +
             "EndTime = " + sql_escape(aar.endtime.GetTime()) + ", " +
-            "NodeCount = " + sql_escape(aar.nodecount) + ", " + 
-            "CPUCount = " + sql_escape(aar.cpucount) + ", " + 
-            "UsedMemory = " + sql_escape(aar.usedmemory) + ", " + 
+            "NodeCount = " + sql_escape(aar.nodecount) + ", " +
+            "CPUCount = " + sql_escape(aar.cpucount) + ", " +
+            "UsedMemory = " + sql_escape(aar.usedmemory) + ", " +
             "UsedVirtMem = " + sql_escape(aar.usedvirtmemory) + ", " +
-            "UsedWalltime = " + sql_escape(aar.usedwalltime) + ", " + 
-            "UsedCPUUserTime = " + sql_escape(aar.usedcpuusertime) + ", " + 
+            "UsedWalltime = " + sql_escape(aar.usedwalltime) + ", " +
+            "UsedCPUUserTime = " + sql_escape(aar.usedcpuusertime) + ", " +
             "UsedCPUKernelTime = " + sql_escape(aar.usedcpukerneltime) + ", " +
-            "UsedScratch = " + sql_escape(aar.usedscratch) + ", " + 
-            "StageInVolume = " + sql_escape(aar.stageinvolume) + ", " + 
+            "UsedScratch = " + sql_escape(aar.usedscratch) + ", " +
+            "StageInVolume = " + sql_escape(aar.stageinvolume) + ", " +
             "StageOutVolume = " + sql_escape(aar.stageoutvolume) + " " +
             "WHERE RecordId = " + sql_escape(recordid);
         // run update
@@ -548,11 +553,11 @@ namespace ARex {
         std::string sql_base = "INSERT INTO DataTransfers "
             "(RecordID, URL, FileSize, TransferStart, TransferEnd, TransferType) VALUES ";
         for (std::list<aar_data_transfer_t>::iterator it=dtrs.begin(); it != dtrs.end(); ++it) {
-            sql += sql_base + "( " + sql_escape(recordid) + ", '" + 
+            sql += sql_base + "( " + sql_escape(recordid) + ", '" +
                    sql_escape(it->url) + "', " +
-                   sql_escape(it->size) + ", " + 
-                   sql_escape(it->transferstart.GetTime()) + ", " + 
-                   sql_escape(it->transferend.GetTime()) + ", " + 
+                   sql_escape(it->size) + ", " +
+                   sql_escape(it->transferstart.GetTime()) + ", " +
+                   sql_escape(it->transferend.GetTime()) + ", " +
                    sql_escape(static_cast<int>(it->type)) + "); ";
         }
         sql += "COMMIT;";

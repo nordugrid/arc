@@ -8,6 +8,9 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
+
 #include <arc/ArcLocation.h>
 #include <arc/StringConv.h>
 #include <arc/FileUtils.h>
@@ -17,6 +20,7 @@
 
 #include "JobDescription.h"
 
+#include "glibmm-compat.h"
 
 #define INTPRINT(OUT, X, Y) if ((X) > -1) \
   OUT << IString(#Y ": %d", X) << std::endl;
@@ -31,7 +35,7 @@ namespace Arc {
   // Maybe this mutex could go to JobDescriptionParserPluginLoader. That would make
   // it transparent. On another hand JobDescriptionParserPluginLoader must not know
   // how it is used.
-  Glib::Mutex JobDescription::jdpl_lock;
+  std::mutex JobDescription::jdpl_lock;
   // TODO: JobDescriptionParserPluginLoader need to be freed when not used any more.
   JobDescriptionParserPluginLoader *JobDescription::jdpl = NULL;
 

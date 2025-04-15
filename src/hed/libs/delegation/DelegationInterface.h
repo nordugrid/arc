@@ -1,11 +1,11 @@
 #ifndef __ARC_DELEGATIONINTERFACE_H__
 #define __ARC_DELEGATIONINTERFACE_H__
 
-#include <string>
 #include <list>
 #include <map>
+#include <mutex>
+#include <string>
 
-#include <arc/Thread.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/message/MCC.h>
 #include <arc/message/Message.h>
@@ -17,7 +17,7 @@ typedef std::map<std::string,std::string> DelegationRestrictions;
 /** A consumer of delegated X509 credentials.
   During delegation procedure this class acquires
  delegated credentials aka proxy - certificate, private key and
- chain of previous certificates. 
+ chain of previous certificates.
   Delegation procedure consists of calling Request() method
  for generating certificate request followed by call to Acquire()
  method for making complete credentials from certificate chain. */
@@ -45,8 +45,8 @@ class DelegationConsumer {
   /** Ads private key into certificates chain in 'content'
      On exit content contains complete delegated credentials.  */
   bool Acquire(std::string& content);
-  /** Includes the functionality of Acquire(content) plus extracting the 
-     credential identity. */  
+  /** Includes the functionality of Acquire(content) plus extracting the
+     credential identity. */
   bool Acquire(std::string& content,std::string& identity);
 };
 
@@ -62,7 +62,7 @@ class DelegationProvider {
  public:
   /** Creates instance from provided credentials.
      Credentials are used to sign delegated credentials.
-     Arguments should contain PEM-encoded certificate, private key and 
+     Arguments should contain PEM-encoded certificate, private key and
      optionally certificates chain. */
   DelegationProvider(const std::string& credentials);
   /** Creates instance from provided credentials.
@@ -75,7 +75,7 @@ class DelegationProvider {
   bool operator!(void) { return key_ == NULL; };
   /** Perform delegation.
     Takes X509 certificate request and creates proxy credentials
-   excluding private key. Result is then to be fed into 
+   excluding private key. Result is then to be fed into
    DelegationConsumer::Acquire */
   std::string Delegate(const std::string& request,const DelegationRestrictions& restrictions = DelegationRestrictions());
 };
@@ -93,22 +93,22 @@ class DelegationConsumerSOAP: public DelegationConsumer {
   ~DelegationConsumerSOAP(void);
   /** Process SOAP message which starts delegation.
     Generated message in 'out' is meant to be sent back to DelagationProviderSOAP.
-   Argument 'id' contains identifier of procedure and is used only to produce SOAP 
+   Argument 'id' contains identifier of procedure and is used only to produce SOAP
    message. */
   bool DelegateCredentialsInit(const std::string& id,const SOAPEnvelope& in,SOAPEnvelope& out);
   /** Accepts delegated credentials.
-     Process 'in' SOAP message and stores full proxy credentials in 'credentials'. 
+     Process 'in' SOAP message and stores full proxy credentials in 'credentials'.
     'out' message is generated for sending to DelagationProviderSOAP. */
   bool UpdateCredentials(std::string& credentials,const SOAPEnvelope& in,SOAPEnvelope& out);
   /** Includes the functionality in above UpdateCredentials method; plus extracting the
    credential identity*/
   bool UpdateCredentials(std::string& credentials,std::string& identity,const SOAPEnvelope& in,SOAPEnvelope& out);
-  /** Similar to UpdateCredentials but takes only DelegatedToken XML element */ 
+  /** Similar to UpdateCredentials but takes only DelegatedToken XML element */
   bool DelegatedToken(std::string& credentials,XMLNode token);
   bool DelegatedToken(std::string& credentials,std::string& identity,XMLNode token);
 };
 
-/** Extension of DelegationProvider with SOAP exchange interface. 
+/** Extension of DelegationProvider with SOAP exchange interface.
   This class is also a temporary container for intermediate information
  used during delegation procedure. */
 class DelegationProviderSOAP: public DelegationProvider {
@@ -138,7 +138,7 @@ class DelegationProviderSOAP: public DelegationProvider {
   DelegationProviderSOAP(const std::string& cert_file,const std::string& key_file,std::istream* inpwd = NULL);
   ~DelegationProviderSOAP(void);
   /** Performs DelegateCredentialsInit SOAP operation.
-     As result request for delegated credentials is received by this instance and stored 
+     As result request for delegated credentials is received by this instance and stored
     internally. Call to UpdateCredentials should follow. */
   bool DelegateCredentialsInit(MCCInterface& mcc_interface,MessageContext* context,ServiceType stype = ARCDelegation);
   /** Extended version of DelegateCredentialsInit(MCCInterface&,MessageContext*).
@@ -146,7 +146,7 @@ class DelegationProviderSOAP: public DelegationProvider {
     control on message processing possible. */
   bool DelegateCredentialsInit(MCCInterface& mcc_interface,MessageAttributes* attributes_in,MessageAttributes* attributes_out,MessageContext* context,ServiceType stype = ARCDelegation);
   /** Performs UpdateCredentials SOAP operation.
-     This concludes delegation procedure and passes delagated credentials to 
+     This concludes delegation procedure and passes delagated credentials to
     DelegationConsumerSOAP instance.
   */
   bool UpdateCredentials(MCCInterface& mcc_interface,MessageContext* context,const DelegationRestrictions& restrictions = DelegationRestrictions(),ServiceType stype = ARCDelegation);
@@ -159,13 +159,13 @@ class DelegationProviderSOAP: public DelegationProvider {
     described in delegation.wsdl. */
   bool DelegatedToken(XMLNode parent);
   /** Returns the identifier provided by service accepting delegated credentials.
-     This identifier may then be used to refer to credentials stored 
+     This identifier may then be used to refer to credentials stored
      at service. */
   const std::string& ID(void) { return id_;};
   /**
    * Assigns identifier to be used for while initiating delegation procedure.
    * Assigning identifier is useful only for *RENEW ServiceTypes.
-   * 
+   *
    * \since Added in 4.1.0.
    **/
   void ID(const std::string& id) { id_ = id; };
@@ -179,7 +179,7 @@ class DelegationProviderSOAP: public DelegationProvider {
   execution to one of managed DelegationConsumerSOAP instances. */
 class DelegationContainerSOAP {
  protected:
-  Glib::Mutex lock_;
+  std::mutex lock_;
   /// Stores description of last error. Derived classes should store their errors here.
   std::string failure_;
   class Consumer;

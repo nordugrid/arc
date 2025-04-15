@@ -5,11 +5,8 @@
 #endif
 
 #include <string>
-#include <sstream>
 
 #include <sys/stat.h>
-
-#include <glibmm.h>
 
 #include <arc/XMLNode.h>
 #include <arc/CheckSum.h>
@@ -269,7 +266,7 @@ namespace Arc {
     j.IDFromEndpoint = id;
     j.DelegationID.push_back(delegationId);
     j.LogDir = "/diagnose";
-      
+
     jc.addEntity(j);
 
     return retval;
@@ -292,7 +289,7 @@ namespace Arc {
 
     SubmissionStatus retval;
     std::string delegationId;
-    if(jobdescs.empty()) 
+    if(jobdescs.empty())
       return retval;
 
     int instances_min = 1;
@@ -302,7 +299,7 @@ namespace Arc {
     std::list< std::pair<JobDescription,std::list<JobDescription>::const_iterator> > preparedjobdescs;
     for (std::list<JobDescription>::const_iterator it = jobdescs.begin(); it != jobdescs.end(); ++it) {
       JobDescription preparedjobdesc(*it);
-  
+
       if (!(et?preparedjobdesc.Prepare(*et):preparedjobdesc.Prepare())) {
         logger.msg(INFO, "Failed to prepare job description");
         notSubmitted.push_back(&*it);
@@ -336,7 +333,7 @@ namespace Arc {
             retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
             continue;
           }
-	} else if(preparedjobdesc.TokenDelegation) {
+        } else if(preparedjobdesc.TokenDelegation) {
           if(!GetDelegationToken(*usercfg, delegationTokenUrl, delegationId)) {
             logger.msg(INFO, "Unable to submit jobs. Failed to delegate token.");
             notSubmitted.push_back(&*it);
@@ -422,7 +419,7 @@ namespace Arc {
     Arc::XMLNode job_item = jobs_list["job"];
     if(jobdescs.size() > 1) {
       for (std::list< std::pair<JobDescription,std::list<JobDescription>::const_iterator> >::const_iterator it = preparedjobdescs.begin(); it != preparedjobdescs.end(); ++it) {
-        if(!job_item) { // no more jobs returned 
+        if(!job_item) { // no more jobs returned
           retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
           for (; it != preparedjobdescs.end(); ++it) notSubmitted.push_back(&(*(it->second)));
           break;
@@ -437,7 +434,7 @@ namespace Arc {
       }
     } else {
       std::list< std::pair<JobDescription,std::list<JobDescription>::const_iterator> >::const_iterator it = preparedjobdescs.begin();
-      if(!job_item) { // no jobs returned 
+      if(!job_item) { // no jobs returned
         retval |= SubmissionStatus::DESCRIPTION_NOT_SUBMITTED;
         notSubmitted.push_back(&(*(it->second)));
       } else {
@@ -454,7 +451,7 @@ namespace Arc {
         if(!is_submitted) notSubmitted.push_back(&(*(it->second)));
       }
     }
-  
+
     return retval;
   }
 

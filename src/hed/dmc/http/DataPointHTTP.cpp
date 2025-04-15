@@ -9,7 +9,10 @@
 #include <stdint.h>
 #endif
 #include <unistd.h>
+
 #include <map>
+
+#include <glibmm/miscutils.h>
 
 #include <arc/CheckSum.h>
 #include <arc/Logger.h>
@@ -56,7 +59,7 @@ using namespace Arc;
       uint64_t end;
     } chunk_t;
     std::list<chunk_t> chunks_;
-    Glib::Mutex lock_;
+    std::mutex lock_;
   public:
     ChunkControl(uint64_t size = UINT64_MAX);
     ~ChunkControl();
@@ -1079,7 +1082,7 @@ using namespace Arc;
       if(!r) return DataStatus(DataStatus::RenameError,r.getExplanation());
     }
     release_client(curl,client.Release());
-    if ((info.code != 201) && (info.code != 204)) { 
+    if ((info.code != 201) && (info.code != 204)) {
       return DataStatus(DataStatus::RenameError, http2errno(info.code), info.reason);
     }
     return DataStatus::Success;
@@ -1390,7 +1393,7 @@ using namespace Arc;
 
     // To allow for redirection from the server without uploading the whole
     // body we send request header with Expect: 100-continue. Servers
-    // should return either 100 continue or 30x redirection without 
+    // should return either 100 continue or 30x redirection without
     // waiting for body.
     bool expect100 = true;
     for (;;) {
@@ -1553,7 +1556,7 @@ using namespace Arc;
             (transfer_info.code == 504)) {
           if ((++retries) <= 10) continue;
         }
-        if (transfer_info.code == 501) { 
+        if (transfer_info.code == 501) {
           // Not implemented - probably means server does not accept patial PUT
           partial_failure = true;
         } else {

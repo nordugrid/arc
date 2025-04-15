@@ -14,7 +14,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <glibmm.h>
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
 
 #include <arc/Thread.h>
 #include <arc/Logger.h>
@@ -339,7 +340,7 @@ namespace ArcDMCFile {
         logger.msg(ERROR, "closing file %s failed: %s", url.Path(), StrError(err));
         buffer->error_write(true);
       }
-    }    
+    }
     if (fa) {
       // Lustre?
       if(!fa->fa_close()) {
@@ -347,7 +348,7 @@ namespace ArcDMCFile {
         logger.msg(ERROR, "closing file %s failed: %s", url.Path(), StrError(err));
         buffer->error_write(true);
       }
-    }    
+    }
     if((do_cksum) && (cksum_chunks.eof() == cksum_p)) {
       for(std::list<CheckSum*>::iterator cksum = checksums.begin();
                 cksum != checksums.end(); ++cksum) {
@@ -493,7 +494,7 @@ namespace ArcDMCFile {
   DataStatus DataPointFile::Remove() {
     if (reading) return DataStatus(DataStatus::IsReadingError, EARCLOGIC);
     if (writing) return DataStatus(DataStatus::IsReadingError, EARCLOGIC);
-      
+
     std::string path(url.Path());
     struct stat st;
     if(!FileStat(path, &st, usercfg.GetUser().get_uid(), usercfg.GetUser().get_gid(), true)) {
@@ -643,7 +644,7 @@ namespace ArcDMCFile {
     while(old_size < fsize) {
       size_t l = sizeof(buf);
       if (l > (fsize - old_size)) l = fsize - old_size;
-      // because filesytem can skip empty blocks do real write 
+      // because filesytem can skip empty blocks do real write
       if (write(fd, buf, l) == -1) {
         fsize = old_size; return (errno = ENOSPC);
       }
@@ -780,7 +781,7 @@ namespace ArcDMCFile {
     writing = false;
     if (!buffer->eof_write()) {
       buffer->error_write(true);      /* trigger transfer error */
-      // Do not close handle here - thread will do that 
+      // Do not close handle here - thread will do that
     }
     // buffer->wait_eof_write();
     transfers_started.wait();         /* wait till writing thread exited */
@@ -813,7 +814,7 @@ namespace ArcDMCFile {
         return DataStatus(DataStatus::WriteStopError, "Local file size does not match source file for "+url.Path());
       }
     }
-    
+
     // TODO: error description from writing thread
     if (buffer->error_write()) return DataStatus::WriteError;
     return DataStatus::Success;

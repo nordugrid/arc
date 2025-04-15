@@ -4,7 +4,7 @@
 #include <config.h>
 #endif
 
-#include <glibmm.h>
+#include <glibmm/fileutils.h>
 
 #include <arc/ArcConfig.h>
 #include <arc/IString.h>
@@ -16,6 +16,8 @@
 
 #include <unistd.h>
 #include <termios.h>
+
+#include "glibmm-compat.h"
 
 ConsoleRecovery::ConsoleRecovery(void) {
   ti = new termios;
@@ -40,13 +42,13 @@ std::list<std::string> getSelectedURLsFromUserConfigAndCommandLine(Arc::UserConf
 }
 
 std::list<std::string> getRejectDiscoveryURLsFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> rejectdiscovery) {
-  std::list<std::string> rejectDiscoveryURLs = usercfg.RejectDiscoveryURLs();  
+  std::list<std::string> rejectDiscoveryURLs = usercfg.RejectDiscoveryURLs();
   rejectDiscoveryURLs.insert(rejectDiscoveryURLs.end(), rejectdiscovery.begin(), rejectdiscovery.end());
   return rejectDiscoveryURLs;
 }
 
 std::list<std::string> getRejectManagementURLsFromUserConfigAndCommandLine(Arc::UserConfig usercfg, std::list<std::string> rejectmanagement) {
-  std::list<std::string> rejectManagementURLs = usercfg.RejectManagementURLs();  
+  std::list<std::string> rejectManagementURLs = usercfg.RejectManagementURLs();
   rejectManagementURLs.insert(rejectManagementURLs.end(), rejectmanagement.begin(), rejectmanagement.end());
   return rejectManagementURLs;
 }
@@ -68,7 +70,7 @@ std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig
           Arc::Endpoint service(*it);
           service.Capability.insert(Arc::Endpoint::GetStringForCapability(Arc::Endpoint::COMPUTINGINFO));
           if (!infointerface.empty()) {
-            service.InterfaceName = infointerface;            
+            service.InterfaceName = infointerface;
           }
           service.RequestedSubmissionInterfaceName = requestedSubmissionInterfaceName;
           services.push_back(service);
@@ -77,7 +79,7 @@ std::list<Arc::Endpoint> getServicesFromUserConfigAndCommandLine(Arc::UserConfig
         for (std::list<Arc::ConfigEndpoint>::iterator its = newServices.begin(); its != newServices.end(); ++its) {
           if (!requestedSubmissionInterfaceName.empty()) {
             // if there was a submission interface requested, this overrides the one from the config
-            its->RequestedSubmissionInterfaceName = requestedSubmissionInterfaceName;    
+            its->RequestedSubmissionInterfaceName = requestedSubmissionInterfaceName;
           }
           services.push_back(*its);
         }
@@ -175,7 +177,7 @@ bool checkproxy(const Arc::UserConfig& uc)
 bool checktoken(const Arc::UserConfig& uc) {
   if(uc.OToken().empty()) {
     std::cout << Arc::IString("Cannot find any token. Please run 'oidc-token' or use similar\n"
-		              "  utility to obtain authentication token!") << std::endl;
+                              "  utility to obtain authentication token!") << std::endl;
     return false;
   }
   return true;
@@ -243,7 +245,7 @@ Arc::JobInformationStorage* createJobInformationStorage(const Arc::UserConfig& u
     }
     return NULL;
   }
-  
+
   for (int i = 0; Arc::JobInformationStorage::AVAILABLE_TYPES[i].name != NULL; ++i) {
     if (uc.JobListType() == Arc::JobInformationStorage::AVAILABLE_TYPES[i].name) {
       jis = (Arc::JobInformationStorage::AVAILABLE_TYPES[i].instance)(uc.JobListFile());
@@ -262,7 +264,7 @@ Arc::JobInformationStorage* createJobInformationStorage(const Arc::UserConfig& u
     }
     delete jis;
   }
-  
+
   return NULL;
 }
 
@@ -332,7 +334,7 @@ bool ClientOptions::canonicalizeARCInterfaceTypes(Arc::Logger& logger) {
     }
     info_types.push_back(i);
   }
-  
+
   return true;
 }
 
@@ -598,7 +600,7 @@ ClientOptions::ClientOptions(Client_t c,
     GroupAddOption("filtering", 'r', "rejectmanagement",
               istring("skip jobs that are on a computing element with a given URL"),
               istring("URL"),
-              rejectmanagement);    
+              rejectmanagement);
   }
 
   if (c == CO_SUB || c == CO_TEST) {
@@ -610,7 +612,7 @@ ClientOptions::ClientOptions(Client_t c,
                       "in the language accepted by the target"),
               dumpdescription);
   }
-  
+
   if (c == CO_TEST) {
     GroupAddOption("xaction", 'E', "certificate", istring("prints info about installed user- and CA-certificates"), show_credentials);
     GroupAddOption("tuning", '\0', "allowinsecureconnection", istring("allow TLS connection which failed verification"), allow_insecure_connection);

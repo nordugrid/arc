@@ -41,7 +41,7 @@ namespace Arc {
     bool cancelled;
     /// For safe destruction of object, Transfer() holds this lock and
     /// destructor waits until the lock can be obtained
-    Glib::Mutex lock_;
+    std::mutex lock_;
     static Logger logger;
   public:
     /// Callback function which can be passed to Transfer().

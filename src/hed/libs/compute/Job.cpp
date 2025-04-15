@@ -7,6 +7,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <glibmm/fileutils.h>
+
 #include <algorithm>
 
 #include <arc/ArcConfig.h>
@@ -23,6 +25,8 @@
 #include <arc/data/FileCache.h>
 
 #include "Job.h"
+
+#include "glibmm-compat.h"
 
 #define JXMLTOSTRING(NAME) \
     if (job[ #NAME ]) {\
@@ -87,7 +91,7 @@ namespace Arc {
   Logger Job::logger(Logger::getRootLogger(), "Job");
 
   JobControllerPluginLoader& Job::getLoader() {
-    // For C++ it would be enough to have 
+    // For C++ it would be enough to have
     //   static JobControllerPluginLoader loader;
     // But Java sometimes does not destroy objects causing
     // PluginsFactory destructor loop forever waiting for
@@ -98,7 +102,7 @@ namespace Arc {
     }
     return *loader;
   }
-  
+
   DataHandle* Job::data_source = NULL;
   DataHandle* Job::data_destination = NULL;
 
@@ -242,9 +246,9 @@ namespace Arc {
 
   Job& Job::operator=(XMLNode job) {
     jc = NULL;
-  
+
     // Detect format:
-    if      (job["JobID"] && job["IDFromEndpoint"] && 
+    if      (job["JobID"] && job["IDFromEndpoint"] &&
                (job["ServiceInformationURL"] || job["ServiceInformationInterfaceName"] ||
                 job["JobStatusURL"] || job["JobStatusInterfaceName"] ||
                 job["JobManagementURL"] || job["JobManagementInterfaceName"])
@@ -273,7 +277,7 @@ namespace Arc {
       StageInDir  = JobManagementURL;
       StageOutDir = JobManagementURL;
       SessionDir  = JobManagementURL;
-      
+
       const std::string path = JobManagementURL.Path();
       std::size_t slashpos = path.rfind("/");
       IDFromEndpoint = path.substr(slashpos+1);
@@ -298,12 +302,12 @@ namespace Arc {
       JobID = (std::string)job["IDFromEndpoint"];
       ServiceInformationURL = URL((std::string)job["Cluster"]);
       JobStatusURL = URL((std::string)job["InfoEndpoint"]);
-      
+
       JobManagementURL = URL(JobID);
       StageInDir = JobManagementURL;
       StageOutDir = JobManagementURL;
       SessionDir = JobManagementURL;
-      
+
       const std::string path = JobManagementURL.Path();
       std::size_t slashpos = path.rfind("/");
       IDFromEndpoint = path.substr(slashpos+1);
@@ -391,7 +395,7 @@ namespace Arc {
     JXMLTOSTRING(Type)
 
     // TODO: find out how to treat IDFromEndpoint in case of pure GLUE2
-    
+
     JXMLTOSTRING(LocalIDFromManager)
 
     /* Earlier the 'JobDescription' element in a XMLNode representing a Job
@@ -650,7 +654,7 @@ namespace Arc {
           out << "  " << *it << std::endl;
         }
       }
-      
+
       // Proposed mandatory attributes for ARC 3.0
       out << IString(" ID on service: %s", IDFromEndpoint) << std::endl;
       out << IString(" Service information URL: %s (%s)", ServiceInformationURL.fullstr(), ServiceInformationInterfaceName) << std::endl;
@@ -818,7 +822,7 @@ namespace Arc {
         out << s << JSONPair("validFor", (std::string)Validity);
 
       if (!ActivityOldID.empty()) out << s << JSONSimpleArray("jobOldId", ActivityOldID);
-      
+
       // Proposed mandatory attributes for ARC 3.0
       out << s << JSONPair("serviceId", IDFromEndpoint);
       out << s << JSONPair("serviceInformationURL", ServiceInformationURL.fullstr());
@@ -844,20 +848,20 @@ namespace Arc {
     if (JobManagementInterfaceName.empty()) {
       logger.msg(VERBOSE, "Unable to handle job (%s), no interface specified.", JobID);
     }
-    
+
     jc = getLoader().loadByInterfaceName(JobManagementInterfaceName, uc);
     if (!jc) {
       logger.msg(VERBOSE, "Unable to handle job (%s), no plugin associated with the specified interface (%s)", JobID, JobManagementInterfaceName);
       return false;
     }
 
-    return true; 
+    return true;
   }
 
   bool Job::Update() { if (!jc) return false; std::list<Job*> jobs(1, this); jc->UpdateJobs(jobs); return true; }
-  
+
   bool Job::Clean() { return jc ? jc->CleanJobs(std::list<Job*>(1, this)) : false; }
-  
+
   bool Job::Cancel() { return jc ? jc->CancelJobs(std::list<Job*>(1, this)) : false; }
 
   bool Job::Resume() { return jc ? jc->ResumeJobs(std::list<Job*>(1, this)) : false; }
@@ -872,14 +876,14 @@ namespace Arc {
       logger.msg(ERROR, "Invalid download destination path specified (%s)", destination.fullstr());
       return false;
     }
-    
+
     if (jc == NULL) {
       logger.msg(DEBUG, "Unable to download job (%s), no JobControllerPlugin plugin was set to handle the job.", JobID);
       return false;
     }
 
     logger.msg(VERBOSE, "Downloading job: %s", JobID);
-    
+
     URL src;
     URL logsrc;
     URL dst(destination);
@@ -941,7 +945,7 @@ namespace Arc {
           return false;
         }
         for(std::list<std::string>::iterator it = paths.begin(); it != paths.end(); ++it) {
-	  URLLocation file(logsrc, LogDir+"/"+*it);
+          URLLocation file(logsrc, LogDir+"/"+*it);
           file.ChangePath(logsrcpath + *it);
           files.push_back(file);
         }
@@ -960,7 +964,7 @@ namespace Arc {
       return true;
     }
 
-    // We must make it sure it is directory and it exists 
+    // We must make it sure it is directory and it exists
     if (!DirCreate(dst.Path(), S_IRWXU, true)) {
       logger.msg(WARNING, "Failed to create directory %s! Skipping job.", dst.Path());
       return false;
@@ -990,7 +994,7 @@ namespace Arc {
           continue;
         }
       }
-        
+
       if (!CopyJobFile(uc, src, dst, file_listed)) {
         logger.msg(INFO, "Failed downloading %s to %s", src.str(), dst.Path());
         ok = false;
@@ -1144,7 +1148,7 @@ namespace Arc {
         logger.msg(WARNING, "Waiting for lock on file %s", filename);
       }
 
-      Glib::usleep(tryInterval);
+      usleep(tryInterval);
     }
 
     return false;
@@ -1173,7 +1177,7 @@ namespace Arc {
         logger.msg(WARNING, "Waiting for lock on file %s", filename);
       }
 
-      Glib::usleep(tryInterval);
+      usleep(tryInterval);
     }
 
     return false;
@@ -1205,7 +1209,7 @@ namespace Arc {
         logger.msg(WARNING, "Waiting for lock on file %s", filename);
       }
 
-      Glib::usleep(tryInterval);
+      usleep(tryInterval);
     }
 
     return false;
@@ -1238,7 +1242,7 @@ namespace Arc {
         logger.msg(WARNING, "Waiting for lock on file %s", filename);
       }
 
-      Glib::usleep(tryInterval);
+      usleep(tryInterval);
     }
 
     return false;

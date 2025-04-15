@@ -15,8 +15,6 @@
 #include <sys/utsname.h>
 #include <sys/statvfs.h>
 
-#include <glibmm.h>
-
 #include <arc/FileAccess.h>
 #include <arc/FileUtils.h>
 #include <arc/FileLock.h>
@@ -47,7 +45,7 @@ namespace Arc {
     std::vector<std::string> caches;
     std::vector<std::string> draining_caches;
     std::vector<std::string> readonly_caches;
-    if (!cache_path.empty()) 
+    if (!cache_path.empty())
       caches.push_back(cache_path);
 
     // if problem in init, clear _caches so object is invalid
@@ -139,7 +137,7 @@ namespace Arc {
       }
       // tidy up paths - take off any trailing slashes
       if (cache_path.rfind("/") == cache_path.length()-1) cache_path = cache_path.substr(0, cache_path.length()-1);
-  
+
       // add this cache to our list
       struct CacheParameters cache_params;
       cache_params.cache_path = cache_path;
@@ -332,11 +330,11 @@ namespace Arc {
     if (iter != _cache_map.end()) {
       return _cache_map[url].cache_path + "/" + CACHE_DATA_DIR + "/" + hash;
     }
-  
+
     // else choose a new cache and assign the file to it
     struct CacheParameters chosen_cache = _chooseCache(url);
     std::string path = chosen_cache.cache_path + "/" + CACHE_DATA_DIR + "/" + hash;
-  
+
     // update the cache map with the new file
     _cache_map.insert(std::make_pair(url, chosen_cache));
     return path;
@@ -538,7 +536,7 @@ namespace Arc {
     for (int i = 0; i < (int)_caches.size(); i++)
       job_dirs.push_back(_caches[i].cache_path + "/" + CACHE_JOB_DIR + "/" + _id);
     for (int i = 0; i < (int)_draining_caches.size(); i++)
-      job_dirs.push_back(_draining_caches[i].cache_path + "/" + CACHE_JOB_DIR + "/" + _id); 
+      job_dirs.push_back(_draining_caches[i].cache_path + "/" + CACHE_JOB_DIR + "/" + _id);
     for (int i = 0; i < (int)_readonly_caches.size(); i++)
       job_dirs.push_back(_readonly_caches[i].cache_path + "/" + CACHE_JOB_DIR + "/" + _id);
 
@@ -814,7 +812,7 @@ namespace Arc {
     std::map<int, float> cache_map;
     // sum of all cache free space
     float total_free = 0;
-    // get the free spaces of the caches 
+    // get the free spaces of the caches
     for (unsigned int i = 0; i < _caches.size(); ++i) {
       float free_space = _getCacheInfo(_caches.at(i).cache_path);
       cache_map[i] = free_space;

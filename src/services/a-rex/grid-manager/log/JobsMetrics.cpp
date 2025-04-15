@@ -28,10 +28,10 @@ JobStateList::JobNode::~JobNode(){}
 
 
 JobStateList::JobNode* JobStateList::NodeInList(std::string _job_id){
-  
+
   std::list<JobNode>::iterator it = nodes.begin();
   while(it != nodes.end()){
-      
+
     if(it->job_id == _job_id){
       return &(*it);
     }
@@ -94,7 +94,7 @@ void JobsMetrics::SetEnabled(bool val) {
 void JobsMetrics::SetConfig(const char* fname) {
   config_filename = fname;
 }
-  
+
 void JobsMetrics::SetGmetricPath(const char* path) {
   tool_path = path;
 }
@@ -102,7 +102,7 @@ void JobsMetrics::SetGmetricPath(const char* path) {
 
 void JobsMetrics::ReportJobStateChange(const GMConfig& config,  GMJobRef i, job_state_t old_state,  job_state_t new_state) {
   if(!enabled) return; // not configured
-  Glib::RecMutex::Lock lock_(lock);
+  std::unique_lock<std::recursive_mutex> lock_(lock);
 
 
   std::string job_id = i->job_id;
@@ -111,7 +111,7 @@ void JobsMetrics::ReportJobStateChange(const GMConfig& config,  GMJobRef i, job_
     ## - failed jobs -- of the last 100 jobs, the number of failed jobs
     ## - job states -- number of jobs in different A-REX internal stages
   */
-  
+
 
   /*jobstatelist holds jobid and true for failed or false for non-failed job for 100 latest jobs */
   jobstatelist.SetFailure(i->CheckFailure(config),job_id);
@@ -145,7 +145,7 @@ bool JobsMetrics::CheckRunMetrics(void) {
 
 void JobsMetrics::Sync(void) {
   if(!enabled) return; // not configured
-  Glib::RecMutex::Lock lock_(lock);
+  std::unique_lock<std::recursive_mutex> lock_(lock);
   if(!CheckRunMetrics()) return;
   // Run gmetric to report one change at a time
   //since only one process can be started from Sync(), only 1 histogram can be sent at a time, therefore return for each call;
@@ -153,14 +153,14 @@ void JobsMetrics::Sync(void) {
 
   if(fail_changed){
     if(RunMetrics(
-		  std::string("AREX-JOBS-FAILED-PER-100"),
-		  Arc::tostring(job_fail_counter), "int32", "failed"
-		  )) {
+                  std::string("AREX-JOBS-FAILED-PER-100"),
+                  Arc::tostring(job_fail_counter), "int32", "failed"
+                  )) {
       fail_changed = false;
       return;
     };
   }
-  
+
 
 
   for(int state = 0; state < JOB_STATE_UNDEFINED; ++state) {
@@ -168,7 +168,7 @@ void JobsMetrics::Sync(void) {
       if(RunMetrics(
           std::string("AREX-JOBS-IN_STATE-") + Arc::tostring(state) + "-" + GMJob::get_state_name(static_cast<job_state_t>(state)),
           Arc::tostring(jobs_in_state[state]), "int32", "jobs"
-		    )) {
+                    )) {
         jobs_in_state_changed[state] = false;
         return;
       };
@@ -178,7 +178,7 @@ void JobsMetrics::Sync(void) {
 
 }
 
- 
+
 bool JobsMetrics::RunMetrics(const std::string name, const std::string& value, const std::string unit_type, const std::string unit) {
   if(proc) return false;
   std::list<std::string> cmd;
@@ -202,7 +202,7 @@ bool JobsMetrics::RunMetrics(const std::string name, const std::string& value, c
   cmd.push_back(unit_type);
   cmd.push_back("-u");//unit
   cmd.push_back(unit);
-  
+
   proc = new Arc::Run(cmd);
   proc->AssignStderr(proc_stderr);
   proc->AssignKicker(&RunMetricsKicker, this);
@@ -217,7 +217,7 @@ bool JobsMetrics::RunMetrics(const std::string name, const std::string& value, c
 void JobsMetrics::SyncAsync(void* arg) {
   if(arg) {
     JobsMetrics& it = *reinterpret_cast<JobsMetrics*>(arg);
-    Glib::RecMutex::Lock lock_(it.lock);
+    std::unique_lock<std::recursive_mutex> lock_(it.lock);
     if(it.proc) {
       // Continue only if no failure in previous call.
       // Otherwise it can cause storm of failed calls.

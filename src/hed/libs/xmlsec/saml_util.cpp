@@ -6,7 +6,6 @@
 #include <fstream>
 #include <sstream>
 
-#include <glibmm/fileutils.h>
 #include <unistd.h>
 #include <cstring>
 #include <zlib.h>
@@ -31,7 +30,7 @@
 #include <openssl/rand.h>
 #ifdef CHARSET_EBCDIC
 #include <openssl/ebcdic.h>
-#endif 
+#endif
 
 #include "XmlSecUtils.h"
 #include "saml_util.h"
@@ -48,7 +47,7 @@ xmlSecBase64Decode_ex(const xmlChar* str, xmlSecByte* out, xmlSecSize outSize, x
 namespace Arc {
 
   std::string SignQuery(std::string query, SignatureMethod sign_method, std::string& privkey_file) {
- 
+
     std::string ret;
 
     BIO* key_bio = BIO_new_file(privkey_file.c_str(), "rb");
@@ -59,23 +58,23 @@ namespace Arc {
 
     /* Add SigAlg */
     char *t;
-    std::string new_query; 
+    std::string new_query;
     switch (sign_method) {
       case RSA_SHA1:
         t = (char*)xmlURIEscapeStr(xmlSecHrefRsaSha1, NULL);
         new_query.append(query).append("&SigAlg=").append(t);
-	xmlFree(t);
-	break;
+        xmlFree(t);
+        break;
       case DSA_SHA1:
-	t = (char*)xmlURIEscapeStr(xmlSecHrefDsaSha1, NULL);
+        t = (char*)xmlURIEscapeStr(xmlSecHrefDsaSha1, NULL);
         new_query.append(query).append("&SigAlg=").append(t);
-	xmlFree(t);
-	break;
+        xmlFree(t);
+        break;
     }
 
     /* Build buffer digest */
     if(new_query.empty()) return ret;
-   
+
     xmlChar* md;
     md = (xmlChar*)(xmlMalloc(20));
     char* digest = (char*)SHA1((unsigned char*)(new_query.c_str()), new_query.size(), md);
@@ -98,7 +97,7 @@ namespace Arc {
       sigret = (unsigned char *)malloc (RSA_size(rsa));
       status = RSA_sign(NID_sha1, (unsigned char*)digest, 20, sigret, &siglen, rsa);
       RSA_free(rsa);
-    } 
+    }
     else if (sign_method == DSA_SHA1) {
       dsa = PEM_read_bio_DSAPrivateKey(key_bio, NULL, NULL, NULL);
       if (dsa == NULL) {
@@ -109,9 +108,9 @@ namespace Arc {
       status = DSA_sign(NID_sha1, (unsigned char*)digest, 20, sigret, &siglen, dsa);
       DSA_free(dsa);
     }
-    
+
     BIO_free(key_bio);
-   
+
     if (status ==0) { free(sigret); xmlFree(digest); return ret; }
 
     /* Base64 encode the signature value */
@@ -122,11 +121,11 @@ namespace Arc {
     /* Add signature */
     switch (sign_method) {
       case RSA_SHA1:
-	new_query.append("&Signature=").append(e_b64_sigret);
-	break;
+        new_query.append("&Signature=").append(e_b64_sigret);
+        break;
       case DSA_SHA1:
         new_query.append("&Signature=").append(e_b64_sigret);
-	break;
+        break;
     }
 
     xmlFree(digest);
@@ -142,9 +141,9 @@ namespace Arc {
 
     xmlSecKey* sender_public_key = NULL;
     sender_public_key =  get_key_from_certstr(sender_cert_str);
-    if(sender_public_key == NULL) { 
-      std::cerr<<"Failed to get public key from the certificate string"<<std::endl; 
-      return false; 
+    if(sender_public_key == NULL) {
+      std::cerr<<"Failed to get public key from the certificate string"<<std::endl;
+      return false;
     }
 
     /* split query, the signature MUST be the last param of the query,
@@ -193,7 +192,7 @@ namespace Arc {
     }
 
     f = str1.find("&");
-    std::string sig_str = str1.substr(0, f-1);   
+    std::string sig_str = str1.substr(0, f-1);
 
     char *b64_signature = NULL;
     xmlSecByte *signature = NULL;
@@ -236,7 +235,7 @@ namespace Arc {
     xmlFree(signature);
     xmlFree(digest);
     xmlFree(usig_alg);
-   
+
     return true;
   }
 
@@ -249,10 +248,10 @@ namespace Arc {
     //std::ostringstream oss (std::ostringstream::out);
     //node.SaveToStream(oss);
     //query = oss.str();
-   
+
     //XMLNode node1(query);
     //std::string query1;
-    //node1.GetXML(query1, encoding);  
+    //node1.GetXML(query1, encoding);
 
     //std::cout<<"Query:  "<<query<<std::endl;
 
@@ -331,7 +330,7 @@ namespace Arc {
         if (rc == Z_OK) {
           rc = Z_BUF_ERROR;
         }
-      } 
+      }
       else {
         rc = deflateEnd(&stream);
       }
@@ -403,7 +402,7 @@ namespace Arc {
   bool BuildNodefromMsg(const std::string& msg, XMLNode& node) {
     bool b64 = false;
     char* str = (char*)(msg.c_str());
-    if (is_base64(msg.c_str())) {   
+    if (is_base64(msg.c_str())) {
       str = (char*)malloc(msg.length());
       int r = xmlSecBase64Decode_ex((xmlChar*)(msg.c_str()), (xmlChar*)str, msg.length(), NULL);
       if (r == 0) b64 = true;
@@ -424,6 +423,6 @@ namespace Arc {
     //if (strchr(str, '&') || strchr(str, '='))
     if(b64) free(str);
     return false;
-  }  
+  }
 
 } //namespace Arc

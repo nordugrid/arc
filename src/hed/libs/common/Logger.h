@@ -260,10 +260,10 @@ namespace Arc {
     /** This mutex is to be locked before a LogMessage is written and it is
        not unlocked until the entire message has been written and the
        stream flushed. This is done in order to prevent LogMessages to
-       appear mixed in the stream and prevent race on modification of 
+       appear mixed in the stream and prevent race on modification of
        internal members. It is mutable to provide protection while reading members.
      */
-    mutable Glib::Mutex mutex;
+    mutable std::mutex mutex;
 
     /// Format to use in this LogDestination.
     LogFormat format;
@@ -413,7 +413,7 @@ namespace Arc {
     bool reopen;
     std::list<std::string*> cache;
     int maxcachesize;
-    Glib::Mutex file_mutex;
+    std::mutex file_mutex;
   };
 
   class LoggerContextRef;
@@ -428,7 +428,7 @@ namespace Arc {
       int usage_count;
 
       /// Protection for usage_count.
-      Glib::Mutex mutex;
+      std::mutex mutex;
 
       /// A list of pointers to LogDestinations.
       std::list<LogDestination*> destinations;
@@ -448,7 +448,7 @@ namespace Arc {
       void Release(void);
   };
   /** \endcond */
- 
+
 
   /// A logger class.
   /** This class defines a Logger to which LogMessages can be sent.
@@ -591,10 +591,10 @@ namespace Arc {
 
     /// Creates per-thread context.
     /** Creates new context for this logger which becomes effective
-       for operations initiated by this thread. All new threads 
+       for operations initiated by this thread. All new threads
        started by this one will inherit new context. Context
        stores current threshold and pointers to destinations.
-       Hence new context is identical to current one. One can 
+       Hence new context is identical to current one. One can
        modify new context using setThreshold(), removeDestinations()
        and addDestination(). All such operations will not affect
        old context.

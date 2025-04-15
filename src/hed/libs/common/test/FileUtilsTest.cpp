@@ -4,10 +4,14 @@
 #include <config.h>
 #endif
 
+#include <algorithm>
+
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <cppunit/extensions/HelperMacros.h>
+
+#include <glibmm/miscutils.h>
 
 #include <arc/FileAccess.h>
 #include <arc/FileUtils.h>
@@ -183,7 +187,7 @@ void FileUtilsTest::TestMakeAndDeleteDir() {
   CPPUNIT_ASSERT(!Arc::DirDelete(testroot, false));
   CPPUNIT_ASSERT(Arc::DirDelete(testroot, true));
   CPPUNIT_ASSERT(stat(testroot.c_str(), &st) != 0);
-  
+
 }
 
 void FileUtilsTest::TestTmpDirCreate() {

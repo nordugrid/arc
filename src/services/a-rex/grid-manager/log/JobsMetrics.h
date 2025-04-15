@@ -55,7 +55,7 @@ namespace ARex {
 
 class JobsMetrics {
  private:
-  Glib::RecMutex lock;
+  std::recursive_mutex lock;
   bool enabled;
   std::string config_filename;
   std::string tool_path;
@@ -77,7 +77,7 @@ class JobsMetrics {
   //id,state
   std::map<std::string,job_state_t> jobs_state_old_map;
   std::map<std::string,job_state_t> jobs_state_new_map;
-  
+
   Arc::Run *proc;
   std::string proc_stderr;
 

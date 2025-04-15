@@ -5,7 +5,6 @@
 #endif
 
 #include <string>
-#include <glibmm.h>
 
 #include <arc/DateTime.h>
 #include <arc/Logger.h>
@@ -994,7 +993,7 @@ namespace Arc {
       }
     }
 
-    /// \mapattr Application.StartTime <- ProcessingStartTime 
+    /// \mapattr Application.StartTime <- ProcessingStartTime
     if(job.Application.ProcessingStartTime != -1) {
       XMLNode start = application.NewChild("nordugrid-adl:StartTime");
       start = job.Application.ProcessingStartTime.str(MDSTime);

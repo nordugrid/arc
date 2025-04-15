@@ -3,7 +3,8 @@
 
 #include <sys/types.h>
 #include <list>
-#include <glib.h>
+
+#include <glibmm/fileutils.h>
 
 #include <arc/Thread.h>
 
@@ -49,9 +50,9 @@ class JobsList {
   // List of jobs currently tracked in memory conveniently indexed by identifier.
   // TODO: It would be nice to remove it and use status files distribution among
   // subfolders in controldir.
-  std::map<JobId,GMJobRef> jobs;         
+  std::map<JobId,GMJobRef> jobs;
 
-  mutable Glib::RecMutex jobs_lock;
+  mutable std::recursive_mutex jobs_lock;
 
   GMJobQueue jobs_processing;   // List of jobs currently scheduled for processing
 
@@ -116,7 +117,7 @@ class JobsList {
   bool RecreateTransferLists(GMJobRef i);
   // Read into ids all jobs in the given dir except those already being handled
   bool ScanJobDescs(const std::string& cdir,std::list<JobFDesc>& ids) const;
-  // Check and read into id information about job in the given dir 
+  // Check and read into id information about job in the given dir
   // (id has job id filled on entry) unless job is already handled
   bool ScanJobDesc(const std::string& cdir,JobFDesc& id);
   // Read into ids all jobs in the given dir with marks given by suffices
@@ -217,8 +218,8 @@ class JobsList {
   // Note: In current implementation this method does nothing because
   // <control_dir>/finished/ is used as slow queue.
   bool RequestSlowPolling(GMJobRef i);
-  
-  // Incrementally scan through old jobs in order to check for 
+
+  // Incrementally scan through old jobs in order to check for
   // removal time
   // Returns true if scanning is going on, false if scanning cycle is over.
   bool ScanOldJobs(void);
@@ -343,7 +344,7 @@ class JobsList {
   // Fils ids with information about those jobs.
   // Uses filter to skip jobs which do not fit filter requirments.
   static bool ScanAllJobs(const std::string& cdir,std::list<JobFDesc>& ids, JobFilter const& filter);
-  
+
 
   // Collect all jobs in all states and return references to their descriptions in alljobs.
   static bool GetAllJobs(const GMConfig& config, std::list<GMJobRef>& alljobs);
@@ -351,7 +352,7 @@ class JobsList {
   // Collect all job ids in all states and return them in alljobs.
   static bool GetAllJobIds(const GMConfig& config, std::list<JobId>& alljobs);
 
-  // Collect information about job with specified id. 
+  // Collect information about job with specified id.
   // Returns valid reference if job was found.
   static GMJobRef GetJob(const GMConfig& config, const JobId& id);
 

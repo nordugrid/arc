@@ -2,7 +2,7 @@
 #include <config.h>
 #endif
 
-#include <glibmm.h>
+#include <glibmm/module.h>
 
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
@@ -329,7 +329,7 @@ namespace Arc {
 
   Plugin* PluginsFactory::get_instance(const std::string& kind,int min_version,int max_version,PluginArgument* arg,bool search) {
     if(arg) arg->set_factory(this);
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
 
     modules_t_::diterator d = modules_;
     for(;d;++d) {
@@ -340,11 +340,11 @@ namespace Arc {
       if(arg) {
         arg->set_module((*d).second->module);
       };
-      lock.release();
+      lock.unlock();
       Plugin* plugin = desc->instance(arg);
       if(plugin) return plugin;
       // ... but plugin did not instantiate with specified argument
-      lock.acquire();
+      lock.lock();
     };
 
     // Either searching for plugin is enabled
@@ -354,7 +354,7 @@ namespace Arc {
     // long time. Especially if it involves network operations.
     // So releasing lock. No opertions on modules_ are allowed
     // till lock is re-acquired.
-    lock.release();
+    lock.unlock();
 
     // Try to load module of plugin
     // Look for *.apd first by requested plugin kind
@@ -399,9 +399,9 @@ namespace Arc {
           return NULL;
         };
         module = NULL; // initial handler is not valid anymore
-       
+
         // Re-acqire lock before working with modules_
-        lock.acquire();
+        lock.lock();
         // Make descriptor and register it in the cache
         ModuleDesc mdesc_i;
         mdesc_i.name = mname;
@@ -429,7 +429,7 @@ namespace Arc {
 
   Plugin* PluginsFactory::get_instance(const std::string& kind,const std::string& name,int min_version,int max_version,PluginArgument* arg,bool search) {
     if(arg) arg->set_factory(this);
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
 
     modules_t_::diterator d = modules_;
     for(;d;++d) {
@@ -439,7 +439,7 @@ namespace Arc {
       if(arg) {
         arg->set_module((*d).second->module);
       };
-      lock.release();
+      lock.unlock();
       // If both name and kind are supplied no probing is done
       return desc->instance(arg);
     };
@@ -450,7 +450,7 @@ namespace Arc {
     // long time. Especially if it involves network operations.
     // So releasing lock. No opertions on modules_ are allowed
     // till lock is re-acquired.
-    lock.release();
+    lock.unlock();
 
     // Try to load module - first by name of plugin
     std::string mname = name;
@@ -491,13 +491,13 @@ namespace Arc {
         unload_module(module,*this);
         return NULL;
       };
-      lock.acquire();
+      lock.lock();
       ModuleDesc mdesc_i;
       mdesc_i.name = mname;
       if(mdesc) mdesc->get(mdesc_i.plugins);
       modules_.add(&mdesc_i,nmodule,(PluginDescriptor*)ptr);
       if(arg) arg->set_module(nmodule);
-      lock.release();
+      lock.unlock();
       return desc->instance(arg);
     };
     logger.msg(ERROR, "Module %s contains no requested plugin %s of kind %s",mname,name,kind);
@@ -538,12 +538,12 @@ namespace Arc {
     PluginDescriptor* desc = NULL;
     void *ptr = NULL;
     std::string mname;
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     // Check if module already loaded
     modules_t_::miterator m = modules_.find(name);
     // Releasing lock in order to avoid locking while loading new module.
     // The iterator stays valid because modules are not unloaded from cache.
-    lock.release();
+    lock.unlock();
     AutoPointer<ARCModuleDescriptor> mdesc;
     if(m) {
       desc = m->second.get_table();
@@ -600,7 +600,7 @@ namespace Arc {
         return false;
       };
       // Re-acquire lock before registering new module in cache
-      lock.acquire();
+      lock.lock();
       ModuleDesc mdesc_i;
       mdesc_i.name = mname;
       if(mdesc) mdesc->get(mdesc_i.plugins);

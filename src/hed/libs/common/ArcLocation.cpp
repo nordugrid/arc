@@ -15,7 +15,8 @@
 #include <libintl.h>
 #endif
 
-#include <glibmm.h>
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
 
 #include "ArcLocation.h"
 
@@ -94,7 +95,7 @@ namespace Arc {
         pos = sep + 1;
       }
     }
-    return full_path; 
+    return full_path;
   }
 
   void ArcLocation::Init(std::string path) {

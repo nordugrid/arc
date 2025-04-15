@@ -99,14 +99,14 @@ JobsList::~JobsList(void) {
 }
 
 GMJobRef JobsList::FindJob(const JobId &id) {
-  Glib::RecMutex::Lock lock(jobs_lock);
+  std::unique_lock<std::recursive_mutex> lock(jobs_lock);
   std::map<JobId,GMJobRef>::iterator ji = jobs.find(id);
   if(ji == jobs.end()) return GMJobRef();
   return ji->second;
 }
 
 bool JobsList::HasJob(const JobId &id) const {
-  Glib::RecMutex::Lock lock(jobs_lock);
+  std::unique_lock<std::recursive_mutex> lock(jobs_lock);
   std::map<JobId,GMJobRef>::const_iterator ji = jobs.find(id);
   return (ji != jobs.end());
 }
@@ -190,7 +190,7 @@ bool JobsList::AddJob(const JobId &id,uid_t uid,gid_t gid,job_state_t state,cons
       logger.msg(Arc::ERROR, "%s: Failed reading .local and changing state, job and "
                              "A-REX may be left in an inconsistent state", id);
     }
-    Glib::RecMutex::Lock lock(jobs_lock);
+    std::unique_lock<std::recursive_mutex> lock(jobs_lock);
     if(jobs.find(id) != jobs.end()) {
       logger.msg(Arc::ERROR, "%s: unexpected failed job add request: %s", i->job_id, reason?reason:"");
     } else {
@@ -201,7 +201,7 @@ bool JobsList::AddJob(const JobId &id,uid_t uid,gid_t gid,job_state_t state,cons
   }
   i->session_dir = i->local->sessiondir;
   if (i->session_dir.empty()) i->session_dir = config.SessionRoot(id)+'/'+id;
-  Glib::RecMutex::Lock lock(jobs_lock);
+  std::unique_lock<std::recursive_mutex> lock(jobs_lock);
   if(jobs.find(id) != jobs.end()) {
     logger.msg(Arc::ERROR, "%s: unexpected job add request: %s", i->job_id, reason?reason:"");
   } else {
@@ -228,7 +228,7 @@ bool JobsList::RunningJobsLimitReached() const {
 }
 
 void JobsList::PrepareToDestroy(void) {
-  Glib::RecMutex::Lock lock(jobs_lock);
+  std::unique_lock<std::recursive_mutex> lock(jobs_lock);
   for(std::map<JobId,GMJobRef>::iterator i=jobs.begin();i!=jobs.end();++i) {
     i->second->PrepareToDestroy();
   }
@@ -380,7 +380,7 @@ bool JobsList::ActJobsPolling(void) {
   ActJobsProcessing();
   // debug info on jobs per DN
   {
-    Glib::RecMutex::Lock lock(jobs_lock);
+    std::unique_lock<std::recursive_mutex> lock(jobs_lock);
     logger.msg(Arc::VERBOSE, "Current jobs in system (PREPARING to FINISHING) per-DN (%i entries)", jobs_dn.size());
     for (std::map<std::string, ZeroUInt>::iterator it = jobs_dn.begin(); it != jobs_dn.end(); ++it)
       logger.msg(Arc::VERBOSE, "%s: %i", it->first, (unsigned int)(it->second));
@@ -442,7 +442,7 @@ bool JobsList::FailedJob(GMJobRef i,bool cancel) {
         std::list<std::string> meta;
         if(delegs && i->local) path = (*delegs)[config.DelegationDir()].FindCred(f->cred,i->local->DN,meta);
         f->cred = path;
-	f->cred_type = (!meta.empty())?meta.front():"";
+        f->cred_type = (!meta.empty())?meta.front():"";
       }
       if(i->local) ++(i->local->uploads);
     }
@@ -520,7 +520,7 @@ bool JobsList::state_submitting(GMJobRef i,bool &state_changed) {
       // returning true but not advancing to next state should cause retry
       return true;
     }
-    // Just in case we are recovering from restart or failure check if we already have 
+    // Just in case we are recovering from restart or failure check if we already have
     // LRMS id (previously run submission script succeeded).
     std::string local_id=job_desc_handler.get_local_id(i->job_id);
     if(!local_id.empty()) {
@@ -921,9 +921,9 @@ JobsList::ActJobResult JobsList::ActJobUndefined(GMJobRef i) {
       //if(config.GetJobLog()) config.GetJobLog()->WriteJobRecord(*i,config);
       // Write initial XML job information file. That should ensure combination of quick job
       // and slow infosys is not going to produce incomplete job information at next states.
-      // Such effect was detected through observing finished job without exit code. 
+      // Such effect was detected through observing finished job without exit code.
       if(!job_xml_check_file(i->job_id,config)) { // in case job is restarted and we already have xml
-        static const char* job_xml_template = 
+        static const char* job_xml_template =
   "<ComputingActivity xmlns=\"http://schemas.ogf.org/glue/2009/03/spec_2.0_r1\" BaseType=\"Activity\" CreationTime=\"\" Validity=\"60\">"
     "<ID></ID>"
     "<Name></Name>"
@@ -994,7 +994,7 @@ JobsList::ActJobResult JobsList::ActJobAccepted(GMJobRef i) {
   if (config.MaxPerDN() > 0) {
     bool limited = false;
     {
-      Glib::RecMutex::Lock lock(jobs_lock);
+      std::unique_lock<std::recursive_mutex> lock(jobs_lock);
       limited = (jobs_dn[i->local->DN] >= config.MaxPerDN());
     }
     if (limited) {
@@ -1415,7 +1415,7 @@ bool JobsList::DropJob(GMJobRef& i, job_state_t old_state, bool old_pending) {
     RequestAttention(); // TODO: Check if really needed
   };
   {
-    Glib::RecMutex::Lock lock(jobs_lock);
+    std::unique_lock<std::recursive_mutex> lock(jobs_lock);
     jobs.erase(i->job_id);
   };
   i.Destroy();
@@ -1528,14 +1528,14 @@ bool JobsList::ActJob(GMJobRef& i) {
             if (i->local->DN.empty()) {
               logger.msg(Arc::WARNING, "Failed to get DN information from .local file for job %s", i->job_id);
             }
-            Glib::RecMutex::Lock lock(jobs_lock);
+            std::unique_lock<std::recursive_mutex> lock(jobs_lock);
             ++(jobs_dn[i->local->DN]);
           };
         };
       } else if(IS_ACTIVE_STATE(old_state)) {
         if(!IS_ACTIVE_STATE(i->job_state)) {
           if(i->GetLocalDescription(config)) {
-            Glib::RecMutex::Lock lock(jobs_lock);
+            std::unique_lock<std::recursive_mutex> lock(jobs_lock);
             if (--(jobs_dn[i->local->DN]) == 0) jobs_dn.erase(i->local->DN);
           };
         };
@@ -1605,7 +1605,7 @@ JobsList::ActJobResult JobsList::ActJobFailed(GMJobRef i) {
     } else if(i->job_state == JOB_STATE_INLRMS) {
       // This happens either if job processing failed or continuation
       // plugin failed. But that also means job is probably being
-      // processed by batch system. So safest is to act as if cncel 
+      // processed by batch system. So safest is to act as if cncel
       // request arrived.
       SetJobState(i, JOB_STATE_CANCELING, "Job failure detected");
       RequestReprocess(i);

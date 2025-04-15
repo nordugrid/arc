@@ -7,7 +7,6 @@
 #include <unistd.h>
 
 #include <arc/DateTime.h>
-#include <arc/Thread.h>
 #include <arc/ArcRegex.h>
 #include <arc/Utils.h>
 #include <arc/StringConv.h>
@@ -16,6 +15,8 @@
 #include <arc/credential/VOMSAttribute.h>
 #include <arc/credential/VOMSUtil.h>
 #include "listfunc.h"
+
+#include "glibmm-compat.h"
 
 #if (OPENSSL_VERSION_NUMBER < 0x30400000L)
 // --------------------------------
@@ -91,7 +92,7 @@ namespace Arc {
       chain.clear();
     }
   }
-  
+
   VOMSTrustList::VOMSTrustList(const std::vector<std::string>& encoded_list) {
     AddElement(encoded_list);
   }
@@ -147,10 +148,10 @@ namespace Arc {
 
     OpenSSLInit();
 
-    static Glib::Mutex lock_;
+    static std::mutex lock_;
     static bool done = false;
 
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     if (done) return;
 
     /* VOMS Attribute related objects*/
@@ -216,7 +217,7 @@ namespace Arc {
                           EVP_PKEY *pkey, BIGNUM *serialnum,
                           std::vector<std::string> &fqan,
                           std::vector<std::string> &targets,
-                          std::vector<std::string>& attrs, 
+                          std::vector<std::string>& attrs,
                           AC *ac, std::string voname, std::string uri, int lifetime) {
     #define ERROR(e) do { err = (e); goto err; } while (0)
     AC *a = NULL;
@@ -336,8 +337,8 @@ namespace Arc {
     for (std::vector<std::string>::iterator i = attrs.begin(); i != attrs.end(); i++) {
       std::string qual, name, value;
 
-      CredentialLogger.msg(DEBUG,"VOMS: create attribute: %s",*i); 
- 
+      CredentialLogger.msg(DEBUG,"VOMS: create attribute: %s",*i);
+
       AC_ATTRIBUTE *ac_attr = AC_ATTRIBUTE_new();
       if (!ac_attr)
         ERROR(AC_ERR_MEMORY);
@@ -348,7 +349,7 @@ namespace Arc {
         qual = (*i).substr(0, pos);
         pos += 2;
       }
-      else { pos = 2; } 
+      else { pos = 2; }
 
       size_t pos1 = (*i).find_first_of("=");
       if (pos1 == std::string::npos) {
@@ -382,7 +383,7 @@ namespace Arc {
         ASN1_IA5STRING_free(tmpr);
         ERROR(AC_ERR_MEMORY);
       }
-    
+
       std::string buffer(voname);
       buffer.append("://");
       buffer.append(uri);
@@ -394,8 +395,8 @@ namespace Arc {
       sk_GENERAL_NAME_push(ac_att_holder->grantor, g); g = NULL;
       if(ac_full_attrs->providers == NULL) ac_full_attrs->providers = sk_AC_ATT_HOLDER_new_null();
       sk_AC_ATT_HOLDER_push(ac_full_attrs->providers, ac_att_holder); ac_att_holder = NULL;
-    }  
-  
+    }
+
     // push both AC_ATTR into STACK_OF(AC_ATTR)
     if(a->acinfo->attrib == NULL) a->acinfo->attrib = sk_AC_ATTR_new_null();
     sk_AC_ATTR_push(a->acinfo->attrib, capabilities); capabilities = NULL;
@@ -577,7 +578,7 @@ err:
         ERROR(AC_ERR_MEMORY);
       }
     }
- 
+
     buffer.append(voname);
     buffer.append("://");
     buffer.append(uri);
@@ -615,8 +616,8 @@ err:
     for (std::vector<std::string>::iterator i = attrs.begin(); i != attrs.end(); i++) {
       std::string qual, name, value;
 
-      CredentialLogger.msg(DEBUG,"VOMS: create attribute: %s",*i); 
- 
+      CredentialLogger.msg(DEBUG,"VOMS: create attribute: %s",*i);
+
       AC_ATTRIBUTE *ac_attr = AC_ATTRIBUTE_new();
       if (!ac_attr)
         ERROR(AC_ERR_MEMORY);
@@ -627,7 +628,7 @@ err:
         qual = (*i).substr(0, pos);
         pos += 2;
       }
-      else { pos = 2; } 
+      else { pos = 2; }
 
       size_t pos1 = (*i).find_first_of("=");
       if (pos1 == std::string::npos) {
@@ -661,7 +662,7 @@ err:
         ASN1_IA5STRING_free(tmpr);
         ERROR(AC_ERR_MEMORY);
       }
-    
+
       std::string buffer(voname);
       buffer.append("://");
       buffer.append(uri);
@@ -673,8 +674,8 @@ err:
       sk_GENERAL_NAME_push(ac_att_holder->grantor, g); g = NULL;
       if(ac_full_attrs->providers == NULL) ac_full_attrs->providers = sk_AC_ATT_HOLDER_new_null();
       sk_AC_ATT_HOLDER_push(ac_full_attrs->providers, ac_att_holder); ac_att_holder = NULL;
-    }  
-  
+    }
+
     // push both AC_ATTR into STACK_OF(AC_ATTR)
     if(!X509_ACERT_add1_attr(a, capabilities))
       ERROR(AC_ERR_NO_EXTENSION);
@@ -816,7 +817,7 @@ err:
     if (uid) {
       // const_cast hack due to missing set method
       const ASN1_BIT_STRING* bstr = X509_ACERT_get0_issuerUID(a);
-      if(bstr) 
+      if(bstr)
         ASN1_BIT_STRING_set(const_cast<ASN1_BIT_STRING*>(bstr), uid->data, uid->length);
     }
 
@@ -862,8 +863,8 @@ err:
     return err;
   }
 
-  bool createVOMSAC(std::string &codedac, Credential &issuer_cred, Credential &holder_cred, 
-             std::vector<std::string> &fqan, std::vector<std::string> &targets, 
+  bool createVOMSAC(std::string &codedac, Credential &issuer_cred, Credential &holder_cred,
+             std::vector<std::string> &fqan, std::vector<std::string> &targets,
              std::vector<std::string>& attributes, std::string &voname, std::string &uri, int lifetime) {
 
     X509* issuer = issuer_cred.GetCert();
@@ -914,7 +915,7 @@ err:
     unsigned char* pp = (unsigned char *)malloc(codedac.size());
     if(!pp) {
       CredentialLogger.msg(ERROR,"VOMS: Can not allocate memory for parsing AC");
-      return false; 
+      return false;
     }
     memcpy(pp, codedac.data(), l);
 
@@ -932,7 +933,7 @@ err:
     if((received_ac = d2i_AC(NULL, &p, l))) {
       AC** actmplist = (AC **)listadd((char **)aclist, (char *)received_ac, sizeof(AC *));
       if (actmplist) {
-        aclist = actmplist; 
+        aclist = actmplist;
         (void)BN_lshift1(dataorder, dataorder);
         (void)BN_set_bit(dataorder, 0);
         char *buffer = BN_bn2hex(dataorder);
@@ -1005,9 +1006,9 @@ err:
           //Normally the voms server certificate is directly issued by a CA,
           //in this case, sk_X509_num(stack) should be 1.
           //On the other hand, if the voms server certificate is issued by a CA
-          //which is issued by an parent CA, and so on, then the AC issuer should 
-          //put those CA certificates (except the root CA certificate which has 
-          //been configured to be trusted on the AC consumer side) together with 
+          //which is issued by an parent CA, and so on, then the AC issuer should
+          //put those CA certificates (except the root CA certificate which has
+          //been configured to be trusted on the AC consumer side) together with
           //the voms server certificate itself in the 'certseq' part of AC.
           //
           //The CA certificates are checked one by one: the certificate which
@@ -1030,7 +1031,7 @@ err:
 
     return (index != 0);
   }
-  
+
   static bool checkSigAC(X509* cert, AC* ac){
     if (!cert || !ac) return false;
 
@@ -1046,7 +1047,7 @@ err:
 #endif
 
     if (!res) CredentialLogger.msg(ERROR,"VOMS: failed to verify AC signature");
-  
+
     EVP_PKEY_free(key);
     return (res == 1);
   }
@@ -1143,7 +1144,7 @@ err:
     return (reg.match(subject,unmatched,matched) && reg.match(issuer,unmatched,matched));
 
   }
-  
+
   /* Get the DNs chain from relative *.lsc file.
    * The location of .lsc file is path: $vomsdir/<VO>/<hostname>.lsc
    */
@@ -1153,9 +1154,9 @@ err:
       CredentialLogger.msg(INFO, "VOMS: The lsc file %s does not exist", lsc_loc);
       return false;
     }
-    std::string trustdn_str;  
+    std::string trustdn_str;
     std::ifstream in(lsc_loc.c_str(), std::ios::in);
-    if (!in) {       
+    if (!in) {
       CredentialLogger.msg(ERROR, "VOMS: The lsc file %s can not be open", lsc_loc);
       return false;
     }
@@ -1166,9 +1167,9 @@ err:
   }
 
   static bool checkSignature(AC* ac,
-    const std::string vomsdir, const std::string& voname, const std::string& hostname, 
-    const std::string& ca_cert_dir, const std::string& ca_cert_file, 
-    VOMSTrustList& vomscert_trust_dn, 
+    const std::string vomsdir, const std::string& voname, const std::string& hostname,
+    const std::string& ca_cert_dir, const std::string& ca_cert_file,
+    VOMSTrustList& vomscert_trust_dn,
     X509*& issuer_cert, unsigned int& status, bool verify) {
 
     bool res = true;
@@ -1198,7 +1199,7 @@ err:
       }
       //The relatively new version of VOMS server is supposed to
       //create AC which includes the certificate stack:
-      //the certificate of voms server; the non-CA certificate/s 
+      //the certificate of voms server; the non-CA certificate/s
       //(if there are) that signs the voms server' certificate.
       STACK_OF(X509)* certstack = certs->stackcert;
 
@@ -1213,15 +1214,15 @@ err:
             status |= VOMSACInfo::TrustFailed;
             status |= VOMSACInfo::LSCFailed;
           }
-          else { 
+          else {
             vomscert_trust_dn.AddElement(voms_trustdn);
             lsc_check = true;
-            //lsc checking only happens if the VOMSTrustList argument is empty. 
+            //lsc checking only happens if the VOMSTrustList argument is empty.
           }
         }
 
         //Check if the DN of those certificates in the certificate stack
-        //corresponds to the trusted DN chain in the configuration 
+        //corresponds to the trusted DN chain in the configuration
         if(certstack && !trust_success) {
           for(int n = 0;n < vomscert_trust_dn.SizeChains();++n) {
             const VOMSTrustChain& chain = vomscert_trust_dn.GetChain(n);
@@ -1247,12 +1248,12 @@ err:
           //return false;
         }
       }
-                  
+
       bool sig_valid = false;
       if(certstack) {
-        //If the certificate stack does correspond to some of the trusted DN chain, 
-        //then check if the AC signature is valid by using the voms server 
-        //certificate (voms server certificate is supposed to be the first 
+        //If the certificate stack does correspond to some of the trusted DN chain,
+        //then check if the AC signature is valid by using the voms server
+        //certificate (voms server certificate is supposed to be the first
         //in the certificate stack).
         issuer = X509_dup(sk_X509_value(certstack, 0));
       }
@@ -1264,8 +1265,8 @@ err:
           CredentialLogger.msg(ERROR,"VOMS: AC signature verification failed");
         }
       }
-   
-      if(verify) { 
+
+      if(verify) {
         //Check if those certificate in the certificate stack are trusted.
         if (sig_valid) { // Note - sig_valid=true never happens with certstack=NULL
           if (!checkCert(certstack, ca_cert_dir, ca_cert_file)) {
@@ -1281,18 +1282,18 @@ err:
           res = false;
         }
       }
- 
+
       AC_CERTS_free(certs);
     }
 
-#if 0 
-    //For those old-stype voms configuration, there is no 
+#if 0
+    //For those old-stype voms configuration, there is no
     //certificate stack in the AC. So there should be a local
     //directory which includes the voms server certificate.
     //It is not suppoted anymore.
-    // check if able to find the signing certificate 
+    // check if able to find the signing certificate
     // among those specific for the vo or else in the vomsdir
-    // directory 
+    // directory
     if(issuer == NULL){
       bool found  = false;
       BIO * in = NULL;
@@ -1300,9 +1301,9 @@ err:
       for(int i = 0; (i < 2 && !found); ++i) {
         std::string directory = vomsdir + (i ? "" : "/" + voname);
         CredentialLogger.msg(DEBUG,"VOMS: directory for trusted service certificates: %s",directory);
-        Glib::Dir dir(directory); 
+        Glib::Dir dir(directory);
         while(true){
-          std::string filename = dir.read_name(); 
+          std::string filename = dir.read_name();
           if (!filename.empty()) {
             in = BIO_new(BIO_s_file());
             if (in) {
@@ -1332,7 +1333,7 @@ err:
 #endif
 
     issuer_cert = issuer;
-    return res; 
+    return res;
   }
 
 
@@ -1419,16 +1420,16 @@ err:
     /* find AC_ATTR with IETFATTR type */
     int  nid = OBJ_txt2nid(idatcapOID);
     int pos = X509_ACERT_get_attr_by_NID(ac, nid, -1);
-    if (!(pos >=0)) { 
+    if (!(pos >=0)) {
       CredentialLogger.msg(ERROR,"VOMS: Can not find AC_ATTR with IETFATTR type");
       return false;
     }
     AC_ATTR *caps = X509_ACERT_get_attr(ac, pos); // name should be get0
-  
+
     /* check there's exactly one IETFATTR attribute */
     if (X509_ATTRIBUTE_count(caps) != 1) {
       CredentialLogger.msg(ERROR,"VOMS: case of multiple IETFATTR attributes not supported");
-      return false; 
+      return false;
     }
 
     /* retrieve the only AC_IETFFATTR */
@@ -1437,9 +1438,9 @@ err:
     AC_IETFATTR *capattr = d2i_OSSL_IETF_ATTR_SYNTAX(NULL, &asndata, ASN1_STRING_length(asnitem));
     if (!capattr) {
       CredentialLogger.msg(ERROR,"VOMS: failed to access IETFATTR attribute");
-      return false; 
+      return false;
     }
-  
+
     /* check it has exactly one policyAuthority */
     if (sk_GENERAL_NAME_num(OSSL_IETF_ATTR_SYNTAX_get0_policyAuthority(capattr)) != 1) {
       AC_IETFATTR_free(capattr);
@@ -1504,7 +1505,7 @@ err:
     char domainname[256];
 
     if ((!gethostname(hostname, 255)) && (!getdomainname(domainname, 255))) {
-      name.append(hostname); 
+      name.append(hostname);
       if(strcmp(domainname, "(none)")) {
         if (*domainname == '.')
           name.append(domainname);
@@ -1577,7 +1578,7 @@ err:
     }
     return true;
   }
- 
+
   static bool checkExtensions(STACK_OF(X509_EXTENSION) const *exts, X509 *iss, std::string const & targetFQDN, std::vector<std::string>& output, unsigned int& status) {
 
 #if (OPENSSL_VERSION_NUMBER < 0x30400000L)
@@ -1649,10 +1650,10 @@ err:
       full_attr = (AC_FULL_ATTRIBUTES *)X509V3_EXT_d2i(ex);
       if (full_attr) {
         if (!interpretAttributes(full_attr, output, status)) {
-          CredentialLogger.msg(ERROR,"VOMS: failed to parse attributes from AC"); 
+          CredentialLogger.msg(ERROR,"VOMS: failed to parse attributes from AC");
           AC_FULL_ATTRIBUTES_free(full_attr);
           status = VOMSACInfo::InternalParsingFailed;
-          return false; 
+          return false;
         }
         AC_FULL_ATTRIBUTES_free(full_attr);
       }
@@ -1661,7 +1662,7 @@ err:
     //Check the authorityKeyIdentifier
     if (pos2 >= 0) {
       X509_EXTENSION *ex;
-      bool keyerr = false; 
+      bool keyerr = false;
       AUTHORITY_KEYID *key;
       ex = sk_X509_EXTENSION_value(exts, pos2);
       key = (AUTHORITY_KEYID *)X509V3_EXT_d2i(ex);
@@ -1674,8 +1675,8 @@ err:
                       pkeystr->length,
                       hashed))
               keyerr = true;
-          
-            if ((memcmp(key->keyid->data, hashed, 20) != 0) && 
+
+            if ((memcmp(key->keyid->data, hashed, 20) != 0) &&
                 (key->keyid->length == 20))
               keyerr = true;
           }
@@ -1770,10 +1771,10 @@ err:
       full_attr = (AC_FULL_ATTRIBUTES *)X509V3_EXT_d2i(ex);
       if (full_attr) {
         if (!interpretAttributes(full_attr, output, status)) {
-          CredentialLogger.msg(ERROR,"VOMS: failed to parse attributes from AC"); 
+          CredentialLogger.msg(ERROR,"VOMS: failed to parse attributes from AC");
           AC_FULL_ATTRIBUTES_free(full_attr);
           status = VOMSACInfo::InternalParsingFailed;
-          return false; 
+          return false;
         }
         AC_FULL_ATTRIBUTES_free(full_attr);
       }
@@ -1782,7 +1783,7 @@ err:
     //Check the authorityKeyIdentifier
     if (pos2 >= 0) {
       X509_EXTENSION *ex;
-      bool keyerr = false; 
+      bool keyerr = false;
       AUTHORITY_KEYID *key;
       ex = sk_X509_EXTENSION_value(exts, pos2);
       key = (AUTHORITY_KEYID *)X509V3_EXT_d2i(ex);
@@ -1795,8 +1796,8 @@ err:
                       pkeystr->length,
                       hashed))
               keyerr = true;
-          
-            if ((memcmp(key->keyid->data, hashed, 20) != 0) && 
+
+            if ((memcmp(key->keyid->data, hashed, 20) != 0) &&
                 (key->keyid->length == 20))
               keyerr = true;
           }
@@ -1891,7 +1892,7 @@ err:
     }
     valid_from = Time(ASN1_GENERALIZEDTIME_get(start));
     valid_till = Time(ASN1_GENERALIZEDTIME_get(end));
-    
+
 
     STACK_OF(GENERAL_NAME) *names;
     GENERAL_NAME  *name = NULL;
@@ -2019,8 +2020,8 @@ err:
 
 #else // (OPENSSL_VERSION_NUMBER < 0x30400000L)
 
-    if(!ac || !cert 
-       || !X509_ACERT_get0_issuerName(ac) || !X509_ACERT_get0_serialNumber(ac) 
+    if(!ac || !cert
+       || !X509_ACERT_get0_issuerName(ac) || !X509_ACERT_get0_serialNumber(ac)
        || !X509_ACERT_get0_info_sigalg(ac) || !X509_ACERT_get0_notBefore(ac) || !X509_ACERT_get0_notAfter(ac)) {
       CredentialLogger.msg(ERROR,"VOMS: missing AC parts");
       status |= VOMSACInfo::ACParsingFailed;
@@ -2035,7 +2036,7 @@ err:
       return false;
     }
 
-    //Check the validity time  
+    //Check the validity time
     ASN1_TIME const *start;
     ASN1_TIME const *end;
     start = X509_ACERT_get0_notBefore(ac);
@@ -2067,7 +2068,7 @@ err:
     }
     valid_from = Time(ASN1_GENERALIZEDTIME_get(start));
     valid_till = Time(ASN1_GENERALIZEDTIME_get(end));
-    
+
 
 
     if (X509_ACERT_get0_holder_baseCertId(ac)) {
@@ -2087,7 +2088,7 @@ err:
           ASN1_INTEGER_get(OSSL_ISSUER_SERIAL_get0_serial(X509_ACERT_get0_holder_baseCertId(ac))));
         // return false;
       }
-       
+
       X509_NAME const *name = NULL;
       name = OSSL_ISSUER_SERIAL_get0_issuer(X509_ACERT_get0_holder_baseCertId(ac));
       if (!name) {
@@ -2095,7 +2096,7 @@ err:
         status |= VOMSACInfo::ACParsingFailed;
         return false;
       }
-     
+
       char *ac_holder_name_chars = X509_NAME_oneline(name,NULL,0);
       if(ac_holder_name_chars) {
         ac_holder_name = ac_holder_name_chars;
@@ -2159,7 +2160,7 @@ err:
         }
       }
     }
-  
+
     X509_NAME const *name = X509_ACERT_get0_issuerName(ac);
     if (!name) {
       CredentialLogger.msg(ERROR,"VOMS: the issuer information in AC is wrong");
@@ -2183,9 +2184,9 @@ err:
       return false;
     }
 
-    //Check AC's attribute    
+    //Check AC's attribute
     if(!checkAttributes(ac, output, status)) res = false; // ??
- 
+
     //Check AC's extension
     if(!checkExtensions(X509_ACERT_get0_extensions(ac), issuer, targetFQDN, output, status)) res = false;
 
@@ -2199,11 +2200,11 @@ err:
   static bool verifyVOMSAC(AC* ac,
         const std::string& ca_cert_dir, const std::string& ca_cert_file, const std::string vomsdir,
         VOMSTrustList& vomscert_trust_dn, std::string const & targetFQDN, X509* holder,
-        std::vector<std::string>& attr_output, 
-        std::string& vo_name, std::string& ac_holder_name, std::string& ac_issuer_name, 
+        std::vector<std::string>& attr_output,
+        std::string& vo_name, std::string& ac_holder_name, std::string& ac_issuer_name,
         Time& from, Time& till, unsigned int& status, bool verify) {
     bool res = true;
-    //Extract name 
+    //Extract name
     int nid = 0;
     int pos = 0;
     nid = OBJ_txt2nid(idatcapOID);
@@ -2279,7 +2280,7 @@ err:
       status |= VOMSACInfo::InternalParsingFailed; // ?
       return false;
     }
- 
+
     X509* issuer = NULL;
 
     if(!checkSignature(ac, vomsdir, voname, hostname,
@@ -2300,7 +2301,7 @@ err:
   }
 
   bool parseVOMSAC(X509* holder,
-        const std::string& ca_cert_dir, const std::string& ca_cert_file, 
+        const std::string& ca_cert_dir, const std::string& ca_cert_file,
         const std::string& vomsdir, VOMSTrustList& vomscert_trust_dn,
         std::vector<VOMSACInfo>& output, bool verify, bool reportall, std::string const & targetFQDN) {
 
@@ -2334,8 +2335,8 @@ err:
       AC *ac = sk_AC_value(aclist->acs, i);
       VOMSACInfo ac_info;
       bool r = verifyVOMSAC(ac, ca_cert_dir, ca_cert_file,
-          vomsdir.empty()?default_vomsdir:vomsdir, vomscert_trust_dn, targetFQDN,  
-          holder, ac_info.attributes, ac_info.voname, ac_info.holder, ac_info.issuer, 
+          vomsdir.empty()?default_vomsdir:vomsdir, vomscert_trust_dn, targetFQDN,
+          holder, ac_info.attributes, ac_info.voname, ac_info.holder, ac_info.issuer,
           ac_info.from, ac_info.till, ac_info.status, verify);
       if(!r) verified = false;
       if(r || reportall) {
@@ -2343,7 +2344,7 @@ err:
         output.push_back(ac_info);
       }
       ERR_clear_error();
-    } 
+    }
 
     if(aclist)AC_SEQ_free(aclist);
     return verified;
@@ -2358,10 +2359,10 @@ err:
     bool res = parseVOMSAC(holder, ca_cert_dir, ca_cert_file, vomsdir,
                            vomscert_trust_dn, output, verify, reportall, targetFQDN);
 
-    //Also parse the voms attributes inside the certificates on 
+    //Also parse the voms attributes inside the certificates on
     //the upstream of the holder certificate; in this case,
-    //multiple level of delegation exists, and user(or intermediate 
-    //actor such as grid manager) could hold a voms proxy and use this 
+    //multiple level of delegation exists, and user(or intermediate
+    //actor such as grid manager) could hold a voms proxy and use this
     //proxy to create a more level of proxy
     STACK_OF(X509)* certchain = holder_cred.GetCertChain();
     if(certchain != NULL) {
@@ -2395,7 +2396,7 @@ err:
     while(!BIO_eof(bio)) {
       X509* tmp = NULL;
       if(!(PEM_read_bio_X509(bio, &tmp, NULL, NULL))){
-        ERR_clear_error(); 
+        ERR_clear_error();
         if(!found) res = false;
         break;
       }
@@ -2673,7 +2674,7 @@ err:
       asn1.clear();
       asn1.assign((const char*)(X509_EXTENSION_get_data(ext)->data), X509_EXTENSION_get_data(ext)->length);
       ret = true;
-      X509_EXTENSION_free(ext);      
+      X509_EXTENSION_free(ext);
     }
     return ret;
   }
@@ -2691,9 +2692,9 @@ err:
   }
 
 
-  // The attributes passed to this method are of "extended fqan" kind with every field 
+  // The attributes passed to this method are of "extended fqan" kind with every field
   // made of key=value pair. Also each attribute has /VO=voname prepended.
-  // Special ARC attribute /voname=voname/hostname=hostname is used for assigning 
+  // Special ARC attribute /voname=voname/hostname=hostname is used for assigning
   // server host name to VO.
   std::string VOMSFQANFromFull(const std::string& attribute) {
     std::list<std::string> elements;

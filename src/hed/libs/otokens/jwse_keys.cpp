@@ -24,7 +24,7 @@ static EVP_PKEY* X509_get_privkey(X509*) {
 
 
 namespace Arc {
- 
+
   class IssuerInfo {
    private:
     time_t const DefaultValidTime = 3600;
@@ -47,7 +47,7 @@ namespace Arc {
   };
 
   static std::map<std::string, IssuerInfo> issuersInfo;
-  static Glib::Mutex issuersInfoLock;
+  static std::mutex issuersInfoLock;
 
   char const * const JWSE::HeaderNameX509CertChain = "x5c";
   char const * const JWSE::HeaderNameJSONWebKey = "jwk";
@@ -133,11 +133,11 @@ namespace Arc {
     if(ktyObject->type != cJSON_String) return false;
 
     EVP_PKEY* publicKey(NULL);
-    if(strcmp(ktyObject->valuestring, "EC") == 0) {    
+    if(strcmp(ktyObject->valuestring, "EC") == 0) {
       publicKey = jwkECParse(jwkObject, logger);
-    } else if(strcmp(ktyObject->valuestring, "RSA") == 0) {    
+    } else if(strcmp(ktyObject->valuestring, "RSA") == 0) {
       publicKey = jwkRSAParse(jwkObject, logger);
-    } else if(strcmp(ktyObject->valuestring, "oct") == 0) {    
+    } else if(strcmp(ktyObject->valuestring, "oct") == 0) {
       publicKey = jwkOctParse(jwkObject, logger);
     }
     if(publicKey == NULL)
@@ -191,7 +191,7 @@ namespace Arc {
       cJSON* certObject = cJSON_GetArrayItem(x5cObject, certN);
       if(certObject == NULL) break;
       if(certObject->type != cJSON_String) return false;
-      // It should be PEM encoded certificate in single string and without header/footer           
+      // It should be PEM encoded certificate in single string and without header/footer
       AutoPointer<BIO> mem(BIO_new(BIO_s_mem()), &BIO_deallocate);
       if(!mem) return false;
       BIO_puts(mem.Ptr(), "-----BEGIN CERTIFICATE-----\n");
@@ -294,25 +294,25 @@ namespace Arc {
         return false;
       bool keyProtocolSafe = true;
       std::string issuerUrl(issuerObj->valuestring);
-	  // Issuer can be any application specific string. Typically that is URL.
-	  // Sometimes it is hostname (Google tokens). As we need URL anyway to fetch
-      // keys let's assume we have either HTTP(S) URL or hostname.	  
+          // Issuer can be any application specific string. Typically that is URL.
+          // Sometimes it is hostname (Google tokens). As we need URL anyway to fetch
+      // keys let's assume we have either HTTP(S) URL or hostname.
       if(strncasecmp("https://", issuerUrl.c_str(), 8) == 0) {
-		// Use as is.
-	  } else if(strncasecmp("http://", issuerUrl.c_str(), 7) == 0) {
-		  keyProtocolSafe = false;
-	  } else {
-		issuerUrl = "https://" + issuerUrl + "/";
-	  }
-	  
+                // Use as is.
+          } else if(strncasecmp("http://", issuerUrl.c_str(), 7) == 0) {
+                  keyProtocolSafe = false;
+          } else {
+                issuerUrl = "https://" + issuerUrl + "/";
+          }
+
       {
         Time now;
-        Arc::AutoLock<Glib::Mutex> lock(issuersInfoLock);
+        Arc::AutoLock<std::mutex> lock(issuersInfoLock);
         for(std::map<std::string, IssuerInfo>::iterator infoIt = issuersInfo.begin(); infoIt != issuersInfo.end();) {
           std::map<std::string, IssuerInfo>::iterator nextIt = infoIt;
           ++nextIt;
           if(infoIt->second.IsExpired()) {
-            logger_.msg(DEBUG, "JWSE::ExtractPublicKey: deleting outdated info: %s", infoIt->first); 
+            logger_.msg(DEBUG, "JWSE::ExtractPublicKey: deleting outdated info: %s", infoIt->first);
             issuersInfo.erase(infoIt);
           }
           infoIt = nextIt;
@@ -378,7 +378,7 @@ namespace Arc {
   }
 
   void JWSE::SetIssuerInfo(Time* validTill, bool isSafe, std::string const& issuer, Arc::AutoPointer<OpenIDMetadata>& metadata, Arc::AutoPointer<JWSEKeyHolderList>& keys) {
-    Arc::AutoLock<Glib::Mutex> lock(issuersInfoLock);
+    Arc::AutoLock<std::mutex> lock(issuersInfoLock);
     IssuerInfo& info(issuersInfo[issuer]);
     info.isSafe = isSafe;
     info.metadata = metadata;
@@ -401,7 +401,7 @@ namespace Arc {
     SetIssuerInfo(validTill, isSafe, issuer, metadata, keys);
     return true;
   }
-  
+
   bool JWSE::InsertPublicKey(bool& keyAdded) const {
     keyAdded = false;
     cJSON_DeleteItemFromObject(header_.Ptr(), HeaderNameX509CertChain);

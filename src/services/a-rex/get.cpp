@@ -9,8 +9,6 @@
 
 #include <string>
 
-#include <glibmm.h>
-
 #include <arc/FileLock.h>
 #include <arc/FileUtils.h>
 #include <arc/StringConv.h>
@@ -177,7 +175,7 @@ Arc::MCC_Status ARexService::GetJob(Arc::Message& inmsg,Arc::Message& outmsg,ARe
   std::string hpath = Arc::trim(subpath,"/"); // prepare clean sub-path
   std::string joblog = job.LogDir();
   if(!joblog.empty()) {
-    if((strncmp(joblog.c_str(),hpath.c_str(),joblog.length()) == 0)  && 
+    if((strncmp(joblog.c_str(),hpath.c_str(),joblog.length()) == 0)  &&
        ((hpath[joblog.length()] == '/') || (hpath[joblog.length()] == '\0'))) {
       hpath.erase(0,joblog.length()+1);
       return GetLogs(inmsg,outmsg,config,id,hpath);

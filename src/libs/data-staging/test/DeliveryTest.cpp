@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <unistd.h>
+
 #include <cppunit/extensions/HelperMacros.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -87,7 +89,7 @@ void DeliveryTest::TestDeliverySimple() {
       break;
     }
     CPPUNIT_ASSERT(cnt < 300); // 30s limit on transfer time
-    Glib::usleep(100000);
+    usleep(100000);
   }
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::TRANSFERRED, status.GetStatus());
   CPPUNIT_ASSERT_EQUAL_MESSAGE(dtr->get_error_status().GetDesc(), DataStaging::DTRErrorStatus::NONE_ERROR, dtr->get_error_status().GetErrorStatus());
@@ -121,7 +123,7 @@ void DeliveryTest::TestDeliveryFailure() {
       break;
     }
     CPPUNIT_ASSERT(cnt < 200); // 20s limit on transfer time
-    Glib::usleep(100000);
+    usleep(100000);
   }
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRStatus::TRANSFERRED, status.GetStatus());
   CPPUNIT_ASSERT_EQUAL(DataStaging::DTRErrorStatus::TEMPORARY_REMOTE_ERROR, dtr->get_error_status().GetErrorStatus());

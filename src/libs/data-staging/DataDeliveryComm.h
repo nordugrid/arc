@@ -68,7 +68,7 @@ namespace DataStaging {
     /// Reading position of Status buffer
     unsigned int status_pos_;
     /// Lock to protect access to status
-    Glib::Mutex lock_;
+    std::mutex lock_;
     /// Transfer limits
     TransferParameters transfer_params;
     /// Time transfer was started
@@ -138,10 +138,10 @@ namespace DataStaging {
   class DataDeliveryCommHandler {
 
    private:
-    Glib::Mutex lock_;
+    std::mutex lock_;
     static void func(void* arg);
     std::list<DataDeliveryComm*> items_;
-    static Glib::Mutex comm_lock;
+    static std::mutex comm_lock;
     static std::map<std::string, DataDeliveryCommHandler*> comm_handler;
 
     /// Constructor is private - getInstance() should be used instead

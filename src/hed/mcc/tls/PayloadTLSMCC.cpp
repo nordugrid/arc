@@ -8,7 +8,6 @@
 
 #include "PayloadTLSMCC.h"
 #include <openssl/err.h>
-#include <glibmm/miscutils.h>
 #include <arc/DateTime.h>
 #include <arc/StringConv.h>
 #include <arc/crypto/OpenSSL.h>
@@ -497,7 +496,7 @@ void PayloadTLSMCC::SetFailure(int code) {
     failure_ = bioStatus;
     return;
   }
-  
+
   std::string err_failure = failure_?"":failure_.getExplanation();
   std::string bio_failure = (!isBioFailure || bioStatus.getOrigin() != "TLS" ? "" : bioStatus.getExplanation());
   std::string tls_failure = ConfigTLSMCC::HandleError(code);

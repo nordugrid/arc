@@ -3,7 +3,6 @@
 #ifndef __ARC_DATABUFFER_H__
 #define __ARC_DATABUFFER_H__
 
-#include <arc/Thread.h>
 #include <arc/data/DataSpeed.h>
 
 namespace Arc {
@@ -21,8 +20,8 @@ namespace Arc {
     /// used to check if configuration changed
     int set_counter;
     /// general purpose mutex and condition used to achieve thread safety
-    Glib::Mutex lock;
-    Glib::Cond cond;
+    std::mutex lock;
+    std::condition_variable cond;
     /// internal struct to describe status of every buffer
     typedef struct {
       /// buffer address in memory

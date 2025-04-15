@@ -4,7 +4,6 @@
 #include <string>
 #include <map>
 
-#include <arc/Thread.h>
 #include <arc/message/SOAPEnvelope.h>
 #include <arc/XMLNode.h>
 
@@ -15,7 +14,7 @@ namespace ARex {
 /// Set of service storing delegated credentials
 class DelegationStores {
  private:
-  Glib::Mutex lock_;
+  std::mutex lock_;
   std::map<std::string,DelegationStore*> stores_;
   DelegationStore::DbType db_type_;
   DelegationStores(const DelegationStores&) { };
@@ -24,7 +23,7 @@ class DelegationStores {
   ~DelegationStores(void);
   void SetDbType(DelegationStore::DbType db_type) { db_type_ = db_type; };
   /// Returns or creates delegation storage associated with 'path'.
-  DelegationStore& operator[](const std::string& path); 
+  DelegationStore& operator[](const std::string& path);
   /// Check if SOAP request 'in' can be handled by this implementation.
   bool MatchNamespace(const Arc::SOAPEnvelope& in);
   /// Processes SOAP request 'in' using delegation storage associated with 'path'.

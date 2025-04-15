@@ -7,7 +7,6 @@
 #include <arc/ArcConfig.h>
 #include <arc/FileLock.h>
 #include <arc/StringConv.h>
-#include <arc/Thread.h>
 #include <arc/compute/ExecutionTarget.h>
 #include <arc/compute/Job.h>
 #include <arc/compute/JobDescription.h>
@@ -69,10 +68,10 @@ namespace Arc {
           dst.AddOption("blocksize=1048576",false);
           dst.AddOption("checksum=no",false);
           DataHandle source(src, *usercfg);
-	  if (!source) {
+          if (!source) {
             logger.msg(ERROR, "Failed reading file %s", src.fullstr());
             return false;
-	  }
+          }
           if ((!dest_handle) || (!*dest_handle) || (!(*dest_handle)->SetURL(dst))) {
             if(dest_handle) delete dest_handle;
             ((SubmitterPlugin*)this)->dest_handle = new DataHandle(dst, *usercfg);

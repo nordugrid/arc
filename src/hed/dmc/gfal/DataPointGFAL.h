@@ -5,7 +5,6 @@
 
 #include <list>
 
-#include <arc/Thread.h>
 #include <arc/data/DataPointDirect.h>
 
 namespace ArcDMCGFAL {

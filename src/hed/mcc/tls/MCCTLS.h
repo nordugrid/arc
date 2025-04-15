@@ -1,7 +1,6 @@
 #ifndef __ARC_MCCTLS_H__
 #define __ARC_MCCTLS_H__
 
-#include <arc/Thread.h>
 #include <arc/Logger.h>
 #include <arc/message/MCC.h>
 
@@ -17,8 +16,8 @@ namespace ArcMCCTLS {
   protected:
     //bool tls_random_seed(std::string filename, long n);
     static unsigned int ssl_initialized_;
-    static Glib::Mutex lock_;
-    static Glib::Mutex* ssl_locks_;
+    static std::mutex lock_;
+    static std::mutex* ssl_locks_;
     static int ssl_locks_num_;
     static Logger logger;
     static void ssl_locking_cb(int mode, int n, const char *file, int line);
@@ -27,20 +26,20 @@ namespace ArcMCCTLS {
     ConfigTLSMCC config_;
   };
 
-/** This MCC implements TLS server side functionality. Upon creation this 
+/** This MCC implements TLS server side functionality. Upon creation this
   object creats SSL_CTX object and configures SSL_CTX object with some environment
-  information about credential. 
-  Because we cannot know the "socket" when the creation of MCC_TLS_Service/MCC_TLS_Client 
-  object (not like MCC_TCP_Client, which can creat socket in the constructor method 
-  by using information in configuration file), we can only creat "ssl" object which is 
-  binded to specified "socket", when MCC_HTTP_Client calls the process() method of 
-  MCC_TLS_Client object, or MCC_TCP_Service calls the process() method of MCC_TLS_Service 
+  information about credential.
+  Because we cannot know the "socket" when the creation of MCC_TLS_Service/MCC_TLS_Client
+  object (not like MCC_TCP_Client, which can creat socket in the constructor method
+  by using information in configuration file), we can only creat "ssl" object which is
+  binded to specified "socket", when MCC_HTTP_Client calls the process() method of
+  MCC_TLS_Client object, or MCC_TCP_Service calls the process() method of MCC_TLS_Service
   object. The "ssl" object is embeded in a payload called PayloadTLSSocket.
 
-  The process() method of MCC_TLS_Service is passed payload implementing 
-  PayloadStreamInterface and the method returns empty PayloadRaw payload in "outmsg". 
-  The ssl object is created and bound to Stream payload when constructing the PayloadTLSSocket 
-  in the process() method. 
+  The process() method of MCC_TLS_Service is passed payload implementing
+  PayloadStreamInterface and the method returns empty PayloadRaw payload in "outmsg".
+  The ssl object is created and bound to Stream payload when constructing the PayloadTLSSocket
+  in the process() method.
 
   During processing of message this MCC generates attribute TLS:PEERDN which contains
   Distinguished Name of remoote peer.

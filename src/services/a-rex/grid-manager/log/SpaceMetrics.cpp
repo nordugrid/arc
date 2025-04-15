@@ -41,7 +41,7 @@ namespace ARex {
   void SpaceMetrics::SetConfig(const char* fname) {
     config_filename = fname;
   }
-  
+
   void SpaceMetrics::SetGmetricPath(const char* path) {
     tool_path = path;
   }
@@ -49,7 +49,7 @@ namespace ARex {
 
   void SpaceMetrics::ReportSpaceChange(const GMConfig& config) {
     if(!enabled) return; // not configured
-    Glib::RecMutex::Lock lock_(lock);
+    std::unique_lock<std::recursive_mutex> lock_(lock);
 
     /*Free sessiondir space*/
     struct statvfs info_session;
@@ -84,7 +84,7 @@ namespace ARex {
         freeSession = (float)(info_session.f_bfree * info_session.f_bsize) / (float)(1024 * 1024 * 1024);
         totalFreeSession += freeSession;
         logger.msg(Arc::DEBUG, "Sessiondir %s: Free space %f GB", path, totalFreeSession);
-	
+
         freeSession_update = true;
 
       }
@@ -107,7 +107,7 @@ namespace ARex {
         if ((*i).find(" ") != std::string::npos){
           path = (*i).substr((*i).find_last_of(" ")+1, (*i).length()-(*i).find_last_of(" ")+1);
         }
-      
+
         if (statvfs(path.c_str(), &info_cache) != 0) {
           logger.msg(Arc::ERROR,"Error getting info from statvfs for the path %s: %s", path, Arc::StrError(errno));
         }
@@ -116,13 +116,13 @@ namespace ARex {
           freeCache = (float)(info_cache.f_bfree * info_cache.f_bsize) / (float)(1024 * 1024 * 1024);
           totalFreeCache += freeCache;
           logger.msg(Arc::DEBUG, "Cache %s: Free space %f GB", path, totalFreeCache);
-	
+
           freeCache_update = true;
         }
       }
     }
     else{
-      logger.msg(Arc::DEBUG,"No cachedirs found/configured for calculation of free space.");    
+      logger.msg(Arc::DEBUG,"No cachedirs found/configured for calculation of free space.");
     }
 
     Sync();
@@ -142,7 +142,7 @@ namespace ARex {
 
   void SpaceMetrics::Sync(void) {
     if(!enabled) return; // not configured
-    Glib::RecMutex::Lock lock_(lock);
+    std::unique_lock<std::recursive_mutex> lock_(lock);
     if(!CheckRunMetrics()) return;
     // Run gmetric to report one change at a time
     //since only one process can be started from Sync(), only 1 histogram can be sent at a time, therefore return for each call;
@@ -170,7 +170,7 @@ namespace ARex {
 
   }
 
- 
+
   bool SpaceMetrics::RunMetrics(const std::string name, const std::string& value, const std::string unit_type, const std::string unit) {
     if(proc) return false;
     std::list<std::string> cmd;
@@ -194,7 +194,7 @@ namespace ARex {
     cmd.push_back(unit_type);
     cmd.push_back("-u");//unit
     cmd.push_back(unit);
-  
+
     proc = new Arc::Run(cmd);
     proc->AssignStderr(proc_stderr);
     proc->AssignKicker(&RunMetricsKicker, this);
@@ -209,7 +209,7 @@ namespace ARex {
   void SpaceMetrics::SyncAsync(void* arg) {
     if(arg) {
       SpaceMetrics& it = *reinterpret_cast<SpaceMetrics*>(arg);
-      Glib::RecMutex::Lock lock_(it.lock);
+      std::unique_lock<std::recursive_mutex> lock_(it.lock);
       if(it.proc) {
         // Continue only if no failure in previous call.
         // Otherwise it can cause storm of failed calls.

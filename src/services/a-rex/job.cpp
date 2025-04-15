@@ -18,7 +18,6 @@
 
 
 #include <arc/DateTime.h>
-#include <arc/Thread.h>
 #include <arc/StringConv.h>
 #include <arc/FileUtils.h>
 #include <arc/Utils.h>
@@ -413,8 +412,8 @@ ARexJob::ARexJob(const std::string& id,ARexGMConfig& config,Arc::Logger& logger,
   struct stat st;
   if(job_.sessiondir.empty()) { id_.clear(); return; };
   if(stat(job_.sessiondir.c_str(),&st) != 0) { id_.clear(); return; };
-  uid_ = st.st_uid; 
-  gid_ = st.st_gid; 
+  uid_ = st.st_uid;
+  gid_ = st.st_gid;
 }
 
 ARexJob::ARexJob(Arc::XMLNode xmljobdesc,ARexGMConfig& config,const std::string& delegid,const std::string& queue,const std::string& clientid,Arc::Logger& logger,JobIDGenerator& idgenerator):id_(""),logger_(logger),config_(config) {
@@ -552,9 +551,9 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
   if(job_.lrms.empty()) job_.lrms=config_.GmConfig().DefaultLRMS();
 
   // Handle queue in request.
-  // if (queue in xrsl/adl) submit to that queue w/o modification; 
-  // elseif (passed default queue by caller) substitute default queue into xrsl/adl and check authorisation; 
-  // elseif (exists default queue in arc.conf) substitute default queue into xrsl and check authorisation; 
+  // if (queue in xrsl/adl) submit to that queue w/o modification;
+  // elseif (passed default queue by caller) substitute default queue into xrsl/adl and check authorisation;
+  // elseif (exists default queue in arc.conf) substitute default queue into xrsl and check authorisation;
   // elseif (VO is authorised in one of the arc.conf queues*) substitute into xrsl the first queue where VO is authorised in arc.conf;
   // else (reject);
   if(job_.queue.empty()) // queue in job description?
@@ -663,13 +662,13 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
     return;
   };
   // There may be 3 sources of delegated credentials:
-  // 1. If job comes through EMI-ES it has delegations assigned only per file 
+  // 1. If job comes through EMI-ES it has delegations assigned only per file
   //    through source and target. But ARC has extension to pass global
   //    delegation for whole DataStaging
   // 2. In ARC BES extension credentials delegated as part of job creation request.
   //    Those are provided in credentials variable
-  // 3. If neither works and special dynamic output files @list which 
-  //    have no targets and no delegations are present then any of 
+  // 3. If neither works and special dynamic output files @list which
+  //    have no targets and no delegations are present then any of
   //    per file delegations is used
 
   bool need_delegation = false; // not for sure, but most probably needed
@@ -689,7 +688,7 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
       if(f->Name[0] == '@') {
         // Dynamic file - possibly we need delegation. But we can't know till job finished.
         // Try to use any of provided delegations.
-        need_delegation = true; 
+        need_delegation = true;
         break;
       };
     };
@@ -709,7 +708,7 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
   };
 
   if(need_delegation && job_.delegationid.empty()) {
-    // Still need generic per job delegation 
+    // Still need generic per job delegation
     if(deleg_ids.size() > 0) {
       // Pick up first delegation as generic one
       job_.delegationid = *deleg_ids.begin();
@@ -778,7 +777,7 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
             if(!fqan.empty()) {
               job_.voms.insert(job_.voms.end(),fqan);
             };
-          }; 
+          };
         };
       };
     };
@@ -793,8 +792,8 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
             std::list<std::string> wgroups = sattr->getAll("wlcg.groups");
             for(std::list<std::string>::iterator wgroup = wgroups.begin();wgroup!=wgroups.end();++wgroup) {
               job_.voms.insert(job_.voms.end(),*wgroup);
-            }; 
-          }; 
+            };
+          };
         };
       };
     };
@@ -853,7 +852,7 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
     GMJob job(job_.jobid,user,job_.sessiondir,JOB_STATE_ACCEPTED);
     // Write job description file
     if(!job_description_write_file(job,config_.GmConfig(),job_desc_str)) {
-      if(num_jobs >= min_jobs) break; 
+      if(num_jobs >= min_jobs) break;
       delete_job_id(config_,user,sessiondir,ids);
       failure_="Failed to store job description";
       failure_type_=ARexJobInternalError;
@@ -864,7 +863,7 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
     // For compatibility reasons during transitional period store full proxy if possible
     if(!certificates.empty()) {
       if(!job_proxy_write_file(job,config_.GmConfig(),certificates)) {
-        if(num_jobs >= min_jobs) break; 
+        if(num_jobs >= min_jobs) break;
         delete_job_id(config_,user,sessiondir,ids);
         failure_="Failed to write job proxy file";
         failure_type_=ARexJobInternalError;
@@ -875,7 +874,7 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
 
     // Write local file
     if(!job_local_write_file(job,config_.GmConfig(),job_)) {
-      if(num_jobs >= min_jobs) break; 
+      if(num_jobs >= min_jobs) break;
       delete_job_id(config_,user,sessiondir,ids);
       failure_="Failed to store internal job description";
       failure_type_=ARexJobInternalError;
@@ -885,7 +884,7 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
 
     // Write grami file
     if(!job_desc_handler.write_grami(desc,job,NULL)) {
-      if(num_jobs >= min_jobs) break; 
+      if(num_jobs >= min_jobs) break;
       delete_job_id(config_,user,sessiondir,ids);
       failure_="Failed to create grami file";
       failure_type_=ARexJobInternalError;
@@ -896,7 +895,7 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
     // Write ACL file
     if(!acl.empty()) {
       if(!job_acl_write_file(job_.jobid,config_.GmConfig(),acl)) {
-        if(num_jobs >= min_jobs) break; 
+        if(num_jobs >= min_jobs) break;
         delete_job_id(config_,user,sessiondir,ids);
         failure_="Failed to process/store job ACL";
         failure_type_=ARexJobInternalError;
@@ -904,7 +903,7 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
         return;
       };
     };
-    
+
     // Call authentication/authorization plugin/exec
     // Thre is no sense in calling it for each of same jobs - do it only for first one.
     if(num_jobs == 0) {
@@ -940,7 +939,7 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
 
     // Create session directory
     if(!config_.GmConfig().CreateSessionDirectory(job.SessionDir(), job.get_user())) {
-      if(num_jobs >= min_jobs) break; 
+      if(num_jobs >= min_jobs) break;
       delete_job_id(config_,user,sessiondir,ids);
       failure_="Failed to create session directory";
       failure_type_=ARexJobInternalError;
@@ -960,7 +959,7 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
   for(num_jobs=0; num_jobs<max_jobs; ++num_jobs) {
     GMJob job(ids[num_jobs],Arc::User(uid_));
     if(!job_state_write_file(job,config_.GmConfig(),JOB_STATE_ACCEPTED,false)) {
-      if(num_jobs >= min_jobs) break; 
+      if(num_jobs >= min_jobs) break;
       delete_job_id(config_,user,sessiondir,ids);
       failure_="Failed registering job in A-REX";
       failure_type_=ARexJobInternalError;
@@ -1116,7 +1115,7 @@ bool ARexJob::make_job_id() {
 std::size_t ARexJob::make_job_id(ARexGMConfig& config_, Arc::Logger& logger_, std::vector<std::string>& ids) {
   if(!config_) return 0;
   if(ids.empty()) return 0;
-  for(std::size_t idx = 0;idx < ids.size();++idx) { 
+  for(std::size_t idx = 0;idx < ids.size();++idx) {
     ids[idx].clear();
     for(int i=0;i<100;i++) {
       //id_=Arc::tostring((unsigned int)getpid())+

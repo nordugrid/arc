@@ -7,6 +7,9 @@
 #include <XrdCl/XrdClDefaultEnv.hh>
 #include <XrdCl/XrdClLog.hh>
 
+#include <glibmm/miscutils.h>
+#include <glibmm/module.h>
+
 #include <arc/StringConv.h>
 #include <arc/data/DataBuffer.h>
 #include <arc/CheckSum.h>

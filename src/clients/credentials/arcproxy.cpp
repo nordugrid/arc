@@ -9,6 +9,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
+
 #include <arc/ArcLocation.h>
 #include <arc/OptionParser.h>
 #include <arc/StringConv.h>
@@ -29,6 +32,8 @@
 #endif
 
 #include "arcproxy.h"
+
+#include "glibmm-compat.h"
 
 using namespace ArcCredential;
 
@@ -69,7 +74,7 @@ static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
     pf_home = profiles_homes[i];
     struct stat st;
     if(::stat(pf_home.c_str(), &st) != 0) continue;
-    if(!S_ISDIR(st.st_mode)) continue; 
+    if(!S_ISDIR(st.st_mode)) continue;
     if(user.get_uid() != st.st_uid) continue;
     pf_homes.push_back(pf_home);
   }
@@ -80,15 +85,15 @@ static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
   for(int i=0; i<pf_homes.size(); i++) {
     std::string pf_file = pf_homes[i] + G_DIR_SEPARATOR_S "profiles.ini";
     struct stat st;
-    if(::stat(pf_file.c_str(),&st) != 0) continue; 
-    if(!S_ISREG(st.st_mode)) continue; 
+    if(::stat(pf_file.c_str(),&st) != 0) continue;
+    if(!S_ISREG(st.st_mode)) continue;
     if(user.get_uid() != st.st_uid) continue;
     ini_home[pf_file] = pf_homes[i];
   }
 
-  // All of the reachable profiles.ini files will be parsed to get 
+  // All of the reachable profiles.ini files will be parsed to get
   // the nss configuration information (nss db location).
-  // All of the information about nss db location  will be 
+  // All of the information about nss db location  will be
   // merged together for users to choose
   std::map<std::string, std::string>::iterator it;
   for(it = ini_home.begin(); it != ini_home.end(); ++it) {
@@ -106,14 +111,14 @@ static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
     for (std::list<std::string>::iterator i = lines.begin(); i != lines.end(); ++i) {
       std::vector<std::string> inivalue;
       Arc::tokenize(*i, inivalue, "=");
-      if((inivalue[0].find("Profile") != std::string::npos) && 
+      if((inivalue[0].find("Profile") != std::string::npos) &&
          (inivalue[0].find("StartWithLast") == std::string::npos)) {
         bool is_relative = false;
         std::string path;
         std::advance(i, 1);
         for(; i != lines.end();) {
           inivalue.clear();
-          Arc::tokenize(*i, inivalue, "=");   
+          Arc::tokenize(*i, inivalue, "=");
           if (inivalue.size() == 2) {
             if (inivalue[0] == "IsRelative") {
               if(inivalue[1] == "1") is_relative = true;
@@ -136,8 +141,8 @@ static void get_default_nssdb_path(std::vector<std::string>& nss_paths) {
       }
     }
   }
-  return; 
-} 
+  return;
+}
 
 static void get_nss_certname(std::string& certname, Arc::Logger& logger) {
   std::list<ArcAuthNSS::certInfo> certInfolist;
@@ -156,7 +161,7 @@ static void get_nss_certname(std::string& certname, Arc::Logger& logger) {
     pos1 = sub_dn.find("CN=");
     if(pos1 != std::string::npos) {
       pos2 = sub_dn.find(",", pos1);
-      if(pos2 != std::string::npos) 
+      if(pos2 != std::string::npos)
         cn_name = " ("+sub_dn.substr(pos1+3, pos2-pos1-3) + ")";
     }
     std::cout<<Arc::IString("Number %d is with nickname: %s%s", n, cert_info.certname, cn_name)<<std::endl;
@@ -389,7 +394,7 @@ static int runmain(int argc, char *argv[]) {
               "    -R (--retrievable_by_cert) option.\n"
               "    This option is specific for the GET command when contacting Myproxy server."),
                     use_empty_passphrase);
-  
+
   std::string retrievable_by_cert; //if use empty passphrase to myproxy server
   options.AddOption('R', "retrievable_by_cert", istring(
               "Allow specified entity to retrieve credential without passphrase.\n"
@@ -446,7 +451,7 @@ static int runmain(int argc, char *argv[]) {
   options.AddOption('\0', "systemca",
                     istring("force using CA certificates configuration provided by OpenSSL"),
                     force_system_ca);
-    
+
   bool force_grid_ca = false;
   options.AddOption('\0', "gridca",
                     istring("force using CA certificates configuration for Grid services (typically IGTF)"),
@@ -501,7 +506,7 @@ static int runmain(int argc, char *argv[]) {
   if (force_system_ca) usercfg.CAUseSystem(true);
   if (force_grid_ca) usercfg.CAUseSystem(false);
   if (allow_insecure_connection) usercfg.TLSAllowInsecure(true);
- 
+
   if(use_nssdb) {
     usercfg.CertificatePath("");;
     usercfg.KeyPath("");;
@@ -522,9 +527,9 @@ static int runmain(int argc, char *argv[]) {
   // Can proxy be used for? Could not find it in documentation.
   // Key and certificate not needed if only printing proxy information
   if ( (!(Arc::lower(myproxy_command) == "get")) && (!use_nssdb) ) {
-    if((usercfg.CertificatePath().empty() || 
+    if((usercfg.CertificatePath().empty() ||
         (
-         usercfg.KeyPath().empty() && 
+         usercfg.KeyPath().empty() &&
          (usercfg.CertificatePath().find(".p12") == std::string::npos)
         )
        ) && !(info || (infoitemlist.size() > 0) || remove_proxy)) {
@@ -576,7 +581,7 @@ static int runmain(int argc, char *argv[]) {
   }
 
   // Proxy is special case. We either need default or predefined path.
-  // No guessing or testing is needed. 
+  // No guessing or testing is needed.
   // By running credentials initialization once more all set values
   // won't change. But proxy will get default value if not set.
   {
@@ -604,7 +609,7 @@ static int runmain(int argc, char *argv[]) {
   }
 
   const Arc::Time now;
-  
+
   if (remove_proxy) {
     if (proxy_path.empty()) {
       logger.msg(Arc::ERROR, "Cannot find the path of the proxy file, "
@@ -739,7 +744,7 @@ static int runmain(int argc, char *argv[]) {
           }
 
           //std::cout << "attribute : "<<voms_attributes[n].attributes[i]<<std::endl;
-          //do not display those attributes that have already been displayed 
+          //do not display those attributes that have already been displayed
           //(this can happen when there are multiple voms server )
         }
         Arc::Time ct;
@@ -864,7 +869,7 @@ static int runmain(int argc, char *argv[]) {
     return EXIT_SUCCESS;
   }
 
-  if ((cert_path.empty() || key_path.empty()) && 
+  if ((cert_path.empty() || key_path.empty()) &&
       (Arc::lower(myproxy_command) == "put")) {
     if (cert_path.empty())
       logger.msg(Arc::ERROR, "Cannot find the user certificate path, "
@@ -977,12 +982,12 @@ static int runmain(int argc, char *argv[]) {
   Arc::Time validityStart = now; // now by default
   Arc::Period validityPeriod(12*60*60);
   if (Arc::lower(myproxy_command) == "put") {
-    //For myproxy PUT operation, the proxy should be 7 days according to the default 
+    //For myproxy PUT operation, the proxy should be 7 days according to the default
     //definition in myproxy implementation.
     validityPeriod = 7*24*60*60;
   }
   // Acquire constraints. Check for valid values and conflicts.
-  if((!constraints["validityStart"].empty()) && 
+  if((!constraints["validityStart"].empty()) &&
      (!constraints["validityEnd"].empty()) &&
      (!constraints["validityPeriod"].empty())) {
     std::cerr << Arc::IString("The start, end and period can't be set simultaneously") << std::endl;
@@ -1044,7 +1049,7 @@ static int runmain(int argc, char *argv[]) {
   } else {
     if(validityPeriod < vomsACvalidityPeriod) vomsACvalidityPeriod = validityPeriod;
     // It is strange that VOMS AC may be valid less than proxy itself.
-    // Maybe it would be more correct to have it valid by default from 
+    // Maybe it would be more correct to have it valid by default from
     // now till validityEnd.
   }
   std::string voms_period = Arc::tostring(vomsACvalidityPeriod.GetPeriod());
@@ -1136,7 +1141,7 @@ static int runmain(int argc, char *argv[]) {
       if(!Arc::TmpFileCreate(tmp_proxy_path,"")) return EXIT_FAILURE;
 
       get_nss_certname(issuername, logger);
-      
+
       // Create tmp proxy cert
       int duration = 12;
       res = ArcAuthNSS::nssCreateCert(proxy_csrfile, issuername, NULL, duration, "", tmp_proxy_path, ascii);
@@ -1183,7 +1188,7 @@ static int runmain(int argc, char *argv[]) {
     // Create proxy with VOMS AC
     std::string proxy_certfile = "myproxy.pem";
 
-    // Let user to choose which credential to use 
+    // Let user to choose which credential to use
     if(issuername.empty()) get_nss_certname(issuername, logger);
     std::cout<<Arc::IString("Certificate to use is: %s", issuername)<<std::endl;
 
@@ -1199,7 +1204,7 @@ static int runmain(int argc, char *argv[]) {
     res = ArcAuthNSS::nssImportCert(*passsources[pass_nss], proxy_certfile, proxy_certname, trusts, ascii);
     if(!res) return EXIT_FAILURE;
 
-    //Compose the proxy certificate 
+    //Compose the proxy certificate
     if(!proxy_path.empty())Arc::SetEnv("X509_USER_PROXY", proxy_path);
     Arc::UserConfig usercfg(conffile,
         Arc::initializeCredentialsType(Arc::initializeCredentialsType::NotTryCredentials));
@@ -1260,14 +1265,14 @@ static int runmain(int argc, char *argv[]) {
   }
 
   if (!myproxy_command.empty() && (Arc::lower(myproxy_command) != "put")) {
-    bool res = contact_myproxy_server(myproxy_server, myproxy_command, 
-      user_name, use_empty_passphrase, myproxy_period, retrievable_by_cert, 
+    bool res = contact_myproxy_server(myproxy_server, myproxy_command,
+      user_name, use_empty_passphrase, myproxy_period, retrievable_by_cert,
       proxy_start, proxy_period, vomslist, vomses_path, proxy_path, usercfg, logger);
     if (res && (Arc::lower(myproxy_command) == "get") && (!vomslist.empty())) {
       // IF the myproxy command is "Get", and voms command is given,
       // then we need to check if the proxy returned from myproxy server
       // includes VOMS AC, if not, we will use the returned proxy to
-      // directly contact VOMS server to generate a proxy-on-proxy with 
+      // directly contact VOMS server to generate a proxy-on-proxy with
       // VOMS AC included.
       Arc::Credential holder(proxy_path, "", "", "", false);
       Arc::VOMSTrustList voms_trust_dn;
@@ -1283,7 +1288,7 @@ static int runmain(int argc, char *argv[]) {
         if(!vomsacseq.empty()) {
           Arc::Credential signer(proxy_path, proxy_path, "", "", false);
           std::string proxy_cert;
-          create_proxy(proxy_cert, signer, policy, proxy_start, proxy_period, 
+          create_proxy(proxy_cert, signer, policy, proxy_start, proxy_period,
               vomsacseq, keybits, signing_algorithm);
           write_proxy_file(proxy_path, proxy_cert);
         }
@@ -1338,10 +1343,10 @@ static int runmain(int argc, char *argv[]) {
     }
 
     std::string proxy_cert;
-    create_proxy(proxy_cert, signer, policy, proxy_start, proxy_period,      
+    create_proxy(proxy_cert, signer, policy, proxy_start, proxy_period,
         vomsacseq, keybits, signing_algorithm);
 
-    //If myproxy command is "Put", then the proxy path is set to /tmp/myproxy-proxy.uid.pid 
+    //If myproxy command is "Put", then the proxy path is set to /tmp/myproxy-proxy.uid.pid
     if (Arc::lower(myproxy_command) == "put")
       proxy_path = Glib::build_filename(Glib::get_tmp_dir(), "myproxy-proxy."
                    + Arc::tostring(user.get_uid()) + Arc::tostring((int)(getpid())));

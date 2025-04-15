@@ -7,6 +7,8 @@
 #include <pwd.h>
 #include <grp.h>
 
+#include <algorithm>
+
 #include <arc/DateTime.h>
 #include <arc/FileUtils.h>
 #include <arc/StringConv.h>
@@ -24,7 +26,7 @@ namespace ARex {
     static void extract_integer(std::string& s,std::string::size_type n = 0) {
         for(;n<s.length();n++) {
             if(isdigit(s[n])) continue;
-            s.resize(n); 
+            s.resize(n);
             break;
         }
         return;
@@ -108,7 +110,7 @@ namespace ARex {
                 } else if(std::count(local.authgroups.begin(), local.authgroups.end(), vv.first)) {
                     wlcgvo = vv.second;
                     break;
-                } 
+                }
             }
         }
         // token claims to auth attributes
@@ -170,8 +172,8 @@ namespace ARex {
             }
         }
 
-        /* 
-         * analyze job.ID.diag and store relevant information 
+        /*
+         * analyze job.ID.diag and store relevant information
          */
         std::string fname_src = job_control_path(config.ControlDir(), job.get_id(), sfx_diag);
         std::list<std::string> diag_data;
@@ -282,9 +284,9 @@ namespace ARex {
                 std::pair <std::string, std::string>("localuser", localuser)
             );
         }
-              
-        /* 
-         * analyze job.ID.statistics and store relevant DTR information 
+
+        /*
+         * analyze job.ID.statistics and store relevant DTR information
          */
         fname_src = job_control_path(config.ControlDir(), job.get_id(), sfx_statistics);
         std::list<std::string> statistics_data;
@@ -305,9 +307,9 @@ namespace ARex {
                 struct aar_data_transfer_t dtrinfo;
                 bool is_input = true;
                 // key define type of transfer
-                if (key == "inputfile") { 
+                if (key == "inputfile") {
                     dtrinfo.type = dtr_input;
-                } else if (key == "outputfile") { 
+                } else if (key == "outputfile") {
                     dtrinfo.type = dtr_output;
                     is_input = false;
                 }

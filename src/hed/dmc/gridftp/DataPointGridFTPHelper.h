@@ -32,7 +32,7 @@ namespace ArcDMCGridFTP {
   private:
     class CBArg {
     private:
-      Glib::Mutex lock;
+      std::mutex lock;
       DataPointGridFTPHelper* arg;
       CBArg(void);
       CBArg(const CBArg&);

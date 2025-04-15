@@ -26,9 +26,9 @@ libarccommon_la_SOURCES = ArcVersion.cpp ArcConfig.cpp ArcLocation.cpp \
 	Counter.cpp IntraProcessCounter.cpp IniConfig.cpp Profile.cpp \
         JobPerfLog.cpp JSON.cpp Run_unix.cpp Watchdog.cpp
 libarccommon_la_CXXFLAGS = -I$(top_srcdir)/include \
-	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(GTHREAD_CFLAGS) $(ZLIB_CFLAGS) \
+	$(LIBXML2_CFLAGS) $(GLIBMM_CFLAGS) $(ZLIB_CFLAGS) \
 	$(AM_CXXFLAGS)
-libarccommon_la_LIBADD = $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(GTHREAD_LIBS) $(ZLIB_LIBS) \
+libarccommon_la_LIBADD = $(LIBXML2_LIBS) $(GLIBMM_LIBS) $(ZLIB_LIBS) \
 	$(UUID_LIBS) $(LIBINTL) -lpthread
 libarccommon_la_LDFLAGS = -version-info 4:0:0
 

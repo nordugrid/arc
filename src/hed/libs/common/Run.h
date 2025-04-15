@@ -3,8 +3,9 @@
 #ifndef __ARC_RUN_H__
 #define __ARC_RUN_H__
 
-#include <glibmm.h>
-#include <arc/Thread.h>
+#include <condition_variable>
+#include <mutex>
+
 #include <arc/DateTime.h>
 
 namespace Arc {
@@ -88,8 +89,8 @@ namespace Arc {
     bool running_; // child process is running
     bool abandoned_; // we are interested in this process anymore
     int result_; // process execution result
-    Glib::Mutex lock_;
-    Glib::Cond cond_;
+    std::mutex lock_;
+    std::condition_variable cond_;
     int user_id_;
     int group_id_;
     Time run_time_;

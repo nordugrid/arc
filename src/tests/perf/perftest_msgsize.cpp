@@ -6,13 +6,13 @@
 
 // perftest.cpp
 
+#include <chrono>
+#include <cmath>
 #include <iostream>
-#include <fstream>
+#include <mutex>
 #include <sstream>
 #include <string>
-#include <stdlib.h>
-#include <glibmm/thread.h>
-#include <glibmm/timer.h>
+#include <thread>
 
 #include <arc/GUID.h>
 #include <arc/ArcConfig.h>
@@ -23,15 +23,15 @@
 #include <arc/communication/ClientInterface.h>
 
 // Some global shared variables...
-Glib::Mutex* mutex;
+std::mutex mutex;
 bool run;
 int finishedThreads;
 unsigned long completedRequests;
 unsigned long failedRequests;
 unsigned long totalRequests;
-Glib::TimeVal completedTime;
-Glib::TimeVal failedTime;
-Glib::TimeVal totalTime;
+std::chrono::system_clock::duration completedTime;
+std::chrono::system_clock::duration failedTime;
+std::chrono::system_clock::duration totalTime;
 std::string url_str;
 bool alwaysReconnect = false;
 bool printTimings = false;
@@ -42,25 +42,19 @@ int stop;
 int steplength;
 int msgSize;
 
-// Round off a double to an integer.
-int Round(double x){
-  return int(x+0.5);
-}
-
 // Send requests and collect statistics.
 void sendRequests(){
   // Some variables...
   unsigned long completedRequests = 0;
   unsigned long failedRequests = 0;
-  Glib::TimeVal completedTime(0,0);
-  Glib::TimeVal failedTime(0,0);
-  Glib::TimeVal tBefore;
-  Glib::TimeVal tAfter;
+  std::chrono::system_clock::duration completedTime;
+  std::chrono::system_clock::duration failedTime;
   bool connected;
 
   //std::string url_str("https://127.0.0.1:60000/echo");
   Arc::URL url(url_str);
   if(tcpNoDelay) url.AddOption("tcpnodelay=yes");
+
   Arc::MCCConfig mcc_cfg;
   mcc_cfg.AddPrivateKey("../echo/testuserkey-nopass.pem");
   mcc_cfg.AddCertificate("../echo/testusercert.pem");
@@ -68,7 +62,7 @@ void sendRequests(){
   mcc_cfg.AddCADir("../echo/certificates");
 
   Arc::NS echo_ns; echo_ns["echo"]="http://www.nordugrid.org/schemas/echo";
-  
+
   std::string size;
   Arc::ClientSOAP *client = NULL;
   while(run){
@@ -81,7 +75,7 @@ void sendRequests(){
         client = new Arc::ClientSOAP(mcc_cfg,url,60);
         connected = true;
       }
-      
+
       // Prepare the request.
       Arc::PayloadSOAP req(echo_ns);
       std::stringstream sstr;
@@ -89,17 +83,18 @@ void sendRequests(){
       size = sstr.str();
       //req.NewChild("echo").NewChild("say")="HELLO";
       req.NewChild("size").NewChild("size")=size;
+
       // Send the request and time it.
-      tBefore.assign_current_time();
+      auto tBefore = std::chrono::system_clock::now();
       Arc::PayloadSOAP* resp = NULL;
-       
+
       //std::string str;
       //req.GetXML(str);
       //std::cout<<"request: "<<str<<std::endl;
       Arc::MCC_Status status = client->process(&req,&resp);
-      
-      tAfter.assign_current_time();
-      
+
+      auto tAfter = std::chrono::system_clock::now();
+
       if(!status) {
         // Request failed.
         failedRequests++;
@@ -124,7 +119,7 @@ void sendRequests(){
             // Everything worked just fine!
             completedRequests++;
             completedTime+=tAfter-tBefore;
-            if (printTimings) std::cout << completedRequests << " " << size << " " << tAfter.as_double()-tBefore.as_double() << std::endl;
+            if (printTimings) std::cout << completedRequests << " " << size << " " << std::chrono::duration<double>(tAfter - tBefore).count() << std::endl;
           }
         }
       }
@@ -132,11 +127,10 @@ void sendRequests(){
       if(alwaysReconnect) connected=false;
     }
     if(client) delete client;
-  
   }
 
   // Update global variables.
-  Glib::Mutex::Lock lock(*mutex);
+  std::unique_lock<std::mutex> lock(mutex);
   ::completedRequests+=completedRequests;
   ::failedRequests+=failedRequests;
   ::completedTime+=completedTime;
@@ -150,12 +144,11 @@ int main(int argc, char* argv[]){
   int numberOfThreads;
   int duration;
   int i;
-  Glib::Thread** threads;
+  std::thread* threads;
   const char* config_file = NULL;
   int debug_level = -1;
   Arc::LogStream logcerr(std::cerr);
 
-  // Process options - quick hack, must use Glib options later
   while(argc >= 7) {
     if(strcmp(argv[1],"-c") == 0) {
       config_file = argv[2];
@@ -175,7 +168,7 @@ int main(int argc, char* argv[]){
     } else {
       break;
     };
-  } 
+  }
   if(debug_level >= 0) {
     Arc::Logger::getRootLogger().setThreshold((Arc::LogLevel)debug_level);
     Arc::Logger::getRootLogger().addDestination(logcerr);
@@ -189,21 +182,21 @@ int main(int argc, char* argv[]){
               << std::endl
               << "Arguments:" << std::endl
               << "url        The url of the service." << std::endl
-              << "threads   The number of concurrent requests." << std::endl
-              << "duration  The duration of the test in seconds." << std::endl
+              << "threads    The number of concurrent requests." << std::endl
+              << "duration   The duration of the test in seconds." << std::endl
               << "start      The size of the first response from the echo service." << std::endl
               << "stop       The size of the last response from the echo service." << std::endl
               << "steplength The increase of size per call to the echo service." << std::endl
               << "-c config  The file containing client chain XML configuration with " << std::endl
               << "           'soap' entry point and HOSTNAME, PORTNUMBER and PATH " << std::endl
               << "            keyword for hostname, port and HTTP path of 'echo' service." << std::endl
-              << "-d debug   The textual representation of desired debug level. Available " << std::endl
+              << "-d debug    The textual representation of desired debug level. Available " << std::endl
               << "            levels: DEBUG, VERBOSE, INFO, WARNING, ERROR, FATAL." << std::endl
-              << "-r         If specified close connection and reconnect after " << std::endl
+              << "-r          If specified close connection and reconnect after " << std::endl
               << "            every request." << std::endl
-              << "-t         Toggles TCP_NODELAY option " << std::endl
-              << "-f size    Fixed message size " << std::endl
-              << "-v         If specified print out timings for each iteration " << std::endl;
+              << "-t          Toggles TCP_NODELAY option " << std::endl
+              << "-f size     Fixed message size " << std::endl
+              << "-v          If specified print out timings for each iteration " << std::endl;
     exit(EXIT_FAILURE);
   }
   url_str = std::string(argv[1]);
@@ -216,22 +209,20 @@ int main(int argc, char* argv[]){
   // Start threads.
   run=true;
   finishedThreads=0;
-  //Glib::thread_init();
-  mutex=new Glib::Mutex;
-  threads = new Glib::Thread*[numberOfThreads];
+  threads = new std::thread[numberOfThreads];
   for (i=0; i<numberOfThreads; i++)
-    threads[i]=Glib::Thread::create(sigc::ptr_fun(sendRequests),true);
+    threads[i] = std::thread(sendRequests);
 
   // Sleep while the threads are working.
-  Glib::usleep(duration*1000000);
+  std::this_thread::sleep_for(std::chrono::seconds(duration));
 
   // Stop the threads
   run=false;
   while(finishedThreads<numberOfThreads)
-    Glib::usleep(100000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Print the result of the test.
-  Glib::Mutex::Lock lock(*mutex);
+  std::unique_lock<std::mutex> lock(mutex);
   totalRequests = completedRequests+failedRequests;
   totalTime = completedTime+failedTime;
   std::cout << "========================================" << std::endl;
@@ -245,25 +236,25 @@ int main(int argc, char* argv[]){
             << totalRequests << std::endl;
   std::cout << "Completed requests: "
             << completedRequests << " ("
-            << Round(completedRequests*100.0/totalRequests)
+            << rint(completedRequests * 100.0 / totalRequests)
             << "%)" << std::endl;
   std::cout << "Failed requests: "
             << failedRequests << " ("
-            << Round(failedRequests*100.0/totalRequests)
+            << rint(failedRequests * 100.0 / totalRequests)
             << "%)" << std::endl;
   std::cout << "Completed requests per second: "
-            << Round(completedRequests/duration)
+            << rint((double)completedRequests / duration)
             << std::endl;
   std::cout << "Average response time for all requests: "
-            << Round(1000*totalTime.as_double()/totalRequests)
+            << rint(std::chrono::duration<double, std::milli>(totalTime).count() / totalRequests)
             << " ms" << std::endl;
   if (completedRequests!=0)
     std::cout << "Average response time for completed requests: "
-              << Round(1000*completedTime.as_double()/completedRequests)
+              << rint(std::chrono::duration<double, std::milli>(completedTime).count() / completedRequests)
               << " ms" << std::endl;
   if (failedRequests!=0)
     std::cout << "Average response time for failed requests: "
-              << Round(1000*failedTime.as_double()/failedRequests)
+              << rint(std::chrono::duration<double, std::milli>(failedTime).count() / failedRequests)
               << " ms" << std::endl;
   std::cout << "========================================" << std::endl;
 

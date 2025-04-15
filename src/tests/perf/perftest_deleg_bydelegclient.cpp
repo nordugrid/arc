@@ -4,12 +4,12 @@
 
 // perftest_deleg_bydelegclient.cpp
 
+#include <chrono>
+#include <cmath>
 #include <iostream>
-#include <fstream>
+#include <mutex>
 #include <string>
-#include <stdlib.h>
-#include <glibmm/thread.h>
-#include <glibmm/timer.h>
+#include <thread>
 
 #include <arc/GUID.h>
 #include <arc/ArcConfig.h>
@@ -21,31 +21,24 @@
 #include <arc/communication/ClientX509Delegation.h>
 
 // Some global shared variables...
-Glib::Mutex* mutex;
+std::mutex mutex;
 bool run;
 int finishedThreads;
 unsigned long completedRequests;
 unsigned long failedRequests;
 unsigned long totalRequests;
-Glib::TimeVal completedTime;
-Glib::TimeVal failedTime;
-Glib::TimeVal totalTime;
+std::chrono::system_clock::duration completedTime;
+std::chrono::system_clock::duration failedTime;
+std::chrono::system_clock::duration totalTime;
 std::string url_str;
-
-// Round off a double to an integer.
-int Round(double x){
-  return int(x+0.5);
-}
 
 // Send requests and collect statistics.
 void sendRequests(){
   // Some variables...
   unsigned long completedRequests = 0;
   unsigned long failedRequests = 0;
-  Glib::TimeVal completedTime(0,0);
-  Glib::TimeVal failedTime(0,0);
-  Glib::TimeVal tBefore;
-  Glib::TimeVal tAfter;
+  std::chrono::system_clock::duration completedTime;
+  std::chrono::system_clock::duration failedTime;
   bool connected;
 
   //std::string url_str("https://127.0.0.1:60000/echo");
@@ -56,9 +49,9 @@ void sendRequests(){
   mcc_cfg.AddCertificate("../echo/usercert.pem");
   mcc_cfg.AddCAFile("../echo/testcacert.pem");
   mcc_cfg.AddCADir("../echo/certificates");
-  
+
   while(run){
-    
+
     // Create a Client.
     Arc::ClientX509Delegation *client = NULL;
     client = new Arc::ClientX509Delegation(mcc_cfg,url);
@@ -66,7 +59,7 @@ void sendRequests(){
     connected=true;
     while(run and connected){
       // Send the delegation request and time it.
-      tBefore.assign_current_time();
+      auto tBefore = std::chrono::system_clock::now();
       std::string arc_delegation_id;
       bool res = false;
       if(client) {
@@ -74,7 +67,7 @@ void sendRequests(){
           std::cerr<<"Delegation to ARC delegation service failed"<<std::endl;
         }
       }
-      tAfter.assign_current_time();
+      auto tAfter = std::chrono::system_clock::now();
 
       if(!res) {
         // The delegation has not succeeded.
@@ -93,7 +86,7 @@ void sendRequests(){
   }
 
   // Update global variables.
-  Glib::Mutex::Lock lock(*mutex);
+  std::unique_lock<std::mutex> lock(mutex);
   ::completedRequests+=completedRequests;
   ::failedRequests+=failedRequests;
   ::completedTime+=completedTime;
@@ -107,12 +100,11 @@ int main(int argc, char* argv[]){
   int numberOfThreads;
   int duration;
   int i;
-  Glib::Thread** threads;
+  std::thread* threads;
   const char* config_file = NULL;
   int debug_level = -1;
   Arc::LogStream logcerr(std::cerr);
 
-  // Process options - quick hack, must use Glib options later
   while(argc >= 3) {
     if(strcmp(argv[1],"-c") == 0) {
       config_file = argv[2];
@@ -123,7 +115,7 @@ int main(int argc, char* argv[]){
     } else {
       break;
     };
-  } 
+  }
   if(debug_level >= 0) {
     Arc::Logger::getRootLogger().setThreshold((Arc::LogLevel)debug_level);
     Arc::Logger::getRootLogger().addDestination(logcerr);
@@ -131,18 +123,18 @@ int main(int argc, char* argv[]){
   // Extract command line arguments.
   if (argc!=4){
     std::cerr << "Wrong number of arguments!" << std::endl
-	      << std::endl
-	      << "Usage:" << std::endl
-	      << "perftest_deleg_bydelegclient [-c config] [-d debug] url threads duration" << std::endl
-	      << std::endl
-	      << "Arguments:" << std::endl
-	      << "url     The url of the delegation service." << std::endl
-	      << "threads  The number of concurrent requests." << std::endl
-	      << "duration The duration of the test in seconds." << std::endl
-	      << "config   The file containing client chain XML configuration with " << std::endl
+              << std::endl
+              << "Usage:" << std::endl
+              << "perftest_deleg_bydelegclient [-c config] [-d debug] url threads duration" << std::endl
+              << std::endl
+              << "Arguments:" << std::endl
+              << "url     The url of the delegation service." << std::endl
+              << "threads  The number of concurrent requests." << std::endl
+              << "duration The duration of the test in seconds." << std::endl
+              << "config   The file containing client chain XML configuration with " << std::endl
               << "         'soap' entry point and HOSTNAME, PORTNUMBER and PATH " << std::endl
               << "         keyword for hostname, port and HTTP path of 'echo' service." << std::endl
-	      << "debug    The textual representation of desired debug level. Available " << std::endl
+              << "debug    The textual representation of desired debug level. Available " << std::endl
               << "         levels: DEBUG, VERBOSE, INFO, WARNING, ERROR, FATAL." << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -153,52 +145,50 @@ int main(int argc, char* argv[]){
   // Start threads.
   run=true;
   finishedThreads=0;
-  //Glib::thread_init();
-  mutex=new Glib::Mutex;
-  threads = new Glib::Thread*[numberOfThreads];
+  threads = new std::thread[numberOfThreads];
   for (i=0; i<numberOfThreads; i++)
-    threads[i]=Glib::Thread::create(sigc::ptr_fun(sendRequests),true);
+    threads[i] = std::thread(sendRequests);
 
   // Sleep while the threads are working.
-  Glib::usleep(duration*1000000);
+  std::this_thread::sleep_for(std::chrono::seconds(duration));
 
   // Stop the threads
   run=false;
   while(finishedThreads<numberOfThreads)
-    Glib::usleep(100000);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   // Print the result of the test.
-  Glib::Mutex::Lock lock(*mutex);
+  std::unique_lock<std::mutex> lock(mutex);
   totalRequests = completedRequests+failedRequests;
   totalTime = completedTime+failedTime;
   std::cout << "========================================" << std::endl;
   std::cout << "URL: "
-	    << url_str << std::endl;
+            << url_str << std::endl;
   std::cout << "Number of threads: "
-	    << numberOfThreads << std::endl;
+            << numberOfThreads << std::endl;
   std::cout << "Duration: "
-	    << duration << " s" << std::endl;
+            << duration << " s" << std::endl;
   std::cout << "Number of requests: "
-	    << totalRequests << std::endl;
+            << totalRequests << std::endl;
   std::cout << "Completed requests: "
-	    << completedRequests << " ("
-	    << Round(completedRequests*100.0/totalRequests)
-	    << "%)" << std::endl;
+            << completedRequests << " ("
+            << rint(completedRequests * 100.0 / totalRequests)
+            << "%)" << std::endl;
   std::cout << "Failed requests: "
-	    << failedRequests << " ("
-	    << Round(failedRequests*100.0/totalRequests)
-	    << "%)" << std::endl;
+            << failedRequests << " ("
+            << rint(failedRequests * 100.0 / totalRequests)
+            << "%)" << std::endl;
   std::cout << "Average response time for all requests: "
-	    << Round(1000*totalTime.as_double()/totalRequests)
-	    << " ms" << std::endl;
+            << rint(std::chrono::duration<double, std::milli>(totalTime).count() / totalRequests)
+            << " ms" << std::endl;
   if (completedRequests!=0)
     std::cout << "Average response time for completed requests: "
-	      << Round(1000*completedTime.as_double()/completedRequests)
-	      << " ms" << std::endl;
+              << rint(std::chrono::duration<double, std::milli>(completedTime).count() / completedRequests)
+              << " ms" << std::endl;
   if (failedRequests!=0)
     std::cout << "Average response time for failed requests: "
-	      << Round(1000*failedTime.as_double()/failedRequests)
-	      << " ms" << std::endl;
+              << rint(std::chrono::duration<double, std::milli>(failedTime).count() / failedRequests)
+              << " ms" << std::endl;
   std::cout << "========================================" << std::endl;
 
   return 0;

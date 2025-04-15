@@ -5,7 +5,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <glibmm.h>
+
+#include <glibmm/miscutils.h>
+
 #include <arc/FileUtils.h>
 
 #include "FileRecord.h"

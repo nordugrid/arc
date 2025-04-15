@@ -6,12 +6,10 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
+#include <mutex>
 #include <string>
-#include <sstream>
 #include <fstream>
 #include <iostream>
-
-#include <glibmm.h>
 
 // Workaround for include bugs in xmlsec
 #include <libxml/parser.h>
@@ -32,9 +30,7 @@
 #include <openssl/rand.h>
 #ifdef CHARSET_EBCDIC
 #include <openssl/ebcdic.h>
-#endif 
-
-#include <arc/Thread.h>
+#endif
 
 #include "XmlSecUtils.h"
 
@@ -66,7 +62,7 @@ int passphrase_callback(char* buf, int size, int /* rwflag */, void *) {
   return len;
 }
 
-static Glib::Mutex init_lock_;
+static std::mutex init_lock_;
 static bool has_init = false;
 
 bool init_xmlsec(void) {
@@ -133,8 +129,8 @@ bool final_xmlsec(void) {
 
     //Shutdown xmlsec-crypto library
     xmlSecCryptoShutdown();
-    //Shutdown crypto library 
-    xmlSecCryptoAppShutdown();  
+    //Shutdown crypto library
+    xmlSecCryptoAppShutdown();
     //Shutdown xmlsec library
     xmlSecShutdown();
     //Shutdown libxml
@@ -169,8 +165,8 @@ xmlSecKey* get_key_from_keyfile(const char* keyfile) {
   return key;
 }
 
-//Get key from a binary key 
-xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool usage) { 
+//Get key from a binary key
+xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool usage) {
   xmlSecKey *key = NULL;
   xmlSecKeyDataFormat key_formats[] = {
     xmlSecKeyDataFormatDer,
@@ -185,7 +181,7 @@ xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool usage) 
 
   xmlSecSize len;
 
-  //We need to remove the "BEGIN RSA PRIVATE KEY" and "END RSA PRIVATE KEY" 
+  //We need to remove the "BEGIN RSA PRIVATE KEY" and "END RSA PRIVATE KEY"
   //if they exit in the input parameter
   std::string v;
   std::size_t pos1, pos2;
@@ -202,7 +198,7 @@ xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool usage) 
   }
   else v = value;
 
-  xmlSecErrorsDefaultCallbackEnableOutput(FALSE);
+  xmlSecErrorsDefaultCallbackEnableOutput(0);
   xmlSecByte* tmp_str = new xmlSecByte[v.size()];
   memset(tmp_str,0,v.size());
 
@@ -215,7 +211,7 @@ xmlSecKey* get_key_from_keystr(const std::string& value) {//, const bool usage) 
     key = xmlSecCryptoAppKeyLoadMemory(tmp_str, len, key_formats[i], NULL, NULL, NULL);
   }
   delete[] tmp_str;
-  xmlSecErrorsDefaultCallbackEnableOutput(TRUE);
+  xmlSecErrorsDefaultCallbackEnableOutput(1);
 
   return key;
 }
@@ -225,7 +221,7 @@ std::string get_key_from_certfile(const char* certfile) {
   BIO* certbio = NULL;
   certbio = BIO_new_file(certfile, "r");
   X509* cert = NULL;
-  cert = PEM_read_bio_X509(certbio, NULL, NULL, NULL); 
+  cert = PEM_read_bio_X509(certbio, NULL, NULL, NULL);
   EVP_PKEY* key = NULL;
   key = X509_get_pubkey(cert);
 
@@ -274,7 +270,7 @@ xmlSecKey* get_key_from_certstr(const std::string& value) {
     (xmlSecKeyDataFormat)0
   };
 
-  xmlSecErrorsDefaultCallbackEnableOutput(FALSE);
+  xmlSecErrorsDefaultCallbackEnableOutput(0);
 
   BIO* certbio = NULL;
   std::string cert_value;
@@ -293,7 +289,7 @@ xmlSecKey* get_key_from_certstr(const std::string& value) {
     }
   }
 
-  xmlSecErrorsDefaultCallbackEnableOutput(TRUE);
+  xmlSecErrorsDefaultCallbackEnableOutput(1);
 
   return key;
 }
@@ -421,7 +417,7 @@ xmlSecKeysMngrPtr load_trusted_cert_str(xmlSecKeysMngrPtr* keys_manager, const s
 
   //load cert from memory
   if(!cert_str.empty())
-    if(xmlSecCryptoAppKeysMngrCertLoadMemory(keys_mngr, (const xmlSecByte*)(cert_str.c_str()), 
+    if(xmlSecCryptoAppKeysMngrCertLoadMemory(keys_mngr, (const xmlSecByte*)(cert_str.c_str()),
           (xmlSecSize)(cert_str.size()), xmlSecKeyDataFormatPem, xmlSecKeyDataTypeTrusted) < 0) {
       xmlSecKeysMngrDestroy(keys_mngr);
       return NULL;
@@ -445,7 +441,7 @@ xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, const char
   if(keys_mngr == NULL) { std::cerr<<"Can not create xmlSecKeysMngr object"<<std::endl; return NULL;}
 
   //load ca certs into keys manager, the two method used here could not work in some old xmlsec verion,
-  //because of some bug about X509_FILETYPE_DEFAULT and X509_FILETYPE_PEM 
+  //because of some bug about X509_FILETYPE_DEFAULT and X509_FILETYPE_PEM
   //load a ca path
   if(capath && (strlen(capath) != 0))
     if(xmlSecOpenSSLAppKeysMngrAddCertsPath(keys_mngr, capath) < 0) {
@@ -454,7 +450,7 @@ xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, const char
     }
 #if 0
   //load a ca file  TODO: can only be used in some new version of xmlsec
-  if(cafile && (strlen(cafile) != 0))  
+  if(cafile && (strlen(cafile) != 0))
     if(xmlSecOpenSSLAppKeysMngrAddCertsFile(keys_mngr, cafile) < 0) {
       xmlSecKeysMngrDestroy(keys_mngr);
       return NULL;
@@ -468,7 +464,7 @@ xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, const char
 
   if(keys_manager != NULL) *keys_manager = keys_mngr;
   return keys_mngr;
-} 
+}
 
 XMLNode get_node(XMLNode& parent,const char* name) {
   XMLNode n = parent[name];

@@ -8,7 +8,6 @@
 
 #include <arc/compute/ExecutionTarget.h>
 #include <arc/compute/JobDescription.h>
-#include <arc/Thread.h>
 
 static Arc::Logger testLogger(Arc::Logger::getRootLogger(), "ExecutionTargetTest");
 

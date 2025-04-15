@@ -10,7 +10,6 @@
 
 #include <arc/loader/PDPLoader.h>
 #include <arc/XMLNode.h>
-#include <arc/Thread.h>
 #include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
@@ -118,7 +117,7 @@ PDPStatus GACLPDP::isPermitted(Message *msg) const{
     if(!eval) logger.msg(ERROR, "Can not dynamically produce Evaluator");
   }
   if(!eval) {
-    logger.msg(ERROR,"Evaluator for GACLPDP was not loaded"); 
+    logger.msg(ERROR,"Evaluator for GACLPDP was not loaded");
     return false;
   };
 

@@ -6,6 +6,8 @@
 #include <iostream>
 #include <string.h>
 
+#include <glibmm/miscutils.h>
+
 #include <arc/Run.h>
 #include <arc/ArcLocation.h>
 
@@ -131,9 +133,9 @@ namespace Arc {
     return true;
   }
 
-#define RETRYLOOP Glib::Mutex::Lock mlock(lock_); for(int n = 2; n && (file_access_?file_access_:(file_access_=acquire_executer(uid_,gid_))) ;--n)
+#define RETRYLOOP std::unique_lock<std::mutex> mlock(lock_); for(int n = 2; n && (file_access_?file_access_:(file_access_=acquire_executer(uid_,gid_))) ;--n)
 
-#define NORETRYLOOP Glib::Mutex::Lock mlock(lock_); for(int n = 1; n && (file_access_?file_access_:(file_access_=acquire_executer(uid_,gid_))) ;--n)
+#define NORETRYLOOP std::unique_lock<std::mutex> mlock(lock_); for(int n = 1; n && (file_access_?file_access_:(file_access_=acquire_executer(uid_,gid_))) ;--n)
 
   FileAccess::FileAccess(void):file_access_(NULL),errno_(0),uid_(0),gid_(0) {
     file_access_ = acquire_executer(uid_,gid_);
@@ -588,14 +590,14 @@ namespace Arc {
   }
 
   FileAccessContainer::~FileAccessContainer(void) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     for(std::list<FileAccess*>::iterator fa = fas_.begin();fa != fas_.end();++fa) {
       delete *fa;
     }
   }
 
   FileAccess* FileAccessContainer::Acquire(void) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     FileAccess* r = NULL;
     for(std::list<FileAccess*>::iterator fa = fas_.begin();fa != fas_.end();) {
       r = *fa; fa = fas_.erase(fa);
@@ -611,7 +613,7 @@ namespace Arc {
   }
 
   void FileAccessContainer::Release(FileAccess* fa) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     if(!fa) return;
     fa->fa_close();
     fa->fa_closedir();
@@ -625,13 +627,13 @@ namespace Arc {
   }
 
   void FileAccessContainer::SetMin(unsigned int val) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     min_ = val;
     KeepRange();
   }
 
   void FileAccessContainer::SetMax(unsigned int val) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     min_ = val;
     KeepRange();
   }

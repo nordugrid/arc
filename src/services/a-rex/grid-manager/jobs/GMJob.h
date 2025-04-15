@@ -50,7 +50,7 @@ class GMJob {
   job_state_t job_state;
   // Flag to indicate job stays at this stage due to limits imposed.
   // Such jobs are not counted in counters
-  bool job_pending; 
+  bool job_pending;
   // Job identifier
   JobId job_id;
   // Directory to run job in
@@ -80,7 +80,7 @@ class GMJob {
 
   // Job references handler
 
-  Glib::RecMutex ref_lock;
+  std::recursive_mutex ref_lock;
   int ref_count;
 
   /// Inform job it has new GMJobRef associated
@@ -220,11 +220,11 @@ class GMJobQueue {
  friend class GMJob;
  private:
   // Using global lock intentionally.
-  // It would be possible to have per-queue lock but rules to avoid 
+  // It would be possible to have per-queue lock but rules to avoid
   // deadlocks between 2 queues and queue+job locks would be too complex
-  // and too easy to break. So as long as we have not so many queues 
+  // and too easy to break. So as long as we have not so many queues
   // global lock is acceptable.
-  static Glib::RecMutex lock_;
+  static std::recursive_mutex lock_;
   int const priority_;
   std::list<GMJob*> queue_;
   std::string name_;
@@ -275,7 +275,7 @@ class GMJobQueue {
 
   //! Removes job from queue identified by key
   template<typename KEY> bool Erase(KEY const& key) {
-    Glib::RecMutex::Lock lock(lock_);
+    std::unique_lock<std::recursive_mutex> lock(lock_);
     for(std::list<GMJob*>::iterator i = queue_.begin();
                        i != queue_.end(); ++i) {
       if((*i) && (**i == key)) {
@@ -288,7 +288,7 @@ class GMJobQueue {
 
   //! Gets reference to job identified by key and stored in this queue
   template<typename KEY> GMJobRef Find(KEY const& key) const {
-    Glib::RecMutex::Lock lock(lock_);
+    std::unique_lock<std::recursive_mutex> lock(lock_);
     for(std::list<GMJob*>::const_iterator i = queue_.begin();
                        i != queue_.end(); ++i) {
       if((*i) && (**i == key)) {

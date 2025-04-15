@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include <sys/stat.h>
 
+#include <glibmm/fileutils.h>
+
 #include <arc/credential/Credential.h>
 #include <arc/credential/VOMSUtil.h>
 #include <arc/FileUtils.h>
@@ -28,7 +30,7 @@ using namespace Arc;
 namespace ARexINTERNAL {
 
 
-  Arc::Logger INTERNALClient::logger(Arc::Logger::rootLogger, "INTERNAL Client"); 
+  Arc::Logger INTERNALClient::logger(Arc::Logger::rootLogger, "INTERNAL Client");
 
 
   INTERNALClient::INTERNALClient(void) : config(NULL), arexconfig(NULL) {
@@ -93,14 +95,14 @@ namespace ARexINTERNAL {
   };
 
 
-  
+
 
   INTERNALClient::~INTERNALClient() {
    delete config;
    delete arexconfig;
   }
 
- 
+
 
   INTERNALJob::INTERNALJob(/*const */ARex::ARexJob& _arexjob, const ARex::GMConfig& config, std::string const& _deleg_id)
     :id(_arexjob.ID()),
@@ -121,8 +123,8 @@ namespace ARexINTERNAL {
     return true;
   }
 
-  
-  
+
+
   bool INTERNALClient::SetAndLoadConfig(){
     cfgfile = ARex::GMConfig::GuessConfigFile();
     if (cfgfile.empty()) {
@@ -131,7 +133,7 @@ namespace ARexINTERNAL {
     }
 
     // Push configuration through pre-parser in order to setup default values.
-    // We are only interested in pidfile location because this is where 
+    // We are only interested in pidfile location because this is where
     // fully pre-processed configuration file resides.
     std::list<std::string> parser_args;
     parser_args.push_back(Arc::ArcLocation::GetToolsDir() + "/arcconfig-parser");
@@ -168,7 +170,7 @@ namespace ARexINTERNAL {
 
     config = new ARex::GMConfig(cfgfile);
     config->SetDelegations(&deleg_stores);
-    
+
     if(!config->Load()){
       logger.msg(Arc::ERROR,"Failed to load grid-manager config file from %s", cfgfile);
       return false;
@@ -188,7 +190,7 @@ namespace ARexINTERNAL {
     config->Print();
     return true;
   }
-  
+
 
   // Security attribute simulating information pulled from TLS layer.
   class TLSSecAttr: public SecAttr {
@@ -201,7 +203,7 @@ namespace ARexINTERNAL {
       trust_list.AddRegex("^.*$");
       std::vector<VOMSACInfo> voms;
       if(parseVOMSAC(cred, usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.VOMSESPath()/*?*/, trust_list, voms, true, true)) {
-        for(std::vector<VOMSACInfo>::const_iterator v = voms.begin(); v != voms.end();++v) { 
+        for(std::vector<VOMSACInfo>::const_iterator v = voms.begin(); v != voms.end();++v) {
           if(!(v->status & VOMSACInfo::Error)) {
             for(std::vector<std::string>::const_iterator a = v->attributes.begin(); a != v->attributes.end();++a) {
               voms_.push_back(VOMSFQANToFull(v->voname,*a));
@@ -285,7 +287,7 @@ namespace ARexINTERNAL {
     factory.load("arcshc");
     factory.load("arcshclegacy");
     factory.load("identitymap");
-    
+
     //Arc::ChainContext context(MCCLoader& loader);
     ArcSec::SecHandler* gridmapper(NULL);
     ArcSec::SecHandler* handler(NULL);
@@ -362,7 +364,7 @@ namespace ARexINTERNAL {
     return true;
   }
 
-  
+
 
 
   bool INTERNALClient::CreateDelegation(std::string& deleg_id){
@@ -386,7 +388,7 @@ namespace ARexINTERNAL {
     cred.OutputCertificateChain(proxy_part3);
     proxy_data = proxy_part1 + proxy_part2 + proxy_part3;
 
-    
+
     ARex::DelegationStore& deleg = deleg_stores[config->DelegationDir()];
     if(!deleg.AddCred(deleg_id, gridname, proxy_data)) {
       error_description="Failed to store delegation.";
@@ -404,7 +406,7 @@ namespace ARexINTERNAL {
       return false;
     }
 
-    // Create new delegation in already assigned slot 
+    // Create new delegation in already assigned slot
     if(deleg_id.empty()) return false;
 
     Arc::Credential cred(usercfg);
@@ -426,7 +428,7 @@ namespace ARexINTERNAL {
     cred.OutputPrivatekey(proxy_part2);
     cred.OutputCertificateChain(proxy_part3);
     proxy_data = proxy_part1 + proxy_part2 + proxy_part3;
-    
+
     ARex::DelegationStore& deleg = deleg_stores[config->DelegationDir()];
     if(!deleg.PutCred(deleg_id, gridname, proxy_data)) {
       error_description="Failed to store delegation.";
@@ -442,8 +444,8 @@ namespace ARexINTERNAL {
     if (!error_description.empty()) return error_description;
     return "";
   }
- 
-  
+
+
   bool INTERNALClient::submit(const std::list<Arc::JobDescription>& jobdescs,std::list<INTERNALJob>& localjobs, const std::string delegation_id) {
     if(!arexconfig) {
       logger.msg(Arc::ERROR, "INTERNALClient is not initialized");
@@ -480,7 +482,7 @@ namespace ARexINTERNAL {
 
 
         ARex::ARexJob arexjob(adl,*arexconfig,delegation_id,dummy,dummy,logger,idgenerator);
-        
+
         if(!arexjob){
           logger.msg(Arc::ERROR, "%s",arexjob.Failure());
           return false;
@@ -505,7 +507,7 @@ namespace ARexINTERNAL {
     }
 
     ARex::GMJob gmjob(localjob.id, user, localjob.sessiondir, ARex::JOB_STATE_ACCEPTED);
-    //Fix-me removed cbegin and cend from sources and destination. Either fix compiler, or rewrite to be const. 
+    //Fix-me removed cbegin and cend from sources and destination. Either fix compiler, or rewrite to be const.
     for(std::list<std::string>::const_iterator source = sources.begin(), destination = destinations.begin();
                source != sources.end() && destination != destinations.end(); ++source, ++destination) {
       std::string path = localjob.sessiondir + "/" + *destination;
@@ -515,7 +517,7 @@ namespace ARexINTERNAL {
         logger.msg(Arc::ERROR, "Failed to copy input file: %s to path: %s",path);
         return false;
       }
-      
+
       if((!ARex::fix_file_permissions(path,false)) || // executable flags is handled by A-Rex
          (!ARex::fix_file_owner(path,gmjob))) {
         logger.msg(Arc::ERROR, "Failed to set permissions on: %s",path);
@@ -563,7 +565,7 @@ namespace ARexINTERNAL {
          std::string state = arexjob.State();
       if (state != "UNDEFINED") jobids_found.push_back(*job);
     }
-   
+
     return true;
   }
 
@@ -578,7 +580,7 @@ namespace ARexINTERNAL {
     //Extracts information about current arcjob from arexjob and job.jobid.description file and updates/populates the localjob and arcjob with this info, and fills a localjob with the information
 
     std::vector<std::string> tokens;
-    Arc::tokenize(arcjob.JobID, tokens, "/"); 
+    Arc::tokenize(arcjob.JobID, tokens, "/");
     if(tokens.empty())
       return false;
     //NB! Add control that the arcjob.jobID is in correct format
@@ -601,7 +603,7 @@ namespace ARexINTERNAL {
       return false;
     };
 
-    
+
     //JobControllerPluginINTERNAL needs this, so make sure it is set.
     if(localjob.session.empty()){
       localjob.session.push_back((std::string)job_desc.sessiondir);
@@ -627,7 +629,7 @@ namespace ARexINTERNAL {
     //TO-DO Need to lock info.xml during reading?
     std::string fname = config->InformationFile();
     std::string xmlstring;
-    
+
     (void)Arc::FileRead(fname, xmlstring);
     if(xmlstring.empty()){
       error_description="Failed to obtain resource information.";
@@ -655,7 +657,7 @@ namespace ARexINTERNAL {
     }
     //jobid is full url
     std::vector<std::string> tokens;
-    Arc::tokenize(jobid, tokens, "/"); 
+    Arc::tokenize(jobid, tokens, "/");
     if(tokens.empty())
       return false;
     std::string thisid = tokens.back();
@@ -673,7 +675,7 @@ namespace ARexINTERNAL {
     }
     //jobid is full url
     std::vector<std::string> tokens;
-    Arc::tokenize(jobid, tokens, "/"); 
+    Arc::tokenize(jobid, tokens, "/");
     if(tokens.empty())
       return false;
     std::string thisid = tokens.back();
@@ -683,7 +685,7 @@ namespace ARexINTERNAL {
     return true;
   }
 
-  
+
   bool INTERNALClient::restart(const std::string& jobid){
     if(!arexconfig) {
       logger.msg(Arc::ERROR, "INTERNALClient is not initialized");
@@ -691,7 +693,7 @@ namespace ARexINTERNAL {
     }
     //jobid is full url
     std::vector<std::string> tokens;
-    Arc::tokenize(jobid, tokens, "/"); 
+    Arc::tokenize(jobid, tokens, "/");
     if(tokens.empty())
       return false;
     std::string thisid = tokens.back();
@@ -704,7 +706,7 @@ namespace ARexINTERNAL {
 
   bool INTERNALClient::list(std::list<INTERNALJob>& jobs){
     //Populates localjobs containing only jobid
-    //how do I want to search for jobs in system? 
+    //how do I want to search for jobs in system?
 
     std::string cdir=config->ControlDir();
     Glib::Dir dir(cdir);
@@ -721,9 +723,9 @@ namespace ARexINTERNAL {
     dir.close();
     return true;
   }
-  
 
- 
+
+
   INTERNALJob& INTERNALJob::operator=(const Arc::Job& job) {
     //Set localjob attributes from the ARC job
     //Called from JobControllerPlugin
@@ -741,8 +743,8 @@ namespace ARexINTERNAL {
     // State information is not transfered from Job object. Currently not needed.
     return *this;
   }
-  
-  
+
+
 
 
   void INTERNALJob::toJob(INTERNALClient* client, INTERNALJob* localjob, Arc::Job& j) const {
@@ -766,7 +768,7 @@ namespace ARexINTERNAL {
 
     j.DelegationID.clear();
     if(!(localjob->delegation_id).empty()) j.DelegationID.push_back(localjob->delegation_id);
-    
+
   }
 
 
@@ -778,11 +780,11 @@ namespace ARexINTERNAL {
     else  arcjob.StageOutDir = sessiondir;
     if (!session.empty()) arcjob.StageInDir = session.front();
     else arcjob.SessionDir = sessiondir;
-   
+
     //extract info from arexjob
     //extract jobid from arcjob, which is the full jobid url
     std::vector<std::string> tokens;
-    Arc::tokenize(arcjob.JobID, tokens, "/"); 
+    Arc::tokenize(arcjob.JobID, tokens, "/");
     if(!tokens.empty()) {
       //NB! Add control that the arcjob.jobID is in correct format
       ARex::JobId gm_job_id = tokens.back();
@@ -794,7 +796,7 @@ namespace ARexINTERNAL {
     }
   }
 
- 
+
 
 // -----------------------------------------------------------------------------
 

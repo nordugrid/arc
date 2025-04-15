@@ -112,7 +112,7 @@ namespace Arc {
    * execution service for providing information about the job created from
    * this job description. An object of this class is part of the
    * JobDescription class as the Identification public member.
-   * 
+   *
    * \ingroup jobdescription
    * \headerfile JobDescription.h arc/compute/JobDescription.h
    **/
@@ -125,7 +125,7 @@ namespace Arc {
      * The JobName string is used to specify a name of the job description, and
      * it will most likely also be the name given to the job when created at the
      * execution service.
-     * 
+     *
      * \mapdefattr JobName Arc::JobIdentificationType
      **/
     std::string JobName;
@@ -135,7 +135,7 @@ namespace Arc {
      * The Description string can be used to provide a human readable
      * description of e.g. the task which should be performed when processing
      * the job description.
-     * 
+     *
      * \mapdefattr Description Arc::JobIdentificationType
      **/
     std::string Description;
@@ -145,7 +145,7 @@ namespace Arc {
      * The Type string specifies a classification of the activity in
      * compliance with GLUE2. The possible values should follow those defined in
      * the ComputingActivityType_t enumeration of GLUE2.
-     * 
+     *
      * \mapdefattr JobIdentificationType::Type Arc
      **/
     std::string Type;
@@ -154,7 +154,7 @@ namespace Arc {
     /**
      * The Annotation list is used for human readable comments, tags for free
      * grouping or identifying different activities.
-     * 
+     *
      * \mapdefattr Annotation Arc::JobIdentificationType
      **/
     std::list<std::string> Annotation;
@@ -166,7 +166,7 @@ namespace Arc {
      * information is not intended to used by the execution service, but rather
      * used for keeping track of activities, e.g. when doing a job resubmission
      * the old activity ID is appended to this list.
-     * 
+     *
      * \mapdefattr ActivityOldID Arc::JobIdentificationType
      **/
     std::list<std::string> ActivityOldID;
@@ -179,7 +179,7 @@ namespace Arc {
    * execution.
    *
    * \note The Name string member has been renamed to Path.
-   * 
+   *
    * \ingroup jobdescription
    * \headerfile JobDescription.h arc/compute/JobDescription.h
    **/
@@ -192,7 +192,7 @@ namespace Arc {
      * The Path string should specify the path to an executable. Note that some
      * implementations might only accept a relative path, while others might
      * also accept a absolute one.
-     * 
+     *
      * \mapdefattr ExecutableType::Path Arc
      **/
     std::string Path;
@@ -201,7 +201,7 @@ namespace Arc {
     /**
      * The Argument list is used to specify arguments which should be passed to
      * the executable upon invocation.
-     * 
+     *
      * \mapdefattr ExecutableType::Argument Arc
      **/
     std::list<std::string> Argument;
@@ -215,7 +215,7 @@ namespace Arc {
      * be used for validation at the execution service, the first member of pair
      * must be set to true, while the second member should be the exit code returned
      * at successful execution.
-     * 
+     *
      * \mapdefattr ExecutableType::SuccessExitCode Arc
      **/
     std::pair<bool, int> SuccessExitCode;
@@ -225,7 +225,7 @@ namespace Arc {
   /**
    * This class is used to specify a service which should be used to report
    * logging information to, such as job resource usage.
-   * 
+   *
    * \ingroup jobdescription
    * \headerfile JobDescription.h arc/compute/JobDescription.h
    **/
@@ -239,7 +239,7 @@ namespace Arc {
      * examples are "SGAS" (http://www.sgas.se) and "APEL"
      * (https://wiki.egi.eu/wiki/APEL), however please refer to the particular
      * execution service for a list of supported logging service types.
-     * 
+     *
      * \mapdefattr RemoteLoggingType::ServiceType Arc
      **/
     std::string ServiceType;
@@ -248,7 +248,7 @@ namespace Arc {
     /**
      * The Location URL specifies the URL of the service which job logging
      * information should be sent to.
-     * 
+     *
      * \mapdefattr RemoteLoggingType::Location Arc
      **/
     URL Location;
@@ -258,7 +258,7 @@ namespace Arc {
      * The optional boolean specifies whether the requirement specified in the
      * particular object is mandatory for job execution, or whether it be
      * ignored.
-     * 
+     *
      * \mapdefattr RemoteLoggingType::optional Arc
      **/
      bool optional;
@@ -271,12 +271,12 @@ namespace Arc {
   class NotificationType {
   public:
     NotificationType() {}
-    
+
     /**
      * \mapdefattr NotificationType::Email Arc
      **/
     std::string Email;
-    
+
     /**
      * \mapdefattr NotificationType::States Arc
      **/
@@ -310,7 +310,7 @@ namespace Arc {
     /**
      * The Input string specifies the relative path to the job session directory
      * of the file to be used for standard input for the job.
-     * 
+     *
      * \mapdefattr Input Arc::ApplicationType
      **/
     std::string Input;
@@ -320,7 +320,7 @@ namespace Arc {
      * The Output string specifies the relative path to the job session
      * directory of the file which standard output of the job should be written
      * to.
-     * 
+     *
      * \mapdefattr Output Arc::ApplicationType
      **/
     std::string Output;
@@ -329,7 +329,7 @@ namespace Arc {
     /**
      * The Error string specifies the relative path to the job session directory
      * of the file which standard error of the job should be written to.
-     * 
+     *
      * \mapdefattr Error Arc::ApplicationType
      **/
     std::string Error;
@@ -345,7 +345,7 @@ namespace Arc {
      * be executed before invoking the main application, where the main
      * application is either the main executable (Executable) or the specified
      * run time environment (RunTimeEnvironment in the ResourcesType class).
-     * 
+     *
      * \mapdefattr PreExecutable Arc::ApplicationType
      **/
     std::list<ExecutableType> PreExecutable;
@@ -356,7 +356,7 @@ namespace Arc {
      * be executed after invoking the main application, where the main
      * application is either the main executable (Executable) or the specified
      * run time environment (RunTimeEnvironment in the ResourcesType class).
-     * 
+     *
      * \mapdefattr PostExecutable Arc::ApplicationType
      **/
     std::list<ExecutableType> PostExecutable;
@@ -365,7 +365,7 @@ namespace Arc {
     /**
      * The LogDir string specifies the name of the logging directory at the
      * execution service which should be used to access log files for the job.
-     * 
+     *
      * \mapdefattr LogDir Arc::ApplicationType
      **/
     std::string LogDir;
@@ -381,34 +381,34 @@ namespace Arc {
      * \mapdefattr Rerun Arc::ApplicationType
      **/
     int Rerun;
-    
+
     /**
      * \mapdefattr ExpirationTime Arc::ApplicationType
      **/
     Time ExpirationTime;
-    
+
     /**
      * \mapdefattr ProcessingStartTime Arc::ApplicationType
      **/
     Time ProcessingStartTime;
-    
+
     /**
      * \mapdefattr Priority Arc::ApplicationType
      **/
     int Priority;
-    
+
     std::list<NotificationType> Notification;
-    
+
     /**
      * \mapdefattr CredentialService Arc::ApplicationType
      **/
     std::list<URL> CredentialService;
-    
+
     /**
      * \mapdefattr AccessControl Arc::ApplicationType
      **/
     XMLNode AccessControl;
-    
+
     /**
      * \mapdefattr DryRun Arc::ApplicationType
      **/
@@ -429,12 +429,12 @@ namespace Arc {
      * \mapdefattr NumberOfSlots Arc::SlotRequirementType
      **/
     int NumberOfSlots; // Range?
-    
+
     /**
      * \mapdefattr SlotsPerHost Arc::SlotRequirementType
      **/
     int SlotsPerHost; // Range?
-    
+
     /**
      * \mapdefattr ExclusiveExecution Arc::SlotRequirementType
      **/
@@ -457,21 +457,21 @@ namespace Arc {
       SessionDiskSpace(-1) {}
     /** Specifies the required size of disk space which must be available to
      * the job in mega-bytes (MB). A negative value undefines this attribute
-     * 
+     *
      * \mapdefattr DiskSpace Arc::DiskSpaceRequirementType
      **/
     Range<int> DiskSpace;
     /** Specifies the required size of cache which must be available
      * to the job in mega-bytes (MB). A negative value undefines this
      * attribute
-     * 
+     *
      * \mapdefattr CacheDiskSpace Arc::DiskSpaceRequirementType
      */
     int CacheDiskSpace;
     /** Specifies the required size of job session disk space which must be
      * available to the job in mega-byte (MB). A negative value undefines
      * this attribute.
-     * 
+     *
      * \mapdefattr SessionDiskSpace Arc::DiskSpaceRequirementType
      */
     int SessionDiskSpace;
@@ -507,27 +507,27 @@ namespace Arc {
     ParallelEnvironmentType() :
       ProcessesPerSlot(-1),
       ThreadsPerProcess(-1) {}
-      
+
     /**
      * \mapdefattr ParallelEnvironmentType::Type Arc
      **/
     std::string Type;
-    
+
     /**
      * \mapdefattr ParallelEnvironmentType::Version Arc
      **/
     std::string Version;
-    
+
     /**
      * \mapdefattr ParallelEnvironmentType::ProcessesPerSlot Arc
      **/
     int ProcessesPerSlot; // Range?
-    
+
     /**
      * \mapdefattr ParallelEnvironmentType::ThreadsPerProcess Arc
      **/
     int ThreadsPerProcess; // Range?
-    
+
     /**
      * \mapdefattr ParallelEnvironmentType::Options Arc
      **/
@@ -536,7 +536,7 @@ namespace Arc {
 
   /// Resource requirements structure
   /**
-   * 
+   *
    * \ingroup jobdescription
    * \headerfile JobDescription.h arc/compute/JobDescription.h
    */
@@ -559,90 +559,90 @@ namespace Arc {
      * \mapdefattr OperatingSystem Arc::ResourcesType
      **/
     SoftwareRequirement OperatingSystem;
-    
+
     /**
      * \mapdefattr Platform Arc::ResourcesType
      **/
     std::string Platform;
-    
+
     /**
      * \mapdefattr NetworkInfo Arc::ResourcesType
      **/
     std::string NetworkInfo;
-    
+
     /// Specifies amount of requested RAM in MB
     /**
      * \mapdefattr IndividualPhysicalMemory Arc::ResourcesType
      **/
     Range<int> IndividualPhysicalMemory;
-    
+
     /// Specifies amount of requested virtual memory in MB
     /**
      * \mapdefattr IndividualVirtualMemory Arc::ResourcesType
      **/
     Range<int> IndividualVirtualMemory;
-    
+
     DiskSpaceRequirementType DiskSpaceRequirement;
-    
+
     /**
      * \mapdefattr SessionLifeTime Arc::ResourcesType
      **/
     Period SessionLifeTime;
-    
+
     /**
      * \mapdefattr SessionDirectoryAccess Arc::ResourcesType
      **/
     SessionDirectoryAccessMode SessionDirectoryAccess;
-    
+
     /**
      * \mapdefattr IndividualCPUTime Arc::ResourcesType
      **/
     ScalableTime<int> IndividualCPUTime;
-    
+
     /**
      * \mapdefattr TotalCPUTime Arc::ResourcesType
      **/
     ScalableTime<int> TotalCPUTime;
-    
+
     /**
      * \mapdefattr IndividualWallTime Arc::ResourcesType
      **/
     ScalableTime<int> IndividualWallTime;
-    
+
     ScalableTime<int>& TotalWallTime;
-    
+
     /**
      * \mapdefattr NodeAccess Arc::ResourcesType
      **/
     NodeAccessType NodeAccess;
-    
+
     /// CE Middleware
     /**
      * Specifies the middleware which the CE should use.
-     * 
+     *
      * \mapdefattr CEType Arc::ResourcesType
      **/
     SoftwareRequirement CEType;
-    
+
     SlotRequirementType SlotRequirement;
     ParallelEnvironmentType ParallelEnvironment;
-    
+
     /**
      * \mapdefattr Coprocessor Arc::ResourcesType
      **/
     OptIn<std::string> Coprocessor;
-    
+
     /// Name of queue to use
     /**
      * \mapdefattr QueueName Arc::ResourcesType
      **/
     std::string QueueName;
-    
+
     /// Runtime environment
     /**
      * Specifies which runtime environments should be available to the
      * application.
-     * 
+     *
      * \mapdefattr RunTimeEnvironment Arc::ResourcesType
      **/
     SoftwareRequirement RunTimeEnvironment;
@@ -662,7 +662,7 @@ namespace Arc {
     std::string DelegationID;
   };
 
-  /// Represent an output file destination 
+  /// Represent an output file destination
   /**
    * \ingroup jobdescription
    * \headerfile JobDescription.h arc/compute/JobDescription.h
@@ -700,34 +700,34 @@ namespace Arc {
       UseIfFailure(false),
       UseIfCancel(false),
       UseIfSuccess(true) {};
-    
+
     /// Delegation ID to use
     /**
      * Specifies the delegation ID to use when accessing this destination.
      **/
     std::string DelegationID;
-    
+
     enum CreationFlagEnumeration {
       CFE_DEFAULT, /**< Default action should be used (default w.r.t. the service).*/
       CFE_OVERWRITE, /**< Overwrite an existing file. */
       CFE_APPEND, /**< Append file to an possible existing file. */
       CFE_DONTOVERWRITE /**< Don't overwrite an existing file. */
     };
-    
+
     /// Output file creation flag
     /**
      * Specifies what action should be taken when creating output file at this
      * destination.
      **/
     CreationFlagEnumeration CreationFlag;
-    
+
     /// Action in case job failed
     /**
      * Specifies whether this destination should used in case job failed
      * (JobState::FAILED).
      **/
     bool UseIfFailure;
-    
+
     /// Action in case job was cancelled
     /**
      * Specifies whether this destination should be used in case job was
@@ -753,11 +753,11 @@ namespace Arc {
     std::string Name;
     /**
      * Testing
-     * 
+     *
      * \mapdefattr InputFileType::IsExecutable Arc
      **/
     bool IsExecutable;
-    
+
     long FileSize;
     /// CRC32 checksum of file
     /**
@@ -790,7 +790,7 @@ namespace Arc {
   class DataStagingType {
   public:
     DataStagingType() {};
-    
+
     /// List of inputfiles
     std::list<InputFileType> InputFiles;
     /// List of outputfiles
@@ -805,7 +805,7 @@ namespace Arc {
    * This structure holds boolean value and a string. The boolean indicates
    * whether parsing or assembling a job description was successful, while the
    * string gives an explanation in human readable text.
-   * 
+   *
    * \ingroup compute
    * \ingroup jobdescription
    * \headerfile JobDescription.h arc/compute/JobDescription.h
@@ -838,7 +838,7 @@ namespace Arc {
    * Additionally the internal representation is contained in public members which
    * makes it directly accessible and modifiable from outside the scope of the
    * class.
-   * 
+   *
    * \ingroup compute
    * \ingroup jobdescription
    * \headerfile JobDescription.h arc/compute/JobDescription.h
@@ -889,7 +889,7 @@ namespace Arc {
     /// Fill next alternative into this object
     /**
      * The next alternative job description is filled into this object.
-     * 
+     *
      * \return If there is a next alternative then it is filled into this object
      *  and true is returned. If there is no next false is returned.
      **/
@@ -1006,20 +1006,20 @@ namespace Arc {
      * job description.
      **/
     JobIdentificationType Identification;
-    
+
     /// Structure for apllication options
     /**
      * All options relating to the application is stored in this structure.
      **/
     ApplicationType Application;
-    
+
     /// Structure for resource requirements
     /**
      * This structure specifies requirements which should be satisfied before
      * application can be started.
      **/
     ResourcesType Resources;
-    
+
     /// Structure for data staging
     /**
      * Input files requirements, and destinations for output files can be
@@ -1036,7 +1036,7 @@ namespace Arc {
        <language>;<attribute-name>
        \endverbatim
      * E.g.: "nordugrid:xrsl;hostname".
-     * 
+     *
      * \mapdefattr OtherAttributes Arc::JobDescription
      **/
     std::map<std::string, std::string> OtherAttributes;
@@ -1052,7 +1052,7 @@ namespace Arc {
 
   private:
     bool Prepare(const ExecutionTarget* et);
-  
+
     void Set(const JobDescription& j);
 
     std::string sourceLanguage;
@@ -1060,7 +1060,7 @@ namespace Arc {
     std::list<JobDescription> alternatives;
     std::list<JobDescription>::iterator current;
 
-    static Glib::Mutex jdpl_lock;
+    static std::mutex jdpl_lock;
     static JobDescriptionParserPluginLoader *jdpl;
 
     static Logger logger;

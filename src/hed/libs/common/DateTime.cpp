@@ -503,7 +503,7 @@ namespace Arc {
     case EpochTime:
       {
         return tostring(gtime);
-      } 
+      }
     }
     return "";
   }
@@ -835,8 +835,8 @@ namespace Arc {
     return nanoseconds;
   }
 
-  const sigc::slot<const char*>* Period::istr() const {
-    const_cast<Period*>(this)->slot = sigc::mem_fun(this, &Arc::Period::IStr);
+  const sigc::slot<const char*()>* Period::istr() const {
+    const_cast<Period*>(this)->slot = sigc::mem_fun(*this, &Arc::Period::IStr);
     return &slot;
   }
 
@@ -849,7 +849,7 @@ namespace Arc {
     /*
      Size of year, month and even day is variable.
      To avoid ambiguity let's keep only time parts.
- 
+
     if (remain >= Time::YEAR) {
       ss << remain / Time::YEAR << " "
          << FindNTrans("year", "years", remain / Time::YEAR);
@@ -899,7 +899,7 @@ namespace Arc {
     /*
      Size of year, month and even day is variable.
      To avoid ambiguity let's keep only time parts.
- 
+
     if (remain >= Time::YEAR) {
       ss << remain / Time::YEAR << 'Y';
       remain %= Time::YEAR;
@@ -970,7 +970,7 @@ namespace Arc {
     nanoseconds += otherPeriod.nanoseconds;
     seconds += otherPeriod.seconds + nanoseconds/1000000000;
     nanoseconds = nanoseconds%1000000000;
-    
+
     return *this;
   }
 

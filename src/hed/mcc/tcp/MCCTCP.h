@@ -66,8 +66,8 @@ class MCC_TCP_Service: public MCC_TCP
         int max_executers_;
         bool max_executers_drop_;
         /* pthread_t listen_th_; ** thread listening for incoming connections */
-        Glib::Mutex lock_; /** lock for safe operations in internal lists */
-        Glib::Cond cond_;
+        std::mutex lock_; /** lock for safe operations in internal lists */
+        std::condition_variable cond_;
         static void listener(void *); /** executing function for listening thread */
         static void executer(void *); /** executing function for connection thread */
     public:

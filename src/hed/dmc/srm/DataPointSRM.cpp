@@ -6,9 +6,6 @@
 
 #include <cstdlib>
 
-#include <glibmm/fileutils.h>
-
-#include <arc/Thread.h>
 #include <arc/StringConv.h>
 #include <arc/Logger.h>
 #include <arc/URL.h>
@@ -75,7 +72,7 @@ namespace ArcDMCSRM {
     }
 
     SRMClientRequest srm_request_tmp(CanonicSRMURL(url));
-    
+
     // first check permissions
     DataStatus res = client->checkPermissions(srm_request_tmp);
 
@@ -792,7 +789,7 @@ namespace ArcDMCSRM {
         return r;
     }
     r = SetupHandler(DataStatus::GenericError);
-    if (!r) 
+    if (!r)
       return DataStatus(DataStatus::UnimplementedError, EOPNOTSUPP);
     bool supportsTransfer = (*r_handle)->SupportsTransfer();
     if (!supportsTransfer) {

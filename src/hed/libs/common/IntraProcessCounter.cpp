@@ -6,8 +6,6 @@
 
 // Counter.cpp
 
-#include <cstdlib>
-
 #include "IntraProcessCounter.h"
 
 namespace Arc {
@@ -33,7 +31,7 @@ namespace Arc {
     value += newLimit - limit;
     limit = newLimit;
     synchMutex.unlock();
-    synchCond.signal();
+    synchCond.notify_one();
     return newLimit;
   }
 
@@ -44,7 +42,7 @@ namespace Arc {
     value += amount;
     limit = newLimit;
     synchMutex.unlock();
-    synchCond.signal();
+    synchCond.notify_one();
     return newLimit;
   }
 
@@ -56,7 +54,7 @@ namespace Arc {
     synchMutex.lock();
     excess = newExcess;
     synchMutex.unlock();
-    synchCond.signal();
+    synchCond.notify_one();
     return newExcess;
   }
 
@@ -66,7 +64,7 @@ namespace Arc {
     newExcess = excess + amount;
     excess += amount;
     synchMutex.unlock();
-    synchCond.signal();
+    synchCond.notify_one();
     return newExcess;
   }
 
@@ -78,27 +76,27 @@ namespace Arc {
     return result;
   }
 
-  CounterTicket IntraProcessCounter::reserve(int amount,
-                                             Glib::TimeVal duration,
-                                             bool prioritized,
-                                             Glib::TimeVal timeOut) {
-    Glib::TimeVal deadline = getExpiryTime(timeOut);
-    Glib::TimeVal expiryTime;
+  CounterTicket
+  IntraProcessCounter::reserve(int amount,
+                               std::chrono::system_clock::duration duration,
+                               bool prioritized,
+                               std::chrono::system_clock::duration timeOut) {
+    std::chrono::system_clock::time_point deadline = getExpiryTime(timeOut);
+    std::chrono::system_clock::time_point expiryTime;
     IDType reservationID;
-    synchMutex.lock();
+    std::unique_lock<std::mutex> lock(synchMutex);
     while (amount > unsafeGetValue() + (prioritized ? excess : 0) and
            getCurrentTime() < deadline)
-      synchCond.timed_wait(synchMutex,
+      synchCond.wait_until(lock,
                            std::min(deadline, unsafeGetNextExpiration()));
     if (amount <= unsafeGetValue() + (prioritized ? excess : 0)) {
       expiryTime = getExpiryTime(duration);
       reservationID = unsafeReserve(amount, expiryTime);
     }
     else {
-      expiryTime = HISTORIC;
+      expiryTime = std::chrono::system_clock::time_point(HISTORIC);
       reservationID = 0;
     }
-    synchMutex.unlock();
     return getCounterTicket(reservationID, expiryTime, this);
   }
 
@@ -106,12 +104,12 @@ namespace Arc {
     synchMutex.lock();
     unsafeCancel(reservationID);
     synchMutex.unlock();
-    synchCond.signal();
+    synchCond.notify_one();
   }
 
   void IntraProcessCounter::extend(IDType& reservationID,
-                                   Glib::TimeVal& expiryTime,
-                                   Glib::TimeVal duration) {
+                                   std::chrono::system_clock::time_point& expiryTime,
+                                   std::chrono::system_clock::duration duration) {
     int amount;
     synchMutex.lock();
     amount = unsafeCancel(reservationID);
@@ -120,11 +118,11 @@ namespace Arc {
       reservationID = unsafeReserve(amount, expiryTime);
     }
     else {
-      expiryTime = HISTORIC;
+      expiryTime = std::chrono::system_clock::time_point(HISTORIC);
       reservationID = 0;
     }
     synchMutex.unlock();
-    synchCond.signal();
+    synchCond.notify_one();
   }
 
   int IntraProcessCounter::unsafeGetValue() {
@@ -146,20 +144,21 @@ namespace Arc {
     return amount;
   }
 
-  Counter::IDType IntraProcessCounter::unsafeReserve(int amount,
-                                                     Glib::TimeVal expiryTime) {
+  Counter::IDType
+  IntraProcessCounter::unsafeReserve(int amount,
+                                     std::chrono::system_clock::time_point expiryTime) {
     IDType reservationID = nextReservationID++;
     value -= amount;
     reservations[reservationID] = amount;
-    if (expiryTime < ETERNAL)
+    if (expiryTime < std::chrono::system_clock::time_point(ETERNAL))
       selfExpiringReservations.push(getExpirationReminder(expiryTime,
                                                           reservationID));
     return reservationID;
   }
 
-  Glib::TimeVal IntraProcessCounter::unsafeGetNextExpiration() {
+  std::chrono::system_clock::time_point IntraProcessCounter::unsafeGetNextExpiration() {
     if (selfExpiringReservations.empty())
-      return ETERNAL;
+      return std::chrono::system_clock::time_point(ETERNAL);
     else
       return selfExpiringReservations.top().getExpiryTime();
   }

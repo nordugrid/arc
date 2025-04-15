@@ -2,11 +2,10 @@
 #define __ARC_DELEGATION_FILERECORDSQLITE_H__
 
 #include <list>
+#include <mutex>
 #include <string>
 
 #include <sqlite3.h>
-
-#include <arc/Thread.h>
 
 #include "FileRecord.h"
 
@@ -14,7 +13,7 @@ namespace ARex {
 
 class FileRecordSQLite: public FileRecord {
  private:
-  Glib::Mutex lock_; // TODO: use DB locking
+  std::mutex lock_; // TODO: use DB locking
   sqlite3* db_;
   int sqlite3_exec_nobusy(const char *sql, int (*callback)(void*,int,char**,char**), void *arg, char **errmsg);
   bool dberr(const char* s, int err);
@@ -51,7 +50,7 @@ class FileRecordSQLite: public FileRecord {
   virtual bool AddLock(const std::string& lock_id, const std::list<std::string>& ids, const std::string& owner);
   // Reomove lock lock_id from all associated credentials
   virtual bool RemoveLock(const std::string& lock_id);
-  // Reomove lock lock_id from all associated credentials and store 
+  // Reomove lock lock_id from all associated credentials and store
   // identifiers of associated credentials into ids
   virtual bool RemoveLock(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids);
   // Fills locks with all known lock ids.

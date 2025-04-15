@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <algorithm>
 #include <iostream>
 
 #include <vector>
@@ -69,7 +70,7 @@ AuthResult AuthUser::match_otokens(const char* line) {
               default_otokens_ = otokens_t();
               default_otokens_.subject = v->subject;
               default_otokens_.issuer = v->issuer;
-	      if(audience != "*") default_otokens_.audiences.push_back(audience);
+              if(audience != "*") default_otokens_.audiences.push_back(audience);
               if(scope != "*") default_otokens_.scopes.push_back(scope);
               if(group != "*") default_otokens_.groups.push_back(group);
               return AAA_POSITIVE_MATCH;
@@ -154,56 +155,56 @@ public:
         //logger.msg(Arc::DEBUG, "Evaluate operator |: right: %d",right_->EvaluateBool(context));
         if(left_->EvaluateBool(context)) return true;
         if(right_->EvaluateBool(context)) return true;
-	return false;
-	break;
+        return false;
+        break;
       case '&':
         //logger.msg(Arc::DEBUG, "Evaluate operator &: left: %d",left_->EvaluateBool(context));
         //logger.msg(Arc::DEBUG, "Evaluate operator &: right: %d",right_->EvaluateBool(context));
         if(!left_->EvaluateBool(context)) return false;
         if(!right_->EvaluateBool(context)) return false;
-	return true;
-	break;
+        return true;
+        break;
       case '^':
         return !(left_->EvaluateBool(context) == right_->EvaluateBool(context));
-	break;
+        break;
       case '=':
-	{
+        {
           // Left value is claim name
-	  // Right value is expected claim value
+          // Right value is expected claim value
           std::string lvalue = left_->EvaluateValue();
           logger.msg(Arc::DEBUG, "Evaluate operator =: left: %s",lvalue);
           logger.msg(Arc::DEBUG, "Evaluate operator =: right: %s",right_->EvaluateValue());
-	  if(!lvalue.empty()) {
+          if(!lvalue.empty()) {
             EvalContext::iterator itValues = context.find(lvalue);
-	    if(itValues != context.end()) {
+            if(itValues != context.end()) {
               for(std::list<std::string>::iterator itValue = itValues->second.begin(); itValue != itValues->second.end(); ++itValue) {
                 logger.msg(Arc::DEBUG, "Evaluate operator =: left from context: %s",*itValue);
                 if(*itValue == right_->EvaluateValue()) return true;
-	      }
-	    }
-	  }
+              }
+            }
+          }
           return false;
-	}
-	break;
+        }
+        break;
       case '~':
         {
           // Left value is claim name
-	  // Right value is regular expression to match
+          // Right value is regular expression to match
           std::string lvalue = left_->EvaluateValue();
-	  if(!lvalue.empty()) {
+          if(!lvalue.empty()) {
             EvalContext::iterator itValues = context.find(lvalue);
-	    if(itValues != context.end()) {
+            if(itValues != context.end()) {
               Arc::RegularExpression regexp(right_->EvaluateValue());
               for(std::list<std::string>::iterator itValue = itValues->second.begin(); itValue != itValues->second.end(); ++itValue) {
                 if(regexp.match(left_->EvaluateValue())) return true;
-	      }
-	    }
-	  }
+              }
+            }
+          }
           return false;
         }
         break;
       default:
-	break;
+        break;
     }
     throw Exception((std::string("Unknown binary operation ") + op_ + " was evaluated").c_str());
   }
@@ -276,7 +277,7 @@ public:
     while(true) {
       str = SkipWS(str);
       if(!str) {
-	if(tillBracket) throw Exception("Missing closing bracket");
+        if(tillBracket) throw Exception("Missing closing bracket");
         break;
       }
 
@@ -336,8 +337,8 @@ public:
       // smash unary
       while(itTokenLeft != itTokenLeftStart) {
         Arc::AutoPointer<Expression> newExpr((*itTokenLeft)->MakeExpression(exprLeft.Ptr()));
-	exprLeft.Release();
-	exprLeft = newExpr;
+        exprLeft.Release();
+        exprLeft = newExpr;
         --itTokenLeft;
       }
     }
@@ -348,7 +349,7 @@ public:
       std::list<Token*>::iterator itTokenBinary(itToken);
       ++itToken;
       if(itToken == tokens_.end()) throw Exception("Missing right side of expression");
-      
+
       Arc::AutoPointer<Expression> exprRight;
       {
         std::list<Token*>::iterator itTokenRightStart(itToken);
@@ -365,9 +366,9 @@ public:
         exprRight = (*itTokenRight)->MakeExpression();
         // smash unary
         while(itTokenRight != itTokenRightStart) {
-	  Arc::AutoPointer<Expression> newExpr((*itTokenRight)->MakeExpression(exprRight.Ptr()));
-	  exprRight.Release();
-	  exprRight = newExpr;
+          Arc::AutoPointer<Expression> newExpr((*itTokenRight)->MakeExpression(exprRight.Ptr()));
+          exprRight.Release();
+          exprRight = newExpr;
           --itTokenRight;
         }
       }
@@ -410,7 +411,7 @@ AuthResult AuthUser::match_ftokens(const char* line) {
           ++value;
           if(value == values.end()) break;
           logger.msg(Arc::DEBUG, "      %s", *value);
-	}
+        }
       }
     }
     try {

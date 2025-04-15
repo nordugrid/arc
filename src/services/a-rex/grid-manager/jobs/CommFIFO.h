@@ -2,9 +2,8 @@
 #define GM_COMMFIFO_H
 
 #include <list>
+#include <mutex>
 #include <vector>
-
-#include <arc/Thread.h>
 
 namespace ARex {
 
@@ -32,13 +31,13 @@ class CommFIFO {
   // of new external pipes
   int kick_in;
   int kick_out;
-  // Multi-threading protection 
-  Glib::RecMutex lock;
+  // Multi-threading protection
+  std::recursive_mutex lock;
   int timeout_;
   // Create internal pipe
   bool make_pipe(void);
   // Open external pipe
-  add_result take_pipe(const std::string& dir_path, elem_t& el); 
+  add_result take_pipe(const std::string& dir_path, elem_t& el);
 
  public:
   CommFIFO(void);
@@ -52,13 +51,13 @@ class CommFIFO {
 
   /// Wait for any event with specified timeout
   bool wait(int timeout) { std::string event; return wait(timeout, event); };
- 
+
   /// Wait for any event with specified timeout and collect event id
   bool wait(int timeout, std::string& event);
- 
+
   /// Wait for any event with default timeout
   bool wait(void) { std::string event; return wait(timeout_, event); };
- 
+
   /// Wait for any event with default timeout and collect event id
   bool wait(std::string& event) { return wait(timeout_, event); };
 

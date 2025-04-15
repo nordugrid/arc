@@ -6,7 +6,6 @@
 
 #include <arc/loader/Plugin.h>
 #include <arc/XMLNode.h>
-#include <arc/Thread.h>
 #include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
@@ -17,7 +16,7 @@
 #include "DelegationPDP.h"
 
 // NOTE: using factories/attrbites provided ArcPDP
-//  This PDP is mostly same as ArcPDP. The difference 
+//  This PDP is mostly same as ArcPDP. The difference
 //  is that it takes both request and policies from SecAttr.
 //  Also currently for flexibility it performs every evaluation
 //  per request. Later it should become clever and distinguish
@@ -154,7 +153,7 @@ PDPStatus DelegationPDP::isPermitted(Message *msg) const {
       throw std::exception();
     };
 
-   
+
     //Call the evaluation functionality inside Evaluator
     Response *resp = eval->evaluate(requestxml);
     if(!resp) {

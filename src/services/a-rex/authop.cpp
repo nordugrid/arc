@@ -2,9 +2,11 @@
 #include <config.h>
 #endif
 
-#include <arc/Thread.h>
+#include <algorithm>
+
 #include <arc/Utils.h>
 #include <arc/message/PayloadSOAP.h>
+
 #include "arex.h"
 
 namespace ARex {
@@ -18,7 +20,7 @@ static std::string toString(std::list<std::string> strings) {
 }
 
 bool ARexConfigContext::CheckOperationAllowed(OperationType op, ARexConfigContext* config, std::string& msg) {
-  // TODO: very simplified code below. Proper way to identify how client was identified and 
+  // TODO: very simplified code below. Proper way to identify how client was identified and
   // which authentication information matched authorization rules LegacySecAttr must be used.
   if(!config) {
     logger.msg(Arc::DEBUG, "CheckOperationAllowed: missing configuration");
@@ -35,7 +37,7 @@ bool ARexConfigContext::CheckOperationAllowed(OperationType op, ARexConfigContex
       Arc::SecAttr* sattr = NULL;
       if(sattr = (*a)->get("TLS")) {
         has_tls_identity = !sattr->get("SUBJECT").empty();
-      } 
+      }
       if(sattr = (*a)->get("OTOKENS")) {
         scopes = sattr->getAll("scope");
         has_token_identity = !sattr->get("iss").empty();
@@ -103,4 +105,4 @@ bool ARexConfigContext::CheckOperationAllowed(OperationType op, ARexConfigContex
 }
 
 
-} // namespace ARex 
+} // namespace ARex

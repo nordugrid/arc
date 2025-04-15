@@ -21,10 +21,8 @@
 
 #include <iostream>
 #include <set>
+#include <vector>
 
-#include <glibmm.h>
-
-#include <arc/Thread.h>
 #include <arc/Logger.h>
 #include <arc/User.h>
 #include <arc/Utils.h>
@@ -49,8 +47,8 @@ namespace Arc {
       Channel(void):timeout(-1),next(0) {};
     };
     int lpipe[2];
-    Glib::Thread *timer_;
-    static Glib::Mutex instance_lock_;
+    std::thread timer_;
+    static std::mutex instance_lock_;
     std::vector<Channel> channels_;
     static Watchdog *instance_;
     static unsigned int mark_;
@@ -66,7 +64,7 @@ namespace Arc {
     ~Watchdog(void);
   };
 
-  Glib::Mutex Watchdog::instance_lock_;
+  std::mutex Watchdog::instance_lock_;
   Watchdog* Watchdog::instance_ = NULL;
   unsigned int Watchdog::mark_ = ~WatchdogMagic;
 
@@ -80,7 +78,7 @@ namespace Arc {
     return *instance_;
   }
 
-  Watchdog::Watchdog(void):timer_(NULL) {
+  Watchdog::Watchdog(void) {
     lpipe[0] = -1; lpipe[1] = -1;
     ::pipe(lpipe);
     if(lpipe[1] != -1) fcntl(lpipe[1], F_SETFL, fcntl(lpipe[1], F_GETFL) | O_NONBLOCK);
@@ -99,7 +97,7 @@ namespace Arc {
       bool is_timeout = false;
       time_t now = ::time(NULL);
       {
-        Glib::Mutex::Lock lock(instance_lock_);
+        std::unique_lock<std::mutex> lock(instance_lock_);
         for(int n = 0; n < channels_.size(); ++n) {
           if(channels_[n].timeout < 0) continue; // channel not active
           if(((int)(now - channels_[n].next)) > 0) { is_timeout = true; break; } // timeout
@@ -114,12 +112,12 @@ namespace Arc {
 
   int Watchdog::Open(int timeout) {
     if(timeout <= 0) return -1;
-    Glib::Mutex::Lock lock(instance_lock_);
-    if(!timer_) {
+    std::unique_lock<std::mutex> lock(instance_lock_);
+    if(timer_.get_id() == std::thread::id()) {
       // start timer thread
       try {
-        timer_ = Glib::Thread::create(sigc::mem_fun(*this, &Watchdog::Timer), false);
-      } catch (Glib::Exception& e) {} catch (std::exception& e) {};
+        timer_ = std::thread(sigc::mem_fun(*this, &Watchdog::Timer));
+      } catch (std::exception& e) {};
     }
     int n = 0;
     for(; n < channels_.size(); ++n) {
@@ -136,14 +134,14 @@ namespace Arc {
   }
 
   void Watchdog::Kick(int channel) {
-    Glib::Mutex::Lock lock(instance_lock_);
+    std::unique_lock<std::mutex> lock(instance_lock_);
     if((channel < 0) || (channel >= channels_.size())) return;
     if(channels_[channel].timeout < 0) return;
     channels_[channel].next = ::time(NULL) + channels_[channel].timeout;
   }
 
   void Watchdog::Close(int channel) {
-    Glib::Mutex::Lock lock(instance_lock_);
+    std::unique_lock<std::mutex> lock(instance_lock_);
     if((channel < 0) || (channel >= channels_.size())) return;
     channels_[channel].timeout = -1;
     // resize?
@@ -160,7 +158,7 @@ namespace Arc {
   WatchdogChannel::~WatchdogChannel(void) {
     Watchdog::Instance().Close(id_);
   }
- 
+
   void WatchdogChannel::Kick(void) {
     Watchdog::Instance().Kick(id_);
   }

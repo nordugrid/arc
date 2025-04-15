@@ -6,7 +6,6 @@
 #include <fstream>
 
 #include <arc/XMLNode.h>
-#include <arc/Thread.h>
 #include <arc/ArcConfig.h>
 #include <arc/ArcLocation.h>
 #include <arc/Logger.h>
@@ -48,7 +47,7 @@ XACMLPDPContext::XACMLPDPContext(Evaluator* e):eval(e) {
 }
 
 XACMLPDPContext::XACMLPDPContext(void):eval(NULL) {
-  std::string evaluator = "xacml.evaluator"; 
+  std::string evaluator = "xacml.evaluator";
   EvaluatorLoader eval_loader;
   eval = eval_loader.getEvaluator(evaluator);
 }
@@ -133,7 +132,7 @@ PDPStatus XACMLPDP::isPermitted(Message *msg) const {
     if(!eval) logger.msg(ERROR, "Can not dynamically produce Evaluator");
   }
   if(!eval) {
-    logger.msg(ERROR,"Evaluator for XACMLPDP was not loaded"); 
+    logger.msg(ERROR,"Evaluator for XACMLPDP was not loaded");
     return false;
   };
 
@@ -178,9 +177,9 @@ PDPStatus XACMLPDP::isPermitted(Message *msg) const {
   bool result = false;
   if(rlist[0]->res == DECISION_PERMIT) { logger.msg(INFO, "Authorized from xacml.pdp"); result = true; }
   else logger.msg(ERROR, "UnAuthorized from xacml.pdp");
-  
+
   if(resp) delete resp;
-    
+
   return result;
 }
 

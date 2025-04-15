@@ -11,7 +11,6 @@
 #include <stdint.h>
 #endif
 
-#include <arc/Thread.h>
 #include <arc/Logger.h>
 #include <arc/XMLNode.h>
 #include <arc/loader/ModuleManager.h>
@@ -121,18 +120,18 @@ namespace Arc {
   /** The instance of this class provides functionality
      of loading pluggable ARC components stored in shared
      libraries. It also makes use of Arc Plugin Description
-     (*.apd) files which contain textual plugin identfiers. 
-     Arc Plugin Description files contain attributes 
+     (*.apd) files which contain textual plugin identfiers.
+     Arc Plugin Description files contain attributes
      describing pluggable components stored in corresponding
-     shared libraries. Using those files allows to save 
+     shared libraries. Using those files allows to save
      on actually loading and resolving libraries while
      looking for specific component.
 
      Specifically this class uses 'priority' attribute to sort
      plugin description in internal lists. Please note
-     that priority affects order in which plugins tried 
+     that priority affects order in which plugins tried
      in get_instance(...) methods. But it only works
-     for plugins which were already loaded by previous 
+     for plugins which were already loaded by previous
      calls to load(...) and get_instance(...) methods.
      For plugins discovered inside get_instance priority
      in not effective.
@@ -153,9 +152,9 @@ namespace Arc {
   class PluginsFactory: public ModuleManager {
     friend class PluginArgument;
     private:
-      Glib::Mutex lock_;
+      std::mutex lock_;
 
-      // Combined convenient description of module and 
+      // Combined convenient description of module and
       // its representation inside module.
       class descriptor_t_ {
        public:

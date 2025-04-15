@@ -13,8 +13,6 @@
 #include <time.h>
 #include <cstring>
 
-#include <glibmm.h>
-
 #include <arc/FileUtils.h>
 #include <arc/Logger.h>
 #include <arc/StringConv.h>
@@ -55,7 +53,7 @@ namespace ARex {
     close();
   }
 
-  int FileRecordSQLite::sqlite3_exec_nobusy(const char *sql, int (*callback)(void*,int,char**,char**), 
+  int FileRecordSQLite::sqlite3_exec_nobusy(const char *sql, int (*callback)(void*,int,char**,char**),
     void *arg, char **errmsg) {
       int err;
       while((err = sqlite3_exec(db_, sql, callback, arg, errmsg)) == SQLITE_BUSY) {
@@ -132,7 +130,7 @@ namespace ARex {
     if(!strs.empty()) {
       for(std::list<std::string>::const_iterator str = strs.begin(); ; ) {
         buf += sql_escape(*str);
-	++str;
+        ++str;
         if (str == strs.end()) break;
         buf += '#';
       };
@@ -152,7 +150,7 @@ namespace ARex {
   }
 
   bool FileRecordSQLite::Recover(void) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     // Real recovery not implemented yet.
     close();
     error_num_ = -1;
@@ -280,7 +278,7 @@ namespace ARex {
         error_str_ = "Out of tries adding record to database";
         return "";
       };
-      Glib::Mutex::Lock lock(lock_);
+      std::unique_lock<std::mutex> lock(lock_);
       uid = rand_uid64().substr(4);
       std::string metas;
       store_strings(meta, metas);
@@ -309,7 +307,7 @@ namespace ARex {
 
   bool FileRecordSQLite::Add(const std::string& uid, const std::string& id, const std::string& owner, const std::list<std::string>& meta) {
     if(!valid_) return false;
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     std::string metas;
     store_strings(meta, metas);
     std::string sqlcmd = "INSERT INTO rec(id, owner, uid, meta) VALUES ('"+
@@ -328,7 +326,7 @@ namespace ARex {
 
   std::string FileRecordSQLite::Find(const std::string& id, const std::string& owner, std::list<std::string>& meta) {
     if(!valid_) return "";
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     std::string sqlcmd = "SELECT uid, meta FROM rec WHERE ((id = '"+sql_escape(id)+"') AND (owner = '"+sql_escape(owner)+"'))";
     std::string uid;
     FindCallbackUidMetaArg arg(uid, meta);
@@ -344,7 +342,7 @@ namespace ARex {
 
   bool FileRecordSQLite::Modify(const std::string& id, const std::string& owner, const std::list<std::string>& meta) {
     if(!valid_) return false;
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     std::string metas;
     store_strings(meta, metas);
     std::string sqlcmd = "UPDATE rec SET meta = '"+metas+"' WHERE ((id = '"+sql_escape(id)+"') AND (owner = '"+sql_escape(owner)+"'))";
@@ -360,7 +358,7 @@ namespace ARex {
 
   bool FileRecordSQLite::Remove(const std::string& id, const std::string& owner) {
     if(!valid_) return false;
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     std::string uid;
     {
       std::string sqlcmd = "SELECT uid FROM rec WHERE ((id = '"+sql_escape(id)+"') AND (owner = '"+sql_escape(owner)+"'))";
@@ -400,7 +398,7 @@ namespace ARex {
 
   bool FileRecordSQLite::AddLock(const std::string& lock_id, const std::list<std::string>& ids, const std::string& owner) {
     if(!valid_) return false;
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     for(std::list<std::string>::const_iterator id = ids.begin(); id != ids.end(); ++id) {
       std::string uid;
       {
@@ -424,8 +422,8 @@ namespace ARex {
 
   bool FileRecordSQLite::RemoveLock(const std::string& lock_id) {
     if(!valid_) return false;
-    Glib::Mutex::Lock lock(lock_);
-    // map lock to id,owner 
+    std::unique_lock<std::mutex> lock(lock_);
+    // map lock to id,owner
     {
       std::string sqlcmd = "DELETE FROM lock WHERE (lockid = '"+sql_escape(lock_id)+"')";
       if(!dberr("removelock:del",sqlite3_exec_nobusy(sqlcmd.c_str(), NULL, NULL, NULL))) {
@@ -441,8 +439,8 @@ namespace ARex {
 
   bool FileRecordSQLite::RemoveLock(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids) {
     if(!valid_) return false;
-    Glib::Mutex::Lock lock(lock_);
-    // map lock to id,owner 
+    std::unique_lock<std::mutex> lock(lock_);
+    // map lock to id,owner
     {
       std::string sqlcmd = "SELECT id,owner FROM rec WHERE uid IN (SELECT uid FROM lock WHERE (lockid = '"+sql_escape(lock_id)+"'))";
       FindCallbackIdOwnerArg arg(ids);
@@ -466,8 +464,8 @@ namespace ARex {
 
   bool FileRecordSQLite::ListLocked(const std::string& lock_id, std::list<std::pair<std::string,std::string> >& ids) {
     if(!valid_) return false;
-    Glib::Mutex::Lock lock(lock_);
-    // map lock to id,owner 
+    std::unique_lock<std::mutex> lock(lock_);
+    // map lock to id,owner
     {
       std::string sqlcmd = "SELECT id,owner FROM rec WHERE uid IN (SELECT uid FROM lock WHERE (lockid = '"+sql_escape(lock_id)+"'))";
       FindCallbackIdOwnerArg arg(ids);
@@ -481,7 +479,7 @@ namespace ARex {
 
   bool FileRecordSQLite::ListLocks(std::list<std::string>& locks) {
     if(!valid_) return false;
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     {
       std::string sqlcmd = "SELECT lockid FROM lock";
       FindCallbackLockArg arg(locks);
@@ -494,7 +492,7 @@ namespace ARex {
 
   bool FileRecordSQLite::ListLocks(const std::string& id, const std::string& owner, std::list<std::string>& locks) {
     if(!valid_) return false;
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     std::string uid;
     {
       std::string sqlcmd = "SELECT uid FROM rec WHERE ((id = '"+sql_escape(id)+"') AND (owner = '"+sql_escape(owner)+"'))";
@@ -519,7 +517,7 @@ namespace ARex {
 
   FileRecordSQLite::Iterator::Iterator(FileRecordSQLite& frec):FileRecord::Iterator(frec) {
     rowid_ = -1;
-    Glib::Mutex::Lock lock(frec.lock_);
+    std::unique_lock<std::mutex> lock(frec.lock_);
     {
       std::string sqlcmd = "SELECT _rowid_,id,owner,uid,meta FROM rec ORDER BY _rowid_ LIMIT 1";
       FindCallbackRecArg arg;
@@ -543,7 +541,7 @@ namespace ARex {
   FileRecordSQLite::Iterator& FileRecordSQLite::Iterator::operator++(void) {
     if(rowid_ == -1) return *this;
     FileRecordSQLite& frec((FileRecordSQLite&)frec_);
-    Glib::Mutex::Lock lock(frec.lock_);
+    std::unique_lock<std::mutex> lock(frec.lock_);
     {
       std::string sqlcmd = "SELECT _rowid_,id,owner,uid,meta FROM rec WHERE (_rowid_ > " + Arc::tostring(rowid_) + ") ORDER BY _rowid_ ASC LIMIT 1";
       FindCallbackRecArg arg;
@@ -567,7 +565,7 @@ namespace ARex {
   FileRecordSQLite::Iterator& FileRecordSQLite::Iterator::operator--(void) {
     if(rowid_ == -1) return *this;
     FileRecordSQLite& frec((FileRecordSQLite&)frec_);
-    Glib::Mutex::Lock lock(frec.lock_);
+    std::unique_lock<std::mutex> lock(frec.lock_);
     {
       std::string sqlcmd = "SELECT _rowid_,id,owner,uid,meta FROM rec WHERE (_rowid_ < " + Arc::tostring(rowid_) + ") ORDER BY _rowid_ DESC LIMIT 1";
       FindCallbackRecArg arg;

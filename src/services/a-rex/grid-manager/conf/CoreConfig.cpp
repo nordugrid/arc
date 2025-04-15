@@ -23,6 +23,8 @@
 
 #include "CoreConfig.h"
 
+#include "glibmm-compat.h"
+
 namespace ARex {
 
 Arc::Logger CoreConfig::logger(Arc::Logger::getRootLogger(), "CoreConfig");
@@ -109,7 +111,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
   static const int cluster_secnum     = 8;
   cf.AddSection("infosys/cluster");
   static const int infosys_secnum     = 9;
-  cf.AddSection("infosys"); 
+  cf.AddSection("infosys");
   static const int queue_secnum       = 10;
   cf.AddSection("queue");
   static const int ssh_secnum         = 11;
@@ -143,7 +145,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
     if (cf.SectionNum() == perflog_secnum) { // common/perflog
       if (cf.SubSection()[0] == '\0') {
         if(config.job_perf_log) config.job_perf_log->SetEnabled(true);
-        if (command == "perflogdir") { // 
+        if (command == "perflogdir") { //
           if (!config.job_perf_log) continue;
           std::string fname = rest;  // empty is allowed too
           if(!fname.empty()) fname += "/arex.perflog";
@@ -386,7 +388,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
             } else {
               // shortcut
               std::string shortcut = Arc::trim(*pair);
-	      if(shortcut == "wlcg") {
+              if(shortcut == "wlcg") {
                 config.token_scopes["jobinfo"].push_back("compute.read");
                 config.token_scopes["jobcreate"].push_back("compute.create");
                 config.token_scopes["jobcancel"].push_back("compute.cancel");
@@ -434,24 +436,24 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
           Arc::tokenize(rest, metrics, ",");
           for(std::list<std::string>::iterator m = metrics.begin(); m != metrics.end(); ++m) {
             std::string metric = Arc::trim(*m);
-            if((metric == "jobstates") || 
+            if((metric == "jobstates") ||
                (metric == "all")) {
               config.jobs_metrics->SetEnabled(true);
             };
-	    if((metric == "heartbeat") ||
-	       (metric == "all")){
-		 config.heartbeat_metrics->SetEnabled(true);
-	       };
-	    if((metric == "cache") || 
-	       (metric == "all")){
-	      config.space_metrics->SetEnabled(true);
-	    };
+            if((metric == "heartbeat") ||
+               (metric == "all")){
+                 config.heartbeat_metrics->SetEnabled(true);
+               };
+            if((metric == "cache") ||
+               (metric == "all")){
+              config.space_metrics->SetEnabled(true);
+            };
           };
         };
       };
       continue;
     };
-    
+
     if (cf.SectionNum() == ws_secnum) { // arex/ws
       if (cf.SubSection()[0] == '\0') {
         if(command == "wsurl") {
@@ -676,7 +678,7 @@ bool CoreConfig::ParseConfINI(GMConfig& config, Arc::ConfigFile& cfile) {
     // Assign default value
     config.helper_log = "/var/log/arc/job.helper.errors";
   }
- 
+
   if (config.default_benchmark.empty()){
     // Assign default benchmark value with no CPUTime normalization
     config.default_benchmark = "HEPSPEC:1.0";

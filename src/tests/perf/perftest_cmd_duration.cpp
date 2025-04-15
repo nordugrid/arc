@@ -2,44 +2,36 @@
 #include <config.h>
 #endif
 
-// perftest_cmd.cpp
+// perftest_cmd_duration.cpp
 
-#include <unistd.h>
-#include <errno.h>
+#include <cerrno>
+#include <chrono>
+#include <cmath>
 #include <iostream>
-#include <fstream>
+#include <mutex>
 #include <string>
-#include <stdlib.h>
-#include <glibmm/thread.h>
-#include <glibmm/timer.h>
 #include <vector>
 
 #include <sys/wait.h>
+#include <unistd.h>
 
 // Some global shared variables...
-Glib::Mutex* mutex;
+std::mutex mutex;
 int finishedProcesses;
 unsigned long completedCommands;
 unsigned long failedCommands;
 unsigned long totalCommands;
-Glib::TimeVal completedTime;
-Glib::TimeVal failedTime;
-Glib::TimeVal totalTime;
+std::chrono::system_clock::duration completedTime;
+std::chrono::system_clock::duration failedTime;
+std::chrono::system_clock::duration totalTime;
 
 int duration;
 std::string cmd_str;
 std::vector<std::string> arglist;
 
-// Round off a double to an integer.
-int Round(double x){
-  return int(x+0.5);
-}
-
 // Execute a command line
 void execCommand() {
   // Some variables...
-  Glib::TimeVal tBefore;
-  Glib::TimeVal tAfter;
   char **list;
   int pid;
 
@@ -48,9 +40,8 @@ void execCommand() {
     list[i] = (char *)arglist[i].c_str();
   list[arglist.size()] = NULL;
 
-
-  while(Round(::completedTime.as_double() * 1000000) < (duration * 1000000)){
-    tBefore.assign_current_time();
+  while(completedTime < std::chrono::seconds(duration)){
+    auto tBefore = std::chrono::system_clock::now();
 
     pid = fork();
     if(pid == 0) {
@@ -67,23 +58,23 @@ void execCommand() {
       int child_status, child_pid;
       child_pid = wait(&child_status);
 
-      tAfter.assign_current_time();
+      auto tAfter = std::chrono::system_clock::now();
 
       if(child_status != 0) {
         std::cout << "ERROR: " << cmd_str << " returns code " << child_status << std::endl;
-        Glib::Mutex::Lock lock(*mutex);
+        std::unique_lock<std::mutex> lock(mutex);
         ::failedCommands++;
         ::failedTime+=tAfter-tBefore;
         finishedProcesses++;
       }
       else {
-        Glib::Mutex::Lock lock(*mutex);
+        std::unique_lock<std::mutex> lock(mutex);
         ::completedCommands++;
         ::completedTime+=tAfter-tBefore;
         finishedProcesses++;
       }
     }
-  } 
+  }
 
   std::cout << "Number of finished processes: " << finishedProcesses << std::endl;
 
@@ -94,14 +85,15 @@ int main(int argc, char* argv[]){
   // Extract command line arguments.
   if (argc<3){
     std::cerr << "Wrong number of arguments!" << std::endl
-	      << std::endl
-	      << "Usage:" << std::endl
-	      << "perftest_cmd_duration duration" << std::endl
-	      << std::endl
-	      << "Arguments:" << std::endl
-	      << "duration The duration of the test in seconds." << std::endl;
+              << std::endl
+              << "Usage:" << std::endl
+              << "perftest_cmd_duration duration" << std::endl
+              << std::endl
+              << "Arguments:" << std::endl
+              << "duration The duration of the test in seconds." << std::endl;
     exit(EXIT_FAILURE);
   }
+
   duration = atoi(argv[1]);
 
   cmd_str = std::string(argv[2]);
@@ -115,41 +107,40 @@ int main(int argc, char* argv[]){
 
   // Start processes.
   finishedProcesses=0;
-  mutex=new Glib::Mutex;
 
   execCommand();
 
   // Print the result of the test.
-  Glib::Mutex::Lock lock(*mutex);
+  std::unique_lock<std::mutex> lock(mutex);
   totalCommands = completedCommands+failedCommands;
   totalTime = completedTime+failedTime;
   std::cout << "========================================" << std::endl;
   std::cout << "Duration: "
-	    << duration << " s" << std::endl;
+            << duration << " s" << std::endl;
   std::cout << "Number of commands: "
-	    << totalCommands << std::endl;
+            << totalCommands << std::endl;
   std::cout << "Completed commands: "
-	    << completedCommands << " ("
-	    << Round(completedCommands*100.0/totalCommands)
-	    << "%)" << std::endl;
+            << completedCommands << " ("
+            << rint(completedCommands * 100.0 / totalCommands)
+            << "%)" << std::endl;
   std::cout << "Failed commands: "
-	    << failedCommands << " ("
-	    << Round(failedCommands*100.0/totalCommands)
-	    << "%)" << std::endl;
+            << failedCommands << " ("
+            << rint(failedCommands * 100.0 / totalCommands)
+            << "%)" << std::endl;
   std::cout << "Completed requests per min: "
-            << Round(((double)completedCommands)/duration*60)
+            << rint((double)completedCommands / duration * 60)
             << std::endl;
   std::cout << "Average response time for all commands: "
-	    << Round(1000*totalTime.as_double()/totalCommands)
-	    << " ms" << std::endl;
+            << rint(std::chrono::duration<double, std::milli>(totalTime).count() / totalCommands)
+            << " ms" << std::endl;
   if (completedCommands!=0)
     std::cout << "Average response time for completed commands: "
-	      << Round(1000*completedTime.as_double()/completedCommands)
-	      << " ms" << std::endl;
+              << rint(std::chrono::duration<double, std::milli>(completedTime).count() / completedCommands)
+              << " ms" << std::endl;
   if (failedCommands!=0)
     std::cout << "Average response time for failed commands: "
-	      << Round(1000*failedTime.as_double()/failedCommands)
-	      << " ms" << std::endl;
+              << rint(std::chrono::duration<double, std::milli>(failedTime).count() / failedCommands)
+              << " ms" << std::endl;
   std::cout << "========================================" << std::endl;
 
   return 0;

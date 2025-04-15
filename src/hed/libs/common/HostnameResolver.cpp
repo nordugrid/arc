@@ -6,6 +6,8 @@
 #include <iostream>
 #include <string.h>
 
+#include <glibmm/miscutils.h>
+
 #include <arc/Run.h>
 #include <arc/ArcLocation.h>
 
@@ -95,13 +97,13 @@ namespace Arc {
     return true;
   }
 
-#define RETRYLOOP Glib::Mutex::Lock mlock(lock_); for(int n = 2; n && (hostname_resolver_?hostname_resolver_:(hostname_resolver_=acquire_executer())) ;--n)
+#define RETRYLOOP std::unique_lock<std::mutex> mlock(lock_); for(int n = 2; n && (hostname_resolver_?hostname_resolver_:(hostname_resolver_=acquire_executer())) ;--n)
 
-#define NORETRYLOOP Glib::Mutex::Lock mlock(lock_); for(int n = 1; n && (hostname_resolver_?hostname_resolver_:(hostname_resolver_=acquire_executer())) ;--n)
+#define NORETRYLOOP std::unique_lock<std::mutex> mlock(lock_); for(int n = 1; n && (hostname_resolver_?hostname_resolver_:(hostname_resolver_=acquire_executer())) ;--n)
 
   HostnameResolver::SockAddr::SockAddr():family(0),length(0),addr(NULL) {
   }
- 
+
   HostnameResolver::SockAddr::SockAddr(SockAddr const& other):family(0),length(0),addr(NULL) {
     operator=(other);
   }
@@ -197,14 +199,14 @@ namespace Arc {
   }
 
   HostnameResolverContainer::~HostnameResolverContainer(void) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     for(std::list<HostnameResolver*>::iterator hr = hrs_.begin();hr != hrs_.end();++hr) {
       delete *hr;
     }
   }
 
   HostnameResolver* HostnameResolverContainer::Acquire(void) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     HostnameResolver* r = NULL;
     for(std::list<HostnameResolver*>::iterator hr = hrs_.begin();hr != hrs_.end();) {
       r = *hr; hr = hrs_.erase(hr);
@@ -220,7 +222,7 @@ namespace Arc {
   }
 
   void HostnameResolverContainer::Release(HostnameResolver* hr) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     if(!hr) return;
     hrs_.push_back(hr);
     KeepRange();
@@ -228,13 +230,13 @@ namespace Arc {
   }
 
   void HostnameResolverContainer::SetMin(unsigned int val) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     min_ = val;
     KeepRange();
   }
 
   void HostnameResolverContainer::SetMax(unsigned int val) {
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     min_ = val;
     KeepRange();
   }

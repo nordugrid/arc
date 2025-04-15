@@ -25,20 +25,20 @@ namespace Arc {
   }
 
   void MCC::Next(MCCInterface *next, const std::string& label) {
-    Glib::Mutex::Lock lock(next_lock_);
+    std::unique_lock<std::mutex> lock(next_lock_);
     if (next == NULL) next_.erase(label);
     else next_[label] = next;
   }
 
   MCCInterface *MCC::Next(const std::string& label) {
-    Glib::Mutex::Lock lock(next_lock_);
+    std::unique_lock<std::mutex> lock(next_lock_);
     std::map<std::string, MCCInterface *>::iterator n = next_.find(label);
     if (n == next_.end()) return NULL;
     return n->second;
   }
 
   void MCC::Unlink() {
-    Glib::Mutex::Lock lock(next_lock_);
+    std::unique_lock<std::mutex> lock(next_lock_);
     next_.clear();
   }
 

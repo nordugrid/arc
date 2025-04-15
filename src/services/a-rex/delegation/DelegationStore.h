@@ -23,8 +23,8 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
        id(id_),client(client_),path(path_) {
     };
   };
-  Glib::Mutex lock_;
-  Glib::Mutex check_lock_;
+  std::mutex lock_;
+  std::mutex check_lock_;
   FileRecord* fstore_;
   std::map<Arc::DelegationConsumerSOAP*,Consumer> acquired_;
   unsigned int expiration_;
@@ -83,7 +83,7 @@ class DelegationStore: public Arc::DelegationContainerSOAP {
 
   /** Store new credentials associated with client and assign id to it */
   bool AddCred(std::string& id, const std::string& client, const std::string& credentials);
- 
+
   /** Store/update credentials with specified id and associated with client */
   bool PutCred(const std::string& id, const std::string& client, const std::string& credentials);
 

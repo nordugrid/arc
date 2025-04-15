@@ -8,8 +8,6 @@
 #include <iostream>
 #include <string>
 
-#include <glibmm/miscutils.h>
-
 #include <arc/ArcLocation.h>
 #include <arc/User.h>
 #include "ArcConfig.h"
@@ -73,7 +71,7 @@ namespace Arc {
     if(v.empty()) return true; // default
     for(int n = 0;opts[n];++n) {
       if(v == opts[n]) { val = n; return true; };
-    }; 
+    };
     return false;
   }
 

@@ -12,7 +12,7 @@
 #include <errno.h>
 #include <time.h>
 
-#include <glibmm.h>
+#include <glibmm/fileutils.h>
 
 #include <arc/ArcLocation.h>
 #include <arc/Run.h>
@@ -134,7 +134,7 @@ class PrefixedFilePayload: public Arc::PayloadRawInterface {
     if(pos < prefix_.length()) return (char*)(prefix_.c_str() + pos);
     pos -= prefix_.length();
     if(pos < length_) return ((char*)(addr_) + pos);
-    pos -= length_; 
+    pos -= length_;
     if(pos < postfix_.length()) return (char*)(postfix_.c_str() + pos);
     return NULL;
   };
@@ -245,7 +245,7 @@ void OptimizedInformationContainer::Assign(const std::string& xml, const std::st
     // Do not delete old file if same name requested - it is removed by rename()
     if(!filename_.empty()) if(filename_ != filename) ::unlink(filename_.c_str());
     filename_ = filename;
-  };   
+  };
   if(handle_ != -1) ::close(handle_);
   handle_ = h;
   if(parse_xml_) {

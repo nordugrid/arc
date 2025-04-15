@@ -2,7 +2,7 @@
 #include <config.h>
 #endif
 
-#include <glibmm.h>
+#include <glibmm/module.h>
 
 #include <openssl/x509.h>
 #include <openssl/evp.h>
@@ -14,7 +14,10 @@
 #include <arc/Logger.h>
 #include <arc/Utils.h>
 #include <arc/globusutils/GlobusErrorUtils.h>
+
 #include "cert_util.h"
+
+#include "glibmm-compat.h"
 
 static Arc::Logger logger(Arc::Logger::getRootLogger(),"LCAS");
 
@@ -91,7 +94,7 @@ gss_cred_id_t read_globus_credentials(const std::string& filename) {
   X509* cert = NULL;
   STACK_OF(X509)* cchain = NULL;
   EVP_PKEY* key = NULL;
-  
+
   LoadCertificateFile(filename, cert, cchain);
   LoadKeyFile(filename, key);
 

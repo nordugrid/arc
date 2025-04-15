@@ -6,7 +6,6 @@
 #include <list>
 #include <string>
 
-#include <arc/Thread.h>
 #include <arc/URL.h>
 #include <arc/Run.h>
 #include <arc/Utils.h>

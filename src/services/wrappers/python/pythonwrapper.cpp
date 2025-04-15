@@ -70,7 +70,7 @@ void *extract_swig_wrappered_pointer(PyObject *obj)
 // Thread state of main python interpreter thread
 static PyThreadState *tstate = NULL;
 static int python_service_counter = 0;
-static Glib::Mutex service_lock;
+static std::mutex service_lock;
 Arc::Logger Arc::Service_PythonWrapper::logger(Service::logger, "PythonWrapper");
 
 static Arc::Plugin* get_service(Arc::PluginArgument* arg) {

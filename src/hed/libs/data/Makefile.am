@@ -24,13 +24,12 @@ libarcdata_la_SOURCES = DataPoint.cpp DataPointDirect.cpp \
 	FileCache.cpp FileCacheHash.cpp \
 	DataExternalComm.cpp DataPointDelegate.cpp
 libarcdata_la_CXXFLAGS = -I$(top_srcdir)/include $(GLIBMM_CFLAGS) \
-	$(LIBXML2_CFLAGS) $(GTHREAD_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
+	$(LIBXML2_CFLAGS) $(OPENSSL_CFLAGS) $(AM_CXXFLAGS)
 libarcdata_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(GTHREAD_LIBS) \
-	$(OPENSSL_LIBS)
+	$(GLIBMM_LIBS) $(LIBXML2_LIBS) $(OPENSSL_LIBS) -lpthread
 libarcdata_la_LDFLAGS = -version-info 4:0:0
 
 arc_dmc_SOURCES = DataExternalHelper.cpp DataExternalHelper.h

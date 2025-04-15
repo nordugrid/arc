@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include <glibmm/fileutils.h>
+
 #include <arc/FileUtils.h>
 
 #include "FileRecordSQLite.h"
@@ -88,12 +90,12 @@ namespace ARex {
     // already died and keeps locks forewer.
     delete mrec_;
     delete fstore_;
-    /* Following code is not executed because there must be no active 
+    /* Following code is not executed because there must be no active
       consumers when store being destroyed. It is probably safer to
       leave hanging consumers than to destroy them.
-      Anyway by design this destructor is supposed to be called only 
+      Anyway by design this destructor is supposed to be called only
       when applications exits.
-       
+
     while(acquired_.size() > 0) {
       std::map<Arc::DelegationConsumerSOAP*,Consumer>::iterator i = acquired_.begin();
       delete i->first;
@@ -119,7 +121,7 @@ namespace ARex {
         return NULL;
       };
     };
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     acquired_.insert(std::pair<Arc::DelegationConsumerSOAP*,Consumer>(cs,Consumer(id,client,path)));
     return cs;
   }
@@ -186,14 +188,14 @@ namespace ARex {
         cs->Restore(key);
       };
     };
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     acquired_.insert(std::pair<Arc::DelegationConsumerSOAP*,Consumer>(cs,Consumer(id,client,path)));
     return cs;
   }
 
   bool DelegationStore::TouchConsumer(Arc::DelegationConsumerSOAP* c,const std::string& credentials) {
     if(!c) return false;
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     std::map<Arc::DelegationConsumerSOAP*,Consumer>::iterator i = acquired_.find(c);
     if(i == acquired_.end()) {
       failure_ = "Delegation not found";
@@ -211,7 +213,7 @@ namespace ARex {
 
   bool DelegationStore::QueryConsumer(Arc::DelegationConsumerSOAP* c,std::string& credentials) {
     if(!c) return false;
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     std::map<Arc::DelegationConsumerSOAP*,Consumer>::iterator i = acquired_.find(c);
     if(i == acquired_.end()) { failure_ = "Delegation not found"; return false; };
     Arc::FileRead(i->second.path,credentials);
@@ -220,7 +222,7 @@ namespace ARex {
 
   void DelegationStore::ReleaseConsumer(Arc::DelegationConsumerSOAP* c) {
     if(!c) return;
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     std::map<Arc::DelegationConsumerSOAP*,Consumer>::iterator i = acquired_.find(c);
     if(i == acquired_.end()) return; // ????
     // Check if key changed. If yes then store only key.
@@ -242,7 +244,7 @@ namespace ARex {
 
   bool DelegationStore::RemoveConsumer(Arc::DelegationConsumerSOAP* c) {
     if(!c) return false;
-    Glib::Mutex::Lock lock(lock_);
+    std::unique_lock<std::mutex> lock(lock_);
     std::map<Arc::DelegationConsumerSOAP*,Consumer>::iterator i = acquired_.find(c);
     if(i == acquired_.end()) return false; // ????
     bool r = fstore_->Remove(i->second.id,i->second.client); // TODO: Handle failure
@@ -261,7 +263,7 @@ namespace ARex {
     // Remove outdated records (those with locks won't be removed)
     if(expiration_) {
       time_t start = ::time(NULL);
-      Glib::Mutex::Lock check_lock(lock_);
+      std::unique_lock<std::mutex> check_lock(lock_);
       if(mrec_ != NULL) {
         if(!mrec_->resume()) {
           logger_.msg(Arc::WARNING,"DelegationStore: PeriodicCheckConsumers failed to resume iterator");
@@ -286,7 +288,7 @@ namespace ARex {
               // So reporting only for debuging purposes.
               logger_.msg(Arc::DEBUG,"DelegationStore: PeriodicCheckConsumers failed to remove old delegation %s - %s", mrec_->uid(), fstore_->Error());
             };
-          };    
+          };
         };
       };
       delete mrec_; mrec_ = NULL;
@@ -419,7 +421,7 @@ namespace ARex {
     std::list<std::pair<std::string,std::string> > ids;
     if(!fstore_->RemoveLock(lock_id,ids)) return false;
     for(std::list<std::pair<std::string,std::string> >::iterator i = ids.begin();
-                        i != ids.end(); ++i) {    
+                        i != ids.end(); ++i) {
       if(touch) {
         std::list<std::string> meta;
         std::string path = fstore_->Find(i->first,i->second,meta);

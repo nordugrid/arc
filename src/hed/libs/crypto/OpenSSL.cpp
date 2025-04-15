@@ -18,7 +18,7 @@
 
 namespace Arc {
 
-  static Glib::Mutex lock;
+  static std::mutex lock;
   static bool initialized = false;
   static std::map<std::string,int> app_data_indices;
 
@@ -28,7 +28,7 @@ namespace Arc {
   }
 
   // This class takes care of cleaning OpenSSL data stored per-thread.
-  // Here assumption is that every thread dealing with OpenSSL either 
+  // Here assumption is that every thread dealing with OpenSSL either
   // calls OpenSSLInit or is started by thread which called OpenSSLInit.
   class OpenSSLThreadCleaner: private ThreadDataItem {
    public:
@@ -72,7 +72,7 @@ namespace Arc {
   }
 
   bool OpenSSLInit(void) {
-    Glib::Mutex::Lock flock(lock);
+    std::unique_lock<std::mutex> flock(lock);
     if(!initialized) {
       if(!PersistentLibraryInit("modcrypto")) {
         logger().msg(WARNING, "Failed to lock arccrypto library in memory");
@@ -100,7 +100,7 @@ namespace Arc {
 
 
   int OpenSSLAppDataIndex(const std::string& id) {
-    Glib::Mutex::Lock flock(lock);
+    std::unique_lock<std::mutex> flock(lock);
     std::map<std::string,int>::iterator i = app_data_indices.find(id);
     if(i == app_data_indices.end()) {
       int n = SSL_CTX_get_ex_new_index(0,NULL,NULL,NULL,NULL);
