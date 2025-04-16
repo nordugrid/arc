@@ -133,6 +133,10 @@ namespace DataStaging {
       args.push_back(std::string("casystem=")+Arc::tostring((int)dtr->get_usercfg().CAUseSystem()));
       args.push_back("--dopt");
       args.push_back(std::string("casystem=")+Arc::tostring((int)dtr->get_usercfg().CAUseSystem()));
+      args.push_back("--sopt");
+      args.push_back(std::string("cagrid=")+Arc::tostring((int)dtr->get_usercfg().CAUseGrid()));
+      args.push_back("--dopt");
+      args.push_back(std::string("cagrid=")+Arc::tostring((int)dtr->get_usercfg().CAUseGrid()));
       args.push_back("--topt");
       args.push_back(std::string("minspeed=")+Arc::tostring(transfer_params.min_current_bandwidth));
       args.push_back("--topt");

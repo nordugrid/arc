@@ -13,7 +13,7 @@
 bool checkproxy(const Arc::UserConfig& uc)
 {
   if (!uc.ProxyPath().empty() ) {
-    Arc::Credential holder(uc.ProxyPath(), "", "", "", false);
+    Arc::Credential holder(uc.ProxyPath(), "", "", "", false, false);
     if (holder.GetEndTime() < Arc::Time()){
       std::cout << Arc::IString("Proxy expired. Please run 'arcproxy'!") << std::endl;
       return false;

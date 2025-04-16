@@ -457,6 +457,11 @@ static int runmain(int argc, char *argv[]) {
                     istring("force using CA certificates configuration for Grid services (typically IGTF)"),
                     force_grid_ca);
 
+  bool force_any_ca = false;
+  options.AddOption('\0', "anyca",
+                    istring("force using CA certificates configuration for Grid services (typically IGTF) and one provided by OpenSSL"),
+                    force_any_ca);
+
   bool allow_insecure_connection = false;
   options.AddOption('\0', "allowinsecureconnection",
                     istring("allow TLS connection which failed verification"),
@@ -503,8 +508,9 @@ static int runmain(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  if (force_system_ca) usercfg.CAUseSystem(true);
-  if (force_grid_ca) usercfg.CAUseSystem(false);
+  if (force_system_ca) { usercfg.CAUseSystem(true); usercfg.CAUseGrid(false); }
+  if (force_grid_ca) { usercfg.CAUseSystem(false); usercfg.CAUseGrid(true); }
+  if (force_any_ca) { usercfg.CAUseSystem(true); usercfg.CAUseGrid(true); }
   if (allow_insecure_connection) usercfg.TLSAllowInsecure(true);
 
   if(use_nssdb) {
@@ -646,7 +652,7 @@ static int runmain(int argc, char *argv[]) {
                  "Please make sure this file exists.", proxy_path);
       return EXIT_FAILURE;
     }
-    Arc::Credential holder(proxy_path, "", "", "", false);
+    Arc::Credential holder(proxy_path, "", "", "", false, false);
     if(!holder.GetCert()) {
       logger.msg(Arc::ERROR, "Cannot process proxy file at %s.", proxy_path);
       return EXIT_FAILURE;
@@ -667,7 +673,7 @@ static int runmain(int argc, char *argv[]) {
 
     Arc::VOMSTrustList voms_trust_dn;
     voms_trust_dn.AddRegex(".*");
-    res = parseVOMSAC(holder, ca_dir, "", voms_dir, voms_trust_dn, voms_attributes, true, true);
+    res = parseVOMSAC(holder, usercfg.CAUseGrid() ? ca_dir : "", "", usercfg.CAUseSystem(), voms_dir, voms_trust_dn, voms_attributes, true, true);
     // Not printing error message because parseVOMSAC will print everything itself
     //if (!res) logger.msg(Arc::ERROR, "VOMS attribute parsing failed");
     for(int n = 0; n<voms_attributes.size(); ++n) {
@@ -779,7 +785,7 @@ static int runmain(int argc, char *argv[]) {
                  "Please make sure this file exists.", proxy_path);
       return EXIT_FAILURE;
     }
-    Arc::Credential holder(proxy_path, "", "", "", false);
+    Arc::Credential holder(proxy_path, "", "", "", false, false);
     if(!holder.GetCert()) {
       logger.msg(Arc::ERROR, "Cannot process proxy file at %s.", proxy_path);
       return EXIT_FAILURE;
@@ -787,7 +793,7 @@ static int runmain(int argc, char *argv[]) {
     Arc::VOMSTrustList voms_trust_dn;
     voms_trust_dn.AddRegex(".*");
     std::vector<Arc::VOMSACInfo> voms_attributes;
-    parseVOMSAC(holder, ca_dir, "", voms_dir, voms_trust_dn, voms_attributes, true, true);
+    parseVOMSAC(holder, usercfg.CAUseGrid() ? ca_dir : "", "", usercfg.CAUseSystem(), voms_dir, voms_trust_dn, voms_attributes, true, true);
     bool unknownInfo = false;
     for(std::list<std::string>::iterator ii = infoitemlist.begin();
                            ii != infoitemlist.end(); ++ii) {
@@ -1212,8 +1218,9 @@ static int runmain(int argc, char *argv[]) {
       logger.msg(Arc::ERROR, "Failed configuration initialization.");
       return EXIT_FAILURE;
     }
-    if (force_system_ca) usercfg.CAUseSystem(true);
-    if (force_grid_ca) usercfg.CAUseSystem(false);
+    if (force_system_ca) { usercfg.CAUseSystem(true); usercfg.CAUseGrid(false); }
+    if (force_grid_ca) { usercfg.CAUseSystem(false); usercfg.CAUseGrid(true); }
+    if (force_any_ca) { usercfg.CAUseSystem(true); usercfg.CAUseGrid(true); }
     if(proxy_path.empty()) proxy_path = usercfg.ProxyPath();
     usercfg.ProxyPath(proxy_path);
     std::string cert_file = "cert.pem";
@@ -1238,7 +1245,7 @@ static int runmain(int argc, char *argv[]) {
     proxy_cred_str.append(proxy_privk_str).append(eec_cert_str);
     write_proxy_file(proxy_path, proxy_cred_str);
 
-    Arc::Credential proxy_cred(proxy_path, proxy_path, "", "", false);
+    Arc::Credential proxy_cred(proxy_path, proxy_path, "", "", false, false);
     Arc::Time left = proxy_cred.GetEndTime();
     std::cout << Arc::IString("Proxy generation succeeded") << std::endl;
     std::cout << Arc::IString("Your proxy is valid until: %s", left.str(Arc::UserTime)) << std::endl;
@@ -1274,11 +1281,11 @@ static int runmain(int argc, char *argv[]) {
       // includes VOMS AC, if not, we will use the returned proxy to
       // directly contact VOMS server to generate a proxy-on-proxy with
       // VOMS AC included.
-      Arc::Credential holder(proxy_path, "", "", "", false);
+      Arc::Credential holder(proxy_path, "", "", "", false, false);
       Arc::VOMSTrustList voms_trust_dn;
       voms_trust_dn.AddRegex(".*");
       std::vector<Arc::VOMSACInfo> voms_attributes;
-      bool r = parseVOMSAC(holder, ca_dir, "", voms_dir, voms_trust_dn, voms_attributes, true, true);
+      bool r = parseVOMSAC(holder, usercfg.CAUseSystem() ? ca_dir : "", "", usercfg.CAUseSystem(), voms_dir, voms_trust_dn, voms_attributes, true, true);
       if (!r) logger.msg(Arc::ERROR, "VOMS attribute parsing failed");
       if(voms_attributes.size() == 0) {
         logger.msg(Arc::INFO, "Myproxy server did not return proxy with VOMS AC included");
@@ -1286,7 +1293,7 @@ static int runmain(int argc, char *argv[]) {
         contact_voms_servers(vomscmdlist, orderlist, vomses_path, use_gsi_comm,
             use_http_comm || !use_old_comm, voms_period, usercfg, logger, proxy_path, vomsacseq);
         if(!vomsacseq.empty()) {
-          Arc::Credential signer(proxy_path, proxy_path, "", "", false);
+          Arc::Credential signer(proxy_path, proxy_path, "", "", false, false);
           std::string proxy_cert;
           create_proxy(proxy_cert, signer, policy, proxy_start, proxy_period,
               vomsacseq, keybits, signing_algorithm);
@@ -1300,7 +1307,7 @@ static int runmain(int argc, char *argv[]) {
 
   //Create proxy or voms proxy
   try {
-    Arc::Credential signer(cert_path, key_path, "", "", false, *passsources[pass_private_key]);
+    Arc::Credential signer(cert_path, key_path, "", "", false, false, *passsources[pass_private_key]);
     if (signer.GetIdentityName().empty()) {
       std::cerr << Arc::IString("Proxy generation failed: No valid certificate found.") << std::endl;
       return EXIT_FAILURE;
@@ -1352,7 +1359,7 @@ static int runmain(int argc, char *argv[]) {
                    + Arc::tostring(user.get_uid()) + Arc::tostring((int)(getpid())));
     write_proxy_file(proxy_path,proxy_cert);
 
-    Arc::Credential proxy_cred(proxy_path, proxy_path, "", "", false);
+    Arc::Credential proxy_cred(proxy_path, proxy_path, "", "", false, false);
     Arc::Time left = proxy_cred.GetEndTime();
     std::cout << Arc::IString("Proxy generation succeeded") << std::endl;
     std::cout << Arc::IString("Your proxy is valid until: %s", left.str(Arc::UserTime)) << std::endl;

@@ -46,7 +46,7 @@ static std::string cadir("../../tests/echo/certificates");
 #define SAMLP_NAMESPACE "urn:oasis:names:tc:SAML:2.0:protocol"
 
 static void prepareAttributeQuery(Arc::XMLNode& attr_query){
-  Arc::Credential cred(cert, key, cadir, cafile, false);
+  Arc::Credential cred(cert, key, cadir, cafile, false, true);
   std::string local_dn_str = cred.GetDN();
   std::string local_dn;
   size_t pos1 = std::string::npos;

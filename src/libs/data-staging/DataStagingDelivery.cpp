@@ -140,7 +140,9 @@ int main(int argc,char* argv[]) {
   std::string source_ca_path;
   std::string dest_ca_path;
   bool source_ca_system = false;
+  bool source_ca_grid = true;
   bool dest_ca_system = false;
+  bool dest_ca_grid = true;
   OptionParser opt;
   opt.AddOption(0,"surl","","source URL",source_str);
   opt.AddOption(0,"durl","","destination URL",dest_str);
@@ -179,7 +181,9 @@ int main(int argc,char* argv[]) {
       } else if(name == "ca") {
         source_ca_path = o->substr(p+1);
       } else if(name == "casystem") {
-	source_ca_system = (o->substr(p+1) == "1");
+        source_ca_system = (o->substr(p+1) == "1");
+      } else if(name == "cagrid") {
+        source_ca_grid = (o->substr(p+1) == "1");
       } else {
         source_url.AddOption(*o);
       };
@@ -197,7 +201,9 @@ int main(int argc,char* argv[]) {
       } else if(name == "ca") {
         dest_ca_path = o->substr(p+1);
       } else if(name == "casystem") {
-	dest_ca_system = (o->substr(p+1) == "1");
+        dest_ca_system = (o->substr(p+1) == "1");
+      } else if(name == "cagrid") {
+        dest_ca_grid = (o->substr(p+1) == "1");
       } else {
         dest_url.AddOption(*o);
       };
@@ -259,6 +265,7 @@ int main(int argc,char* argv[]) {
   else if(is_token_cred) { source_cfg.OToken(proxy_cred); }
   if(!source_ca_path.empty()) source_cfg.CACertificatesDirectory(source_ca_path);
   source_cfg.CAUseSystem(source_ca_system);
+  source_cfg.CAUseGrid(source_ca_grid);
   //source_cfg.UtilsDirPath(...); - probably not needed
   DataHandle source(source_url, source_cfg);
   if(!source) {
@@ -280,6 +287,7 @@ int main(int argc,char* argv[]) {
   else if(is_token_cred) dest_cfg.OToken(proxy_cred);
   if(!dest_ca_path.empty()) dest_cfg.CACertificatesDirectory(dest_ca_path);
   dest_cfg.CAUseSystem(dest_ca_system);
+  dest_cfg.CAUseGrid(dest_ca_grid);
   //dest_cfg.UtilsDirPath(...); - probably not needed
   DataHandle dest(dest_url,dest_cfg);
   if(!dest) {
@@ -298,7 +306,11 @@ int main(int argc,char* argv[]) {
   if (!source_cfg.ProxyPath().empty()) {
     SetEnv("X509_USER_PROXY", source_cfg.ProxyPath());
     if (!source_cfg.CACertificatesDirectory().empty()) SetEnv("X509_CERT_DIR", source_cfg.CACertificatesDirectory());
-    if (source_cfg.CAUseSystem()) SetEnv("X509_CERT_POLICY", "system");
+    if (source_cfg.CAUseSystem() && source_cfg.CAUseGrid()) SetEnv("X509_CERT_POLICY", "any");
+    else if (source_cfg.CAUseSystem()) SetEnv("X509_CERT_POLICY", "system");
+    else if (source_cfg.CAUseGrid()) SetEnv("X509_CERT_POLICY", "grid");
+    else SetEnv("X509_CERT_POLICY", "none");
+
     // those tools also use hostcert by default if the user is root...
     if (getuid() == 0) {
       SetEnv("X509_USER_CERT", source_cfg.ProxyPath());

@@ -44,7 +44,7 @@ extern  std::map<pass_destination_type, Arc::PasswordSource*> passsources;
 
 static std::string get_cert_dn(const std::string& cert_file) {
   std::string dn_str;
-  Arc::Credential cert(cert_file, "", "", "", false);
+  Arc::Credential cert(cert_file, "", "", "", false, false);
   dn_str = cert.GetIdentityName();
   return dn_str;
 }

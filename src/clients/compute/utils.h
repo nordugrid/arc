@@ -188,6 +188,7 @@ public:
   bool token_authentication;
   bool force_system_ca;
   bool force_grid_ca;
+  bool force_any_ca;
   bool allow_insecure_connection;
 
   int testjobid;

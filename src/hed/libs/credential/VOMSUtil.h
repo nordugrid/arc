@@ -202,6 +202,7 @@ namespace Arc {
    *          verify the certificate which is used to sign the AC
    * @param ca_cert_file The same as ca_cert_dir except it is a file
    *          instead of a directory. Only one of them need to be set
+   * @param system_ca  Also allow default (system) CA certificate.
    * @param vomsdir  The directory which include *.lsc file for each vo.
    *          For instance, a vo called "knowarc.eu" should
    *          have file vomsdir/knowarc/voms.knowarc.eu.lsc which
@@ -251,7 +252,8 @@ namespace Arc {
    */
   bool parseVOMSAC(X509* holder,
                    const std::string& ca_cert_dir,
-                   const std::string& ca_cert_file, 
+                   const std::string& ca_cert_file,
+                   bool system_ca,
                    const std::string& vomsdir, 
                    VOMSTrustList& vomscert_trust_dn,
                    std::vector<VOMSACInfo>& output, 
@@ -261,7 +263,8 @@ namespace Arc {
     From all certificates in a chain. */
   bool parseVOMSAC(const Credential& holder_cred,
                    const std::string& ca_cert_dir,
-                   const std::string& ca_cert_file, 
+                   const std::string& ca_cert_file,
+                   bool system_ca,
                    const std::string& vomsdir, 
                    VOMSTrustList& vomscert_trust_dn,
                    std::vector<VOMSACInfo>& output,
@@ -271,6 +274,7 @@ namespace Arc {
   bool parseVOMSAC(const std::string& cert_str,
                    const std::string& ca_cert_dir,
                    const std::string& ca_cert_file,
+                   bool system_ca,
                    const std::string& vomsdir,
                    VOMSTrustList& vomscert_trust_dn,
                    std::vector<VOMSACInfo>& output,
@@ -298,6 +302,7 @@ namespace Arc {
   std::string getCredentialProperty(const Arc::Credential& u, const std::string& property,
                                     const std::string& ca_cert_dir = std::string(""),
                                     const std::string& ca_cert_file = std::string(""),
+                                    bool system_ca = false,
                                     const std::string& vomsdir = std::string(""),
                                     const std::vector<std::string>& voms_trust_list = std::vector<std::string>());
 

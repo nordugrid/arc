@@ -93,8 +93,9 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
-  if (opt.force_system_ca) usercfg.CAUseSystem(true);
-  if (opt.force_grid_ca) usercfg.CAUseSystem(false);
+  if (opt.force_system_ca) { usercfg.CAUseSystem(true); usercfg.CAUseGrid(false); }
+  if (opt.force_grid_ca) { usercfg.CAUseSystem(false); usercfg.CAUseGrid(true); }
+  if (opt.force_any_ca) { usercfg.CAUseSystem(true); usercfg.CAUseGrid(true); }
   if (opt.allow_insecure_connection) usercfg.TLSAllowInsecure(true);
 
   if (opt.show_plugins) {
@@ -120,7 +121,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     if (usercfg.CertificatePath().empty()) {
       std::cout << "  " << Arc::IString("No user-certificate found") << std::endl << std::endl;
     } else {
-      Arc::Credential holder(usercfg.CertificatePath(), "", usercfg.CACertificatesDirectory(), "", usercfg.CAUseSystem());
+      Arc::Credential holder(usercfg.CertificatePath(), "", usercfg.CACertificatesDirectory(), "", usercfg.CAUseSystem(), usercfg.CAUseGrid());
       std::cout << "  " << Arc::IString("Certificate: %s", usercfg.CertificatePath()) << std::endl;
       if (!holder.GetDN().empty()) {
         std::cout << "  " << Arc::IString("Subject name: %s", holder.GetDN()) << std::endl;
@@ -136,7 +137,7 @@ int RUNMAIN(arctest)(int argc, char **argv) {
     if (usercfg.ProxyPath().empty()) {
       std::cout << "  " << Arc::IString("No proxy found") << std::endl << std::endl;
     } else {
-      Arc::Credential holder(usercfg.ProxyPath(), "", usercfg.CACertificatesDirectory(), "", usercfg.CAUseSystem());
+      Arc::Credential holder(usercfg.ProxyPath(), "", usercfg.CACertificatesDirectory(), "", usercfg.CAUseSystem(), usercfg.CAUseGrid());
       std::cout << "  " << Arc::IString("Proxy: %s", usercfg.ProxyPath()) << std::endl;
       std::cout << "  " << Arc::IString("Proxy-subject: %s", holder.GetDN()) << std::endl;
       if (holder.GetEndTime() < now) {
@@ -160,8 +161,8 @@ int RUNMAIN(arctest)(int argc, char **argv) {
       // Assume certificates have file ending ".0", ".1" or ".2". Very OpenSSL specific.
       if (Glib::file_test(cafile, Glib::FILE_TEST_IS_REGULAR) && (*it)[(*it).size()-2] == '.' &&
           ((*it)[(*it).size()-1] == '0' || (*it)[(*it).size()-1] == '1' || (*it)[(*it).size()-1] == '2')) {
-
-        Arc::Credential cred(cafile, "", "", "", false);
+        
+        Arc::Credential cred(cafile, "", "", "", false, false);
         std::string dn = cred.GetDN();
         if (dn.empty()) continue;
 

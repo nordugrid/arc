@@ -405,7 +405,8 @@ namespace Arc {
     return
     Credential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
                !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
-               usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseSystem()).IsValid();
+               usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
+               usercfg.CAUseSystem(), usercfg.CAUseGrid()).IsValid();
   }
 
   bool Credential::IsValid() const {
@@ -680,7 +681,7 @@ namespace Arc {
 
   bool Credential::Verify(void) {
     verification_proxy_policy_.clear();
-    if(verify_cert_chain(cert_, &cert_chain_, cacertfile_, cacertdir_, verification_proxy_policy_)) {
+    if(verify_cert_chain(cert_, &cert_chain_, cacertfile_, cacertdir_, causesystem_, verification_proxy_policy_)) {
       CredentialLogger.msg(VERBOSE, "Certificate verification succeeded");
       verification_valid_ = true;
       return true;
@@ -891,13 +892,13 @@ namespace Arc {
   }
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile,
-        const std::string& cadir, const std::string& cafile, bool causesystem,
+        const std::string& cadir, const std::string& cafile, bool causesystem, bool causegrid,
         PasswordSource& passphrase4key, const bool is_file) {
-    InitCredential(certfile,keyfile,cadir,cafile,causesystem,passphrase4key,is_file);
+    InitCredential(certfile,keyfile,cadir,cafile,causesystem,causegrid,passphrase4key,is_file);
   }
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile,
-        const std::string& cadir, const std::string& cafile, bool causesystem,
+        const std::string& cadir, const std::string& cafile, bool causesystem, bool causegrid,
         const std::string& passphrase4key, const bool is_file) {
     PasswordSource* pass = NULL;
     if(passphrase4key.empty()) {
@@ -907,7 +908,7 @@ namespace Arc {
     } else {
       pass = new PasswordSourceString(passphrase4key);
     }
-    InitCredential(certfile,keyfile,cadir,cafile,causesystem,*pass,is_file);
+    InitCredential(certfile,keyfile,cadir,cafile,causesystem,causegrid,*pass,is_file);
     delete pass;
   }
 
@@ -920,7 +921,8 @@ namespace Arc {
       // Skip attempt to initialize credentials if no credentials are specified.
       if(!certpath.empty()) {
         InitCredential(certpath, keypath,
-                       usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseSystem(),
+                       usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
+                       usercfg.CAUseSystem(), usercfg.CAUseGrid(),
                        passphrase4key, true);
       } else {
         // That is not exactly an error because UserConfig may be set to use different type of credentials.
@@ -929,7 +931,8 @@ namespace Arc {
       }
     } else {
       InitCredential(usercfg.CredentialString(), "",
-                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseSystem(),
+                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
+                     usercfg.CAUseSystem(), usercfg.CAUseGrid(),
                      passphrase4key, false);
     }
   }
@@ -951,7 +954,8 @@ namespace Arc {
       // Skip attempt to initialize credentials if no credentials are specified.
       if(!certpath.empty()) {
         InitCredential(certpath, keypath,
-                       usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseSystem(),
+                       usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
+                       usercfg.CAUseSystem(), usercfg.CAUseGrid(),
                        *pass, true);
       } else {
         // That is not exactly an error because UserConfig may be set to use different type of credentials.
@@ -960,7 +964,8 @@ namespace Arc {
       }
     } else {
       InitCredential(usercfg.CredentialString(), "",
-                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseSystem(),
+                     usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
+                     usercfg.CAUseSystem(), usercfg.CAUseGrid(),
                      *pass, false);
     }
     delete pass;
@@ -972,6 +977,7 @@ namespace Arc {
     cacertdir_ = "";
     certfile_ = "";
     keyfile_ = "";
+    causesystem_ = false;
     verification_valid_ = false;
     cert_ = NULL;
     pkey_ = NULL;
@@ -989,12 +995,13 @@ namespace Arc {
   }
 
   void Credential::InitCredential(const std::string& certfile, const std::string& keyfile,
-        const std::string& cadir, const std::string& cafile, bool causesystem,
+        const std::string& cadir, const std::string& cafile, bool causesystem, bool causegrid,
         PasswordSource& passphrase4key, const bool is_file) {
 
     initialized_ = false;
-    cacertfile_ = !causesystem ? cafile : "";
-    cacertdir_ = !causesystem ? cadir : "";
+    cacertfile_ = causegrid ? cafile : "";
+    cacertdir_ = causegrid ? cadir : "";
+    causesystem_ = causesystem;
     certfile_ = certfile;
     keyfile_ = keyfile;
     verification_valid_ = false;
@@ -1089,7 +1096,8 @@ namespace Arc {
       initialized_ = true;
     }
 
-    if(!cacertfile_.empty() || !cacertdir_.empty() || causesystem) {
+    if(!cacertfile_.empty() || !cacertdir_.empty() || causesystem_) {
+      // If there is CA information, verify credentials.
       Verify();
     } else {
       if(!collect_cert_chain(cert_, &cert_chain_, verification_proxy_policy_)) {

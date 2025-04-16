@@ -135,6 +135,11 @@ static int runmain(int argc, char **argv) {
               istring("force using CA certificates configuration for Grid services (typically IGTF)"),
               force_grid_ca);
     
+  bool force_any_ca = false;
+  options.AddOption('\0', "anyca",
+              istring("force using both CA certificates configuration for Grid services (typically IGTF) and those provided by OpenSSL"),
+              force_any_ca);
+
   bool allow_insecure_connection = false;
   options.AddOption('\0', "allowinsecureconnection",
               istring("allow TLS connection which failed verification"),
@@ -186,8 +191,9 @@ static int runmain(int argc, char **argv) {
     return 1;
   }
   usercfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY());
-  if (force_system_ca) usercfg.CAUseSystem(true);
-  if (force_grid_ca) usercfg.CAUseSystem(false);
+  if (force_system_ca) { usercfg.CAUseSystem(true); usercfg.CAUseGrid(false); }
+  if (force_grid_ca) { usercfg.CAUseSystem(false); usercfg.CAUseGrid(true); }
+  if (force_any_ca) { usercfg.CAUseSystem(true); usercfg.CAUseGrid(true); }
   if (allow_insecure_connection) usercfg.TLSAllowInsecure(true);
  
   AuthenticationType authentication_type = UndefinedAuthentication;
