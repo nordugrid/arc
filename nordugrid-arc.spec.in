@@ -23,7 +23,7 @@
 %global with_s3 0
 %endif
 
-%if %{?fedora}%{!?fedora:0} >= 21 || %{?rhel}%{!?rhel:0} >= 5
+%if ( %{?fedora}%{!?fedora:0} >= 21 && %{?fedora}%{!?fedora:0} < 43 ) || ( %{?rhel}%{!?rhel:0} >= 5 && %{?rhel}%{!?rhel:0} < 10 )
 %global with_gfal 1
 %else
 %global with_gfal 0
