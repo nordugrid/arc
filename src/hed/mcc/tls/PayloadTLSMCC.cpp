@@ -34,10 +34,8 @@ Time asn1_to_utctime(const ASN1_UTCTIME *s) {
 // algorithms not present in OpenSSL
 static int verify_callback(int ok,X509_STORE_CTX *sctx) {
   PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
-  //std::cerr<<"+++ verify_callback: ok = "<<ok<<std::endl;
   if (ok != 1) {
     int err = X509_STORE_CTX_get_error(sctx);
-    //std::cerr<<"+++ verify_callback: err = "<<err<<std::endl;
     switch(err) {
       case X509_V_ERR_PROXY_CERTIFICATES_NOT_ALLOWED: {
         //std::cerr<<"+++ verify_callback: proxy not allowed"<<std::endl;
@@ -59,7 +57,6 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
         X509_STORE_CTX_set_error(sctx,X509_V_OK);
       }; break;
       default: {
-        //std::cerr<<"+++ verify_callback: error: "<<X509_verify_cert_error_string(err)<<std::endl;
         if(it) {
           if(it->Config().AllowInsecureConnection()) {
             ok=1;
@@ -75,7 +72,6 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
     };
   };
   if(ok == 1) {
-    //std::cerr<<"+++ additional verification"<<std::endl;
     // Do additional verification here.
     X509* cert = X509_STORE_CTX_get_current_cert(sctx);
     char* subject_name = X509_NAME_oneline(X509_get_subject_name(cert),NULL,0);
@@ -83,30 +79,23 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
       Logger::getRootLogger().msg(ERROR,"Failed to allocate memory for certificate subject while matching policy.");
       ok=0;
     } else {
-      //std::cerr<<"+++ additional verification: subject "<<subject_name<<std::endl;
       if(it == NULL) {
         Logger::getRootLogger().msg(WARNING,"Failed to retrieve link to TLS stream. Additional policy matching is skipped.");
       } else if(it->Config().AllowInsecureConnection()) {
         Logger::getRootLogger().msg(WARNING,"Skipping additional policy matching due to insecure connections allowed.");
       } else {
         // Globus signing policy
-        //std::cerr<<"+++ additional verification: - "<<it->Config().GlobusPolicy()<<" - "<<it->Config().CADir()<<std::endl;
         if((it->Config().GlobusPolicy()) && (!(it->Config().CADir().empty()))) {
-          //std::cerr<<"+++ additional verification: check signing policy"<<std::endl;
           // Do not apply to proxies and self-signed CAs.
           if((X509_get_ext_by_NID(cert,NID_proxyCertInfo,-1) < 0) &&
              (X509_NAME_cmp(X509_get_issuer_name(cert),X509_get_subject_name(cert)) != 0)) {
-            //std::cerr<<"+++ additional verification: check signing policy - is not proxy"<<std::endl;
             GlobusSigningPolicy globus_policy;
+            // Do not apply if CA certificate is from system folder - in this case calling open() fails.
             if(globus_policy.open(X509_get_issuer_name(cert),it->Config().CADir())) {
-              //std::cerr<<"+++ additional verification: policy is open"<<std::endl;
               if(!globus_policy.match(X509_get_issuer_name(cert),X509_get_subject_name(cert))) {
                 it->SetFailure(std::string("Certificate ")+subject_name+" failed Globus signing policy");
-                //std::cerr<<"+++ additional verification: failed: "<<subject_name<<std::endl;
                 ok=0;
                 X509_STORE_CTX_set_error(sctx,X509_V_ERR_SUBJECT_ISSUER_MISMATCH);
-              } else {
-                //std::cerr<<"+++ additional verification: passed: "<<subject_name<<std::endl;
               };
             };
           };

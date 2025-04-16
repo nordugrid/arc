@@ -167,8 +167,9 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
-  if (opt.force_system_ca) usercfg.CAUseSystem(true);
-  if (opt.force_grid_ca) usercfg.CAUseSystem(false);
+  if (opt.force_system_ca) { usercfg.CAUseSystem(true); usercfg.CAUseGrid(false); }
+  if (opt.force_grid_ca) { usercfg.CAUseSystem(false); usercfg.CAUseGrid(true); }
+  if (opt.force_any_ca) { usercfg.CAUseSystem(true); usercfg.CAUseGrid(true); }
 
   if (opt.convert) {
     Arc::JobInformationStorage *jobstore = createJobInformationStorage(usercfg);

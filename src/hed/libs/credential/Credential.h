@@ -83,13 +83,14 @@ class Credential {
     /** Constructor with user-defined keylength. Needed for creation of EE certs, since some
     * applications will only support keys with a certain minimum length > 1024
     */
-    Credential(int keybits);
+    explicit Credential(int keybits);
 
     virtual ~Credential();
 
     /**Constructor, specific constructor for CA certificate
     *is meaningless for any other use.
     */
+    explicit
     Credential(const std::string& CAfile, const std::string& CAkey,
                const std::string& CAserial,
                const std::string& extfile, const std::string& extsect,
@@ -99,6 +100,7 @@ class Credential {
     * supplied from different sources.
     * \since Added in 4.0.0.
     */
+    explicit
     Credential(const std::string& CAfile, const std::string& CAkey,
                const std::string& CAserial,
                const std::string& extfile, const std::string& extsect,
@@ -143,6 +145,7 @@ class Credential {
     * @param policy path to file with policy content
     * @param pathlength path length constraint
     */
+    explicit
     Credential(Time start, Period lifetime = Period("PT12H"),
               int keybits = 2048, std::string proxyversion = "rfc",
               std::string policylang = "inheritAll", std::string policy = "",
@@ -162,17 +165,19 @@ class Credential {
     * @param is_file specifies if the cert/key are from file, otherwise they
     *    are supposed to be from string. default is from file
     */
+    explicit
     Credential(const std::string& cert, const std::string& key,
-               const std::string& cadir, const std::string& cafile, bool causesystem,
-	       const std::string& passphrase4key = "", const bool is_file = true);
+               const std::string& cadir, const std::string& cafile, bool causesystem, bool causegrid,
+               const std::string& passphrase4key = "", const bool is_file = true);
 
     /** Same as previuos constructor but allows password to be
     * supplied from different sources.
     * \since Added in 4.0.0.
     */
+    explicit
     Credential(const std::string& cert, const std::string& key,
-               const std::string& cadir, const std::string& cafile, bool causesystem,
-	       PasswordSource& passphrase4key, const bool is_file = true);
+               const std::string& cadir, const std::string& cafile, bool causesystem, bool causegrid,
+               PasswordSource& passphrase4key, const bool is_file = true);
 
     /**Constructor, specific constructor for usual certificate, constructing from
     * information in UserConfig object. Only acts as a container for parsing the 
@@ -181,12 +186,14 @@ class Credential {
     * @param usercfg UserConfig object from which certificate information is obtained
     * @param passphrase4key passphrase for private key
     */
+    explicit
     Credential(const UserConfig& usercfg, const std::string& passphrase4key = "");
 
     /** Same as previuos constructor but allows password to be
     * supplied from different sources.
     * \since Added in 4.0.0.
     */
+    explicit
     Credential(const UserConfig& usercfg, PasswordSource& passphrase4key);
 
     /**Initiate nid for proxy certificate extension*/
@@ -223,7 +230,7 @@ class Credential {
     Credential(const Credential&);
 
     void InitCredential(const std::string& cert, const std::string& key,
-		        const std::string& cadir, const std::string& cafile, bool causesystem,
+		        const std::string& cadir, const std::string& cafile, bool causesystem, bool causegrid,
 			PasswordSource& passphrase4key, const bool is_file);
     void InitEmpty();
 
@@ -525,6 +532,7 @@ class Credential {
     std::string cacertdir_;
     std::string certfile_;
     std::string keyfile_;
+    bool causesystem_;
 
     //Verification result
     bool verification_valid_;

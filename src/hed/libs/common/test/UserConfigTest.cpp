@@ -326,6 +326,7 @@ void UserConfigTest::SaveToFileTest()
     "keypath = /home/username/key.pem\n"
     "cacertificatesdirectory = /home/user/cacertificates\n"
     "causesystem = 0\n"
+    "causegrid = 1\n"
     "rejectdiscovery = bad.service.org\n"
     "rejectdiscovery = bad2.service.org\n"
     "rejectmanagement = bad3.service.org\n"

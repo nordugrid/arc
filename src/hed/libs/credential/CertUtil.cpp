@@ -25,7 +25,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx);
 static bool collect_proxy_info(std::string& proxy_policy, X509* cert);
 static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::string const& ca_dir, std::string& proxy_policy);
 
-int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, std::string const& ca_file, std::string const& ca_dir, std::string& proxy_policy) {
+int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, std::string const& ca_file, std::string const& ca_dir, bool ca_use_system, std::string& proxy_policy) {
   int i;
   int j;
   int retval = 0;
@@ -58,12 +58,13 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, std::string const&
   }
   if(user_cert == NULL) goto err;
 
+  if (ca_use_system) {
+    if (!X509_STORE_set_default_paths(cert_store)) { goto err; }
+  }
   if ((!ca_file.empty()) || (!ca_dir.empty())) {
     if (!X509_STORE_load_locations(cert_store,
              ca_file.empty() ? NULL:ca_file.c_str(),
              ca_dir.empty() ? NULL:ca_dir.c_str())) { goto err; }
-  } else {
-    if (!X509_STORE_set_default_paths(cert_store)) { goto err; }
   }
 
   if ((store_ctx = X509_STORE_CTX_new()) == NULL) { goto err; }

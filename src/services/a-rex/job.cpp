@@ -733,7 +733,7 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
   }
   if(!certificates.empty()) {
     try {
-      Arc::Credential cred(certificates,"","","",false,"",false);
+      Arc::Credential cred(certificates,"","","",false,false,"",false);
       job_.expiretime = cred.GetEndTime();
       logger_.msg(Arc::VERBOSE, "Credential expires at %s", job_.expiretime.str());
     } catch(std::exception const& e) {
@@ -751,7 +751,7 @@ void ARexJob::make_new_job(ARexGMConfig& config_, Arc::Logger& logger_, int& min
           if(!certificates.empty()) {
             certificates += sattr->get("CERTIFICATECHAIN");
             try {
-              Arc::Credential cred(certificates,"","","",false,"",false);
+              Arc::Credential cred(certificates,"","","",false,false,"",false);
               job_.expiretime = cred.GetEndTime();
               logger_.msg(Arc::VERBOSE, "Credential expires at %s", job_.expiretime.str());
             } catch(std::exception const& e) {
@@ -1086,7 +1086,7 @@ bool ARexJob::update_credentials(const std::string& credentials) {
   if(!delegs) return false;
   DelegationStore& deleg = delegs->operator[](config_.GmConfig().DelegationDir());
   if(!deleg.PutCred(job_.delegationid, config_.GridName(), credentials)) return false;
-  Arc::Credential cred(credentials,"","","",false,"",false);
+  Arc::Credential cred(credentials,"","","",false,false,"",false);
   job_.expiretime = cred.GetEndTime();
   GMJob job(id_,Arc::User(uid_),
             job_.sessiondir,JOB_STATE_ACCEPTED);

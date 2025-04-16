@@ -157,7 +157,7 @@ void showplugins(const std::string& program, const std::list<std::string>& types
 bool checkproxy(const Arc::UserConfig& uc)
 {
   if (!uc.ProxyPath().empty() ) {
-    Arc::Credential holder(uc.ProxyPath(), "", "", "", false);
+    Arc::Credential holder(uc.ProxyPath(), "", "", "", false, false);
     if (holder.GetEndTime() < Arc::Time()){
       std::cout << Arc::IString("Proxy expired. Job submission aborted. Please run 'arcproxy'!") << std::endl;
       return false;
@@ -372,6 +372,7 @@ ClientOptions::ClientOptions(Client_t c,
     token_authentication(false),
     force_system_ca(false),
     force_grid_ca(false),
+    force_any_ca(false),
     allow_insecure_connection(false),
     testjobid(-1),
     runtime(5),
@@ -666,6 +667,10 @@ ClientOptions::ClientOptions(Client_t c,
   GroupAddOption("tuning", '\0', "gridca",
               istring("force using CA certificates configuration for Grid services (typically IGTF)"),
               force_grid_ca);
+
+  GroupAddOption("tuning", '\0', "anyca",
+              istring("force using CA certificates configuration for Grid services (typically IGTF) and one provided by OpenSSL"),
+              force_any_ca);
 
 }
 

@@ -289,10 +289,11 @@ namespace Arc {
     if (source.Cache() && destination.Local() && cache) {
       cacheable = true;
       try {
-        // TODO (important) load credential in unified way or
-        // use already loaded one
+        // TODO (important) load credential in unified way or 
+        // use already loaded one.
         Credential ci(source.GetUserConfig().ProxyPath(), source.GetUserConfig().ProxyPath(),
-                      source.GetUserConfig().CACertificatesDirectory(), "", source.GetUserConfig().CAUseSystem());
+                      source.GetUserConfig().CACertificatesDirectory(), "",
+                      source.GetUserConfig().CAUseSystem(), source.GetUserConfig().CAUseGrid());
         dn = ci.GetIdentityName();
         exp_time = ci.GetEndTime();
       } catch (CredentialError& e) {

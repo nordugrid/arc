@@ -244,7 +244,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
       std::string current_time = t.str(Arc::UTCTime);
       assertion.NewAttribute("IssueInstant") = current_time;
 
-      Arc::Credential cred(certfile, keyfile, "", "", false); // it doesn't matter what kind of CA is set beause we use no CAs here
+      Arc::Credential cred(certfile, keyfile, "", "", false, false); // it doesn't matter what kind of CA is set beause we use no CAs here
       std::string dn = cred.GetDN();
       std::string rdn = Arc::convert_to_rdn(dn);
       assertion.NewAttribute("Issuer") = rdn;

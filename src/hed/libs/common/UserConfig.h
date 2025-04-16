@@ -136,6 +136,7 @@ namespace Arc {
    * - cacertificatesdirectory / CACertificatesDirectory(const std::string&)
    * - cacertificatepath / CACertificatePath(const std::string&)
    * - causesystem / CAUseSystem(bool)
+   * - causegrid / CAUseGrid(bool)
    * - timeout / Timeout(int)
    * - joblist / JobListFile(const std::string&)
    * - joblisttype / JobListType(const std::string&)
@@ -388,7 +389,7 @@ namespace Arc {
      **/
     bool CredentialsFound() const {
       return !((proxyPath.empty() && (certificatePath.empty() || keyPath.empty())) ||
-               (caCertificatesDirectory.empty() && !caUseSystem));
+               (caCertificatesDirectory.empty() && caUseGrid));
     }
 
     /// Load specified configuration file
@@ -952,6 +953,35 @@ namespace Arc {
      **/
     bool CAUseSystem() const { return caUseSystem; }
 
+    /// Set if system wide CA-certificates to be used
+    /**
+     * Specifies if system wide CA-certificates are used.
+     *
+     * The attribute associated with this setter method is
+     * 'causesgrid'.
+     *
+     * @param newCAUseGrid if system wide CA-certificates are used.
+     * @return This method always returns \c true.
+     * @see InitializeCredentials()
+     * @see CredentialsFound() const
+     **/
+    bool CAUseGrid(bool newCAUseGrid) { caUseGrid = newCAUseGrid; return true; }
+    bool CAUseGrid(const std::string& newCAUseGrid) {
+      if((newCAUseGrid == "true") || (newCAUseGrid == "1"))
+        return CAUseGrid(true);
+      if((newCAUseGrid == "false") || (newCAUseGrid == "0"))
+        return CAUseGrid(false);
+      return false;
+    }
+    /**
+     * Retrieve if Grid CA-cerificates are used.
+     *
+     * @return True if Grid CA-certificate are used.
+     * @see InitializeCredentials()
+     * @see CredentialsFound() const
+     **/
+    bool CAUseGrid() const { return caUseGrid; }
+
     bool TLSAllowInsecure(bool newTLSAllowInsecure) { tlsAllowInsecure = newTLSAllowInsecure; return true; }
     bool TLSAllowInsecure() const { return tlsAllowInsecure; }
 
@@ -1392,6 +1422,7 @@ namespace Arc {
     std::string caCertificatePath;
     std::string caCertificatesDirectory;
     bool caUseSystem;
+    bool caUseGrid;
     bool tlsAllowInsecure;
     AuthType authType;
     Period certificateLifeTime;

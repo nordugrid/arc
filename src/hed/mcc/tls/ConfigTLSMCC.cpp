@@ -54,8 +54,9 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   curve_nid_ = NID_undef; // so far best seems to be NID_X25519, but let OpenSSL choose by default
   client_authn_ = true;
   system_ca_ = (((std::string)(cfg["SystemCA"])) == "true");
+  grid_ca_ = !(((std::string)(cfg["GridCA"])) == "false");
   allow_insecure_ = (((std::string)(cfg["AllowInsecure"])) == "true");
-  if(!system_ca_) {
+  if(grid_ca_) {
     ca_file_ = (std::string)(cfg["CACertificatePath"]);
     ca_dir_ = (std::string)(cfg["CACertificatesDir"]);
     globus_policy_ = (((std::string)(cfg["CACertificatesDir"].Attribute("PolicyGlobus"))) == "true");
@@ -190,13 +191,21 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
     //side should not require client authentication
     if(cert_file_.empty() && proxy_file_.empty()) client_authn_ = false;
   };
-  if(!system_ca_ && ca_dir_.empty() && ca_file_.empty()) ca_dir_= gridSecurityDir + G_DIR_SEPARATOR_S + "certificates";
+  if(grid_ca_ && ca_dir_.empty() && ca_file_.empty()) ca_dir_= gridSecurityDir + G_DIR_SEPARATOR_S + "certificates";
   if(voms_dir_.empty()) voms_dir_= gridSecurityDir + G_DIR_SEPARATOR_S + "vomsdir";
   if(!proxy_file_.empty()) { key_file_=proxy_file_; cert_file_=proxy_file_; };
 }
 
 bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
-  if((!ca_file_.empty()) || (!ca_dir_.empty())) {
+  if(system_ca_) {
+    logger.msg(VERBOSE, "Using CA default location");
+    if(!SSL_CTX_set_default_verify_paths(sslctx)) {
+      failure_ = "Can not assign default CA location\n";
+      failure_ += HandleError();
+      return false;
+    };
+  };
+  if(grid_ca_ && (!ca_file_.empty()) || (!ca_dir_.empty())) {
     if(!ca_file_.empty())
       logger.msg(VERBOSE, "Using CA file: %s",ca_file_);
     if(!ca_dir_.empty())
@@ -206,17 +215,10 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
       failure_ += HandleError();
       return false;
     };
-  } else {
-    logger.msg(VERBOSE, "Using CA default location");
-    if(!SSL_CTX_set_default_verify_paths(sslctx)) {
-      failure_ = "Can not assign default CA location\n";
-      failure_ += HandleError();
-      return false;
-    };
   }
   if(!credential_.empty()) {
     // First try to use in-memory credential
-    Credential cred(credential_, credential_, ca_dir_, ca_file_, system_ca_, Credential::NoPassword(), false);
+    Credential cred(credential_, credential_, ca_dir_, ca_file_, system_ca_, grid_ca_, Credential::NoPassword(), false);
     if (!cred) {
       failure_ = "Failed to read in-memory credentials";
       return false;
