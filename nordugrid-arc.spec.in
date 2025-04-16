@@ -169,7 +169,6 @@ BuildRequires:	glibmm2.68-devel
 %else
 BuildRequires:	glibmm24-devel
 %endif
-BuildRequires:	glib2-devel
 BuildRequires:	libxml2-devel
 BuildRequires:	openssl
 BuildRequires:	openssl-devel
@@ -627,7 +626,6 @@ Requires:	glibmm2.68-devel
 %else
 Requires:	glibmm24-devel
 %endif
-Requires:	glib2-devel
 Requires:	libxml2-devel
 Requires:	openssl-devel
 
@@ -802,6 +800,9 @@ mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/log/arc
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc/ssm
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/spool/arc/urs
+
+# create config directory
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/arc.conf.d
 
 %find_lang %{name}
 
@@ -1198,6 +1199,7 @@ service arc-infosys-ldap condrestart > /dev/null 2>&1 || :
 %{_datadir}/%{pkgdir}/rte/ENV/CONDOR/DOCKER
 %{_sbindir}/a-rex-backtrace-collect
 %config(noreplace) %{_sysconfdir}/arc.conf
+%dir %{_sysconfdir}/arc.conf.d
 
 %files arex-lrms-contrib
 %defattr(-,root,root,-)
