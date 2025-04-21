@@ -290,7 +290,7 @@ class RecordsPublisher(object):
                     if sef_month == 0:
                         sef_year -= 1
                         sef_month = 12
-                    summary_endfrom = datetime.datetime(sef_year, sef_month, 1)
+                    summary_endfrom = datetime.datetime(sef_year, sef_month, 1).timestamp()
                 # reinitialize filters to APEL summaries publishing ()
                 self.logger.debug('Assigning filters for APEL summaries database query')
                 self.__init_adb_filters(summary_endfrom, endtill)
@@ -312,23 +312,24 @@ class RecordsPublisher(object):
         # Sync messages are always sent and contains job counts for all periods
         self.logger.debug('Assigning filters to APEL sync database query')
         sync_endtill = None
+        endfromx = datetime.datetime.utcfromtimestamp(endfrom)
         # Sync interval
         if regular:
-            endfrom_year = endfrom.year - 1
-            sync_endfrom = endfrom.replace(day=1, year=endfrom_year, hour=0, minute=0, second=0)
+            endfrom_year = endfromx.year - 1
+            endfromx = endfromx.replace(day=1, year=endfrom_year, hour=0, minute=0, second=0)
             self.logger.debug('Querying sync data for the last year')
         else:
-            sync_endfrom = endfrom.replace(day=1, hour=0, minute=0, second=0)
+            endfromx = endfromx.replace(day=1, hour=0, minute=0, second=0)
             if endtill:
-                endtillx = endtill - datetime.timedelta(seconds=1)
+                endtillx = datetime.datetime.utcfromtimestamp(endtill) - datetime.timedelta(seconds=1)
                 endtill_month = endtillx.month + 1
                 endtill_year = endtillx.year
                 if endtill_month == 13:
                         endtill_year += 1
                         endtill_month = 1
-                sync_endtill = endtillx.replace(day=1, month=endtill_month, year=endtill_year, hour=0, minute=0, second=0)
+                sync_endtill = endtillx.replace(day=1, month=endtill_month, year=endtill_year, hour=0, minute=0, second=0).timestamp()
             self.logger.debug('Querying sync data for the republished data months')
-        self.__init_adb_filters(sync_endfrom, sync_endtill)
+        self.__init_adb_filters(endfromx.timestamp(), sync_endtill)
         # optional WLCG VO filtering
         self.__add_vo_filter(target_conf)
         self.logger.debug('Querying APEL Sync data from accounting database')
