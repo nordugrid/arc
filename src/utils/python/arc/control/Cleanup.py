@@ -42,7 +42,7 @@ class CleanupControl(ComponentControl):
             if sm.is_active('arc-arex'):
                 self.logger.error('A-REX service is currently running. '
                                   'Running cleanup with running A-REX is not supported and can break the system. '
-                                  'If you whant to do it anyway, override with --force.')
+                                  'If you want to do it anyway, override with --force.')
                 sys.exit(1)
         print_warn(self.logger, 'Controldir cleanup will remove job metadata only! Session directories will remain intact.')
         if not args.yes and not args.dry_run:
