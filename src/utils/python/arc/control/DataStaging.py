@@ -764,7 +764,7 @@ class DataStagingControl(ComponentControl):
                 continue
         
             """ Skip all jobs that are last modified before the users or default timewindow """
-            if mtime < twindow_start:
+            if twindow_start and mtime < twindow_start:
                 continue
 
 
@@ -786,7 +786,7 @@ class DataStagingControl(ComponentControl):
                 try:
                     """  Only files in active download during the timewindow are added """
                     end = datetime.datetime.strptime(val['end'], '%Y-%m-%dT%H:%M:%SZ')
-                    if end < twindow_start:
+                    if twindow_start and end < twindow_start:
                         continue
                 except KeyError:
                     continue
@@ -823,8 +823,8 @@ class DataStagingControl(ComponentControl):
                         size_files_downloaded_user += val['size']/1024.
 
 
-        
-        print('\nTimewindow start: : '+ datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S'))
+        if twindow_start:
+            print('\nTimewindow start: : '+ datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S'))
         print('\nALL JOBS')
         print('Number of jobs active since start of timewindow '+ str(n_jobs))
         print('\tTotal number of inputfiles for these jobs: ' + str(n_files_all))
