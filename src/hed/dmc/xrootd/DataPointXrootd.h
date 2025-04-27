@@ -73,6 +73,7 @@ namespace ArcDMCXrootd {
     static Logger logger;
     // There must be one instance of this object per executable
     static XrdPosixXrootd xrdposix;
+    static UserConfig ForceProxy(const UserConfig& usercfg);
   };
 
 } // namespace ArcDMCXrootd
