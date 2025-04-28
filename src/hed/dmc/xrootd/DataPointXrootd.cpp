@@ -3,6 +3,7 @@
 #endif
 
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <XrdCl/XrdClPropertyList.hh>
 #include <XrdCl/XrdClDefaultEnv.hh>
 #include <XrdCl/XrdClLog.hh>
@@ -36,9 +37,22 @@ namespace ArcDMCXrootd {
     return cancel;
   }
 
+  UserConfig DataPointXrootd::ForceProxy(const UserConfig& usercfg) {
+    // Seems like xrootd does not pay attention to proxy anymore.
+    // So forcing proxy (if available) as certificate/key.
+    UserConfig outcfg(usercfg);
+    if (usercfg.ProxyPath().empty())
+      return usercfg;
+    struct stat st;
+    if (stat(usercfg.ProxyPath().c_str(), &st) != 0)
+      return usercfg;
+    outcfg.CertificatePath(usercfg.ProxyPath());
+    outcfg.KeyPath(usercfg.ProxyPath());
+    return outcfg;
+  }
 
   DataPointXrootd::DataPointXrootd(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
-    : DataPointDirect(url, usercfg, parg),
+    : DataPointDirect(url, ForceProxy(usercfg), parg),
       fd(-1),
       reading(false),
       writing(false){
