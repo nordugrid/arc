@@ -535,7 +535,7 @@ namespace Arc {
     }
 
     ASN1_sign((int (*)(OPENSSL_CONST void*, unsigned char**))i2d_AC_INFO, a->acinfo->alg, a->sig_alg, a->signature,
-            (char *)a->acinfo, pkey, EVP_md5());
+            (char *)a->acinfo, pkey, EVP_sha256());
 
     err = 0;
 
@@ -836,7 +836,7 @@ err:
         X509_ALGOR_copy(const_cast<X509_ALGOR*>(sig_alg), alg2);
     }
 
-    X509_ACERT_sign(a, pkey, EVP_md5());
+    X509_ACERT_sign(a, pkey, EVP_sha256());
 
     err = 0;
 
