@@ -119,6 +119,7 @@ class Expression {
 public:
   virtual std::string const & EvaluateValue() { throw Exception("Undefined EvaluateValue was called"); }
   virtual bool EvaluateBool(EvalContext & context) { throw Exception("Undefined EvaluateBool was called"); }
+  virtual ~Expression() {}
 private:
   static std::string EmptyString;
 };
@@ -230,6 +231,7 @@ public:
   virtual Expression* MakeExpression() { throw Exception("Undefined value MakeExpression was called"); }
   virtual Expression* MakeExpression(Expression* right) { throw Exception("Undefined unary MakeExpression was called"); }
   virtual Expression* MakeExpression(Expression* left, Expression* right) { throw Exception("Undefined binary MakeExpression was called"); }
+  virtual ~Token() {}
 };
 
 class TokenOperator: public Token {
