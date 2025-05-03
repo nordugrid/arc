@@ -21,7 +21,7 @@ JobStateList::JobStateList(int _limit):limit(_limit){
 JobStateList::~JobStateList(){}
 
 JobStateList::JobNode::JobNode(bool _isfailed, std::string _job_id):
-  isfailed(_isfailed),job_id(_job_id){
+  job_id(_job_id), isfailed(_isfailed) {
 }
 
 JobStateList::JobNode::~JobNode(){}

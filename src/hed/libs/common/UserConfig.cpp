@@ -256,7 +256,7 @@ namespace Arc {
   }
 
   UserConfig::UserConfig(initializeCredentialsType initializeCredentials)
-    : timeout(0), keySize(0), ok(false), caUseSystem(false), caUseGrid(true), tlsAllowInsecure(false), initializeCredentials(initializeCredentials), authType(AuthTypeUndefined) {
+    : timeout(0), keySize(0), caUseSystem(false), caUseGrid(true), tlsAllowInsecure(false), authType(AuthTypeUndefined), ok(false), initializeCredentials(initializeCredentials) {
     if (!InitializeCredentials(initializeCredentials)) {
       return;
     }
@@ -269,7 +269,7 @@ namespace Arc {
   UserConfig::UserConfig(const std::string& conffile,
                          initializeCredentialsType initializeCredentials,
                          bool loadSysConfig)
-    : timeout(0), keySize(0), ok(false), caUseSystem(false), caUseGrid(true), tlsAllowInsecure(false), initializeCredentials(initializeCredentials), authType(AuthTypeUndefined)  {
+    : timeout(0), keySize(0), caUseSystem(false), caUseGrid(true), tlsAllowInsecure(false), authType(AuthTypeUndefined), ok(false), initializeCredentials(initializeCredentials) {
     setDefaults();
     if (loadSysConfig) {
       if (Glib::file_test(SYSCONFIG(), Glib::FILE_TEST_IS_REGULAR)) {
@@ -315,7 +315,7 @@ namespace Arc {
 
   UserConfig::UserConfig(const std::string& conffile, const std::string& jfile,
                          initializeCredentialsType initializeCredentials, bool loadSysConfig)
-    : timeout(0), keySize(0), ok(false), caUseSystem(false), caUseGrid(true), tlsAllowInsecure(false), initializeCredentials(initializeCredentials), authType(AuthTypeUndefined)  {
+    : timeout(0), keySize(0), caUseSystem(false), caUseGrid(true), tlsAllowInsecure(false), authType(AuthTypeUndefined), ok(false), initializeCredentials(initializeCredentials) {
     // If job list file have been specified, try to initialize it, and
     // if it fails then this object is non-valid (ok = false).
     setDefaults();
