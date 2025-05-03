@@ -67,17 +67,16 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  Arc::JobInformationStorage** jisPointer = NULL;
+  Arc::JobInformationStorage* jisPointer = NULL;
   if      (typeS == "XML") {
-    Arc::JobInformationStorageXML *jisXML = new Arc::JobInformationStorageXML(filename);
-    jisPointer = (Arc::JobInformationStorage**)&jisXML;
+    jisPointer = new Arc::JobInformationStorageXML(filename);
   }
   else {
     std::cerr << "ERROR: Unable to determine storage back-end to use." << std::endl;
     return 1;
   }
 
-  Arc::JobInformationStorage& jis = **jisPointer;
+  Arc::JobInformationStorage& jis = *jisPointer;
   
   Arc::Period timing;
   if      (action == "write" || action == "append") {
@@ -208,10 +207,10 @@ int main(int argc, char **argv) {
   }
   else {
     std::cerr << "ERROR: Invalid action specified (action = \"" << action << "\")" << std::endl;
-    delete *jisPointer;
+    delete jisPointer;
     return 1;
   }
-  delete *jisPointer;
+  delete jisPointer;
   
   {
   int nanosecs = timing.GetPeriodNanoseconds();
@@ -225,6 +224,6 @@ int main(int argc, char **argv) {
  return 0;
  
 error:
-  delete *jisPointer;
+  delete jisPointer;
   return 1;
 }
