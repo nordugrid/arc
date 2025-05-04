@@ -35,10 +35,10 @@ bool ARexConfigContext::CheckOperationAllowed(OperationType op, ARexConfigContex
   for(std::list<Arc::MessageAuth*>::iterator a = config->beginAuth();a!=config->endAuth();++a) {
     if(*a) {
       Arc::SecAttr* sattr = NULL;
-      if(sattr = (*a)->get("TLS")) {
+      if((sattr = (*a)->get("TLS"))) {
         has_tls_identity = !sattr->get("SUBJECT").empty();
       }
-      if(sattr = (*a)->get("OTOKENS")) {
+      if((sattr = (*a)->get("OTOKENS"))) {
         scopes = sattr->getAll("scope");
         has_token_identity = !sattr->get("iss").empty();
       }

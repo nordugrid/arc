@@ -205,7 +205,7 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
       return false;
     };
   };
-  if(grid_ca_ && (!ca_file_.empty()) || (!ca_dir_.empty())) {
+  if(grid_ca_ && (!ca_file_.empty() || !ca_dir_.empty())) {
     if(!ca_file_.empty())
       logger.msg(VERBOSE, "Using CA file: %s",ca_file_);
     if(!ca_dir_.empty())
