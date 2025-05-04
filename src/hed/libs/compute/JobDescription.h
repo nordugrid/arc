@@ -846,7 +846,7 @@ namespace Arc {
   class JobDescription {
   public:
     friend class JobDescriptionParserPlugin;
-    JobDescription() : alternatives(), current(alternatives.begin()), X509Delegation(true), TokenDelegation(false), InstancesMin(1), InstancesMax(1) {};
+    JobDescription() : X509Delegation(true), TokenDelegation(false), InstancesMin(1), InstancesMax(1), alternatives(), current(alternatives.begin()) {};
 
     JobDescription(const JobDescription& j, bool withAlternatives = true);
 

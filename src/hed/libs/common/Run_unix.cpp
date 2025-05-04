@@ -154,7 +154,7 @@ namespace Arc {
   void RunPump::sigchld_handler(int) {
     if ((instance_ == NULL) || (mark_ != RunPumpMagic)) return;
     if (instance_->loop_kick_[1] == -1) return;
-    char dummy;
+    char dummy = '\0';
     (void)write(instance_->loop_kick_[1], &dummy, 1);
   }
 
@@ -340,7 +340,7 @@ namespace Arc {
     try {
       // Take full control over context
       std::unique_lock<std::mutex> llock(loop_lock_); // barrier
-      char dummy;
+      char dummy = '\0';
       (void)write(loop_kick_[1], &dummy, 1);
       std::unique_lock<std::mutex> lock(list_lock_);
       // Add sources to context
@@ -356,7 +356,7 @@ namespace Arc {
     try {
       // Take full control over context
       std::unique_lock<std::mutex> llock(loop_lock_); // barrier
-      char dummy;
+      char dummy = '\0';
       (void)write(loop_kick_[1], &dummy, 1);
       std::unique_lock<std::mutex> lock(list_lock_);
       // Disconnect sources from context

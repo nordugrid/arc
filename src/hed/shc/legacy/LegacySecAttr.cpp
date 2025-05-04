@@ -100,6 +100,7 @@ std::map<std::string, std::list<std::string> > LegacySecAttr::getAll() const {
     all["OTOKENS:" + *grp] = *otokens;
     ++otokens;
   };
+  return all;
 }
 
 bool LegacySecAttr::Export(Arc::SecAttrFormat format,Arc::XMLNode &val) const {

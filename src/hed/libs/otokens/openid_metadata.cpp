@@ -363,8 +363,8 @@ namespace Arc {
 
 
   OpenIDTokenFetcher::OpenIDTokenFetcher(char const * token_endpoint, UserConfig& userconfig, char const * id, char const * secret):
-       url_(token_endpoint?url_no_cred(token_endpoint):URL()), client_(make_config(userconfig), url_),
-       client_id_(id?id:""), client_secret_(secret?secret:"") {
+       url_(token_endpoint?url_no_cred(token_endpoint):URL()), client_id_(id?id:""),
+       client_secret_(secret?secret:""), client_(make_config(userconfig), url_) {
     client_.RelativeURI(true);
   }
 
