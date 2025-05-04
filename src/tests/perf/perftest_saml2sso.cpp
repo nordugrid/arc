@@ -42,8 +42,8 @@ void sendRequests(){
   // Some variables...
   unsigned long completedRequests = 0;
   unsigned long failedRequests = 0;
-  std::chrono::system_clock::duration completedTime;
-  std::chrono::system_clock::duration failedTime;
+  std::chrono::system_clock::duration completedTime(0);
+  std::chrono::system_clock::duration failedTime(0);
   bool connected;
 
   //std::string url_str("https://127.0.0.1:60000/echo");
