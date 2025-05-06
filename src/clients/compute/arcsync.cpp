@@ -249,7 +249,7 @@ int RUNMAIN(arcsync)(int argc, char **argv) {
 
   if (endpoints.empty()) {
     logger.msg(Arc::ERROR, "No services specified. Please configure default services in the client configuration, "
-                           "or specify a cluster or refistry (-C or -Y options, see arcsync -h).");
+                           "or specify a cluster or registry (-C or -Y options, see arcsync -h).");
     return 1;
   }
 
