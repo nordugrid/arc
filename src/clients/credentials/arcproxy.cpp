@@ -278,7 +278,7 @@ static int runmain(int argc, char *argv[]) {
                                     "  issuer - issuer subject name of proxy certificate.\n\n"
                                     "  ca - subject name of CA which issued initial certificate.\n\n"
                                     "  path - file system path to file containing proxy.\n\n"
-                                    "  type - type of proxy certificate.\n"
+                                    "  type - type of proxy certificate.\n\n"
                                     "  validityStart - timestamp when proxy validity starts.\n\n"
                                     "  validityEnd - timestamp when proxy validity ends.\n\n"
                                     "  validityPeriod - duration of proxy validity in seconds.\n\n"
@@ -364,7 +364,7 @@ static int runmain(int argc, char *argv[]) {
 
   bool use_http_comm = false;
   options.AddOption('H', "httpcom", istring("use HTTP communication protocol for contacting VOMS services that provide RESTful access\n"
-                                            "               Note for RESTful access, \'list\' command and multiple VOMS server are not supported\n"), use_http_comm);
+                                            "               Note for RESTful access, \'list\' command and multiple VOMS servers are not supported\n"), use_http_comm);
 
   bool use_old_comm = false;
   options.AddOption('B', "oldcom", istring("use old communication protocol for contacting VOMS services instead of RESTful access\n"), use_old_comm);
@@ -387,18 +387,20 @@ static int runmain(int argc, char *argv[]) {
 
   bool use_empty_passphrase = false; //if use empty passphrase to myproxy serveyr
   options.AddOption('N', "nopassphrase", istring(
-              "don't prompt for a credential passphrase, when retrieve a "
-              "credential from an MyProxy server.\n"
+              "don't prompt for a credential passphrase, when retrieving a "
+              "credential from a MyProxy server.\n"
               "    The precondition of this choice is that the credential was PUT onto\n"
               "    the MyProxy server without a passphrase by using the\n"
               "    -R (--retrievable_by_cert) option.\n"
-              "    This option is specific for the GET command when contacting Myproxy server."),
+              "    This option is specific to the GET command when contacting a Myproxy\n"
+              "    server."),
                     use_empty_passphrase);
 
   std::string retrievable_by_cert; //if use empty passphrase to myproxy server
   options.AddOption('R', "retrievable_by_cert", istring(
               "Allow specified entity to retrieve credential without passphrase.\n"
-              "    This option is specific for the PUT command when contacting Myproxy server."),
+              "    This option is specific to the PUT command when contacting a Myproxy\n"
+              "    server."),
                     istring("string"), retrievable_by_cert);
 
   std::string myproxy_server; //url of MyProxy server
@@ -751,7 +753,7 @@ static int runmain(int argc, char *argv[]) {
 
           //std::cout << "attribute : "<<voms_attributes[n].attributes[i]<<std::endl;
           //do not display those attributes that have already been displayed
-          //(this can happen when there are multiple voms server )
+          //(this can happen when there are multiple voms servers)
         }
         Arc::Time ct;
         if(ct < voms_attributes[n].from) {
@@ -940,7 +942,7 @@ static int runmain(int argc, char *argv[]) {
       if(pos == std::string::npos) {
         logger.msg(Arc::ERROR, "Cannot parse password source %s "
                    "it must be of source_type or source_type:data format. "
-                   "Supported source types are int,stdin,stream,file.", pass);
+                   "Supported source types are int, stdin, stream, file.", pass);
         return EXIT_FAILURE;
       }
       std::string data = pass.substr(pos + 1);
