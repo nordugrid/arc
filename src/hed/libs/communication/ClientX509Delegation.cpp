@@ -184,7 +184,7 @@ namespace Arc {
       std::string signedcert;
       //std::cout<<"X509 Request: \n"<<getProxyReqReturnValue<<std::endl;
       proxy.InquireRequest(getProxyReqReturnValue);
-      proxy.SetProxyPolicy("gsi2", "", "", -1);
+      proxy.SetProxyPolicy("rfc", "inheritAll", "", -1);
       if (!(signer_->SignRequest(&proxy, signedcert))) {
         logger.msg(ERROR, "DelegateProxy failed");
         return false;
