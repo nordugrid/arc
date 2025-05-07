@@ -15,9 +15,9 @@ int main(void) {
   Arc::Logger::getRootLogger().addDestination(cdest);
   Arc::Logger::getRootLogger().setThreshold(Arc::VERBOSE);
 
-  std::string cert("../../../tests/echo/testcert.pem"); 
+  std::string cert("../../../tests/echo/testcert.pem");
   std::string key("../../../tests/echo/testkey-nopass.pem");
-  std::string cafile("../../../tests/echo/testcacert.pem"); 
+  std::string cafile("../../../tests/echo/testcacert.pem");
   std::string cadir("../../../tests/echo/certificates");
 
   int keybits = 2048;
@@ -25,7 +25,7 @@ int main(void) {
 
   Arc::Time t;
 
-  /**Generate certificate request on one side, 
+  /**Generate certificate request on one side,
   *and sign the certificate request on the other side.*/
   /**1.Use BIO as parameters */
 
@@ -37,11 +37,11 @@ int main(void) {
   request.GenerateRequest(req);
 
   //Signing side
-  BIO* out; 
+  BIO* out;
   out = BIO_new(BIO_s_mem());
   Arc::Credential proxy;
 
-  Arc::Credential signer(cert, key, cadir, cafile); 
+  Arc::Credential signer(cert, key, cadir, cafile);
   std::string dn_name = signer.GetDN();
   std::cout<<"DN:--"<<dn_name<<std::endl;
 
@@ -68,11 +68,11 @@ int main(void) {
   proxy1.SetProxyPolicy("rfc","independent","",-1);
   proxy1.SetLifeTime(Arc::Period(12*3600));
   signer.SignRequest(&proxy1, out_string);
-  
+
   std::string signing_cert1;
   signer.OutputCertificate(signing_cert1);
 
-  //Back to request side, compose the signed proxy certificate, local private key, 
+  //Back to request side, compose the signed proxy certificate, local private key,
   //and signing certificate into one file.
   std::string private_key1;
   request1.OutputPrivatekey(private_key1);
@@ -92,7 +92,7 @@ int main(void) {
   //Signing side
   Arc::Credential proxy2;
   proxy2.InquireRequest(req_file.c_str());
-  proxy2.SetProxyPolicy("rfc", "inheritall", "policy.txt", proxydepth);
+  proxy2.SetProxyPolicy("rfc", "inheritAll", "policy.txt", proxydepth);
   proxy2.SetLifeTime(Arc::Period(168*3600));
   signer.SignRequest(&proxy2, out_file.c_str());
 
