@@ -50,7 +50,7 @@ void VOMSUtilTest::VOMSTrustListTest() {
 
   std::vector<std::string> targets;
   targets.push_back("www.nordugrid.org");
- 
+
   std::vector<std::string> attrs;
   attrs.push_back("::role=admin");
   attrs.push_back("::role=guest");
@@ -60,10 +60,10 @@ void VOMSUtilTest::VOMSTrustListTest() {
 
   std::string ac_str;
   CPPUNIT_ASSERT(Arc::createVOMSAC(ac_str, ac_issuer_cred, holder_cred, fqan, targets, attrs, voname, uri, 3600*12));
-  CPPUNIT_ASSERT(!ac_str.empty()); 
- 
+  CPPUNIT_ASSERT(!ac_str.empty());
+
   //
-  // Create the full AC which is an ordered list of AC 
+  // Create the full AC which is an ordered list of AC
   //
 
   // encode the AC string into base64
@@ -85,7 +85,7 @@ void VOMSUtilTest::VOMSTrustListTest() {
   int keybits = 2048;
   int proxydepth = 10;
   Arc::Time t;
-  Arc::Credential proxy_req(t, Arc::Period(12*3600), keybits, "gsi2", "limited", "", proxydepth);
+  Arc::Credential proxy_req(t, Arc::Period(12*3600), keybits, "rfc", "inheritAll", "", proxydepth);
   std::string proxy_req_file("voms_req.pem");
   proxy_req.GenerateRequest(proxy_req_file.c_str());
 
@@ -119,8 +119,8 @@ void VOMSUtilTest::VOMSTrustListTest() {
 
   std::vector<Arc::VOMSACInfo> attributes;
   Arc::VOMSTrustList trust_dn(vomscert_trust_dn);
-  CPPUNIT_ASSERT(Arc::parseVOMSAC(voms_proxy, ".", CAcert, false, "", trust_dn, attributes, true, false, std::string("www.nordugrid.org"))); 
-  
+  CPPUNIT_ASSERT(Arc::parseVOMSAC(voms_proxy, ".", CAcert, false, "", trust_dn, attributes, true, false, std::string("www.nordugrid.org")));
+
   for(size_t n=0; n<attributes.size(); n++) {
     for(size_t i=0; i<attributes[n].attributes.size(); i++) {
       Arc::CredentialLogger.msg(Arc::DEBUG, "Line %d.%d of the attributes returned: %s",n,i,attributes[n].attributes[i]);
