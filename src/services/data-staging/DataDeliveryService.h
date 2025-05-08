@@ -54,7 +54,7 @@ namespace DataStaging {
     /// Current processes - using gint to guarantee atomic thread-safe operations
     gint current_processes;
     /// Internal list of active DTRs, mapped to the stream with the transfer log
-    std::set<DTR_ptr> active_dtrs;
+    std::map<DTR_ptr, sstream_ptr> active_dtrs;
     /// Lock for active DTRs list
     Arc::SimpleCondition active_dtrs_lock;
     /// Archived list of finished DTRs, just ID and final state and short explanation
