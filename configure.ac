@@ -1843,7 +1843,7 @@ AC_SEARCH_LIBS([clock_gettime], [rt])
 
 # Define bash-completion dir
 PKG_CHECK_MODULES([BASH_COMPLETION], [bash-completion >= 2.0],
-  [bashcompdir="`pkg-config --variable=completionsdir --define-variable=prefix=${prefix} bash-completion`"],
+  [bashcompdir="`pkg-config --variable=completionsdir --define-variable=prefix=${prefix} --define-variable=datadir=${datadir} bash-completion`"],
   [bashcompdir="${sysconfdir}/bash_completion.d"])
 AC_SUBST([bashcompdir])
 
