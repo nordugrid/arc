@@ -127,10 +127,12 @@ $(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i $(top_srcdir)/swig/Arc.i $(PY
           fi;\
         done
 
+if PYTHON_SWIG_ENABLED
 install-data-hook:
 	if [ "$(PYTHON_EXT_SUFFIX)" != ".so" ]; then \
 	  mv $(DESTDIR)$(pyexecdir)/_arc.so \
 	  $(DESTDIR)$(pyexecdir)/_arc$(PYTHON_EXT_SUFFIX) ; \
 	fi
+endif
 
 .NOTPARALLEL: %.lo %.o

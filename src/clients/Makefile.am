@@ -16,7 +16,13 @@ else
 COMPUTE_CLIENT =
 endif
 
-SUBDIRS = $(DATA_CLIENT) $(CREDENTIALS_CLIENT) $(COMPUTE_CLIENT) pyarcrest
+if ARCREST_ENABLED
+PYARCREST = pyarcrest
+else
+PYARCREST =
+endif
+
+SUBDIRS = $(DATA_CLIENT) $(CREDENTIALS_CLIENT) $(COMPUTE_CLIENT) $(PYARCREST)
 DIST_SUBDIRS = data credentials compute pyarcrest
 
 arcsysconfdir = $(sysconfdir)/arc
