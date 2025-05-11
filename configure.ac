@@ -265,6 +265,18 @@ enables_acix=$enableval
 ],
 [])
 
+AC_ARG_ENABLE(hed, AC_HELP_STRING([--disable-hed], [disable building HED libraries and plugins. Do not do that unless You do not want to build anything. Even in that case better use --disable-all.]),
+[enables_hed=$enableval],[])
+
+if test "$enables_hed" = "no" ; then
+  enables_a_rex_service=no
+  enables_candypond=no
+  enables_datadelivery_service=no
+  enables_compute_client=no
+  enables_credentials_client=no
+  enables_data_client=no
+  enables_swig_python=no
+fi
 
 # Be pedantic about compiler warnings.
 AC_ARG_ENABLE(pedantic-compile, AC_HELP_STRING([--enable-pedantic-compile], [add pedantic compiler flags]),
@@ -344,15 +356,12 @@ else
 fi
 AM_CONDITIONAL([SWIG_ENABLED],[test "x$enables_swig" = "xyes"])
 
-AC_ARG_ENABLE(hed, AC_HELP_STRING([--disable-hed], [disable building HED libraries and plugins. Do not do that unless You do not want to build anything. Even in that case better use --disable-all.]),
-[enables_hed=$enableval],[])
-
 # Python
-if test "$enables_hed" = "yes"; then
 AC_ARG_ENABLE(python,
   AC_HELP_STRING([--disable-python], [disable Python components]),
-  [enables_python=$enableval
-   enables_swig_python=$enableval], [])
+  [enables_swig_python=$enableval], [])
+
+enables_python=yes
 
 if test "$enables_python" = "yes"; then
   AC_ARG_WITH(python, AC_HELP_STRING([--with-python=(PYTHON)],
@@ -361,9 +370,9 @@ if test "$enables_python" = "yes"; then
   # We do not look for python binary when cross-compiling
   # but we need to make the variable non-empty
   if test "${build}" = "${host}"; then
-    AC_PATH_PROGS(PYTHON, $with_python python)
+    AC_PATH_PROGS(PYTHON, $with_python python3)
   else
-    PYTHON=/usr/bin/python
+    PYTHON=/usr/bin/python3
   fi
 
   if test "X$PYTHON" != "X"; then
@@ -482,9 +491,13 @@ if test "$enables_python" = "yes"; then
   fi
 
 fi
-fi
 
 AC_MSG_NOTICE([Python enabled: $enables_python])
+
+if test "$enables_python" = "no"; then
+  AC_MSG_ERROR([Python is not optional...])
+fi
+
 AC_MSG_NOTICE([Python SWIG bindings enabled: $enables_swig_python])
 
 AM_CONDITIONAL([PYTHON_ENABLED],[test "x$enables_python" = "xyes"])
@@ -600,6 +613,8 @@ if test "$enables_altpython" = "yes"; then
   fi
 
 fi
+else
+  enables_altpython=no
 fi
 
 AC_MSG_NOTICE([Alternative Python enabled: $enables_altpython])
@@ -987,7 +1002,7 @@ if test "x$enables_xmlsec1" = "xyes"; then
     # Find number of backslashes in XMLSEC_CFLAGS
     n=$(echo $XMLSEC_CFLAGS|sed 's/.*-DXMLSEC_CRYPTO=\([[^ ]]*\).*/\1/'|tr -d '[[A-Za-z0-1\n"]]'| wc -c)
 
-    # Fixes due to bugs in pkg-config and/or xmlsec1 
+    # Fixes due to bugs in pkg-config and/or xmlsec1
     #
     # 0: Indicates a bug in pkg-config which removes the escaping of the quotes
     # 2: Correct value with escaped quotes
@@ -995,7 +1010,7 @@ if test "x$enables_xmlsec1" = "xyes"; then
     #    See eg. https://bugzilla.redhat.com/show_bug.cgi?id=675334
 
     # Make sure that the quotes are escaped with single backslash
-    if test $n = 0 -o $n = 6; then 
+    if test $n = 0 -o $n = 6; then
       AC_MSG_NOTICE([Working around bad combination of pkgconfig and xmlsec1 with $n back-slashes])
       XMLSEC_CFLAGS=$(echo $XMLSEC_CFLAGS|sed 's/\(.*-DXMLSEC_CRYPTO=\)\\*"\([[^ \\"]]*\)\\*" \(.*\)/\1\\"\2\\" \3/')
       XMLSEC_OPENSSL_CFLAGS=$(echo $XMLSEC_OPENSSL_CFLAGS|sed 's/\(.*-DXMLSEC_CRYPTO=\)\\*"\([[^ \\"]]*\)\\*" \(.*\)/\1\\"\2\\" \3/')
@@ -1289,9 +1304,8 @@ then
   CXXFLAGS=$SAVE_CXXFLAGS
 fi
 AC_LANG_RESTORE
-AM_CONDITIONAL([DBCXX_ENABLED], test ! "x$DBCXX_LIBS" = "x")
-
 fi
+AM_CONDITIONAL([DBCXX_ENABLED], test ! "x$DBCXX_LIBS" = "x")
 
 # DBJSTORE (storing job information in BDB)
 AC_ARG_ENABLE(dbjstore, AC_HELP_STRING([--disable-dbjstore], [disable storing local job information in BDB]),
@@ -1792,7 +1806,7 @@ AC_ARG_WITH(inline-python,
      if test -d $PERL5LIB_INLINE_PYTHON; then
        PERL5LIB_INLINE_PYTHON="-I${PERL5LIB_INLINE_PYTHON}"
        if `${PERL} ${PERL5LIB_INLINE_PYTHON} -e "use Inline::Python; exit;" > /dev/null 2>&1`
-       then    
+       then
          INLINE_PYTHON_FOUND="yes"
          AC_MSG_NOTICE([Perl module Inline::Python found])
        else
@@ -2089,7 +2103,7 @@ if test "$enables_hed" = "no"; then
           "$enables_compute_client" = "yes" -o \
           "$enables_credentials_client" = "yes" -o \
           "$enables_data_client" = "yes" -o \
-          ; then
+          "$enables_swig_python" = "yes" ; then
     AC_MSG_ERROR(HED is needed for building any of the client or service tools. Please enable HED by using --enable-hed.)
   fi
 fi
