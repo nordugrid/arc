@@ -4,17 +4,11 @@ else
 PYTHONBROKER =
 endif
 
-if ARCREST_ENABLED
-ARCREST = ARCREST
-else
-ARCREST =
-endif
-
 if LDNS_ENABLED
 ARCHERY = ARCHERY
 else
 ARCHERY =
 endif
 
-SUBDIRS = TEST $(ARCREST) Broker $(PYTHONBROKER) JobDescriptionParser $(ARCHERY)
+SUBDIRS = TEST ARCREST Broker $(PYTHONBROKER) JobDescriptionParser $(ARCHERY)
 DIST_SUBDIRS = TEST ARCREST Broker PythonBroker JobDescriptionParser ARCHERY

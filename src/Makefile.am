@@ -5,7 +5,7 @@ else
 BUILD_SOURCES = external doc hed libs tests services clients utils wn
 endif
 else
-BUILD_SOURCES =
+BUILD_SOURCES = clients
 endif
 
 SUBDIRS = $(BUILD_SOURCES)

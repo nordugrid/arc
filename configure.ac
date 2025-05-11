@@ -276,6 +276,18 @@ enables_datadelivery_service=$enableval
 ],
 [])
 
+AC_ARG_ENABLE(hed, AC_HELP_STRING([--disable-hed], [disable building HED libraries and plugins. Do not do that unless You do not want to build anything. Even in that case better use --disable-all.]),
+[enables_hed=$enableval],[])
+
+if test "$enables_hed" = "no" ; then
+  enables_a_rex_service=no
+  enables_candypond=no
+  enables_datadelivery_service=no
+  enables_compute_client=no
+  enables_credentials_client=no
+  enables_data_client=no
+  enables_swig_python=no
+fi
 
 # Be pedantic about compiler warnings.
 AC_ARG_ENABLE(pedantic-compile, AC_HELP_STRING([--enable-pedantic-compile], [add pedantic compiler flags]),
@@ -355,15 +367,13 @@ else
 fi
 AM_CONDITIONAL([SWIG_ENABLED],[test "x$enables_swig" = "xyes"])
 
-AC_ARG_ENABLE(hed, AC_HELP_STRING([--disable-hed], [disable building HED libraries and plugins. Do not do that unless You do not want to build anything. Even in that case better use --disable-all.]),
-[enables_hed=$enableval],[])
-
 # Python
-if test "$enables_hed" = "yes"; then
 AC_ARG_ENABLE(python,
   AC_HELP_STRING([--disable-python], [disable Python components]),
-  [enables_python=$enableval
+  [enables_arcrest_client=$enableval
    enables_swig_python=$enableval], [])
+
+enables_python=yes
 
 if test "$enables_python" = "yes"; then
   AC_ARG_WITH(python, AC_HELP_STRING([--with-python=(PYTHON)],
@@ -493,9 +503,13 @@ if test "$enables_python" = "yes"; then
   fi
 
 fi
-fi
 
 AC_MSG_NOTICE([Python enabled: $enables_python])
+
+if test "$enables_python" = "no"; then
+  AC_MSG_ERROR([Python is not optional...])
+fi
+
 AC_MSG_NOTICE([Python SWIG bindings enabled: $enables_swig_python])
 
 AM_CONDITIONAL([PYTHON_ENABLED],[test "x$enables_python" = "xyes"])
@@ -611,6 +625,8 @@ if test "$enables_altpython" = "yes"; then
   fi
 
 fi
+else
+  enables_altpython=no
 fi
 
 AC_MSG_NOTICE([Alternative Python enabled: $enables_altpython])
@@ -1716,9 +1732,16 @@ AC_ARG_ENABLE(data_client, AC_HELP_STRING([--disable-data-client], [disable buil
 AC_MSG_NOTICE([Data client tools enabled: $enables_data_client])
 AM_CONDITIONAL([DATA_CLIENT_ENABLED],[test "x$enables_data_client" = "xyes"])
 
-AC_ARG_ENABLE(arcrest_client, AC_HELP_STRING([--disable-arcrest-client], [disables building ARC REST interface client plugins.]),
+AC_ARG_ENABLE(arcrest_client, AC_HELP_STRING([--disable-arcrest-client], [disables building ARC REST python module.]),
   [enables_arcrest_client=$enableval],[])
-AC_MSG_NOTICE([ARC REST plugin(s) enabled: $enables_arcrest_client])
+if test "x$enables_arcrest_client" = "xyes" ; then
+  $PYTHON -m pip >/dev/null
+  if test "$?" != '0' ; then
+    AC_MSG_WARN([PIP not avilable -- disabling ARC REST pythin module])
+    enables_arcrest_client=no
+  fi
+fi
+AC_MSG_NOTICE([ARC REST python module enabled: $enables_arcrest_client])
 AM_CONDITIONAL([ARCREST_ENABLED],[test "x$enables_arcrest_client" = "xyes"])
 
 # Check for consistency among disabled components
@@ -1729,7 +1752,7 @@ if test "$enables_hed" = "no"; then
           "$enables_compute_client" = "yes" -o \
           "$enables_credentials_client" = "yes" -o \
           "$enables_data_client" = "yes" -o \
-          ; then
+          "$enables_swig_python" = "yes" ; then
     AC_MSG_ERROR(HED is needed for building any of the client or service tools. Please enable HED by using --enable-hed.)
   fi
 fi
@@ -2084,7 +2107,7 @@ COMPUTE clients:    ${enables_compute_client}
 DATA clients:       ${enables_data_client}
 CREDENTIAL clients: ${enables_credentials_client}
 
-ARC REST client (ACC): ${enables_arcrest_client}
+ARC REST client:    ${enables_arcrest_client}
 SRM client (DMC):   ${enables_srm_dmc}
 
 Documentation:      ${enables_doc}
