@@ -38,20 +38,24 @@ enum ResponseFormat {
     ResponseFormatJson
 };
 
-static void RenderToJson(Arc::XMLNode xml, std::string& output, char const * array_paths[], int depth = 0) {
+static bool JsonPathsHasLastMember(char const * const array_paths[]) {
+    if(array_paths) {
+        for(int idx = 0; array_paths[idx]; ++idx) {
+            char const * array_path = array_paths[idx];
+            char const * sep = strchr(array_path, '/');
+            if(sep) continue; // not last element of path
+            return true;
+        }
+    }
+    return false;
+}
+
+static void RenderToJson(Arc::XMLNode xml, std::string& output, char const * const array_paths[], bool show_empty_array = true, int depth = 0) {
     if(xml.Size() == 0) {
-	// Either it is a value or it has forced array sub-elements.
-	bool has_arrays = false;
-        if(array_paths) {
-            for(int idx = 0; array_paths[idx]; ++idx) {
-	        char const * array_path = array_paths[idx];
-	        char const * sep = strchr(array_path, '/');
-	        if(sep) continue; // not last element of path
-		has_arrays = true;
-		break;
-	    }
-	}
+        // Either it is a value or it has forced array sub-elements.
+        bool has_arrays = JsonPathsHasLastMember(array_paths);
         if(!has_arrays) {
+            // shortcut - nothing will match to array_paths at this depth
             std::string val = json_encode((std::string)xml);
             if((depth != 0) || (!val.empty())) {
                 output += "\"";
@@ -59,13 +63,13 @@ static void RenderToJson(Arc::XMLNode xml, std::string& output, char const * arr
                 output += "\"";
             }
             return;
-	}
+        }
     }
     output += "{";
     // Because JSON does not allow for same key we must first
     // group XML elements by names. Using list to preserve order
     // in which elements appear.
-    std::list< std::pair<std::string,int> > names;
+    std::list< std::pair<std::string,int> > names; // counters per names, list instead of map for keeping order
     for(int n = 0; ; ++n) {
         XMLNode child = xml.Child(n);
         if(!child) break;
@@ -79,15 +83,16 @@ static void RenderToJson(Arc::XMLNode xml, std::string& output, char const * arr
     // Check for forced JSON arrays
     if(array_paths) {
         for(int idx = 0; array_paths[idx]; ++idx) {
-	    char const * array_path = array_paths[idx];
-	    char const * sep = strchr(array_path, '/');
-	    if(sep) continue; // not last element of path
-	    // Add fake 2 elements to make them arrays later
+            char const * array_path = array_paths[idx];
+            char const * sep = strchr(array_path, '/');
+            if(sep) continue; // not last element of path
+            // Add fake 2 elements to make them arrays later
             std::list< std::pair<std::string,int> >::iterator nameIt = FindFirst(names.begin(),names.end(),array_path);
-            if(nameIt == names.end())
-                names.push_back(std::make_pair(array_path,2));
-            else
+            if(nameIt == names.end()) {
+                if(show_empty_array) names.push_back(std::make_pair(array_path,2));
+            } else {
                 nameIt->second += 2; 
+            }
         }
     }
     bool newElement = true;
@@ -103,31 +108,33 @@ static void RenderToJson(Arc::XMLNode xml, std::string& output, char const * arr
             std::vector<char const *> new_array_paths;
             if(array_paths) {
                 for(int idx = 0; array_paths[idx]; ++idx) {
-	            char const * array_path = array_paths[idx];
-		    if(strncmp(nameIt->first.c_str(), array_path, nameIt->first.length()) == 0) {
-		        if(array_path[nameIt->first.length()] == '/') {
+                    char const * array_path = array_paths[idx];
+                    if(strncmp(nameIt->first.c_str(), array_path, nameIt->first.length()) == 0) {
+                        if(array_path[nameIt->first.length()] == '/') {
                             new_array_paths.push_back(array_path+(nameIt->first.length()+1));
-			}
-		    }
+                        }
+                    }
                 }
+                if(!new_array_paths.empty())
+                  new_array_paths.push_back(NULL);
             }
             if(nameIt->second == 1) {
-                RenderToJson(child, output, new_array_paths.empty() ? NULL : &(new_array_paths[0]), depth+1);
+                RenderToJson(child, output, new_array_paths.empty() ? NULL : &(new_array_paths[0]), show_empty_array, depth+1);
             } else {
                 output += "[";
                 bool newItem = true;
                 while(child) {
                     if(!newItem) output += ",";
                     newItem = false;
-                    RenderToJson(child, output, new_array_paths.empty() ? NULL : &(new_array_paths[0]), depth+1);
+                    RenderToJson(child, output, new_array_paths.empty() ? NULL : &(new_array_paths[0]), show_empty_array, depth+1);
                     ++child;
                 }
                 output += "]";
             }
         } else {
-	    // Must be forced array element
+        // Must be forced array element
             output += "[]";
-	}
+        }
     }
     // Hope no attributes with same name
     if(xml.AttributesSize() > 0) {
@@ -294,7 +301,7 @@ static char const * ParseFromJson(Arc::XMLNode& xml, char const * input, int dep
     return input;
 }
 
-static void RenderResponse(Arc::XMLNode xml, ResponseFormat format, std::string& output, char const * json_arrays[]) {
+static void RenderResponse(Arc::XMLNode xml, ResponseFormat format, std::string& output, char const * const json_arrays[], bool show_empty_arrays = true) {
     switch(format) {
         case ResponseFormatXml:
             RenderToXml(xml, output);
@@ -303,7 +310,7 @@ static void RenderResponse(Arc::XMLNode xml, ResponseFormat format, std::string&
             RenderToHtml(xml, output);
             break;
         case ResponseFormatJson:
-            RenderToJson(xml, output, json_arrays);
+            RenderToJson(xml, output, json_arrays, show_empty_arrays);
             break;
         default:
             break;
@@ -551,10 +558,10 @@ static ResponseFormat ProcessAcceptedFormat(Arc::Message& inmsg, Arc::Message& o
 }
 
 // Insert structured positive response into outmsg.
-static Arc::MCC_Status HTTPResponse(Arc::Message& inmsg, Arc::Message& outmsg, Arc::XMLNode& resp, char const * json_arrays[]) {
+static Arc::MCC_Status HTTPResponse(Arc::Message& inmsg, Arc::Message& outmsg, Arc::XMLNode& resp, char const * const json_arrays[], bool show_empty_arrays = true) {
   ResponseFormat outFormat = ProcessAcceptedFormat(inmsg,outmsg);
   std::string respStr;
-  RenderResponse(resp, outFormat, respStr, json_arrays);
+  RenderResponse(resp, outFormat, respStr, json_arrays, show_empty_arrays);
   if(inmsg.Attributes()->get("HTTP:METHOD") == "HEAD") {
     Arc::PayloadRaw* outpayload = new Arc::PayloadRaw();
     if(outpayload) outpayload->Truncate(respStr.length());
@@ -570,7 +577,7 @@ static Arc::MCC_Status HTTPResponse(Arc::Message& inmsg, Arc::Message& outmsg, A
 }
 
 static Arc::MCC_Status HTTPPOSTResponse(Arc::Message& inmsg, Arc::Message& outmsg,
-                                    Arc::XMLNode& resp, char const * json_arrays[], std::string const & redir = "") {
+                                    Arc::XMLNode& resp, char const * const json_arrays[], std::string const & redir = "") {
   ResponseFormat outFormat = ProcessAcceptedFormat(inmsg,outmsg);
   std::string respStr;
   RenderResponse(resp, outFormat, respStr, json_arrays);
@@ -784,7 +791,7 @@ Arc::MCC_Status ARexRest::process(Arc::Message& inmsg,Arc::Message& outmsg) {
 Arc::MCC_Status ARexRest::processVersions(Arc::Message& inmsg,Arc::Message& outmsg,ProcessingContext& context) {
   if((context.method == "GET") || (context.method == "HEAD")) {
     XMLNode versions("<versions><version>1.0</version><version>1.1</version></versions>"); // only supported versions are 1.0 and 1.1
-    char const * json_arrays[] = { "version", NULL };
+    char const * const json_arrays[] = { "version", NULL };
     return HTTPResponse(inmsg, outmsg, versions, json_arrays);
   }
   logger_.msg(Arc::VERBOSE, "process: method %s is not supported for subpath %s",context.method,context.processed);
@@ -816,7 +823,197 @@ Arc::MCC_Status ARexRest::processInfo(Arc::Message& inmsg,Arc::Message& outmsg, 
   std::string infoStr;
   Arc::FileRead(config_.InformationFile(), infoStr);
   XMLNode infoXml(infoStr);
-  return HTTPResponse(inmsg, outmsg, infoXml, NULL);
+  char const * const info_json_arrays[] = {
+    "Domains/AdminDomain/Service/Endpoint/Activities/Activity/Associations/ActivityID",
+    "Domains/AdminDomain/Service/Endpoint/Activities/Activity",
+    "Domains/AdminDomain/Service/Endpoint/Extensions/Extension",
+    "Domains/AdminDomain/Service/Endpoint/OtherInfo",
+    "Domains/AdminDomain/Service/Endpoint/Capability",
+    "Domains/AdminDomain/Service/Endpoint/InterfaceVersion",
+    "Domains/AdminDomain/Service/Endpoint/InterfaceExtension",
+    "Domains/AdminDomain/Service/Endpoint/WSDL",
+    "Domains/AdminDomain/Service/Endpoint/SupportedProfile",
+    "Domains/AdminDomain/Service/Endpoint/Semantics",
+    "Domains/AdminDomain/Service/Endpoint/TrustedCA",
+    "Domains/AdminDomain/Service/Endpoint/AccessPolicy",
+    "Domains/AdminDomain/Service/Endpoint/AccessPolicy/OtherInfo",
+    "Domains/AdminDomain/Service/Endpoint/AccessPolicy/Extensions/Extension",
+    "Domains/AdminDomain/Service/Endpoint/AccessPolicy/Rule",
+    "Domains/AdminDomain/Service/Endpoint/AccessPolicy/Associations/UserDomainID",
+    "Domains/AdminDomain/Service/Endpoint",
+    "Domains/AdminDomain/Service/Associations/ServiceID",
+    "Domains/AdminDomain/Service/Capability",
+    "Domains/AdminDomain/Service/StatusInfo",
+    "Domains/AdminDomain/Service/Contact",
+    "Domains/AdminDomain/Service/Extensions/Extension",
+    "Domains/AdminDomain/Service/OtherInfo",
+    "Domains/AdminDomain/Service/StorageManager/Extensions/Extension",
+    "Domains/AdminDomain/Service/StorageManager/OtherInfo",
+    "Domains/AdminDomain/Service/StorageManager/DataStore/Extensions/Extension",
+    "Domains/AdminDomain/Service/StorageManager/DataStore/OtherInfo",
+    "Domains/AdminDomain/Service/StorageManager/DataStore",
+    "Domains/AdminDomain/Service/StorageManager",
+    "Domains/AdminDomain/Service/Location/Extensions/Extension",
+    "Domains/AdminDomain/Service/Location/OtherInfo",
+    "Domains/AdminDomain/Service/Contact/Extensions/Extension",
+    "Domains/AdminDomain/Service/Contact/OtherInfo",
+    "Domains/AdminDomain/Service",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/ComputingActivities/ComputingActivity/State",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/ComputingActivities/ComputingActivity/RestartState",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/ComputingActivities/ComputingActivity/Error",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/ComputingActivities/ComputingActivity/RequestedApplicationEnvironment",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/ComputingActivities/ComputingActivity/ExecutionNode",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/ComputingActivities/ComputingActivity/OtherMessages",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/ComputingActivities/ComputingActivity/Associations/ActivityID",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/ComputingActivities/ComputingActivity",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/JobDescription",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/Associations/ComputingShareID",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/Extensions/Extension",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/OtherInfo",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/Capability",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/InterfaceVersion",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/InterfaceExtension",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/WSDL",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/SupportedProfile",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/Semantics",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/TrustedCA",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/AccessPolicy",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/AccessPolicy/OtherInfo",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/AccessPolicy/Extensions/Extension",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/AccessPolicy/Rule",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint/AccessPolicy/Associations/UserDomainID",
+    "Domains/AdminDomain/ComputingService/ComputingEndpoint",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ExecutionEnvironments/ExecutionEnvironment/NetworkInfo",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ExecutionEnvironments/ExecutionEnvironment/Benchmark",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ExecutionEnvironments/ExecutionEnvironment/Associations/ComputingShareID",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ExecutionEnvironments/ExecutionEnvironment/Associations/ComputingActivityID",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ExecutionEnvironments/ExecutionEnvironment/Associations/ApplicationEnvironmentID",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ExecutionEnvironments/ExecutionEnvironment/Benchmark/Extensions/Extension",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ExecutionEnvironments/ExecutionEnvironment/Benchmark/OtherInfo",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ExecutionEnvironments/ExecutionEnvironment/Extensions/Extension",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ExecutionEnvironments/ExecutionEnvironment/OtherInfo",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ExecutionEnvironments/ExecutionEnvironment",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ApplicationEnvironments/ApplicationEnvironment/BestBenchmark",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ApplicationEnvironments/ApplicationEnvironment/Associations/ExecutionEnvironmentID",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ApplicationEnvironments/ApplicationEnvironment/Extensions/Extension",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ApplicationEnvironments/ApplicationEnvironment/OtherInfo",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ApplicationEnvironments/ApplicationEnvironment/ApplicationHandle/Extensions/Extension",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ApplicationEnvironments/ApplicationEnvironment/ApplicationHandle/OtherInfo",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ApplicationEnvironments/ApplicationEnvironment/ApplicationHandle",
+    "Domains/AdminDomain/ComputingService/ComputingManager/ApplicationEnvironments/ApplicationEnvironment",
+    "Domains/AdminDomain/ComputingService/ComputingManager/Extensions/Extension",
+    "Domains/AdminDomain/ComputingService/ComputingManager/OtherInfo",
+    "Domains/AdminDomain/ComputingService/ComputingManager/NetworkInfo",
+    "Domains/AdminDomain/ComputingService/ComputingManager/Benchmark/Extensions/Extension",
+    "Domains/AdminDomain/ComputingService/ComputingManager/Benchmark/OtherInfo",
+    "Domains/AdminDomain/ComputingService/ComputingManager/Benchmark",
+    "Domains/AdminDomain/ComputingService/ComputingManager",
+    "Domains/AdminDomain/ComputingService/Capability",
+    "Domains/AdminDomain/ComputingService/StatusInfo",
+    "Domains/AdminDomain/ComputingService/Contact",
+    "Domains/AdminDomain/ComputingService/Extensions/Extension",
+    "Domains/AdminDomain/ComputingService/OtherInfo",
+    "Domains/AdminDomain/ComputingService/StorageManager/Extensions/Extension",
+    "Domains/AdminDomain/ComputingService/StorageManager/OtherInfo",
+    "Domains/AdminDomain/ComputingService/StorageManager",
+    "Domains/AdminDomain/ComputingService/Location/Extensions/Extension",
+    "Domains/AdminDomain/ComputingService/Location/OtherInfo",
+    "Domains/AdminDomain/ComputingService/Contact/Extensions/Extension",
+    "Domains/AdminDomain/ComputingService/Contact/OtherInfo",
+    "Domains/AdminDomain/ComputingService/ComputingShare/MappingPolicy/OtherInfo",
+    "Domains/AdminDomain/ComputingService/ComputingShare/MappingPolicy/Extensions/Extension",
+    "Domains/AdminDomain/ComputingService/ComputingShare/MappingPolicy/Rule",
+    "Domains/AdminDomain/ComputingService/ComputingShare/MappingPolicy/Associations/UserDomainID",
+    "Domains/AdminDomain/ComputingService/ComputingShare/MappingPolicy",
+    "Domains/AdminDomain/ComputingService/ComputingShare/Extensions/Extension",
+    "Domains/AdminDomain/ComputingService/ComputingShare/OtherInfo",
+    "Domains/AdminDomain/ComputingService/ComputingShare/Tag",
+    "Domains/AdminDomain/ComputingService/ComputingShare/Associations/ComputingEndpointID",
+    "Domains/AdminDomain/ComputingService/ComputingShare/Associations/ExecutionEnvironmentID",
+    "Domains/AdminDomain/ComputingService/ComputingShare/Associations/ComputingActivityID",
+    "Domains/AdminDomain/ComputingService/ComputingShare",
+    "Domains/AdminDomain/ComputingService/ComputingManager",
+    "Domains/AdminDomain/ComputingService/Associations/ServiceID",
+    "Domains/AdminDomain/ComputingService/ToStorageService/Extensions/Extension",
+    "Domains/AdminDomain/ComputingService/ToStorageService/OtherInfo",
+    "Domains/AdminDomain/ComputingService",
+    "Domains/AdminDomain/StorageService/Capability",
+    "Domains/AdminDomain/StorageService/StatusInfo",
+    "Domains/AdminDomain/StorageService/Contact",
+    "Domains/AdminDomain/StorageService/Extensions/Extension",
+    "Domains/AdminDomain/StorageService/OtherInfo",
+    "Domains/AdminDomain/StorageService/StorageManager/Extensions/Extension",
+    "Domains/AdminDomain/StorageService/StorageManager/OtherInfo",
+    "Domains/AdminDomain/StorageService/StorageManager",
+    "Domains/AdminDomain/StorageService/Location/Extensions/Extension",
+    "Domains/AdminDomain/StorageService/Location/OtherInfo",
+    "Domains/AdminDomain/StorageService/Contact/Extensions/Extension",
+    "Domains/AdminDomain/StorageService/Contact/OtherInfo",
+    "Domains/AdminDomain/StorageService/StorageServiceCapacity/Extensions/Extension",
+    "Domains/AdminDomain/StorageService/StorageServiceCapacity/OtherInfo",
+    "Domains/AdminDomain/StorageService/StorageShare/StorageShareCapacity/Extensions/Extension",
+    "Domains/AdminDomain/StorageService/StorageShare/StorageShareCapacity/OtherInfo",
+    "Domains/AdminDomain/StorageService/StorageShare/MappingPolicy",
+    "Domains/AdminDomain/StorageService/StorageShare/MappingPolicy/Extensions/Extension",
+    "Domains/AdminDomain/StorageService/StorageShare/MappingPolicy/Rule",
+    "Domains/AdminDomain/StorageService/StorageShare/MappingPolicy/Associations/UserDomainID",
+    "Domains/AdminDomain/StorageService/StorageShare/MappingPolicy/OtherInfo",
+    "Domains/AdminDomain/StorageService/StorageShare/Extensions/Extension",
+    "Domains/AdminDomain/StorageService/StorageShare/OtherInfo",
+    "Domains/AdminDomain/StorageService/StorageShare/AccessMode",
+    "Domains/AdminDomain/StorageService/StorageShare/RetentionPolicy",
+    "Domains/AdminDomain/StorageService/StorageShare/StorageShareCapacity",
+    "Domains/AdminDomain/StorageService/StorageShare/Associations/StorageEndpointID",
+    "Domains/AdminDomain/StorageService/StorageShare/Associations/DataStoreID",
+    "Domains/AdminDomain/StorageService/StorageShare",
+    "Domains/AdminDomain/StorageService/StorageEndpoint/Extensions/Extension",
+    "Domains/AdminDomain/StorageService/StorageEndpoint/OtherInfo",
+    "Domains/AdminDomain/StorageService/StorageEndpoint/Capability",
+    "Domains/AdminDomain/StorageService/StorageEndpoint/InterfaceVersion",
+    "Domains/AdminDomain/StorageService/StorageEndpoint/InterfaceExtension",
+    "Domains/AdminDomain/StorageService/StorageEndpoint/WSDL",
+    "Domains/AdminDomain/StorageService/StorageEndpoint/SupportedProfile",
+    "Domains/AdminDomain/StorageService/StorageEndpoint/Semantics",
+    "Domains/AdminDomain/StorageService/StorageEndpoint/TrustedCA",
+    "Domains/AdminDomain/StorageService/StorageEndpoint/AccessPolicy",
+    "Domains/AdminDomain/StorageService/StorageEndpoint/AccessPolicy/OtherInfo",
+    "Domains/AdminDomain/StorageService/StorageEndpoint/AccessPolicy/Extensions/Extension",
+    "Domains/AdminDomain/StorageService/StorageEndpoint/AccessPolicy/Rule",
+    "Domains/AdminDomain/StorageService/StorageEndpoint/AccessPolicy/Associations/UserDomainID",
+    "Domains/AdminDomain/StorageService/StorageEndpoint",
+    "Domains/AdminDomain/StorageService/StorageManager",
+    "Domains/AdminDomain/StorageService/StorageAccessProtocol/Associations/ToComputingServiceID",
+    "Domains/AdminDomain/StorageService/StorageAccessProtocol",
+    "Domains/AdminDomain/StorageService/StorageServiceCapacity",
+    "Domains/AdminDomain/StorageService/ToComputingService",
+    "Domains/AdminDomain/StorageService/Associations/ServiceID",
+    "Domains/AdminDomain/StorageService",
+    "Domains/AdminDomain/Owner",
+    "Domains/AdminDomain/AdminDomain",
+    "Domains/AdminDomain/Extensions/Extension",
+    "Domains/AdminDomain/OtherInfo",
+    "Domains/AdminDomain/Location/Extensions/Extension",
+    "Domains/AdminDomain/Location/OtherInfo",
+    "Domains/AdminDomain/Contact/Extensions/Extension",
+    "Domains/AdminDomain/Contact/OtherInfo",
+    "Domains/AdminDomain/WWW",
+    "Domains/AdminDomain/Contact",
+    "Domains/AdminDomain",
+    "Domains/UserDomain/UserManager",
+    "Domains/UserDomain/Member",
+    "Domains/UserDomain/UserDomain",
+    "Domains/UserDomain/WWW",
+    "Domains/UserDomain/Contact",
+    "Domains/UserDomain/Extensions/Extension",
+    "Domains/UserDomain/OtherInfo",
+    "Domains/UserDomain/Location/Extensions/Extension",
+    "Domains/UserDomain/Location/OtherInfo",
+    "Domains/UserDomain/Contact/Extensions/Extension",
+    "Domains/UserDomain/Contact/OtherInfo",
+    "Domains/UserDomain",
+    NULL
+  };
+  return HTTPResponse(inmsg, outmsg, infoXml, info_json_arrays, false);
 }
 
 // ---------------------------- DELEGATIONS ---------------------------------
@@ -858,7 +1055,7 @@ Arc::MCC_Status ARexRest::processDelegations(Arc::Message& inmsg,Arc::Message& o
       delegXml.NewChild("id") = itId->first;
       delegXml.NewChild("type") = delegType;
     }
-    char const * json_arrays[] = { "delegation", NULL };
+    char const * const json_arrays[] = { "delegation", NULL };
     return HTTPResponse(inmsg, outmsg, listXml, json_arrays);
   } else if(context.method == "POST") {
     std::string action = context["action"];
@@ -1050,7 +1247,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
       if(!rest_state.empty())
         jobXml.NewChild("state") = rest_state;
     }
-    char const * json_arrays[] = { "job", NULL };
+    char const * const json_arrays[] = { "job", NULL };
     return HTTPResponse(inmsg, outmsg, listXml, json_arrays);
   } else if(context.method == "POST") {
     std::string action = context["action"];
@@ -1265,7 +1462,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
           return HTTPFault(inmsg,outmsg,500,"Payload is not recognized");
           break;
       }
-      char const * json_arrays[] = { "job", NULL };
+      char const * const json_arrays[] = { "job", NULL };
       return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "info") {
       std::string errmsg;
@@ -1278,7 +1475,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobInfo(inmsg,*config,logger_,*id,jobXml);
       }
-      char const * json_arrays[] = { "job", NULL };
+      char const * const json_arrays[] = { "job", NULL };
       return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "status") {
       std::string errmsg;
@@ -1291,7 +1488,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobStatus(inmsg,*config,logger_,*id,jobXml);
       }
-      char const * json_arrays[] = { "job", NULL };
+      char const * const json_arrays[] = { "job", NULL };
       return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "kill") {
       std::string errmsg;
@@ -1304,7 +1501,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobKill(inmsg,*config,logger_,*id,jobXml);
       }
-      char const * json_arrays[] = { "job", NULL };
+      char const * const json_arrays[] = { "job", NULL };
       return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "clean") {
       std::string errmsg;
@@ -1317,7 +1514,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobClean(inmsg,*config,logger_,*id,jobXml);
       }
-      char const * json_arrays[] = { "job", NULL };
+      char const * const json_arrays[] = { "job", NULL };
       return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "restart") {
       std::string errmsg;
@@ -1330,7 +1527,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobRestart(inmsg,*config,logger_,*id,jobXml);
       }
-      char const * json_arrays[] = { "job", NULL };
+      char const * const json_arrays[] = { "job", NULL };
       return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);
     } else if(action == "delegations") {
       std::string errmsg;
@@ -1343,7 +1540,7 @@ Arc::MCC_Status ARexRest::processJobs(Arc::Message& inmsg,Arc::Message& outmsg,P
         XMLNode jobXml = listXml.NewChild("job");
         (void)processJobDelegations(inmsg,*config,logger_,*id,jobXml,delegation_stores_);
       }
-      char const * json_arrays[] = { "job", NULL };
+      char const * const json_arrays[] = { "job", NULL };
       return HTTPPOSTResponse(inmsg, outmsg, listXml, json_arrays);      
     }
     logger_.msg(Arc::VERBOSE, "process: action %s is not supported for subpath %s",action,context.processed);
@@ -1821,7 +2018,7 @@ Arc::MCC_Status ARexRest::processJobSessionDir(Arc::Message& inmsg,Arc::Message&
           };
         };
       };
-      char const * json_arrays[] = { "file", "dir", NULL };
+      char const * const json_arrays[] = { "file", "dir", NULL };
       return HTTPResponse(inmsg,outmsg,listXml,json_arrays);
     };
     std::string errmsg;
@@ -1995,7 +2192,7 @@ Arc::MCC_Status ARexRest::processJobDelegations(Arc::Message& inmsg,Arc::Message
     for(std::list<std::string>::iterator itId = ids.begin(); itId != ids.end(); ++itId) {
       listXml.NewChild("delegation").NewChild("id") = *itId;
     }
-    char const * json_arrays[] = { "delegation", NULL };
+    char const * const json_arrays[] = { "delegation", NULL };
     return HTTPResponse(inmsg, outmsg, listXml, json_arrays);
   }
   logger_.msg(Arc::VERBOSE, "process: method %s is not supported for subpath %s",context.method,context.processed);

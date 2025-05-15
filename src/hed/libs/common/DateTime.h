@@ -212,7 +212,7 @@ namespace Arc {
     /// Undefined time
     static const time_t UNDEFINED = (time_t)(-1);
 
-    static std::make_signed_t<time_t> CompareTime(time_t left, time_t right) {
+    static auto CompareTime(time_t left, time_t right) {
        return static_cast< std::make_signed_t<time_t> >(left-right);
     }
 
