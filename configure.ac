@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.56)
-AC_INIT([nordugrid-arc],m4_normalize(m4_include(VERSION)),[http://bugzilla.nordugrid.org/])
+AC_INIT([nordugrid-arc],m4_normalize(m4_include(ARC_VERSION)),[http://bugzilla.nordugrid.org/])
 
 dnl serial-tests is not recognized before 1.12, and required after 1.13
 m4_define([serial_tests], [

@@ -34,6 +34,7 @@
 #include "Run.h"
 
 
+
 namespace Arc {
 
   static Logger logger(Logger::getRootLogger(), "Run");
@@ -216,7 +217,11 @@ namespace Arc {
           sigset_t signals;
           sigemptyset(&signals);
           sigaddset(&signals, SIGCHLD);
+          #ifdef __APPLE__
+          int res = poll(handles.Ptr(), handles_num, NULL);//, &signals);
+          #else
           int res = ppoll(handles.Ptr(), handles_num, NULL, &signals);
+          #endif
           if(res > 0) {
             // handles need attention
           } else if(res < 0) {

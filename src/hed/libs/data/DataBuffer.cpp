@@ -9,12 +9,12 @@
 #include <arc/CheckSum.h>
 #include <arc/data/DataBuffer.h>
 
+
 namespace Arc {
 
   bool DataBuffer::set(CheckSum *cksum, unsigned int size, int blocks) {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     if (blocks < 0) {
-      lock.unlock();
       return false;
     }
     if (bufs != NULL) {
@@ -28,12 +28,10 @@ namespace Arc {
       cond.notify_all(); /* make all waiting loops to exit */
     }
     if ((size == 0) || (blocks == 0)) {
-      lock.unlock();
       return true;
     }
     bufs = (buf_desc*)malloc(sizeof(buf_desc) * blocks);
     if (bufs == NULL) {
-      lock.unlock();
       return false;
     }
     bufs_n = blocks;
@@ -49,13 +47,12 @@ namespace Arc {
     checksums.clear();
     checksums.push_back(checksum_desc(cksum));
     if (cksum) cksum->start();
-    lock.unlock();
     return true;
   }
 
   int DataBuffer::add(CheckSum *cksum) {
     if (!cksum) return -1;
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     checksum_desc cs = cksum;
     cs.sum->start();
     for (int i = 0; i < bufs_n; i++) {
@@ -73,7 +70,6 @@ namespace Arc {
     if (eof_read_flag && cs.ready) cs.sum->end();
     checksums.push_back(cs);
     int res = checksums.size() - 1;
-    lock.unlock();
     return res;
   }
 
@@ -129,7 +125,7 @@ namespace Arc {
   }
 
   void DataBuffer::eof_read(bool eof_) {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     if (eof_) {
       for (std::list<checksum_desc>::iterator itCheckSum = checksums.begin();
            itCheckSum != checksums.end(); itCheckSum++) {
@@ -138,14 +134,12 @@ namespace Arc {
     }
     eof_read_flag = eof_;
     cond.notify_all();
-    lock.unlock();
   }
 
   void DataBuffer::eof_write(bool eof_) {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     eof_write_flag = eof_;
     cond.notify_all();
-    lock.unlock();
   }
 
   bool DataBuffer::error() {
@@ -153,7 +147,7 @@ namespace Arc {
   }
 
   void DataBuffer::error_read(bool error_) {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     // error_read_flag=error_;
     if (error_) {
       if (!(error_write_flag || error_transfer_flag)) error_read_flag = true;
@@ -166,11 +160,10 @@ namespace Arc {
       error_read_flag = false;
     }
     cond.notify_all();
-    lock.unlock();
   }
 
   void DataBuffer::error_write(bool error_) {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     // error_write_flag=error_;
     if (error_) {
       if (!(error_read_flag || error_transfer_flag)) error_write_flag = true;
@@ -179,7 +172,6 @@ namespace Arc {
       error_write_flag = false;
     }
     cond.notify_all();
-    lock.unlock();
   }
 
   bool DataBuffer::wait_eof_read() {
@@ -227,9 +219,7 @@ namespace Arc {
         }
       }
       if (eof_read_flag && eof_write_flag) { // there will be no more events
-        lock.unlock();
         std::this_thread::yield();
-        lock.lock();
         return true;
       }
       if (eof_read_flag_tmp != eof_read_flag) return true;
@@ -238,7 +228,7 @@ namespace Arc {
       if (set_counter != tmp) return false;
       if (err) break; // Some event
       // Using timeout to workaround lost signal
-      std::unique_lock<std::mutex> lock_(lock, std::defer_lock);
+      std::unique_lock<std::mutex> lock_(lock, std::adopt_lock);
       err = cond.wait_for(lock_, std::chrono::seconds(60)) == std::cv_status::no_timeout;
     }
     return true;
@@ -246,27 +236,23 @@ namespace Arc {
 
   bool DataBuffer::for_read() {
     if (bufs == NULL) return false;
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     for (int i = 0; i < bufs_n; i++) {
       if ((!bufs[i].taken_for_read) && (!bufs[i].taken_for_write) &&
           (bufs[i].used == 0)) {
-        lock.unlock();
         return true;
       }
     }
-    lock.unlock();
     return false;
   }
 
   bool DataBuffer::for_read(int& handle, unsigned int& length, bool wait) {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     if (bufs == NULL) {
-      lock.unlock();
       return false;
     }
     for (;;) {
       if (error()) { /* errors detected/set - any continuation is unusable */
-        lock.unlock();
         return false;
       }
       for (int i = 0; i < bufs_n; i++) {
@@ -280,58 +266,47 @@ namespace Arc {
           bufs[i].taken_for_read = true;
           length = bufs[i].size;
           cond.notify_all();
-          lock.unlock();
           return true;
         }
       }
       /* suitable block not found - wait for changes or quit */
       if (eof_write_flag) { /* writing side quited, no need to wait */
-        lock.unlock();
         return false;
       }
       if (!wait) {
-        lock.unlock();
         return false;
       }
       if (!cond_wait()) {
-        lock.unlock();
         return false;
       }
     }
-    lock.unlock();
     return false;
   }
 
   bool DataBuffer::is_read(char *buf, unsigned int length,
                            unsigned long long int offset) {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     for (int i = 0; i < bufs_n; i++) {
       if (bufs[i].start == buf) {
-        lock.unlock();
         return is_read(i, length, offset);
       }
     }
-    lock.unlock();
     return false;
   }
 
   bool DataBuffer::is_read(int handle, unsigned int length,
                            unsigned long long int offset) {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     if (bufs == NULL) {
-      lock.unlock();
       return false;
     }
     if (handle >= bufs_n) {
-      lock.unlock();
       return false;
     }
     if (!bufs[handle].taken_for_read) {
-      lock.unlock();
       return false;
     }
     if (length > bufs[handle].size) {
-      lock.unlock();
       return false;
     }
     bufs[handle].taken_for_read = false;
@@ -358,22 +333,19 @@ namespace Arc {
       }
     }
     cond.notify_all();
-    lock.unlock();
     return true;
   }
 
   bool DataBuffer::for_write() {
     if (bufs == NULL)
       return false;
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     for (int i = 0; i < bufs_n; i++) {
       if ((!bufs[i].taken_for_read) && (!bufs[i].taken_for_write) &&
           (bufs[i].used != 0)) {
-        lock.unlock();
         return true;
       }
     }
-    lock.unlock();
     return false;
   }
 
@@ -381,14 +353,12 @@ namespace Arc {
      return false in case of failure, or eof + no buffers claimed for read */
   bool DataBuffer::for_write(int& handle, unsigned int& length,
                              unsigned long long int& offset, bool wait) {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     if (bufs == NULL) {
-      lock.unlock();
       return false;
     }
     for (;;) {
       if (error()) { /* internal/external errors - no need to continue */
-        lock.unlock();
         return false;
       }
       bool have_for_read = false;
@@ -421,11 +391,9 @@ namespace Arc {
           if (have_unused && (!eof_read_flag)) {
             /* still have chances to get that block */
             if (!wait) {
-              lock.unlock();
               return false;
             }
             if (!cond_wait()) {
-              lock.unlock();
               return false;
             }
             continue;
@@ -436,63 +404,51 @@ namespace Arc {
         length = bufs[handle].used;
         offset = bufs[handle].offset;
         cond.notify_all();
-        lock.unlock();
         return true;
       }
       if (eof_read_flag && (!have_for_read)) {
-        lock.unlock();
         return false;
       }
       /* suitable block not found - wait for changes or quit */
       if (!wait) {
-        lock.unlock();
         return false;
       }
       if (!cond_wait()) {
-        lock.unlock();
         return false;
       }
     }
-    lock.unlock();
     return false;
   }
 
   bool DataBuffer::is_written(char *buf) {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     for (int i = 0; i < bufs_n; i++) {
       if (bufs[i].start == buf) {
-        lock.unlock();
         return is_written(i);
       }
     }
-    lock.unlock();
     return false;
   }
 
   bool DataBuffer::is_notwritten(char *buf) {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     for (int i = 0; i < bufs_n; i++) {
       if (bufs[i].start == buf) {
-        lock.unlock();
         return is_notwritten(i);
       }
     }
-    lock.unlock();
     return false;
   }
 
   bool DataBuffer::is_written(int handle) {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     if (bufs == NULL) {
-      lock.unlock();
       return false;
     }
     if (handle >= bufs_n) {
-      lock.unlock();
       return false;
     }
     if (!bufs[handle].taken_for_write) {
-      lock.unlock();
       return false;
     }
     /* speed control */
@@ -505,91 +461,77 @@ namespace Arc {
     bufs[handle].used = 0;
     bufs[handle].offset = 0;
     cond.notify_all();
-    lock.unlock();
     return true;
   }
 
   bool DataBuffer::is_notwritten(int handle) {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     if (bufs == NULL) {
-      lock.unlock();
       return false;
     }
     if (handle >= bufs_n) {
-      lock.unlock();
       return false;
     }
     if (!bufs[handle].taken_for_write) {
-      lock.unlock();
       return false;
     }
     bufs[handle].taken_for_write = false;
     cond.notify_all();
-    lock.unlock();
     return true;
   }
 
   char* DataBuffer::operator[](int block) {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     if ((block < 0) || (block >= bufs_n)) {
-      lock.unlock();
       return NULL;
     }
     char *tmp = bufs[block].start;
-    lock.unlock();
     return tmp;
   }
 
   bool DataBuffer::wait_any() {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     bool res = cond_wait();
-    lock.unlock();
     return res;
   }
 
   bool DataBuffer::wait_used() {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     for (int i = 0; i < bufs_n; i++) {
       if ((bufs[i].taken_for_read) || (bufs[i].taken_for_write) ||
           (bufs[i].used != 0)) {
         if (!cond_wait()) {
-          lock.unlock();
           return false;
         }
         i = -1;
       }
     }
-    lock.unlock();
     return true;
   }
 
   bool DataBuffer::wait_for_read() {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     for (int i = 0; i < bufs_n; i++) {
       if (bufs[i].taken_for_read) {
         if (!cond_wait()) {
-          lock.unlock();
           return false;
         }
         i = -1;
       }
     }
-    lock.unlock();
     return true;
   }
 
   bool DataBuffer::wait_for_write() {
-    lock.lock();
+    std::lock_guard<std::mutex> guard(lock);
     for (int i = 0; i < bufs_n; i++) {
       if (bufs[i].taken_for_write) {
         if (!cond_wait()) {
-          lock.unlock();
           return false;
         }
         i = -1;
       }
     }
-    lock.unlock();
     return true;
   }
 
