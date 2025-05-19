@@ -212,9 +212,11 @@ namespace Arc {
     /// Undefined time
     static const time_t UNDEFINED = (time_t)(-1);
 
-    static std::make_signed_t<time_t> CompareTime(time_t left, time_t right) {
+#ifndef SWIG
+    static auto CompareTime(time_t left, time_t right) {
        return static_cast< std::make_signed_t<time_t> >(left-right);
     }
+#endif
 
   private:
     /// The time stored -- by default it is equal to the current time.

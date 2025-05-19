@@ -149,6 +149,7 @@ private:
 %ignore Arc::Time::operator=(const Time&);
 %ignore Arc::Time::operator=(const char*);
 %ignore Arc::Time::operator=(const std::string&);
+%ignore Arc::Time::CompareTime(time_t, time_t);
 %ignore operator<<(std::ostream&, const Time&);;
 %ignore Arc::Period::operator=(time_t);
 %ignore Arc::Period::operator=(const Period&);
