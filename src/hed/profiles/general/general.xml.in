@@ -77,6 +77,7 @@ attributes depending on how the mapping should be done.
     <Name>mccsoap</Name>
     <Name>arcshc</Name>
     <Name initokenenables="common#identitymap">identitymap</Name>
+    <Name>arcshcotokens</Name>
   </Plugins>
   <Chain>
     <Component name="tcp.service" id="tcp">
@@ -110,8 +111,13 @@ attributes depending on how the mapping should be done.
         <tls:VOMSCertTrustRegex>.*</tls:VOMSCertTrustRegex>
       </tls:VOMSCertTrustDNChain>
       <tls:VOMSProcessing inisections="common" initag="voms_processing" inidefaultvalue="standard"/>
+      <ClientAuthn>false</ClientAuthn>
+      <Ciphers>HIGH:!eNULL:!aNULL</Ciphers>
+      <Protocol>TLSv1.2</Protocol><Protocol>TLSv1.3</Protocol>
     </Component>
     <Component name="http.service" id="http">
+      <next id="soap">POST</next>
+      <next id="plexer"/>
       <SecHandler name="arc.authz" id="authz" event="incoming" initokenenables="common#policystore">
         <!-- policystore=path in [common] applies policy file. Attributes up to HTTP level can be used.  -->
         <PDP name="arc.pdp">
@@ -121,10 +127,8 @@ attributes depending on how the mapping should be done.
           </PolicyStore>
         </PDP>
       </SecHandler>
-      <next id="soap">POST</next>
-      <next id="plexer">GET</next>
-      <next id="plexer">HEAD</next>
-      <next id="plexer">PUT</next>
+      <!-- Collect OTokens information irrespective of configuration -->
+      <SecHandler name="otokens.handler" event="incoming"/>
     </Component>
     <Component name="soap.service" id="soap">
       <next id="plexer"/>
