@@ -31,7 +31,15 @@ namespace DataStaging {
 
   Arc::Logger DataDeliveryService::logger(Arc::Logger::rootLogger, "DataDeliveryService");
 
-
+  class DTRLogStream: public Arc::LogStream {
+    public:
+      DTRLogStream(): Arc::LogStream(stream) {}
+      auto str() { return stream.str(); }
+    private:
+      std::stringstream stream;
+  };
+  
+  
   void DataDeliveryService::ArchivalThread(void* arg) {
     DataDeliveryService* service = (DataDeliveryService*)arg;
     service->ArchivalThread();
@@ -47,10 +55,10 @@ namespace DataStaging {
       Arc::Time timelimit(Arc::Time()-Arc::Period(3600));
 
       active_dtrs_lock.lock();
-      for (std::map<DTR_ptr, sstream_ptr>::iterator i = active_dtrs.begin();
+      for (std::set<DTR_ptr>::iterator i = active_dtrs.begin();
            i != active_dtrs.end();) {
 
-        DTR_ptr dtr = i->first;
+        DTR_ptr dtr = *i;
 
         if (dtr->get_modification_time() < timelimit && dtr->get_status() != DTRStatus::TRANSFERRING) {
           archived_dtrs_lock.lock();
@@ -223,13 +231,13 @@ namespace DataStaging {
 
       // check if dtrid is in the active list - if so it is probably a retry
       active_dtrs_lock.lock();
-      std::map<DTR_ptr, sstream_ptr>::iterator i = active_dtrs.begin();
+      std::set<DTR_ptr>::iterator i = active_dtrs.begin();
 
       for (; i != active_dtrs.end(); ++i) {
-        if (i->first->get_id() == dtrid) break;
+        if ((*i)->get_id() == dtrid) break;
       }
       if (i != active_dtrs.end()) {
-        if (i->first->get_status() == DTRStatus::TRANSFERRING) {
+        if ((*i)->get_status() == DTRStatus::TRANSFERRING) {
           logger.msg(Arc::ERROR, "Received retry for DTR %s still in transfer", dtrid);
           resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
           resultelement.NewChild("ErrorDescription") = "DTR is still in transfer";
@@ -237,7 +245,7 @@ namespace DataStaging {
           continue;
         }
         // Erase this DTR from active list
-        logger.msg(Arc::VERBOSE, "Replacing DTR %s in state %s with new request", dtrid, i->first->get_status().str());
+        logger.msg(Arc::VERBOSE, "Replacing DTR %s in state %s with new request", dtrid, (*i)->get_status().str());
         active_dtrs.erase(i);
       }
       active_dtrs_lock.unlock();
@@ -282,8 +290,8 @@ namespace DataStaging {
       // cannot delete it until deleting LogStream. These pointers are
       // deleted when the DTR is archived.
       std::list<DTRLogDestination> logs;
-      sstream_ptr stream(new std::stringstream());
-      Arc::LogDestination * output = new Arc::LogStream(*stream);
+
+      Arc::LogDestination * output = new DTRLogStream();
       output->setFormat(Arc::MediumFormat);
       logs.push_back(output);
 
@@ -325,7 +333,7 @@ namespace DataStaging {
 
       // Add to active list
       active_dtrs_lock.lock();
-      active_dtrs[dtr] = stream;
+      active_dtrs.emplace(dtr);
       active_dtrs_lock.unlock();
 
       resultelement.NewChild("ResultCode") = "OK";
@@ -377,9 +385,9 @@ namespace DataStaging {
       resultelement.NewChild("ID") = dtrid;
 
       active_dtrs_lock.lock();
-      std::map<DTR_ptr, sstream_ptr>::iterator dtr_it = active_dtrs.begin();
+      std::set<DTR_ptr>::iterator dtr_it = active_dtrs.begin();
       for (; dtr_it != active_dtrs.end(); ++dtr_it) {
-        if (dtr_it->first->get_id() == dtrid) break;
+        if ((*dtr_it)->get_id() == dtrid) break;
       }
 
       if (dtr_it == active_dtrs.end()) {
@@ -402,8 +410,15 @@ namespace DataStaging {
         continue;
       }
 
-      DTR_ptr dtr = dtr_it->first;
-      resultelement.NewChild("Log") = dtr_it->second->str();
+      DTR_ptr dtr = *dtr_it;
+      std::list<Arc::LogDestination*> logdest = dtr->get_log_destinations();
+      for(auto log: logdest) {
+        auto logstream = dynamic_cast<DTRLogStream*>(log);
+        if (logstream) {
+          resultelement.NewChild("Log") = logstream->str();
+          break;
+        }
+      }
       resultelement.NewChild("BytesTransferred") = Arc::tostring(dtr->get_bytes_transferred());
 
       if (dtr->error()) {
@@ -481,9 +496,9 @@ namespace DataStaging {
 
       // Check if DTR is still in active list
       active_dtrs_lock.lock();
-      std::map<DTR_ptr, sstream_ptr>::iterator dtr_it = active_dtrs.begin();
+      std::set<DTR_ptr>::iterator dtr_it = active_dtrs.begin();
       for (; dtr_it != active_dtrs.end(); ++dtr_it) {
-        if (dtr_it->first->get_id() == dtrid) break;
+        if ((*dtr_it)->get_id() == dtrid) break;
       }
 
       if (dtr_it == active_dtrs.end()) {
@@ -495,7 +510,7 @@ namespace DataStaging {
       }
       // DTR could be already finished, but report successful cancel anyway
 
-      DTR_ptr dtr = dtr_it->first;
+      DTR_ptr dtr = *dtr_it;
       if (dtr->get_status() == DTRStatus::TRANSFERRING_CANCEL) {
         active_dtrs_lock.unlock();
         logger.msg(Arc::ERROR, "DTR %s was already cancelled", dtrid);
