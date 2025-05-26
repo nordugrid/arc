@@ -8,6 +8,7 @@ from .OSService import OSServiceManagement
 
 import sys
 import json
+from datetime import datetime, timezone, timedelta
 
 def complete_wlcgvo(prefix, parsed_args, **kwargs):
     arcconf = get_parsed_arcconf(parsed_args.config)
@@ -123,13 +124,13 @@ class AccountingControl(ComponentControl):
 
     def __human_readable(self, stats):
         """Make output human readable converting seconds and bytes to eye candy units"""
-        stats['walltime'] = datetime.timedelta(seconds=stats['walltime'])
-        stats['cpuusertime'] = datetime.timedelta(seconds=stats['cpuusertime'])
-        stats['cpukerneltime'] = datetime.timedelta(seconds=stats['cpukerneltime'])
+        stats['walltime'] = timedelta(seconds=stats['walltime'])
+        stats['cpuusertime'] = timedelta(seconds=stats['cpuusertime'])
+        stats['cpukerneltime'] = timedelta(seconds=stats['cpukerneltime'])
         stats['cputime'] = stats['cpuusertime'] + stats['cpukerneltime']
-        stats['minstarttime'] = datetime.datetime.utcfromtimestamp(stats['minstarttime'])
-        stats['maxendtime'] = datetime.datetime.utcfromtimestamp(stats['maxendtime'])
-        stats['minendtime'] = datetime.datetime.utcfromtimestamp(stats['minendtime'])
+        stats['minstarttime'] = datetime.fromtimestamp(stats['minstarttime'], timezone.utc)
+        stats['maxendtime'] = datetime.fromtimestamp(stats['maxendtime'], timezone.utc)
+        stats['minendtime'] = datetime.fromtimestamp(stats['minendtime'], timezone.utc)
         stats['stagein'] = get_human_readable_size(stats['stagein'])
         stats['stageout'] = get_human_readable_size(stats['stageout'])
 
@@ -481,7 +482,7 @@ class AccountingControl(ComponentControl):
         if args.end_from:
             self.adb.filter_endfrom(args.end_from)
         else:
-            self.adb.filter_endfrom(datetime.datetime.today() - datetime.timedelta(days=14))
+            self.adb.filter_endfrom(datetime.now(tz=timezone.utc) - timedelta(days=14))
         if args.end_till:
             self.adb.filter_endtill(args.end_till)
         self.adb.filter_statuses(['completed', 'failed'])

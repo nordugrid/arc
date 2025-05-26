@@ -2,20 +2,16 @@ from __future__ import absolute_import
 import sys
 import os
 import logging
-import datetime
 import argparse
 import zlib
 import re
 import subprocess
 from arc.utils import config
+from datetime import datetime, timezone
 # HTTPS
 import socket
 import ssl
-try:
-    import httplib
-except ImportError:
-    import http.client as httplib
-
+import http.client as httplib
 
 logger = logging.getLogger('ARCCTL.Common')
 
@@ -88,25 +84,25 @@ def ask_yes_no(question, default_yes=False):
         return default_yes
     return ask_yes_no("Please type 'yes' or 'no'", default_yes)
 
-def valid_datetime_type(arg_datetime_str):
+def valid_datetime_type(arg_datetime_str: str) -> datetime:
     """Argparse datetime-as-an-argument helper"""
     try:
-        return datetime.datetime.strptime(arg_datetime_str, "%Y-%m-%d")
+        return datetime.strptime(arg_datetime_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     except ValueError:
         try:
-            return datetime.datetime.strptime(arg_datetime_str, "%Y-%m-%d %H:%M")
+            return datetime.strptime(arg_datetime_str, "%Y-%m-%d %H:%M").replace(tzinfo=timezone.utc)
         except ValueError:
             try:
-                return datetime.datetime.strptime(arg_datetime_str, "%Y-%m-%d %H:%M:%S")
+                return datetime.strptime(arg_datetime_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
             except ValueError:
                 msg = "Timestamp format ({0}) is not valid! " \
                       "Expected format: YYYY-MM-DD [HH:mm[:ss]]".format(arg_datetime_str)
                 raise argparse.ArgumentTypeError(msg)
 
-def valid_datetime_yymmdd(arg_datetime_str):
+def valid_datetime_yymmdd(arg_datetime_str: str) -> datetime:
     """Argparse datetime-as-an-argument helper (date-only)"""
     try:
-        return datetime.datetime.strptime(arg_datetime_str, "%Y-%m-%d")
+        return datetime.strptime(arg_datetime_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     except ValueError:
         msg = "Timestamp format ({0}) is not valid! " \
               "Expected format: YYYY-MM-DD".format(arg_datetime_str)

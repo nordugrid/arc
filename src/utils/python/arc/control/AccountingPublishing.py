@@ -9,21 +9,16 @@ import os
 import sys
 import logging
 import re
-import datetime
-import calendar
+
+from datetime import datetime, timezone, timedelta
+from typing import Optional, Any, Dict
 
 # AMSDirectSender dependencies
 import json
 import base64
 from subprocess import Popen, PIPE
+from io import StringIO
 
-try:
-    import cStringIO as StringIO
-except ImportError:
-    try:
-        import io as StringIO
-    except ImportError:
-        import StringIO
 
 ACCOUNTING_PUBLISHING_DB_FILE = "publishing.db"
 
@@ -84,7 +79,7 @@ def duration_to_iso8601(seconds):
     return iso8601
 
 
-def datetime_to_iso8601(dt):
+def datetime_to_iso8601(dt: datetime) -> str:
     """Return ISO8601 representation of datetime (without microseconds)"""
     return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -174,7 +169,7 @@ class RecordsPublisher(object):
             self.logger.info('VO filtering is configured. Querying jobs owned by this WLCG VO(s): %s', ','.join(vos))
             self.adb.filter_wlcgvos(vos)
 
-    def __init_adb_filters(self, endfrom=None, endtill=None):
+    def __init_adb_filters(self, endfrom: Optional[datetime] = None, endtill: Optional[datetime] = None) -> None:
         self.adb.filters_clean()
         # timerange filters first
         if endfrom is not None:
@@ -184,7 +179,7 @@ class RecordsPublisher(object):
         # only finished jobs
         self.adb.filter_statuses(['completed', 'failed'])
 
-    def publish_sgas(self, target_conf, endfrom, endtill=None, dry_run=False):
+    def publish_sgas(self, target_conf: Dict[str, Any], endfrom: datetime, endtill: Optional[datetime] = None, dry_run: bool = False) -> Optional[int]:
         """Publish to SGAS target"""
         self.logger.debug('Assigning filters to SGAS publishing database query')
         self.__init_adb_filters(endfrom, endtill)
@@ -235,7 +230,7 @@ class RecordsPublisher(object):
         self.logger.debug('Accounting records have been published to SGAS target %s', target_conf['targethost'])
         return latest_endtime
 
-    def publish_apel(self, target_conf, endfrom, endtill=None, regular=False, dry_run=False):
+    def publish_apel(self, target_conf: Dict[str, Any], endfrom: datetime, endtill: Optional[datetime] = None, regular: bool = False, dry_run: bool = False) -> Optional[int]:
         """Publish to all APEL targets"""
         # Parse targetURL and get necessary parameters for APEL publishing
         urldict = get_url_components(target_conf['targeturl'])
@@ -284,13 +279,13 @@ class RecordsPublisher(object):
                 summary_endfrom = endfrom
                 if regular:
                     # regularly sent summaries include previous month
-                    today_dt = datetime.datetime.today()
+                    today_dt = datetime.now(tz=timezone.utc)
                     sef_year = today_dt.year
                     sef_month = today_dt.month - 1
                     if sef_month == 0:
                         sef_year -= 1
                         sef_month = 12
-                    summary_endfrom = datetime.datetime(sef_year, sef_month, 1)
+                    summary_endfrom = datetime(sef_year, sef_month, 1, tzinfo=timezone.utc)
                 # reinitialize filters to APEL summaries publishing ()
                 self.logger.debug('Assigning filters for APEL summaries database query')
                 self.__init_adb_filters(summary_endfrom, endtill)
@@ -320,7 +315,7 @@ class RecordsPublisher(object):
         else:
             sync_endfrom = endfrom.replace(day=1, hour=0, minute=0, second=0)
             if endtill:
-                endtillx = endtill - datetime.timedelta(seconds=1)
+                endtillx = endtill - timedelta(seconds=1)
                 endtill_month = endtillx.month + 1
                 endtill_year = endtillx.year
                 if endtill_month == 13:
@@ -357,12 +352,12 @@ class RecordsPublisher(object):
         if not self.__check_target_confdict(targettype, targetconf):
             return False
         # publish without recording the last intervals
-        latest = None
+        latest_ts = None
         if targettype == 'apel':
-            latest = self.publish_apel(targetconf, endfrom, endtill, dry_run=dry_run)
+            latest_ts = self.publish_apel(targetconf, endfrom, endtill, dry_run=dry_run)
         elif targettype == 'sgas':
-            latest = self.publish_sgas(targetconf, endfrom, endtill, dry_run=dry_run)
-        if latest is None:
+            latest_ts = self.publish_sgas(targetconf, endfrom, endtill, dry_run=dry_run)
+        if latest_ts is None:
             return False
         return True
 
@@ -381,28 +376,39 @@ class RecordsPublisher(object):
             self.adb.publishing_db_connect(self.pdb_file)
             if 'urdelivery_frequency' in targetconf:
                 lastreported = self.adb.get_last_report_time(target)
-                unixtime_now = calendar.timegm(datetime.datetime.today().timetuple())
+                unixtime_now = int(datetime.now(tz=timezone.utc).timestamp())
                 if (unixtime_now - lastreported) < int(targetconf['urdelivery_frequency']):
                     self.logger.debug('Records have been reported to [%s] target less than %s seconds ago. '
                                       'Skipping publishing during this run due to "urdelivery_frequency" constraint.',
                                       target, targetconf['urdelivery_frequency'])
                     continue
-            # fetch latest published record timestamp for this target
-            endfrom = self.adb.get_last_published_endtime(target)
-            self.logger.info('Publishing latest accounting data to [%s] target (jobs finished since %s).',
-                             target, datetime.datetime.utcfromtimestamp(endfrom))
+            # fetch latest published record endtime for this target
+            endfrom_ts = self.adb.get_last_published_endtime(target)
+            if endfrom_ts < 0:
+                endfrom = datetime.now(tz=timezone.utc).replace(
+                    day=1, hour=0, minute=0, second=0, microsecond=0)
+                self.logger.warning('It is a first time the regurlar publishing is running for [%s] taxrget. '
+                                    'Accounting data for jobs finished after %s will be published. '
+                                    'If you have and want to publish earlier records, use republishing.',
+                                    target, endfrom)
+            else:
+                endfrom = datetime.fromtimestamp(
+                    endfrom_ts, tz=timezone.utc)
+                self.logger.info(
+                    'Publishing latest accounting data for jobs finished after %s to [%s] target', endfrom, target)
+
             # do publishing
-            latest = None
+            latest_ts = None
             if ttype == 'apel':
-                latest = self.publish_apel(targetconf, endfrom, regular=True)
+                latest_ts = self.publish_apel(targetconf, endfrom, regular=True)
             elif ttype == 'sgas':
-                latest = self.publish_sgas(targetconf, endfrom)
+                latest_ts = self.publish_sgas(targetconf, endfrom)
             # update latest published record timestamp
-            if latest is not None:
-                self.adb.set_last_published_endtime(target, latest)
+            if latest_ts is not None:
+                self.adb.set_last_published_endtime(target, latest_ts)
                 self.logger.info('Accounting data for jobs finished before %s '
                                  'have been successfully published to [%s] target',
-                                 datetime.datetime.utcfromtimestamp(latest), target)
+                                 datetime.fromtimestamp(latest_ts, tz=timezone.utc), target)
 
 class SGASSender(object):
     """Send messages to SGAS server"""
@@ -452,7 +458,7 @@ class SGASSender(object):
     def send(self, urs):
         for x in range(0, len(urs), self.batchsize):
             self.logger.debug('Preparing JobUsageRecords batch of max %s records', self.batchsize)
-            buf = StringIO.StringIO()
+            buf = StringIO()
             buf.write(UsageRecord.batch_header())
             buf.write(UsageRecord.join_str().join(map(lambda ur: ur.get_xml(), urs[x:x + self.batchsize])))
             buf.write(UsageRecord.batch_footer())
@@ -553,7 +559,7 @@ class APELAMSDirectSender(object):
         publish_path = '/v1/projects/{0}/topics/{1}:publish?key={2}'.format(
             self.ams_project, self.conf['topic'], self.ams_token
         )
-        utcnow = datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        utcnow = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         empaid = "{0}/{1}".format(utcnow[:8], utcnow)
         try:
             """ python3 """
@@ -597,7 +603,7 @@ class APELAMSDirectSender(object):
     def publish_cars(self, carlist):
         for x in range(0, len(carlist), self.batchsize):
             self.logger.debug('Preparing EMI CARs batch of max %s records to be sent', self.batchsize)
-            buf = StringIO.StringIO()
+            buf = StringIO()
             buf.write(ComputeAccountingRecord.batch_header())
             buf.write(ComputeAccountingRecord.join_str().join(map(lambda ur: ur.get_xml(),
                                                                   carlist[x:x + self.batchsize])))
@@ -614,7 +620,7 @@ class APELAMSDirectSender(object):
     def publish_summaries(self, summaries):
         for x in range(0, len(summaries), self.batchsize):
             self.logger.debug('Preparing APEL Summaries batch of max %s records to be sent', self.batchsize)
-            buf = StringIO.StringIO()
+            buf = StringIO()
             buf.write(summaries[0].header())
             buf.write(summaries[0].join_str().join(map(lambda s: s.get_record(), summaries[x:x + self.batchsize])))
             buf.write(summaries[0].footer())
@@ -630,7 +636,7 @@ class APELAMSDirectSender(object):
     def publish_sync(self, syncs):
         for x in range(0, len(syncs), self.batchsize):
             self.logger.debug('Preparing APEL Sync messages to be sent')
-            buf = StringIO.StringIO()
+            buf = StringIO()
             buf.write(APELSyncRecord.header())
             buf.write(APELSyncRecord.join_str().join(map(lambda s: s.get_record(), syncs[x:x + self.batchsize])))
             buf.write(APELSyncRecord.footer())
@@ -719,7 +725,7 @@ class UsageRecord(JobAccountingRecord):
     def __record_identity(self):
         """Construct RecordIdentity"""
         return self.__xml_templates['record-id'].format(**{
-            'createtime': datetime_to_iso8601(datetime.datetime.today()),
+            'createtime': datetime_to_iso8601(datetime.now(timezone.utc)),
             'recordid': 'ur-' + self.aar.submithost() + '-' + self.aar.get()['JobID']
         })
 
@@ -940,7 +946,7 @@ class ComputeAccountingRecord(JobAccountingRecord):
     def __record_identity(self):
         """Construct RecordIdentity"""
         return self.__xml_templates['record-id'].format(**{
-            'createtime': datetime_to_iso8601(datetime.datetime.today()),
+            'createtime': datetime_to_iso8601(datetime.now(timezone.utc)),
             'recordid': 'ur-' + self.aar.submithost() + '-' + self.aar.get()['JobID']
         })
 
