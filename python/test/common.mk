@@ -6,7 +6,10 @@ endif
 
 include $(srcdir)/../tests.mk
 
-$(TESTSCRIPTS) testutils.py: %: $(srcdir)/../% testutils.py
+testutils.py: %: $(srcdir)/../%
+	cp -p $< $@
+
+$(TESTSCRIPTS): %: $(srcdir)/../% testutils.py
 	cp -p $< $@
 
 CLEANFILES = $(TESTSCRIPTS) testutils.py*
