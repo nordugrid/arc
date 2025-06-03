@@ -1,10 +1,11 @@
 import sys
 import os
 import logging
-import calendar
-import datetime
 import sqlite3
 import shutil
+
+from datetime import datetime, timezone
+from typing import Optional
 
 from .ControlCommon import get_human_readable_size, print_info
 
@@ -451,24 +452,17 @@ class AccountingDB(object):
             self.sqlfilter.add('AND EndpointID IN ({0})'.format(','.join(['?'] * len(filter_ids))),
                                tuple(filter_ids))
 
-    @staticmethod
-    def unixtimestamp(t):
-        """Return unix timestamp representation of date"""
-        if isinstance(t, (datetime.datetime, datetime.date)):
-            return calendar.timegm(t.timetuple())  # works in Python 2.6
-        return t
-
-    def filter_startfrom(self, stime):
+    def filter_startfrom(self, stime: datetime) -> None:
         """Add job start time filtering to the select queries"""
-        self.sqlfilter.add('AND SubmitTime > ?', (self.unixtimestamp(stime),))
+        self.sqlfilter.add('AND SubmitTime > ?', (int(stime.timestamp()),))
 
-    def filter_endtill(self, etime):
+    def filter_endtill(self, etime: datetime) -> None:
         """Add job end time filtering (end before) to the select queries"""
-        self.sqlfilter.add('AND EndTime <= ?', (self.unixtimestamp(etime),))
+        self.sqlfilter.add('AND EndTime <= ?', (int(etime.timestamp()),))
 
-    def filter_endfrom(self, etime):
+    def filter_endfrom(self, etime: datetime) -> None:
         """Add job end time filtering (end after) to the select queries"""
-        self.sqlfilter.add('AND EndTime > ?', (self.unixtimestamp(etime),))
+        self.sqlfilter.add('AND EndTime > ?', (int(etime.timestamp()),))
 
     def filter_jobids(self, jobids):
         """Add jobid filtering to the select queries"""
@@ -700,8 +694,8 @@ class AccountingDB(object):
             result[row[0]].append({
                 'url': row[1],
                 'size': self.__get_unsigned_int(row[2]),
-                'timestart': datetime.datetime.utcfromtimestamp(row[3]),
-                'timeend': datetime.datetime.utcfromtimestamp(row[4]),
+                'timestart': datetime.fromtimestamp(row[3], tz=timezone.utc),
+                'timeend': datetime.fromtimestamp(row[4], tz=timezone.utc),
                 'type':  ttype
             })
         self.adb_close()
@@ -912,7 +906,7 @@ class AccountingDB(object):
         self.adb_close()
         return syncs
 
-    def get_latest_endtime(self):
+    def get_latest_endtime(self) -> Optional[int]:
         """Return latest endtime for records matching defined filters"""
         endtime = None
         sql = 'SELECT MAX(EndTime) FROM AAR'
@@ -962,36 +956,30 @@ class AccountingDB(object):
             self.pub_con.close()
             self.pub_con = None
 
-    def set_last_published_endtime(self, target_id, endtimestamp):
+    def set_last_published_endtime(self, target_id: int, endtimestamp: int) -> None:
         """Set latest records EndTime published to this target"""
         sql = 'INSERT OR REPLACE INTO AccountingTargets(TargetID, LastEndTime, LastReport) ' \
               'VALUES(?, ?, ?)'
-        publish_time = self.unixtimestamp(datetime.datetime.today())
+        publish_timestamp = int(datetime.now(tz=timezone.utc).timestamp())
         try:
-            self.pub_con.execute(sql, (target_id, endtimestamp, publish_time))
+            self.pub_con.execute(sql, (target_id, endtimestamp, publish_timestamp))
         except sqlite3.Error as e:
             self.logger.error('Failed to update latest published records EndTime for [%s] target. '
                               'Error: %s', target_id, str(e))
         else:
             self.pub_con.commit()
 
-    def get_last_published_endtime(self, target_id):
+    def get_last_published_endtime(self, target_id: int) -> int:
         """Get latest records EndTime published to this target"""
         sql = 'SELECT LastEndTime FROM AccountingTargets WHERE TargetID = ?'
         updatetime = self.__get_value(sql, (target_id, ), pubcon=True,
                                       errstr='Failed to get last published endtime for target [{0}]')
-        # if we publish fist time to this target avoid all eternity of records publishing
-        # for previous records pushing use republish functionality
+        # return -1 if never published before
         if not updatetime:
-            self.logger.warn('There is no record of last published timestamp for target [%s] in the database. '
-                             'Records starting from Today will be reported. '
-                             'If you want to publish previous records to the new target, '
-                             'please proceed with data republishing.', target_id)
-            updatetime = self.unixtimestamp(datetime.date.today())
-            self.set_last_published_endtime(target_id, updatetime)
+            return -1
         return updatetime
 
-    def get_last_report_time(self, target_id):
+    def get_last_report_time(self, target_id: int) -> int:
         """Get time of the latest report to this target"""
         sql = 'SELECT LastReport FROM AccountingTargets WHERE TargetID = ?'
         updatetime = self.__get_value(sql, (target_id, ), pubcon=True,
@@ -1037,8 +1025,8 @@ class AAR(object):
             'ExitCode': res[9],
             'BenchmarkID': res[10],
             'Benchmark': None,
-            'SubmitTime': datetime.datetime.utcfromtimestamp(res[11]),
-            'EndTime': datetime.datetime.utcfromtimestamp(res[12]),
+            'SubmitTime': datetime.fromtimestamp(res[11], timezone.utc),
+            'EndTime': datetime.fromtimestamp(res[12], timezone.utc),
             'NodeCount': res[13],
             'CPUCount': res[14],
             'UsedMemory': res[15],
@@ -1074,8 +1062,8 @@ class AAR(object):
             'StatusID': res[7],
             'Status': None,
             'ExitCode': res[8],
-            'SubmitTime': datetime.datetime.utcfromtimestamp(res[9]),
-            'EndTime': datetime.datetime.utcfromtimestamp(res[10]),
+            'SubmitTime': datetime.fromtimestamp(res[9], timezone.utc),
+            'EndTime': datetime.fromtimestamp(res[10], timezone.utc),
             'NodeCount': res[11],
             'CPUCount': res[12],
             'UsedMemory': res[13],
