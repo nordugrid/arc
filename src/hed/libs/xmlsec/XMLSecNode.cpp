@@ -12,6 +12,7 @@
 #include <xmlsec/xmldsig.h>
 #include <xmlsec/xmlenc.h>
 #include <xmlsec/templates.h>
+#include <xmlsec/version.h>
 
 //#include <xmlsec/openssl/app.h>
 #include <openssl/bio.h>
@@ -89,7 +90,11 @@ bool XMLSecNode::SignNode(const std::string& privkey_file, const std::string& ce
     std::cerr<<"Can not allocate key"<<std::endl; return false;
   }
   //load private key, assuming there is no need for passphrase
+#if XMLSEC_VERSION_MAJOR < 1 || ( XMLSEC_VERSION_MAJOR == 1 && XMLSEC_VERSION_MINOR < 3 )
   dsigCtx->signKey = xmlSecCryptoAppKeyLoad(privkey_file.c_str(), xmlSecKeyDataFormatPem, NULL, NULL, NULL);
+#else
+  dsigCtx->signKey = xmlSecCryptoAppKeyLoadEx(privkey_file.c_str(), xmlSecKeyDataTypePrivate, xmlSecKeyDataFormatPem, NULL, NULL, NULL);
+#endif
   if(dsigCtx->signKey == NULL) {
     xmlSecDSigCtxDestroy(dsigCtx);
     std::cerr<<"Can not load key"<<std::endl; return false;
