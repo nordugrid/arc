@@ -19,6 +19,7 @@
 #include <xmlsec/xmlenc.h>
 #include <xmlsec/templates.h>
 #include <xmlsec/crypto.h>
+#include <xmlsec/version.h>
 
 #include <xmlsec/openssl/app.h>
 #include <openssl/bio.h>
@@ -359,8 +360,11 @@ X509Token::X509Token(SOAPEnvelope& soap, const std::string& certfile, const std:
     //Sign the SOAP message
     xmlSecDSigCtx *dsigCtx = xmlSecDSigCtxCreate(NULL);
     //load private key, assuming there is no need for passphrase
+#if XMLSEC_VERSION_MAJOR < 1 || ( XMLSEC_VERSION_MAJOR == 1 && XMLSEC_VERSION_MINOR < 3 )
     dsigCtx->signKey = xmlSecCryptoAppKeyLoad(keyfile.c_str(), xmlSecKeyDataFormatPem, NULL, NULL, NULL);
-    //dsigCtx->signKey = xmlSecCryptoAppKeyLoad(keyfile.c_str(), xmlSecKeyDataFormatPem, NULL, (void*)passphrase_callback, NULL);
+#else
+    dsigCtx->signKey = xmlSecCryptoAppKeyLoadEx(keyfile.c_str(), xmlSecKeyDataTypePrivate, xmlSecKeyDataFormatPem, NULL, NULL, NULL);
+#endif
     if(dsigCtx->signKey == NULL) {
       xmlSecDSigCtxDestroy(dsigCtx);
       std::cerr<<"Can not load key"<<std::endl; return;
