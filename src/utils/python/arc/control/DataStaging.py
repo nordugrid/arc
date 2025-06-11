@@ -1095,13 +1095,4 @@ class DataStagingControl(ComponentControl):
         dds_dtr_actions = dds_dtr_ctl.add_subparsers(title='DTR info menu',dest='dtr',metavar='ACTION',help='DESCRIPTION')
         
         dds_dtr_state = dds_dtr_actions.add_parser('state', help='Show summary of DTR state info')
-        dds_dtr_state.add_argument('state',action='store_true')
-
-        
-
-        
-
-
-
-
-
+        dds_dtr_state.add_argument('state')
