@@ -391,7 +391,7 @@ namespace Arc {
     URLLocation(): URL() {};
 
     /// Creates a URLLocation from a string representation.
-    URLLocation(const std::string& url = "", bool encoded = true);
+    URLLocation(const std::string& url, bool encoded = true);
 
     /// Creates a URLLocation from a string representation and a name.
     URLLocation(const std::string& url, const std::string& name, bool encoded = true);
