@@ -101,7 +101,7 @@ namespace Arc {
      * \param defaultPath Path to use if 'url' doesn't specify path
      * \since Changed in 4.1.0. defaultPort and defaultPath arguments added.
      **/
-    URL(const std::string& url, bool encoded = false, int defaultPort = -1, const std::string& defaultPath = "");
+    URL(const std::string& url, bool encoded = true, int defaultPort = -1, const std::string& defaultPath = "");
 
     /// Empty destructor.
     virtual ~URL();
@@ -269,13 +269,13 @@ namespace Arc {
     void RemoveMetaDataOption(const std::string& option);
 
     /// Returns a string representation of the URL including meta-options.
-    virtual std::string str(bool encode = false) const;
+    virtual std::string str(bool encode = true) const;
 
     /// Returns a string representation of the URL without any options.
-    virtual std::string plainstr(bool encode = false) const;
+    virtual std::string plainstr(bool encode = true) const;
 
     /// Returns a string representation including options and locations.
-    virtual std::string fullstr(bool encode = false) const;
+    virtual std::string fullstr(bool encode = true) const;
 
     /// Returns a string representation with protocol, host and port only.
     virtual std::string ConnectionURL() const;
@@ -388,11 +388,13 @@ namespace Arc {
     : public URL {
 
   public:
+    URLLocation(): URL() {};
+
     /// Creates a URLLocation from a string representation.
-    URLLocation(const std::string& url = "");
+    URLLocation(const std::string& url = "", bool encoded = true);
 
     /// Creates a URLLocation from a string representation and a name.
-    URLLocation(const std::string& url, const std::string& name);
+    URLLocation(const std::string& url, const std::string& name, bool encoded = true);
 
     /// Creates a URLLocation from a URL.
     URLLocation(const URL& url);
@@ -457,7 +459,7 @@ namespace Arc {
 
 
   /// Reads a list of URLs from a file
-  std::list<URL> ReadURLList(const URL& urllist);
+  std::list<URL> ReadURLList(const URL& urllisti, bool encoded = true);
 
 } // namespace Arc
 

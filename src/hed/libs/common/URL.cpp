@@ -235,7 +235,7 @@ namespace Arc {
                                                   loc.substr(pos3 + 1)));
                 }
               } else {
-                locations.push_back(loc);
+                locations.emplace_back(loc, encoded);
               }
             }
           }
@@ -1063,12 +1063,12 @@ namespace Arc {
   }
 
 
-  URLLocation::URLLocation(const std::string& url)
-    : URL(url) {}
+  URLLocation::URLLocation(const std::string& url, bool encoded)
+    : URL(url, encoded) {}
 
   URLLocation::URLLocation(const std::string& url,
-                           const std::string& name)
-    : URL(url),
+                           const std::string& name, bool encoded)
+    : URL(url, encoded),
       name(name) {}
 
   URLLocation::URLLocation(const URL& url)
@@ -1172,7 +1172,7 @@ namespace Arc {
   }
 
 
-  std::list<URL> ReadURLList(const URL& url) {
+  std::list<URL> ReadURLList(const URL& url, bool encoded) {
 
     std::list<URL> urllist;
     if (url.Protocol() == "urllist") {
