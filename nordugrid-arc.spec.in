@@ -52,11 +52,7 @@
 %filter_setup
 %endif
 
-%if %{?rhel}%{!?rhel:0} == 6
 %global with_pylint 0
-%else
-%global with_pylint %{!?_without_pylint:1}%{?_without_pylint:0}
-%endif
 
 %if %{?fedora}%{!?fedora:0} >= 29 || %{?rhel}%{!?rhel:0} >= 8
 %global py3default 1
