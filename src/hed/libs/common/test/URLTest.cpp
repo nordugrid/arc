@@ -65,7 +65,7 @@ void URLTest::setUp() {
   gsiftpurl = new Arc::URL("gsiftp://hathi.hep.lu.se/public/test.txt");
   gsiftpurl2 = new Arc::URL("gsiftp://hathi.hep.lu.se:2811/public:/test.txt:checksumtype=adler32");
   ldapurl = new Arc::URL("ldap://grid.uio.no/o=grid/mds-vo-name=local");
-  httpurl = new Arc::URL("http://www.nordugrid.org/monitor:v1.php?debug=2&newpath=/path/to/file&sort=yes&symbols=() *!%\":guid=abcd");
+  httpurl = new Arc::URL("http://www.nordugrid.org/monitor:v1.php?debug=2&newpath=/path/to/file&sort=yes&symbols=() *!%\":guid=abcd", false);
   davsurl = new Arc::URL("davs://dav.ndgf.org:443/test/file1:checksumtype=adler32:checksumvalue=3d1ae86e");
   fileurl = new Arc::URL("file:/home/grid/runtime/TEST-ATLAS-8.0.5");
   ldapurl2 = new Arc::URL("ldap://grid.uio.no/mds-vo-name=local, o=grid");

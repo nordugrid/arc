@@ -14,6 +14,8 @@
 #include <stdlib.h> // free
 #include <string.h> // strcpy, strdup
 
+#include "URL.h"
+
 #define istring(x) (x)
 
 namespace Arc {
@@ -120,43 +122,50 @@ namespace Arc {
 
     // general case
     template<class T>
-    inline static const T& Get(const T& t) {
+    inline const T& Get(const T& t) const {
       return t;
     }
 
     // const char[] and const char*
-    inline static const char* Get(const char*const& t) {
+    inline const char* Get(const char*const& t) const {
       return FindTrans(t);
     }
 
     // char[] and char*
-    inline static const char* Get(char*const& t) {
+    inline const char* Get(char*const& t) const {
       return FindTrans(const_cast<const char*&>(t));
     }
 
     // std::string
-    inline static const char* Get(const std::string& t) {
+    inline const char* Get(const std::string& t) const {
       return FindTrans(t.c_str());
     }
 
     // std::string ()()
-    inline static const char* Get(std::string (*t)()) {
+    inline const char* Get(std::string (*t)()) const {
       return FindTrans(t().c_str());
     }
 
     // Glib::ustring
-    inline static const char* Get(const Glib::ustring& t) {
+    inline const char* Get(const Glib::ustring& t) const {
       return FindTrans(t.c_str());
     }
 
     // Glib::ustring ()()
-    inline static const char* Get(Glib::ustring (*t)()) {
+    inline const char* Get(Glib::ustring (*t)()) const {
       return FindTrans(t().c_str());
     }
 
     // sigc::slot<const char*>*
-    inline static const char* Get(const sigc::slot<const char*()> *t) {
+    inline const char* Get(const sigc::slot<const char*()> *t) const {
       return (*t)();
+    }
+
+    // URL
+    inline const char* Get(const URL& t) const {
+      char* str = strdup(t.str(true).c_str());
+      ptrs.push_back(str);
+      return str;
     }
 
     std::string m;
@@ -168,7 +177,7 @@ namespace Arc {
     T5 t5;
     T6 t6;
     T7 t7;
-    std::list<char*> ptrs;
+    mutable std::list<char*> ptrs;
   };
   /** \endcond */
 
