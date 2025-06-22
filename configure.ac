@@ -1918,6 +1918,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/a-rex-backtrace-collect
                  src/services/a-rex/a-rex-backtrace-collect.8
                  src/services/a-rex/perferator
+                 src/services/a-rex/update-controldir
                  src/services/a-rex/grid-manager/arc-blahp-logger.8
                  src/services/a-rex/grid-manager/gm-jobs.8
                  src/services/a-rex/rest/Makefile

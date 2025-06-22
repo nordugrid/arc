@@ -902,9 +902,13 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
     logger.msg(Arc::ERROR, "No LRMS set in configuration");
     return;
   }
-  // create control directory if not yet done
+  // create or update control directory if not yet done
   if(!config_.CreateControlDirectory()) {
     logger_.msg(Arc::ERROR, "Failed to create control directory %s", config_.ControlDir());
+    return;
+  }
+  if(!config_.UpdateControlDirectory()) {
+    logger_.msg(Arc::ERROR, "Failed to update control directory %s", config_.ControlDir());
     return;
   }
 

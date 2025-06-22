@@ -224,6 +224,46 @@ bool GMConfig::CreateControlDirectory() const {
   return res;
 }
 
+class LogData: public Arc::Run::Data {
+  public:
+    LogData(Arc::Logger& logger, Arc::LogLevel level): logger(logger), level(level) {}
+    virtual ~LogData() {};
+    virtual void Append(char const* data, unsigned int size) {
+      if(data && size) {
+        logger.msg(level, "%s", std::string(data,size));
+      }
+    };
+    virtual void Remove(unsigned int size) {};
+    virtual char const* Get() const { return nullptr; };
+    virtual unsigned int Size() const { return 0; };
+  private:
+    Arc::Logger& logger;
+    Arc::LogLevel level;
+};
+
+bool GMConfig::UpdateControlDirectory() const {
+  bool res = true;
+  if (!control_dir.empty()) {
+    // We have dedicated external tool for updating controldir
+    std::list<std::string> args;
+    args.push_back(Arc::ArcLocation::GetDataDir()+"/update-controldir");
+    args.push_back(control_dir);
+    LogData run_stdout(logger, Arc::INFO);
+    LogData run_stderr(logger, Arc::ERROR);
+    Arc::Run run(args);
+    run.AssignStdout(run_stdout);
+    run.AssignStderr(run_stderr);
+    if(!run.Start()) {
+      logger.msg(Arc::ERROR, "Failed to start controldir update tool.");
+      res = false;
+    } else if(!run.Wait()) {
+      logger.msg(Arc::ERROR, "Failed to run controldir update tool. Exit code: %i", run.Result());
+      res = false;
+    }
+  }
+  return res;
+}
+
 bool GMConfig::CreateSessionDirectory(const std::string& dir, const Arc::User& user) const {
   // First just try to create per-job dir, assuming session root already exists
   if (gm_user.get_uid() != 0) {
