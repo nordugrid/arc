@@ -435,7 +435,13 @@ namespace Arc {
     comp.NewAttribute("entry") = "http";
     comp.NewChild("Method") = "POST"; // Override using attributes if needed
     comp.NewChild("Endpoint") = url.str(true); // Override using attributes if needed
-    if (!cfg.otoken.empty() && cfg.otoken_for_auth) comp.NewChild("Authorization") = "Bearer " + cfg.otoken; // TODO: protect and encode
+
+    std::string credOption = url.Option("tokencred");
+    if(credOption == "none") {
+      sec.cred = UseNoCred;
+    } else if(credOption.empty() || credOption == "token") {
+      if (!cfg.otoken.empty() && cfg.otoken_for_auth) comp.NewChild("Authorization") = "Bearer " + cfg.otoken; // TODO: protect and encode
+    }
     // Pass information about protocol and hostname to TLS level
     XMLNode compTLS = ConfigFindComponent(xmlcfg["Chain"], "tls.client", NULL);
     if(compTLS) {

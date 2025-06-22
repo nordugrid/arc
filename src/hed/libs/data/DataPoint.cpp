@@ -55,6 +55,8 @@ namespace Arc {
     valid_url_options.insert("s3_access_key");
     valid_url_options.insert("s3_secret_key");
     valid_url_options.insert("s3_auth_region");
+    valid_url_options.insert("tlscred");
+    valid_url_options.insert("tokencred");
   }
 
   DataPoint::~DataPoint() {}
