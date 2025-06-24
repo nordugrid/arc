@@ -93,6 +93,10 @@ public:
   /// Create control structure with permissions depending on fixdir_t value.
   /// Typically called at A-REX service creation.
   bool CreateControlDirectory() const;
+
+  /// Update control structure from older verssion to current one.
+  bool UpdateControlDirectory() const;
+
   /// Create session directory with correct permissions. Typically called when
   /// a new job is created and after all substitutions have been done. Creates
   /// session root if it does not already exist.

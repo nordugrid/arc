@@ -902,11 +902,6 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
     logger.msg(Arc::ERROR, "No LRMS set in configuration");
     return;
   }
-  // create control directory if not yet done
-  if(!config_.CreateControlDirectory()) {
-    logger_.msg(Arc::ERROR, "Failed to create control directory %s", config_.ControlDir());
-    return;
-  }
 
   // Pass information about delegation db type
   {
@@ -961,10 +956,22 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
   // Start separate thread to start GM and info collector threads so they can
   // log to GM log after we remove it in this thread
   if ((gmrun_.empty()) || (gmrun_ == "internal")) {
+    // create or update control directory if not yet done
+    if(!config_.CreateControlDirectory()) {
+      logger_.msg(Arc::ERROR, "Failed to create control directory %s", config_.ControlDir());
+      return;
+    }
+    if(!config_.UpdateControlDirectory()) {
+      logger_.msg(Arc::ERROR, "Failed to update control directory %s", config_.ControlDir());
+      return;
+    }
     Arc::SimpleCounter counter;
     if (!CreateThreadFunction(&gm_threads_starter, this, &counter)) return;
     counter.wait();
-    if(!gm_) return; // GM didn't start
+    if(!gm_) {
+      logger_.msg(Arc::ERROR, "Failed to to start GM threads");
+      return; // GM didn't start
+    }
   }
   // If WS is used then remove gm log destination from this thread
   if (!endpoint_.empty()) {

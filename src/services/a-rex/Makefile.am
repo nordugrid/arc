@@ -24,7 +24,7 @@ AREX_UNIT =
 endif
 units_DATA = $(AREX_UNIT)
 
-pkgdata_SCRIPTS = arc-arex-start arc-arex-ws-start perferator
+pkgdata_SCRIPTS = arc-arex-start arc-arex-ws-start perferator update-controldir
 
 sbin_SCRIPTS = a-rex-backtrace-collect
 
