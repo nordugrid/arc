@@ -253,6 +253,7 @@ bool GMConfig::UpdateControlDirectory() const {
     Arc::Run run(args);
     run.AssignStdout(run_stdout);
     run.AssignStderr(run_stderr);
+    logger.msg(Arc::INFO, "Starting controldir update tool.");
     if(!run.Start()) {
       logger.msg(Arc::ERROR, "Failed to start controldir update tool.");
       res = false;
