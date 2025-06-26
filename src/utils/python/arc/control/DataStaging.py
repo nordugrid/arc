@@ -596,7 +596,7 @@ class DataStagingControl(ComponentControl):
             """ First print the most important states:"""
             for state in print_order:
                 try:
-                    print(f"\t{state:<25}] {'N/A':<20} {state_counter['state']:>6}")
+                    print(f"\t{state:<25}] {'N/A':<20} {state_counter[state]:>6}")
                 except KeyError:
                     pass
 
