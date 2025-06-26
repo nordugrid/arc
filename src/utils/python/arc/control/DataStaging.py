@@ -480,7 +480,8 @@ class DataStagingControl(ComponentControl):
         # Save this in a new dictionary for printing out
         print('\n\n')
         print(f'Datastaging information for jobs in PREPARING state, which are currently being staged in or are in progress or waiting to be staged.')
-        print(f"\t{'COUNTER':<9} {'ARC-ID':<14.14} {'DTR-ID':<12.12} {'FILENAME':<60} {'SOURCE':<60}  {'REMOTE-DELIVERY':<60} {'SIZE (MB)':<15} {'SEC (s)':<7} {'START':<25} {'END':<25} ")
+        fmt = "\t{:<9} {:<14.14} {:<12.12} {:<60} {:<60}  {:<60} {:<15} {:<7} {:<25} {:<25}"
+        print(fmt.format('COUNTER', 'ARC-ID', 'DTR-ID', 'FILENAME', 'SOURCE', 'REMOTE-DELIVERY', 'SIZE (MB)', 'SEC (s)', 'START', 'END'))
         counter = 1
         for idx, jobid in enumerate(jobids_preparing):
 
@@ -504,7 +505,8 @@ class DataStagingControl(ComponentControl):
                     evts['start_deliver'] = '-'
                     
                 try:
-                    print(f"\t{idx+1:>4}-{counter:<4} {jobid:<14.14} {dtrid:<12.12} {fileN:<60.60} {evts['source']:<60.60} {evts['remote_dds']:<60.60}  {evts['size']:<15.1f} {evts['seconds']:<7} {evts['start_deliver']:<25.25} {evts['end']:<25.25} ")
+                    fmt = "\t{:>4}-{:<4} {:<14.14} {:<12.12} {:<60.60}  {:<60.60} {:<60.60} {:<15.1f} {:<7} {:<25} {:<25}"
+                    print(fmt.format(idx+1,counter, jobid, dtrid, fileN, evts['source'], evts['remote_dds'], evts['size'], evts['seconds'], evts['start_deliver'], evts['end']))
                 except Exception as e:
                     print(f'Got an exception while printing out information for preparing job {jobid} for {fileN}: {e}')
                 counter += 1
@@ -548,8 +550,10 @@ class DataStagingControl(ComponentControl):
         idx = 0
         print('\n\n')
         if remote_delivery:
+            fmt = ("\t{:<8} {:<60} {:<14.14} {:<10.10} {:<60} {:<60} {:<15} {:<7} {:<25} {:<25} ")
             print(f'Datadelivery service and file info for jobs in PREPARING state, which are currently been staged in or are in progress of being staged in at a remote datadelivery service.')
-            print(f"\t{'COUNTER':<8} {'REMOTE-DELIVERY':<60} {'ARC-ID':<14.14} {'DTR-ID':<10.10} {'FILENAME':<60} {'SOURCE':<60} {'SIZE (MB)':<15} {'SEC (s)':<7} {'START':<25} {'END':<25} ")
+            print(fmt.format('COUNTER', 'REMOTE-DELIVERY', 'ARC-ID', 'DTR-ID', 'FILENAME', 'SOURCE', 'SIZE (MB)', 'SEC (s)', 'START', 'END'))
+
 
 
             for remote_dds,remote_delivery in remote_delivery.items():
@@ -568,7 +572,8 @@ class DataStagingControl(ComponentControl):
                     if 'seconds' not in val.keys():
                         val['seconds'] = -1
                     try:
-                        print(f"\t{idx:<8} {remote_dds:<60.60} {jobid:<14.14} {dtrid:<10.10} {fileN:<60.60} {val['source']:<60.60} {val['size']:<15.1f} {val['seconds']:<7} {val['start_deliver']:<25.25} {val['end']:<25.25} ")
+                        fmt = ("\t{:<8} {:<60} {:<14.14} {:<10.10} {:<60} {:<60} {:<15.1f} {:<7} {:<25.25} {:<25.25} ")
+                        print(fmt.format(\tidx, remote_dds, jobid,  dtrid, fileN, val['source'], val['size'], val['seconds'], val['start_deliver'], val['end']))
                     except Exception as e:
                         print(f'Got an exception while printing out information for remote datadelivery sites for {fileN} and jobid: {jobid}: {e}')
 
@@ -582,17 +587,18 @@ class DataStagingControl(ComponentControl):
 
         # TO-DO print in nice order
         print_order = ['CACHE_WAIT','STAGING_PREPARING_WAIT','STAGE_PREPARE','TRANSFER_WAIT','TRANSFER','PROCESSING_CACHE']
-        
+
+        fmt = ("\t{:<25} {:<20} {:<6}")
         if state_counter:
             print('Number of current datastaging processes (files):')
-            print(f"\t{'State':<25} {'Data-delivery host':<20} {'Number':<6}")
+            print(fmt.format('State', 'Data-delivery host', 'Number'))
             
             count_transferring = 0
 
             # First print the most important states:
             for state in print_order:
                 try:
-                    print(f"\t{state:<25}] {'N/A':<20} {state_counter[state]:>6}")
+                    print(fmt.format(state, 'N/A', state_counter[state]))
                 except KeyError:
                     pass
 
@@ -604,27 +610,27 @@ class DataStagingControl(ComponentControl):
                     count_transferring += val
                     if 'local' in host:
                         continue
-                    print(f"\t{state:<25} {host:<20} {val:>6}")
+                    print(fmt.format(state, host, val))
 
 
             # Print out other states
             for key, val in state_counter.items():
                 if 'TRANSFERRING' in key or key in print_order or 'local' in key or key in 'ARC_STAGING_TOTAL': continue
-                print(f"\t{key:<25} {'N/A':<20} {val:>6}")
+                print(fmt.format(key, 'N/A',val))
 
             try:
                 count_transferring += state_counter['TRANSFERRING_local']
-                print(f"\t{'TRANSFERRING':<25} {'local':<20} {state_counter['TRANSFERRING_local']:>6}")
+                print(fmt.format('TRANSFERRING', 'local', state_counter['TRANSFERRING_local']))
             except KeyError:
                 pass
 
             # Print out divider
             print('-'*60)
             # Sum up all TRANSFERRING slots
-            print(f"\t{'TRANSFERRING TOTAL':<25} {'N/A':<20} {count_transferring:>6}")
+            print(fmt.format('TRANSFERRING TOTAL', 'N/A', count_transferring))
 
             # Finally print the sum of all dtrs
-            print(f"\t{'ARC_STAGING_TOTAL':<25} {'N/A':<20} {state_counter['ARC_STAGING_TOTAL']:>6}")
+            print(fmt.format('ARC_STAGING_TOTAL', 'N/A', state_counter['ARC_STAGING_TOTAL']))
                 
         else:
             print('No information in %s file: currently no datastaging processes running',dtrlog)
@@ -644,12 +650,14 @@ class DataStagingControl(ComponentControl):
                 print('\tThis job has no user-defined input-files, hence no datastaging needed/done.')
             else:
                 if datastaging_time['done']:
-                    print(f"\t{'Start':<21} \t{'End':<21} \t{'Duration':<12}")
-                    print(f"\t{datastaging_time['start']:<21} \t{datastaging_time['end']:<21} \t{datastaging_time['dt']:<12}")
+                    fmt = "\t{:<21} \t{:<21} \t{:<12}"
+                    print(fmt.format('Start' 'End' 'Duration'))
+                    print(fmt.format(datastaging_time['start'], datastaging_time['end']m datastaging_time['dt']))
                 else:
+                    fmt = "\t{:<21} \t{:<21} \t{:<12}"
                     print("\tDatastaging still ongoing")
-                    print(f"\t{'Start':<21} \t{'Duration':<12}")
-                    print(f"\t{datastaging_time['start']:<21} \t{datastaging_time['dt']:<12}")
+                    print(fmt.format('Start', 'Duration'))
+                    print(fmt.format(datastaging_time['start'],datastaging_time['dt']))
         else:
             print(f'No datastaging information for jobid {jobid:<50} - Try arcctl accounting instead - the job might be finished.')
 
@@ -667,32 +675,37 @@ class DataStagingControl(ComponentControl):
         
         # Print out a list of all files and if staged-in or not
         print('\nState of input-files:')
-        print(f"\t{'COUNTER':<8} {'FILENAME':<60.60} {'DTR-ID':<20} {'STAGED-IN':<12}")
+        fmt = "\t{:<8} {:<60.60} {:<20} {:<12})"
+        print(fmt.format('COUNTER', 'FILENAME', 'DTR-ID', 'STAGED-IN'))
         for idx,fileN in enumerate(file_details.keys()):
-            print(f"\t{idx+1:<8} {fileN:<60.60} {file_details[fileN]['dtrid_short']:<20} {file_details[fileN]['staged_in']:<12}")
+            print(fmt.format(idx+1, fileN, file_details[fileN]['dtrid_short'], file_details[fileN]['staged_in']))
         print('\tNote: files uploaded by the client appear to not be staged-in, ignore these as AREX does not handle the stage-in of these files. Examples for ATLAS: queudata.json pandaJobData.out runpilot2-wrapper.sh')
                 
         # Print out information about files already staged in
         sorted_dict = sorted(done_stagedin.items(), key = lambda x: x[1]['end'])
         print('\nDetails for files that have been staged in - both downloaded and cached:')
-        print(f"\t{'COUNTER':<8} {'FILENAME':<60} {'SOURCE':<60} {'SIZE (MB)':<15} {'START':<25} {'END':<25} {'SECONDS':<10} {'CACHED':<7}")
+        fmt = (f"\t{:<8} {:<60} {:<60} {:<15} {:<25} {:<25} {:<10} {:<7}")
+        print(fmt.format('COUNTER', 'FILENAME', 'SOURCE', 'SIZE (MB)', 'START', 'END', 'SECONDS', 'CACHED'))
         for idx,item in enumerate(sorted_dict):
             fileN = item[0]
             filedict = item[1]
-            print(f"\t{idx+1:<8} {fileN:<60.60} {filedict['source']:<60} {filedict['size']:<15.3f} {filedict['start']:<25} {filedict['end']:<25} {filedict['seconds']:<10} {filedict['cached']:<7}")
+            fmt = "\t{:<8} {:<60.60} {:<60} {:<15} {:<25} {:<25} {:<10} {:<7}"
+            print(fmt.format(idx+1, fileN, filedict['source'], filedict['size'], filedict['start'], filedict['end'], filedict['seconds'], filedict['cached']))
 
-
+            
         # Print out information about files already downloaded
         # TO-DO find a nice way to sort this, maybe removing the files that do not have all info provided?
         downloads = False
         print('\nFine-grained details for files that have been staged-in by download (not cached):')
-        print(f"\t{'COUNT':<5.5} {'FILENAME':<15.15} {'SIZE (MB)':<15.15} {'START':<20.20} {'END':<20.20} {'SCHEDULER-START':<20.20} {'DELIVERY-START':<20.20} {'TRANSFER-DONE':<20.20} {'ALL-DONE':<20.20} {'(s)':<6} {'(MB/s)':<10.10} {'DELIVERY-SERVICE'}")
+        fmt = "\t{:<5.5} {:<15.15} {:<15.15} {:<20.20} {:<20.20} {:<20.20} {:<20.20} {:<20.20} {:<20.20} {:<6} {:<10.10} {}"
+        print(fmt.format('COUNT', 'FILENAME', 'SIZE (MB)', 'START', 'END', 'SCHEDULER-START', 'DELIVERY-START', 'TRANSFER-DONE', 'ALL-DONE', '(s)', '(MB/s)', 'DELIVERY-SERVICE'))
         idx = 1
         for key,val in done_stagedin.items():
             if 'remote_dds' not in val:
                 val['remote_dds'] = '-'
             if ('start_deliver' in val.keys() and 'start_sched' in val.keys() and 'return_gen' in val.keys() and 'speed' in val.keys()):
-                print(f"\t{idx:<5} {key:<15.15} {val['size']:<15.3f} {val['start']:<20.20} {val['end']:<20.20} {val['start_sched']:<20.20} {val['start_deliver']:<20.20} {val['transf_done']:<20.20} {val['return_gen']:<20.20} {val['seconds']:<6} {val['speed']:<10.1f} {val['remote_dds']}")
+                fmt = "\t{:<5.5} {:<15.15} {:<15.3f} {:<20.20} {:<20.20} {:<20.20} {:<20.20} {:<20.20} {:<20.20} {:<6} {:<10.1f} {}"
+                print(fmt.format(idx, key, val['size'], val['start'], val['end'], val['start_sched'], val['start_deliver'], val['transf_done'], val['return_gen'], val['seconds'], val['speed'], val['remote_dds']))
                 idx += 1
                 downloads = True
         if not downloads:
@@ -817,6 +830,8 @@ class DataStagingControl(ComponentControl):
                         size_files_downloaded_user += val['size']/1024.
 
 
+        fmt_header = "{:<50} {:<10} {:<15}"
+        fmt_rows =   "{:<50} {:<10} {:<15.1f}"
         if twindow_start:
             print('\nTimewindow start: : '+ datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S'))
         print('\nALL JOBS')
@@ -829,43 +844,44 @@ class DataStagingControl(ComponentControl):
             return
 
         print('\nFILES DONE IN STAGE-IN')
-        print(f"{'':<50} {'NUMBER':<10} {'SIZE (GB)':<15}")
-        print(f"{'Total':<50} {str(n_files):<10} {size_files:<15.1f}")
+        print(fmt_header.format('', 'NUMBER', 'SIZE (GB)'))
+        print(fmt_row.format('Total', str(n_files), size_files))
 
         if n_files_atlas:
-            print(f"{'    User-defined':<50} {str(n_files_user):<10} {size_files_user:<15.1f}")
-            print(f"{'    Atlas-files':<50} {str(n_files_atlas):<10} {size_files_atlas:<15.1f}")
+            print(fmt_rows.format('    User-defined', str(n_files_user), size_files_user))
+            print(fmt_rows.format('    Atlas-files', str(n_files_atlas), size_files_atlas))
 
 
-        print(f"{'Cached Total':<50} {str(n_files_cached):<10} {size_files_cached:<15.1f}")
+        print(fmt_rows.format('Cached Total', str(n_files_cached), size_files_cached))
         if n_files_atlas:
-            print(f"{'    User-defined':<50} {str(n_files_cached_user):<10} {size_files_cached_user:<15.1f}")
-            print(f"{'    Atlas-files':<50} {str(n_files_cached_atlas):<10} {size_files_cached_atlas:<15.1f}")
+            print(fmt_rows.format('    User-defined', str(n_files_cached_user), size_files_cached_user))
+            print(fmt_rows.format('    Atlas-files', str(n_files_cached_atlas), size_files_cached_atlas))
         
-        print(f"{'Not-cached Total (downloaded)':<50} {str(n_files_downloaded):<10} {size_files_downloaded:<15.1f}")
+        print(fmt_rows.format('Not-cached Total (downloaded)', str(n_files_downloaded), size_files_downloaded))
         if n_files_atlas:
-            print(f"{'    User-defined':<50} {str(n_files_downloaded_user):<10} {size_files_downloaded_user:<15.1f}")
-            print(f"{'    Atlas-files':<50} {str(n_files_downloaded_atlas):<10} {size_files_downloaded_atlas:<15.1f}")
+            print(fmt_rows.format('    User-defined', str(n_files_downloaded_user), size_files_downloaded_user))
+            print(fmt_rows.format('    Atlas-files', str(n_files_downloaded_atlas), size_files_downloaded_atlas))
 
 
         print('\n\nRATIOS')
-        print(f"{'':<50} {'RATIO amount':<20} {'RATIO size':<20}")
+        print("{:<50} {:<20} {}:<20}".format('', 'RATIO amount', 'RATIO size'))
+        fmt = "{:<50} {:<20.4} {:<20.4}"
         if n_files_atlas:
             try:
-                print(f"{'Total User/Atlas':<50} {float(n_files_user)/float(n_files_atlas):<20.4} {float(size_files_user/size_files_atlas):<20.4}")
+                print(fmt.format('Total User/Atlas', float(n_files_user)/float(n_files_atlas), float(size_files_user/size_files_atlas)))
             except ZeroDivisionError:
                 pass
         try:
-            print(f"{'Total Cached/non-cached':<50} {float(n_files_cached)/float(n_files_downloaded):<20.4} {float(size_files_cached/size_files_downloaded):<20.4}")
+            print(fmt.format('Total Cached/non-cached', float(n_files_cached)/float(n_files_downloaded), float(size_files_cached/size_files_downloaded)))
         except ZeroDivisionError:
             pass
         if n_files_atlas:
             try:
-                print(f"{'Total Cached-user/Cached-atlas':<50} {float(n_files_cached_user)/float(n_files_cached_atlas):<20.4} {float(size_files_cached_user/size_files_cached_atlas):<20.4}")
+                print(fmt.format('Total Cached-user/Cached-atlas', float(n_files_cached_user)/float(n_files_cached_atlas), float(size_files_cached_user/size_files_cached_atlas)))
             except ZeroDivisionError:
                 pass
             try:
-                print(f"{'Total Downloaded-user/Downloaded-atlas':<50} {float(n_files_downloaded_user)/float(n_files_downloaded_atlas):<20.4} {float(size_files_downloaded_user/size_files_downloaded_atlas):<20.4}")
+                print(fmt.format('Total Downloaded-user/Downloaded-atlas', float(n_files_downloaded_user)/float(n_files_downloaded_atlas), float(size_files_downloaded_user/size_files_downloaded_atlas)))
             except ZeroDivisionError:
                 pass
 
