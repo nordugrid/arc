@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Arc\n"
 "Report-Msgid-Bugs-To: support@nordugrid.org\n"
-"POT-Creation-Date: 2025-05-06 05:01+0200\n"
-"PO-Revision-Date: 2025-05-06 05:24+0200\n"
+"POT-Creation-Date: 2025-06-26 09:31+0200\n"
+"PO-Revision-Date: 2025-06-26 09:41+0200\n"
 "Last-Translator: Mattias Ellert <mattias.ellert@physics.uu.se>\n"
 "Language-Team: Swedish\n"
 "Language: sv\n"
@@ -1979,7 +1979,7 @@ msgstr ""
 "'myproxy', 'myproxynew' och 'all'."
 
 #: src/clients/credentials/arcproxy.cpp:943
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Cannot parse password source %s it must be of source_type or "
 "source_type:data format. Supported source types are int, stdin, stream, file."
@@ -1994,8 +1994,8 @@ msgstr "Endast standard input är för närvarande giltig för lösenordskälla.
 #: src/clients/credentials/arcproxy.cpp:962
 #, c-format
 msgid ""
-"Cannot parse password source type %s. Supported source types are "
-"int,stdin,stream,file."
+"Cannot parse password source type %s. Supported source types are int, stdin, "
+"stream, file."
 msgstr ""
 "Kan inte tolka lösenordskälltyp %s. Giltiga källtyper är int, stdin, stream, "
 "file."
@@ -4364,6 +4364,7 @@ msgstr "Misslyckades med att hämta ftp-fil"
 #: src/services/a-rex/delegation/DelegationStore.cpp:46
 #: src/services/a-rex/delegation/DelegationStore.cpp:75
 #: src/services/a-rex/delegation/DelegationStore.cpp:81
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:233
 #: src/services/a-rex/grid-manager/inputcheck.cpp:33
 #: src/services/a-rex/grid-manager/jobs/JobDescriptionHandler.cpp:408
 #: src/services/a-rex/internaljobplugin/INTERNALClient.cpp:395
@@ -11273,22 +11274,22 @@ msgstr "Checksumma ej beräknad"
 msgid "Failed to postregister destination %s"
 msgstr "Misslyckades med att efterregistrera destination: %s"
 
-#: src/hed/libs/data/DataPoint.cpp:88
+#: src/hed/libs/data/DataPoint.cpp:90
 #, c-format
 msgid "Invalid URL option: %s"
 msgstr "Ogiltigt URL-alternativ: %s"
 
-#: src/hed/libs/data/DataPoint.cpp:249
+#: src/hed/libs/data/DataPoint.cpp:251
 msgid "Checksum types of index and replica are different, skipping comparison"
 msgstr ""
 "Typ av checksumma för index och replika är olika, hoppar över jämförelse"
 
-#: src/hed/libs/data/DataPoint.cpp:276
+#: src/hed/libs/data/DataPoint.cpp:278
 #, c-format
 msgid "Skipping invalid URL option %s"
 msgstr "Hoppar över ogiltigt URL-alternativ: %s"
 
-#: src/hed/libs/data/DataPoint.cpp:291
+#: src/hed/libs/data/DataPoint.cpp:293
 msgid ""
 "Third party transfer was requested but the corresponding plugin could\n"
 "       not be loaded. Is the GFAL plugin installed? If not, please install "
@@ -11301,7 +11302,7 @@ msgstr ""
 "      'nordugrid-arc-plugins-gfal' och 'gfal2-all'. Beroende på din typ av\n"
 "      installation kan paketnamnen variera."
 
-#: src/hed/libs/data/DataPoint.cpp:309
+#: src/hed/libs/data/DataPoint.cpp:311
 #, c-format
 msgid "Failed to load plugin for URL %s"
 msgstr "Misslyckades med att ladda in plugin för URL %s"
@@ -13410,13 +13411,13 @@ msgstr "Delegeringshanterare med delegeringsmottagarroll börjar behandla"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:152
 #: src/services/a-rex/arex.cpp:478 src/services/candypond/CandyPond.cpp:526
-#: src/services/data-staging/DataDeliveryService.cpp:633
+#: src/services/data-staging/DataDeliveryService.cpp:648
 msgid "process: POST"
 msgstr "process: POST"
 
 #: src/hed/shc/delegationsh/DelegationSH.cpp:159
 #: src/services/a-rex/arex.cpp:485 src/services/candypond/CandyPond.cpp:535
-#: src/services/data-staging/DataDeliveryService.cpp:642
+#: src/services/data-staging/DataDeliveryService.cpp:657
 #: src/services/wrappers/python/pythonwrapper.cpp:416
 msgid "input is not SOAP"
 msgstr "indata är inte SOAP"
@@ -15360,13 +15361,13 @@ msgid "Failed to create DTR dump thread"
 msgstr "Misslyckades med att skapa DTR-dumpningstråd"
 
 #: src/libs/data-staging/Scheduler.cpp:1423
-#: src/services/data-staging/DataDeliveryService.cpp:516
+#: src/services/data-staging/DataDeliveryService.cpp:531
 #, c-format
 msgid "DTR %s cancelled"
 msgstr "DTR %s avbröts"
 
 #: src/services/a-rex/arex.cpp:340 src/services/candypond/CandyPond.cpp:569
-#: src/services/data-staging/DataDeliveryService.cpp:690
+#: src/services/data-staging/DataDeliveryService.cpp:705
 #, c-format
 msgid "SOAP operation is not supported: %s"
 msgstr "SOAP-process stöds inte: %s"
@@ -15388,17 +15389,17 @@ msgid "Can't obtain configuration. Only public information is provided."
 msgstr ""
 "Kan inte erhålla inställningar. Endast publik information tillhandahålls."
 
-#: src/services/a-rex/arex.cpp:416 src/services/a-rex/rest/rest.cpp:733
+#: src/services/a-rex/arex.cpp:416 src/services/a-rex/rest/rest.cpp:740
 #, c-format
 msgid "Connection from %s: %s"
 msgstr "Förbindelse från %s: %s"
 
-#: src/services/a-rex/arex.cpp:419 src/services/a-rex/rest/rest.cpp:737
+#: src/services/a-rex/arex.cpp:419 src/services/a-rex/rest/rest.cpp:744
 #, c-format
 msgid "process: method: %s"
 msgstr "process: metod: %s"
 
-#: src/services/a-rex/arex.cpp:420 src/services/a-rex/rest/rest.cpp:738
+#: src/services/a-rex/arex.cpp:420 src/services/a-rex/rest/rest.cpp:745
 #, c-format
 msgid "process: endpoint: %s"
 msgstr "process: slutpunkt: %s"
@@ -15419,20 +15420,20 @@ msgid "process: subpath: %s"
 msgstr "process: subsökväg: %s"
 
 #: src/services/a-rex/arex.cpp:491 src/services/candypond/CandyPond.cpp:543
-#: src/services/data-staging/DataDeliveryService.cpp:650
+#: src/services/data-staging/DataDeliveryService.cpp:665
 #: src/tests/echo/echo.cpp:98
 #, c-format
 msgid "process: request=%s"
 msgstr "process: begäran=%s"
 
 #: src/services/a-rex/arex.cpp:496 src/services/candypond/CandyPond.cpp:548
-#: src/services/data-staging/DataDeliveryService.cpp:655
+#: src/services/data-staging/DataDeliveryService.cpp:670
 #: src/tests/count/count.cpp:69
 msgid "input does not define operation"
 msgstr "indata definierar ej operation"
 
 #: src/services/a-rex/arex.cpp:499 src/services/candypond/CandyPond.cpp:551
-#: src/services/data-staging/DataDeliveryService.cpp:658
+#: src/services/data-staging/DataDeliveryService.cpp:673
 #: src/tests/count/count.cpp:72
 #, c-format
 msgid "process: operation: %s"
@@ -15447,7 +15448,7 @@ msgid "process: factory endpoint"
 msgstr "process: factoryslutpunkt"
 
 #: src/services/a-rex/arex.cpp:575 src/services/candypond/CandyPond.cpp:580
-#: src/services/data-staging/DataDeliveryService.cpp:701
+#: src/services/data-staging/DataDeliveryService.cpp:716
 #: src/tests/echo/echo.cpp:158
 #, c-format
 msgid "process: response=%s"
@@ -15513,27 +15514,36 @@ msgstr "Ingen sessionskatalog satt i inställningarna"
 msgid "No LRMS set in configuration"
 msgstr "Inget LRMS satt i inställningarna"
 
-#: src/services/a-rex/arex.cpp:907
+#: src/services/a-rex/arex.cpp:961
 #, c-format
 msgid "Failed to create control directory %s"
 msgstr "Misslyckades med att skapa kontrollkatalog %s"
 
-#: src/services/a-rex/arex.cpp:1001
+#: src/services/a-rex/arex.cpp:965
+#, c-format
+msgid "Failed to update control directory %s"
+msgstr "Misslyckades med att uppdatera kontrollkatalog %s"
+
+#: src/services/a-rex/arex.cpp:972
+msgid "Failed to start GM threads"
+msgstr "Misslyckades med att starta GM-trådar"
+
+#: src/services/a-rex/arex.cpp:1008
 #, c-format
 msgid "Created entry for JWT issuer %s"
 msgstr "Skapade post för JWT-utfärdare %s"
 
-#: src/services/a-rex/arex.cpp:1003
+#: src/services/a-rex/arex.cpp:1010
 #, c-format
 msgid "Failed to create entry for JWT issuer %s"
 msgstr "Misslyckades med att skapa post för JWT-utfärdare %s"
 
-#: src/services/a-rex/arex.cpp:1006
+#: src/services/a-rex/arex.cpp:1013
 #, c-format
 msgid "Empty data for JWT issuer %s"
 msgstr "Ingen data för JWT-utfärdare %s"
 
-#: src/services/a-rex/arex.cpp:1009
+#: src/services/a-rex/arex.cpp:1016
 #, c-format
 msgid "Failed to read data for JWT issuer %s"
 msgstr "Misslyckades med att läsa data för JWT-utfärdare %s"
@@ -16272,7 +16282,23 @@ msgstr "\tCacherensning påslagen"
 msgid "\tCache cleaning disabled"
 msgstr "\tCacherensning avstängd"
 
-#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:340
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:256
+msgid "Starting controldir update tool."
+msgstr "Startar verktyget för att uppdatera kontrollkatalogen."
+
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:258
+msgid "Failed to start controldir update tool."
+msgstr ""
+"Misslyckades med att starta verktyget för att uppdatera kontrollkatalogen."
+
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:261
+#, c-format
+msgid "Failed to run controldir update tool. Exit code: %i"
+msgstr ""
+"Misslyckades med att köra verttyget för att uppdatera kontrollkatalogen. "
+"Avslutningskod: %i"
+
+#: src/services/a-rex/grid-manager/conf/GMConfig.cpp:381
 msgid ""
 "Globus location variable substitution is not supported anymore. Please "
 "specify path directly."
@@ -18141,7 +18167,7 @@ msgstr "%s: put fil %s: det finns ingen nyttolast"
 msgid "%s: put file %s: unrecognized payload"
 msgstr "%s: put fil %s: okänd nyttolast"
 
-#: src/services/a-rex/put.cpp:172 src/services/a-rex/rest/rest.cpp:1853
+#: src/services/a-rex/put.cpp:172 src/services/a-rex/rest/rest.cpp:2050
 #, c-format
 msgid "%s: put file %s: failed to create file: %s"
 msgstr "%s: put fil %s: misslyckades med att skapa fil: %s"
@@ -18161,56 +18187,56 @@ msgstr "%s: ta bort fil %s: misslyckades med att erhålla filsökväg: %s"
 msgid "%s: delete file %s: failed to open file/dir: %s"
 msgstr "%s: ta bort fil %s: misslyckades med att öppna fil/katalog: %s"
 
-#: src/services/a-rex/rest/rest.cpp:742
+#: src/services/a-rex/rest/rest.cpp:749
 #, c-format
 msgid "REST: process %s at %s"
 msgstr "REST: process %s på %s"
 
-#: src/services/a-rex/rest/rest.cpp:790 src/services/a-rex/rest/rest.cpp:806
-#: src/services/a-rex/rest/rest.cpp:897 src/services/a-rex/rest/rest.cpp:988
-#: src/services/a-rex/rest/rest.cpp:1352 src/services/a-rex/rest/rest.cpp:1964
+#: src/services/a-rex/rest/rest.cpp:797 src/services/a-rex/rest/rest.cpp:813
+#: src/services/a-rex/rest/rest.cpp:1094 src/services/a-rex/rest/rest.cpp:1185
+#: src/services/a-rex/rest/rest.cpp:1549 src/services/a-rex/rest/rest.cpp:2161
 #, c-format
 msgid "process: method %s is not supported for subpath %s"
 msgstr "process: metod %s stöds inte för subsökväg %s"
 
-#: src/services/a-rex/rest/rest.cpp:812
+#: src/services/a-rex/rest/rest.cpp:819
 #, c-format
 msgid "process: schema %s is not supported for subpath %s"
 msgstr "process: schema %s stöds inte för subsökväg %s"
 
-#: src/services/a-rex/rest/rest.cpp:985 src/services/a-rex/rest/rest.cpp:1349
+#: src/services/a-rex/rest/rest.cpp:1182 src/services/a-rex/rest/rest.cpp:1546
 #, c-format
 msgid "process: action %s is not supported for subpath %s"
 msgstr "process: handling %s stöds inte för subsökväg %s"
 
-#: src/services/a-rex/rest/rest.cpp:1361 src/services/a-rex/rest/rest.cpp:1430
-#: src/services/a-rex/rest/rest.cpp:1790 src/services/a-rex/rest/rest.cpp:1953
+#: src/services/a-rex/rest/rest.cpp:1558 src/services/a-rex/rest/rest.cpp:1627
+#: src/services/a-rex/rest/rest.cpp:1987 src/services/a-rex/rest/rest.cpp:2150
 #, c-format
 msgid "REST:GET job %s - %s"
 msgstr "REST:GET jobb %s - %s"
 
-#: src/services/a-rex/rest/rest.cpp:1477 src/services/a-rex/rest/rest.cpp:1485
+#: src/services/a-rex/rest/rest.cpp:1674 src/services/a-rex/rest/rest.cpp:1682
 #, c-format
 msgid "REST:KILL job %s - %s"
 msgstr "REST:KILL jobb %s - %s"
 
-#: src/services/a-rex/rest/rest.cpp:1502 src/services/a-rex/rest/rest.cpp:1510
+#: src/services/a-rex/rest/rest.cpp:1699 src/services/a-rex/rest/rest.cpp:1707
 #, c-format
 msgid "REST:CLEAN job %s - %s"
 msgstr "REST:CLEAN jobb %s - %s"
 
-#: src/services/a-rex/rest/rest.cpp:1527 src/services/a-rex/rest/rest.cpp:1535
-#: src/services/a-rex/rest/rest.cpp:1552
+#: src/services/a-rex/rest/rest.cpp:1724 src/services/a-rex/rest/rest.cpp:1732
+#: src/services/a-rex/rest/rest.cpp:1749
 #, c-format
 msgid "REST:RESTART job %s - %s"
 msgstr "REST:RESTART jobb %s - %s"
 
-#: src/services/a-rex/rest/rest.cpp:1843
+#: src/services/a-rex/rest/rest.cpp:2040
 #, c-format
 msgid "REST:PUT job %s: file %s: there is no payload"
 msgstr "REST:PUT jobb %s: fil %s: det finns ingen nyttolast"
 
-#: src/services/a-rex/rest/rest.cpp:1866
+#: src/services/a-rex/rest/rest.cpp:2063
 #, c-format
 msgid "HTTP:PUT %s: put file %s: %s"
 msgstr "HTTP:PUT %s: put fil %s: %s"
@@ -18393,13 +18419,13 @@ msgid "No local user mapping found"
 msgstr "Hittade ingen lokal användarmappning"
 
 #: src/services/candypond/CandyPond.cpp:527
-#: src/services/data-staging/DataDeliveryService.cpp:634
+#: src/services/data-staging/DataDeliveryService.cpp:649
 #, c-format
 msgid "Identity is %s"
 msgstr "Identitet är: %s"
 
 #: src/services/candypond/CandyPond.cpp:585
-#: src/services/data-staging/DataDeliveryService.cpp:706
+#: src/services/data-staging/DataDeliveryService.cpp:721
 msgid "Security Handlers processing failed"
 msgstr "Säkerhetshanterarprocessering misslyckades"
 
@@ -18437,130 +18463,130 @@ msgstr "Alla DTRer avslutade för jobb %s"
 msgid "Job %s not found"
 msgstr "Hittade inte jobb %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:58
+#: src/services/data-staging/DataDeliveryService.cpp:66
 #, c-format
 msgid "Archiving DTR %s, state ERROR"
 msgstr "Arkiverar DTR %s, tillstånd ERROR"
 
-#: src/services/data-staging/DataDeliveryService.cpp:62
+#: src/services/data-staging/DataDeliveryService.cpp:70
 #, c-format
 msgid "Archiving DTR %s, state %s"
 msgstr "Arkiverar DTR %s, tillstånd %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:166
+#: src/services/data-staging/DataDeliveryService.cpp:174
 msgid "No delegation token in request"
 msgstr "Inget delegeringstoken i begäran"
 
-#: src/services/data-staging/DataDeliveryService.cpp:176
+#: src/services/data-staging/DataDeliveryService.cpp:184
 msgid "Failed to accept delegation"
 msgstr "Misslyckades med att acceptera delegering"
 
-#: src/services/data-staging/DataDeliveryService.cpp:206
-#: src/services/data-staging/DataDeliveryService.cpp:213
+#: src/services/data-staging/DataDeliveryService.cpp:214
+#: src/services/data-staging/DataDeliveryService.cpp:221
 msgid "ErrorDescription"
 msgstr "ErrorDescription"
 
-#: src/services/data-staging/DataDeliveryService.cpp:218
+#: src/services/data-staging/DataDeliveryService.cpp:226
 #, c-format
 msgid "All %u process slots used"
 msgstr "Alla %u processeringsslottar används"
 
-#: src/services/data-staging/DataDeliveryService.cpp:233
+#: src/services/data-staging/DataDeliveryService.cpp:241
 #, c-format
 msgid "Received retry for DTR %s still in transfer"
 msgstr "Mottog försök igen för DTR %s som fortfarande överför"
 
-#: src/services/data-staging/DataDeliveryService.cpp:240
+#: src/services/data-staging/DataDeliveryService.cpp:248
 #, c-format
 msgid "Replacing DTR %s in state %s with new request"
 msgstr "Byter ut DTR %s i tillstånd %s med ny begäran"
 
-#: src/services/data-staging/DataDeliveryService.cpp:250
+#: src/services/data-staging/DataDeliveryService.cpp:258
 #, c-format
 msgid "Storing temp proxy at %s"
 msgstr "Lagrar temporär proxy på %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:258
+#: src/services/data-staging/DataDeliveryService.cpp:266
 #, c-format
 msgid "Failed to create temp proxy at %s: %s"
 msgstr "Misslyckades med att skapa temporär proxy på %s: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:265
+#: src/services/data-staging/DataDeliveryService.cpp:273
 #, c-format
 msgid "Failed to change owner of temp proxy at %s to %i:%i: %s"
 msgstr ""
 "Misslyckades med att ändra ägare på temporär proxy på %s till %i:%i: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:294
+#: src/services/data-staging/DataDeliveryService.cpp:302
 msgid "Invalid DTR"
 msgstr "Ogiltig DTR"
 
-#: src/services/data-staging/DataDeliveryService.cpp:298
+#: src/services/data-staging/DataDeliveryService.cpp:306
 #, c-format
 msgid "Failed to remove temporary proxy %s: %s"
 msgstr "Misslyckades med att ta bort temporär proxy %s: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:399
+#: src/services/data-staging/DataDeliveryService.cpp:407
 #, c-format
 msgid "No such DTR %s"
 msgstr "Ingen sådan DTR %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:410
+#: src/services/data-staging/DataDeliveryService.cpp:425
 #, c-format
 msgid "DTR %s failed: %s"
 msgstr "DTR %s misslyckades: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:421
+#: src/services/data-staging/DataDeliveryService.cpp:436
 #, c-format
 msgid "DTR %s finished successfully"
 msgstr "DTR %s avslutades framgångsrikt"
 
-#: src/services/data-staging/DataDeliveryService.cpp:431
+#: src/services/data-staging/DataDeliveryService.cpp:446
 #, c-format
 msgid "DTR %s still in progress (%lluB transferred)"
 msgstr "DTR %s pågår fortfarande (%lluB överförda)"
 
-#: src/services/data-staging/DataDeliveryService.cpp:491
+#: src/services/data-staging/DataDeliveryService.cpp:506
 #, c-format
 msgid "No active DTR %s"
 msgstr "Ingen aktiv DTR %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:501
+#: src/services/data-staging/DataDeliveryService.cpp:516
 #, c-format
 msgid "DTR %s was already cancelled"
 msgstr "DTR %s har redan avbrutits"
 
-#: src/services/data-staging/DataDeliveryService.cpp:510
+#: src/services/data-staging/DataDeliveryService.cpp:525
 #, c-format
 msgid "DTR %s could not be cancelled"
 msgstr "DTR %s kunde inte avbrytas"
 
-#: src/services/data-staging/DataDeliveryService.cpp:554
+#: src/services/data-staging/DataDeliveryService.cpp:569
 #, c-format
 msgid "Failed to get load average: %s"
 msgstr "Misslyckades med att få medellast: %s"
 
-#: src/services/data-staging/DataDeliveryService.cpp:578
+#: src/services/data-staging/DataDeliveryService.cpp:593
 msgid "Invalid configuration - no allowed IP address specified"
 msgstr "Ogiltiga inställningar - ingen tillåten IP-adress angiven"
 
-#: src/services/data-staging/DataDeliveryService.cpp:582
+#: src/services/data-staging/DataDeliveryService.cpp:597
 msgid "Invalid configuration - no transfer dirs specified"
 msgstr "Ogiltiga inställningar - inga överföringskataloger angivna"
 
-#: src/services/data-staging/DataDeliveryService.cpp:593
+#: src/services/data-staging/DataDeliveryService.cpp:608
 msgid "Failed to start archival thread"
 msgstr "Misslyckades med att starta arkiveringtråd"
 
-#: src/services/data-staging/DataDeliveryService.cpp:618
+#: src/services/data-staging/DataDeliveryService.cpp:633
 msgid "Shutting down data delivery service"
 msgstr "Stänger ner dataleveranstjänst"
 
-#: src/services/data-staging/DataDeliveryService.cpp:627
+#: src/services/data-staging/DataDeliveryService.cpp:642
 msgid "Unauthorized"
 msgstr "Oauktoriserad"
 
-#: src/services/data-staging/DataDeliveryService.cpp:713
+#: src/services/data-staging/DataDeliveryService.cpp:728
 msgid "Only POST is supported in DataDeliveryService"
 msgstr "Endast POST stöds i dataleveranstjänst"
 

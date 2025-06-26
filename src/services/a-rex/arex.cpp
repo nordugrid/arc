@@ -969,7 +969,7 @@ ARexService::ARexService(Arc::Config *cfg,Arc::PluginArgument *parg):Arc::Servic
     if (!CreateThreadFunction(&gm_threads_starter, this, &counter)) return;
     counter.wait();
     if(!gm_) {
-      logger_.msg(Arc::ERROR, "Failed to to start GM threads");
+      logger_.msg(Arc::ERROR, "Failed to start GM threads");
       return; // GM didn't start
     }
   }

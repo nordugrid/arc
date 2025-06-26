@@ -960,7 +960,7 @@ static int runmain(int argc, char *argv[]) {
         }
       } else {
         logger.msg(Arc::ERROR, "Cannot parse password source type %s. "
-                   "Supported source types are int,stdin,stream,file.", pass);
+                   "Supported source types are int, stdin, stream, file.", pass);
         return EXIT_FAILURE;
       }
     }
