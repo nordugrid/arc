@@ -88,7 +88,6 @@ class DataStagingControl(ComponentControl):
         pass
         
     def _get_timestamps_joblog(self,log_f,jobid,twindow_start=None):
-
         """ 
         Get the total time from PREPARING to SUBMIT which is the total time in PREPARING.
         Only calculate the time for the jobs that actually have user-deinfed input-files (not pilot-related).
@@ -104,7 +103,7 @@ class DataStagingControl(ComponentControl):
         elif has_udef_input is False:
             ds_time={'start':'','end':'','dt':'','done':False,'failed':False,'noinput':True}
         else:
-            """ This job has user-defined inputfiles for datastaging """
+            # This job has user-defined inputfiles for datastaging
             ds_start = None
             ds_end = None
             with open(log_f,'r') as f:
@@ -139,19 +138,19 @@ class DataStagingControl(ComponentControl):
                         continue
                     
                     else:
-                        """ if this line does not contain target string, continue to next line """
+                        # if this line does not contain target string, continue to next line
                         continue
                         
             if twindow_start and ds_end:
-                """  If the datastaging ended before the selected timewindow """
+                # If the datastaging ended before the selected timewindow
                 if ds_end < twindow_start:
                     return None
 
             if ds_start and ds_end:
-                """ Datastaging done """
+                # Datastaging done
                 ds_time['dt']=str(ds_end - ds_start)
             elif ds_start:
-                """  Datastaging ongoing """
+                # Datastaging ongoing
                 ds_time['dt']=str(datetime.datetime.utcnow() - ds_start)
             else:
                 return None
@@ -175,7 +174,6 @@ class DataStagingControl(ComponentControl):
 
 
     def _get_filesforjob(self,jobid):
-
         """ The grami-info only contains filename, not URI
         - grami files only contains user-defined input files """
         grami_file = control_path(self.control_dir, jobid, 'grami')
@@ -192,17 +190,17 @@ class DataStagingControl(ComponentControl):
                         if len(fileN)>0:
                             all_files_user.append(fileN)
         except OSError:
-            """ Will just then return empty all_files and all_files_user lists """
+            # Will just then return empty all_files and all_files_user lists
             pass
                             
         return all_files_user
 
 
     def _get_file_events_statistics(self, jobid, file_events):
+        """ Get files already downloaded from jobs statistics file
+        This includes non-user defined inputfiles like pilot or json site files """
 
         client_uploads = []
-        """ Get files already downloaded from jobs statistics file """
-        """ This includes non-user defined inputfiles like pilot or json site files """
         stat_file = control_path(self.control_dir, jobid, 'statistics')
         try:
             with open(stat_file,'r') as f:
@@ -215,7 +213,7 @@ class DataStagingControl(ComponentControl):
                         
                         fileN = words[0].split('inputfile:')[-1].split('/')[-1]
 
-                        """ The statistics file can contain files that are not listed in grami file - add these too and initialize """
+                        # The statistics file can contain files that are not listed in grami file - add these too and initialize
                         if fileN not in file_events.keys():
                             file_events[fileN] = {}
                             file_events[fileN]['staged_in'] = 'no'
@@ -236,16 +234,15 @@ class DataStagingControl(ComponentControl):
                         seconds = (end_dtstr - start_dtstr).seconds
 
                         file_events[fileN] = {'size':size,'source':source,'start':start,'end':end,'seconds':seconds,'cached':cached,'atlasfile':atlasfile, 'staged_in': 'yes'}
-                        #""" To also show <site>.all.json file that is uploaded with the job by the client """
+                        # To also show <site>.all.json file that is uploaded with the job by the client
                         #if fileN not in all_files and 'json' in fileN:
                         #    client_uploads.append(fileN)
         except IOError:
-            """ TODO-error message/info message?"""
+            # TODO-error message/info message?
             pass
         return file_events#, client_uploads
 
     def _get_file_events_errors(self,jobid,file_events):
-        
         """ Get more details about ongoing  transfers from jobs errors file"""
         dtr_file = {}
         file_dtr = {}
@@ -260,7 +257,7 @@ class DataStagingControl(ComponentControl):
                     
                 if 'Scheduler received new DTR' in line:
                     
-                    """ First instance of the new DTR """
+                    # First instance of the new DTR
                     timestmp_str, timestmp_obj = self._get_tstamp(line)
                     dtrid_short = words[5].replace(':','')
                     fileN = words[13].split('/')[-1]
@@ -269,13 +266,12 @@ class DataStagingControl(ComponentControl):
                     dtr_file[dtrid_short]=fileN
                     file_dtr[fileN]=dtrid_short
 
-                    """ 
-                    file_events may or may not contain information already - 
-                    from statistics file - _get_file_details_statistics 
-                    But since this is the first occurence of datastaging events for this fileN recorded 
-                    in errors file I only need to check in this if-statement 
-                    whether the dictionary already contains the fileN
-                    """
+                    
+                    # file_events may or may not contain information already - 
+                    # from statistics file - _get_file_details_statistics 
+                    # But since this is the first occurence of datastaging events for this fileN recorded 
+                    # in errors file I only need to check in this if-statement 
+                    # whether the dictionary already contains the fileN
                     if fileN not in file_events.keys():
                         file_events[fileN]={}
                         file_events[fileN]['staged_in'] = 'no'
@@ -286,7 +282,7 @@ class DataStagingControl(ComponentControl):
 
 
                 elif 'Started remote Delivery at' in line:
-                    """ Extract remote datadelivery host """
+                    # Extract remote datadelivery host
 
                     dtrid_short = words[5].replace(':','')
                     fileN = dtr_file[dtrid_short]
@@ -300,7 +296,7 @@ class DataStagingControl(ComponentControl):
                     if '<Log>' in line:
                         dtr_idx = 6
                                                 
-                    """ Delivery actually starting - waiting time over """
+                    # Delivery actually starting - waiting time over
                     timestmp_str, timestmp_obj = self._get_tstamp(line)
                     dtrid_short = words[dtr_idx].replace(':','')
                     fileN = dtr_file[dtrid_short]
@@ -309,7 +305,7 @@ class DataStagingControl(ComponentControl):
 
                 elif 'Transfer finished' in line:
 
-                    """ Transfer done, file downloaded  """
+                    # Transfer done, file downloaded
                     timestmp_str, timestmp_obj = self._get_tstamp(line)
                     dtrid_short = words[5].replace(':','')
                     fileN = dtr_file[dtrid_short]
@@ -317,9 +313,9 @@ class DataStagingControl(ComponentControl):
                     file_events[fileN]['transf_done']=timestmp_str
                     file_events[fileN]['staged_in']='yes'
                     
-                    """ Calculated avg download speed """
-                    """ Calculated by diff in time between 'Delivery received new DTR' and 'Transfer finished 
-                    messages for the DTR. '"""
+                    # Calculated avg download speed
+                    # Calculated by diff in time between 'Delivery received new DTR' and 'Transfer finished 
+                    # messages for the DTR. 
                     
                     if 'size' in file_events[fileN].keys() and 'start_deliver' in file_events[fileN].keys():
                         start_dwnld = datetime.datetime.strptime(file_events[fileN]['start_deliver'], "%Y-%m-%d %H:%M:%S")
@@ -336,7 +332,7 @@ class DataStagingControl(ComponentControl):
 
                 elif 'Returning to generator' in line:
 
-                    """ DTR done """ 
+                    # DTR done
                     timestmp_str, timestmp_obj = self._get_tstamp(line)
                     dtrid_short = words[5].replace(':','')
                     fileN = dtr_file[dtrid_short]
@@ -348,7 +344,10 @@ class DataStagingControl(ComponentControl):
 
         
     def _get_file_events(self,jobid):
-
+        """  Extracts information about the files already downloaded for a single job 
+        from its jobs statistics file 
+        includes download info for non-user defined file such as pilot or site json file """
+  
         all_userdef_inputs = self._get_filesforjob(jobid)
         file_events = {}
         file_events = dict.fromkeys(all_userdef_inputs, {})
@@ -356,11 +355,8 @@ class DataStagingControl(ComponentControl):
             file_events[fileN]['staged_in'] = 'no'
             file_events[fileN]['dtrid_short'] = '-'
             
-        """  Extracts information about the files already downloaded for a single job 
-        from its jobs statistics file 
-        includes download info for non-user defined file such as pilot or site json file """
         file_events  = self._get_file_events_statistics(jobid, file_events)
-        """ Get more details about the transfers from jobs errors file"""
+        # Get more details about the transfers from jobs errors file
         file_events = self._get_file_events_errors(jobid, file_events)
                     
         return file_events
@@ -415,7 +411,7 @@ class DataStagingControl(ComponentControl):
         duration_minutes = []
 
 
-        """ Initialize histogram dict """
+        # Initialize histogram dict
         for bin_edge in bin_edges:
             hist[bin_edge] = 0
 
@@ -428,7 +424,7 @@ class DataStagingControl(ComponentControl):
                 time_delta = datetime.datetime.strptime(time_str, '%H:%M:%S.%f')
             except:
                 pass
-            """ Ignore seconds """
+            # Ignore seconds
             duration_minutes = time_delta.hour*60 + time_delta.minute
 
             if duration_minutes >= bin_edges[0] and duration_minutes < bin_edges[1]:
@@ -474,21 +470,21 @@ class DataStagingControl(ComponentControl):
         
         out,err=subprocess.Popen(['arcctl','job','list','-s','PREPARING'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
         jobids_preparing = out.decode().split('\n')
-        """ Remove empty items """
+        # Remove empty items
         jobids_preparing = [item for item in jobids_preparing if item]
 
-        """ Extract information about files being prepared including on what host """
+        # Extract information about files being prepared including on what host
         jobs_prep = {}
 
-        """ Collect all files for jobs in PREPARING state that are logged as remotely downloaded 
-        Save this in a new dictionary for printing out """
+        # Collect all files for jobs in PREPARING state that are logged as remotely downloaded 
+        # Save this in a new dictionary for printing out
         print('\n\n')
         print(f'Datastaging information for jobs in PREPARING state, which are currently being staged in or are in progress or waiting to be staged.')
         print(f"\t{'COUNTER':<9} {'ARC-ID':<14.14} {'DTR-ID':<12.12} {'FILENAME':<60} {'SOURCE':<60}  {'REMOTE-DELIVERY':<60} {'SIZE (MB)':<15} {'SEC (s)':<7} {'START':<25} {'END':<25} ")
         counter = 1
         for idx, jobid in enumerate(jobids_preparing):
 
-            """ For this jobid - get details about all files currently done in datastaging """
+            # For this jobid - get details about all files currently done in datastaging
             file_dict = self._get_file_events(jobid)
             print('\n')
             for fileN,evts in file_dict.items():
@@ -525,17 +521,17 @@ class DataStagingControl(ComponentControl):
         deliveryservices = self.arcconfig.get_value('deliveryservice', 'arex/data-staging')
         out,err=subprocess.Popen(['arcctl','job','list','-s','PREPARING'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
         jobids_preparing = out.decode().split('\n')
-        """ Remove empty items """
+        # Remove empty items
         jobids_preparing = [item for item in jobids_preparing if item]
 
-        """ Extract information about files being prepared including on what host """
+        # Extract information about files being prepared including on what host
         remote_delivery = {}
 
-        """ Collect all files for jobs in PREPARING state that are logged as remotely downloaded 
-        Save this in a new dictionary for printing out """
+        # Collect all files for jobs in PREPARING state that are logged as remotely downloaded 
+        # Save this in a new dictionary for printing out
         for jobid in jobids_preparing:
 
-            """ For this jobid - get details about all files currently done in datastaging """
+            # For this jobid - get details about all files currently done in datastaging
             file_events = self._get_file_events(jobid)
             for fileN,val in file_events.items():
 
@@ -584,7 +580,7 @@ class DataStagingControl(ComponentControl):
 
         state_counter = self._get_dtrstates(args)
 
-        """ TO-DO print in nice order """
+        # TO-DO print in nice order
         print_order = ['CACHE_WAIT','STAGING_PREPARING_WAIT','STAGE_PREPARE','TRANSFER_WAIT','TRANSFER','PROCESSING_CACHE']
         
         if state_counter:
@@ -593,14 +589,14 @@ class DataStagingControl(ComponentControl):
             
             count_transferring = 0
 
-            """ First print the most important states:"""
+            # First print the most important states:
             for state in print_order:
                 try:
                     print(f"\t{state:<25}] {'N/A':<20} {state_counter[state]:>6}")
                 except KeyError:
                     pass
 
-            """ Now print the TRANSFERRING states"""
+            # Now print the TRANSFERRING states
             for key, val in state_counter.items():
                 if 'TRANSFERRING' in key:
                     state = 'TRANSFERRING'
@@ -611,7 +607,7 @@ class DataStagingControl(ComponentControl):
                     print(f"\t{state:<25} {host:<20} {val:>6}")
 
 
-            """  Print out other states """
+            # Print out other states
             for key, val in state_counter.items():
                 if 'TRANSFERRING' in key or key in print_order or 'local' in key or key in 'ARC_STAGING_TOTAL': continue
                 print(f"\t{key:<25} {'N/A':<20} {val:>6}")
@@ -622,12 +618,12 @@ class DataStagingControl(ComponentControl):
             except KeyError:
                 pass
 
-            """ Print out divider """
+            # Print out divider
             print('-'*60)
-            """ Sum up all TRANSFERRING slots """
+            # Sum up all TRANSFERRING slots
             print(f"\t{'TRANSFERRING TOTAL':<25} {'N/A':<20} {count_transferring:>6}")
 
-            """ Finally print the sum of all dtrs """
+            # Finally print the sum of all dtrs
             print(f"\t{'ARC_STAGING_TOTAL':<25} {'N/A':<20} {state_counter['ARC_STAGING_TOTAL']:>6}")
                 
         else:
@@ -666,17 +662,17 @@ class DataStagingControl(ComponentControl):
         tobe_stagedin = {k: v for k, v in file_details.items() if v.get('staged_in') == 'no'}
         
 
-        """ General info """
+        # General info
         print(f'\nInformation  about input-files for jobid {jobid} ')
         
-        """  Print out a list of all files and if staged-in or not """
+        # Print out a list of all files and if staged-in or not
         print('\nState of input-files:')
         print(f"\t{'COUNTER':<8} {'FILENAME':<60.60} {'DTR-ID':<20} {'STAGED-IN':<12}")
         for idx,fileN in enumerate(file_details.keys()):
             print(f"\t{idx+1:<8} {fileN:<60.60} {file_details[fileN]['dtrid_short']:<20} {file_details[fileN]['staged_in']:<12}")
         print('\tNote: files uploaded by the client appear to not be staged-in, ignore these as AREX does not handle the stage-in of these files. Examples for ATLAS: queudata.json pandaJobData.out runpilot2-wrapper.sh')
                 
-        """ Print out information about files already staged in """
+        # Print out information about files already staged in
         sorted_dict = sorted(done_stagedin.items(), key = lambda x: x[1]['end'])
         print('\nDetails for files that have been staged in - both downloaded and cached:')
         print(f"\t{'COUNTER':<8} {'FILENAME':<60} {'SOURCE':<60} {'SIZE (MB)':<15} {'START':<25} {'END':<25} {'SECONDS':<10} {'CACHED':<7}")
@@ -686,8 +682,8 @@ class DataStagingControl(ComponentControl):
             print(f"\t{idx+1:<8} {fileN:<60.60} {filedict['source']:<60} {filedict['size']:<15.3f} {filedict['start']:<25} {filedict['end']:<25} {filedict['seconds']:<10} {filedict['cached']:<7}")
 
 
-        """ Print out information about files already downloaded """
-        """ TO-DO find a nice way to sort this, maybe removing the files that do not have all info provided? """
+        # Print out information about files already downloaded
+        # TO-DO find a nice way to sort this, maybe removing the files that do not have all info provided?
         downloads = False
         print('\nFine-grained details for files that have been staged-in by download (not cached):')
         print(f"\t{'COUNT':<5.5} {'FILENAME':<15.15} {'SIZE (MB)':<15.15} {'START':<20.20} {'END':<20.20} {'SCHEDULER-START':<20.20} {'DELIVERY-START':<20.20} {'TRANSFER-DONE':<20.20} {'ALL-DONE':<20.20} {'(s)':<6} {'(MB/s)':<10.10} {'DELIVERY-SERVICE'}")
@@ -701,8 +697,6 @@ class DataStagingControl(ComponentControl):
                 downloads = True
         if not downloads:
             print('\tNo download info available, probably because all files for this jobs were already in the cache.')
-
-
 
 
 
@@ -751,7 +745,7 @@ class DataStagingControl(ComponentControl):
         out,err=subprocess.Popen(['arcctl','job','list','-s','INLRMS'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False).communicate()
         jobids.extend(out.decode().split('\n'))
 
-        """ Remove any empty items  """
+        # Remove any empty items
         jobids = [item for item in jobids if item]
         
         for jobid in jobids:
@@ -760,10 +754,10 @@ class DataStagingControl(ComponentControl):
             try:
                 mtime=datetime.datetime.fromtimestamp(os.path.getmtime(log_f))
             except OSError:
-                """  Files got removed in the meantime, skip this job """
+                # Files got removed in the meantime, skip this job
                 continue
         
-            """ Skip all jobs that are last modified before the users or default timewindow """
+            # Skip all jobs that are last modified before the users or default timewindow
             if twindow_start and mtime < twindow_start:
                 continue
 
@@ -779,12 +773,12 @@ class DataStagingControl(ComponentControl):
                 return 
 
             
-            """ Collecting information for files that are done in stage-in for this job """
+            # Collecting information for files that are done in stage-in for this job
             for key, val in file_events.items():
                 
                 #print(f'jobid: {jobid} fileN: {key} val: {val}')
                 try:
-                    """  Only files in active download during the timewindow are added """
+                    # Only files in active download during the timewindow are added
                     end = datetime.datetime.strptime(val['end'], '%Y-%m-%dT%H:%M:%SZ')
                     if twindow_start and end < twindow_start:
                         continue
@@ -792,7 +786,7 @@ class DataStagingControl(ComponentControl):
                     continue
                 
                 n_files += 1
-                """  Originally converted to MB, want GB here """
+                # Originally converted to MB, want GB here
                 size_files += val['size']/1024.
 
                 if val['atlasfile']:
@@ -876,8 +870,7 @@ class DataStagingControl(ComponentControl):
                 pass
 
 
-    def show_summary_jobs(self,args):
-        
+    def show_summary_jobs(self,args):        
         """ Overview over duration of all datastaging processes for jobs in PREPARING or RUNNING in the chosen timewindow 
         Checks job errors files that have been modified during the timewindow. 
         Checks duration between ACCEPTED -> PREPARING to PREPARING -> FINISHING stages. 
@@ -898,17 +891,17 @@ class DataStagingControl(ComponentControl):
 
         for jobid in jobids:
             if not jobid:
-                """ Protect against empty string """
+                # Protect against empty string
                 continue
             log_f = control_path(self.control_dir, jobid, 'errors')
             mtime = None
             try:
                 mtime=datetime.datetime.fromtimestamp(os.path.getmtime(log_f))
             except OSError:
-                """  Files got removed in the meantime, skip this job """
+                # Files got removed in the meantime, skip this job
                 continue
         
-            """ Skip all files that are modified before the users or default timewindow """
+            # Skip all files that are modified before the users or default timewindow
             if twindow_start and (mtime < twindow_start):
                 continue
 
@@ -1058,13 +1051,13 @@ class DataStagingControl(ComponentControl):
         dds_actions.required = True
         
                
-        """ Job """
+        # Job
         dds_job_ctl = dds_actions.add_parser('job',help='Job Datastaging Information for a preparing or running job.')
         DataStagingControl.register_job_parser(dds_job_ctl)
 
         
 
-        """ Summary for jobs in PREPARING or RUNNING """
+        # Summary for jobs in PREPARING or RUNNING
         dds_summary_ctl = dds_actions.add_parser('summary',help='Job Datastaging Summary Information for jobs preparing or running.')
         dds_summary_ctl.set_defaults(handler_class=DataStagingControl)
         dds_summary_actions = dds_summary_ctl.add_subparsers(title='Job Datastaging Summary Menu',dest='summaryaction',metavar='ACTION',help='DESCRIPTION')
@@ -1084,12 +1077,12 @@ class DataStagingControl(ComponentControl):
         dds_summary_files.add_argument('-s','--seconds',type=int,help='Timewindow in seconds.')
         
 
-        """ Remote datadelivery services """
+        # Remote datadelivery services
         dds_remote_ctl = dds_actions.add_parser('remote_dds',help='Remote Datastaging file information for preparing jobs.')
         dds_remote_ctl.set_defaults(handler_class=DataStagingControl)
 
         
-        """ Data delivery processes """
+        # Data delivery processes
         dds_dtr_ctl = dds_actions.add_parser('dtr',help='Data-delivery transfer (DTR) information')
         dds_dtr_ctl.set_defaults(handler_class=DataStagingControl)
         dds_dtr_actions = dds_dtr_ctl.add_subparsers(title='DTR info menu',dest='dtr',metavar='ACTION',help='DESCRIPTION')
