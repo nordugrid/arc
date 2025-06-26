@@ -550,7 +550,7 @@ class DataStagingControl(ComponentControl):
         idx = 0
         print('\n\n')
         if remote_delivery:
-            fmt = ("\t{:<8} {:<60} {:<14.14} {:<10.10} {:<60} {:<60} {:<15} {:<7} {:<25} {:<25} ")
+            fmt = "\t{:<8} {:<60} {:<14.14} {:<10.10} {:<60} {:<60} {:<15} {:<7} {:<25} {:<25} "
             print(f'Datadelivery service and file info for jobs in PREPARING state, which are currently been staged in or are in progress of being staged in at a remote datadelivery service.')
             print(fmt.format('COUNTER', 'REMOTE-DELIVERY', 'ARC-ID', 'DTR-ID', 'FILENAME', 'SOURCE', 'SIZE (MB)', 'SEC (s)', 'START', 'END'))
 
@@ -572,7 +572,7 @@ class DataStagingControl(ComponentControl):
                     if 'seconds' not in val.keys():
                         val['seconds'] = -1
                     try:
-                        fmt = ("\t{:<8} {:<60} {:<14.14} {:<10.10} {:<60} {:<60} {:<15.1f} {:<7} {:<25.25} {:<25.25} ")
+                        fmt = "\t{:<8} {:<60} {:<14.14} {:<10.10} {:<60} {:<60} {:<15.1f} {:<7} {:<25.25} {:<25.25} "
                         print(fmt.format(\tidx, remote_dds, jobid,  dtrid, fileN, val['source'], val['size'], val['seconds'], val['start_deliver'], val['end']))
                     except Exception as e:
                         print(f'Got an exception while printing out information for remote datadelivery sites for {fileN} and jobid: {jobid}: {e}')
@@ -588,7 +588,7 @@ class DataStagingControl(ComponentControl):
         # TO-DO print in nice order
         print_order = ['CACHE_WAIT','STAGING_PREPARING_WAIT','STAGE_PREPARE','TRANSFER_WAIT','TRANSFER','PROCESSING_CACHE']
 
-        fmt = ("\t{:<25} {:<20} {:<6}")
+        fmt = "\t{:<25} {:<20} {:<6}"
         if state_counter:
             print('Number of current datastaging processes (files):')
             print(fmt.format('State', 'Data-delivery host', 'Number'))
@@ -684,7 +684,7 @@ class DataStagingControl(ComponentControl):
         # Print out information about files already staged in
         sorted_dict = sorted(done_stagedin.items(), key = lambda x: x[1]['end'])
         print('\nDetails for files that have been staged in - both downloaded and cached:')
-        fmt = (f"\t{:<8} {:<60} {:<60} {:<15} {:<25} {:<25} {:<10} {:<7}")
+        fmt = f"\t{:<8} {:<60} {:<60} {:<15} {:<25} {:<25} {:<10} {:<7}"
         print(fmt.format('COUNTER', 'FILENAME', 'SOURCE', 'SIZE (MB)', 'START', 'END', 'SECONDS', 'CACHED'))
         for idx,item in enumerate(sorted_dict):
             fileN = item[0]
