@@ -573,7 +573,7 @@ class DataStagingControl(ComponentControl):
                         val['seconds'] = -1
                     try:
                         fmt = "\t{:<8} {:<60} {:<14.14} {:<10.10} {:<60} {:<60} {:<15.1f} {:<7} {:<25.25} {:<25.25} "
-                        print(fmt.format(\tidx, remote_dds, jobid,  dtrid, fileN, val['source'], val['size'], val['seconds'], val['start_deliver'], val['end']))
+                        print(fmt.format(idx, remote_dds, jobid,  dtrid, fileN, val['source'], val['size'], val['seconds'], val['start_deliver'], val['end']))
                     except Exception as e:
                         print(f'Got an exception while printing out information for remote datadelivery sites for {fileN} and jobid: {jobid}: {e}')
 
