@@ -114,7 +114,7 @@ fi
 echo "SLURM jobname: $jobname" 1>&2
 # Set up the user's environment on the compute node where the script
 # is executed.
-echo "#SBATCH --get-user-env=10L" >> $LRMS_JOB_SCRIPT
+echo "#SBATCH --get-user-env=L" >> $LRMS_JOB_SCRIPT
 
 ##############################################################
 # (non-)parallel jobs
