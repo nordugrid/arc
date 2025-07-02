@@ -684,7 +684,7 @@ class DataStagingControl(ComponentControl):
         # Print out information about files already staged in
         sorted_dict = sorted(done_stagedin.items(), key = lambda x: x[1]['end'])
         print('\nDetails for files that have been staged in - both downloaded and cached:')
-        fmt = f"\t{:<8} {:<60} {:<60} {:<15} {:<25} {:<25} {:<10} {:<7}"
+        fmt = "\t{:<8} {:<60} {:<60} {:<15} {:<25} {:<25} {:<10} {:<7}"
         print(fmt.format('COUNTER', 'FILENAME', 'SOURCE', 'SIZE (MB)', 'START', 'END', 'SECONDS', 'CACHED'))
         for idx,item in enumerate(sorted_dict):
             fileN = item[0]
