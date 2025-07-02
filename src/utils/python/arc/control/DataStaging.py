@@ -652,7 +652,7 @@ class DataStagingControl(ComponentControl):
                 if datastaging_time['done']:
                     fmt = "\t{:<21} \t{:<21} \t{:<12}"
                     print(fmt.format('Start' 'End' 'Duration'))
-                    print(fmt.format(datastaging_time['start'], datastaging_time['end']m datastaging_time['dt']))
+                    print(fmt.format(datastaging_time['start'], datastaging_time['end'], datastaging_time['dt']))
                 else:
                     fmt = "\t{:<21} \t{:<21} \t{:<12}"
                     print("\tDatastaging still ongoing")
