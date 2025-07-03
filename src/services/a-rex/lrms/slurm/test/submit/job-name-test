@@ -31,7 +31,7 @@ read -r -d '' expected_lrms_job_script <<'EOF'
 
 #SBATCH --nice=50
 #SBATCH -J 'job'
-#SBATCH --get-user-env=10L
+#SBATCH --get-user-env=L
 #SBATCH -n 1
 #SBATCH 
 

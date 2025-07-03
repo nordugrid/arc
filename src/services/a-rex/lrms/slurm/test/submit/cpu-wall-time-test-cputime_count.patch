@@ -3,7 +3,7 @@
 @@ -8,8 +8,10 @@
  #SBATCH --nice=50
  #SBATCH -J 'gridjob'
- #SBATCH --get-user-env=10L
+ #SBATCH --get-user-env=L
 -#SBATCH -n 1
 +#SBATCH -n 6
  #SBATCH 
