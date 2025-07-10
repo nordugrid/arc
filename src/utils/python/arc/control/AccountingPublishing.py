@@ -556,8 +556,8 @@ class APELAMSDirectSender(object):
             self.logger.error('Cannot publish data without AMS auth token.')
             return False
 
-        publish_path = '/v1/projects/{0}/topics/{1}:publish?key={2}'.format(
-            self.ams_project, self.conf['topic'], self.ams_token
+        publish_path = '/v1/projects/{0}/topics/{1}:publish'.format(
+            self.ams_project, self.conf['topic']
         )
         utcnow = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         empaid = "{0}/{1}".format(utcnow[:8], utcnow)
@@ -584,7 +584,7 @@ class APELAMSDirectSender(object):
         sent = False
         try:
             # conn.set_debuglevel(1)
-            headers = {'Content-Type': 'application/json; charset=UTF-8'}
+            headers = {'Content-Type': 'application/json; charset=UTF-8', 'x-api-key': self.ams_token}
             self.logger.debug('Publishing data to APEL via AMS REST')
             conn.request('POST', publish_path, json.dumps({"messages": [msg]}), headers)
             resp = conn.getresponse()
