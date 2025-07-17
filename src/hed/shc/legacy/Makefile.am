@@ -1,5 +1,5 @@
-SUBDIRS = schema
-DIST_SUBDIRS = schema
+SUBDIRS = schema test
+DIST_SUBDIRS = schema test
 
 pkglib_LTLIBRARIES = libarcshclegacy.la
 

@@ -197,7 +197,7 @@ public:
             if(itValues != context.end()) {
               Arc::RegularExpression regexp(right_->EvaluateValue());
               for(std::list<std::string>::iterator itValue = itValues->second.begin(); itValue != itValues->second.end(); ++itValue) {
-                if(regexp.match(left_->EvaluateValue())) return true;
+                if(regexp.match(*itValue)) return true;
               }
             }
           }
@@ -220,7 +220,6 @@ private:
   Expression* right_;
   Arc::RegularExpression* regexp_;
 };
-
 
 
 class Token {
@@ -271,6 +270,34 @@ private:
   std::string value_;
 };
 
+class TokenQuotedString: public Token {
+public:
+  static Token* Parse(char const * & str, char esc = '\\') {
+    std::string value;
+    char mark = str[0];
+    ++str;
+    while(true) {
+      char const * pos = strchr(str, mark);
+      if(!pos) throw Exception("Missing closing quotation mark");
+      std::size_t len = pos-str;
+      value.append(str, len);
+      str = pos+1;
+      if((len > 0) && (value[len-1] != esc)) break;
+      value[len-1] = mark;  
+    }
+    return new TokenQuotedString(value);
+  }
+  virtual bool isValue() const { return true; }
+  virtual Expression* MakeExpression() { return new ExpressionValue(value_); }
+
+private:
+  TokenQuotedString(std::string& value) {
+    value_.swap(value);
+    logger.msg(Arc::DEBUG, "Quoted string token: %s",value_);
+  };
+  std::string value_;
+};
+
 class TokenSequence: public Token {
 public:
   static Token* Parse(char const * & str, bool tillBracket = false) {
@@ -296,9 +323,7 @@ public:
         ++str;
         token->tokens_.push_back(TokenSequence::Parse(str, true));
       } else if(c == '"') {
-        ++str;
-        token->tokens_.push_back(TokenString::Parse(str, tillBracket?")\"":"\""));
-        ++str;
+        token->tokens_.push_back(TokenQuotedString::Parse(str));
       } else {
         token->tokens_.push_back(TokenString::Parse(str, tillBracket?") \t!|&^=~":" \t!|&^=~"));
       }
@@ -338,10 +363,10 @@ public:
       exprLeft = (*itTokenLeft)->MakeExpression();
       // smash unary
       while(itTokenLeft != itTokenLeftStart) {
+        --itTokenLeft;
         Arc::AutoPointer<Expression> newExpr((*itTokenLeft)->MakeExpression(exprLeft.Ptr()));
         exprLeft.Release();
         exprLeft = newExpr;
-        --itTokenLeft;
       }
     }
 
@@ -368,10 +393,10 @@ public:
         exprRight = (*itTokenRight)->MakeExpression();
         // smash unary
         while(itTokenRight != itTokenRightStart) {
+          --itTokenRight;
           Arc::AutoPointer<Expression> newExpr((*itTokenRight)->MakeExpression(exprRight.Ptr()));
           exprRight.Release();
           exprRight = newExpr;
-          --itTokenRight;
         }
       }
 
@@ -393,38 +418,38 @@ AuthResult AuthUser::match_ftokens(const char* line) {
   if(otokens_data_.empty()) return AAA_NO_MATCH;
   if(!line) return AAA_NO_MATCH;
   logger.msg(Arc::DEBUG, "Matching tokens expression: %s",line);
-  Arc::AutoPointer<LogicExp::Token> token(LogicExp::TokenSequence::Parse(line));
-  if(!token) {
-    logger.msg(Arc::DEBUG, "Failed to parse expression");
-    return AAA_NO_MATCH;
-  }
-  Arc::AutoPointer<LogicExp::Expression> expr(token->MakeExpression());
-  if(!expr) return AAA_NO_MATCH;
-  for(int idx = 0; idx < otokens_data_.size(); ++idx) {
-    otokens_t& token_info = otokens_data_[idx];
-    std::map< std::string,std::list<std::string> >& claims = token_info.claims;
-    for(std::map< std::string,std::list<std::string> >::iterator claim = claims.begin(); claim != claims.end(); ++claim) {
-      std::list<std::string>& values = claim->second;
-      if(values.empty()) {
-        logger.msg(Arc::DEBUG, "%s: <empty>", claim->first);
-      } else {
-        logger.msg(Arc::DEBUG, "%s: %s", claim->first, values.front());
-        for(std::list<std::string>::iterator value =  values.begin();;) {
-          ++value;
-          if(value == values.end()) break;
-          logger.msg(Arc::DEBUG, "      %s", *value);
+  try {
+    Arc::AutoPointer<LogicExp::Token> token(LogicExp::TokenSequence::Parse(line));
+    if(!token) {
+      logger.msg(Arc::DEBUG, "Failed to parse expression");
+      return AAA_NO_MATCH;
+    }
+    Arc::AutoPointer<LogicExp::Expression> expr(token->MakeExpression());
+    if(!expr) return AAA_NO_MATCH;
+    for(int idx = 0; idx < otokens_data_.size(); ++idx) {
+      otokens_t& token_info = otokens_data_[idx];
+      std::map< std::string,std::list<std::string> >& claims = token_info.claims;
+      for(std::map< std::string,std::list<std::string> >::iterator claim = claims.begin(); claim != claims.end(); ++claim) {
+        std::list<std::string>& values = claim->second;
+        if(values.empty()) {
+          logger.msg(Arc::DEBUG, "%s: <empty>", claim->first);
+        } else {
+          logger.msg(Arc::DEBUG, "%s: %s", claim->first, values.front());
+          for(std::list<std::string>::iterator value =  values.begin();;) {
+            ++value;
+            if(value == values.end()) break;
+            logger.msg(Arc::DEBUG, "      %s", *value);
+          }
         }
       }
-    }
-    try {
       if(expr->EvaluateBool(claims)) {
         logger.msg(Arc::DEBUG, "Expression matched");
         return AAA_POSITIVE_MATCH;
       }
-    } catch(std::exception& exc) {
-      logger.msg(Arc::DEBUG, "Failed to evaluate expression: %s",exc.what());
-      return AAA_FAILURE;
     }
+  } catch(std::exception& exc) {
+    logger.msg(Arc::ERROR, "Failed to evaluate expression: %s",exc.what());
+    return AAA_FAILURE;
   }
   logger.msg(Arc::DEBUG, "Expression failed to matched");
   return AAA_NO_MATCH;
