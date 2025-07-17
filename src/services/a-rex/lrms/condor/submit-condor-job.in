@@ -154,7 +154,7 @@ fi
 
 # proxy or token
 if [ -f "${joboption_directory}/user.proxy" ]; then
-  if  head -n 1 | grep -F -q 'BEGIN CERTIFICATE' ; then
+  if  head -n 1 "${joboption_directory}/user.proxy" | grep -F -q 'BEGIN CERTIFICATE' ; then
     echo "x509userproxy = ${joboption_directory}/user.proxy" >> $LRMS_JOB_DESCRIPT
   else
     echo "scitokens_file = ${joboption_directory}/user.proxy" >> $LRMS_JOB_DESCRIPT
