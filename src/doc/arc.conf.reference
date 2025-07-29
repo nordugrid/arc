@@ -339,18 +339,18 @@
 
 ## authtokensgen = logical expression - Match OIDC token claims.
 ## Expression to match. Following operators are available:
-##  - "=" - match token claim value (left part represents claim name) to specified string (right part), produces boolean result
-##  - "~" - match token claim value (left part represents claim name) to regex expression (right part), produces boolean result
-##  - "!" - boolean negation
-##  - "&" - boolean AND
-##  - "|" - boolean OR
-##  - "^" - boolean XOR
-##  - "()" - brackets are used to control priority of evaluation, without brackets all operators have same priority
-##  - '' or "" - strings can be enclosd in quotes to allow special symbols in strings
+##  - = - match token claim value (left part represents claim name) to specified string (right part), produces boolean result
+##  - ~ - match token claim value (left part represents claim name) to regex expression (right part), produces boolean result
+##  - ! - boolean negation
+##  - & - boolean AND
+##  - | - boolean OR
+##  - ^ - boolean XOR
+##  - () - brackets are used to control priority of evaluation, without brackets all operators have same priority
+##  - "" - strings can be enclosed in quotes to allow special symbols in strings, to in include " in such string use \"
 ## All empty spaces are optional. This functionality is experimental.
 ## sequenced
 ## default: undefined
-#authtokensgen = (sub=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0) & (iss="https://wlcg.cloud.cnaf.infn.it/")
+#authtokensgen = (sub=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0) & (iss="https://wlcg.cloud.cnaf.infn.it/") & !(email~".*\.evil\.com")
 ## CHANGE: NEW in 7.0.0
 
 ## all = yes|no - Matches any or none user identity. For "yes" argument this rule
