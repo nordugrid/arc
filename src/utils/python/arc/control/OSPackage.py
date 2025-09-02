@@ -21,22 +21,22 @@ class OSPackageManagement(object):
         try:
             self.logger.debug('Looking for rpm/yum is installed on the system.')
             yum_dnf_found = False
-            yum_output = subprocess.Popen(self.command_base + ['rpm', '-q', 'yum'],
+            dnf_output = subprocess.Popen(self.command_base + ['rpm', '-q', '--whatprovides', 'dnf'],
                                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            stdout = yum_output.communicate()
-            if yum_output.returncode == 0:
-                self.pm = 'yum'
-                self.pm_cmd = 'yum'
+            stdout = dnf_output.communicate()
+            if dnf_output.returncode == 0:
+                self.pm = 'dnf'
+                self.pm_cmd = 'dnf'
                 yum_dnf_found = True
             else:
-                # if we are still here instead of OSError: rpm is there but yum is not - try dnf
+                # if we are still here instead of OSError: rpm is there but dnf is not - try yum
                 self.logger.debug('Looking for rpm/dnf is installed on the system.')
-                dnf_output = subprocess.Popen(self.command_base + ['rpm', '-q', 'dnf'],
+                yum_output = subprocess.Popen(self.command_base + ['rpm', '-q', '--whatprovides', 'yum'],
                                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                stdout = dnf_output.communicate()
-                if dnf_output.returncode == 0:
-                    self.pm = 'dnf'
-                    self.pm_cmd = 'dnf'
+                stdout = yum_output.communicate()
+                if yum_output.returncode == 0:
+                    self.pm = 'yum'
+                    self.pm_cmd = 'yum'
                     yum_dnf_found = True
             if yum_dnf_found:
                 self.pm_is_installed = 'rpm -q {0}'
