@@ -1,0 +1,90 @@
+=================================
+Advanced Resource Connector (ARC)
+=================================
+
+
+Release Notes for NorduGrid ARC  7.1.0     02.09.2025
+=======================================================
+
+We are happy to release ARC 7.1.0 which comes with a couple of important bugfixes and a few other minor improvements. 
+
+Highlights in this release
+---------------------------
+As of Slurm 25, there is no longer support for the timeout option to the --get-user-env parameter that the ARC Slurm submission scripts have been using. 
+In ARC 7.1.0 this option has been removed, and the Slurm script now just uses #SBATCH --get-user-env with no custom timeout included. 
+
+During summer ARGO changed their REST API related to authentication, causing ARC jobs to fail accounting publishing. 
+A patch was submitted to ARC which has been included in ARC 7.1.0 (but will not be included in ARC 6, see policy for support below). 
+ARGO currently supports both old and new authentication API, so currently both ARC 7 and ARC 6 are functioning. 
+However, we encourage to upgrade to ARC 7 the sooner the better to stay on the safe side. 
+
+The following Bugzilla tickets have been adressed or solved
+------------------------------------------------------------
+* 4268  ARGO REST header changes causing accounting problems 
+* 4258  Missing user.proxy filename
+* 4256  Job submission from aCT to ARC fails with nightlies from 24.06.25
+* 4254  Job submission to slurm 25 is failing
+* 4253  Parsing authtokensgen expression
+* 4251  Python3 bug in JURA parsing `endfrom`
+* 4248  ARC 7 - Failed to start transfer request: SOAP: Failed processing request
+* 4247  CEInfo REST Endpoint produces malformed JSON output if ARC CE doesn't have any RTEs enabled
+* 4246  The command "arcctl datastaging dtr state" does not show all states
+* 4243  Spelling of some messages from arcctl
+* 4242  arcctl datastaging summary files crashes
+* 4240  arc/utils/config.py is not using raw string literals for regular expressions
+* 4239  arcls asks for password unnecessarily
+* 4237  arc-datadelivery-service crashes
+* 4222  Tripple warning when running arcctl as client
+
+
+Documentation
+==============
+The ARC 7 documentation can be found at https://www.nordugrid.org/arc/arc7
+
+If you miss something or have questions, please contact us!
+
+
+
+Installing ARC 7 
+=================
+We recommend to install ARC release using the Nordugrid repository.
+
+* Start with the basics: Token-version: https://www.nordugrid.org/arc/arc7/admins/quickstart.html
+* Get production ready: https://www.nordugrid.org/arc/arc7/admins/arc_install_guide.html#arc-install-guide
+
+There is also a nice ARC tutorial which you can follow if you are new to ARC: https://www.nordugrid.org/arc/arc7/admins/tutorial/tutorial.html
+
+
+* We provide binary builds for all supported versions of Debian, Ubuntu, Fedora, Rocky (compatible with AlmaLinux), and CentOS Stream.  
+
+
+
+Contributing
+=============
+You can submit pull requests to our public repo at https://github.com/nordugrid/arc which mirrors
+our Gitlab repo https://source.coderefinery.org/nordugrid/arc.
+
+The pull requests will be automatically copied over to our Gitlab repo where they will be
+merged into the source-code if accepted.
+
+
+Getting in touch
+==================
+If you need help with the configuration file or have any other questions related to ARC, please contact us via
+* Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
+* We have moved to Matrix for ARC support - you can always reach us there: https://matrix.to/#/#arc_support:matrix.org
+
+
+Future support of ARC 6-series
+===============================
+
+Now that ARC 7.0.0 is released, we expect one final ARC 6 release, but after that we will only provide security updates of ARC 6.
+In particular:
+1) No new feature development is planned or going on for ARC6 and no bug-fixing development 
+   will happen on ARC6 code base in the future except for security issues.
+2) Security fixes for ARC6 will be provided till end of March 2026.
+3) Production Sites already running ARC 6 will be able to get deployment and configuration 
+   troubleshooting help via GGUS Helpdesk till end March 2027. This we call "operational site support".
+4) In EPEL ARC packages have their major release number as part of the package name, arc6 and arc7 packages can not be confused. 
+5) In the Nordugrid repository, you have to specifically enable the ARC 7 repo to get the ARC 7 update. See: https://www.nordugrid.org/arc/arc7/common/repos/repository.html 
+
