@@ -3,7 +3,7 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  7.1.0     02.09.2025
+Release Notes for NorduGrid ARC  7.1.0     09.09.2025
 =======================================================
 
 We are happy to release ARC 7.1.0 which comes with a couple of important bugfixes and a few other minor improvements. 
@@ -11,16 +11,19 @@ We are happy to release ARC 7.1.0 which comes with a couple of important bugfixe
 Highlights in this release
 ---------------------------
 As of Slurm 25, there is no longer support for the timeout option to the --get-user-env parameter that the ARC Slurm submission scripts have been using. 
-In ARC 7.1.0 this option has been removed, and the Slurm script now just uses #SBATCH --get-user-env with no custom timeout included. 
+In ARC 7.1.0 this option has been removed, and the Slurm script now just uses #SBATCH --get-user-env with no custom timeout included. (Bugzilla ticket 4254). 
 
 During summer ARGO changed their REST API related to authentication, causing ARC jobs to fail accounting publishing. 
 A patch was submitted to ARC which has been included in ARC 7.1.0 (but will not be included in ARC 6, see policy for support below). 
 ARGO currently supports both old and new authentication API, so currently both ARC 7 and ARC 6 are functioning. 
-However, we encourage to upgrade to ARC 7 the sooner the better to stay on the safe side. 
+However, we encourage upgrade to ARC 7 the sooner the better, to stay on the safe side. (Bugzilla ticket 4269).
+
+The JSON structure of the published public ARC information has gradually been cleaned to follow the agreed schemas more strictly. 
+One such change caused job submission failures from aCT. This has now been fixed (Bugzilla ticket 4256). 
 
 The following Bugzilla tickets have been adressed or solved
 ------------------------------------------------------------
-* 4268  ARGO REST header changes causing accounting problems 
+* 4269  ARGO REST header changes causing accounting problems 
 * 4258  Missing user.proxy filename
 * 4256  Job submission from aCT to ARC fails with nightlies from 24.06.25
 * 4254  Job submission to slurm 25 is failing
