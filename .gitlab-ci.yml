@@ -137,13 +137,6 @@ build_deb12:
         BUILD_IMAGE: nordugrid/arc-build-debian12
 
 
-##################
-#    UBUNTU 20.04
-##################
-build_ubuntu2004:
-    extends: .template_build_deb
-    variables:
-        BUILD_IMAGE: nordugrid/arc-build-ubuntu2004
     
 ##################
 #    UBUNTU 22.04
@@ -258,23 +251,6 @@ deploy_deb12:
   
 
 ##################
-#    UBUNTU 20.04
-##################
-deploy_ubuntu2004:
-  extends: .deploy
-  variables:
-    OS_V: ubuntu2004
-    ARC_IMAGE: nordugrid/arc-deploy-ubuntu2004
-    BUILD_VOL: /build
-    BUILD_DIR: $CI_PROJECT_DIR/*.deb
-  tags:
-    - deploy
-  needs:
-    - job: build_ubuntu2004
-      artifacts: true
-
-
-##################
 #    UBUNTU 22.04
 ##################
 deploy_ubuntu2204:
@@ -373,25 +349,6 @@ arcconf_deb12_deploytest:
       artifacts: true
 
 
-
-############################
-##### UBUNTU DEPLOY CHECK
-############################    
-arcrest_ubuntu2004_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcrest'
-  needs:
-    - job: deploy_ubuntu2004
-      artifacts: true
-
-arcconf_ubuntu2004_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcconf'
-  needs:
-    - job: deploy_ubuntu2004
-      artifacts: true
 
 
 ############################
