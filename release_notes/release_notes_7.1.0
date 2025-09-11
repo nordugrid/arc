@@ -3,15 +3,41 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  X.Y.Z     XX.YY.ZZZZ
+Release Notes for NorduGrid ARC  7.1.0     11.09.2025
 =======================================================
+
+We are happy to release ARC 7.1.0 which comes with a couple of important bugfixes and a few other minor improvements. 
 
 Highlights in this release
 ---------------------------
+As of Slurm 25, there is no longer support for the timeout option to the --get-user-env parameter that the ARC Slurm submission scripts have been using. 
+In ARC 7.1.0 this option has been removed, and the Slurm script now just uses #SBATCH --get-user-env with no custom timeout included. (Bugzilla ticket 4254). 
+
+During summer ARGO changed their REST API related to authentication, causing ARC jobs to fail accounting publishing. 
+A patch was submitted to ARC which has been included in ARC 7.1.0 (but will not be included in ARC 6, see policy for support below). 
+ARGO currently supports both old and new authentication API, so currently both ARC 7 and ARC 6 are functioning. 
+However, we encourage upgrade to ARC 7 the sooner the better, to stay on the safe side. (Bugzilla ticket 4269).
+
+The JSON structure of the published public ARC information has gradually been cleaned to follow the agreed schemas more strictly. 
+One such change caused job submission failures from aCT. This has now been fixed (Bugzilla ticket 4256). 
 
 The following Bugzilla tickets have been adressed or solved
 ------------------------------------------------------------
-
+* 4269  ARGO REST header changes causing accounting problems 
+* 4258  Missing user.proxy filename
+* 4256  Job submission from aCT to ARC fails with nightlies from 24.06.25
+* 4254  Job submission to slurm 25 is failing
+* 4253  Parsing authtokensgen expression
+* 4251  Python3 bug in JURA parsing `endfrom`
+* 4248  ARC 7 - Failed to start transfer request: SOAP: Failed processing request
+* 4247  CEInfo REST Endpoint produces malformed JSON output if ARC CE doesn't have any RTEs enabled
+* 4246  The command "arcctl datastaging dtr state" does not show all states
+* 4243  Spelling of some messages from arcctl
+* 4242  arcctl datastaging summary files crashes
+* 4240  arc/utils/config.py is not using raw string literals for regular expressions
+* 4239  arcls asks for password unnecessarily
+* 4237  arc-datadelivery-service crashes
+* 4222  Tripple warning when running arcctl as client
 
 
 Documentation
@@ -51,6 +77,7 @@ If you need help with the configuration file or have any other questions related
 * Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
 * We have moved to Matrix for ARC support - you can always reach us there: https://matrix.to/#/#arc_support:matrix.org
 
+
 Future support of ARC 6-series
 ===============================
 
@@ -63,10 +90,4 @@ In particular:
    troubleshooting help via GGUS Helpdesk till end March 2027. This we call "operational site support".
 4) In EPEL ARC packages have their major release number as part of the package name, arc6 and arc7 packages can not be confused. 
 5) In the Nordugrid repository, you have to specifically enable the ARC 7 repo to get the ARC 7 update. See: https://www.nordugrid.org/arc/arc7/common/repos/repository.html 
-
-
-
-
-
-
 
