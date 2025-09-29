@@ -308,7 +308,8 @@ static Arc::DataStatus do_mover(const Arc::URL& s_url,
   if (verbose) mover.set_progress_indicator(&progress);
 
   Arc::DataStatus callback_res;
-  Arc::DataStatus res = mover.Transfer(*source, *destination, cache, Arc::URLMap(),
+  Arc::URLMap url_map;
+  Arc::DataStatus res = mover.Transfer(*source, *destination, cache, url_map,
                                        0, 0, 0, timeout, &mover_callback, &callback_res);
   if (!res.Passed()) {
     logger.msg(Arc::ERROR, "Current transfer FAILED: %s", std::string(res));

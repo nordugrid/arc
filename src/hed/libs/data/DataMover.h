@@ -59,7 +59,8 @@ namespace Arc {
     /**
      * An optional callback can be provided, in which case this method starts
      * a separate thread for the transfer and returns immediately. The callback
-     * is called after the transfer finishes.
+     * is called after the transfer finishes. In that case parameters passed by
+     * reference must stay valid till callback is called.
      * \param source source DataPoint to read from.
      * \param destination destination DataPoint to write to.
      * \param cache controls caching of downloaded files (if destination
@@ -82,7 +83,8 @@ namespace Arc {
     /**
      * An optional callback can be provided, in which case this method starts
      * a separate thread for the transfer and returns immediately. The callback
-     * is called after the transfer finishes.
+     * is called after the transfer finishes. In that case parameters passed by
+     * reference must stay valid till callback is called.
      * \param source source DataPoint to read from.
      * \param destination destination DataPoint to write to.
      * \param cache controls caching of downloaded files (if destination
