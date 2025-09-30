@@ -490,6 +490,7 @@
 ## allowedvalues: continue stop
 #policy_on_nogroup=stop
 ##
+##
 ### end of the [mapping] block ##############################################
 
 
@@ -499,24 +500,20 @@
 ## Configuration values in this block are available for A-REX, the backends, accounting and infosys
 ## ARC subsystems.
 ##
-## ARC support the most common LRMS flavours.
+## ARC primarily supports SLURM, Condor and its own fork LRMS flavours, as listed below. 
+## Please note that the various PBS flavours have best effort community support only.
 #[lrms]
 
 ## *lrms = lrmstype [defaultqueue] - Sets the type of the LRMS (queue system) and optionally the
 ## default queue name.
 ## ONLY ONE LRMS IS ALLOWED. MULTIPLE LRMS ENTRIES WILL TRIGGER UNEXPECTED BEHAVIOUR.
 ##
-## TODO: mark deprecated backends
 ## For lrmstype, the following values can be chosen:
 ##   - fork    - simple forking of jobs to the same node as the server
-##   - sge     - (Sun/Oracle) Grid Engine
 ##   - condor  - Condor
 ##   - pbs     - PBS (covers Torque and other old PBS flavours e.g. OpenPBS, older PBSPro, etc)
 ##   - pbspro  - Altair PBS Professional
-##   - lsf     - LSF
-##   - ll      - LoadLeveler
 ##   - slurm   - SLURM
-##   - boinc   - Boinc
 ##
 ## The optional "defaultqueue" parameter specifies the name of an existing LRMS queue
 ## in the cluster that will be used by AREX as the default queue to submit grid jobs in case
@@ -635,37 +632,6 @@
 ## default: undefined
 #condor_requirements=(OpSys == "linux" && NORDUGRID_RESOURCE && Memory >= 1000 && Memory < 2000)
 
-### SGE options: set these only in case of lrms=sge
-## sge_bin_path = path - Path to Sun Grid Engine (SGE) binaries,
-## Default is search for qsub command in the shell PATH
-## default: undefined
-#sge_bin_path=/opt/n1ge6/bin/lx24-x86
-
-## sge_root = path - Path to SGE installation directory. MUST be set if SGE is used.
-## default: /gridware/sge
-#sge_root=/opt/n1ge6
-
-## sge_cell = name - The name of the SGE cell to use. This option is only necessary
-## in case SGE is set up with a cell name different from 'default'
-## default: default
-#sge_cell=default
-
-## sge_qmaster_port = port - The SGE port options should be used in case SGE
-## command line clients require SGE_QMASTER_PORT and SGE_EXECD_PORT environment
-## variables to be set. Usually they are not necessary.
-## default: undefined
-#sge_qmaster_port=536
-
-## sge_execd_port = port - The SGE port options should be used in case SGE
-## command line clients requre SGE_QMASTER_PORT and SGE_EXECD_PORT environment
-## variables to be set. Usually they are not necessary.
-## default: undefined
-#sge_execd_port=537
-
-## sge_jobopts = string - Additional SGE options to be used when submitting jobs to SGE
-## default: undefined
-#sge_jobopts=-P atlas -r yes
-
 ### SLURM options: set these only in case of lrms=slurm
 ## slurm_bin_path = path - Path to SLURM binaries, must be set if installed
 ## outside of normal PATH
@@ -693,62 +659,6 @@
 ## If all retry attempts fail, the next scan-SLURM-job institiation will pick up the job(s) from last time.
 ## default: 1
 #slurm_query_retries=3
-
-### LSF options: set these only in case of lrms=lsf
-## lsf_bin_path = path - The PATH to LSF bin folder
-## default: /usr/bin
-#lsf_bin_path=/usr/local/lsf/bin/
-
-## lsf_profile_path = path - Path to the profile.lsf file. Infoprovider scripts
-## will source profile.lsf to setup LSF utilites environment.
-## default: /usr/share/lsf/conf/profile.lsf
-#lsf_profile_path=/usr/local/share/lsf/conf/profile.lsf
-
-## lsf_architecture = string - CPU architecture to request when submitting jobs to LSF.
-## Use only if you know what you are doing.
-## default: undefined
-#lsf_architecture=PowerPC
-
-### LoadLeveler options: set these only in case of lrms=ll
-## ll_bin_path = path - The PATH to the LoadLeveler bin folder
-## default: /usr/bin
-#ll_bin_path=/opt/ibmll/LoadL/full/bin
-
-## ll_consumable_resources = yes/no - Indicates whether the LoadLeveler setup is
-## using Consumable Resources.
-## allowedvalues: yes no
-## default: no
-#ll_consumable_resources=yes
-
-### Boinc options: set these only in case of lrms=boinc
-## boinc_db_host = hostname - Connection strings for the boinc database: host
-## default: localhost
-#boinc_db_host=localhost
-
-## boinc_db_port = port - Connection strings for the boinc database: port
-## default: 3306
-#boinc_db_port=3306
-
-## boinc_db_name = db_name - Connection strings for the boinc database: db_name
-## default: undefined
-#boinc_db_name=myproject
-
-## boinc_db_user = user - Connection strings for the boinc database: db_user
-## default: undefined
-#boinc_db_user=boinc
-
-## boinc_db_pass = pwd - Connection strings for the boinc database: pwd
-## default: undefined
-#boinc_db_pass=password
-
-## boinc_app_id - ID of the app handled by this CE. Setting this option
-## makes database queries much faster in large projects with many apps.
-## default: undefined
-#boinc_app_id=1
-
-## boinc_project_dir - Base directory of the BOINC project
-## default:undefined
-#boinc_project_dir=/home/boinc
 ##
 ##
 ### end of [lrms] block #####################################################
