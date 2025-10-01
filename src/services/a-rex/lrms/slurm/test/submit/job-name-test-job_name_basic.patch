@@ -6,6 +6,6 @@
  #SBATCH --nice=50
 -#SBATCH -J 'gridjob'
 +#SBATCH -J 'job'
- #SBATCH --get-user-env=L
+ #SBATCH --get-user-env
  #SBATCH -n 1
  #SBATCH 
