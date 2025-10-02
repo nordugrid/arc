@@ -95,6 +95,7 @@ RUNTIME_NODE_SEES_FRONTEND=${RUNTIME_NODE_SEES_FRONTEND:-yes}
       [ "$f" = "$RUNTIME_JOB_DIR/.." ] && continue
       [ "$f" = "$RUNTIME_JOB_DIR/.diag" ] && continue
       [ "$f" = "$RUNTIME_JOB_DIR/.comment" ] && continue
+      [ -f "$f" ] || continue
       if ! $RUNTIME_LOCAL_SCRATCH_MOVE_TOOL "$f" "$RUNTIME_NODE_JOB_DIR"; then
         echo "Failed to '$RUNTIME_LOCAL_SCRATCH_MOVE_TOOL' '$f' to '$RUNTIME_NODE_JOB_DIR'" 1>&2
         exit 1
@@ -246,6 +247,7 @@ else
         [ "$f" = "$RUNTIME_NODE_JOB_DIR/.." ] && continue
         [ "$f" = "$RUNTIME_NODE_JOB_DIR/.diag" ] && continue
         [ "$f" = "$RUNTIME_NODE_JOB_DIR/.comment" ] && continue
+	[ -f "$f" ] || continue
         if ! mv "$f" "$RUNTIME_FRONTEND_JOB_DIR"; then
           echo "Failed to move '$f' to '$RUNTIME_FRONTEND_JOB_DIR'" 1>&2
           RESULT=1
