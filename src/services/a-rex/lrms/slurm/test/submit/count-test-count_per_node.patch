@@ -3,7 +3,7 @@
 @@ -8,7 +8,8 @@
  #SBATCH --nice=50
  #SBATCH -J 'gridjob'
- #SBATCH --get-user-env=L
+ #SBATCH --get-user-env
 -#SBATCH -n 1
 +#SBATCH -n 6
 +#SBATCH --ntasks-per-node 2

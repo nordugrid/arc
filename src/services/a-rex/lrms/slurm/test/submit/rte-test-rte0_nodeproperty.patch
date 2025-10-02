@@ -2,7 +2,7 @@
 +++ b/basic-script.sh	2019-07-22 17:45:50.557992114 +0200
 @@ -8,7 +8,7 @@
  #SBATCH -J 'gridjob'
- #SBATCH --get-user-env=L
+ #SBATCH --get-user-env
  #SBATCH -n 1
 -#SBATCH 
 +#SBATCH  TEST TESTING

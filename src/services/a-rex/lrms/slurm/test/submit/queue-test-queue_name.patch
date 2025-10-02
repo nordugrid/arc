@@ -7,4 +7,4 @@
 +#SBATCH -p nordugrid
  #SBATCH --nice=50
  #SBATCH -J 'gridjob'
- #SBATCH --get-user-env=L
+ #SBATCH --get-user-env
