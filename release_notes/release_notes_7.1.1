@@ -1,0 +1,81 @@
+=================================
+Advanced Resource Connector (ARC)
+=================================
+
+
+Release Notes for NorduGrid ARC  7.1.1     03.10.2025
+=======================================================
+
+
+This is a bugfix release that addresses 4 bugs discovered in 7.1.0: 
+
+- arccp segfault (Bug 4271)
+- Slurm 25 deprecation of options to the get-user-env was not fully fixed in 7.1.0 (get-user-env no longer supports any options at all) (Bug 4254)
+- a glob pattern mismatch in submit_common.sh caused jobs to be aborted early (Bug 4270)
+- A previous change to arc-job-cgroup causes get_cgroup_mount_root() to fail since the input arguments to fscanf() changed from 6 to 5 without changing the test value in the code from 6 to 5. 
+
+
+The following Bugzilla tickets have been adressed or solved
+------------------------------------------------------------
+* 4271  arccp segfaults after upgrade to 7.1.0
+* 4254  Job submission to slurm 25 is failing
+* 4270  submit_common.sh: move_files_to_node and move_files_to_frontend glob patterns fail to match .* in Bash
+* 4210  Tidy up arc-job-cgroup.c
+
+
+Documentation
+==============
+The ARC 7 documentation can be found at https://www.nordugrid.org/arc/arc7
+
+If you miss something or have questions, please contact us!
+
+
+
+Installing ARC 7 
+=================
+We recommend to install ARC release using the Nordugrid repository.
+
+* Start with the basics: Token-version: https://www.nordugrid.org/arc/arc7/admins/quickstart.html
+* Get production ready: https://www.nordugrid.org/arc/arc7/admins/arc_install_guide.html#arc-install-guide
+
+There is also a nice ARC tutorial which you can follow if you are new to ARC: https://www.nordugrid.org/arc/arc7/admins/tutorial/tutorial.html
+
+
+* We provide binary builds for all supported versions of Debian, Ubuntu, Fedora, Rocky (compatible with AlmaLinux), and CentOS Stream.  
+
+
+
+Contributing
+=============
+You can submit pull requests to our public repo at https://github.com/nordugrid/arc which mirrors
+our Gitlab repo https://source.coderefinery.org/nordugrid/arc.
+
+The pull requests will be automatically copied over to our Gitlab repo where they will be
+merged into the source-code if accepted.
+
+
+Getting in touch
+==================
+If you need help with the configuration file or have any other questions related to ARC, please contact us via
+* Email: nordugrid-discuss@nordugrid.org or wlcg-arc-ce-discuss@cern.ch
+* We have moved to Matrix for ARC support - you can always reach us there: https://matrix.to/#/#arc_support:matrix.org
+
+Future support of ARC 6-series
+===============================
+
+Now that ARC 7.0.0 is released, we expect one final ARC 6 release, but after that we will only provide security updates of ARC 6.
+In particular:
+1) No new feature development is planned or going on for ARC6 and no bug-fixing development 
+   will happen on ARC6 code base in the future except for security issues.
+2) Security fixes for ARC6 will be provided till end of March 2026.
+3) Production Sites already running ARC 6 will be able to get deployment and configuration 
+   troubleshooting help via GGUS Helpdesk till end March 2027. This we call "operational site support".
+4) In EPEL ARC packages have their major release number as part of the package name, arc6 and arc7 packages can not be confused. 
+5) In the Nordugrid repository, you have to specifically enable the ARC 7 repo to get the ARC 7 update. See: https://www.nordugrid.org/arc/arc7/common/repos/repository.html 
+
+
+
+
+
+
+
