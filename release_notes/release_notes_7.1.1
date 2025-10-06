@@ -15,6 +15,8 @@ This is a bugfix release that addresses 4 bugs discovered in 7.1.0:
 - A previous change to arc-job-cgroup causes get_cgroup_mount_root() to fail since the input arguments to fscanf() changed from 6 to 5 without changing the test value in the code from 6 to 5. 
 
 
+Note that GFAL2 is no longer supported in EL10. We therefore do not provide packages for GFAL for EL10 derivatives. 
+
 The following Bugzilla tickets have been adressed or solved
 ------------------------------------------------------------
 * 4271  arccp segfaults after upgrade to 7.1.0
@@ -74,7 +76,9 @@ In particular:
 5) In the Nordugrid repository, you have to specifically enable the ARC 7 repo to get the ARC 7 update. See: https://www.nordugrid.org/arc/arc7/common/repos/repository.html 
 
 
-
+Knows issues
+==============
+- GFAL2 not supported in EL10
 
 
 
