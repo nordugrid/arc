@@ -12,12 +12,13 @@
 * [ ] Start build on Fedora and Debian (@ellert)
 * [ ] Check that the supported platforms are up to date here: https://download.nordugrid.org/repos-6.html and here: http://www.nordugrid.org/documents/arc6/common/repos/repository.html (@waananen)
 * [ ] Add version to NorduGrid Bugzilla products (@waananen)
-* [ ] Publish release notes on web (@oxana)
 * [ ] Packages are ready to be pushed (@waananen)
 * [ ] Announce release on nordugrid-discuss, wlcg-arc-ce-discuss and urt-discuss@mailman.egi.eu email lists (@maikenp)
+* [ ] Push packages to the repo (@waananen)
+* [ ] Publish release notes on web (@oxana)
 * [ ] Update News about release: http://www.nordugrid.org/ (@oxana)
 * [ ] Update link to latest release: http://www.nordugrid.org/arc/ (@oxana)
-* [ ] Push packages to the repo (@waananen)
+
 
 
 
