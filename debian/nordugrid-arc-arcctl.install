@@ -1,12 +1,19 @@
-debian/tmp/usr/lib/python?.*/site-packages/arc/control/__init__.py*
-debian/tmp/usr/lib/python?.*/site-packages/arc/control/CertificateGenerator.py*
-debian/tmp/usr/lib/python?.*/site-packages/arc/control/ControlCommon.py*
-debian/tmp/usr/lib/python?.*/site-packages/arc/control/OSPackage.py*
-debian/tmp/usr/lib/python?.*/site-packages/arc/control/TestCA.py*
-debian/tmp/usr/lib/python?.*/site-packages/arc/control/TestJWT.py*
-debian/tmp/usr/lib/python?.*/site-packages/arc/control/ThirdPartyDeployment.py*
+/usr/lib/python?.*/site-packages/arc/control/__init__.py
+/usr/lib/python?.*/site-packages/arc/control/CertificateGenerator.py
+/usr/lib/python?.*/site-packages/arc/control/ControlCommon.py
+/usr/lib/python?.*/site-packages/arc/control/OSPackage.py
+/usr/lib/python?.*/site-packages/arc/control/TestCA.py
+/usr/lib/python?.*/site-packages/arc/control/TestJWT.py
+/usr/lib/python?.*/site-packages/arc/control/ThirdPartyDeployment.py
 
-debian/tmp/usr/share/man/man1/arcctl.1
+/usr/lib/python?.*/site-packages/arc/control/__pycache__/__init__.*
+/usr/lib/python?.*/site-packages/arc/control/__pycache__/CertificateGenerator.*
+/usr/lib/python?.*/site-packages/arc/control/__pycache__/ControlCommon.*
+/usr/lib/python?.*/site-packages/arc/control/__pycache__/OSPackage.*
+/usr/lib/python?.*/site-packages/arc/control/__pycache__/TestCA.*
+/usr/lib/python?.*/site-packages/arc/control/__pycache__/TestJWT.*
+/usr/lib/python?.*/site-packages/arc/control/__pycache__/ThirdPartyDeployment.*
 
-debian/tmp/usr/sbin/arcctl
+/usr/share/man/man1/arcctl.1
 
+/usr/sbin/arcctl

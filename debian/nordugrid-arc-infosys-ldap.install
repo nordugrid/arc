@@ -1,3 +1,6 @@
-debian/tmp/usr/share/arc/create-bdii-config
-debian/tmp/usr/share/arc/create-slapd-config
-debian/tmp/usr/share/arc/ldap-schema
+/usr/share/arc/create-bdii-config
+/usr/share/arc/create-slapd-config
+/usr/share/arc/ldap-schema
+/usr/lib/systemd/system/arc-infosys-ldap.service
+/usr/lib/systemd/system/arc-infosys-ldap-slapd.service
+/etc/init.d/arc-infosys-ldap
