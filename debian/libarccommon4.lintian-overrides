@@ -1,0 +1,3 @@
+# False positives
+library-not-linked-against-libc [usr/lib/arc/libmodcredential.so]
+library-not-linked-against-libc [usr/lib/arc/libmodcrypto.so]

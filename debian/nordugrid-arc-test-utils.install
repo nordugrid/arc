@@ -1,2 +1,2 @@
-debian/tmp/usr/bin/arcperftest
-debian/tmp/usr/share/man/man1/arcperftest.1
+/usr/bin/arcperftest
+/usr/share/man/man1/arcperftest.1

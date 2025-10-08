@@ -1,0 +1,2 @@
+# This is not part of the shell code, it is inside a HERE document
+possible-bashism-in-maintainer-script '/{,var/}' [postinst:*]

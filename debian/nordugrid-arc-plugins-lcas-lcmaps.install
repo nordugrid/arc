@@ -1,2 +1,2 @@
-debian/tmp/usr/lib/arc/arc-lcas
-debian/tmp/usr/lib/arc/arc-lcmaps
+/usr/lib/arc/arc-lcas
+/usr/lib/arc/arc-lcmaps

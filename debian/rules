@@ -3,85 +3,47 @@
 # Filter out -Wl,-Bsymbolic-functions from default Ubuntu LDFLAGS
 export DEB_LDFLAGS_MAINT_STRIP=-Wl,-Bsymbolic-functions
 
-ifeq ($(shell type dh_systemd_enable > /dev/null 2> /dev/null && echo 1),1)
-WSD = --with systemd
-else
-WSD =
-endif
+export DEB_BUILD_MAINT_OPTIONS = hardening=+bindnow
+export DEB_LDFLAGS_MAINT_APPEND=-Wl,-z,defs
 
-ifeq ($(shell test -r /usr/include/systemd/sd-daemon.h && echo 1),1)
 ifeq ($(DEB_HOST_ARCH_OS),linux)
 SYSTEMD = yes
 else
 SYSTEMD = no
 endif
-else
-SYSTEMD = no
-endif
 
-ifeq ($(shell grep -q no-enable /usr/bin/dh_installinit 2>/dev/null && echo 1),1)
-SYSVNOENBL = --no-enable
+ifeq ($(shell test -r /usr/include/gfal2/gfal_api.h && echo 1),1)
+GFAL = yes
+N =
 else
-SYSVNOENBL =
-endif
-
-ifeq ($(shell grep -q no-enable /usr/bin/dh_systemd_enable 2>/dev/null && echo 1),1)
-SYSDNOENBL = --no-enable
-else
-SYSDNOENBL =
-endif
-
-ifeq ($(shell test -r /usr/include/xrootd/XrdVersion.hh && echo 1),1)
-XROOTD = yes
-NX =
-else
-XROOTD = no
-NX = -Nnordugrid-arc-plugins-xrootd
+GFAL = no
+N = -Nnordugrid-arc-plugins-gfal
 endif
 
 %:
-	dh $@ --with autoreconf $(WSD) --with python3 $(NX)
+	dh $@ --with python3 $(N)
 
 override_dh_auto_configure:
 	if [ ! -f po/POTFILES.in.save ] ; then \
 	    cp -p po/POTFILES.in po/POTFILES.in.save ; \
 	fi
 
-	LDFLAGS="$(LDFLAGS) -Wl,-z,defs" \
 	dh_auto_configure -- \
 		    --disable-doc \
 		    --libdir=/usr/lib \
 		    --libexecdir=/usr/lib \
 		    --docdir=/usr/share/doc/nordugrid-arc \
-		    --enable-gfal \
+		    --enable-gfal=$(GFAL) \
 		    --enable-s3 \
-		    --enable-xrootd=$(XROOTD) \
 		    --enable-internal \
 		    --enable-systemd=$(SYSTEMD) \
-		    --with-systemd-units-location=/lib/systemd/system \
+		    --with-systemd-units-location=/usr/lib/systemd/system \
 		    --with-sysv-scripts-location=/etc/init.d \
 		    --with-python=python3 \
 		    --disable-pylint
 
 override_dh_auto_clean:
 	dh_auto_clean
-
-	rm -f debian/nordugrid-arc-arex.arc-arex.init
-	rm -f debian/nordugrid-arc-arex.arc-arex-ws.init
-	rm -f debian/nordugrid-arc-hed.arched.init
-	rm -f debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.init
-	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.init
-
-	rm -f debian/nordugrid-arc-arex.arc-arex.service
-	rm -f debian/nordugrid-arc-arex.arc-arex-ws.service
-	rm -f debian/nordugrid-arc-hed.arched.service
-	rm -f debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.service
-	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.service
-	rm -f debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap-slapd.service
-
-	rm -f debian/*.default
-	rm -f debian/*.maintscript
-	rm -f debian/*.preinst
 
 	if [ -f po/POTFILES.in.save ] ; then \
 	    mv po/POTFILES.in.save po/POTFILES.in ; \
@@ -100,75 +62,22 @@ override_dh_auto_install:
 
 	rm -f debian/tmp/usr/lib/python3*/*-packages/pyarcrest-*.*-info/direct_url.json
 
-	find debian/tmp -depth -name __pycache__ -exec rm -rf '{}' ';'
-
-	if [ -d debian/tmp/etc/bash_completion.d ]; then \
-	    mkdir -p debian/tmp/usr/share/bash-completion; \
-		mv debian/tmp/etc/bash_completion.d \
-		   debian/tmp/usr/share/bash-completion/completions; \
-	fi
-
-	if [ -z "$(SYSVNOENBL)" ] ; then \
-	    for x in debian/*.enable ; do \
-		cp -p $$x $${x%.enable} ; \
-	    done ; \
-	else \
-	    for x in debian/*.no-enable ; do \
-		cp -p $$x $${x%.no-enable} ; \
-	    done ; \
-	fi
-
-	mv debian/tmp/etc/init.d/arc-arex \
-	   debian/nordugrid-arc-arex.arc-arex.init
-	mv debian/tmp/etc/init.d/arc-arex-ws \
-	   debian/nordugrid-arc-arex.arc-arex-ws.init
-	mv debian/tmp/etc/init.d/arched \
-	   debian/nordugrid-arc-hed.arched.init
-	mv debian/tmp/etc/init.d/arc-datadelivery-service \
-	   debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.init
-	mv debian/tmp/etc/init.d/arc-infosys-ldap \
-	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.init
-
-	mv debian/tmp/lib/systemd/system/arc-arex.service \
-	   debian/nordugrid-arc-arex.arc-arex.service
-	mv debian/tmp/lib/systemd/system/arc-arex-ws.service \
-	   debian/nordugrid-arc-arex.arc-arex-ws.service
-	mv debian/tmp/lib/systemd/system/arched.service \
-	   debian/nordugrid-arc-hed.arched.service
-	mv debian/tmp/lib/systemd/system/arc-datadelivery-service.service \
-	   debian/nordugrid-arc-datadelivery-service.arc-datadelivery-service.service
-	mv debian/tmp/lib/systemd/system/arc-infosys-ldap.service \
-	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap.service
-	mv debian/tmp/lib/systemd/system/arc-infosys-ldap-slapd.service \
-	   debian/nordugrid-arc-infosys-ldap.arc-infosys-ldap-slapd.service
-
 	chmod 4755 debian/tmp/usr/bin/arc-job-cgroup
 
-override_dh_install:
-	dh_install --fail-missing
-
 override_dh_installinit:
-	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-hed --name arched
-	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-arex --name arc-arex
-	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-arex --name arc-arex-ws
-	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
-	dh_installinit $(SYSVNOENBL) -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
+	dh_installinit -o -p nordugrid-arc-hed --name arched --no-enable
+	dh_installinit -o -p nordugrid-arc-arex --name arc-arex --no-enable
+	dh_installinit -o -p nordugrid-arc-arex --name arc-arex-ws --no-enable
+	dh_installinit -o -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service --no-enable
+	dh_installinit -o -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap --no-enable
 
-override_dh_systemd_enable:
-	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-hed --name arched
-	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-arex --name arc-arex
-	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-arex --name arc-arex-ws
-	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
-	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
-	dh_systemd_enable $(SYSDNOENBL) -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap-slapd
-
-override_dh_systemd_start:
-	dh_systemd_start -p nordugrid-arc-hed --name arched
-	dh_systemd_start -p nordugrid-arc-arex --name arc-arex
-	dh_systemd_start -p nordugrid-arc-arex --name arc-arex-ws
-	dh_systemd_start -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service
-	dh_systemd_start -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap
-	dh_systemd_start -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap-slapd
+override_dh_installsystemd:
+	dh_installsystemd -p nordugrid-arc-hed --name arched --no-enable
+	dh_installsystemd -p nordugrid-arc-arex --name arc-arex --no-enable
+	dh_installsystemd -p nordugrid-arc-arex --name arc-arex-ws --no-enable
+	dh_installsystemd -p nordugrid-arc-datadelivery-service --name arc-datadelivery-service --no-enable
+	dh_installsystemd -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap --no-enable
+	dh_installsystemd -p nordugrid-arc-infosys-ldap --name arc-infosys-ldap-slapd --no-enable
 
 override_dh_fixperms:
 	dh_fixperms -X /usr/bin/arc-job-cgroup
