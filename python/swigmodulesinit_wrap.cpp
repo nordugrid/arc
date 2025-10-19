@@ -29,18 +29,53 @@ PyMODINIT_FUNC SWIG_init(data)(void);
 PyMODINIT_FUNC SWIG_init(delegation)(void);
 PyMODINIT_FUNC SWIG_init(security)(void);
 
+/* Legacy init based on https://peps.python.org/pep-0489/ */
+static PyObject *module_legacy_init(PyModuleDef *def) {
+  PyModuleDef_Slot *slots = def->m_slots;
+  def->m_slots = NULL;
+  PyObject *mod = PyModule_Create(def);
+  while (mod && slots->slot) {
+    if (slots->slot == Py_mod_exec) {
+      int (*mod_exec)(PyObject *) = (int (*)(PyObject *))slots->value;
+      if (mod_exec(mod) != 0) {
+        Py_DECREF(mod);
+        mod = NULL;
+      }
+    }
+    ++slots;
+  }
+  return mod;
+}
+
 static PyMODVAL init_extension_module(PyObject* package, const char *modulename,
 PyMODVAL (*initfunction)(void)) {
 #if PY_MAJOR_VERSION >= 3
-  PyObject *module = initfunction();
+  // swig-4.4.0 implements PEP-489 multi-phase initialization.
+  // Handle both old single-phase and new multi-phase initialization.
+  // Modules that use multi-phase initialization will return a PyModuleDef, so then we force a legacy single-phase initialization.
+  PyObject *module_or_module_def = initfunction();
+  if (!module_or_module_def) {
+    fprintf(stderr, "Failed first phase initializing Python module '%s', through Python C API\n", modulename);
+    PyMOD_RETURN(NULL);
+  }
+  PyObject *module = NULL;
+  if (PyObject_TypeCheck(module_or_module_def, &PyModuleDef_Type)) {
+    module = module_legacy_init((PyModuleDef *)module_or_module_def);
+    if (!module) {
+      fprintf(stderr, "Failed second phase initializing Python module '%s', through Python C API\n", modulename);
+      PyMOD_RETURN(NULL);
+    }
+  } else {
+    module = module_or_module_def;
+  }
 #else
   initfunction();
   PyObject *module = PyImport_AddModule((char *)modulename);
-#endif
   if(!module) {
     fprintf(stderr, "Failed initialising Python module '%s', through Python C API\n", modulename);
     PyMOD_RETURN(NULL);
   }
+#endif
   if(PyModule_AddObject(package, (char *)modulename, module)) {
     fprintf(stderr, "Failied adding Python module '%s' to package 'arc', through Python C API\n", modulename);
     PyMOD_RETURN(NULL);
