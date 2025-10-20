@@ -1091,9 +1091,9 @@ class ComputeAccountingRecord(JobAccountingRecord):
         #   Technically we can publish this based on JobEvents but there was no such info previously
         #   and looks like it is more theoretical rather than for real analyses (especially in view of APEL summaries)
         # ServiceLevel (mandatory) represents benchmarking normalization
-        if 'benchmark' not in aar_extra:
-            aar_extra['benchmark'] = ''
-        (bechmark_type, bechmark_value) = get_apel_benchmark(self.logger, aar_extra['benchmark'])
+        if 'Benchmark' not in self.aar.get():
+            self.aar.get()['Benchmark'] = ''
+        (bechmark_type, bechmark_value) = get_apel_benchmark(self.logger, self.aar.get()['Benchmark'])
         xml += '<ServiceLevel urf:type="{0}">{1}</ServiceLevel>'.format(bechmark_type, bechmark_value)
         self.log += ' ({0}:{1})'.format(bechmark_type, bechmark_value)
         return xml
