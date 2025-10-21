@@ -864,7 +864,7 @@ class DataStagingControl(ComponentControl):
 
 
         print('\n\nRATIOS')
-        print("{:<50} {:<20} {}:<20".format('', 'RATIO amount', 'RATIO size'))
+        print("{:<50} {:<20} {:<20}".format('', 'RATIO amount', 'RATIO size'))
         fmt = "{:<50} {:<20.4} {:<20.4}"
         if n_files_atlas:
             try:
