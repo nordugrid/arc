@@ -55,7 +55,7 @@ class DataStagingControl(ComponentControl):
                 twindow = datetime.timedelta(seconds=args.seconds)
 
         if twindow:
-            twindow_start=datetime.datetime.now() - twindow
+            twindow_start=datetime.now() - twindow
             return twindow_start
         else:
             return None
@@ -80,7 +80,7 @@ class DataStagingControl(ComponentControl):
             words = [word.strip() for word in words]
             timestmp_str = words[0].strip('[') + ' ' + words[1].strip(']')
             
-        timestamp = datetime.datetime.strptime(timestmp_str,'%Y-%m-%d %H:%M:%S')
+        timestamp = datetime.strptime(timestmp_str,'%Y-%m-%d %H:%M:%S')
         return timestmp_str, timestamp
 
 
@@ -118,7 +118,7 @@ class DataStagingControl(ComponentControl):
                         timestmp_str = timestmp_str.strip(']')
                         ds_time['start']=timestmp_str
                         
-                        timestamp = datetime.datetime.strptime(timestmp_str,'%Y-%m-%dT%H:%M:%SZ')
+                        timestamp = datetime.strptime(timestmp_str,'%Y-%m-%dT%H:%M:%SZ')
                         ds_start = timestamp
 
                     elif "PREPARING -> SUBMIT" in line:
@@ -127,7 +127,7 @@ class DataStagingControl(ComponentControl):
                         timestmp_str = timestmp_str.strip(']')
                         ds_time['end']=timestmp_str
                         
-                        timestamp = datetime.datetime.strptime(timestmp_str,'%Y-%m-%dT%H:%M:%SZ')
+                        timestamp = datetime.strptime(timestmp_str,'%Y-%m-%dT%H:%M:%SZ')
                         ds_end = timestamp
                         
                         ds_time['done']=True
@@ -151,7 +151,7 @@ class DataStagingControl(ComponentControl):
                 ds_time['dt']=str(ds_end - ds_start)
             elif ds_start:
                 # Datastaging ongoing
-                ds_time['dt']=str(datetime.datetime.utcnow() - ds_start)
+                ds_time['dt']=str(datetime.utcnow() - ds_start)
             else:
                 return None
         return ds_time
@@ -229,8 +229,8 @@ class DataStagingControl(ComponentControl):
                         if 'panda' in fileN or 'pilot' in fileN:
                             atlasfile = True
 
-                        start_dtstr = datetime.datetime.strptime(start, '%Y-%m-%dT%H:%M:%SZ')
-                        end_dtstr = datetime.datetime.strptime(end, '%Y-%m-%dT%H:%M:%SZ')
+                        start_dtstr = datetime.strptime(start, '%Y-%m-%dT%H:%M:%SZ')
+                        end_dtstr = datetime.strptime(end, '%Y-%m-%dT%H:%M:%SZ')
                         seconds = (end_dtstr - start_dtstr).seconds
 
                         file_events[fileN] = {'size':size,'source':source,'start':start,'end':end,'seconds':seconds,'cached':cached,'atlasfile':atlasfile, 'staged_in': 'yes'}
@@ -318,8 +318,8 @@ class DataStagingControl(ComponentControl):
                     # messages for the DTR. 
                     
                     if 'size' in file_events[fileN].keys() and 'start_deliver' in file_events[fileN].keys():
-                        start_dwnld = datetime.datetime.strptime(file_events[fileN]['start_deliver'], "%Y-%m-%d %H:%M:%S")
-                        end_dwnld = datetime.datetime.strptime(file_events[fileN]['transf_done'], "%Y-%m-%d %H:%M:%S")
+                        start_dwnld = datetime.strptime(file_events[fileN]['start_deliver'], "%Y-%m-%d %H:%M:%S")
+                        end_dwnld = datetime.strptime(file_events[fileN]['transf_done'], "%Y-%m-%d %H:%M:%S")
                         seconds = (end_dwnld - start_dwnld).seconds
                         try:
                             speed = float(file_events[fileN]['size']/seconds)
@@ -419,9 +419,9 @@ class DataStagingControl(ComponentControl):
         for time_str in data:
             time_delta = None
             try:
-                time_delta = datetime.datetime.strptime(time_str, '%H:%M:%S')
+                time_delta = datetime.strptime(time_str, '%H:%M:%S')
             except ValueError:
-                time_delta = datetime.datetime.strptime(time_str, '%H:%M:%S.%f')
+                time_delta = datetime.strptime(time_str, '%H:%M:%S.%f')
             except:
                 pass
             # Ignore seconds
@@ -748,7 +748,7 @@ class DataStagingControl(ComponentControl):
         twindow_start = self._calc_timewindow(args)
 
         if twindow_start:
-            print(f"\nThis may take some time... \nFetching the total number of files downloaded for jobs in INLRMS and PREPARING state that were modified after {datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S')}")
+            print(f"\nThis may take some time... \nFetching the total number of files downloaded for jobs in INLRMS and PREPARING state that were modified after {datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S')}")
         else:
             print(f"\nThis may take some time... \nFetching the total number of files downloaded for jobs in INLRMS and PREPARING state")
 
@@ -765,7 +765,7 @@ class DataStagingControl(ComponentControl):
             log_f = control_path(self.control_dir, jobid, 'statistics')
             mtime = None
             try:
-                mtime=datetime.datetime.fromtimestamp(os.path.getmtime(log_f))
+                mtime=datetime.fromtimestamp(os.path.getmtime(log_f))
             except OSError:
                 # Files got removed in the meantime, skip this job
                 continue
@@ -792,7 +792,7 @@ class DataStagingControl(ComponentControl):
                 #print(f'jobid: {jobid} fileN: {key} val: {val}')
                 try:
                     # Only files in active download during the timewindow are added
-                    end = datetime.datetime.strptime(val['end'], '%Y-%m-%dT%H:%M:%SZ')
+                    end = datetime.strptime(val['end'], '%Y-%m-%dT%H:%M:%SZ')
                     if twindow_start and end < twindow_start:
                         continue
                 except KeyError:
@@ -833,7 +833,7 @@ class DataStagingControl(ComponentControl):
         fmt_header = "{:<50} {:<10} {:<15}"
         fmt_rows =   "{:<50} {:<10} {:<15.1f}"
         if twindow_start:
-            print('\nTimewindow start: : '+ datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S'))
+            print('\nTimewindow start: : '+ datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S'))
         print('\nALL JOBS')
         print('Number of jobs active since start of timewindow '+ str(n_jobs))
         print('\tTotal number of inputfiles for these jobs: ' + str(n_files_all))
@@ -845,7 +845,7 @@ class DataStagingControl(ComponentControl):
 
         print('\nFILES DONE IN STAGE-IN')
         print(fmt_header.format('', 'NUMBER', 'SIZE (GB)'))
-        print(fmt_row.format('Total', str(n_files), size_files))
+        print(fmt_rows.format('Total', str(n_files), size_files))
 
         if n_files_atlas:
             print(fmt_rows.format('    User-defined', str(n_files_user), size_files_user))
@@ -864,7 +864,7 @@ class DataStagingControl(ComponentControl):
 
 
         print('\n\nRATIOS')
-        print("{:<50} {:<20} {}:<20}".format('', 'RATIO amount', 'RATIO size'))
+        print("{:<50} {:<20} {}:<20".format('', 'RATIO amount', 'RATIO size'))
         fmt = "{:<50} {:<20.4} {:<20.4}"
         if n_files_atlas:
             try:
@@ -895,7 +895,7 @@ class DataStagingControl(ComponentControl):
         twindow_start = self._calc_timewindow(args)
 
         if twindow_start:
-            print(f"\nThis may take some time... \nFetching summary of download times for INLRMS and PREPARING jobs modified after {format(datetime.datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S'))}")
+            print(f"\nThis may take some time... \nFetching summary of download times for INLRMS and PREPARING jobs modified after {format(datetime.strftime(twindow_start,'%Y-%m-%d %H:%M:%S'))}")
         else:
             print(f"\nThis may take some time... \nFetching summary of download times for all INLRMS and PREPARING jobs")
         
@@ -912,7 +912,7 @@ class DataStagingControl(ComponentControl):
             log_f = control_path(self.control_dir, jobid, 'errors')
             mtime = None
             try:
-                mtime=datetime.datetime.fromtimestamp(os.path.getmtime(log_f))
+                mtime=datetime.fromtimestamp(os.path.getmtime(log_f))
             except OSError:
                 # Files got removed in the meantime, skip this job
                 continue
