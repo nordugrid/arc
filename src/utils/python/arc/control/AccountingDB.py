@@ -1098,8 +1098,15 @@ class AAR(object):
 
     def fqan(self):
         if self.version < 2:
-            return None
+            if 'mainfqan' in self.aar['AuthTokenAttributes']:
+                return self.aar['AuthTokenAttributes']['mainfqan']
         return self.aar['FQAN']
+
+    def benchmark(self):
+        if self.version < 2:
+            if 'benchmark' in self.aar['JobExtraInfo']:
+                return self.aar['JobExtraInfo']['benchmark']
+        return self.aar['Benchmark']
 
     # dedicated lists with extra info
     def events(self):
