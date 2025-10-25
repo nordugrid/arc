@@ -82,8 +82,8 @@ void CacheConfig::parseINIConf(Arc::ConfigIni& cf) {
             throw CacheConfigException("bad number in cachesize parameter");
           if (min_i > 100 || min_i < 0)
             throw CacheConfigException("min cache size must be between 0 and 100");
-          if (min_i >= max_i)
-            throw CacheConfigException("max cache size must be greater than min size");
+          if (min_i > max_i)
+            throw CacheConfigException("max cache size must not be smaller than min size");
           _cache_min = min_i;
         }
         else if(command == "logfile") {
