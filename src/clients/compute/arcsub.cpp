@@ -209,7 +209,8 @@ int RUNMAIN(arcsub)(int argc, char **argv) {
         return 1;
       }
       // dump description only for priority submission interface, no fallbacks
-      std::list<Arc::Endpoint> services = endpoint_batches.front();
+      std::list<Arc::Endpoint> services;
+      if (!endpoint_batches.empty()) services = endpoint_batches.front();
       std::string req_sub_iface;
       if (!opt.submit_types.empty()) req_sub_iface = opt.submit_types.front();
       return dumpjobdescription(usercfg, jobdescriptionlist, services, req_sub_iface);
