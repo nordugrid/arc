@@ -218,6 +218,8 @@ bool GMConfig::CreateControlDirectory() const {
     if (!fix_directory(control_dir+"/restarting", fixdir_always, mode, gm_user.get_uid(), gm_user.get_gid())) res = false;
     if (!fix_directory(control_dir+"/processing", fixdir_always, mode, gm_user.get_uid(), gm_user.get_gid())) res = false;
     if (!fix_directory(control_dir+"/finished", fixdir_always, mode, gm_user.get_uid(), gm_user.get_gid())) res = false;
+    if (!fix_directory(control_dir+"/accounting", fixdir_always, mode, gm_user.get_uid(), gm_user.get_gid())) res = false;
+    if (!fix_directory(control_dir+"/jobs", fixdir_always, mode, gm_user.get_uid(), gm_user.get_gid())) res = false;
     std::string deleg_dir = DelegationDir();
     if (!fix_directory(deleg_dir, fixdir_always, S_IRWXU, gm_user.get_uid(), gm_user.get_gid())) res = false;
   }
