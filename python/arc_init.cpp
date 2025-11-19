@@ -46,7 +46,19 @@ Note: it seems like Python is hiding site-packages part of path. Maybe it
 is hardcoded inside Python somewhere. But at least part till site-packages
 seems to be present.
 */
-#if PY_MAJOR_VERSION >= 3
+#if PY_VERSION_HEX >= 0x030E0000
+  std::string pythonpath;
+  PyObject *paths = PyConfig_Get("module_search_paths");
+  Py_ssize_t sz = PySequence_Size(paths);
+  for (Py_ssize_t i = 0; i < sz; ++i) {
+    PyObject *item = PySequence_GetItem(paths, i);
+    std::string path = PyUnicode_AsUTF8(item);
+    Py_DECREF(item);
+    if (i > 0) pythonpath += ':';
+    pythonpath += path;
+  }
+  Py_DECREF(paths);
+#elif PY_MAJOR_VERSION >= 3
   std::wstring pythonwpath = Py_GetPath();
   std::string pythonpath(pythonwpath.begin(), pythonwpath.end());
 #else
