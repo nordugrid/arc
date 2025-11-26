@@ -637,18 +637,20 @@ class ARCRest:
                 raise MatchmakingError(f"Walltime {walltime} higher than max walltime {maxWallTime} for queue {queue}")
 
     @classmethod
-    def _get(cls, source, name):
+    def _get(cls, source, name, force_dict=False):
         val = source.get(name)
         if val is None:
             return {}
-        if not isinstance(val, list):
-            return val
+        if isinstance(val, list):
+            val = val[0]
         if val:
-            return val[0]
+            if force_dict and not isinstance(val, dict):
+                return {}
+            return val
         return {}
 
     def _findQueue(self, ceInfo, queue):
-        compShares = self._get(self._get(self._get(self._get(ceInfo, "Domains"), "AdminDomain"), "Services"), "ComputingService").get("ComputingShare", [])
+        compShares = self._get(self._get(self._get(self._get(ceInfo, "Domains"), "AdminDomain"), "Services"), "ComputingService", True).get("ComputingShare", [])
 
         if not compShares:
             return None
@@ -670,7 +672,7 @@ class ARCRest:
         return None
 
     def _findRuntimes(self, ceInfo):
-        appenvs = self._get(self._get(self._get(self._get(self._get(self._get(ceInfo, "Domains"), "AdminDomain"), "Services"), "ComputingService"), "ComputingManager"), "ApplicationEnvironments").get("ApplicationEnvironment", [])
+        appenvs = self._get(self._get(self._get(self._get(self._get(self._get(ceInfo, "Domains"), "AdminDomain"), "Services"), "ComputingService"), "ComputingManager"), "ApplicationEnvironments", True).get("ApplicationEnvironment", [])
 
         # /rest/1.0 compatibility
         if not isinstance(appenvs, list):
