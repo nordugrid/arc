@@ -192,11 +192,14 @@ public:
           // Left value is claim name
           // Right value is regular expression to match
           std::string lvalue = left_->EvaluateValue();
+          logger.msg(Arc::DEBUG, "Evaluate operator ~: left: %s",lvalue);
+          logger.msg(Arc::DEBUG, "Evaluate operator ~: right: %s",right_->EvaluateValue());
           if(!lvalue.empty()) {
             EvalContext::iterator itValues = context.find(lvalue);
             if(itValues != context.end()) {
               Arc::RegularExpression regexp(right_->EvaluateValue());
               for(std::list<std::string>::iterator itValue = itValues->second.begin(); itValue != itValues->second.end(); ++itValue) {
+                logger.msg(Arc::DEBUG, "Evaluate operator ~: left from context: %s",*itValue);
                 if(regexp.match(*itValue)) return true;
               }
             }
