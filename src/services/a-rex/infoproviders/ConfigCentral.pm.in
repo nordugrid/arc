@@ -922,7 +922,7 @@ sub set_defaults {
     ## Other defaults not covered by arcconfig-parser. Might be done with an hash if more are missing. We keep it as a safety measure.
 
     #default ARC version taken from build. Artificiously placed in common
-    $config->{arcversion}='@VERSION@';
+    $config->{common}{arcversion}='@VERSION@';
     
     # force ldap defaults if ldap renderings are enabled in config
     $config->{infosys}{ldap}{port}='2135' if ($config->{'infosys/ldap'}{enabled});
