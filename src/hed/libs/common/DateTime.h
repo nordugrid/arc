@@ -213,8 +213,8 @@ namespace Arc {
     static const time_t UNDEFINED = (time_t)(-1);
 
 #ifndef SWIG
-    static auto CompareTime(time_t left, time_t right) {
-       return static_cast< std::make_signed_t<time_t> >(left-right);
+    static std::make_signed<time_t>::type CompareTime(time_t left, time_t right) {
+       return static_cast< std::make_signed<time_t>::type >(left-right);
     }
 #endif
 
