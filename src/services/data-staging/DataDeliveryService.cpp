@@ -34,7 +34,7 @@ namespace DataStaging {
   class DTRLogStream: public Arc::LogStream {
     public:
       DTRLogStream(): Arc::LogStream(stream) {}
-      auto str() { return stream.str(); }
+      std::string str() { return stream.str(); }
     private:
       std::stringstream stream;
   };

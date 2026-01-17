@@ -36,7 +36,7 @@ namespace Arc {
 
     bool IsExpired() const {
       if(isNonexpiring) return false;
-      return (static_cast< std::make_signed_t<time_t> >(time(nullptr) - validTill) > 0);
+      return (static_cast< std::make_signed<time_t>::type >(time(nullptr) - validTill) > 0);
     }
 
     time_t validTill;
