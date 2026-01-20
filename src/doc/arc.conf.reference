@@ -651,7 +651,7 @@
 
 ## slurm_requirements = string - Use this option to specify extra SLURM-specific parameters.
 ## default: undefined
-#slurm_requirements=mincpus=8
+#slurm_requirements=--mincpus=8 --gres=localscratch:100G
 
 ## slurm_query_retries = number - Number of sacct/scontrol retries performed in scan-SLURM-job
 ## If slurm is overloaded the sacct/scontrol command call may fail.
