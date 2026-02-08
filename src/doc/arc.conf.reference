@@ -350,7 +350,7 @@
 ## All empty spaces are optional. This functionality is experimental.
 ## sequenced
 ## default: undefined
-#authtokensgen = (sub=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0) & (iss="https://wlcg.cloud.cnaf.infn.it/") & !(email~".*\.evil\.com")
+#authtokensgen=(sub=e83eec5a-e2e3-43c6-bb67-df8f5ec3e8d0) & (iss="https://wlcg.cloud.cnaf.infn.it/") & !(email~".*\.evil\.com")
 ## CHANGE: NEW in 7.0.0
 
 ## all = yes|no - Matches any or none user identity. For "yes" argument this rule
