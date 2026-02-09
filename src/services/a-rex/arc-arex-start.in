@@ -70,12 +70,11 @@ if [ ! -d "$ARC_LOCATION" ]; then
 fi
 export ARC_LOCATION
 
-# VOMS_LOCATION
-VOMS_LOCATION=${VOMS_LOCATION:-@DEFAULT_VOMS_LOCATION@}
-
 # Prepare environment for executing various tools and main application
 
-add_library_path "$VOMS_LOCATION"
+if [ ! -z "$VOMS_LOCATION" ] ; then
+    add_library_path "$VOMS_LOCATION"
+fi
 add_library_path "$GLOBUS_LOCATION"
 if [ "x$LD_LIBRARY_PATH" = "x" ]; then
     LD_LIBRARY_PATH=$ARC_LOCATION/@libsubdir@:$ARC_LOCATION/@libsubdir@64
