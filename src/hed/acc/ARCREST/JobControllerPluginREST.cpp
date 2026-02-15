@@ -72,8 +72,15 @@ namespace Arc {
       return JobState::OTHER;
   }
 
+  static bool isValidAddressOfResource(const URL& url) {
+    if((url.Protocol() != "http") && (url.Protocol() != "https")) return false;
+    if(url.Host().empty()) return false;
+    return true;
+  }
+
   URL JobControllerPluginREST::GetAddressOfResource(const Job& job) {
-    return job.ServiceInformationURL;
+    if(isValidAddressOfResource(job.ServiceInformationURL)) return job.ServiceInformationURL;
+    return URL();
   }
 
   bool JobControllerPluginREST::isEndpointNotSupported(const std::string& endpoint) const {
@@ -157,6 +164,10 @@ namespace Arc {
           ProcessJobs(usercfg, currentServiceUrl, "info", 200, IDs, IDsProcessed, IDsNotProcessed, infoProcessor);
         }
         currentServiceUrl = GetAddressOfResource(**it);
+        if(!currentServiceUrl) {
+          logger.msg(ERROR, "Invalid resource URL for job: %s", (*it)->JobID);
+          continue;
+        }
       }
 
       IDs.push_back((*it)->JobID);
@@ -180,6 +191,10 @@ namespace Arc {
             ok = false;
         }
         currentServiceUrl = GetAddressOfResource(**it);
+        if(!currentServiceUrl) {
+          logger.msg(ERROR, "Invalid resource URL for job: %s", (*it)->JobID);
+          continue;
+        }
       }
 
       IDs.push_back((*it)->JobID);
@@ -206,6 +221,10 @@ namespace Arc {
             ok = false;
         }
         currentServiceUrl = GetAddressOfResource(**it);
+        if(!currentServiceUrl) {
+          logger.msg(ERROR, "Invalid resource URL for job: %s", (*it)->JobID);
+          continue;
+        }
       }
 
       IDs.push_back((*it)->JobID);
@@ -223,6 +242,10 @@ namespace Arc {
     bool ok = true;
     for (std::list<Job*>::const_iterator it = jobs.begin(); it != jobs.end(); ++it) {
       Arc::URL delegationUrl(GetAddressOfResource(**it));
+      if(!delegationUrl) {
+        logger.msg(ERROR, "Invalid resource URL for job: %s", (*it)->JobID);
+        continue;
+      }
       delegationUrl.ChangePath(delegationUrl.Path()+"/rest/1.0/delegations");
       // 1. Fetch/find delegation ids for each job
       if((*it)->DelegationID.empty()) {
@@ -267,6 +290,10 @@ namespace Arc {
           }
         }
         currentServiceUrl = GetAddressOfResource(**it);
+        if(!currentServiceUrl) {
+          logger.msg(ERROR, "Invalid resource URL for job: %s", (*it)->JobID);
+          continue;
+        }
       }
 
       IDs.push_back((*it)->JobID);
@@ -438,6 +465,10 @@ namespace Arc {
     //Arc::URL statusUrl(job.JobID);
     //statusUrl.ChangePath(statusUrl.Path()+"/diagnose/description");
     Arc::URL statusUrl(GetAddressOfResource(job));
+    if(!statusUrl) {
+      logger.msg(ERROR, "Invalid resource URL for job: %s", job.JobID);
+      return false;
+    }
     std::string id(job.JobID);
     std::string::size_type pos = id.rfind('/');
     if(pos != std::string::npos) id.erase(0,pos+1);

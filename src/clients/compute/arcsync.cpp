@@ -66,12 +66,24 @@ public:
       std::cerr << Arc::IString("Warning: Unable to open job list file (%s), unknown format", uc.JobListFile()) << std::endl;
       return false;
     }
+
+    std::size_t jobsDropped = 0;
+    for (std::list<Arc::Job>::const_iterator it = jobs.begin(); it != jobs.end();) {
+      if(!isEnoughInformation(*it)) {
+        it = jobs.erase(it);
+        ++jobsDropped;
+      } else {
+        ++it;
+      }
+    }
+
     // Write extracted job info to joblist
     if (truncate) {
       jobstore->Clean();
       if ( (jobsWritten = jobstore->Write(jobs)) ) {
         for (std::list<Arc::Job>::const_iterator it = jobs.begin();
              it != jobs.end(); ++it) {
+
           if (!jobsReported) {
             std::cout << Arc::IString("Found the following jobs:")<<std::endl;
             jobsReported = true;
@@ -109,6 +121,10 @@ public:
       }
     }
     delete jobstore;
+
+    if(jobsDropped > 0)
+      std::cout << Arc::IString("Total number of jobs dropped: ") << jobsDropped << std::endl;
+
     if (!jobsWritten) {
       std::cout << Arc::IString("ERROR: Failed to write job information to file (%s)", uc.JobListFile()) << std::endl;
       return false;
@@ -118,6 +134,12 @@ public:
   }
 
 private:
+  bool isEnoughInformation(Arc::Job const& job) {
+    if(job.JobID.empty()) return false;
+    if(!job.ServiceInformationURL || !job.JobStatusURL) return false;
+    return true;
+  }
+
   const Arc::UserConfig& uc;
   Arc::ServiceEndpointRetriever ser;
   Arc::JobListRetriever jlr;
