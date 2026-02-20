@@ -114,6 +114,11 @@ def getARCCoreCounts():
         computing_shares = root.findall('.//glue:ComputingShare', namespace)
         if computing_shares is not None:
             for computing_share in computing_shares:
+                # Skip VO shares (shares with MappingPolicy) to avoid double counting
+                # VO shares represent the same physical cores as their parent queue
+                if computing_share.find('glue:MappingPolicy', namespace) is not None:
+                    continue
+
                 share = computing_share.find('glue:Name', namespace).text
                 other_info_tags = computing_share.findall('.//glue:OtherInfo',namespace)
                 for other_info in other_info_tags:
