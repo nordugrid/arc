@@ -11,6 +11,7 @@
 #include <openssl/err.h>
 
 #include "CertUtil.h"
+#include "Credential.h"
 
 #define FILE_SEPARATOR "/"
 #define SIGNING_POLICY_FILE_EXTENSION   ".signing_policy"
@@ -25,21 +26,20 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx);
 static bool collect_proxy_info(std::string& proxy_policy, X509* cert);
 static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::string const& ca_dir, std::string& proxy_policy);
 
-int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, std::string const& ca_file, std::string const& ca_dir, bool ca_use_system, std::string& proxy_policy) {
+int verify_cert_chain(X509* cert, STACK_OF(X509)*& certchain, std::string const& ca_file, std::string const& ca_dir, bool ca_use_system, std::string& proxy_policy) {
   int i;
   int j;
   int retval = 0;
-  X509_STORE* cert_store = NULL;
-  X509_STORE_CTX* store_ctx = NULL;
-  X509* cert_in_chain = NULL;
+  Arc::Credential::X509_STORERef cert_store;
+  Arc::Credential::X509_STORE_CTXRef store_ctx;
   X509* user_cert = NULL;
 
   user_cert = cert;
-  if ((cert_store = X509_STORE_new()) == NULL) { goto err; }
+  if (!(cert_store = X509_STORE_new())) { goto err; }
   X509_STORE_set_verify_cb_func(cert_store, verify_callback);
-  if (*certchain != NULL) {
-    for (i=0;i<sk_X509_num(*certchain);i++) {
-      cert_in_chain = sk_X509_value(*certchain,i);
+  if (certchain != NULL) {
+    for (i=0;i<sk_X509_num(certchain);i++) {
+      X509* cert_in_chain = sk_X509_value(certchain,i);
       if (!user_cert) {
         //Assume the first cert in cert chain is the user cert.
         user_cert = cert_in_chain;
@@ -67,7 +67,7 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, std::string const&
              ca_dir.empty() ? NULL:ca_dir.c_str())) { goto err; }
   }
 
-  if ((store_ctx = X509_STORE_CTX_new()) == NULL) { goto err; }
+  if (!(store_ctx = X509_STORE_CTX_new())) { goto err; }
   X509_STORE_CTX_init(store_ctx, cert_store, user_cert, NULL);
 
   X509_STORE_CTX_set_flags(store_ctx, X509_V_FLAG_ALLOW_PROXY_CERTS);
@@ -82,33 +82,30 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, std::string const&
   // look at the certificate to verify additional rules (like CRL).
 
   if(!verify_cert_additional(cert, store_ctx, ca_dir, proxy_policy)) { goto err; }
-  if(*certchain) sk_X509_pop_free(*certchain, X509_free);
-  *certchain = sk_X509_new_null();
+  if(certchain) sk_X509_pop_free(certchain, X509_free);
+  certchain = sk_X509_new_null();
   for (i=(cert)?1:0; i < sk_X509_num(X509_STORE_CTX_get0_chain(store_ctx)); i++) {
-    X509* tmp = NULL;
-    tmp = sk_X509_value(X509_STORE_CTX_get0_chain(store_ctx),i);
+    X509* tmp = sk_X509_value(X509_STORE_CTX_get0_chain(store_ctx),i);
     if(!verify_cert_additional(tmp, store_ctx, ca_dir, proxy_policy)) { goto err; }
     tmp = X509_dup(tmp);
-    sk_X509_insert(*certchain, tmp, i);
+    if (!sk_X509_push(certchain, tmp)) X509_free(tmp);
   }
 
   retval = 1;
 
 err:
-  if(cert_store) { X509_STORE_free(cert_store); }
-  if(store_ctx) { X509_STORE_CTX_free(store_ctx); }
 
   return retval;
 }
 
-int collect_cert_chain(X509* cert, STACK_OF(X509)** certchain, std::string& proxy_policy) {
+int collect_cert_chain(X509* cert, STACK_OF(X509)* certchain, std::string& proxy_policy) {
   
   if(cert) {
     if(!collect_proxy_info(proxy_policy, cert)) return (0);
   }
-  if (*certchain != NULL) {
-    for (int i=sk_X509_num(*certchain)-1; i >= 0; --i) {
-      X509* cert_in_chain = sk_X509_value(*certchain,i);
+  if (certchain != NULL) {
+    for (int i=sk_X509_num(certchain)-1; i >= 0; --i) {
+      X509* cert_in_chain = sk_X509_value(certchain,i);
       if(cert_in_chain) {
         if(!collect_proxy_info(proxy_policy, cert_in_chain)) return (0);
       }
@@ -159,7 +156,6 @@ static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::st
    *for proxy, it does not ever get revoked
    */
   if((type == CERT_TYPE_EEC) || (type == CERT_TYPE_CA)) {
-    X509_OBJECT* obj = NULL;
         /*
          * SSLeay 0.9.0 handles CRLs but does not check them.
          * We will check the crl for this cert, if there
@@ -178,25 +174,21 @@ static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::st
          * this allows the CA to revoke its own cert as well.
          */
 
-    obj = X509_OBJECT_new();
+    Arc::Credential::X509_OBJECTRef obj(X509_OBJECT_new());
     if (!obj) return 0;
     if (X509_STORE_CTX_get_by_subject(store_ctx, X509_LU_CRL, X509_get_subject_name(cert), obj)) {
       if(X509_CRL* crl=X509_OBJECT_get0_X509_CRL(obj)) {
         /* verify the signature on this CRL */
-        EVP_PKEY* key = X509_get_pubkey(cert);
+        Arc::Credential::EVP_PKEYRef key(X509_get_pubkey(cert));
         if(!key) {
-          X509_OBJECT_free(obj);
           return (0);
         }
         if (X509_CRL_verify(crl, key) <= 0) {
           X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_CRL_SIGNATURE_FAILURE);
           // TODO: tell which crl failed
           logger.msg(Arc::ERROR,"Couldn't verify availability of CRL");
-          EVP_PKEY_free(key);
-          X509_OBJECT_free(obj);
           return (0);
         }
-        EVP_PKEY_free(key);
 
         int i = 0;
         /* Check date see if expired */
@@ -205,14 +197,12 @@ static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::st
           X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD);
           // TODO: tell which crl failed
           logger.msg(Arc::ERROR,"In the available CRL the lastUpdate field is not valid");
-          X509_OBJECT_free(obj);
           return (0);
         }
         if(i>0) {
           X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_CRL_NOT_YET_VALID);
           // TODO: tell which crl failed
           logger.msg(Arc::ERROR,"The available CRL is not yet valid");
-          X509_OBJECT_free(obj);
           return (0);
         }
 
@@ -221,18 +211,15 @@ static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::st
           X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD);
           // TODO: tell which crl failed
           logger.msg(Arc::ERROR,"In the available CRL, the nextUpdate field is not valid");
-          X509_OBJECT_free(obj);
           return (0);
         }
         if (i < 0) {
           X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_CRL_HAS_EXPIRED);
           logger.msg(Arc::ERROR,"The available CRL has expired");
-          X509_OBJECT_free(obj);
           return (0);
         }
       }
     }
-    X509_OBJECT_free(obj); obj = NULL;
 
     /* now check if the *issuer* has a CRL, and we are revoked */
     obj = X509_OBJECT_new();
@@ -252,13 +239,11 @@ static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::st
             logger.msg(Arc::ERROR,"Certificate with serial number %s and subject \"%s\" is revoked",buf,subject_string);
             X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_CERT_REVOKED);
             if(subject_string) OPENSSL_free(subject_string);
-            X509_OBJECT_free(obj);
             return (0);
           }
         }
       }
     }
-    X509_OBJECT_free(obj);
 
 
     /** Only need to check signing policy file for no-proxy certificate*/
@@ -271,21 +256,21 @@ static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::st
         cadir = ".";
       }
 
-      unsigned long hash = X509_NAME_hash(X509_get_issuer_name(cert));
-      unsigned int buffer_len = cadir.length() + strlen(FILE_SEPARATOR) + 8 /* hash */
-        + strlen(SIGNING_POLICY_FILE_EXTENSION) + 1 /* zero termination */;
-      char* ca_policy_file_path = (char*) malloc(buffer_len);
-      if(ca_policy_file_path == NULL) {
-        logger.msg(Arc::ERROR,"Can't allocate memory for CA policy path");
-        X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_APPLICATION_VERIFICATION);
-        return (0);
-      }
-      snprintf(ca_policy_file_path,buffer_len,"%s%s%08lx%s", cadir.c_str(), FILE_SEPARATOR, hash, SIGNING_POLICY_FILE_EXTENSION);
-      ca_policy_file_path[buffer_len-1]=0;
+      //unsigned long hash = X509_NAME_hash(X509_get_issuer_name(cert));
+      //unsigned int buffer_len = cadir.length() + strlen(FILE_SEPARATOR) + 8 /* hash */
+      //  + strlen(SIGNING_POLICY_FILE_EXTENSION) + 1 /* zero termination */;
+      //char* ca_policy_file_path = (char*) malloc(buffer_len);
+      //if(ca_policy_file_path == NULL) {
+      //  logger.msg(Arc::ERROR,"Can't allocate memory for CA policy path");
+      //  X509_STORE_CTX_set_error(store_ctx,X509_V_ERR_APPLICATION_VERIFICATION);
+      //  return (0);
+      //}
+      //snprintf(ca_policy_file_path,buffer_len,"%s%s%08lx%s", cadir.c_str(), FILE_SEPARATOR, hash, SIGNING_POLICY_FILE_EXTENSION);
+      //ca_policy_file_path[buffer_len-1]=0;
 
       //TODO check the certificate against policy
 
-      free(ca_policy_file_path);
+      //free(ca_policy_file_path);
 
     }
 
@@ -306,13 +291,11 @@ static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::st
 
 static bool collect_proxy_info(std::string& proxy_policy, X509* cert) {
   /**Check the proxy certificate infomation extension*/
-  X509_EXTENSION* ext;
-  ASN1_OBJECT* extension_obj;
   int i;
   for (i=0;i<X509_get_ext_count(cert);i++) {
-    ext = (X509_EXTENSION *) X509_get_ext(cert,i);
+    X509_EXTENSION* ext = (X509_EXTENSION *) X509_get_ext(cert,i);
     if(X509_EXTENSION_get_critical(ext)) {
-      extension_obj = X509_EXTENSION_get_object(ext);
+      ASN1_OBJECT* extension_obj = X509_EXTENSION_get_object(ext);
       int nid = OBJ_obj2nid(extension_obj);
       if(nid != NID_basic_constraints &&
          nid != NID_key_usage &&
@@ -333,9 +316,8 @@ static bool collect_proxy_info(std::string& proxy_policy, X509* cert) {
        * then we use the proxy cert info support from openssl itself.
        * Otherwise we have to use globus-customized proxy cert info support.
        */
-      PROXY_CERT_INFO_EXTENSION*  proxycertinfo = NULL;
-      proxycertinfo = (PROXY_CERT_INFO_EXTENSION*) X509V3_EXT_d2i(ext);
-      if (proxycertinfo == NULL) {
+      Arc::Credential::PROXY_CERT_INFO_EXTENSIONRef proxycertinfo((PROXY_CERT_INFO_EXTENSION*) X509V3_EXT_d2i(ext));
+      if (!proxycertinfo) {
         logger.msg(Arc::WARNING,"Can not convert DER encoded PROXY_CERT_INFO_EXTENSION extension to internal format");
       } else {
         /**Parse the policy*/
@@ -371,8 +353,6 @@ static bool collect_proxy_info(std::string& proxy_policy, X509* cert) {
               break;
           }
         }
-        PROXY_CERT_INFO_EXTENSION_free(proxycertinfo);
-        proxycertinfo = NULL;
       }
       }
     }
@@ -390,20 +370,19 @@ bool check_cert_type(X509* cert, certType& type) {
   ASN1_STRING* data;
   X509_EXTENSION* certinfo_ext;
   int policynid;
-  PROXY_CERT_INFO_EXTENSION* certinfo_openssl = NULL;
+  Arc::Credential::PROXY_CERT_INFO_EXTENSIONRef certinfo_openssl;
 
   int index;
   int critical;
-  BASIC_CONSTRAINTS* x509v3_bc = NULL;
+  Arc::Credential::BASIC_CONSTRAINTSRef x509v3_bc;
   if(!cert) return false;
   if((x509v3_bc = (BASIC_CONSTRAINTS*) X509_get_ext_d2i(cert,
     NID_basic_constraints, &critical, NULL)) && x509v3_bc->ca) {
     type = CERT_TYPE_CA;
-    if(x509v3_bc) { BASIC_CONSTRAINTS_free(x509v3_bc); }
     return true;
   }
 
-  X509_NAME* issuer = NULL;
+  Arc::Credential::X509_NAMERef issuer;
   X509_NAME* subject = X509_get_subject_name(cert);
   X509_NAME_ENTRY * name_entry = NULL;
   if(!subject) goto err;
@@ -420,7 +399,7 @@ bool check_cert_type(X509* cert, certType& type) {
       if(X509_EXTENSION_get_critical(certinfo_ext)) {
         PROXY_POLICY* policy_openssl = NULL;
         ASN1_OBJECT* policylang_openssl = NULL;        
-        if((certinfo_openssl = (PROXY_CERT_INFO_EXTENSION *)X509V3_EXT_d2i(certinfo_ext)) == NULL) {
+        if(!(certinfo_openssl = (PROXY_CERT_INFO_EXTENSION *)X509V3_EXT_d2i(certinfo_ext))) {
           logger.msg(Arc::ERROR,"Can't convert DER encoded PROXYCERTINFO extension to internal format");
           goto err;
         }
@@ -450,30 +429,22 @@ bool check_cert_type(X509* cert, certType& type) {
      * the owner.  We do it this way, to double check all the ANS1 bits
      * as well.
      */
-    X509_NAME_ENTRY* new_name_entry = NULL;
     if(type != CERT_TYPE_EEC && type != CERT_TYPE_CA) {
       issuer = X509_NAME_dup(X509_get_issuer_name(cert));
-      new_name_entry = X509_NAME_ENTRY_create_by_NID(NULL, NID_commonName, V_ASN1_APP_CHOOSE, data->data, -1);
+      Arc::Credential::X509_NAME_ENTRYRef new_name_entry(X509_NAME_ENTRY_create_by_NID(NULL, NID_commonName, V_ASN1_APP_CHOOSE, data->data, -1));
       if(!new_name_entry) goto err;
       X509_NAME_add_entry(issuer,new_name_entry,X509_NAME_entry_count(issuer),0);
-      X509_NAME_ENTRY_free(new_name_entry);
-      new_name_entry = NULL;
 
       if (X509_NAME_cmp(issuer, subject)) {
         /* Reject this certificate, only the user may sign the proxy */
         logger.msg(Arc::ERROR,"The subject does not match the issuer name + proxy CN entry");
         goto err;
       }
-      X509_NAME_free(issuer);
-      issuer = NULL;
     }
   }
   ret = true;
 
 err:
-  if(issuer) { X509_NAME_free(issuer); }
-  if(certinfo_openssl) {PROXY_CERT_INFO_EXTENSION_free(certinfo_openssl);}
-  if(x509v3_bc) { BASIC_CONSTRAINTS_free(x509v3_bc); }
 
   return ret;
 }

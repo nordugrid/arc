@@ -152,6 +152,9 @@ ASN1_SEQUENCE(AC) = {
   ASN1_SIMPLE(AC, signature, ASN1_BIT_STRING)
 } ASN1_SEQUENCE_END(AC)
 
+typedef Arc::Credential::OBJRef<AC_TARGET,AC_TARGET_free,AC_TARGET_new> AC_TARGETRef;
+typedef Arc::Credential::OBJRef<AC_TARGETS,AC_TARGETS_free,AC_TARGETS_new> AC_TARGETSRef;
+
 char *targets_i2s(struct v3_ext_method*, void*)
 {
   return norep();
@@ -164,40 +167,37 @@ char *null_i2s(struct v3_ext_method*, void*)
 
 void *targets_s2i(struct v3_ext_method*, struct v3_ext_ctx*, char *data)
 {
-  char* list = strdup(data);
-  char* pos = list;
-  AC_TARGETS *a = AC_TARGETS_new();
+  if(!data)
+    return NULL;
+
+  std::unique_ptr<char,void (&)(void*)> list(strdup(data),free);
+  char* pos = list.get();
+  AC_TARGETSRef a(AC_TARGETS_new());
 
   while(pos) {
     char* cpos = strchr(pos, ',');
     if (cpos) *cpos = '\0';
     {
-      GENERAL_NAME *g = GENERAL_NAME_new();
-      ASN1_IA5STRING *tmpr = ASN1_IA5STRING_new();
-      AC_TARGET *targ = AC_TARGET_new();
+      Arc::Credential::GENERAL_NAMERef g(GENERAL_NAME_new());
+      Arc::Credential::ASN1_IA5STRINGRef tmpr(ASN1_IA5STRING_new());
+      AC_TARGETRef targ(AC_TARGET_new());
 
       if (!g || !tmpr || !targ) {
-        GENERAL_NAME_free(g);
-        ASN1_IA5STRING_free(tmpr);
-        AC_TARGET_free(targ);
         goto err;
       }
-      ASN1_STRING_set(tmpr, pos, strlen(list));
+      ASN1_STRING_set(tmpr, pos, strlen(pos));
       g->type = GEN_URI;
-      g->d.ia5 = tmpr;
-      targ->name = g;
-      sk_AC_TARGET_push(a->targets, targ);
+      g->d.ia5 = tmpr.release();
+      targ->name = g.release();
+      sk_AC_TARGET_push(a->targets, targ.release());
     }
     pos = cpos;
     if (pos) ++pos;
   };
-  free(list);
 
-  return a;
+  return a.release();
 
  err:
-  free(list);
-  AC_TARGETS_free(a);
   return NULL;
 }
 

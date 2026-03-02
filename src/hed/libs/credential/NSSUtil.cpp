@@ -2312,11 +2312,11 @@ error:
   // Add a binary into extension, specific for the VOMS AC sequence
   static SECStatus AddVOMSACSeqExtension(void* extHandle, char* vomsacseq, int length) {
     SECStatus rv = SECFailure;
-    SECOidData* oid = NULL;
+    //SECOidData* oid = NULL;
     SECOidTag tag;
 
     tag = tag_vomsacseq;
-    oid = SECOID_FindOIDByTag(tag);
+    //oid = SECOID_FindOIDByTag(tag);
 
     if(vomsacseq != NULL) {
       SECItem encodedValue;

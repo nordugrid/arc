@@ -70,8 +70,8 @@ namespace ArcCredential {
         (cert_type == CERT_TYPE_RFC_IMPERSONATION_PROXY || \
          cert_type == CERT_TYPE_RFC_LIMITED_PROXY)
 
-    int verify_cert_chain(X509* cert, STACK_OF(X509)** certchain, std::string const& ca_file, std::string const& ca_dir, bool ca_use_system,std::string& proxy_policy);
-    int collect_cert_chain(X509* cert, STACK_OF(X509)** certchain, std::string& proxy_policy);
+    int verify_cert_chain(X509* cert, STACK_OF(X509)*& certchain, std::string const& ca_file, std::string const& ca_dir, bool ca_use_system,std::string& proxy_policy);
+    int collect_cert_chain(X509* cert, STACK_OF(X509)* certchain, std::string& proxy_policy);
     bool check_cert_type(X509* cert, certType& type);
     const char* certTypeToString(certType type);
 
