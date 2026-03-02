@@ -154,6 +154,11 @@ std::string job_control_path(std::string const& control_dir, std::string const& 
   return path;
 }
 
+std::string job_control_path(std::string const& control_dir, char const* subdir, std::string const& id, char const* sfx) {
+  std::string path = control_dir + "/" + subdir + "/" + id + "." + sfx;
+  return path;
+}
+
 //static std::string job_control_path(std::string const& control_dir, std::string const& id, char const* sfx) {
 //  return control_dir + id + sfx;
 //}
@@ -177,47 +182,47 @@ LRMSResult job_lrms_mark_read(const JobId &id,const GMConfig &config) {
 }
 
 bool job_cancel_mark_put(const GMJob &job,const GMConfig &config) {
-  std::string fname = config.ControlDir() + "/" + subdir_new + "/" + job.get_id() + sfx_cancel;
+  std::string fname = job_control_path(config.ControlDir(), subdir_new, job.get_id(), sfx_cancel);
   return job_mark_put(fname) && fix_file_owner(fname,job) && fix_file_permissions(fname);
 }
 
 bool job_cancel_mark_check(const JobId &id,const GMConfig &config) {
-  std::string fname = config.ControlDir() + "/" + subdir_new + "/" + id + sfx_cancel;
+  std::string fname = config.ControlDir() + "/" + subdir_new + "/" + id + "." + sfx_cancel;
   return job_mark_check(fname);
 }
 
 bool job_cancel_mark_remove(const JobId &id,const GMConfig &config) {
-  std::string fname = config.ControlDir() + "/" + subdir_new + "/" + id + sfx_cancel;
+  std::string fname = config.ControlDir() + "/" + subdir_new + "/" + id + "." + sfx_cancel;
   return job_mark_remove(fname);
 }
 
 bool job_restart_mark_put(const GMJob &job,const GMConfig &config) {
-  std::string fname = config.ControlDir() + "/" + subdir_new + "/" + job.get_id() + sfx_restart;
+  std::string fname = config.ControlDir() + "/" + subdir_new + "/" + job.get_id() + "." + sfx_restart;
   return job_mark_put(fname) && fix_file_owner(fname,job) && fix_file_permissions(fname);
 }
 
 bool job_restart_mark_check(const JobId &id,const GMConfig &config) {
-  std::string fname = config.ControlDir() + "/" + subdir_new + "/" + id + sfx_restart;
+  std::string fname = config.ControlDir() + "/" + subdir_new + "/" + id + "." + sfx_restart;
   return job_mark_check(fname);
 }
 
 bool job_restart_mark_remove(const JobId &id,const GMConfig &config) {
-  std::string fname = config.ControlDir() + "/" + subdir_new + "/" + id + sfx_restart;
+  std::string fname = config.ControlDir() + "/" + subdir_new + "/" + id + "." + sfx_restart;
   return job_mark_remove(fname);
 }
 
 bool job_clean_mark_put(const GMJob &job,const GMConfig &config) {
-  std::string fname = config.ControlDir() + "/" + subdir_new + "/" + job.get_id() + sfx_clean;
+  std::string fname = config.ControlDir() + "/" + subdir_new + "/" + job.get_id() + "." + sfx_clean;
   return job_mark_put(fname) && fix_file_owner(fname,job) && fix_file_permissions(fname);
 }
 
 bool job_clean_mark_check(const JobId &id,const GMConfig &config) {
-  std::string fname = config.ControlDir() + "/" + subdir_new + "/" + id + sfx_clean;
+  std::string fname = config.ControlDir() + "/" + subdir_new + "/" + id + "." + sfx_clean;
   return job_mark_check(fname);
 }
 
 bool job_clean_mark_remove(const JobId &id,const GMConfig &config) {
-  std::string fname = config.ControlDir() + "/" + subdir_new + "/" + id + sfx_clean;
+  std::string fname = config.ControlDir() + "/" + subdir_new + "/" + id + "." + sfx_clean;
   return job_mark_remove(fname);
 }
 
@@ -533,7 +538,7 @@ bool job_xml_read_file(const JobId &id,const GMConfig &config,std::string &xml) 
 }
 
 bool job_xml_check_file(const JobId &id,const GMConfig &config) {
-  std::string fname = config.ControlDir() + "/job." + id + sfx_xml;
+  std::string fname = job_control_path(config.ControlDir(), id, sfx_xml);
   return job_mark_check(fname);
 }
 

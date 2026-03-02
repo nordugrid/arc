@@ -75,6 +75,126 @@ extern Logger CredentialLogger;
  */
 class Credential {
   public:
+#ifndef SWIG
+    // Smart pointers for OpenSSL objects
+    template<typename OBJ, void (*FREE)(OBJ*), OBJ* (*NEW)()> class OBJRef {
+      public:
+        OBJRef(): ptr(nullptr) {}
+        ~OBJRef() {
+          if(ptr)
+            FREE(ptr);
+          ptr = nullptr;
+        }
+        OBJRef(OBJ* obj): ptr(obj) {}
+        OBJRef(OBJRef& obj): ptr(obj.release()) {}
+        OBJRef& operator=(OBJ* obj) {
+          if(ptr != obj)
+            if(ptr)
+              FREE(ptr);
+          ptr = obj;
+          return *this;
+        }
+        OBJRef& operator=(OBJRef& obj) {
+          if(ptr != obj.ptr)
+            if (ptr) 
+              FREE(ptr);
+          ptr = obj.release();
+          return *this;
+        }
+        void create() {
+          ptr = NEW();
+        }
+        OBJ*& put(bool keep = false) {
+          if (!keep) {
+            if(ptr) {
+              FREE(ptr);
+              ptr = nullptr;
+            }
+          }
+          return ptr;
+        }
+        OBJ* get() const {
+          return ptr;
+        }
+        OBJ* operator->() {
+          return ptr;
+        }
+        operator OBJ*() {
+          return ptr;
+        }
+        OBJ* release() {
+          OBJ* tmp = ptr;
+          ptr = nullptr;
+          return tmp;
+        }
+        void reset() {
+          if (ptr) {
+            FREE(ptr);
+            ptr = nullptr;
+          }
+        }
+        operator bool() const {
+          return (ptr != nullptr);
+        }
+        bool operator!() const {
+          return (ptr == nullptr);
+        }
+      private:
+        OBJ* ptr;
+    };
+    static BIO* BIO_new_mem() {
+      return BIO_new(BIO_s_mem());
+    }
+    typedef OBJRef<BIO, BIO_free_all, BIO_new_mem> BIORef;
+    typedef OBJRef<BIGNUM,BN_free,BN_new> BIGNUMRef;
+    typedef OBJRef<BN_GENCB,BN_GENCB_free,BN_GENCB_new> BN_GENCBRef;
+    typedef OBJRef<X509,X509_free,X509_new> X509Ref;
+    typedef OBJRef<X509_NAME_ENTRY,X509_NAME_ENTRY_free,X509_NAME_ENTRY_new> X509_NAME_ENTRYRef;
+    typedef OBJRef<X509_REQ,X509_REQ_free,X509_REQ_new> X509_REQRef;
+    typedef OBJRef<X509_NAME,X509_NAME_free,X509_NAME_new> X509_NAMERef;
+    typedef OBJRef<X509_EXTENSION,X509_EXTENSION_free,X509_EXTENSION_new> X509_EXTENSIONRef;
+    typedef OBJRef<X509_STORE,X509_STORE_free,X509_STORE_new> X509_STORERef;
+    typedef OBJRef<X509_STORE_CTX,X509_STORE_CTX_free,X509_STORE_CTX_new> X509_STORE_CTXRef;
+    typedef OBJRef<X509_OBJECT,X509_OBJECT_free,X509_OBJECT_new> X509_OBJECTRef;
+    typedef OBJRef<X509_ALGOR,X509_ALGOR_free,X509_ALGOR_new> X509_ALGORRef;
+    typedef OBJRef<PROXY_CERT_INFO_EXTENSION,PROXY_CERT_INFO_EXTENSION_free,PROXY_CERT_INFO_EXTENSION_new> PROXY_CERT_INFO_EXTENSIONRef;
+    typedef OBJRef<EVP_PKEY,EVP_PKEY_free,EVP_PKEY_new> EVP_PKEYRef;
+    typedef OBJRef<RSA,RSA_free,RSA_new> RSARef;
+    typedef OBJRef<ASN1_NULL,ASN1_NULL_free,ASN1_NULL_new> ASN1_NULLRef;
+    typedef OBJRef<ASN1_OBJECT,ASN1_OBJECT_free,ASN1_OBJECT_new> ASN1_OBJECTRef;
+    typedef OBJRef<ASN1_STRING,ASN1_STRING_free,ASN1_STRING_new> ASN1_STRINGRef;
+    typedef OBJRef<ASN1_OCTET_STRING,ASN1_OCTET_STRING_free,ASN1_OCTET_STRING_new> ASN1_OCTET_STRINGRef;
+    typedef OBJRef<ASN1_GENERALIZEDTIME,ASN1_GENERALIZEDTIME_free,ASN1_GENERALIZEDTIME_new> ASN1_GENERALIZEDTIMERef;
+    typedef OBJRef<PKCS12,PKCS12_free,PKCS12_new> PKCS12Ref;
+    typedef OBJRef<GENERAL_NAME,GENERAL_NAME_free,GENERAL_NAME_new> GENERAL_NAMERef;
+    typedef OBJRef<GENERAL_NAMES,GENERAL_NAMES_free,GENERAL_NAMES_new> GENERAL_NAMESRef;
+    typedef OBJRef<ASN1_UTCTIME,ASN1_UTCTIME_free,ASN1_UTCTIME_new> ASN1_UTCTIMERef;
+    typedef OBJRef<ASN1_IA5STRING,ASN1_IA5STRING_free,ASN1_IA5STRING_new> ASN1_IA5STRINGRef;
+    typedef OBJRef<ASN1_INTEGER,ASN1_INTEGER_free,ASN1_INTEGER_new> ASN1_INTEGERRef;
+    typedef OBJRef<ASN1_BIT_STRING,ASN1_BIT_STRING_free,ASN1_BIT_STRING_new> ASN1_BIT_STRINGRef;
+    typedef OBJRef<BASIC_CONSTRAINTS,BASIC_CONSTRAINTS_free,BASIC_CONSTRAINTS_new> BASIC_CONSTRAINTSRef;
+    static CONF* NCONF_new_null() {
+      return NCONF_new(nullptr);
+    }
+    typedef OBJRef<CONF,NCONF_free,NCONF_new_null> CONFRef;
+    typedef STACK_OF(X509) X509Stack;
+    static void X509Stack_free(X509Stack* st) {
+      sk_X509_pop_free(st, X509_free);
+    }
+    static X509Stack* X509Stack_new() {
+      return sk_X509_new_null();
+    }
+    typedef OBJRef<X509Stack, X509Stack_free, X509Stack_new> X509StackRef;
+    typedef STACK_OF(X509_EXTENSION) X509_EXTENSIONStack;
+    static void X509_EXTENSIONStack_free(X509_EXTENSIONStack* st) {
+      sk_X509_EXTENSION_pop_free(st, X509_EXTENSION_free);
+    }
+    static X509_EXTENSIONStack* X509_EXTENSIONStack_new() {
+      return sk_X509_EXTENSION_new_null();
+    }
+    typedef OBJRef<X509_EXTENSIONStack, X509_EXTENSIONStack_free, X509_EXTENSIONStack_new> X509_EXTENSIONStackRef;
+#endif
+
     /**Default constructor, only acts as a container for inquiring certificate request,
     *is meaningless for any other use.
     */
@@ -235,18 +355,14 @@ class Credential {
     void InitEmpty();
 
     /**load key from argument keybio, and put key information into argument pkey */
-    //void loadKeyString(const std::string& key, EVP_PKEY* &pkey, const std::string& passphrase = "");
-    void loadKeyString(const std::string& key, EVP_PKEY* &pkey, PasswordSource& passphrase);
-    //void loadKeyFile(const std::string& keyfile, EVP_PKEY* &pkey, const std::string& passphrase = "");
-    void loadKeyFile(const std::string& keyfile, EVP_PKEY* &pkey, PasswordSource& passphrase);
-    //void loadKey(BIO* bio, EVP_PKEY* &pkey, const std::string& passphrase = "", const std::string& prompt_info = "", const bool is_file = true);
+    void loadKeyString(const std::string& key, EVP_PKEYRef &pkey, PasswordSource& passphrase);
+    void loadKeyFile(const std::string& keyfile, EVP_PKEYRef &pkey, PasswordSource& passphrase);
 
     /**load certificate from argument certbio, and put certificate information into
     * argument cert and certchain
     */
-    void loadCertificateString(const std::string& cert, X509* &x509, STACK_OF(X509)** certchain);
-    void loadCertificateFile(const std::string& certfile, X509* &x509, STACK_OF(X509)** certchain);
-    //void loadCertificate(BIO* bio, X509* &x509, STACK_OF(X509)** certchain, const bool is_file=true);
+    void loadCertificateString(const std::string& cert, X509Ref &x509, X509StackRef &certchain);
+    void loadCertificateFile(const std::string& certfile, X509Ref &x509, X509StackRef &certchain);
 
     /**Verify whether the certificate is signed by trusted CAs
      *the verification is not needed for EEC, but needed for verifying a proxy certificate which
@@ -273,7 +389,7 @@ class Credential {
     /**Assistant method for signing the proxy request, the method will duplicate some information
     *(subject and extension) from signing certificate
     */
-    bool SignRequestAssistant(Credential* proxy, EVP_PKEY* req_pubkey, X509** tosign);
+    bool SignRequestAssistant(Credential* proxy, EVP_PKEY* req_pubkey, X509Ref& tosign);
 
   public:
     /**Log error information related with openssl*/
@@ -540,21 +656,21 @@ class Credential {
 
     //Certificate structures
     bool initialized_;
-    X509 *           cert_;    //certificate
+    X509Ref cert_;              //certificate
     ArcCredential::certType cert_type_;
-    EVP_PKEY *       pkey_;    //private key
-    STACK_OF(X509) * cert_chain_;  //certificates chain which is parsed
-                                   //from the certificate, after
-                                   //verification, the ca certificate
-                                   //will be included
-    PROXY_CERT_INFO_EXTENSION* proxy_cert_info_;
+    EVP_PKEYRef pkey_;         //private key
+    X509StackRef cert_chain_;  //certificates chain which is parsed
+                               //from the certificate, after
+                               //verification, the ca certificate
+                               //will be included
+    PROXY_CERT_INFO_EXTENSIONRef proxy_cert_info_;
     Credformat       format;
     Time        start_;
     Period      lifetime_;
 
     //Certificate request
-    X509_REQ* req_;
-    RSA* rsa_key_;
+    X509_REQRef req_;
+    RSARef rsa_key_;
     EVP_MD* signing_alg_;
     int keybits_;
 
@@ -565,7 +681,7 @@ class Credential {
     int pathlength_;
 
     //Extensions for certificate, such as certificate policy, attributes, etc.
-    STACK_OF(X509_EXTENSION)* extensions_;
+    X509_EXTENSIONStackRef extensions_;
 
     //CA functionality related information
     std::string CAserial_;
