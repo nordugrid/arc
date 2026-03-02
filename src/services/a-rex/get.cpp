@@ -420,6 +420,7 @@ static bool cache_get_allowed(const std::string& url, ARexGMConfig& config, Arc:
   std::string dn;              // DN of credential
   std::string vo;              // Assuming only one VO
   std::list<std::string> voms; // VOMS attributes
+  std::list<std::string> token; // Token claims
 
   for (std::list<Arc::MessageAuth*>::const_iterator a = config.beginAuth(); a!=config.endAuth(); ++a) {
     if (*a) {
@@ -429,6 +430,12 @@ static bool cache_get_allowed(const std::string& url, ARexGMConfig& config, Arc:
       vo = sattr->get("VO");
       voms = sattr->getAll("VOMS");
       break;
+    }
+  }
+  Arc::SecAttr* tokenAttr = nullptr;
+  for (std::list<Arc::MessageAuth*>::const_iterator a = config.beginAuth(); a!=config.endAuth(); ++a) {
+    if (*a) {
+      if (tokenAttr = (*a)->get("OTOKENS")) break;
     }
   }
   // At least DN should be found. VOMS info may not be present.
@@ -447,19 +454,20 @@ static bool cache_get_allowed(const std::string& url, ARexGMConfig& config, Arc:
   for (std::list<struct CacheConfig::CacheAccess>::const_iterator access = config.GmConfig().CacheParams().getCacheAccess().begin();
        access != config.GmConfig().CacheParams().getCacheAccess().end(); ++access) {
     if (access->regexp.match(url)) {
-      if (Arc::lower(access->cred_type) == "dn") {
+      auto typeLower = Arc::lower(access->cred_type);
+      if (typeLower == "dn") {
         if (access->cred_value.match(dn)) {
           logger.msg(Arc::VERBOSE, "Cache access allowed to %s by DN %s", url, dn);
           return true;
         }
         logger.msg(Arc::DEBUG, "DN %s doesn't match %s", dn, access->cred_value.getPattern());
-      } else if (Arc::lower(access->cred_type) == "voms:vo") {
+      } else if (typeLower == "voms:vo") {
         if (access->cred_value.match(vo)) {
           logger.msg(Arc::VERBOSE, "Cache access allowed to %s by VO %s", url, vo);
           return true;
         }
         logger.msg(Arc::DEBUG, "VO %s doesn't match %s", vo, access->cred_value.getPattern());
-      } else if (Arc::lower(access->cred_type) == "voms:role") {
+      } else if (typeLower == "voms:role") {
         // Get the configured allowed role
         std::vector<std::string> role_parts;
         Arc::tokenize(access->cred_value.getPattern(), role_parts, ":");
@@ -478,7 +486,7 @@ static bool cache_get_allowed(const std::string& url, ARexGMConfig& config, Arc:
           }
           logger.msg(Arc::DEBUG, "VOMS attr %s doesn't match %s", *attr, allowed_role);
         }
-      } else if (Arc::lower(access->cred_type) == "voms:group") {
+      } else if (typeLower == "voms:group") {
         // Get the configured allowed group
         std::vector<std::string> group_parts;
         Arc::tokenize(access->cred_value.getPattern(), group_parts, ":");
@@ -497,6 +505,17 @@ static bool cache_get_allowed(const std::string& url, ARexGMConfig& config, Arc:
           }
           logger.msg(Arc::DEBUG, "VOMS attr %s doesn't match %s", *attr, allowed_group);
         }
+      } else if (std::strncmp(typeLower.c_str(), "token:", 6) == 0) {
+        auto claimName = access->cred_type.substr(6);
+        if (tokenAttr) {
+          for(auto& value: tokenAttr->getAll(claimName)) {
+            if (access->cred_value.match(value)) {
+              logger.msg(Arc::VERBOSE, "Cache access allowed to %s by token claim %s = %s", url, claimName, value);
+              return true;
+            }
+          }
+        }
+        logger.msg(Arc::DEBUG, "None of token claim %s attr %s matches %s", claimName, access->cred_value.getPattern());
       } else {
         logger.msg(Arc::WARNING, "Unknown credential type %s for URL pattern %s", access->cred_type, access->regexp.getPattern());
       }

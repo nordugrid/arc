@@ -1127,6 +1127,8 @@
 ##   voms:group
 ##     each job is assigned to a share based on the group specified in the first attribute
 ##     found in the proxy.
+##   token:<claim name>
+##     each job is assigned to a share based on first value of specified claim in auth token.
 ## In case of the voms schemes, if the proxy is not a VOMS proxy, then a default share is used.
 ## If sharepolicy is not set then the client-defined priority is applied.
 ## default: undefined
