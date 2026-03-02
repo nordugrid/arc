@@ -151,7 +151,8 @@ namespace DataStaging {
     /// Constructor with supplied credential info
     DTRCredentialInfo(const std::string& DN,
                       const Arc::Time& expirytime,
-                      const std::list<std::string> vomsfqans);
+                      const std::list<std::string>& vomsfqans,
+                      const std::map<std::string,std::list<std::string> >& tokenClaims);
     /// Get the DN
     std::string getDN() const { return DN; };
     /// Get the expiry time
@@ -162,11 +163,13 @@ namespace DataStaging {
     std::string extractVOMSGroup() const;
     /// Get the VOMS Role (first in the supplied list of fqans)
     std::string extractVOMSRole() const;
+    /// Get Token Claim (by claim name)
+    std::string extractTokenClaim(std::string const& name) const;
    private:
     std::string DN;
     Arc::Time expirytime;
     std::list<std::string> vomsfqans;
-
+    std::map<std::string,std::string> tokenClaim;
   };
 
   /// Represents possible cache states of this DTR

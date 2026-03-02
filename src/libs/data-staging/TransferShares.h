@@ -28,6 +28,8 @@ namespace DataStaging {
       GROUP,
       /// Shares are defined per VOMS role of the user's proxy
       ROLE,
+      /// Shares are defined per Token attribute from shareInfo
+      TOKEN,
       /// No share criterion - all DTRs will be assigned to a single share
       NONE
     };
@@ -40,6 +42,8 @@ namespace DataStaging {
 
     /// Configured share type
     ShareType shareType;
+    /// Configures additional information for share type
+    std::string shareInfo;
 
   public:
 

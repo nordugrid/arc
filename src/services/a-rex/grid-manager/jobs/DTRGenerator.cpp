@@ -709,7 +709,7 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
     }
   }
   // Collect credential info for DTRs
-  DataStaging::DTRCredentialInfo cred_info(job_desc.DN, job_desc.expiretime, job_desc.voms);
+  DataStaging::DTRCredentialInfo cred_info(job_desc.DN, job_desc.expiretime, job_desc.voms, job_desc.tokenclaim);
 
   // Create a file for the transfer statistics and fix its permissions
   std::string fname = job_control_path(config.ControlDir(),jobid,sfx_statistics);

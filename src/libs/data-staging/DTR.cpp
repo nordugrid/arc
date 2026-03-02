@@ -413,10 +413,14 @@ namespace DataStaging {
 
   DTRCredentialInfo::DTRCredentialInfo(const std::string& DN,
                                        const Arc::Time& expirytime,
-                                       const std::list<std::string> vomsfqans):
+                                       const std::list<std::string>& vomsfqans,
+                                       const std::map<std::string,std::list<std::string> >& tokenClaims):
        DN(DN),
        expirytime(expirytime),
        vomsfqans(vomsfqans) {
+    for (auto& claims: tokenClaims)
+      if (!claims.second.empty())
+        tokenClaim.emplace(claims.first, claims.second.front());
   }
 
   std::string DTRCredentialInfo::extractVOMSVO() const {
@@ -424,6 +428,12 @@ namespace DataStaging {
     std::vector<std::string> parts;
     Arc::tokenize(*(vomsfqans.begin()), parts, "/");
     return parts.at(0);
+  }
+
+  std::string DTRCredentialInfo::extractTokenClaim(const std::string& name) const {
+    auto it = tokenClaim.find(name);
+    if (it != tokenClaim.end()) return it->second;
+    return "";
   }
 
   std::string DTRCredentialInfo::extractVOMSGroup() const {

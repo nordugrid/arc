@@ -148,7 +148,8 @@
                   the maximum number of processes that can run per transfer share
                 * loadShareType - sharing mechanism for data transfer - 
                   the scheme used to assign jobs to transfer shares. Possible
-                  values are "dn", "voms:vo", "voms:role" and "voms:group"
+                  values are "dn", "voms:vo", "voms:role", "voms:group"
+                  and "token:<claim>".
                 * shareLimit - specifies a transfer share that has a limit
                   different from the default value in maxLoadShare
                     * name - the name of the share. Examples for different sharing

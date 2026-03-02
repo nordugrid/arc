@@ -20,15 +20,19 @@ namespace DataStaging {
   }
 
   void TransferSharesConf::set_share_type(const std::string& type) {
-    if (Arc::lower(type) == "dn")
+    std::string typeLower = Arc::lower(type);
+    if (typeLower == "dn")
       shareType = USER;
-    else if (Arc::lower(type) == "voms:vo")
+    else if (typeLower == "voms:vo")
       shareType = VO;
-    else if (Arc::lower(type) == "voms:role")
+    else if (typeLower == "voms:role")
       shareType = ROLE;
-    else if (Arc::lower(type) == "voms:group")
+    else if (typeLower == "voms:group")
       shareType = GROUP;
-    else
+    else if (strncmp(typeLower.c_str(), "token:", 6) == 0) {
+      shareType = TOKEN;
+      shareInfo = type.substr(6);
+    } else
       shareType = NONE;
   }
 
@@ -61,6 +65,7 @@ namespace DataStaging {
       case VO: conf += "VOMS VO"; break;
       case GROUP: conf += "VOMS group"; break;
       case ROLE: conf += "VOMS role"; break;
+      case TOKEN: conf += "TOKEN "; conf += shareInfo; break;
       case NONE: conf += "None"; break;
       default: // Something really strange
         conf += "unknown"; break;
@@ -81,6 +86,7 @@ namespace DataStaging {
       case VO: return cred.extractVOMSVO();
       case GROUP: return cred.extractVOMSGroup();
       case ROLE: return cred.extractVOMSRole();
+      case TOKEN: return cred.extractTokenClaim(shareInfo);
       case NONE: return "_default";
       default: // Something really strange
         return "";
