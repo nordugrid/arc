@@ -409,11 +409,12 @@ class RTEControl(ComponentControl):
 
     def params_set(self, rte, parameter, value, use_default=False):
         params = self.__params_parse(rte)
-        if parameter not in params:
+        pdescr = params.get(parameter)
+        if pdescr is None:
             # allowed to set undocumented parameters? force option?
             self.logger.error('There is no such parameter %s for RunTimeEnvironment %s', parameter, rte)
             sys.exit(1)
-        if params[parameter]['set'] > 2:
+        if pdescr['set'] > 2:
             if value is None:
                 self.logger.warning('Clearing undocumented parameter %s for RunTimeEnvironment %s', parameter, rte)
             else:
@@ -423,21 +424,21 @@ class RTEControl(ComponentControl):
         else:
             # use default value if requested
             if use_default:
-                value = params[parameter]['default_value']
+                value = pdescr['default_value']
             # check type and allowed values
-            if params[parameter]['allowed_string'] == 'string':
+            if pdescr['allowed_string'] == 'string':
                 pass
-            elif params[parameter]['allowed_string'] == 'int':
+            elif pdescr['allowed_string'] == 'int':
                 if not re.match(r'[-0-9]+', value):
                     self.logger.error('Parameter %s for RunTimeEnvironment %s should be integer', parameter, rte)
                     sys.exit(1)
-            elif value not in params[parameter]['allowed_values']:
+            elif value not in pdescr['allowed_values']:
                 self.logger.error('Parameter %s for RunTimeEnvironment %s should be one of %s',
-                                  parameter, rte, params[parameter]['allowed_string'])
+                                  parameter, rte, pdescr['allowed_string'])
                 sys.exit(1)
         # assign new value
-        params[parameter]['value'] = value
-        params[parameter]['set'] = 2 if value is not None else 0
+        pdescr['value'] = value
+        pdescr['set'] = 2 if value is not None else 0
         self.__params_write(rte, params)
 
     def cat_rte(self, rte):
