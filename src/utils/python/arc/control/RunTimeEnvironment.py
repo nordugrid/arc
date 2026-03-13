@@ -5,7 +5,7 @@ from .ControlCommon import *
 import sys
 import re
 import fnmatch
-from itertools import chain
+from itertools import chain, islice
 
 try:
     from .CommunityRTE import CommunityRTEControl
@@ -83,15 +83,11 @@ class RTEControl(ComponentControl):
             return 'Dummy RTE for information publishing'
         descr_match = re.compile(r'#+\s*description:\s*(.*?)\s*$', flags=re.IGNORECASE).match
         with open(rte_path) as rte_f:
-            max_lines = 10
             description = 'RTE description is Not Available'
-            for line in rte_f:
+            for line in islice(rte_f, 10):
                 descr_re = descr_match(line)
                 if descr_re:
                     description = descr_re.group(1)
-                max_lines -= 1
-                if not max_lines:
-                    break
             return description
 
     @staticmethod
@@ -314,8 +310,7 @@ class RTEControl(ComponentControl):
         param_match = re.compile(r'#\s*param:([^:]+):([^:]+):([^:]*):(.*)$').match
         params = {}
         with open(rte_file) as rte_f:
-            max_lines = 20
-            for line in rte_f:
+            for line in islice(rte_f, 20):
                 param_re = param_match(line)
                 if param_re:
                     pname = param_re.group(1)
@@ -328,9 +323,6 @@ class RTEControl(ComponentControl):
                         'description': param_re.group(4),
                         'set': 0,
                     }
-                max_lines -= 1
-                if not max_lines:
-                    break
         params_defined = self.__params_read(rte)
         for pname, value in params_defined.items():
             if pname in params:
