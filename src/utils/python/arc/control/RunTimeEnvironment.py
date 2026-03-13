@@ -81,11 +81,12 @@ class RTEControl(ComponentControl):
     def get_rte_description(rte_path):
         if rte_path == '/dev/null':
             return 'Dummy RTE for information publishing'
+        descr_match = re.compile(r'#+\s*description:\s*(.*?)\s*$', flags=re.IGNORECASE).match
         with open(rte_path) as rte_f:
             max_lines = 10
             description = 'RTE description is Not Available'
             for line in rte_f:
-                descr_re = re.match(r'^#+\s*description:\s*(.*)\s*$', line, flags=re.IGNORECASE)
+                descr_re = descr_match(line)
                 if descr_re:
                     description = descr_re.group(1)
                 max_lines -= 1
@@ -308,12 +309,12 @@ class RTEControl(ComponentControl):
 
     def __params_parse(self, rte):
         rte_file = self.__get_rte_file(rte)
-        param_str = re.compile(r'#\s*param:([^:]+):([^:]+):([^:]*):(.*)$')
+        param_match = re.compile(r'#\s*param:([^:]+):([^:]+):([^:]*):(.*)$').match
         params = {}
         with open(rte_file) as rte_f:
             max_lines = 20
             for line in rte_f:
-                param_re = param_str.match(line)
+                param_re = param_match(line)
                 if param_re:
                     pname = param_re.group(1)
                     params[pname] = {
@@ -347,10 +348,10 @@ class RTEControl(ComponentControl):
         rte_params_file = self.__get_rte_params_file(rte + suffix)
         params = {}
         if rte_params_file:
-            kv_re = re.compile(r'^([^ =]+)="(.*)"\s*$')
+            kv_match = re.compile(r'([^ =]+)="(.*)"\s*$').match
             with open(rte_params_file) as rte_parm_f:
                 for line in rte_parm_f:
-                    kv = kv_re.match(line)
+                    kv = kv_match(line)
                     if kv:
                         params[kv.group(1)] = kv.group(2)
         return params
@@ -429,7 +430,8 @@ class RTEControl(ComponentControl):
             if pdescr['allowed_string'] == 'string':
                 pass
             elif pdescr['allowed_string'] == 'int':
-                if not re.match(r'[-0-9]+', value):
+                # XXX - regex should really be pre-compiled
+                if not re.match(r'-?[0-9]+$', value):
                     self.logger.error('Parameter %s for RunTimeEnvironment %s should be integer', parameter, rte)
                     sys.exit(1)
             elif value not in pdescr['allowed_values']:
