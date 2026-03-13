@@ -55,7 +55,7 @@ class RTEControl(ComponentControl):
         if self.user_rte_dirs is None:
             self.user_rte_dirs = []
         # define internal structures to hold RTEs
-        self.all_rtes = {}
+        self.all_rtes = None
         self.system_rtes = {}
         self.user_rtes = {}
         self.community_rtes = {}
@@ -109,8 +109,9 @@ class RTEControl(ComponentControl):
     def __fetch_rtes(self):
         """Look for RTEs on the filesystem and fill the object structures"""
         # run once per tool invocation
-        if self.all_rtes:
+        if self.all_rtes is not None:
             return
+
         # available pre-installed RTEs
         self.logger.debug('Indexing ARC defined RTEs from %s', self.system_rte_dir)
         self.system_rtes = self.get_dir_rtes(self.system_rte_dir)
@@ -126,7 +127,7 @@ class RTEControl(ComponentControl):
             self.user_rtes.update(rtes)
 
         # all available RTEs
-        self.all_rtes.update(self.system_rtes)
+        self.all_rtes = self.system_rtes.copy()
         self.all_rtes.update(self.user_rtes)
 
         # Community-defined RTEs
@@ -175,6 +176,7 @@ class RTEControl(ComponentControl):
 
     def __get_rte_list(self, rtes, check_dict=None):
         rte_list = []
+        # BEWARE! self.all_rtes used without self.__fetch_rtes() first
         if check_dict is None:
             check_dict = self.all_rtes
         for r in rtes:
