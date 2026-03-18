@@ -15,7 +15,37 @@
 namespace Arc {
 
   Logger DataPoint::logger(Logger::rootLogger, "DataPoint");
+  DataConnCounter DataPoint::connection_count;
 
+  DataConnCounter::DataConnCounter():value(0),max_value(-1) {
+  }
+
+  void DataConnCounter::SetMax(int v) {
+    max_value = v;
+  }
+ 
+  bool DataConnCounter::Inc() {
+    if (max_value == 0) return false; // shortcut for no cached connections allowed
+    int old_value = value.fetch_add(1);
+    if (max_value < 0) return true; // no limit
+    if (old_value < max_value) return true;
+    (void)value.fetch_sub(1);
+    return false;
+  }
+
+  void DataConnCounter::Dec() {
+    int new_value = value.fetch_sub(1);
+    if(new_value <= 0) (void)value.fetch_add(1);
+  }
+
+  int DataConnCounter::Get() const {
+    return value;
+  }
+   
+  int DataConnCounter::GetMax() const {
+    return max_value;
+  }
+   
   DataPoint::DataPoint(const URL& url, const UserConfig& usercfg, PluginArgument* parg)
     : Plugin(parg),
       url(url),
@@ -280,6 +310,9 @@ namespace Arc {
         url.AddOption(key->first, key->second, true);
       }
     }
+  }
+
+  void DataPoint::Sleep() {
   }
 
   DataStatus DataPoint::Transfer3rdParty(const URL& source, const URL& destination,

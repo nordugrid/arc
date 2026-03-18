@@ -40,6 +40,7 @@ namespace CandyPond {
                         staging_conf.get_max_delivery(),
                         staging_conf.get_max_emergency(),
                         staging_conf.get_max_prepared());
+    Arc::DataPoint::SetMaxCachedConnections(staging_conf.get_max_cached_connections());
 
     // Transfer shares
     DataStaging::TransferSharesConf share_conf(staging_conf.get_share_type(),

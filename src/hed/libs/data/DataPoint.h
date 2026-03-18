@@ -62,6 +62,7 @@ namespace Arc {
 #include <list>
 #include <set>
 #include <string>
+#include <atomic>
 
 #include <arc/DateTime.h>
 #include <arc/URL.h>
@@ -79,6 +80,21 @@ namespace Arc {
   class DataCallback;
   class XMLNode;
   class CheckSum;
+
+  /// Helper class to keep count of cached connections per all DataPoint objects.
+  class DataConnCounter {
+  public:
+    DataConnCounter();
+    void SetMax(int v);
+    bool Inc();
+    void Dec();
+    int Get() const;
+    int GetMax() const;
+
+  private:
+    std::atomic<int> value;
+    int max_value;
+  };
 
   /// A DataPoint represents a data resource and is an abstraction of a URL.
   /**
@@ -803,6 +819,18 @@ namespace Arc {
      */
     virtual void AddURLOptions(const std::map<std::string, std::string>& options);
 
+    /// Tell this object it is not going to be used for some time.
+    /**
+     * This may be used to release some resources which are allocated for
+     * increased performace, like cached connections.
+     * Default implementation does nothing.
+     */
+    virtual void Sleep();
+
+    inline static void SetMaxCachedConnections(int v) {
+      connection_count.SetMax(v);
+    }
+
   protected:
     /// URL supplied in constructor.
     URL url;
@@ -833,6 +861,10 @@ namespace Arc {
 
     /// Logger object
     static Logger logger;
+
+
+    /// Counter of cached connections
+    static DataConnCounter connection_count;
 
     /// Constructor.
     /**

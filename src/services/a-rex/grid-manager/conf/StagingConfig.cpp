@@ -15,6 +15,7 @@ StagingConfig::StagingConfig(const GMConfig& config):
   max_processor(10),
   max_emergency(1),
   max_prepared(200),
+  max_cached_connections(0),
   min_speed(0),
   min_speed_time(300),
   min_average_speed(0),
@@ -93,6 +94,12 @@ bool StagingConfig::readStagingConf(Arc::ConfigFile& cfile) {
     else if (command == "maxprepared") {
       if (!paramToInt(Arc::ConfigIni::NextArg(rest), max_prepared) || max_prepared <= 0) {
         logger.msg(Arc::ERROR, "Bad number in maxprepared");
+        return false;
+      }
+    }
+    else if (command == "maxcachedconnections") {
+      if (!paramToInt(Arc::ConfigIni::NextArg(rest), max_cached_connections) || max_cached_connections < -1) {
+        logger.msg(Arc::ERROR, "Bad number in maxcachedconnections");
         return false;
       }
     }

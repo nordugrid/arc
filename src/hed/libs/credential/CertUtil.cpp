@@ -59,12 +59,21 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)*& certchain, std::string const&
   if(user_cert == NULL) goto err;
 
   if (ca_use_system) {
-    if (!X509_STORE_set_default_paths(cert_store)) { goto err; }
+    X509_LOOKUP* lookup = X509_STORE_add_lookup(cert_store, X509_LOOKUP_hash_dir());
+    if (!lookup) goto err;
+    X509_LOOKUP_add_dir(lookup, NULL, X509_FILETYPE_DEFAULT);
   }
   if ((!ca_file.empty()) || (!ca_dir.empty())) {
-    if (!X509_STORE_load_locations(cert_store,
-             ca_file.empty() ? NULL:ca_file.c_str(),
-             ca_dir.empty() ? NULL:ca_dir.c_str())) { goto err; }
+    if (!ca_dir.empty()) {
+      X509_LOOKUP* lookup = X509_STORE_add_lookup(cert_store, X509_LOOKUP_hash_dir());
+      if (!lookup) goto err;
+      X509_LOOKUP_add_dir(lookup, ca_dir.c_str(), X509_FILETYPE_PEM);
+    }
+    if (!ca_file.empty()) {
+      X509_LOOKUP* lookup = X509_STORE_add_lookup(cert_store, X509_LOOKUP_file());
+      if (!lookup) goto err;
+      if (X509_LOOKUP_load_file(lookup, ca_file.c_str(), X509_FILETYPE_PEM) <= 0) goto err;
+    }
   }
 
   if (!(store_ctx = X509_STORE_CTX_new())) { goto err; }

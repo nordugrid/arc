@@ -828,6 +828,9 @@ namespace ArcDMCFile {
     return false;
   }
 
+  void DataPointFile::Sleep() {
+  }
+
 } // namespace Arc
 
 extern Arc::PluginDescriptor const ARC_PLUGINS_TABLE_NAME[] = {

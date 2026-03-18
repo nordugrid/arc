@@ -36,6 +36,7 @@ using namespace Arc;
     virtual DataStatus StartWriting(DataBuffer& buffer, DataCallback *space_cb = NULL);
     virtual DataStatus StopReading();
     virtual DataStatus StopWriting();
+    virtual void Sleep();
     virtual const std::string DefaultCheckSum() const;
     virtual bool ProvidesMeta() const;
     virtual bool RequiresCredentials() const { return ((url.Protocol() != "http")&&(url.Protocol() != "dav")); };
@@ -68,6 +69,8 @@ using namespace Arc;
     std::mutex clients_lock;
     bool partial_read_allowed;
     bool partial_write_allowed;
+    DataPointHTTP(DataPointHTTP const&);
+    DataPointHTTP& operator=(DataPointHTTP const&);
   };
 
 } // namespace Arc

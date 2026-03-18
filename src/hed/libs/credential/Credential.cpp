@@ -2476,12 +2476,12 @@ err:
     return bs;
   }
 
-  static int x509_certify(X509_STORE *ctx, const std::string& CAfile, const EVP_MD *digest,
+  static int x509_certify(/*X509_STORE *ctx,*/ const std::string& CAfile, const EVP_MD *digest,
              X509 *x, X509 *xca, EVP_PKEY *pkey, const std::string& serialfile,
              time_t start, time_t lifetime, int clrext, CONF *conf, char *section, ASN1_INTEGER *sno) {
     int ret=0;
     ASN1_INTEGER *bs=NULL;
-    X509_STORE_CTX* xsc = X509_STORE_CTX_new();
+    //X509_STORE_CTX* xsc = X509_STORE_CTX_new();
     Credential::EVP_PKEYRef upkey;
 
     upkey = X509_get_pubkey(xca);
@@ -2491,10 +2491,10 @@ err:
     }
     EVP_PKEY_copy_parameters(upkey,pkey);
 
-    if(!X509_STORE_CTX_init(xsc,ctx,x,NULL)) {
-      CredentialLogger.msg(ERROR,"Error initialising X509 store");
-      goto end;
-    }
+    //if(!X509_STORE_CTX_init(xsc,ctx,x,NULL)) {
+    //  CredentialLogger.msg(ERROR,"Error initialising X509 store");
+    //  goto end;
+    //}
     if (sno) bs = sno;
     else if (!(bs = x509_load_serial(CAfile, serialfile))) {
       bs = ASN1_INTEGER_new();
@@ -2543,8 +2543,8 @@ err:
     if (!X509_sign(x,pkey,digest)) goto end;
       ret=1;
 end:
-    X509_STORE_CTX_cleanup(xsc);
-    X509_STORE_CTX_free(xsc);
+    //X509_STORE_CTX_cleanup(xsc);
+    //X509_STORE_CTX_free(xsc);
     if (!ret)
       ERR_clear_error();
     if (!sno) ASN1_INTEGER_free(bs);
@@ -2739,11 +2739,11 @@ error:
     if(digest == NULL) digest = EVP_sha256();
 
 
-    X509_STORERef ctx(X509_STORE_new());
-    //X509_STORE_set_verify_cb_func(ctx,callb);
-    if (!X509_STORE_set_default_paths(ctx)) {
-      LogError();
-    }
+    //X509_STORERef ctx(X509_STORE_new());
+    ////X509_STORE_set_verify_cb_func(ctx,callb);
+    //if (!X509_STORE_set_default_paths(ctx)) {
+    //  LogError();
+    //}
 
     CONFRef extconf;
     if (!extfile_.empty()) {
@@ -2801,7 +2801,7 @@ error:
     if(t1 > t2) start = t1.GetTime() - t2.GetTime();
     else start = 0;
 
-    if (!x509_certify(ctx, certfile_, digest, eec_cert, cert_,
+    if (!x509_certify(/*ctx,*/ certfile_, digest, eec_cert, cert_,
                       pkey_, CAserial_, start, lifetime, 0,
                       extconf, (char*)(extsect_.c_str()), NULL)) {
       CredentialLogger.msg(ERROR,"Can not sign a EEC"); LogError();

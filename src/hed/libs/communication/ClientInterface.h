@@ -186,8 +186,7 @@ namespace Arc {
   class ClientHTTP
     : public ClientTCP {
   public:
-    ClientHTTP()
-      : http_entry(NULL), relative_uri(false), encoded_uri(true), sec(NoSec), closed(false) {}
+    ClientHTTP();
     ClientHTTP(const BaseConfig& cfg, const URL& url, int timeout = -1, const std::string& proxy_host = "", int proxy_port = 0);
     virtual ~ClientHTTP();
     MCC_Status process(const std::string& method, PayloadRawInterface *request,
@@ -246,6 +245,9 @@ namespace Arc {
                        uint64_t range_start, uint64_t range_end,
                        MessagePayload *request,
                        HTTPClientInfo *info, MessagePayload **response);
+  private:
+  ClientHTTP(ClientHTTP const&);
+  ClientHTTP& operator=(ClientHTTP const&);
   };
 
   /** Class with easy interface for sending/receiving SOAP messages

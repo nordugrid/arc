@@ -208,6 +208,10 @@
 ## The following keywords are supported: grid, system, any. 
 ## This variable defines if the server is going to use Globus (igtf) layout of
 ## CA certificates, just let OpenSSL handle that (system), or allow both options (any). 
+## In case of system and any options only certificates installed as separate files into
+## the OpenSSL system folder are used. This limitation is introduced because certificates
+## catenated into single file are loaded into memory for processing causing too high memory
+## consumption when service need to handle many TLS connections.
 ## default: grid
 #x509_cert_policy=grid
 
@@ -1112,6 +1116,11 @@
 ## remote storage such as SRM for transfer. A good value is a small multiple of maxdelivery.
 ## default: 200
 #maxprepared=250
+
+## maxcachedconnections = number - Sets limit on number of connections cached for re-usal.
+## So far it is implemented only for HTTP(S). The value of -1 means no limit.
+## default: 0
+maxcachedconnections=0
 
 ## sharepolicy = grouping - Defines the mechanism to be used for the
 ## grouping of the job transfers. DTR assigns the transfers to shares, so that those shares

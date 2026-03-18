@@ -32,6 +32,8 @@ class PayloadTLSMCC: public PayloadTLSStream {
   // Generic purpose bit flags
   unsigned long flags_;
   bool connected_;
+  PayloadTLSMCC(PayloadTLSMCC const&);
+  PayloadTLSMCC& operator=(PayloadTLSMCC const&);
  public:
   /** Constructor - creates ssl object which is bound to next MCC.
     This instance must be used on client side. It obtains Stream interface
