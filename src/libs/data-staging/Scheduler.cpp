@@ -242,6 +242,14 @@ namespace DataStaging {
     return false;
   }
 
+  static inline void DTRWillSleep(DTR_ptr& dtr) {
+    if(!dtr) return;
+    auto& source = dtr->get_source();
+    if(source) source->Sleep();
+    auto& destination = dtr->get_destination();
+    if(destination) destination->Sleep();
+  }
+
   void Scheduler::ProcessDTRNEW(DTR_ptr request){
 
     request->get_logger()->msg(Arc::INFO, "Scheduler received new DTR %s with source: %s,"
@@ -664,6 +672,7 @@ namespace DataStaging {
 
         // Return to the generator
     request->get_logger()->msg(Arc::INFO, "Returning to generator");
+    DTRWillSleep(request); // return cleaned DTR to generator
     DTR::push(request, GENERATOR);
     // Delete from the global list
     DtrList.delete_dtr(request);
@@ -1093,6 +1102,7 @@ namespace DataStaging {
           if (tmp->cancel_requested()) {
             map_cancel_state(tmp);
             add_event(tmp);
+            DTRWillSleep(*dtr);
             dtr = DTRQueue.erase(dtr);
             continue;
           }
@@ -1128,6 +1138,7 @@ namespace DataStaging {
           }
           else {
             // Past limit - this DTR cannot be processed this time so erase from queue
+            DTRWillSleep(*dtr);
             dtr = DTRQueue.erase(dtr);
             continue;
           }
@@ -1262,7 +1273,8 @@ namespace DataStaging {
               DTR::push(tmp, PRE_PROCESSOR);
             }
           }
-          else if (tmp->is_destined_for_post_processor()) DTR::push(tmp, POST_PROCESSOR);
+          else if (tmp->is_destined_for_post_processor())
+            DTR::push(tmp, POST_PROCESSOR);
           else if (tmp->is_destined_for_delivery()) {
             choose_delivery_service(tmp);
             if (!tmp->get_delivery_endpoint()) {
@@ -1270,6 +1282,7 @@ namespace DataStaging {
               // delivery service this could slow things down as it could go
               // through every DTR in the queue
               tmp->get_logger()->msg(Arc::DEBUG, "No delivery endpoints available, will try later");
+              DTRWillSleep(*dtr);
               continue;
             }
             DTR::push(tmp, DELIVERY);
@@ -1278,9 +1291,15 @@ namespace DataStaging {
 
           ++running;
           active_shares.insert(tmp->get_transfer_share());
+        } else {
+          DTRWillSleep(tmp);
         }
+
         // Hard limit with all emergency slots used
-        if (running == slot_limit + EmergencySlots) break;
+        if (running == slot_limit + EmergencySlots) {
+          for(++dtr; dtr != DTRQueue.end(); ++dtr) DTRWillSleep(*dtr);
+          break;
+        }
       }
     }
   }
@@ -1300,8 +1319,19 @@ namespace DataStaging {
     if (!(*request)) {
       logger.msg(Arc::ERROR, "Scheduler received invalid DTR");
       request->set_status(DTRStatus::ERROR);
+      DTRWillSleep(request); // return cleaned DTR to generator
       DTR::push(request, GENERATOR);
       return;
+    }
+
+    // Check for some states which will definitely keep DTR in inactive state for some time
+    switch(request->get_status().GetStatus()) {
+    case DTRStatus::CACHE_WAIT:
+    case DTRStatus::PROCESS_CACHE:
+      DTRWillSleep(request);
+      break;
+    default:
+      break;
     }
 
     request->registerCallback(&processor,PRE_PROCESSOR);

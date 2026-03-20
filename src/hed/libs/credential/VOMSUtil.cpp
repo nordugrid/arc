@@ -946,7 +946,8 @@ err:
 //      CRYPTO_malloc_init();
 
       if(system_ca) {
-        X509_STORE_set_default_paths(ctx);
+        X509_LOOKUP* lookup = X509_STORE_add_lookup(ctx, X509_LOOKUP_hash_dir());
+        if (lookup) X509_LOOKUP_add_dir(lookup, NULL, X509_FILETYPE_DEFAULT);
       }
       X509_LOOKUP *lookup = NULL;
       if (!(ca_cert_dir.empty()) && (lookup = X509_STORE_add_lookup(ctx,X509_LOOKUP_hash_dir()))) {

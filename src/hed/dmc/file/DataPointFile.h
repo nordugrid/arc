@@ -37,6 +37,7 @@ namespace ArcDMCFile {
     virtual DataStatus Rename(const URL& newurl);
     virtual bool WriteOutOfOrder() const;
     virtual bool RequiresCredentials() const { return false; };
+    virtual void Sleep();
   private:
     SimpleCounter transfers_started;
     int open_channel();

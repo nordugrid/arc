@@ -28,6 +28,7 @@ public:
   int get_max_processor() const { return max_processor; };
   int get_max_emergency() const { return max_emergency; };
   int get_max_prepared() const { return max_prepared; };
+  int get_max_cached_connections() const { return max_cached_connections; }
   unsigned long long int get_min_speed() const { return min_speed; };
   time_t get_min_speed_time() const { return min_speed_time; };
   unsigned long long int get_min_average_speed() const { return min_average_speed; };
@@ -54,6 +55,8 @@ private:
   int max_emergency;
   /// Number of files per share to keep prepared
   int max_prepared;
+  /// Number of cached inactive connections
+  int max_cached_connections;
 
   /// Minimum speed for transfer over min_speed_time seconds
   unsigned long long int min_speed;

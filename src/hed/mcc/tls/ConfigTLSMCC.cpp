@@ -199,22 +199,29 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
 bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
   if(system_ca_) {
     logger.msg(VERBOSE, "Using CA default location");
-    if(!SSL_CTX_set_default_verify_paths(sslctx)) {
-      failure_ = "Can not assign default CA location\n";
-      failure_ += HandleError();
-      return false;
-    };
-  };
+    X509_STORE* store = SSL_CTX_get_cert_store(sslctx);
+    if (!store) return false;
+    X509_LOOKUP* lookup = X509_STORE_add_lookup(store, X509_LOOKUP_hash_dir());
+    if (!lookup) return false;
+    X509_LOOKUP_add_dir(lookup, NULL, X509_FILETYPE_DEFAULT);
+  }
   if(grid_ca_ && (!ca_file_.empty() || !ca_dir_.empty())) {
-    if(!ca_file_.empty())
+    if(!ca_file_.empty()) {
       logger.msg(VERBOSE, "Using CA file: %s",ca_file_);
-    if(!ca_dir_.empty())
+      X509_STORE* store = SSL_CTX_get_cert_store(sslctx);
+      if (!store) return false;
+      X509_LOOKUP* lookup = X509_STORE_add_lookup(store, X509_LOOKUP_file());
+      if (!lookup) return false;
+      if (X509_LOOKUP_load_file(lookup, ca_file_.c_str(), X509_FILETYPE_PEM) <= 0) return false;
+    }
+    if(!ca_dir_.empty()) {
       logger.msg(VERBOSE, "Using CA dir: %s",ca_dir_);
-    if(!SSL_CTX_load_verify_locations(sslctx, ca_file_.empty()?NULL:ca_file_.c_str(), ca_dir_.empty()?NULL:ca_dir_.c_str())) {
-      failure_ = "Can not assign CA location - "+(ca_dir_.empty()?ca_file_:ca_dir_)+"\n";
-      failure_ += HandleError();
-      return false;
-    };
+      X509_STORE* store = SSL_CTX_get_cert_store(sslctx);
+      if (!store) return false;
+      X509_LOOKUP *lookup = X509_STORE_add_lookup(store, X509_LOOKUP_hash_dir());
+      if (!lookup) return false;
+      X509_LOOKUP_add_dir(lookup, ca_dir_.c_str(), X509_FILETYPE_PEM);
+    }
   }
   if(!credential_.empty()) {
     // First try to use in-memory credential

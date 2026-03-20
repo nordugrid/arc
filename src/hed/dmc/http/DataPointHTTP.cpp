@@ -1718,6 +1718,7 @@ using namespace Arc;
       client = cl->second;
       clients.erase(cl);
       clients_lock.unlock();
+      connection_count.Dec();
     } else {
       clients_lock.unlock();
       MCCConfig cfg;
@@ -1741,12 +1742,40 @@ using namespace Arc;
 
   void DataPointHTTP::release_client(const URL& curl, ClientHTTP* client) {
     if(!client) return;
-    if(client->GetClosed()) { delete client; return; }
+    if(client->GetClosed()) {
+      delete client;
+      return;
+    }
     std::string key = curl.ConnectionURL();
     //if(!*client) return;
+    if(!connection_count.Inc()) {
+      // no more allowed connections
+      delete client;
+      logger.msg(VERBOSE, "HTTP connection is not cached due to limit: %u", connection_count.GetMax());
+      return;
+    }
     clients_lock.lock();
     clients.insert(std::pair<std::string,ClientHTTP*>(key,client));
     clients_lock.unlock();
+  }
+
+  void DataPointHTTP::Sleep() {
+    unsigned int erased = 0;
+    while(true) {
+      ClientHTTP* client = nullptr;
+      {
+        std::unique_lock<std::mutex> lock(clients_lock);
+        auto cl = clients.begin();
+        if(cl == clients.end()) break;
+        client = cl->second;
+        clients.erase(cl);
+      }
+      delete client;
+      connection_count.Dec();
+      ++erased;
+    }
+    if(erased)
+      logger.msg(VERBOSE, "Released %u cached HTTP connections due to expected inactivity", erased);
   }
 
   int DataPointHTTP::http2errno(int http_code) const {

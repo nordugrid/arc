@@ -415,6 +415,8 @@ namespace Arc {
   }
 
   // -------------------------------------------------------------------------
+  ClientHTTP::ClientHTTP()
+      : http_entry(NULL), relative_uri(false), encoded_uri(true), sec(NoSec), closed(false) {}
 
   ClientHTTP::ClientHTTP(const BaseConfig& cfg, const URL& url, int timeout, const std::string& proxy_host, int proxy_port)
     : ClientTCP(cfg,
@@ -450,7 +452,8 @@ namespace Arc {
     }
   }
 
-  ClientHTTP::~ClientHTTP() {}
+  ClientHTTP::~ClientHTTP() {
+  }
 
   MCC_Status ClientHTTP::Load() {
     MCC_Status r(STATUS_OK);

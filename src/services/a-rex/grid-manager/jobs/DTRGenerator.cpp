@@ -193,6 +193,7 @@ DTRGenerator::DTRGenerator(const GMConfig& config, JobsList& jobs) :
                       staging_conf.max_delivery,
                       staging_conf.max_emergency,
                       staging_conf.max_prepared);
+  Arc::DataPoint::SetMaxCachedConnections(staging_conf.max_cached_connections);
 
   // Transfer shares
   DataStaging::TransferSharesConf share_conf(staging_conf.share_type,
