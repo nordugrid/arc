@@ -5,7 +5,7 @@ from .ControlCommon import *
 import sys
 import re
 import fnmatch
-from itertools import chain
+from itertools import chain, islice
 
 try:
     from .CommunityRTE import CommunityRTEControl
@@ -55,7 +55,7 @@ class RTEControl(ComponentControl):
         if self.user_rte_dirs is None:
             self.user_rte_dirs = []
         # define internal structures to hold RTEs
-        self.all_rtes = {}
+        self.all_rtes = None
         self.system_rtes = {}
         self.user_rtes = {}
         self.community_rtes = {}
@@ -81,16 +81,13 @@ class RTEControl(ComponentControl):
     def get_rte_description(rte_path):
         if rte_path == '/dev/null':
             return 'Dummy RTE for information publishing'
+        descr_match = re.compile(r'#+\s*description:\s*(.*?)\s*$', flags=re.IGNORECASE).match
         with open(rte_path) as rte_f:
-            max_lines = 10
             description = 'RTE description is Not Available'
-            for line in rte_f:
-                descr_re = re.match(r'^#+\s*description:\s*(.*)\s*$', line, flags=re.IGNORECASE)
+            for line in islice(rte_f, 10):
+                descr_re = descr_match(line)
                 if descr_re:
                     description = descr_re.group(1)
-                max_lines -= 1
-                if not max_lines:
-                    break
             return description
 
     @staticmethod
@@ -108,8 +105,9 @@ class RTEControl(ComponentControl):
     def __fetch_rtes(self):
         """Look for RTEs on the filesystem and fill the object structures"""
         # run once per tool invocation
-        if self.all_rtes:
+        if self.all_rtes is not None:
             return
+
         # available pre-installed RTEs
         self.logger.debug('Indexing ARC defined RTEs from %s', self.system_rte_dir)
         self.system_rtes = self.get_dir_rtes(self.system_rte_dir)
@@ -125,7 +123,7 @@ class RTEControl(ComponentControl):
             self.user_rtes.update(rtes)
 
         # all available RTEs
-        self.all_rtes.update(self.system_rtes)
+        self.all_rtes = self.system_rtes.copy()
         self.all_rtes.update(self.user_rtes)
 
         # Community-defined RTEs
@@ -174,6 +172,7 @@ class RTEControl(ComponentControl):
 
     def __get_rte_list(self, rtes, check_dict=None):
         rte_list = []
+        # BEWARE! self.all_rtes used without self.__fetch_rtes() first
         if check_dict is None:
             check_dict = self.all_rtes
         for r in rtes:
@@ -308,12 +307,11 @@ class RTEControl(ComponentControl):
 
     def __params_parse(self, rte):
         rte_file = self.__get_rte_file(rte)
-        param_str = re.compile(r'#\s*param:([^:]+):([^:]+):([^:]*):(.*)$')
+        param_match = re.compile(r'#\s*param:([^:]+):([^:]+):([^:]*):(.*)$').match
         params = {}
         with open(rte_file) as rte_f:
-            max_lines = 20
-            for line in rte_f:
-                param_re = param_str.match(line)
+            for line in islice(rte_f, 20):
+                param_re = param_match(line)
                 if param_re:
                     pname = param_re.group(1)
                     params[pname] = {
@@ -322,14 +320,21 @@ class RTEControl(ComponentControl):
                         'allowed_values': param_re.group(2).split(','),
                         'default_value': param_re.group(3),
                         'value': param_re.group(3),
-                        'description': param_re.group(4)
+                        'description': param_re.group(4),
+                        'set': 0,
                     }
-                    params_defined = self.__params_read(rte)
-                    if pname in params_defined:
-                        params[pname]['value'] = params_defined[pname]
-                max_lines -= 1
-                if not max_lines:
-                    break
+        params_defined = self.__params_read(rte)
+        for pname, value in params_defined.items():
+            if pname in params:
+                params[pname]['set'] = 1
+            else:
+                self.logger.warning('Undocumented parameter %s with value %s for RunTimeEnvironment %s', pname, value, rte)
+                params[pname] = {
+                    'name': pname,
+                    # XXX - should we use a different value here?
+                    'set': 3,
+                }
+            params[pname]['value'] = value
         return params
 
     def __params_read(self, rte, suffix=''):
@@ -337,10 +342,10 @@ class RTEControl(ComponentControl):
         rte_params_file = self.__get_rte_params_file(rte + suffix)
         params = {}
         if rte_params_file:
-            kv_re = re.compile(r'^([^ =]+)="(.*)"\s*$')
+            kv_match = re.compile(r'([^ =]+)="(.*)"\s*$').match
             with open(rte_params_file) as rte_parm_f:
                 for line in rte_parm_f:
-                    kv = kv_re.match(line)
+                    kv = kv_match(line)
                     if kv:
                         params[kv.group(1)] = kv.group(2)
         return params
@@ -361,7 +366,8 @@ class RTEControl(ComponentControl):
         try:
             with open(rte_params_file, 'w') as rte_parm_f:
                 for p in params.values():
-                    rte_parm_f.write('{name}="{value}"\n'.format(**p))
+                    if p['set']:
+                        rte_parm_f.write('{name}="{value}"\n'.format(**p))
         except EnvironmentError as err:
             self.logger.error('Failed to write RTE parameters file %s. Error: %s', rte_params_file, str(err))
             sys.exit(1)
@@ -374,10 +380,13 @@ class RTEControl(ComponentControl):
                 # set strings for undefined values output
                 if pdescr['value'] == '':
                     pdescr['value'] = 'undefined'
-                if pdescr['default_value'] == '':
-                    pdescr['default_value'] = 'undefined'
-                print('{name:>16} = {value:10} {description} (default is {default_value}) '
-                      '(allowed values are: {allowed_string})'.format(**pdescr))
+                if pdescr['set'] < 3:
+                    if pdescr['default_value'] == '':
+                        pdescr['default_value'] = 'undefined'
+                    print('{name:>16} = {value:10} {description} (default is {default_value}) '
+                          '(allowed values are: {allowed_string})'.format(**pdescr))
+                else:
+                    print('{name:>16} = {value:10} [UNDOCUMENTED PARAMETER]'.format(**pdescr))
             else:
                 print('{name}={value}'.format(**pdescr))
         # community software deployment (read-only) params
@@ -391,29 +400,41 @@ class RTEControl(ComponentControl):
                 print(fstring.format(k, cparams[k]))
 
     def params_unset(self, rte, parameter):
-        self.params_set(rte, parameter, None, use_default=True)
+        self.params_set(rte, parameter, None)
 
     def params_set(self, rte, parameter, value, use_default=False):
         params = self.__params_parse(rte)
-        if parameter not in params:
+        pdescr = params.get(parameter)
+        if pdescr is None:
+            # allowed to set undocumented parameters? force option?
             self.logger.error('There is no such parameter %s for RunTimeEnvironment %s', parameter, rte)
             sys.exit(1)
-        # use default value if requested
-        if use_default:
-            value = params[parameter]['default_value']
-        # check type and allowed values
-        if params[parameter]['allowed_string'] == 'string':
-            pass
-        elif params[parameter]['allowed_string'] == 'int':
-            if not re.match(r'[-0-9]+', value):
-                self.logger.error('Parameter %s for RunTimeEnvironment %s should be integer', parameter, rte)
+        if pdescr['set'] > 2:
+            if value is None:
+                self.logger.warning('Clearing undocumented parameter %s for RunTimeEnvironment %s', parameter, rte)
+            else:
+                # allowed to set undocumented parameters? force option?
+                self.logger.error('There is no such parameter %s for RunTimeEnvironment %s', parameter, rte)
                 sys.exit(1)
-        elif value not in params[parameter]['allowed_values']:
-            self.logger.error('Parameter %s for RunTimeEnvironment %s should be one of %s',
-                              parameter, rte, params[parameter]['allowed_string'])
-            sys.exit(1)
+        else:
+            # use default value if requested
+            if use_default:
+                value = pdescr['default_value']
+            # check type and allowed values
+            if pdescr['allowed_string'] == 'string':
+                pass
+            elif pdescr['allowed_string'] == 'int':
+                # XXX - regex should really be pre-compiled
+                if not re.match(r'-?[0-9]+$', value):
+                    self.logger.error('Parameter %s for RunTimeEnvironment %s should be integer', parameter, rte)
+                    sys.exit(1)
+            elif value not in pdescr['allowed_values']:
+                self.logger.error('Parameter %s for RunTimeEnvironment %s should be one of %s',
+                                  parameter, rte, pdescr['allowed_string'])
+                sys.exit(1)
         # assign new value
-        params[parameter]['value'] = value
+        pdescr['value'] = value
+        pdescr['set'] = 2 if value is not None else 0
         self.__params_write(rte, params)
 
     def cat_rte(self, rte):
