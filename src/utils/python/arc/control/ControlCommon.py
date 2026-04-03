@@ -293,7 +293,10 @@ class HTTPSClientAuthConnection(httplib.HTTPSConnection):
     """ Class to make a HTTPS connection, with support for full client-based SSL Authentication"""
 
     def __init__(self, host, port, key_file=None, cert_file=None, cacerts_path=None, timeout=None):
-        httplib.HTTPSConnection.__init__(self, host, port, key_file=key_file, cert_file=cert_file)
+        self.ssl_ctx = ssl.create_default_context()
+        if cert_file is not None:
+            self.ssl_ctx.load_cert_chain(cert_file, key_file)
+        httplib.HTTPSConnection.__init__(self, host, port, context=self.ssl_ctx)
         self.key_file = key_file
         self.cert_file = cert_file
         self.ca_file = None
@@ -330,8 +333,7 @@ class HTTPSClientAuthConnection(httplib.HTTPSConnection):
             ssl_ctx.check_hostname = True
             self.sock = ssl_ctx.wrap_socket(sock, server_hostname=self.host)
         else:
-            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file,
-                                        cert_reqs=ssl.CERT_NONE)
+            self.sock = self.ssl_ctx.wrap_socket(sock, server_hostname=self.host)
 
 def system_ca_bundle():
     """Return location of system-wide PKI CA bundle"""
