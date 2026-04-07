@@ -4,7 +4,7 @@
 
 %global with_s3 1
 
-%if %{?fedora}%{!?fedora:0} >= 43 || %{?rhel}%{!?rhel:0} >= 10
+%if %{?fedora}%{!?fedora:0} >= 43
 %global with_gfal 0
 %else
 %global with_gfal 1
