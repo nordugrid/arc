@@ -940,7 +940,14 @@ sub collect($) {
                 my $slots = $job->{count} || 1;
                 $state_slots{$share}{FINISHING} += $slots;
                 if (defined $vomsvo) {
-                    $state_slots{$sharevomsvo}{PREPARING} += $slots;
+                    $state_slots{$sharevomsvo}{FINISHING} += $slots;
+                }
+        }
+	elsif ($gmstatus eq 'ACCEPTED'){
+                my $slots = $job->{count} || 1;
+                $state_slots{$share}{ACCEPTED} += $slots;
+                if (defined $vomsvo) {
+                    $state_slots{$sharevomsvo}{ACCEPTED} += $slots;
                 }
         }
         
