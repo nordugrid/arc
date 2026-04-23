@@ -943,6 +943,13 @@ sub collect($) {
                     $state_slots{$sharevomsvo}{FINISHING} += $slots;
                 }
         }
+	elsif ($gmstatus eq 'ACCEPTED'){
+                my $slots = $job->{count} || 1;
+                $state_slots{$share}{ACCEPTED} += $slots;
+                if (defined $vomsvo) {
+                    $state_slots{$sharevomsvo}{ACCEPTED} += $slots;
+                }
+        }
         
         # fills efficiently %jobs_by_endpoint, defaults to arcrest
         my $jobinterface = $job->{interface} || 'org.nordugrid.arcrest';
