@@ -135,7 +135,8 @@ namespace Arc {
    * - proxypath / ProxyPath(const std::string&)
    * - cacertificatesdirectory / CACertificatesDirectory(const std::string&)
    * - cacertificatepath / CACertificatePath(const std::string&)
-   * - causesystem / CAUseSystem(bool)
+   * - causesystemdir / CAUseSystemDir(bool)
+   * - causesystemfile / CAUseSystemFile(bool)
    * - causegrid / CAUseGrid(bool)
    * - timeout / Timeout(int)
    * - joblist / JobListFile(const std::string&)
@@ -931,19 +932,42 @@ namespace Arc {
      * The attribute associated with this setter method is
      * 'causesystem'.
      *
-     * @param newCAUseSystem if system wide CA-certificates are used.
+     * @param newCAUseSystemDir if system wide CA-certificates folder is used.
+     * @param newCAUseSystemFile if system wide CA-certificates file is used.
      * @return This method always returns \c true.
      * @see InitializeCredentials()
      * @see CredentialsFound() const
      **/
-    bool CAUseSystem(bool newCAUseSystem) { caUseSystem = newCAUseSystem; return true; }
-    bool CAUseSystem(const std::string& newCAUseSystem) {
-      if((newCAUseSystem == "true") || (newCAUseSystem == "1"))
-        return CAUseSystem(true);
-      if((newCAUseSystem == "false") || (newCAUseSystem == "0"))
-        return CAUseSystem(false);
+    bool CAUseSystem(const std::string& newCAUseSystemDir, const std::string& newCAUseSystemFile) {
+      return CAUseSystemDir(newCAUseSystemDir) && CAUseSystemFile(newCAUseSystemFile);
+    }
+
+    bool CAUseSystemDir(const std::string& newCAUseSystemDir) {
+      if((newCAUseSystemDir == "true") || (newCAUseSystemDir == "1"))
+        return CAUseSystemDir(true);
+      if((newCAUseSystemDir == "false") || (newCAUseSystemDir == "0"))
+        return CAUseSystemDir(false);
       return false;
     }
+
+    bool CAUseSystemFile(const std::string& newCAUseSystemFile) {
+      if ((newCAUseSystemFile == "true") || (newCAUseSystemFile == "1"))
+        return CAUseSystemFile(true);
+      if ((newCAUseSystemFile == "false") || (newCAUseSystemFile == "0"))
+        return CAUseSystemFile(false);
+      return false;
+    }
+
+    bool CAUseSystemDir(bool newCAUseSystemDir) {
+      caUseSystemDir = newCAUseSystemDir;
+      return true;
+    }
+
+    bool CAUseSystemFile(bool newCAUseSystemFile) {
+      caUseSystemFile = newCAUseSystemFile;
+      return true;
+    }
+
     /**
      * Retrieve if system wide CA-cerificates are used.
      *
@@ -951,11 +975,12 @@ namespace Arc {
      * @see InitializeCredentials()
      * @see CredentialsFound() const
      **/
-    bool CAUseSystem() const { return caUseSystem; }
+    bool CAUseSystemDir() const { return caUseSystemDir ; }
+    bool CAUseSystemFile() const { return caUseSystemFile; }
 
-    /// Set if system wide CA-certificates to be used
+    /// Set if IGTF CA-certificates to be used
     /**
-     * Specifies if system wide CA-certificates are used.
+     * Specifies if IGTF CA-certificates are used.
      *
      * The attribute associated with this setter method is
      * 'causesgrid'.
@@ -981,6 +1006,8 @@ namespace Arc {
      * @see CredentialsFound() const
      **/
     bool CAUseGrid() const { return caUseGrid; }
+
+    std::string CAUseToPolicy() const;
 
     bool TLSAllowInsecure(bool newTLSAllowInsecure) { tlsAllowInsecure = newTLSAllowInsecure; return true; }
     bool TLSAllowInsecure() const { return tlsAllowInsecure; }
@@ -1421,7 +1448,8 @@ namespace Arc {
     int keySize;
     std::string caCertificatePath;
     std::string caCertificatesDirectory;
-    bool caUseSystem;
+    bool caUseSystemDir;
+    bool caUseSystemFile;
     bool caUseGrid;
     bool tlsAllowInsecure;
     AuthType authType;

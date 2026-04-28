@@ -168,9 +168,14 @@ namespace Arc {
         };
         comp.NewChild("GridCA") = "true";
       };
-      if(cfg.systemca) {
-        comp.NewChild("SystemCA") = "true";
-      };
+      if(cfg.systemcadir)
+        comp.NewChild("SystemCADir") = "true";
+      else
+        comp.NewChild("SystemCADir") = "false";
+      if(cfg.systemcafile)
+        comp.NewChild("SystemCAFile") = "true";
+      else
+        comp.NewChild("SystemCAFile") = "false";
       if (sec.ver == UseCredVerify) {
         comp.NewChild("AllowInsecure") = "false";
       } else if (sec.ver == NoCredVerify) {

@@ -1,3 +1,9 @@
+if XMLSEC_ENABLED
+ARCLIBS_WITH_XMLSEC = $(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la
+else
+ARCLIBS_WITH_XMLSEC = 
+endif
+
 noinst_PROGRAMS = test_delegation_client test_client_with_delegation_sechandler
 
 test_delegation_client_SOURCES = test_delegation_client.cpp
@@ -8,6 +14,8 @@ test_delegation_client_LDADD = \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(ARCLIBS_WITH_XMLSEC) \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
@@ -20,5 +28,7 @@ test_client_with_delegation_sechandler_LDADD = \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(ARCLIBS_WITH_XMLSEC) \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)

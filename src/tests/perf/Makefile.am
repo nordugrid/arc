@@ -4,11 +4,13 @@ noinst_PROGRAMS = perftest_saml2sso perftest_slcs \
 	perftest_deleg_bysechandler perftest_deleg_bydelegclient \
 	perftest_cmd_duration perftest_cmd_times perftest_msgsize \
 	perftest_samlaa
+ARCLIBS_WITH_XMLSEC = $(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la
 else 
 bin_PROGRAMS = arcperftest
 noinst_PROGRAMS = \
 	perftest_deleg_bysechandler perftest_deleg_bydelegclient \
 	perftest_cmd_duration perftest_cmd_times perftest_msgsize
+ARCLIBS_WITH_XMLSEC = 
 endif
 
 man_MANS = arcperftest.1
@@ -20,6 +22,8 @@ arcperftest_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(ARCLIBS_WITH_XMLSEC) \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
@@ -30,6 +34,8 @@ perftest_msgsize_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
+	$(ARCLIBS_WITH_XMLSEC) \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
@@ -40,7 +46,7 @@ perftest_samlaa_CXXFLAGS = -I$(top_srcdir)/include \
 	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) $(AM_CXXFLAGS)
 perftest_samlaa_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
-	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
+	$(ARCLIBS_WITH_XMLSEC) \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
@@ -53,9 +59,10 @@ perftest_saml2sso_CXXFLAGS = -I$(top_srcdir)/include \
 	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) $(AM_CXXFLAGS)
 perftest_saml2sso_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
-	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
+	$(ARCLIBS_WITH_XMLSEC) \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)  $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
 
@@ -65,7 +72,7 @@ perftest_slcs_CXXFLAGS = -I$(top_srcdir)/include \
 	$(XMLSEC_OPENSSL_CFLAGS) $(XMLSEC_CFLAGS) $(AM_CXXFLAGS)
 perftest_slcs_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
-	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
+	$(ARCLIBS_WITH_XMLSEC) \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
@@ -80,6 +87,8 @@ perftest_deleg_bysechandler_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
+	$(ARCLIBS_WITH_XMLSEC) \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 
@@ -90,6 +99,8 @@ perftest_deleg_bydelegclient_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
+	$(ARCLIBS_WITH_XMLSEC) \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 

@@ -24,7 +24,8 @@ class PDPServiceInvoker : public PDP {
   std::string key_path;
   std::string ca_dir;
   std::string ca_file;
-  bool system_ca;
+  bool system_ca_dir;
+  bool system_ca_file;
   bool grid_ca;
   std::list<std::string> select_attrs;
   std::list<std::string> reject_attrs;

@@ -157,7 +157,7 @@ void showplugins(const std::string& program, const std::list<std::string>& types
 bool checkproxy(const Arc::UserConfig& uc)
 {
   if (!uc.ProxyPath().empty() ) {
-    Arc::Credential holder(uc.ProxyPath(), "", "", "", false, false);
+    Arc::Credential holder(uc.ProxyPath(), "", "", "", false, false, false);
     if (holder.GetEndTime() < Arc::Time()){
       std::cout << Arc::IString("Proxy expired. Job submission aborted. Please run 'arcproxy'!") << std::endl;
       return false;

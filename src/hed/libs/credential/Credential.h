@@ -287,8 +287,9 @@ class Credential {
     */
     explicit
     Credential(const std::string& cert, const std::string& key,
-               const std::string& cadir, const std::string& cafile, bool causesystem, bool causegrid,
-               const std::string& passphrase4key = "", const bool is_file = true);
+               const std::string& cadir, const std::string& cafile,
+               bool causesystemdir, bool causesystemfile, bool causegrid,
+               const std::string& passphrase4key = "", bool is_file = true);
 
     /** Same as previuos constructor but allows password to be
     * supplied from different sources.
@@ -296,8 +297,9 @@ class Credential {
     */
     explicit
     Credential(const std::string& cert, const std::string& key,
-               const std::string& cadir, const std::string& cafile, bool causesystem, bool causegrid,
-               PasswordSource& passphrase4key, const bool is_file = true);
+               const std::string& cadir, const std::string& cafile,
+               bool causesystemdir, bool causesystemfile, bool causegrid,
+               PasswordSource& passphrase4key, bool is_file = true);
 
     /**Constructor, specific constructor for usual certificate, constructing from
     * information in UserConfig object. Only acts as a container for parsing the 
@@ -350,8 +352,9 @@ class Credential {
     Credential(const Credential&);
 
     void InitCredential(const std::string& cert, const std::string& key,
-		        const std::string& cadir, const std::string& cafile, bool causesystem, bool causegrid,
-			PasswordSource& passphrase4key, const bool is_file);
+		        const std::string& cadir, const std::string& cafile,
+                bool causesystemdir, bool causesystemfile, bool causegrid,
+			    PasswordSource& passphrase4key, bool is_file);
     void InitEmpty();
 
     /**load key from argument keybio, and put key information into argument pkey */
@@ -425,7 +428,7 @@ class Credential {
     * BIO could be memory or file, they should be processed
     * differently.
     */
-    Credformat getFormat_BIO(BIO * in, const bool is_file = true) const;
+    Credformat getFormat_BIO(BIO * in, bool is_file = true) const;
     Credformat getFormat_str(const std::string& source) const;
  
     /**Get the DN of the certificate attached to this object*/
@@ -648,7 +651,8 @@ class Credential {
     std::string cacertdir_;
     std::string certfile_;
     std::string keyfile_;
-    bool causesystem_;
+    bool causesystemdir_;
+    bool causesystemfile_;
 
     //Verification result
     bool verification_valid_;

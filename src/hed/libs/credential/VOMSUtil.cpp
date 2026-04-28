@@ -929,10 +929,10 @@ err:
     return(ok);
   }
 
-  static bool checkCert(STACK_OF(X509) *stack, const std::string& ca_cert_dir, const std::string& ca_cert_file, bool system_ca) {
+  static bool checkCert(STACK_OF(X509) *stack, const std::string& ca_cert_dir, const std::string& ca_cert_file, bool system_ca_dir, bool system_ca_file) {
     int index = 0;
 
-    if(ca_cert_dir.empty() && ca_cert_file.empty() && system_ca) {
+    if(ca_cert_dir.empty() && ca_cert_file.empty() && !system_ca_dir && !system_ca_file) {
       CredentialLogger.msg(ERROR,"VOMS: CA directory or CA file must be provided or default setting enabled");
       return false;
     }
@@ -945,9 +945,15 @@ err:
 //#endif
 //      CRYPTO_malloc_init();
 
-      if(system_ca) {
+      if(system_ca_dir) {
         X509_LOOKUP* lookup = X509_STORE_add_lookup(ctx, X509_LOOKUP_hash_dir());
         if (lookup) X509_LOOKUP_add_dir(lookup, NULL, X509_FILETYPE_DEFAULT);
+      }
+      if(system_ca_file) {
+
+
+
+
       }
       X509_LOOKUP *lookup = NULL;
       if (!(ca_cert_dir.empty()) && (lookup = X509_STORE_add_lookup(ctx,X509_LOOKUP_hash_dir()))) {
@@ -1087,7 +1093,7 @@ err:
 
   static bool checkSignature(AC* ac,
     const std::string vomsdir, const std::string& voname, const std::string& hostname, 
-    const std::string& ca_cert_dir, const std::string& ca_cert_file, bool system_ca,
+    const std::string& ca_cert_dir, const std::string& ca_cert_file, bool system_ca_dir, bool system_ca_file,
     VOMSTrustList& vomscert_trust_dn, 
     X509*& issuer_cert, unsigned int& status, bool verify) {
 
@@ -1187,7 +1193,7 @@ err:
       if(verify) {
         //Check if those certificate in the certificate stack are trusted.
         if (sig_valid) { // Note - sig_valid=true never happens with certstack=NULL
-          if (!checkCert(certstack, ca_cert_dir, ca_cert_file, system_ca)) {
+          if (!checkCert(certstack, ca_cert_dir, ca_cert_file, system_ca_dir, system_ca_file)) {
             issuer.reset();
             CredentialLogger.msg(ERROR,"VOMS: unable to verify certificate chain");
             status |= VOMSACInfo::CAUnknown;
@@ -2044,7 +2050,7 @@ err:
   // Returns false if any error happened.
   // Also always fills status with information about errors detected if any.
   static bool verifyVOMSAC(AC* ac,
-        const std::string& ca_cert_dir, const std::string& ca_cert_file, bool system_ca, const std::string vomsdir,
+        const std::string& ca_cert_dir, const std::string& ca_cert_file, bool system_ca_dir, bool system_ca_file, const std::string vomsdir,
         VOMSTrustList& vomscert_trust_dn, std::string const & targetFQDN, X509* holder,
         std::vector<std::string>& attr_output,
         std::string& vo_name, std::string& ac_holder_name, std::string& ac_issuer_name,
@@ -2130,7 +2136,7 @@ err:
     Arc:Credential::X509Ref issuer;
 
     if(!checkSignature(ac, vomsdir, voname, hostname,
-                       ca_cert_dir, ca_cert_file, system_ca, vomscert_trust_dn,
+                       ca_cert_dir, ca_cert_file, system_ca_dir, system_ca_file, vomscert_trust_dn,
                        issuer.put(), status, verify)) {
       CredentialLogger.msg(ERROR,"VOMS: can not verify the signature of the AC");
       res = false;
@@ -2146,7 +2152,7 @@ err:
   }
 
   bool parseVOMSAC(X509* holder,
-        const std::string& ca_cert_dir, const std::string& ca_cert_file, bool system_ca,
+        const std::string& ca_cert_dir, const std::string& ca_cert_file, bool system_ca_dir, bool system_ca_file,
         const std::string& vomsdir, VOMSTrustList& vomscert_trust_dn,
         std::vector<VOMSACInfo>& output, bool verify, bool reportall, std::string const & targetFQDN) {
 
@@ -2179,7 +2185,7 @@ err:
     for (int i = 0; i < num; i++) {
       AC *ac = sk_AC_value(aclist->acs, i);
       VOMSACInfo ac_info;
-      bool r = verifyVOMSAC(ac, ca_cert_dir, ca_cert_file, system_ca,
+      bool r = verifyVOMSAC(ac, ca_cert_dir, ca_cert_file, system_ca_dir, system_ca_file,
           vomsdir.empty()?default_vomsdir:vomsdir, vomscert_trust_dn, targetFQDN,  
           holder, ac_info.attributes, ac_info.voname, ac_info.holder, ac_info.issuer, 
           ac_info.from, ac_info.till, ac_info.status, verify);
@@ -2195,12 +2201,12 @@ err:
   }
 
   bool parseVOMSAC(const Credential& holder_cred,
-         const std::string& ca_cert_dir, const std::string& ca_cert_file, bool system_ca,
+         const std::string& ca_cert_dir, const std::string& ca_cert_file, bool system_ca_dir, bool system_ca_file,
          const std::string& vomsdir, VOMSTrustList& vomscert_trust_dn,
          std::vector<VOMSACInfo>& output, bool verify, bool reportall, std::string const & targetFQDN) {
     Arc::Credential::X509Ref holder(holder_cred.GetCert());
     if(!holder) return false;
-    bool res = parseVOMSAC(holder, ca_cert_dir, ca_cert_file, system_ca, vomsdir,
+    bool res = parseVOMSAC(holder, ca_cert_dir, ca_cert_file, system_ca_dir, system_ca_file, vomsdir,
                            vomscert_trust_dn, output, verify, reportall, targetFQDN);
 
     //Also parse the voms attributes inside the certificates on
@@ -2214,7 +2220,7 @@ err:
         if(idx >= sk_X509_num(certchain)) break;
         // TODO: stop at actual certificate, do not go to CAs and sub-CAs
         X509* cert = sk_X509_value(certchain,sk_X509_num(certchain)-idx-1);
-        bool res2 = parseVOMSAC(cert, ca_cert_dir, ca_cert_file, system_ca, vomsdir,
+        bool res2 = parseVOMSAC(cert, ca_cert_dir, ca_cert_file, system_ca_dir, system_ca_file, vomsdir,
                                 vomscert_trust_dn, output, verify, reportall, targetFQDN);
         if (!res2) res = res2;
       };
@@ -2224,7 +2230,7 @@ err:
   }
 
   bool parseVOMSAC(const std::string& cert_str,
-         const std::string& ca_cert_dir, const std::string& ca_cert_file, bool system_ca,
+         const std::string& ca_cert_dir, const std::string& ca_cert_file, bool system_ca_dir, bool system_ca_file,
          const std::string& vomsdir, VOMSTrustList& vomscert_trust_dn,
          std::vector<VOMSACInfo>& output, bool verify, bool reportall) {
 
@@ -2248,7 +2254,7 @@ err:
     for(int idx = 0;;++idx) {
       if(idx >= sk_X509_num(cert_chain)) break;
       X509* cert = sk_X509_value(cert_chain, idx);
-      bool res2 = parseVOMSAC(cert, ca_cert_dir, ca_cert_file, system_ca, vomsdir,
+      bool res2 = parseVOMSAC(cert, ca_cert_dir, ca_cert_file, system_ca_dir, system_ca_file, vomsdir,
                              vomscert_trust_dn, output, verify, reportall);
       if (!res2) res = res2;
     }
@@ -2385,7 +2391,7 @@ err:
     return MyDecode(data, size, j);
   }
 
-  std::string getCredentialProperty(const Arc::Credential& u, const std::string& property, const std::string& ca_cert_dir, const std::string& ca_cert_file, bool system_ca, const std::string& vomsdir, const std::vector<std::string>& voms_trust_list) {
+  std::string getCredentialProperty(const Arc::Credential& u, const std::string& property, const std::string& ca_cert_dir, const std::string& ca_cert_file, bool system_ca_dir, bool system_ca_file, const std::string& vomsdir, const std::vector<std::string>& voms_trust_list) {
     if (property == "dn"){
         return u.GetIdentityName();
     }
@@ -2394,7 +2400,7 @@ err:
     VOMSTrustList vomstrustlist(voms_trust_list);
     bool verify = false;
     if(vomstrustlist.SizeRegexs() || vomstrustlist.SizeChains())verify = true;
-    parseVOMSAC(u,ca_cert_dir,ca_cert_file,system_ca,vomsdir,vomstrustlist,output,verify);
+    parseVOMSAC(u,ca_cert_dir,ca_cert_file,system_ca_dir,system_ca_file,vomsdir,vomstrustlist,output,verify);
     if (property == "voms:vo"){
         if (output.empty()) {
                 // if it's not possible to determine the VO -- such jobs will go into generic share

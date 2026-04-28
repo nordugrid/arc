@@ -26,7 +26,7 @@ static int verify_callback(int ok, X509_STORE_CTX* store_ctx);
 static bool collect_proxy_info(std::string& proxy_policy, X509* cert);
 static int verify_cert_additional(X509* cert, X509_STORE_CTX* store_ctx, std::string const& ca_dir, std::string& proxy_policy);
 
-int verify_cert_chain(X509* cert, STACK_OF(X509)*& certchain, std::string const& ca_file, std::string const& ca_dir, bool ca_use_system, std::string& proxy_policy) {
+int verify_cert_chain(X509* cert, STACK_OF(X509)*& certchain, std::string const& ca_file, std::string const& ca_dir, bool ca_use_system_dir, bool ca_use_system_file, std::string& proxy_policy) {
   int i;
   int j;
   int retval = 0;
@@ -58,10 +58,15 @@ int verify_cert_chain(X509* cert, STACK_OF(X509)*& certchain, std::string const&
   }
   if(user_cert == NULL) goto err;
 
-  if (ca_use_system) {
+  if (ca_use_system_dir) {
     X509_LOOKUP* lookup = X509_STORE_add_lookup(cert_store, X509_LOOKUP_hash_dir());
     if (!lookup) goto err;
     X509_LOOKUP_add_dir(lookup, NULL, X509_FILETYPE_DEFAULT);
+  }
+  if (ca_use_system_file) {
+      X509_LOOKUP* lookup = X509_STORE_add_lookup(cert_store, X509_LOOKUP_file());
+      if (!lookup) goto err;
+      X509_LOOKUP_add_dir(lookup, NULL, X509_FILETYPE_DEFAULT);
   }
   if ((!ca_file.empty()) || (!ca_dir.empty())) {
     if (!ca_dir.empty()) {

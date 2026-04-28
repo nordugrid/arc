@@ -90,7 +90,7 @@ namespace Arc {
   }
 
 
-  BaseConfig::BaseConfig() : plugin_paths(ArcLocation::GetPlugins()), systemca(false), gridca(true), tlsallowinsecure(false),
+  BaseConfig::BaseConfig() : plugin_paths(ArcLocation::GetPlugins()), systemcadir(false), systemcafile(false), gridca(true), tlsallowinsecure(false),
                              otoken_for_auth(true), cert_for_auth(true) {}
 
   void BaseConfig::AddPluginsPath(const std::string& path) {
@@ -133,8 +133,9 @@ namespace Arc {
     otoken = token;
   }
 
-  void BaseConfig::SetSystemCA(bool use) {
-    systemca = use;
+  void BaseConfig::SetSystemCA(bool useDir, bool useFile) {
+    systemcadir = useDir;
+    systemcafile = useFile;
   }
 
   void BaseConfig::SetGridCA(bool use) {

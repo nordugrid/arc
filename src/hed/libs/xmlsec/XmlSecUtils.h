@@ -41,7 +41,7 @@ namespace Arc {
   /**Load trusted certificate from cetrtificate string into key manager*/
   xmlSecKeysMngrPtr load_trusted_cert_str(xmlSecKeysMngrPtr* keys_manager, const std::string& cert_str);
   /**Load trusted cetificates from a file or directory into key manager*/
-  xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, const char* cafile, const char* capath);
+  xmlSecKeysMngrPtr load_trusted_certs(xmlSecKeysMngrPtr* keys_manager, const char* cafile, const char* capath, bool systemdir, bool systemfile);
   /**Generate a new child XMLNode with specified name*/
   XMLNode get_node(XMLNode& parent,const char* name);
 }// namespace Arc

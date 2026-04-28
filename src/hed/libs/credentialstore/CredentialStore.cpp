@@ -212,7 +212,7 @@ bool CredentialStore::Store(const std::map<std::string,std::string>& options,con
       signerkey = concfg.key;
     }
   }
-  Arc::Credential signer(signercred,signerkey,concfg.cadir,concfg.cafile,concfg.systemca,concfg.gridca,"",isfile);
+  Arc::Credential signer(signercred,signerkey,concfg.cadir,concfg.cafile,concfg.systemcadir,concfg.systemcafile,concfg.gridca,"",isfile);
   std::string credresp;
   std::string credtmp;
   if(!signer.SignRequest(&proxy,credtmp,true)) return false;
@@ -294,7 +294,7 @@ bool CredentialStore::Retrieve(const std::map<std::string,std::string>& options,
   credresp.erase(0,1);
   std::string credkey;
   requester.OutputPrivatekey(credkey);
-  Credential proxy(credresp,credkey,concfg.cadir,concfg.cafile,concfg.systemca,concfg.gridca,"",false);
+  Credential proxy(credresp,credkey,concfg.cadir,concfg.cafile,concfg.systemcadir, concfg.systemcafile,concfg.gridca,"",false);
   cred.clear();
   std::string credtmp;
   proxy.OutputCertificate(credtmp);

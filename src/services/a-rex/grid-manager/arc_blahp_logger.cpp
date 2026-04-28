@@ -197,14 +197,14 @@ int main(int argc, char *argv[]) {
 
     // Get FQANs information from user's proxy
     // P.S. validity check is not enforced, proxy can be even expired long time before job finished
-    Arc::Credential holder(user_proxy_f, "", "", "", false, true);
+    Arc::Credential holder(user_proxy_f, "", "", "", false, false, true);
     std::vector<Arc::VOMSACInfo> voms_attributes;
     Arc::VOMSTrustList vomscert_trust_dn;
 
     logger.msg(Arc::DEBUG, "Parsing VOMS AC to get FQANs information");
     // suppress expired 'ERROR' from Arc.Credential output
     if ( debuglevel == Arc::ERROR ) Arc::Logger::getRootLogger().setThreshold(Arc::FATAL);
-    Arc::parseVOMSAC(holder, "", "", true, "", vomscert_trust_dn, voms_attributes, false, true);
+    Arc::parseVOMSAC(holder, "", "", true, true, "", vomscert_trust_dn, voms_attributes, false, true);
     Arc::Logger::getRootLogger().setThreshold(debuglevel);
 
     std::string fqans_logentry;

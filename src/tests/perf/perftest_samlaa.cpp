@@ -46,7 +46,7 @@ static std::string cadir("../../tests/echo/certificates");
 #define SAMLP_NAMESPACE "urn:oasis:names:tc:SAML:2.0:protocol"
 
 static void prepareAttributeQuery(Arc::XMLNode& attr_query){
-  Arc::Credential cred(cert, key, cadir, cafile, false, true);
+  Arc::Credential cred(cert, key, cadir, cafile, false, false, true);
   std::string local_dn_str = cred.GetDN();
   std::string local_dn;
   size_t pos1 = std::string::npos;
@@ -109,7 +109,7 @@ static bool verifySAML(Arc::PayloadSOAP* soap_resp) {
   //Check validity of the signature on <samlp:Response/>
   std::string resp_idname = "ID";
   Arc::XMLSecNode attr_resp_secnode(attr_resp);
-  if(attr_resp_secnode.VerifyNode(resp_idname, cafile, cadir, false, true)) {
+  if(attr_resp_secnode.VerifyNode(resp_idname, cafile, cadir, false, false, true)) {
     std::cout<<"Succeeded to verify the signature under <samlp:Response/>"<<std::endl;
   }
   else {
@@ -127,7 +127,7 @@ static bool verifySAML(Arc::PayloadSOAP* soap_resp) {
   Arc::XMLNode assertion = attr_resp["saml:Assertion"];
   std::string assertion_idname = "ID";
   Arc::XMLSecNode assertion_secnode(assertion);
-  if(assertion_secnode.VerifyNode(assertion_idname, cafile, cadir, false, false)) {
+  if(assertion_secnode.VerifyNode(assertion_idname, cafile, cadir, false, false, false)) {
     std::cout<<"Succeeded to verify the signature under <saml:Assertion/>"<<std::endl;
   }
   else {
