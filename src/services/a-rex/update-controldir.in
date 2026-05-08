@@ -14,6 +14,8 @@ control_path () {
 
 update_control_dir() {
     controldir="$1"
+    # ensure jobs directory exists
+    mkdir -p "$controldir/jobs"
     # convert files stored directly in control dir
     find "$controldir" -maxdepth 1 -regex '.*/job\.[0-9a-zA-Z]*\.[^.]*' -printf '%f\n' | \
     while true; do
@@ -39,6 +41,8 @@ update_control_dir() {
             if [ $? -ne 0 ]; then return 1; fi
         done
     done
+    # Fix permissions on all directories under jobs/ after migration
+    chmod -R 0755 "$controldir/jobs"
 }
 
 readconfigvar() {
