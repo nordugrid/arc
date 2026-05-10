@@ -69,9 +69,9 @@ called from the A-REX.
 EOHELP
       exit 1
    fi
-   # check grami file exists
+   # check if grami file exists
    if [ ! -f $arg_file ] ; then
-      echo "No such arguments file at '$arg_file'" 1>&2
+      echo "No such file: '$arg_file', or it is not readable by the job-submission user." 1>&2
       echo "$usage" 1>&2
       exit 1
    fi
