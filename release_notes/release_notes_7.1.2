@@ -10,18 +10,31 @@ This is a bugfix release addressing only a single bug causing migration problems
 
 The problem was due to wrong permissions set to the new "jobs" directory that is created in the controldir in ARC 7.
 
+
 How to fix
 ------------
 
-The easiest is just to manually set the correct permissions on the controldir:
-chmod -R 0755 <controldir>/jobs
+1. If you are migrating from ARC 6 to ARC 7
+   Just do the upgrade according to the migration guide: https://www.nordugrid.org/arc/arc7/admins/migrating6to7.html
 
-Or, if you want to do it the "proper" way with the new release (shown for rhel):
+2. If you already have migrated from ARC 6 to ARC 7
 
-1. arcctl service stop -a
-2. dnf update "nordugrid*"
-3. rm <controldir>/version2
-4. arcctl service restart -a
+   You have two options.
+
+   2a. Manually change the permission settings on the jobs folder
+
+       Simplest method.
+       
+       chmod -R 0755 <controldir>/jobs
+
+   2b. By installing the bugfix release
+
+       Example for rhel:
+
+       1. arcctl service stop -a
+       2. dnf update "nordugrid*"
+       3. rm <controldir>/version2
+       4. arcctl service restart -a
 
 
 
