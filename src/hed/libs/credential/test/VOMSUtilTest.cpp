@@ -36,14 +36,14 @@ void VOMSUtilTest::VOMSTrustListTest() {
   std::string CAcert("ca_cert.pem");
   std::string user_key_file("user_key.pem");
   std::string user_cert_file("user_cert.pem");
-  Arc::Credential issuer_cred(user_cert_file, user_key_file, "", CAcert, false, true, "userpassword");
+  Arc::Credential issuer_cred(user_cert_file, user_key_file, "", CAcert, false, false, true, "userpassword");
 
   std::string vomsserver_key_file("host_key.pem");
   std::string vomsserver_cert_file("host_cert.pem");
-  Arc::Credential ac_issuer_cred(vomsserver_cert_file, vomsserver_key_file, "", CAcert, false, true, "");
+  Arc::Credential ac_issuer_cred(vomsserver_cert_file, vomsserver_key_file, "", CAcert, false, false, true, "");
 
   std::string holder_proxy_file("user_proxy.pem");
-  Arc::Credential holder_cred(holder_proxy_file, "", "", CAcert, false, true);
+  Arc::Credential holder_cred(holder_proxy_file, "", "", CAcert, false, false, true);
 
   std::vector<std::string> fqan;
   fqan.push_back("/nordugrid.org");
@@ -115,11 +115,11 @@ void VOMSUtilTest::VOMSTrustListTest() {
 
   // Read and parse VOMS proxy
 
-  Arc::Credential voms_proxy(voms_proxy_file, "", ".", CAcert, false, true);
+  Arc::Credential voms_proxy(voms_proxy_file, "", ".", CAcert, false, false, true);
 
   std::vector<Arc::VOMSACInfo> attributes;
   Arc::VOMSTrustList trust_dn(vomscert_trust_dn);
-  CPPUNIT_ASSERT(Arc::parseVOMSAC(voms_proxy, ".", CAcert, false, "", trust_dn, attributes, true, false, std::string("www.nordugrid.org")));
+  CPPUNIT_ASSERT(Arc::parseVOMSAC(voms_proxy, ".", CAcert, false, false, "", trust_dn, attributes, true, false, std::string("www.nordugrid.org")));
 
   for(size_t n=0; n<attributes.size(); n++) {
     for(size_t i=0; i<attributes[n].attributes.size(); i++) {

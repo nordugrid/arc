@@ -42,7 +42,9 @@ test_usernametoken_LDADD = \
 	libarcwssecurity.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS) $(OPENSSL_LIBS)
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
+	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
+    $(LIBXML2_LIBS) $(OPENSSL_LIBS)
 
 if XMLSEC_ENABLED
 test_x509token_SOURCES = test_x509token.cpp
@@ -53,6 +55,7 @@ test_x509token_LDADD = \
 	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(LIBXML2_LIBS) $(OPENSSL_LIBS) $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
 
 test_samltoken_SOURCES = test_samltoken.cpp
@@ -63,5 +66,6 @@ test_samltoken_LDADD = \
 	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(LIBXML2_LIBS) $(OPENSSL_LIBS) $(XMLSEC_OPENSSL_LIBS) $(XMLSEC_LIBS)
 endif

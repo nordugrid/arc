@@ -176,7 +176,7 @@ namespace Arc {
   }
 
   //Parse the BIO for certificate and get the format of it
-  Credformat Credential::getFormat_BIO(BIO* bio, const bool is_file) const {
+  Credformat Credential::getFormat_BIO(BIO* bio, bool is_file) const {
     Credformat format = CRED_UNKNOWN;
     if(bio == NULL) return format;
     if(is_file) {
@@ -421,7 +421,7 @@ namespace Arc {
     Credential(!usercfg.ProxyPath().empty() ? usercfg.ProxyPath() : usercfg.CertificatePath(),
                !usercfg.ProxyPath().empty() ? ""                  : usercfg.KeyPath(),
                usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
-               usercfg.CAUseSystem(), usercfg.CAUseGrid()).IsValid();
+               usercfg.CAUseSystemDir(), usercfg.CAUseSystemFile(), usercfg.CAUseGrid()).IsValid();
   }
 
   bool Credential::IsValid() const {
@@ -690,7 +690,7 @@ namespace Arc {
 
   bool Credential::Verify(void) {
     verification_proxy_policy_.clear();
-    if(verify_cert_chain(cert_, cert_chain_.put(true), cacertfile_, cacertdir_, causesystem_, verification_proxy_policy_)) {
+    if(verify_cert_chain(cert_, cert_chain_.put(true), cacertfile_, cacertdir_, causesystemdir_, causesystemfile_, verification_proxy_policy_)) {
       CredentialLogger.msg(VERBOSE, "Certificate verification succeeded");
       verification_valid_ = true;
       return true;
@@ -890,14 +890,16 @@ namespace Arc {
   }
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile,
-        const std::string& cadir, const std::string& cafile, bool causesystem, bool causegrid,
-        PasswordSource& passphrase4key, const bool is_file) {
-    InitCredential(certfile,keyfile,cadir,cafile,causesystem,causegrid,passphrase4key,is_file);
+        const std::string& cadir, const std::string& cafile, 
+        bool causesystemdir, bool causesystemfile, bool causegrid,
+        PasswordSource& passphrase4key, bool is_file) {
+    InitCredential(certfile,keyfile,cadir,cafile,causesystemdir,causesystemfile,causegrid,passphrase4key,is_file);
   }
 
   Credential::Credential(const std::string& certfile, const std::string& keyfile,
-        const std::string& cadir, const std::string& cafile, bool causesystem, bool causegrid,
-        const std::string& passphrase4key, const bool is_file) {
+        const std::string& cadir, const std::string& cafile, 
+        bool causesystemdir, bool causesystemfile, bool causegrid,
+        const std::string& passphrase4key, bool is_file) {
     PasswordSource* pass = NULL;
     if(passphrase4key.empty()) {
       pass = new PasswordSourceInteractive("private key", false);
@@ -906,7 +908,7 @@ namespace Arc {
     } else {
       pass = new PasswordSourceString(passphrase4key);
     }
-    InitCredential(certfile,keyfile,cadir,cafile,causesystem,causegrid,*pass,is_file);
+    InitCredential(certfile,keyfile,cadir,cafile,causesystemdir,causesystemfile,causegrid,*pass,is_file);
     delete pass;
   }
 
@@ -920,7 +922,7 @@ namespace Arc {
       if(!certpath.empty()) {
         InitCredential(certpath, keypath,
                        usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
-                       usercfg.CAUseSystem(), usercfg.CAUseGrid(),
+                       usercfg.CAUseSystemDir(), usercfg.CAUseSystemFile(), usercfg.CAUseGrid(),
                        passphrase4key, true);
       } else {
         // That is not exactly an error because UserConfig may be set to use different type of credentials.
@@ -930,7 +932,7 @@ namespace Arc {
     } else {
       InitCredential(usercfg.CredentialString(), "",
                      usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
-                     usercfg.CAUseSystem(), usercfg.CAUseGrid(),
+                     usercfg.CAUseSystemDir(), usercfg.CAUseSystemFile(), usercfg.CAUseGrid(),
                      passphrase4key, false);
     }
   }
@@ -953,7 +955,7 @@ namespace Arc {
       if(!certpath.empty()) {
         InitCredential(certpath, keypath,
                        usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
-                       usercfg.CAUseSystem(), usercfg.CAUseGrid(),
+                       usercfg.CAUseSystemDir(), usercfg.CAUseSystemFile(), usercfg.CAUseGrid(),
                        *pass, true);
       } else {
         // That is not exactly an error because UserConfig may be set to use different type of credentials.
@@ -963,7 +965,7 @@ namespace Arc {
     } else {
       InitCredential(usercfg.CredentialString(), "",
                      usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
-                     usercfg.CAUseSystem(), usercfg.CAUseGrid(),
+                     usercfg.CAUseSystemDir(), usercfg.CAUseSystemFile(), usercfg.CAUseGrid(),
                      *pass, false);
     }
     delete pass;
@@ -975,7 +977,8 @@ namespace Arc {
     cacertdir_ = "";
     certfile_ = "";
     keyfile_ = "";
-    causesystem_ = false;
+    causesystemdir_ = false;
+    causesystemfile_ = false;
     verification_valid_ = false;
     cert_.reset();
     pkey_.reset();
@@ -993,13 +996,14 @@ namespace Arc {
   }
 
   void Credential::InitCredential(const std::string& certfile, const std::string& keyfile,
-        const std::string& cadir, const std::string& cafile, bool causesystem, bool causegrid,
-        PasswordSource& passphrase4key, const bool is_file) {
+        const std::string& cadir, const std::string& cafile, bool causesystemdir, bool causesystemfile, bool causegrid,
+        PasswordSource& passphrase4key, bool is_file) {
 
     initialized_ = false;
     cacertfile_ = causegrid ? cafile : "";
     cacertdir_ = causegrid ? cadir : "";
-    causesystem_ = causesystem;
+    causesystemdir_ = causesystemdir;
+    causesystemfile_ = causesystemfile;
     certfile_ = certfile;
     keyfile_ = keyfile;
     verification_valid_ = false;
@@ -1093,7 +1097,7 @@ namespace Arc {
       initialized_ = true;
     }
 
-    if(!cacertfile_.empty() || !cacertdir_.empty() || causesystem_) {
+    if(!cacertfile_.empty() || !cacertdir_.empty() || causesystemdir_ || causesystemfile_) {
       // If there is CA information, verify credentials.
       Verify();
     } else {

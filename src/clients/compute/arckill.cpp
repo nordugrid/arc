@@ -60,9 +60,9 @@ int RUNMAIN(arckill)(int argc, char **argv) {
     logger.msg(Arc::ERROR, "Failed configuration initialization");
     return 1;
   }
-  if (opt.force_system_ca) { usercfg.CAUseSystem(true); usercfg.CAUseGrid(false); }
-  if (opt.force_grid_ca) { usercfg.CAUseSystem(false); usercfg.CAUseGrid(true); }
-  if (opt.force_any_ca) { usercfg.CAUseSystem(true); usercfg.CAUseGrid(true); }
+  if (opt.force_system_ca) { usercfg.CAUseSystemDir(true); usercfg.CAUseSystemFile(true); usercfg.CAUseGrid(false); }
+  if (opt.force_grid_ca) { usercfg.CAUseSystemDir(false); usercfg.CAUseSystemFile(false); usercfg.CAUseGrid(true); }
+  if (opt.force_any_ca) { usercfg.CAUseSystemDir(true); usercfg.CAUseSystemFile(true); usercfg.CAUseGrid(true); }
 
   if (opt.debug.empty() && !usercfg.Verbosity().empty())
     Arc::Logger::getRootLogger().setThreshold(Arc::istring_to_level(usercfg.Verbosity()));

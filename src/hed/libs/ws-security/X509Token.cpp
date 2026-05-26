@@ -241,7 +241,7 @@ bool X509Token::Authenticate(const std::string& cafile, const std::string& capat
   xmlSecKeysMngr* keys_manager = NULL;
   xmlSecDSigCtx *dsigCtx;
 
-  keys_manager = load_trusted_certs(&keys_manager, cafile.c_str(), capath.c_str());
+  keys_manager = load_trusted_certs(&keys_manager, cafile.c_str(), capath.c_str(), false, false);
   //Load keyInfo. Because xmlsec only accept standard <X509Data/>, here we are using some
   //kind of hack method by insertinga <X509Data/> into <KeyInfo/>, after verification, we
   //delete the node.

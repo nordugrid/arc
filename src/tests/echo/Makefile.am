@@ -1,3 +1,9 @@
+if XMLSEC_ENABLED
+ARCLIBS_WITH_XMLSEC = $(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la
+else
+ARCLIBS_WITH_XMLSEC = 
+endif
+
 SUBDIRS = schema
 
 pkglib_LTLIBRARIES = libecho.la
@@ -27,6 +33,8 @@ test_LDADD = \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
+	$(ARCLIBS_WITH_XMLSEC) \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
 
 test_client_SOURCES = test_client.cpp
@@ -47,6 +55,8 @@ test_clientinterface_LDADD = \
 	$(top_builddir)/src/hed/libs/data/libarcdata.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
+	$(ARCLIBS_WITH_XMLSEC) \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la
 
 test_service_SOURCES = test_service.cpp

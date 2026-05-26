@@ -202,7 +202,8 @@ namespace ARexINTERNAL {
       Arc::VOMSTrustList trust_list;
       trust_list.AddRegex("^.*$");
       std::vector<VOMSACInfo> voms;
-      if(parseVOMSAC(cred, usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(), usercfg.CAUseSystem(), usercfg.VOMSESPath()/*?*/, trust_list, voms, true, true)) {
+      if(parseVOMSAC(cred, usercfg.CACertificatesDirectory(), usercfg.CACertificatePath(),
+                     usercfg.CAUseSystemDir(), usercfg.CAUseSystemFile(), usercfg.VOMSESPath()/*?*/, trust_list, voms, true, true)) {
         for(std::vector<VOMSACInfo>::const_iterator v = voms.begin(); v != voms.end();++v) { 
           if(!(v->status & VOMSACInfo::Error)) {
             for(std::vector<std::string>::const_iterator a = v->attributes.begin(); a != v->attributes.end();++a) {

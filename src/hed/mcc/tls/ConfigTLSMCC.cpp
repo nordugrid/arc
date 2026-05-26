@@ -53,7 +53,8 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   protocol_options_ = 0;
   curve_nid_ = NID_undef; // so far best seems to be NID_X25519, but let OpenSSL choose by default
   client_authn_ = true;
-  system_ca_ = (((std::string)(cfg["SystemCA"])) == "true");
+  system_ca_dir_ = (((std::string)(cfg["SystemCADir"])) == "true");
+  system_ca_file_ = (((std::string)(cfg["SystemCAFile"])) == "true");
   grid_ca_ = !(((std::string)(cfg["GridCA"])) == "false");
   allow_insecure_ = (((std::string)(cfg["AllowInsecure"])) == "true");
   if(grid_ca_) {
@@ -197,13 +198,21 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
 }
 
 bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
-  if(system_ca_) {
-    logger.msg(VERBOSE, "Using CA default location");
+  if(system_ca_dir_) {
+    logger.msg(VERBOSE, "Using CA default folder location");
     X509_STORE* store = SSL_CTX_get_cert_store(sslctx);
     if (!store) return false;
     X509_LOOKUP* lookup = X509_STORE_add_lookup(store, X509_LOOKUP_hash_dir());
     if (!lookup) return false;
     X509_LOOKUP_add_dir(lookup, NULL, X509_FILETYPE_DEFAULT);
+  }
+  if (system_ca_file_) {
+      logger.msg(VERBOSE, "Using CA default file location");
+      X509_STORE* store = SSL_CTX_get_cert_store(sslctx);
+      if (!store) return false;
+      X509_LOOKUP* lookup = X509_STORE_add_lookup(store, X509_LOOKUP_file());
+      if (!lookup) return false;
+      X509_LOOKUP_load_file(lookup, ca_file_.c_str(), X509_FILETYPE_DEFAULT);
   }
   if(grid_ca_ && (!ca_file_.empty() || !ca_dir_.empty())) {
     if(!ca_file_.empty()) {
@@ -225,7 +234,7 @@ bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
   }
   if(!credential_.empty()) {
     // First try to use in-memory credential
-    Credential cred(credential_, credential_, ca_dir_, ca_file_, system_ca_, grid_ca_, Credential::NoPassword(), false);
+    Credential cred(credential_, credential_, ca_dir_, ca_file_, system_ca_dir_, system_ca_file_, grid_ca_, Credential::NoPassword(), false);
     if (!cred) {
       failure_ = "Failed to read in-memory credentials";
       return false;

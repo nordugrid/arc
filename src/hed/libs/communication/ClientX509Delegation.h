@@ -45,7 +45,7 @@ namespace Arc {
   class ClientX509Delegation {
   public:
     /** Constructor creates MCC chain and connects to server.*/
-    ClientX509Delegation() : soap_client_(NULL), trusted_ca_system_(false), trusted_ca_grid_(true), signer_(NULL) {}
+    ClientX509Delegation() : soap_client_(NULL), trusted_ca_system_dir_(false), trusted_ca_system_file_(false), trusted_ca_grid_(true), signer_(NULL) {}
     ClientX509Delegation(const BaseConfig& cfg, const URL& url);
     virtual ~ClientX509Delegation();
     /** Create the delegation credential according to the different remote
@@ -106,7 +106,8 @@ namespace Arc {
     std::string proxy_file_;
     std::string trusted_ca_dir_;
     std::string trusted_ca_file_;
-    bool trusted_ca_system_;
+    bool trusted_ca_system_dir_;
+    bool trusted_ca_system_file_;
     bool trusted_ca_grid_;
     Credential *signer_;
     static Logger logger;

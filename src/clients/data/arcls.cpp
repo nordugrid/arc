@@ -402,9 +402,9 @@ static int runmain(int argc, char **argv) {
     return 1;
   }
   usercfg.UtilsDirPath(Arc::UserConfig::ARCUSERDIRECTORY());
-  if (force_system_ca) { usercfg.CAUseSystem(true); usercfg.CAUseGrid(false); }
-  if (force_grid_ca) { usercfg.CAUseSystem(false); usercfg.CAUseGrid(true); }
-  if (force_any_ca) { usercfg.CAUseSystem(true); usercfg.CAUseGrid(true); }
+  if (force_system_ca) { usercfg.CAUseSystemDir(true); usercfg.CAUseSystemFile(true); usercfg.CAUseGrid(false); }
+  if (force_grid_ca) { usercfg.CAUseSystemDir(false); usercfg.CAUseSystemFile(false); usercfg.CAUseGrid(true); }
+  if (force_any_ca) { usercfg.CAUseSystemDir(true); usercfg.CAUseSystemFile(true); usercfg.CAUseGrid(true); }
   if (allow_insecure_connection) usercfg.TLSAllowInsecure(true);
  
   AuthenticationType authentication_type = UndefinedAuthentication;

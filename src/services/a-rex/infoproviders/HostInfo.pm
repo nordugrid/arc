@@ -220,8 +220,8 @@ sub get_cert_info {
         $log->warning("Host certificate is expired in file: $hostcert") if $?;
     }
 
-    if (not $options->{x509_cert_dir} or $options->{x509_cert_policy} eq 'system') {
-        $log->info("x509_cert_dir not configured");
+    if (not $options->{x509_cert_dir} or $options->{x509_cert_policy} eq 'system' or $options->{x509_cert_policy} eq 'system.nofile') {
+        $log->info("x509_cert_dir not configured or not needed");
         $host_info->{issuerca_enddate} = $host_info->{hostcert_enddate};
         $host_info->{issuerca_expired} = 0;
         return $host_info;

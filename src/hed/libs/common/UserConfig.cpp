@@ -256,7 +256,7 @@ namespace Arc {
   }
 
   UserConfig::UserConfig(initializeCredentialsType initializeCredentials)
-    : timeout(0), keySize(0), caUseSystem(false), caUseGrid(true), tlsAllowInsecure(false), authType(AuthTypeUndefined), ok(false), initializeCredentials(initializeCredentials) {
+    : timeout(0), keySize(0), caUseSystemDir(false), caUseSystemFile(false), caUseGrid(true), tlsAllowInsecure(false), authType(AuthTypeUndefined), ok(false), initializeCredentials(initializeCredentials) {
     if (!InitializeCredentials(initializeCredentials)) {
       return;
     }
@@ -269,7 +269,7 @@ namespace Arc {
   UserConfig::UserConfig(const std::string& conffile,
                          initializeCredentialsType initializeCredentials,
                          bool loadSysConfig)
-    : timeout(0), keySize(0), caUseSystem(false), caUseGrid(true), tlsAllowInsecure(false), authType(AuthTypeUndefined), ok(false), initializeCredentials(initializeCredentials) {
+    : timeout(0), keySize(0), caUseSystemDir(false), caUseSystemFile(false), caUseGrid(true), tlsAllowInsecure(false), authType(AuthTypeUndefined), ok(false), initializeCredentials(initializeCredentials) {
     setDefaults();
     if (loadSysConfig) {
       if (Glib::file_test(SYSCONFIG(), Glib::FILE_TEST_IS_REGULAR)) {
@@ -315,7 +315,7 @@ namespace Arc {
 
   UserConfig::UserConfig(const std::string& conffile, const std::string& jfile,
                          initializeCredentialsType initializeCredentials, bool loadSysConfig)
-    : timeout(0), keySize(0), caUseSystem(false), caUseGrid(true), tlsAllowInsecure(false), authType(AuthTypeUndefined), ok(false), initializeCredentials(initializeCredentials) {
+    : timeout(0), keySize(0), caUseSystemDir(false), caUseSystemFile(false), caUseGrid(true), tlsAllowInsecure(false), authType(AuthTypeUndefined), ok(false), initializeCredentials(initializeCredentials) {
     // If job list file have been specified, try to initialize it, and
     // if it fails then this object is non-valid (ok = false).
     setDefaults();
@@ -384,7 +384,7 @@ namespace Arc {
         ccfg.AddPrivateKey(keyPath);
       }
     }
-    ccfg.SetSystemCA(caUseSystem);
+    ccfg.SetSystemCA(caUseSystemDir, caUseSystemFile);
     ccfg.SetGridCA(caUseGrid);
     ccfg.SetTLSAllowInsecure(tlsAllowInsecure);
     if(caUseGrid)
@@ -467,19 +467,71 @@ namespace Arc {
     return true;
   }
 
+  std::string UserConfig::CAUseToPolicy() const {
+    if(CAUseSystemDir()) {
+      if(CAUseGrid()) {
+        if(CAUseSystemFile()) {
+          return "any";
+        } else {
+          return "any.nofile";
+        }
+      } else {
+        if(CAUseSystemFile()) {
+          return "system";
+        } else {
+          return "system.nofile";
+        }
+      }
+    } else {
+      if(CAUseGrid()) {
+        if(CAUseSystemFile()) {
+          return "any.onlyfile";
+        } else {
+          return "grid";
+        }
+      } else {
+        if(CAUseSystemFile()) {
+          return "system.onlyfile";
+        } else {
+          return "none";
+        }
+      }
+    }
+  }
+
   bool UserConfig::InitializeCredentials(initializeCredentialsType initializeCredentials) {
     std::string ca_policy = GetEnv("X509_CERT_POLICY");
     if (ca_policy == "any") {
-      caUseSystem = true;
+      caUseSystemDir = true;
+      caUseSystemFile = true;
+      caUseGrid = true;
+    } else if (ca_policy == "any.nofile") {
+      caUseSystemDir = true;
+      caUseSystemFile = false;
+      caUseGrid = true;
+    } else if (ca_policy == "any.onlyfile") {
+      caUseSystemDir = false;
+      caUseSystemFile = true;
       caUseGrid = true;
     } else if (ca_policy == "grid") {
-      caUseSystem = false;
+      caUseSystemDir = false;
+      caUseSystemFile = false;
       caUseGrid = true;
     } else if(ca_policy == "system") {
-      caUseSystem = true;
+      caUseSystemDir = true;
+      caUseSystemFile = true;
+      caUseGrid = false;
+    } else if(ca_policy == "system.nofile") {
+      caUseSystemDir = true;
+      caUseSystemFile = false;
+      caUseGrid = false;
+    } else if(ca_policy == "system.onlyfile") {
+      caUseSystemDir = false;
+      caUseSystemFile = true;
       caUseGrid = false;
     } else if(ca_policy == "none") {
-      caUseSystem = false;
+      caUseSystemDir = false;
+      caUseSystemFile = false;
       caUseGrid = false;
     }
 
@@ -875,7 +927,12 @@ namespace Arc {
           }
           HANDLESTRATT("cacertificatepath", CACertificatePath)
           HANDLESTRATT("cacertificatesdirectory", CACertificatesDirectory)
-          HANDLESTRATT("causesystem", CAUseSystem)
+          if (common["causesystem"]) {
+              CAUseSystem((std::string)common["causesystem"], (std::string)common["causesystem"]);
+            while (common["causesystem"]) common["causesystem"].Destroy();
+          }
+          HANDLESTRATT("causesystemdir", CAUseSystemDir)
+          HANDLESTRATT("causesystemfile", CAUseSystemFile)
           HANDLESTRATT("causegrid", CAUseGrid)
           if (common["certificatelifetime"]) {
             certificateLifeTime = Period((std::string)common["certificatelifetime"]);
@@ -1012,7 +1069,8 @@ namespace Arc {
       file << "cacertificatepath = " << caCertificatePath << std::endl;
     if (!caCertificatesDirectory.empty())
       file << "cacertificatesdirectory = " << caCertificatesDirectory << std::endl;
-    file << "causesystem = " << (caUseSystem?1:0) << std::endl;
+    file << "causesystemdir = " << (caUseSystemDir?1:0) << std::endl;
+    file << "causesystemfile = " << (caUseSystemFile?1:0) << std::endl;
     file << "causegrid = " << (caUseGrid?1:0) << std::endl;
     if (certificateLifeTime > 0)
       file << "certificatelifetime = " << certificateLifeTime << std::endl;
@@ -1299,7 +1357,7 @@ static std::string cert_file_fix(const std::string& old_file,std::string& new_fi
     SET_NEW_VAR_FILE("X509_USER_CERT",cfg.CertificatePath(),x509_user_cert_new);
     SET_NEW_VAR_FILE("X509_USER_PROXY",cfg.ProxyPath(),x509_user_proxy_new);
     SET_NEW_VAR("X509_CERT_DIR",cfg.CACertificatesDirectory());
-    SET_NEW_VAR("X509_CERT_POLICY",(cfg.CAUseSystem()?(cfg.CAUseGrid()?"any":"system"):(cfg.CAUseGrid()?"grid":"none")));
+    SET_NEW_VAR("X509_CERT_POLICY", cfg.CAUseToPolicy());
     EnvLockWrap(false);
   }
 

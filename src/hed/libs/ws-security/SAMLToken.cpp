@@ -151,23 +151,24 @@ bool SAMLToken::Authenticate(void) {
   return true;
 }
 
-bool SAMLToken::Authenticate(const std::string& cafile, const std::string& capath, bool systemca) {
+bool SAMLToken::Authenticate(const std::string& cafile, const std::string& capath, bool systemcadir, bool systemcafile) {
   xmlSecKeysMngr* keys_manager = NULL;
   xmlSecDSigCtx *dsigCtx;
 
   /*****************************************/
   //Verify the signature under saml:assertion
-  if((bool)x509data && systemca) {
-    keys_manager = load_trusted_certs(&keys_manager, NULL, NULL);
-    if(keys_manager == NULL) { std::cerr<<"Can not load default certificates"<<std::endl; return false; }
-  }
-  else if((bool)x509data && (!cafile.empty() || !capath.empty())) {
-    keys_manager = load_trusted_certs(&keys_manager, cafile.c_str(), capath.c_str());
-    //keys_manager = load_trusted_cert_file(&keys_manager, cafile.c_str());
-    if(keys_manager == NULL) { std::cerr<<"Can not load trusted certificates"<<std::endl; return false; }
-  }
-  else if((bool)x509data)
-    { std::cerr<<"No trusted certificates exists"<<std::endl; return false;}
+  if ((bool)x509data) {
+    if(systemcadir || systemcafile) {
+      keys_manager = load_trusted_certs(&keys_manager, NULL, NULL, systemcadir, systemcafile);
+      if(keys_manager == NULL) { std::cerr<<"Can not load default certificates"<<std::endl; return false; }
+    }
+    else if(!cafile.empty() || !capath.empty()) {
+      keys_manager = load_trusted_certs(&keys_manager, cafile.c_str(), capath.c_str(), false, false);
+      if(keys_manager == NULL) { std::cerr<<"Can not load trusted certificates"<<std::endl; return false; }
+    }
+    else
+      { std::cerr<<"No trusted certificates exists"<<std::endl; return false;}
+    }
   if(keys_manager == NULL){ std::cerr<<"No <X509Data/> exists, or no trusted certificates configured"<<std::endl; return false;}
 
   dsigCtx = xmlSecDSigCtxCreate(keys_manager);
@@ -245,7 +246,7 @@ SAMLToken::SAMLToken(SOAPEnvelope& soap, const std::string& certfile, const std:
       std::string current_time = t.str(Arc::UTCTime);
       assertion.NewAttribute("IssueInstant") = current_time;
 
-      Arc::Credential cred(certfile, keyfile, "", "", false, false); // it doesn't matter what kind of CA is set beause we use no CAs here
+      Arc::Credential cred(certfile, keyfile, "", "", false, false, false); // it doesn't matter what kind of CA is set beause we use no CAs here
       std::string dn = cred.GetDN();
       std::string rdn = Arc::convert_to_rdn(dn);
       assertion.NewAttribute("Issuer") = rdn;

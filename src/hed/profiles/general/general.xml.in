@@ -105,8 +105,22 @@ attributes depending on how the mapping should be done.
       <tls:KeyPath inisections="datadelivery-service common" initag="x509_host_key" inidefaultvalue="/etc/grid-security/hostkey.pem"/>
       <tls:CertificatePath inisections="datadelivery-service common" initag="x509_host_cert" inidefaultvalue="/etc/grid-security/hostcert.pem"/>
       <tls:CACertificatesDir inisections="datadelivery-service common" initag="x509_cert_dir" inidefaultvalue="/etc/grid-security/certificates"/>
-      <tls:SystemCA initokenenables="common#x509_cert_policy=system">true</tls:SystemCA>
-      <tls:SystemCA initokenenables="datadelivery-service#x509_cert_policy=system">true</tls:SystemCA>
+      <tls:SystemCADir initokenenables="common#x509_cert_policy=system">true</tls:SystemCADir>
+      <tls:SystemCADir initokenenables="common#x509_cert_policy=system.nofile">true</tls:SystemCADir>
+      <tls:SystemCADir initokenenables="common#x509_cert_policy=any">true</tls:SystemCADir>
+      <tls:SystemCADir initokenenables="common#x509_cert_policy=any.nofile">true</tls:SystemCADir>
+      <tls:SystemCADir initokenenables="datadelivery-service#x509_cert_policy=system">true</tls:SystemCADir>
+      <tls:SystemCADir initokenenables="datadelivery-service#x509_cert_policy=system.nofile">true</tls:SystemCADir>
+      <tls:SystemCADir initokenenables="datadelivery-service#x509_cert_policy=any">true</tls:SystemCADir>
+      <tls:SystemCADir initokenenables="datadelivery-service#x509_cert_policy=any.nofile">true</tls:SystemCADir>
+      <tls:SystemCAFile initokenenables="common#x509_cert_policy=system">true</tls:SystemCAFile>
+      <tls:SystemCAFile initokenenables="common#x509_cert_policy=system.onlyfile">true</tls:SystemCAFile>
+      <tls:SystemCAFile initokenenables="common#x509_cert_policy=any">true</tls:SystemCAFile>
+      <tls:SystemCAFile initokenenables="common#x509_cert_policy=any.onlyfile">true</tls:SystemCAFile>
+      <tls:SystemCAFile initokenenables="datadelivery-service#x509_cert_policy=system">true</tls:SystemCAFile>
+      <tls:SystemCAFile initokenenables="datadelivery-service#x509_cert_policy=system.onlyfile">true</tls:SystemCAFile>
+	  <tls:SystemCAFile initokenenables="datadelivery-service#x509_cert_policy=any">true</tls:SystemCAFile>
+	  <tls:SystemCAFile initokenenables="datadelivery-service#x509_cert_policy=any.onlyfile">true</tls:SystemCAFile>
       <tls:VOMSCertTrustDNChain>
         <tls:VOMSCertTrustRegex>.*</tls:VOMSCertTrustRegex>
       </tls:VOMSCertTrustDNChain>

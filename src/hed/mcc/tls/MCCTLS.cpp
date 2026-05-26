@@ -177,7 +177,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
          };
          // Parse VOMS attributes from each certificate of the peer chain.
          Arc::VOMSTrustList trust_list(config.VOMSCertTrustDN());
-         bool res = parseVOMSAC(cert, config.CADir(), config.CAFile(), config.SystemCA(), config.VOMSDir(), trust_list, voms_attributes_, true, true);
+         bool res = parseVOMSAC(cert, config.CADir(), config.CAFile(), config.SystemCADir(), config.SystemCAFile(), config.VOMSDir(), trust_list, voms_attributes_, true, true);
          if(!res) {
             logger.msg(ERROR,"VOMS attribute parsing failed");
          };
@@ -210,7 +210,7 @@ TLSSecAttr::TLSSecAttr(PayloadTLSStream& payload, ConfigTLSMCC& config, Logger& 
       };
       // Parse VOMS attributes from peer certificate
       Arc::VOMSTrustList trust_list(config.VOMSCertTrustDN());
-      bool res = parseVOMSAC(peercert, config.CADir(), config.CAFile(), config.SystemCA(), config.VOMSDir(), trust_list, voms_attributes_, true, true);
+      bool res = parseVOMSAC(peercert, config.CADir(), config.CAFile(), config.SystemCADir(), config.SystemCAFile(), config.VOMSDir(), trust_list, voms_attributes_, true, true);
       if(!res) {
         logger.msg(ERROR,"VOMS attribute parsing failed");
       };

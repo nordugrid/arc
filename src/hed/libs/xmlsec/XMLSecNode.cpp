@@ -111,7 +111,7 @@ bool XMLSecNode::SignNode(const std::string& privkey_file, const std::string& ce
   return true;
 }
 
-bool XMLSecNode::VerifyNode(const std::string& id_name, const std::string& ca_file, const std::string& ca_path, bool systemca, bool verify_trusted) {
+bool XMLSecNode::VerifyNode(const std::string& id_name, const std::string& ca_file, const std::string& ca_path, bool systemcadir, bool systemcafile, bool verify_trusted) {
   xmlNodePtr node = this->node_;
   xmlDocPtr docPtr = node->doc;
   xmlChar* id = xmlGetProp(node, (xmlChar *)(id_name.c_str()));
@@ -129,17 +129,19 @@ bool XMLSecNode::VerifyNode(const std::string& id_name, const std::string& ca_fi
   xmlSecDSigCtx *dsigCtx;
   
   if(verify_trusted) {
+    if ((bool)x509data) {
     //Verify the signature under the signature node (this node) 
-    if((bool)x509data && systemca) {
-      keys_manager = load_trusted_certs(&keys_manager, NULL, NULL);
-      if(keys_manager == NULL) { std::cerr<<"Can not load default certificates"<<std::endl; return false; }
+      if(systemcadir || systemcafile) {
+        keys_manager = load_trusted_certs(&keys_manager, NULL, NULL, systemcadir, systemcafile);
+        if(keys_manager == NULL) { std::cerr<<"Can not load default certificates"<<std::endl; return false; }
+      }
+      else if(!ca_file.empty() || !ca_path.empty()) {
+        keys_manager = load_trusted_certs(&keys_manager, ca_file.c_str(), ca_path.c_str(), false, false);
+        if(keys_manager == NULL) { std::cerr<<"Can not load trusted certificates"<<std::endl; return false; }
+      } 
+      else
+        { std::cerr<<"No trusted certificates exists"<<std::endl; return false;}
     }
-    else if((bool)x509data && (!ca_file.empty() || !ca_path.empty())) {
-      keys_manager = load_trusted_certs(&keys_manager, ca_file.c_str(), ca_path.c_str());
-      if(keys_manager == NULL) { std::cerr<<"Can not load trusted certificates"<<std::endl; return false; }
-    } 
-    else if((bool)x509data)
-      { std::cerr<<"No trusted certificates exists"<<std::endl; return false;}
     if(keys_manager == NULL){ std::cerr<<"No <X509Data/> exists, or no trusted certificates configured"<<std::endl; return false;}
     dsigCtx = xmlSecDSigCtxCreate(keys_manager);
   }

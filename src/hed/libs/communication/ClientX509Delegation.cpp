@@ -34,12 +34,13 @@ namespace Arc {
     proxy_file_ = cfg.proxy;
     trusted_ca_dir_ = cfg.cadir;
     trusted_ca_file_ = cfg.cafile;
-    trusted_ca_system_ = cfg.systemca;
+    trusted_ca_system_dir_ = cfg.systemcadir;
+    trusted_ca_system_file_ = cfg.systemcafile;
     trusted_ca_grid_ = cfg.gridca;
     if (!cert_file_.empty() && !privkey_file_.empty())
-      signer_ = new Credential(cert_file_, privkey_file_, trusted_ca_dir_, trusted_ca_file_, trusted_ca_system_, trusted_ca_grid_);
+      signer_ = new Credential(cert_file_, privkey_file_, trusted_ca_dir_, trusted_ca_file_, trusted_ca_system_dir_, trusted_ca_system_file_, trusted_ca_grid_);
     else if (!proxy_file_.empty())
-      signer_ = new Credential(proxy_file_, "", trusted_ca_dir_, trusted_ca_file_, trusted_ca_system_, trusted_ca_grid_);
+      signer_ = new Credential(proxy_file_, "", trusted_ca_dir_, trusted_ca_file_, trusted_ca_system_dir_, trusted_ca_system_file_, trusted_ca_grid_);
   }
 
   ClientX509Delegation::~ClientX509Delegation() {
@@ -292,7 +293,7 @@ namespace Arc {
           return false;
         }
 
-        Credential proxy_cred(delegation_cert, privkey_str, trusted_ca_dir_, trusted_ca_file_, trusted_ca_system_, trusted_ca_grid_, "", false);
+        Credential proxy_cred(delegation_cert, privkey_str, trusted_ca_dir_, trusted_ca_file_, trusted_ca_system_dir_, trusted_ca_system_file_, trusted_ca_grid_, "", false);
         proxy_cred.OutputCertificate(delegation_cred);
         proxy_cred.OutputPrivatekey(delegation_cred);
         proxy_cred.OutputCertificateChain(delegation_cred);

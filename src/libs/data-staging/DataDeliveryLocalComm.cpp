@@ -130,9 +130,13 @@ namespace DataStaging {
         args.push_back(std::string("ca=")+dtr->get_usercfg().CACertificatesDirectory());
       }
       args.push_back("--sopt");
-      args.push_back(std::string("casystem=")+Arc::tostring((int)dtr->get_usercfg().CAUseSystem()));
+      args.push_back(std::string("casystemdir=")+Arc::tostring((int)dtr->get_usercfg().CAUseSystemDir()));
       args.push_back("--dopt");
-      args.push_back(std::string("casystem=")+Arc::tostring((int)dtr->get_usercfg().CAUseSystem()));
+      args.push_back(std::string("casystemdir=")+Arc::tostring((int)dtr->get_usercfg().CAUseSystemDir()));
+      args.push_back("--sopt");
+      args.push_back(std::string("casystemfile=") + Arc::tostring((int)dtr->get_usercfg().CAUseSystemFile()));
+      args.push_back("--dopt");
+      args.push_back(std::string("casystemfile=") + Arc::tostring((int)dtr->get_usercfg().CAUseSystemFile()));
       args.push_back("--sopt");
       args.push_back(std::string("cagrid=")+Arc::tostring((int)dtr->get_usercfg().CAUseGrid()));
       args.push_back("--dopt");

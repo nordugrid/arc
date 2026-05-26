@@ -4,6 +4,12 @@ else
 INTERNAL =
 endif
 
+if XMLSEC_ENABLED
+ARCLIBS_WITH_XMLSEC = $(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la
+else
+ARCLIBS_WITH_XMLSEC = 
+endif
+
 SUBDIRS = delegation grid-manager infoproviders lrms schema $(INTERNAL) rte rest
 DIST_SUBDIRS = delegation grid-manager infoproviders lrms schema internaljobplugin rte rest
 
@@ -65,6 +71,8 @@ test_cache_check_LDADD = \
 	$(top_builddir)/src/hed/libs/communication/libarccommunication.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
+	$(ARCLIBS_WITH_XMLSEC) \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
 	$(GLIBMM_LIBS) $(LIBXML2_LIBS)
 

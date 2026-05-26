@@ -76,7 +76,7 @@ sub collect {
     $simulator_errors = join("", <FILE>);
     close FILE;
     diag($simulator_errors);
-    fail("command simulatation");
+    fail("command simulation");
   }
 
   return $lrms_info;

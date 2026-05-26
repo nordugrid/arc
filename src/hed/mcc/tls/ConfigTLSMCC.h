@@ -26,7 +26,8 @@ class ConfigTLSMCC {
   bool globus_policy_;
   bool globus_gsi_;
   bool globusio_gsi_;
-  bool system_ca_;
+  bool system_ca_dir_;
+  bool system_ca_file_;
   bool grid_ca_;
   bool allow_insecure_;
   enum {
@@ -67,7 +68,8 @@ class ConfigTLSMCC {
   bool GlobusPolicy(void) const { return globus_policy_; };
   bool GlobusGSI(void) const { return globus_gsi_; };
   bool GlobusIOGSI(void) const { return globusio_gsi_; };
-  bool SystemCA(void) const { return system_ca_; };
+  bool SystemCADir(void) const { return system_ca_dir_; };
+  bool SystemCAFile(void) const { return system_ca_file_; };
   bool GridCA(void) const { return grid_ca_; };
   bool AllowInsecureConnection(void) const { return allow_insecure_; };
   const std::vector<std::string>& VOMSCertTrustDN(void) { return vomscert_trust_dn_; };

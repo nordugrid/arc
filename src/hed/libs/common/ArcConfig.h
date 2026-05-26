@@ -124,8 +124,10 @@ namespace Arc {
     /**
      * \since Added in 7.0.0.
      **/
-    /// Either default system-wide CA configuration to be used
-    bool systemca;
+    /// Either default system-wide CA configuration folder to be used
+    bool systemcadir;
+    /// Either multi-CA file from system-wide CA configuration to be used
+    bool systemcafile;
     /// Either grid CA configuration to be used
     bool gridca;
     /// Either TLS connections with failed verification are allowed (dangerous)
@@ -174,7 +176,7 @@ namespace Arc {
      **/
     /// Add authentication token
     void AddOToken(const std::string& token);
-    void SetSystemCA(bool use);
+    void SetSystemCA(bool useDir, bool useFile);
     void SetGridCA(bool use);
     void SetTLSAllowInsecure(bool allow_insecure);
   };

@@ -293,7 +293,9 @@ namespace Arc {
         // use already loaded one.
         Credential ci(source.GetUserConfig().ProxyPath(), source.GetUserConfig().ProxyPath(),
                       source.GetUserConfig().CACertificatesDirectory(), "",
-                      source.GetUserConfig().CAUseSystem(), source.GetUserConfig().CAUseGrid());
+                      source.GetUserConfig().CAUseSystemDir(),
+                      source.GetUserConfig().CAUseSystemFile(),
+                      source.GetUserConfig().CAUseGrid());
         dn = ci.GetIdentityName();
         exp_time = ci.GetEndTime();
       } catch (CredentialError& e) {
