@@ -17,7 +17,7 @@
 %global with_ldap_service 1
 
 # altpython3_pkgversion should also be defined when building
-%global with_altpython %{!?_without_altpython:1}%{?_without_altpython:0}
+%global with_altpython %{!?_with_altpython:0}%{?_with_altpython:1}
 
 %if %{with_altpython}
 %global altpython3_sitearch %(python%{altpython3_pkgversion} -Ic "import sysconfig; print(sysconfig.get_path('platlib', vars={'platbase': '%{_prefix}', 'base': '%{_prefix}'}))")
