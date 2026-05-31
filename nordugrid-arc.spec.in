@@ -78,6 +78,12 @@ BuildRequires:	python%{python3_pkgversion}-devel
 BuildRequires:	python%{python3_pkgversion}-pip
 BuildRequires:	python%{python3_pkgversion}-setuptools
 BuildRequires:	python%{python3_pkgversion}-wheel
+%if %{with_altpython}
+BuildRequires:	python%{altpython3_pkgversion}-devel
+BuildRequires:	python%{altpython3_pkgversion}-pip
+BuildRequires:	python%{altpython3_pkgversion}-setuptools
+BuildRequires:	python%{altpython3_pkgversion}-wheel
+%endif
 %if %{with_pylint}
 BuildRequires:	pylint
 %endif
