@@ -2056,6 +2056,7 @@ AC_CONFIG_FILES([Makefile
                  python/python/arc/Makefile
                  python/altpython/Makefile
                  python/altpython/arc/Makefile
+                 python/altpython/pyarcrest/Makefile
                  python/test/Makefile
                  python/test/python/Makefile
                  python/test/altpython/Makefile

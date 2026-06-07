@@ -1,1 +1,7 @@
-SUBDIRS = arc
+if ARCREST_ENABLED
+PYARCREST = pyarcrest
+else
+PYARCREST =
+endif
+
+SUBDIRS = arc $(PYARCREST)

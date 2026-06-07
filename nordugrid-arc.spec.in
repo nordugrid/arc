@@ -16,6 +16,14 @@
 
 %global with_ldap_service 1
 
+# altpython3_pkgversion should also be defined when building
+%global with_altpython %{!?_with_altpython:0}%{?_with_altpython:1}
+
+%if %{with_altpython}
+%global altpython3_sitearch %(python%{altpython3_pkgversion} -Ic "import sysconfig; print(sysconfig.get_path('platlib', vars={'platbase': '%{_prefix}', 'base': '%{_prefix}'}))")
+%global altpython3_sitelib  %(python%{altpython3_pkgversion} -Ic "import sysconfig; print(sysconfig.get_path('purelib', vars={'platbase': '%{_prefix}', 'base': '%{_prefix}'}))")
+%endif
+
 %global pkgdir arc
 
 # bash-completion
@@ -70,6 +78,12 @@ BuildRequires:	python%{python3_pkgversion}-devel
 BuildRequires:	python%{python3_pkgversion}-pip
 BuildRequires:	python%{python3_pkgversion}-setuptools
 BuildRequires:	python%{python3_pkgversion}-wheel
+%if %{with_altpython}
+BuildRequires:	python%{altpython3_pkgversion}-devel
+BuildRequires:	python%{altpython3_pkgversion}-pip
+BuildRequires:	python%{altpython3_pkgversion}-setuptools
+BuildRequires:	python%{altpython3_pkgversion}-wheel
+%endif
 %if %{with_pylint}
 BuildRequires:	pylint
 %endif
@@ -484,6 +498,19 @@ Connector (ARC).
 
 Python 3 bindings for ARC.
 
+%if %{with_altpython}
+%package -n python%{altpython3_pkgversion}-%{name}
+Summary:	ARC Python 3 wrapper
+Requires:	%{name} = %{version}-%{release}
+
+%description -n python%{altpython3_pkgversion}-%{name}
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+Python 3 bindings for ARC.
+%endif
+
 %package test-utils
 Summary:	ARC test tools
 Requires:	%{name} = %{version}-%{release}
@@ -536,6 +563,19 @@ Connector (ARC).
 
 This package contains the ARC REST client.
 
+%if %{with_altpython}
+%package -n python%{altpython3_pkgversion}-arcrest
+Summary:	ARC REST client
+BuildArch:	noarch
+
+%description -n python%{altpython3_pkgversion}-arcrest
+NorduGrid is a collaboration aiming at development, maintenance and
+support of the middleware, known as the Advanced Resource
+Connector (ARC).
+
+This package contains the ARC REST client.
+%endif
+
 %package arc-exporter
 Summary:	ARC Prometheus exporter service
 BuildArch:	noarch
@@ -562,6 +602,9 @@ autoreconf -v -f -i
      --enable-s3 \
 %endif
      --with-python=python3 \
+%if %{with_altpython}
+     --with-altpython=python%{altpython3_pkgversion} \
+%endif
 %if ! %{with_pylint}
      --disable-pylint \
 %endif
@@ -1110,6 +1153,12 @@ semanage fcontext -a -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null
 %{python3_sitearch}/%{pkgdir}/[^_p]*.py
 %{python3_sitearch}/%{pkgdir}/__pycache__/[^_p]*.*
 
+%if %{with_altpython}
+%files -n python%{altpython3_pkgversion}-%{name}
+%{altpython3_sitearch}/_arc.*so
+%{altpython3_sitearch}/%{pkgdir}
+%endif
+
 %files test-utils
 %{_bindir}/arcperftest
 %doc %{_mandir}/man1/arcperftest.1*
@@ -1124,6 +1173,13 @@ semanage fcontext -a -t slapd_var_run_t "/var/run/arc/bdii/db(/.*)?" 2>/dev/null
 %{python3_sitelib}/pyarcrest
 %{python3_sitelib}/pyarcrest-*.*-info
 %{_bindir}/arcrest
+
+%if %{with_altpython}
+%files -n python%{altpython3_pkgversion}-arcrest
+%{altpython3_sitelib}/pyarcrest
+%{altpython3_sitelib}/pyarcrest-*.*-info
+%{_bindir}/arcrest-%{altpython3_pkgversion}
+%endif
 
 %files arc-exporter
 %{_sbindir}/arc-exporter
