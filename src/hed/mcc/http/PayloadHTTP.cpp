@@ -535,6 +535,7 @@ bool PayloadHTTPIn::get_body(void) {
     // TODO: combination of chunked and defined length is probably impossible
     // TODO: protect against insane length_
     result=(char*)malloc(length_+1);
+    if(!result) return false;
     if(!read_multipart(result,length_)) { free(result); return false; };
     result_size=length_;
   } else { // length undefined
@@ -542,7 +543,7 @@ bool PayloadHTTPIn::get_body(void) {
     for(;;) {
       int64_t chunk_size = 4096;
       char* new_result = (char*)realloc(result,result_size+chunk_size+1);
-      if(new_result == NULL) { free(result); return false; };
+      if(!new_result) { free(result); return false; };
       result=new_result;
       if(!read_multipart(result+result_size,chunk_size)) break;
       // TODO: logical size is not always same as end of body
@@ -550,7 +551,7 @@ bool PayloadHTTPIn::get_body(void) {
       result_size+=chunk_size;
     };
   };
-  if (result == NULL) {
+  if (!result) {
     return false;
   }
   result[result_size]=0;
