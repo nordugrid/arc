@@ -940,14 +940,7 @@ sub collect($) {
                 my $slots = $job->{count} || 1;
                 $state_slots{$share}{FINISHING} += $slots;
                 if (defined $vomsvo) {
-                    $state_slots{$sharevomsvo}{FINISHING} += $slots;
-                }
-        }
-	elsif ($gmstatus eq 'ACCEPTED'){
-                my $slots = $job->{count} || 1;
-                $state_slots{$share}{ACCEPTED} += $slots;
-                if (defined $vomsvo) {
-                    $state_slots{$sharevomsvo}{ACCEPTED} += $slots;
+                    $state_slots{$sharevomsvo}{PREPARING} += $slots;
                 }
         }
         
@@ -1404,7 +1397,8 @@ sub collect($) {
               # Times for running jobs
               $cact->{UsedTotalWallTime} = $lrmsjob->{walltime} * ($gmjob->{count} || 1) if defined $lrmsjob->{walltime};
               $cact->{UsedTotalCPUTime} = $lrmsjob->{cputime} if defined $lrmsjob->{cputime};
-              $cact->{UsedMainMemory} = ceil($lrmsjob->{mem}/1024) if defined $lrmsjob->{mem};
+              # Note: bjobs returns a non-integer string, such as "-", irregularly.
+              $cact->{UsedMainMemory} = ceil($lrmsjob->{mem}/1024) if defined $lrmsjob->{mem} && $lrmsjob->{mem} =~ /^\d+$/;
           } else {
               $cact->{State} = $gmjob->{failedstate} ? glueState($gmjob->{status},'',$gmjob->{failedstate}) : glueState($gmjob->{status});
           }
