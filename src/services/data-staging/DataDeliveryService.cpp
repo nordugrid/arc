@@ -2,6 +2,7 @@
 #include <config.h>
 #endif
 
+#include <functional>
 #include <sys/stat.h>
 
 #include <arc/message/MessageAttributes.h>
@@ -16,6 +17,18 @@
 #include "DataDeliveryService.h"
 
 namespace DataStaging {
+
+  template <typename T> bool dec_if_more(std::atomic<T>& val, T limit) {
+    bool res = false;
+    for (auto v = val.load(); (v > limit) && !(res = val.compare_exchange_weak(v, v - 1)););
+    return res;
+  }
+
+  template <typename T> bool inc_if_less(std::atomic<T>& val, T limit) {
+    bool res = false;
+    for (auto v = val.load(); (v < limit) && !(res = val.compare_exchange_weak(v, v + 1)););
+    return res;
+  }
 
   static Arc::Plugin *get_service(Arc::PluginArgument* arg)
   {
@@ -125,7 +138,7 @@ namespace DataStaging {
         LogToRootLogger(Arc::WARNING, "Failed to remove temporary proxy "+proxy_file+": "+Arc::StrError(errno));
       }
     }
-    if (current_processes > 0) --current_processes;
+    dec_if_more(current_processes, 0u);
   }
 
   /*
@@ -222,14 +235,16 @@ namespace DataStaging {
        continue;
       }
 
-      if (current_processes >= max_processes) {
+      if (!inc_if_less(current_processes, max_processes)) {
         logger.msg(Arc::WARNING, "All %u process slots used", max_processes);
         resultelement.NewChild("ResultCode") = "SERVICE_ERROR";
         resultelement.NewChild("ErrorDescription") = "No free process slot available";
-       continue;
+        continue;
       }
+      std::unique_ptr<DataDeliveryService, std::function<void(DataDeliveryService*)>> 
+          current_processes_decrementor(this, [](DataDeliveryService* obj) { --(obj->current_processes); });
 
-      // check if dtrid is in the active list - if so it is probably a retry
+      // check if dtr id is in the active list - if so it is probably a retry
       active_dtrs_lock.lock();
       std::set<DTR_ptr>::iterator i = active_dtrs.begin();
 
@@ -307,7 +322,7 @@ namespace DataStaging {
         }
         continue;
       }
-      ++current_processes;
+      current_processes_decrementor.release(); // DTR ptocess started, stabilize counter
 
       // Set source checksum to validate against
       if (dtrnode["CheckSum"]) dtr->get_source()->SetCheckSum((std::string)dtrnode["CheckSum"]);

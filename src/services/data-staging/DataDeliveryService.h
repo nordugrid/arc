@@ -2,6 +2,7 @@
 #define DATADELIVERYSERVICE_H_
 
 #include <string>
+#include <atomic>
 
 #include <arc/delegation/DelegationInterface.h>
 #include <arc/message/Service.h>
@@ -51,8 +52,8 @@ namespace DataStaging {
     std::list<std::string> allowed_dirs;
     /// Process limit read from cache service configuration
     unsigned int max_processes;
-    /// Current processes - using gint to guarantee atomic thread-safe operations
-    gint current_processes;
+    /// Current processes - using std::atomic to guarantee atomic thread-safe operations
+    std::atomic<unsigned int> current_processes;
     /// Internal list of active DTRs, mapped to the stream with the transfer log
     std::set<DTR_ptr> active_dtrs;
     /// Lock for active DTRs list
