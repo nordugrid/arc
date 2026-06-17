@@ -214,7 +214,7 @@ class JWTIssuer(object):
             'iss': self.iss
         })
         if conf_d:
-            conf_d_f = write_conf_d('10-{0}.conf'.format(authgroup_name), conf_content)
+            conf_d_f = write_conf_d(None, '10-{0}.conf'.format(authgroup_name), conf_content)
             print_info(self.logger, 'Auth configuration for JWT issuer %s has been written to %s', self.iss, conf_d_f) 
             print_warn(self.logger, 'ARC services restart is needed to apply configuration changes.')
         else:
@@ -224,7 +224,7 @@ class JWTIssuer(object):
     def cleanup_conf_d(self):
         """Cleanup auth file in arc.conf.d for this iseeur"""
         name = 'testjwt' if self.testjwt else 'jwt'
-        conf_d_f = conf_d('10-{0}-{1}.conf'.format(name, self.isshash))
+        conf_d_f = conf_d(None, '10-{0}-{1}.conf'.format(name, self.isshash))
         if os.path.exists(conf_d_f):
                 self.logger.info('Removing the file: %s', conf_d_f)
                 os.unlink(conf_d_f)
