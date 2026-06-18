@@ -45,8 +45,8 @@ static bool get_proxy_policy(X509* cert,DelegationMultiSecAttr* sattr) {
     }; break;
     case NID_id_ppl_anyLanguage: { // Here we store ARC policy
       // Either this is ARC policy is determined by examining content
-      const char* policy_str = (const char *)(pci->proxyPolicy->policy->data);
-      int policy_length = pci->proxyPolicy->policy->length;
+      const char* policy_str = (const char *) ASN1_STRING_get0_data(pci->proxyPolicy->policy);
+      int policy_length = ASN1_STRING_length(pci->proxyPolicy->policy);
       if((policy_str == NULL) || (policy_length <= 0)) {
         logger.msg(DEBUG,"Proxy with empty policy  - fail on unrecognized policy");
         break;

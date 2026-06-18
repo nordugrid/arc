@@ -20,12 +20,12 @@ int PayloadTLSMCC::ex_data_index_ = -1;
 Time asn1_to_utctime(const ASN1_UTCTIME *s) {
   std::string t_str;
   if(!s) return Time();
-  if(s->type == V_ASN1_UTCTIME) {
+  if(ASN1_STRING_type(s) == V_ASN1_UTCTIME) {
     t_str.append("20");
-    t_str.append((char*)(s->data));
+    t_str.append((const char*) ASN1_STRING_get0_data(s));
   }
   else {//V_ASN1_GENERALIZEDTIME
-    t_str.append((char*)(s->data));
+    t_str.append((const char*) ASN1_STRING_get0_data(s));
   }
   return Time(t_str);
 }

@@ -54,12 +54,12 @@ int PROXY_POLICY_set_policy(PROXY_POLICY * proxypolicy, unsigned char * policy, 
 unsigned char * PROXY_POLICY_get_policy(PROXY_POLICY * proxypolicy, int * length) {
   /* assure field policy is set */
   if(proxypolicy->policy) {
-    *length = proxypolicy->policy->length;
+    *length = ASN1_STRING_length(proxypolicy->policy);
     /* assure ASN1_OCTET_STRING is full */
-    if (*length>0 && proxypolicy->policy->data) {
+    if (*length > 0 && ASN1_STRING_get0_data(proxypolicy->policy)) {
       unsigned char * copy = (unsigned char*) malloc(*length);
       if(copy) {
-        memcpy(copy, proxypolicy->policy->data, *length);
+        memcpy(copy, ASN1_STRING_get0_data(proxypolicy->policy), *length);
         return copy;
       }
     }

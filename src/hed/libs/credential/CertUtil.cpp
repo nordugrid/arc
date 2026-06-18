@@ -307,9 +307,13 @@ static bool collect_proxy_info(std::string& proxy_policy, X509* cert) {
   /**Check the proxy certificate infomation extension*/
   int i;
   for (i=0;i<X509_get_ext_count(cert);i++) {
-    X509_EXTENSION* ext = (X509_EXTENSION *) X509_get_ext(cert,i);
+#if (OPENSSL_VERSION_NUMBER < 0x40000000L)
+    X509_EXTENSION* ext = X509_get_ext(cert,i);
+#else
+    const X509_EXTENSION* ext = X509_get_ext(cert,i);
+#endif
     if(X509_EXTENSION_get_critical(ext)) {
-      ASN1_OBJECT* extension_obj = X509_EXTENSION_get_object(ext);
+      const ASN1_OBJECT* extension_obj = X509_EXTENSION_get_object(ext);
       int nid = OBJ_obj2nid(extension_obj);
       if(nid != NID_basic_constraints &&
          nid != NID_key_usage &&
@@ -354,10 +358,10 @@ static bool collect_proxy_info(std::string& proxy_policy, X509* cert) {
               proxy_policy.clear();
               if((proxycertinfo->proxyPolicy) &&
                  (proxycertinfo->proxyPolicy->policy) &&
-                 (proxycertinfo->proxyPolicy->policy->data)) {
+                 ASN1_STRING_get0_data(proxycertinfo->proxyPolicy->policy)) {
                 proxy_policy.append(
-                   (char const*)(proxycertinfo->proxyPolicy->policy->data),
-                   proxycertinfo->proxyPolicy->policy->length);
+                   (char const*) ASN1_STRING_get0_data(proxycertinfo->proxyPolicy->policy),
+                   ASN1_STRING_length(proxycertinfo->proxyPolicy->policy));
               }
               /* Use : as separator for policies parsed from different proxy certificate*/
               /* !!!! Taking int account previous proxy_policy.clear() !!!!
@@ -381,8 +385,12 @@ bool check_cert_type(X509* cert, certType& type) {
   bool ret = false;
   type = CERT_TYPE_EEC;
 
-  ASN1_STRING* data;
+  const ASN1_STRING* data;
+#if (OPENSSL_VERSION_NUMBER < 0x40000000L)
   X509_EXTENSION* certinfo_ext;
+#else
+  const X509_EXTENSION* certinfo_ext;
+#endif
   int policynid;
   Arc::Credential::PROXY_CERT_INFO_EXTENSIONRef certinfo_openssl;
 
@@ -397,8 +405,8 @@ bool check_cert_type(X509* cert, certType& type) {
   }
 
   Arc::Credential::X509_NAMERef issuer;
-  X509_NAME* subject = X509_get_subject_name(cert);
-  X509_NAME_ENTRY * name_entry = NULL;
+  const X509_NAME* subject = X509_get_subject_name(cert);
+  const X509_NAME_ENTRY * name_entry = NULL;
   if(!subject) goto err;
   name_entry = X509_NAME_get_entry(subject, X509_NAME_entry_count(subject)-1);
   if(!name_entry) goto err;
@@ -406,8 +414,8 @@ bool check_cert_type(X509* cert, certType& type) {
     /* the name entry is of the type: common name */
     data = X509_NAME_ENTRY_get_data(name_entry);
     if(!data) goto err;
-    if (data->length == 5 && !memcmp(data->data,"proxy",5)) { type = CERT_TYPE_GSI_2_PROXY; }
-    else if(data->length == 13 && !memcmp(data->data,"limited proxy",13)) { type = CERT_TYPE_GSI_2_LIMITED_PROXY; }
+    if (ASN1_STRING_length(data) == 5 && !memcmp(ASN1_STRING_get0_data(data),"proxy",5)) { type = CERT_TYPE_GSI_2_PROXY; }
+    else if(ASN1_STRING_length(data) == 13 && !memcmp(ASN1_STRING_get0_data(data),"limited proxy",13)) { type = CERT_TYPE_GSI_2_LIMITED_PROXY; }
     else if((index = X509_get_ext_by_NID(cert, NID_proxyCertInfo, -1)) != -1) {
       certinfo_ext = X509_get_ext(cert,index);
       if(X509_EXTENSION_get_critical(certinfo_ext)) {
@@ -445,7 +453,7 @@ bool check_cert_type(X509* cert, certType& type) {
      */
     if(type != CERT_TYPE_EEC && type != CERT_TYPE_CA) {
       issuer = X509_NAME_dup(X509_get_issuer_name(cert));
-      Arc::Credential::X509_NAME_ENTRYRef new_name_entry(X509_NAME_ENTRY_create_by_NID(NULL, NID_commonName, V_ASN1_APP_CHOOSE, data->data, -1));
+      Arc::Credential::X509_NAME_ENTRYRef new_name_entry(X509_NAME_ENTRY_create_by_NID(NULL, NID_commonName, V_ASN1_APP_CHOOSE, ASN1_STRING_get0_data(data), -1));
       if(!new_name_entry) goto err;
       X509_NAME_add_entry(issuer,new_name_entry,X509_NAME_entry_count(issuer),0);
 

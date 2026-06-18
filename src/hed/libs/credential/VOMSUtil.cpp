@@ -807,7 +807,7 @@ err:
       // const_cast hack due to missing set method
       const ASN1_BIT_STRING* bstr = X509_ACERT_get0_issuerUID(a);
       if(bstr)
-        ASN1_BIT_STRING_set(const_cast<ASN1_BIT_STRING*>(bstr), uid->data, uid->length);
+        ASN1_BIT_STRING_set(const_cast<ASN1_BIT_STRING*>(bstr), const_cast<unsigned char*>(ASN1_STRING_get0_data(uid)), ASN1_STRING_length(uid));
     }
 
     if(alg1) {
@@ -1326,7 +1326,7 @@ err:
     GENERAL_NAME *data = sk_GENERAL_NAME_value(OSSL_IETF_ATTR_SYNTAX_get0_policyAuthority(capattr), 0);
     if (data && data->type == GEN_URI) {
       std::string voname("/voname=");
-      voname.append((const char*)(data->d.ia5->data), data->d.ia5->length);
+      voname.append((const char*) ASN1_STRING_get0_data(data->d.ia5), ASN1_STRING_length(data->d.ia5));
       std::string::size_type pos = voname.find("://");
       if(pos != std::string::npos) {
         voname.replace(pos,3,"/hostname=");
@@ -1348,7 +1348,7 @@ err:
         return false;
       }
 
-      std::string fqan((const char*)(capname->data), capname->length);
+      std::string fqan((const char*) ASN1_STRING_get0_data(capname), ASN1_STRING_length(capname));
 
       // if the attribute is like: /knowarc.eu/Role=NULL/Capability=NULL
       // or /knowarc.eu/Role=tester/Capability=NULL
@@ -1401,7 +1401,7 @@ err:
       STACK_OF(AC_ATTRIBUTE) *atts = holder->attributes;
 
       gn = sk_GENERAL_NAME_value(holder->grantor, 0);
-      grantor.assign((const char*)(gn->d.ia5->data), gn->d.ia5->length);
+      grantor.assign((const char*) ASN1_STRING_get0_data(gn->d.ia5), ASN1_STRING_length(gn->d.ia5));
       if(grantor.empty()) {
         CredentialLogger.msg(ERROR,"VOMS: the grantor attribute is empty");
         status |= VOMSACInfo::InternalParsingFailed;
@@ -1419,18 +1419,18 @@ err:
         std::string attribute;
         AC_ATTRIBUTE *at = sk_AC_ATTRIBUTE_value(atts, j);
 
-        name.assign((const char*)(at->name->data), at->name->length);
+        name.assign((const char*) ASN1_STRING_get0_data(at->name), ASN1_STRING_length(at->name));
         if(name.empty()) {
           CredentialLogger.msg(ERROR,"VOMS: the attribute name is empty");
           status |= VOMSACInfo::InternalParsingFailed;
           return false;
         }
-        value.assign((const char*)(at->value->data), at->value->length);
+        value.assign((const char*) ASN1_STRING_get0_data(at->value), ASN1_STRING_length(at->value));
         if(value.empty()) {
           CredentialLogger.msg(WARNING,"VOMS: the attribute value for %s is empty", name.c_str());
           //return false;
         }
-        qualifier.assign((const char*)(at->qualifier->data), at->qualifier->length);
+        qualifier.assign((const char*) ASN1_STRING_get0_data(at->qualifier), ASN1_STRING_length(at->qualifier));
         if(qualifier.empty()) {
           CredentialLogger.msg(ERROR,"VOMS: the attribute qualifier is empty");
           status |= VOMSACInfo::InternalParsingFailed;
@@ -1644,14 +1644,14 @@ err:
         if (iss) {
           if (key->keyid) {
             unsigned char hashed[20];
-            ASN1_BIT_STRING* pkeystr = X509_get0_pubkey_bitstr(iss);
-            if (!SHA1(pkeystr->data,
-                      pkeystr->length,
+            const ASN1_BIT_STRING* pkeystr = X509_get0_pubkey_bitstr(iss);
+            if (!SHA1(ASN1_STRING_get0_data(pkeystr),
+                      ASN1_STRING_length(pkeystr),
                       hashed))
               keyerr = true;
 
-            if ((memcmp(key->keyid->data, hashed, 20) != 0) &&
-                (key->keyid->length == 20))
+            if ((memcmp(ASN1_STRING_get0_data(key->keyid), hashed, 20) != 0) &&
+                (ASN1_STRING_length(key->keyid) == 20))
               keyerr = true;
           }
           else {
@@ -1687,8 +1687,8 @@ err:
   }
 
   static time_t ASN1_GENERALIZEDTIME_get(const ASN1_GENERALIZEDTIME* const s) {
-    if ((s == NULL) || (s->data == NULL) || (s->length == 0)) return Arc::Time::UNDEFINED;
-    std::string str((char const *)(s->data), s->length);
+    if ((s == NULL) || (ASN1_STRING_get0_data(s) == NULL) || (ASN1_STRING_length(s) == 0)) return Arc::Time::UNDEFINED;
+    std::string str((char const *) ASN1_STRING_get0_data(s), ASN1_STRING_length(s));
     Arc::Time t(str);
     return t.GetTime();
   }
@@ -1899,7 +1899,7 @@ err:
     ctime += 300;
     dtime = ctime-600;
 
-    if ((start->type != V_ASN1_GENERALIZEDTIME) || (end->type != V_ASN1_GENERALIZEDTIME)) {
+    if ((ASN1_STRING_type(start) != V_ASN1_GENERALIZEDTIME) || (ASN1_STRING_type(end) != V_ASN1_GENERALIZEDTIME)) {
       CredentialLogger.msg(ERROR,"VOMS: unsupported time format in AC - expecting GENERALIZED TIME");
       status |= VOMSACInfo::ACParsingFailed;
       return false; // ?
@@ -2030,7 +2030,7 @@ err:
       }
     }
 
-    if (X509_ACERT_get0_serialNumber(ac)->length > 20) {
+    if (ASN1_STRING_length(X509_ACERT_get0_serialNumber(ac)) > 20) {
       CredentialLogger.msg(ERROR,"VOMS: the serial number of AC INFO is too long - expecting no more than 20 octets");
       status |= VOMSACInfo::InternalParsingFailed;
       return false;
@@ -2110,7 +2110,7 @@ err:
       return false;
     }
 
-    std::string voname((const char *)name->d.ia5->data, 0, name->d.ia5->length);
+    std::string voname((const char *) ASN1_STRING_get0_data(name->d.ia5), 0, ASN1_STRING_length(name->d.ia5));
     std::string::size_type cpos = voname.find("://");
     std::string hostname;
     if (cpos != std::string::npos) {
@@ -2133,7 +2133,7 @@ err:
       return false;
     }
 
-    Arc:Credential::X509Ref issuer;
+    Credential::X509Ref issuer;
 
     if(!checkSignature(ac, vomsdir, voname, hostname,
                        ca_cert_dir, ca_cert_file, system_ca_dir, system_ca_file, vomscert_trust_dn,
@@ -2162,7 +2162,11 @@ err:
     int nid = 0;
     int position = 0;
     bool critical = false;
+#if (OPENSSL_VERSION_NUMBER < 0x40000000L)
     X509_EXTENSION * ext;
+#else
+    const X509_EXTENSION * ext;
+#endif
     AC_SEQRef aclist;
     nid = OBJ_txt2nid(acseqOID);
     position = X509_get_ext_by_NID(holder, nid, -1);
@@ -2510,7 +2514,7 @@ err:
     Arc::Credential::X509_EXTENSIONRef ext(X509V3_EXT_conf_nid(NULL, NULL, OBJ_txt2nid(acseqOID), (char*)(ac_seq.c_str())));
     if(ext) {
       asn1.clear();
-      asn1.assign((const char*)(X509_EXTENSION_get_data(ext)->data), X509_EXTENSION_get_data(ext)->length);
+      asn1.assign((const char*) ASN1_STRING_get0_data(X509_EXTENSION_get_data(ext)), ASN1_STRING_length(X509_EXTENSION_get_data(ext)));
       ret = true;
     }
     return ret;

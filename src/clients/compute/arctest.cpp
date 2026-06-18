@@ -338,7 +338,11 @@ int dumpjobdescription_arctest_legacy(const Arc::UserConfig& usercfg, Arc::Execu
 static bool get_hash_value(const Arc::Credential& c, std::string& hash_str) {
   X509* cert = c.GetCert();
   if(!cert) return false;
+#if (OPENSSL_VERSION_NUMBER < 0x30000000L)
   X509_NAME* cert_name = X509_get_subject_name(cert);
+#else
+  const X509_NAME* cert_name = X509_get_subject_name(cert);
+#endif
   if(!cert_name) return false;
 
   char hash[32];
