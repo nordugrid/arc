@@ -214,8 +214,8 @@ err:
 
 static Time asn1_to_time(const ASN1_UTCTIME *s) {
   if(s != NULL) {
-    if(s->type == V_ASN1_UTCTIME) return Time(std::string("20")+((char*)(s->data)));
-    if(s->type == V_ASN1_GENERALIZEDTIME) return Time(std::string((char*)(s->data)));
+    if(ASN1_STRING_type(s) == V_ASN1_UTCTIME) return Time(std::string("20")+((const char*)(ASN1_STRING_get0_data(s))));
+    if(ASN1_STRING_type(s) == V_ASN1_GENERALIZEDTIME) return Time(std::string((const char*)(ASN1_STRING_get0_data(s))));
   }
   return Time(Time::UNDEFINED);
 }
@@ -648,6 +648,11 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
   PROXY_POLICY proxy_policy;
   const EVP_MD *digest = EVP_sha256();
   X509_NAME *subject = NULL;
+#if (OPENSSL_VERSION_NUMBER < 0x30000000L)
+  X509_NAME *subject_c = NULL;
+#else
+  const X509_NAME *subject_c = NULL;
+#endif
   const char* need_ext = "critical,digitalSignature,keyEncipherment";
   std::string proxy_cn;
   std::string res;
@@ -814,9 +819,9 @@ std::string DelegationProvider::Delegate(const std::string& request,const Delega
         } PROXY_POLICY;
   */
 
-  subject=X509_get_subject_name((X509*)cert_);
-  if(!subject) goto err;
-  subject=X509_NAME_dup(subject);
+  subject_c=X509_get_subject_name((X509*)cert_);
+  if(!subject_c) goto err;
+  subject=X509_NAME_dup(subject_c);
   if(!subject) goto err;
   if(!X509_set_issuer_name(cert,subject)) goto err;
   if(!X509_NAME_add_entry_by_NID(subject,NID_commonName,MBSTRING_ASC,(unsigned char*)(proxy_cn.c_str()),proxy_cn.length(),-1,0)) goto err;

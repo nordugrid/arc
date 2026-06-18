@@ -79,15 +79,15 @@ namespace Arc {
     ERR_print_errors_cb(&ssl_err_cb, &CredentialLogger);
   }
 
-  Time asn1_to_utctime(const ASN1_UTCTIME *s) {
+  Time asn1_to_utctime(const ASN1_TIME *s) {
     if(s == NULL) return Time();
     std::string t_str;
-    if(s->type == V_ASN1_UTCTIME) {
+    if(ASN1_STRING_type(s) == V_ASN1_UTCTIME) {
       t_str.append("20");
-      t_str.append((char*)(s->data));
+      t_str.append((const char*) ASN1_STRING_get0_data(s));
     }
     else {//V_ASN1_GENERALIZEDTIME
-      t_str.append((char*)(s->data));
+      t_str.append((const char*) ASN1_STRING_get0_data(s));
     }
     return Time(t_str);
   }
@@ -143,7 +143,7 @@ namespace Arc {
   //Get the life time of the credential
   void Credential::GetLifetime(STACK_OF(X509) const * certchain, X509 const * cert, Time& start, Period &lifetime) {
     Time start_time(-1), end_time(-1);
-    ASN1_UTCTIME* atime = NULL;
+    const ASN1_UTCTIME* atime = NULL;
 
     if(cert == NULL) {
       start = Time();
@@ -154,20 +154,20 @@ namespace Arc {
     if(certchain) for (int n = 0; n < sk_X509_num(certchain); n++) {
       X509* tmp_cert = sk_X509_value(certchain, n);
 
-      atime = X509_getm_notAfter(tmp_cert);
+      atime = X509_get0_notAfter(tmp_cert);
       Time e = asn1_to_utctime(atime);
       if (end_time == Time(-1) || e < end_time) { end_time = e; }
 
-      atime = X509_getm_notBefore(tmp_cert);
+      atime = X509_get0_notBefore(tmp_cert);
       Time s = asn1_to_utctime(atime);
       if (start_time == Time(-1) || s > start_time) { start_time = s; }
     }
 
-    atime = X509_getm_notAfter(cert);
+    atime = X509_get0_notAfter(cert);
     Time e = asn1_to_utctime(atime);
     if (end_time == Time(-1) || e < end_time) { end_time = e; }
 
-    atime = X509_getm_notBefore(cert);
+    atime = X509_get0_notBefore(cert);
     Time s = asn1_to_utctime(atime);
     if (start_time == Time(-1) || s > start_time) { start_time = s; }
 
@@ -268,7 +268,7 @@ namespace Arc {
   }
 
   std::string Credential::GetDN(void) const {
-    X509_NAME *subject = NULL;
+    const X509_NAME *subject = NULL;
     if(!cert_) return "";
     subject = X509_get_subject_name(cert_.get());
     std::string str;
@@ -287,13 +287,13 @@ namespace Arc {
     if(!cert_) return "";
     X509_NAMERef subject(X509_NAME_dup(X509_get_subject_name(cert_.get())));
 
-    ASN1_STRING* entry;
+    const ASN1_STRING* entry;
     std::string entry_str;
     for(;;) {
-      X509_NAME_ENTRY *ne = X509_NAME_get_entry(subject, X509_NAME_entry_count(subject)-1);
+      const X509_NAME_ENTRY *ne = X509_NAME_get_entry(subject, X509_NAME_entry_count(subject)-1);
       if (!OBJ_cmp(X509_NAME_ENTRY_get_object(ne),OBJ_nid2obj(NID_commonName))) {
         entry = X509_NAME_ENTRY_get_data(ne);
-        entry_str.assign((const char*)(entry->data), (std::size_t)(entry->length));
+        entry_str.assign((const char*) ASN1_STRING_get0_data(entry), (std::size_t) ASN1_STRING_length(entry));
         if(entry_str == "proxy" || entry_str == "limited proxy" ||
            entry_str.find_first_not_of("0123456789") == std::string::npos) {
           //Drop the name entry "proxy", "limited proxy", or the random digital(RFC)
@@ -320,7 +320,7 @@ namespace Arc {
   }
 
   std::string Credential::GetIssuerName(void) const {
-    X509_NAME *issuer = NULL;
+    const X509_NAME *issuer = NULL;
     if(!cert_) return "";
     issuer = X509_get_issuer_name(cert_.get());
     std::string str;
@@ -342,7 +342,7 @@ namespace Arc {
       // This works even if last cert on chain is CA
       // itself because CA is self-signed.
       X509 *cacert = sk_X509_value(cert_chain_.get(), num-1);
-      X509_NAME *caname = X509_get_issuer_name(cacert);
+      const X509_NAME *caname = X509_get_issuer_name(cacert);
       if(caname!=NULL) {
         char* buf = X509_NAME_oneline(caname,NULL,0);
         if(buf) {
@@ -1158,14 +1158,10 @@ namespace Arc {
       return NULL;
     }
 
-    //ASN1_OCTET_STRING_set(ext_oct, data.c_str(), data.size());
-    ext_oct->data = (unsigned char*) malloc(data.size());
-    if(!(ext_oct->data)) {
+    if (ASN1_OCTET_STRING_set(ext_oct, (const unsigned char *) data.c_str(), data.size()) == 0) {
       CredentialLogger.msg(ERROR, "Can not allocate memory for extension for proxy certificate");
       return NULL;
     }
-    memcpy(ext_oct->data, data.c_str(), data.size());
-    ext_oct->length = data.size();
 
     X509_EXTENSION* ext = NULL;
     if (!(ext = X509_EXTENSION_create_by_OBJ(NULL, ext_obj, crit, ext_oct))) {
@@ -1636,11 +1632,11 @@ namespace Arc {
     req_extensions = X509_REQ_get_extensions(req_);
     for(i=0;i<sk_X509_EXTENSION_num(req_extensions);i++) {
       X509_EXTENSION* ext = sk_X509_EXTENSION_value(req_extensions,i);
-      ASN1_OBJECT* extension_oid = X509_EXTENSION_get_object(ext);
+      const ASN1_OBJECT* extension_oid = X509_EXTENSION_get_object(ext);
       int nid = OBJ_obj2nid(extension_oid);
       if(nid == NID_proxyCertInfo) {
         proxy_cert_info_.reset();
-        ASN1_OCTET_STRING* data = X509_EXTENSION_get_data(ext);
+        const ASN1_OCTET_STRING* data = X509_EXTENSION_get_data(ext);
         if(!data) {
            CredentialLogger.msg(ERROR, "Missing data in DER encoded PROXY_CERT_INFO_EXTENSION extension");
            LogError(); goto err;
@@ -1863,7 +1859,11 @@ err:
     int num;
     if ((num = X509_get_ext_count(cert_)) > 0) {
       for (int i = 0; i < num; i++) {
+#if (OPENSSL_VERSION_NUMBER < 0x40000000L)
         X509_EXTENSION *ext;
+#else
+        const X509_EXTENSION *ext;
+#endif
         const char *extname;
 
         ext = X509_get_ext(cert_, i);
@@ -1879,18 +1879,18 @@ err:
           //Get x509 extension method structure
           if (!(method = (X509V3_EXT_METHOD *)(X509V3_EXT_get(ext)))) break;
 
-          ASN1_OCTET_STRING* extvalue = X509_EXTENSION_get_data(ext);
-          ext_value_data = extvalue->data;
+          const ASN1_OCTET_STRING* extvalue = X509_EXTENSION_get_data(ext);
+          ext_value_data = ASN1_STRING_get0_data(extvalue);
 
           //Decode ASN1 item in data
           if (method->it) {
                //New style ASN1
-               extstr = ASN1_item_d2i(NULL, &ext_value_data, extvalue->length,
+               extstr = ASN1_item_d2i(NULL, &ext_value_data, ASN1_STRING_length(extvalue),
                                       ASN1_ITEM_ptr(method->it));
           }
           else {
                //Old style ASN1
-               extstr = method->d2i(NULL, &ext_value_data, extvalue->length);
+               extstr = method->d2i(NULL, &ext_value_data, ASN1_STRING_length(extvalue));
           }
 
           val = method->i2v(method, extstr, NULL);
@@ -2007,7 +2007,11 @@ err:
 
     position = X509_get_ext_by_NID(issuer.get(), NID_ext_key_usage, -1);
     if(position > -1) {
+#if (OPENSSL_VERSION_NUMBER < 0x30000000L)
       X509_EXTENSION* ext0;
+#else
+      const X509_EXTENSION* ext0;
+#endif
       if(!(ext0 = X509_get_ext(issuer.get(), position))) {
         CredentialLogger.msg(ERROR, "Can not get extended KeyUsage extension from issuer certificate");
         LogError(); goto err;
