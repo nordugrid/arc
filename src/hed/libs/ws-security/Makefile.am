@@ -38,6 +38,7 @@ libarcwssecurity_la_LDFLAGS = -version-info 4:0:0
 test_usernametoken_SOURCES = test_usernametoken.cpp 
 test_usernametoken_CXXFLAGS = -I$(top_srcdir)/include \
 	$(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
+if XMLSEC_ENABLED
 test_usernametoken_LDADD = \
 	libarcwssecurity.la \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
@@ -45,6 +46,14 @@ test_usernametoken_LDADD = \
 	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
 	$(top_builddir)/src/hed/libs/xmlsec/libarcxmlsec.la \
     $(LIBXML2_LIBS) $(OPENSSL_LIBS)
+else
+test_usernametoken_LDADD = \
+	libarcwssecurity.la \
+	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
+	$(top_builddir)/src/hed/libs/common/libarccommon.la \
+	$(top_builddir)/src/hed/libs/credential/libarccredential.la \
+    $(LIBXML2_LIBS) $(OPENSSL_LIBS)
+endif
 
 if XMLSEC_ENABLED
 test_x509token_SOURCES = test_x509token.cpp
