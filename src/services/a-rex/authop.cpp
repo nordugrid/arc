@@ -14,7 +14,8 @@ namespace ARex {
 static std::string toString(std::list<std::string> strings) {
   std::string res;
   for(std::list<std::string>::iterator it = strings.begin(); it != strings.end(); ++it) {
-    res.append(*it).append(" ");
+    if(!res.empty()) res.append(", ");
+    res.append(*it);
   }
   return res;
 }
@@ -39,7 +40,7 @@ bool ARexConfigContext::CheckOperationAllowed(OperationType op, ARexConfigContex
         has_tls_identity = !sattr->get("SUBJECT").empty();
       }
       if((sattr = (*a)->get("OTOKENS"))) {
-        scopes = sattr->getAll("scope");
+        Arc::tokenize(sattr->get("scope"), scopes);
         has_token_identity = !sattr->get("iss").empty();
       }
     }
