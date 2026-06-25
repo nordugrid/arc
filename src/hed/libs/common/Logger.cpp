@@ -25,15 +25,6 @@ namespace Arc {
   static std::list<LogFile*> allfiles;
   static std::mutex allfilesmutex;
 
-  static std::string list_to_domain(const std::list<std::string>& subdomains) {
-    std::string domain;
-    for(std::list<std::string>::const_iterator subdomain = subdomains.begin();
-        subdomain != subdomains.end();++subdomain) {
-      domain += "."+(*subdomain);
-    }
-    return domain;
-  }
-
   std::ostream& operator<<(std::ostream& os, LogLevel level) {
     if (level == DEBUG)
       os << "DEBUG";
@@ -574,11 +565,6 @@ namespace Arc {
   void Logger::setThreshold(LogLevel threshold) {
     SharedMutexExclusiveLock lock(mutex);
     this->getContext().threshold = threshold;
-  }
-
-  void Logger::setThresholdForDomain(LogLevel threshold,
-                                     const std::list<std::string>& subdomains) {
-    setThresholdForDomain(threshold, list_to_domain(subdomains));
   }
 
   void Logger::setThresholdForDomain(LogLevel threshold,
