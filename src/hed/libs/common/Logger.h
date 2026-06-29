@@ -567,17 +567,6 @@ namespace Arc {
     /// Sets the threshold for domain.
     /** This method sets the default threshold of the domain. All new loggers
        created with specified domain will have specified threshold set by default.
-       The subdomains of all loggers in chain are matched against list of provided
-       subdomains.
-       @param threshold The threshold
-       @param subdomains The subdomains of all loggers in chain
-     */
-    static void setThresholdForDomain(LogLevel threshold,
-                                      const std::list<std::string>& subdomains);
-
-    /// Sets the threshold for domain.
-    /** This method sets the default threshold of the domain. All new loggers
-       created with specified domain will have specified threshold set by default.
        The domain is composed of all subdomains of all loggers in chain by merging
        them with '.' as separator.
        @param threshold The threshold
