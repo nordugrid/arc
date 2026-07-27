@@ -1134,7 +1134,8 @@ std::size_t ARexJob::make_job_id(ARexGMConfig& config_, Arc::Logger& logger_, st
       // TODO: add locks or links for NFS
       int err = errno;
       if(h == -1) {
-        if(err == EEXIST) continue;
+        if(err == EEXIST) continue; // somebody already created job here
+        if(err == ENOENT) continue; // somebody deleted our folder (probably cleanup)
         logger_.msg(Arc::ERROR, "Failed to create job in %s", config_.GmConfig().ControlDir());
         return idx;
       };

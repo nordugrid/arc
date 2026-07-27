@@ -137,10 +137,13 @@ bool check_file_owner(const std::string &fname,uid_t &uid,gid_t &gid,time_t &t) 
 static const std::string::size_type id_split_chunk = 3;
 static const std::string::size_type id_split_num = 4;
 
-std::string job_control_path(std::string const& control_dir, std::string const& id, char const* sfx) {
+std::string job_control_path(std::string const& control_dir, std::string const& id, int trim_num, char const* sfx) {
+  if (trim_num >= id_split_num)
+    return "";
   std::string path(control_dir);
   path += "/jobs/";
   int num = id_split_num;
+  trim_num = id_split_num - trim_num;
   for(std::string::size_type pos = 0; pos < id.length(); pos+=id_split_chunk) {
     if (--num == 0) {
       path.append(id,pos,std::string::npos);
@@ -149,19 +152,20 @@ std::string job_control_path(std::string const& control_dir, std::string const& 
     };
     path.append(id,pos,id_split_chunk);
     path += "/";
+    if(--trim_num == 0) break;
   };
   if(sfx) path += sfx;
   return path;
+}
+
+std::string job_control_path(std::string const& control_dir, std::string const& id, char const* sfx) {
+  return job_control_path(control_dir, id, 0, sfx);
 }
 
 std::string job_control_path(std::string const& control_dir, char const* subdir, std::string const& id, char const* sfx) {
   std::string path = control_dir + "/" + subdir + "/" + id + "." + sfx;
   return path;
 }
-
-//static std::string job_control_path(std::string const& control_dir, std::string const& id, char const* sfx) {
-//  return control_dir + id + sfx;
-//}
 
 bool job_lrms_mark_check(const JobId &id,const GMConfig &config) {
   std::string fname = job_control_path(config.ControlDir(), id, sfx_lrmsdone);
@@ -788,6 +792,11 @@ bool job_clean_final(const GMJob &job,const GMConfig &config) {
   fname = config.ControlDir()+"/"+subdir_rew+"/"+id+"."+sfx_status; remove(fname.c_str());
   fname = job_control_path(config.ControlDir(),id,sfx_desc); remove(fname.c_str());
   fname = job_control_path(config.ControlDir(),id,sfx_xml); remove(fname.c_str());
+  for(int trim = 0; ; ++trim) {
+    std::string subdir = job_control_path(config.ControlDir(),id,trim,nullptr);
+    if(subdir.empty()) break;
+    if(0 != rmdir(subdir.c_str())) break;
+  }
   return true;
 }
 
