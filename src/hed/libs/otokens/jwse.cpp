@@ -28,7 +28,7 @@ namespace Arc {
   char const* const JWSE::HeaderNameAlgorithm = "alg";
   char const* const JWSE::HeaderNameEncryption = "enc";
 
-  JWSE::JWSE(): valid_(false), header_(NULL, &cJSON_Delete), keyOrigin_(NoKey) {
+  JWSE::JWSE(): valid_(false), header_(NULL, &cJSON_Delete), content_(NULL, &cJSON_Delete), keyOrigin_(NoKey) {
     OpenSSLInit();
 
     header_ = cJSON_CreateObject();
@@ -43,7 +43,7 @@ namespace Arc {
     valid_ = true;
   }
 
-  JWSE::JWSE(std::string const& jwseCompact, UserConfig& userconfig): valid_(false), header_(NULL, &cJSON_Delete), keyOrigin_(NoKey) {
+  JWSE::JWSE(std::string const& jwseCompact, UserConfig& userconfig): valid_(false), header_(NULL, &cJSON_Delete), content_(NULL, &cJSON_Delete), keyOrigin_(NoKey) {
     OpenSSLInit();
 
     (void)Input(jwseCompact, userconfig);
