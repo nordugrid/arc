@@ -12,4 +12,4 @@ all-local:
 	sed '/pyarcrest.cli.arcrest:main/s/arcrest /arcrest-$(PYTHON_VERSION) /' $(top_srcdir)/src/clients/pyarcrest/setup.cfg > setup.cfg
 
 clean-local:
-	rm -rf src setup.py setup.cfg
+	rm -rf build src setup.py setup.cfg

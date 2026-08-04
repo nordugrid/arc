@@ -1,5 +1,8 @@
 include install.mk
 
+clean-local:
+	rm -rf build src/pyarcrest.egg-info
+
 EXTRA_DIST = \
 	README.md \
 	setup.cfg \
