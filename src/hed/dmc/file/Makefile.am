@@ -11,7 +11,7 @@ libdmcfile_la_LIBADD = \
 	$(top_builddir)/src/hed/libs/message/libarcmessage.la \
 	$(top_builddir)/src/hed/libs/loader/libarcloader.la \
 	$(top_builddir)/src/hed/libs/common/libarccommon.la \
-	$(LIBXML2_LIBS) $(GLIBMM_LIBS)
+	$(LIBXML2_LIBS) $(GLIBMM_LIBS) $(ZLIB_LIBS)
 libdmcfile_la_LDFLAGS = -no-undefined -avoid-version -module
 
 
