@@ -38,3 +38,4 @@ arcrename_LDADD    = $(CLILIBS) $(GLIBMM_LIBS)
 	LANG=C help2man -N -h "-h|sed s/…/.../g" -i $(word 2,$^) -o $@ ./$<
 
 EXTRA_DIST = $(man_MANS:=.in)
+CLEANFILES = $(man_MANS)

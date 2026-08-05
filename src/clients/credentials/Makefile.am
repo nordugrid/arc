@@ -18,3 +18,4 @@ man_MANS = arcproxy.1
 	LANG=C help2man -N -h "-h|sed s/…/.../g" -i $(word 2,$^) -o $@ ./$<
 
 EXTRA_DIST = $(man_MANS:=.in)
+CLEANFILES = $(man_MANS)
