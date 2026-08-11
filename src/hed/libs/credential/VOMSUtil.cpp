@@ -576,7 +576,7 @@ err:
 
     // prepare AC_IETFATTR
     for (std::vector<std::string>::iterator i = fqan.begin(); i != fqan.end(); i++) {
-      Arc::Credential::ASN1_OCTET_STRINGRef octet_string = ASN1_OCTET_STRING_new();
+      Arc::Credential::ASN1_OCTET_STRINGRef octet_string(ASN1_OCTET_STRING_new());
       if(!octet_string)
         ERROR(AC_ERR_MEMORY);
 
