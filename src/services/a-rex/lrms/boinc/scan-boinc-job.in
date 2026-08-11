@@ -37,47 +37,8 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 #  * set common variables
 common_init
 
+# Define gm-kick location
 GMKICK=${pkglibexecdir}/gm-kick
-
-# Prints the uid of the owner of the file given as argument
-# Perl is used because it's more portable than using the stat command
-printuid () {
-  code='my @s = stat($ARGV[0]); print($s[4] || "")'
-  /usr/bin/perl -we "$code" "$1"
-}
-
-#
-# Attempts to switch to uid passed as the first argument and then runs the
-# commands passed as the second argument in a shell. The remaining arguments
-# are passed as arguments to the shell. No warning is given in case switching
-# uid is not possible.
-#
-do_as_uid () {
-    test $# -ge 2 || { log "do_as_uid requires 2 arguments"; return 1; }
-
-    script='use English;
-            my ($uid, @args) = @ARGV;
-            if ( $UID == 0 && $uid ) {
-                eval { $UID = $uid };
-                print STDERR "Cannot switch to uid($UID): $@\n" if $UID != $uid;
-            }
-            system("/bin/sh","-c",@args);
-            exit ($?>>8||128+($?&127));
-    '
-    /usr/bin/perl -we "$script" "$@"
-}
-
-# Append .comment (containing STDOUT & STDERR of the job wrapper) to .errors
-save_commentfile () {
-  uid=$1
-  commentfile=$2
-  errorsfile=$3
-  echo '---------- Output of the job wrapper script -----------' >> $errorsfile
-  cat $commentfile 2> /dev/null >> $errorsfile
-  echo '------------------------- End of output -------------------------' >> $errorsfile
- 
-  #do_as_uid "$uid" "$action"
-}
 
 for control_dir in "$@" ; do
 
@@ -88,12 +49,12 @@ for control_dir in "$@" ; do
 
     # Bash specific, but this script will be rewritten in python soon...
     declare -A finished_jobs
-    appidclause=""
+    wuappidclause=""
     if [ ! -z "$CONFIG_boinc_app_id" ]; then
-        appidclause="and appid=$CONFIG_boinc_app_id"
+        wuappidclause="and wu.appid=$CONFIG_boinc_app_id"
     fi
-    finished=$(mysql -h $CONFIG_boinc_db_host -P $CONFIG_boinc_db_port -u $CONFIG_boinc_db_user --password=$CONFIG_boinc_db_pass $CONFIG_boinc_db_name -e "select name from workunit where assimilate_state=2 $appidclause")
-    
+    finished=$(mysql -h $CONFIG_boinc_db_host -P $CONFIG_boinc_db_port -u $CONFIG_boinc_db_user --password=$CONFIG_boinc_db_pass $CONFIG_boinc_db_name -N -e "select wu.name from workunit wu where wu.assimilate_state=2 $wuappidclause")
+
     for job in `echo $finished`; do
         finished_jobs[$job]=1
     done
@@ -127,35 +88,142 @@ for control_dir in "$@" ; do
 
         # process IDs could not be learned, proceeding to next
         [ -z "$joboption_jobid" ] && continue
-    
+
         #debug "local jobid = $joboption_jobid"
 
         # checking if process is still running
         if [[ ! ${finished_jobs[$joboption_jobid]} ]]; then
-            #debug "$joboption_jobid is still running, Continueing to next"
+            #debug "$joboption_jobid is still running, Continuing to next"
             continue
         else
             debug "$joboption_jobid is finished"
         fi
-        uid=$(printuid "$localfile")
+        uid=$(get_owner_uid "$localfile")
+        sessiondir=${joboption_directory}
         debug "local user id = $uid"
         diagfile=${joboption_directory}.diag
+        commentfile=${joboption_directory}.comment
+
         debug "checking $diagfile"
-        exitcode=$(do_as_uid "$uid" "cat '$diagfile'" | sed -n 's/^exitcode=\([0-9]*\).*/\1/p')
-        debug "exitcode = [$exitcode] extracted from $diagfile"
-        exitcode=0
-        
+        job_read_diag
+
         comment=""
+        error_mask=$(mysql -h $CONFIG_boinc_db_host -P $CONFIG_boinc_db_port -u $CONFIG_boinc_db_user --password=$CONFIG_boinc_db_pass $CONFIG_boinc_db_name -N -e "select error_mask from workunit wu where wu.name='$joboption_jobid'")
+        debug "got error_mask=$error_mask"
+
+        if [ "x$error_mask" != "x0" ] ; then
+            comment="BOINC server reported error mask $error_mask"
+            sep=":"
+            if [ $(( error_mask & 0x01 )) -ne 0 ] ; then comment="$comment$sep Couldn't send result"; sep=","; fi
+            if [ $(( error_mask & 0x02 )) -ne 0 ] ; then comment="$comment$sep Too many error results"; sep=","; fi
+            if [ $(( error_mask & 0x04 )) -ne 0 ] ; then comment="$comment$sep Too many success results"; sep=","; fi
+            if [ $(( error_mask & 0x08 )) -ne 0 ] ; then comment="$comment$sep Too many total results"; sep=","; fi
+            if [ $(( error_mask & 0x10 )) -ne 0 ] ; then comment="$comment$sep Workunit cancelled"; sep=","; fi
+            if [ $(( error_mask & 0x20 )) -ne 0 ] ; then comment="$comment$sep No canonical result"; fi
+            exitcode=-1
+
+            do_as_uid "$uid" "touch '$commentfile'"
+        else
+            exit_status=""
+            sent_time=""
+            recv_time=""
+            elapsed_time=""
+            cpu_time=""
+            wss=""
+
+            IFS=$'\t' read -r exit_status sent_time recv_time elapsed_time cpu_time wss <<END
+`mysql -h $CONFIG_boinc_db_host -P $CONFIG_boinc_db_port -u $CONFIG_boinc_db_user --password=$CONFIG_boinc_db_pass $CONFIG_boinc_db_name -N -r -e "select r.exit_status, r.sent_time, r.received_time, cast(r.elapsed_time as unsigned), cast(r.cpu_time as unsigned), cast(r.peak_working_set_size as unsigned) from workunit wu join result r on r.id=wu.canonical_resultid where wu.name='$joboption_jobid' and wu.canonical_resultid > 0 $wuappidclause"`
+END
+
+            LRMSExitcode="$exit_status"
+            comment="Job completed successfully"
+
+            if [ "x$sent_time" != "x0" -a "x$recv_time" != "x0" ] ; then
+                seconds_to_mds_date $sent_time
+                LRMSStartTime=$return_mds_date
+
+                seconds_to_mds_date $recv_time
+                LRMSEndTime=$return_mds_date
+            fi
+
+            WallTime=${WallTime%%.*}
+            if [ "x$elapsed_time" != "x0" ] ; then
+                if [ -z "$WallTime" ] ; then
+                    WallTime=$elapsed_time
+                elif [ $elapsed_time -gt $WallTime ] ; then
+                    WallTime=$elapsed_time
+                fi
+            fi
+
+            if [ "x$cpu_time" != "x0" ] ; then
+                KernelTime=0
+                UserTime=$cpu_time
+            fi
+
+            if [ "x$wss" != "x0" ] ; then
+                TotalMemory=$(( wss / 1024 ))
+            fi
+
+            #debug "name=$joboption_jobname"
+            #debug "got LRMSExitcode=$LRMSExitcode LRMSStartTime=$LRMSStartTime LRMSEndTime=$LRMSEndTime WallTime=${WallTime}s UserTime=${UserTime}s TotalMemory=${TotalMemory}kB"
+
+            # extract stdout
+            mysql -h $CONFIG_boinc_db_host -P $CONFIG_boinc_db_port -u $CONFIG_boinc_db_user --password=$CONFIG_boinc_db_pass $CONFIG_boinc_db_name -N -r -e "select stderr_out from workunit wu join result r on r.id=wu.canonical_resultid where wu.name='$joboption_jobid' and wu.canonical_resultid > 0 $wuappidclause" \
+            | /usr/bin/perl -0777 -ne 'print $1 if /<stderr_txt>(.*?)<\/stderr_txt>/s' | sed 's/\r$//' \
+            | do_as_uid "$uid" "cat >'$commentfile'"
+
+            # try to fix processor count
+            processors_diag=$(do_as_uid "$uid" "cat '$diagfile'" | sed -n 's/^Processors=\([0-9]*\).*/\1/p' | head -n1)
+            if [ -z "$processors_diag" ] ; then
+                processors_diag=${joboption_count:-1}
+            fi
+
+            # real core count used is minimum from vboxwrapper and athena
+            processors_vbox=$(do_as_uid "$uid" "cat '$commentfile'" | sed -n 's/^.* Setting CPU Count for VM\. (\([0-9]*\))$/\1/p' | head -n1)
+            processors_athena=$(do_as_uid "$uid" "cat '$commentfile'" | sed -n 's/^.* ATHENA_PROC_NUMBER=\([0-9]*\)$/\1/p' | head -n1)
+            if [ -z "$processors_athena" ] ; then
+                processors_athena=$(do_as_uid "$uid" "cat '$commentfile'" | sed -n 's/^.* Threads: \([0-9]*\)$/\1/p' | head -n1)
+            fi
+            debug "got core count from vbox=[$processors_vbox] athena=[$processors_athena]"
+            if [ -n "$processors_vbox" -a -n "$processors_athena" ] ; then
+                if [ $processors_vbox -lt $processors_athena ] ; then
+                    processors_log=$processors_vbox
+                else
+                    processors_log=$processors_athena
+                fi
+            else
+                processors_log=$processors_vbox$processors_athena
+            fi
+
+            if [ -n "$processors_log" -a "x$processors_diag" != "x$processors_log" ] ; then
+                debug "Fixing Processors in diagfile [$processors_diag] to detected from log [$processors_log]"
+                Processors=$processors_log
+            else
+                Processors=$processors_diag
+            fi
+            do_as_uid "$uid" "sed -i '/^Processors=/d' '$diagfile'"
+
+            #debug "got Processors=$Processors Efficiency=$(( ${UserTime} * 100 / ( ${WallTime} * ${Processors} ) ))%"
+
+            # no exitcode in diagfile, assume successful job termination
+            if [ -z "$exitcode" ] ; then
+                exitcode=0
+            fi
+        fi
+
         if [ -z "$joboption_arg_code" ] ; then joboption_arg_code='0' ; fi
         if [ -z "$exitcode" ]; then
             echo "Job $job with PID $joboption_jobid died unexpectedly" 1>&2
-            comment="Job died unexpectedly" 1>&2
+            comment="Job died unexpectedly"
             exitcode=-1
         elif [ "$exitcode" -ne "$joboption_arg_code" ]; then
-            comment="Job finished with wrong exit code - $exitcode != $joboption_arg_code" 1>&2
+            comment="Job finished with wrong exit code - $exitcode != $joboption_arg_code"
         fi
-        debug "got exitcode=$exitcode"
-        save_commentfile "$uid" "${joboption_directory}.comment" "$errorsfile"
+        debug "got exitcode=$exitcode comment=$comment"
+
+        job_write_diag
+
+        save_commentfile "$uid" "$commentfile" "$errorsfile"
         echo "$exitcode $comment" > "$lrmsfile"
         "${GMKICK}" -j "${job}" "${control_dir}"
     done

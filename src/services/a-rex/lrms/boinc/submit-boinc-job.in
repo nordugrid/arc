@@ -160,7 +160,7 @@ hostname=` grep domain_name init_data.xml |awk -F '>' '{print $2}'|awk -F "<" '{
 username=` grep user_name init_data.xml |awk -F '>' '{print $2}'|awk -F "<" '{print $1}'|sed -e "s# #_#g"`
 nodename=$username@$hostname
 echo "nodename=$nodename" >> "$RUNTIME_JOB_DIAG"
-[ -n "$ATHENA_PROC_NUMBER" ] && sed -i -e 's/Processors=1/Processors='"$ATHENA_PROC_NUMBER"'/' $RUNTIME_JOB_DIAG
+[ -n "$ATHENA_PROC_NUMBER" ] && sed -i -e 's/^Processors=.*$/Processors='"$ATHENA_PROC_NUMBER"'/' $RUNTIME_JOB_DIAG
 echo "exitcode=$RESULT" >> "$RUNTIME_JOB_DIAG"
 FMARK
 
