@@ -198,7 +198,7 @@ class AccountingControl(ComponentControl):
         self.adb.filter_jobids([args.jobid])
         aars = self.adb.get_aars(resolve_ids=True)
         if not aars:
-            self.logger.error('There are no job accounting information found for job %s', args.jobid)
+            self.logger.error('There is no job accounting information found for job %s', args.jobid)
             sys.exit(1)
         # jobinfo only works with a single job
         aar = aars[0]
@@ -291,7 +291,7 @@ class AccountingControl(ComponentControl):
         self.adb.filter_jobids([jobid])
         aars = self.adb.get_aars(resolve_ids=False)
         if not aars:
-            self.logger.error('There are no job accounting information found for job %s', jobid)
+            self.logger.error('There is no job accounting information found for job %s', jobid)
             sys.exit(1)
         self.adb.enrich_aars(aars, events=True)
         events = aars[0].events()
@@ -306,7 +306,7 @@ class AccountingControl(ComponentControl):
         self.adb.filter_jobids([jobid])
         aars = self.adb.get_aars(resolve_ids=False)
         if not aars:
-            self.logger.error('There are no job accounting information found for job %s', jobid)
+            self.logger.error('There is no job accounting information found for job %s', jobid)
             sys.exit(1)
         self.adb.enrich_aars(aars, dtrs=True)
         datatransfers = aars[0].datatransfers()
@@ -568,7 +568,7 @@ class AccountingControl(ComponentControl):
 
     def control(self, args):
         # optional custom database location (e.g. backup copy)
-        if args.database_file:
+        if "database_file" in args:
             self.__set_db_location(args.database_file)
         # action-based routines
         if args.action == 'stats':
@@ -585,7 +585,7 @@ class AccountingControl(ComponentControl):
 
     # bash-completion helpers
     def __init_adb_location(self, args):
-        if args.database_file:
+        if "database_file" in args:
             self.__set_db_location(args.database_file)
         self.__init_adb()
 
