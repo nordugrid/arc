@@ -77,20 +77,40 @@ namespace Arc {
     }
 
     virtual void msg(std::ostream& os) const {
-
       char buffer[2048];
-      snprintf(buffer, 2048, Get(m),
-               Get(t0), Get(t1), Get(t2), Get(t3),
-               Get(t4), Get(t5), Get(t6), Get(t7));
+      int n = ::snprintf(buffer, sizeof(buffer), Get(m),
+                         Get(t0), Get(t1), Get(t2), Get(t3),
+                         Get(t4), Get(t5), Get(t6), Get(t7));
+      if (n >= sizeof(buffer)) {
+        char* bigbuf = (char*)::malloc(n+1);
+        if (bigbuf != NULL) {
+          ::snprintf(bigbuf, n+1, Get(m),
+                     Get(t0), Get(t1), Get(t2), Get(t3),
+                     Get(t4), Get(t5), Get(t6), Get(t7));
+          os << bigbuf;
+          ::free(bigbuf);
+          return;
+        }
+      }
       os << buffer;
     }
 
     virtual void msg(std::string& s) const {
-
       char buffer[2048];
-      snprintf(buffer, 2048, Get(m),
-               Get(t0), Get(t1), Get(t2), Get(t3),
-               Get(t4), Get(t5), Get(t6), Get(t7));
+      int n = ::snprintf(buffer, sizeof(buffer), Get(m),
+                         Get(t0), Get(t1), Get(t2), Get(t3),
+                         Get(t4), Get(t5), Get(t6), Get(t7));
+      if (n >= sizeof(buffer)) {
+        char* bigbuf = (char*)::malloc(n+1);
+        if (bigbuf != NULL) {
+          ::snprintf(bigbuf, n+1, Get(m),
+                     Get(t0), Get(t1), Get(t2), Get(t3),
+                     Get(t4), Get(t5), Get(t6), Get(t7));
+          s = bigbuf;
+          ::free(bigbuf);
+          return;
+        }
+      }
       s = buffer;
     }
 
