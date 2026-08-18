@@ -88,12 +88,6 @@ $(ARCWRAPPERS): %_wrap.cpp: $(top_srcdir)/swig/%.i $(top_srcdir)/swig/Arc.i $(PY
 		-I/usr/include -I$(top_srcdir)/include -I$(top_builddir)/include \
 		$(PYDOXFLAGS) $(SWIG_IS_SQLITEJSTORE_ENABLED) \
 		$(AM_CPPFLAGS) $(OPENSSL_CFLAGS) $(top_srcdir)/swig/$*.i
-# Workaround for RHEL5 swig + EPEL5 python26
-	sed 's/\(^\s*char \*.*\) = \(.*ml_doc\)/\1 = (char *)\2/' $*_wrap.cpp > $*_wrap.cpp.new
-	mv $*_wrap.cpp.new $*_wrap.cpp
-# Ditto - for 64 bit
-	sed 's/^\(\s*char \*cstr;\) int len;/#if PY_VERSION_HEX < 0x02050000 \&\& !defined(PY_SSIZE_T_MIN)\n&\n#else\n\1 Py_ssize_t len;\n#endif/' $*_wrap.cpp > $*_wrap.cpp.new
-	mv $*_wrap.cpp.new $*_wrap.cpp
 # Dont allow threading when deleting SwigPyIterator objects
 	sed '/*_wrap_delete_@SWIG_PYTHON_NAMING@Iterator/,/SWIG_PYTHON_THREAD_END/ s/.*SWIG_PYTHON_THREAD_[A-Z]*_ALLOW.*//' $*_wrap.cpp > $*_wrap.cpp.new
 	mv $*_wrap.cpp.new $*_wrap.cpp

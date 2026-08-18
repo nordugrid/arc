@@ -58,11 +58,9 @@ seems to be present.
     pythonpath += path;
   }
   Py_DECREF(paths);
-#elif PY_MAJOR_VERSION >= 3
+#else
   std::wstring pythonwpath = Py_GetPath();
   std::string pythonpath(pythonwpath.begin(), pythonwpath.end());
-#else
-  std::string pythonpath = Py_GetPath();
 #endif
   std::string::size_type start = 0;
   std::string::size_type end = pythonpath.find_first_of(";:\n");

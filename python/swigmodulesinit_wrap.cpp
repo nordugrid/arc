@@ -8,16 +8,9 @@
 
 #include <Python.h>
 
-// Python 2vs3 differences
-#if PY_MAJOR_VERSION >= 3
 #define SWIG_init(NAME) PyInit__##NAME
 #define PyMOD_RETURN(NAME) return NAME
 #define PyMODVAL PyObject*
-#else
-#define SWIG_init(NAME) init_##NAME
-#define PyMOD_RETURN(NAME) return
-#define PyMODVAL void
-#endif
 
 PyMODINIT_FUNC SWIG_init(common)(void);
 PyMODINIT_FUNC SWIG_init(loader)(void);
@@ -49,7 +42,6 @@ static PyObject *module_legacy_init(PyModuleDef *def) {
 
 static PyMODVAL init_extension_module(PyObject* package, const char *modulename,
 PyMODVAL (*initfunction)(void)) {
-#if PY_MAJOR_VERSION >= 3
   // swig-4.4.0 implements PEP-489 multi-phase initialization.
   // Handle both old single-phase and new multi-phase initialization.
   // Modules that use multi-phase initialization will return a PyModuleDef, so then we force a legacy single-phase initialization.
@@ -68,14 +60,6 @@ PyMODVAL (*initfunction)(void)) {
   } else {
     module = module_or_module_def;
   }
-#else
-  initfunction();
-  PyObject *module = PyImport_AddModule((char *)modulename);
-  if(!module) {
-    fprintf(stderr, "Failed initialising Python module '%s', through Python C API\n", modulename);
-    PyMOD_RETURN(NULL);
-  }
-#endif
   if(PyModule_AddObject(package, (char *)modulename, module)) {
     fprintf(stderr, "Failied adding Python module '%s' to package 'arc', through Python C API\n", modulename);
     PyMOD_RETURN(NULL);
@@ -97,7 +81,6 @@ PyMODVAL (*initfunction)(void)) {
 }
 
 
-#if PY_MAJOR_VERSION >= 3
 static struct PyModuleDef moduledef = {
   PyModuleDef_HEAD_INIT,
   "_arc",              /* m_name */
@@ -109,7 +92,6 @@ static struct PyModuleDef moduledef = {
   NULL,                /* m_clear */
   NULL,                /* m_free */
 };
-#endif
 
 // We can probably change
 //   extern "C" SWIGEXPORT to PyMODINIT_FUNC
@@ -122,11 +104,7 @@ static struct PyModuleDef moduledef = {
 extern "C"
 SWIGEXPORT PyMODVAL SWIG_init(arc)(void) {
   // Initialise this module
-#if PY_MAJOR_VERSION >= 3
   PyObject* module = PyModule_Create(&moduledef);
-#else
-  PyObject* module = Py_InitModule("_arc", NULL); // NULL only works for Python >= 2.3
-#endif
   if(!module) {
    fprintf(stderr, "initialisation failed\n");
    PyMOD_RETURN(NULL);

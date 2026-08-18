@@ -123,11 +123,7 @@ namespace Arc {
     logger.msg(VERBOSE, "Module name: %s", module_name);
 
     // Import arc python module
-#if PY_MAJOR_VERSION >= 3
     PyObjectP py_arc_module_name = PyUnicode_FromString("arc");
-#else
-    PyObjectP py_arc_module_name = PyString_FromString("arc");
-#endif
     if (!py_arc_module_name) {
       logger.msg(ERROR, "Cannot convert ARC module name to Python string");
       if (PyErr_Occurred())
@@ -198,11 +194,7 @@ namespace Arc {
     }
 
     // Import custom broker module
-#if PY_MAJOR_VERSION >= 3
     PyObjectP py_module_name = PyUnicode_FromString(module_name.c_str());
-#else
-    PyObjectP py_module_name = PyString_FromString(module_name.c_str());
-#endif
     if (!py_module_name) {
       logger.msg(ERROR, "Cannot convert module name to Python string");
       if (PyErr_Occurred())
