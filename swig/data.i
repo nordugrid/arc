@@ -121,23 +121,31 @@ typedef struct {
 
 %typemap(out) Arc::DataBufferForWriteResult {
   $result = PyTuple_New(5);
+%#if PY_VERSION_HEX >= 0x03000000
+  PyTuple_SetItem($result,0,PyLong_FromLong($1.result));
+  PyTuple_SetItem($result,1,PyLong_FromLong($1.handle));
+  PyTuple_SetItem($result,2,PyLong_FromLong($1.size));
+  PyTuple_SetItem($result,3,PyLong_FromLong($1.offset));
+  PyTuple_SetItem($result,4,$1.buffer?PyUnicode_FromStringAndSize($1.buffer,$1.size):Py_None);
+%#else
   PyTuple_SetItem($result,0,PyInt_FromLong($1.result));
   PyTuple_SetItem($result,1,PyInt_FromLong($1.handle));
   PyTuple_SetItem($result,2,PyInt_FromLong($1.size));
   PyTuple_SetItem($result,3,PyInt_FromLong($1.offset));
-%#if PY_VERSION_HEX>=0x03000000
-  PyTuple_SetItem($result,4,$1.buffer?PyUnicode_FromStringAndSize($1.buffer,$1.size):Py_None);
-%#else
   PyTuple_SetItem($result,4,$1.buffer?PyString_FromStringAndSize($1.buffer,$1.size):Py_None);
 %#endif
 }
 
 %typemap(out) Arc::DataBufferForReadResult {
+%#if PY_VERSION_HEX >= 0x03000000
+  $result = PyTuple_Pack(3, PyLong_FromLong($1.result), PyLong_FromLong($1.handle), PyLong_FromLong($1.size));
+%#else
   $result = PyTuple_Pack(3, PyInt_FromLong($1.result), PyInt_FromLong($1.handle), PyInt_FromLong($1.size));
+%#endif
 }
 
 %typemap(in) (char* DataBufferIsReadBuf, unsigned int DataBufferIsReadSize) {
-%#if PY_VERSION_HEX>=0x03000000
+%#if PY_VERSION_HEX >= 0x03000000
   $input = PyUnicode_AsUTF8String($input);
   $1 = PyBytes_AsString($input);
   $2 = ($1)?PyBytes_Size($input):0;
