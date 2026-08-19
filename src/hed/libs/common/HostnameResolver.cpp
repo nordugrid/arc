@@ -191,11 +191,13 @@ namespace Arc {
   }
 
   HostnameResolverContainer::HostnameResolverContainer(unsigned int minval,unsigned int maxval):min_(minval),max_(maxval) {
-    KeepRange();
+    std::unique_lock<std::mutex> lock(lock_);
+    KeepRangeLocked();
   }
 
   HostnameResolverContainer::HostnameResolverContainer(void):min_(1),max_(10) {
-    KeepRange();
+    std::unique_lock<std::mutex> lock(lock_);
+    KeepRangeLocked();
   }
 
   HostnameResolverContainer::~HostnameResolverContainer(void) {
@@ -206,18 +208,47 @@ namespace Arc {
   }
 
   HostnameResolver* HostnameResolverContainer::Acquire(void) {
-    std::unique_lock<std::mutex> lock(lock_);
-    HostnameResolver* r = NULL;
-    for(std::list<HostnameResolver*>::iterator hr = hrs_.begin();hr != hrs_.end();) {
-      r = *hr; hr = hrs_.erase(hr);
-      // Test if it still works
-      if(r->ping()) break;
-      // Broken proxy
-      delete r; r = NULL;
+    HostnameResolver* r = nullptr;
+    for (;;) {
+      // Obtain resolver from cache if possible
+      r = MaybePopFront();
+      if (r == nullptr) {
+        break;
+      }
+
+      // If cached resolver is still functional, take it
+      if(r->ping()) {
+        break;
+      }
+
+      // Broken resolver - kill it
+      delete r;
+      r = nullptr;
     }
-    // If no proxies - make new
-    if(!r) r = new HostnameResolver;
-    KeepRange();
+
+    // Make new resolver if necessary
+    if (r == nullptr) {
+      r = new HostnameResolver;
+    }
+
+    // Backfill in case it's below the low watermark
+    {
+      std::unique_lock<std::mutex> lock(lock_);
+      KeepRangeLocked();
+    }
+
+    // Never null
+    return r;
+  }
+
+  HostnameResolver* HostnameResolverContainer::MaybePopFront() {
+    std::unique_lock<std::mutex> lock(lock_);
+    if (hrs_.size() == 0) {
+      return nullptr;
+    }
+    HostnameResolver* r = hrs_.front();
+    hrs_.pop_front();
+    // Do not call KeepRangeLocked(), client must do that when it's done
     return r;
   }
 
@@ -225,23 +256,23 @@ namespace Arc {
     std::unique_lock<std::mutex> lock(lock_);
     if(!hr) return;
     hrs_.push_back(hr);
-    KeepRange();
+    KeepRangeLocked();
     return;
   }
 
   void HostnameResolverContainer::SetMin(unsigned int val) {
     std::unique_lock<std::mutex> lock(lock_);
     min_ = val;
-    KeepRange();
+    KeepRangeLocked();
   }
 
   void HostnameResolverContainer::SetMax(unsigned int val) {
     std::unique_lock<std::mutex> lock(lock_);
     min_ = val;
-    KeepRange();
+    KeepRangeLocked();
   }
 
-  void HostnameResolverContainer::KeepRange(void) {
+  void HostnameResolverContainer::KeepRangeLocked(void) {
     while(hrs_.size() > ((max_>=min_)?max_:min_)) {
       HostnameResolver* fa = hrs_.front();
       hrs_.pop_front();
