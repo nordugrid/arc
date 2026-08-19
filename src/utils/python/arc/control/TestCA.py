@@ -12,6 +12,7 @@ import shutil
 import random
 import tarfile
 import pwd
+import getpass
 from contextlib import closing
 
 
@@ -23,10 +24,6 @@ def add_parser_digest_validity(parser, defvalidity=90):
 
 
 class TestCAControl(ComponentControl):
-    __test_hostcert = '/etc/grid-security/testCA-hostcert.pem'
-    __test_hostkey = '/etc/grid-security/testCA-hostkey.pem'
-    __test_authfile = '/etc/grid-security/testCA.allowed-subjects'
-
     __conf_d_access = '10-testCA-access.conf'
     __conf_d_hostcert = '00-testCA-hostcert.conf'
 
@@ -37,11 +34,14 @@ class TestCAControl(ComponentControl):
             "\n[authgroup:testCA]",
             "file = {0}",
             "\n[mapping]",
-            "map_to_user = testCA nobody:nobody",
+            "map_to_user = testCA {1}:{1}",
             "\n[arex/ws/jobs]",
             "allowaccess = testCA"
         ]
-        return '\n'.join(conf).format(self.__test_authfile)
+        username = 'nobody'
+        if not arcctl_server_mode():
+            username = getpass.getuser()
+        return '\n'.join(conf).format(self.test_authfile, username)
 
     def __arc_conf_hostcert(self):
         """Template for arc.conf: hostcerts from testCA"""
@@ -52,8 +52,8 @@ class TestCAControl(ComponentControl):
             "x509_host_cert = {1}"
         ]
         return '\n'.join(conf).format(
-            self.__test_hostkey,
-            self.__test_hostcert
+            self.test_hostkey,
+            self.test_hostcert
         )
 
     def __define_CA_ID(self, caid=None):
@@ -72,22 +72,54 @@ class TestCAControl(ComponentControl):
 
     def __init__(self, arcconfig):
         self.logger = logging.getLogger('ARCCTL.TestCA')
-        self.x509_cert_dir = '/etc/grid-security/certificates'
         self.hostname = None
 
         # Use values from arc.conf if possible
         self.arcconfig = arcconfig
         if arcconfig is None:
+            secdir = '/etc/grid-security'
+            self.x509_cert_dir = '/etc/grid-security/certificates'
             if arcctl_server_mode():
                 self.logger.info('Failed to parse arc.conf, using default CA certificates directory')
             else:
                 self.logger.debug('Working in config-less mode. Default paths will be used.')
         else:
+            # Everything for the test CA is best put in secdir = ARC_CONF/grid-security (where
+            # ARC_CONF is the directory holding the config file).  If the config is in /etc/arc.conf
+            # then we'll just compute the standard values.
+            #
+            # However if arc.conf has a setting for x509_cert_dir then we should use that as a guide
+            # if we can, as it expresses intent about where to put the test-ca materials: they
+            # normally go into the parent directory of x509_cert_dir.
+            #
+            # And yet, we can't naively use the setting for x509_cert_dir, because that property is
+            # normally set from the defaults in arc.parser.defaults if arc.conf does not itself have
+            # a value for it.
+            #
+            # So compromise: if the property value is /etc/grid-security/certificates (the default)
+            # then we assume it is actually unset, otherwise we compute secdir from it if it has a
+            # form we can understand, and fail if not.
             x509_cert_dir = arcconfig.get_value('x509_cert_dir', 'common')
-            if x509_cert_dir:
+            if not x509_cert_dir or x509_cert_dir == '/etc/grid-security/certificates':
+                secdir = os.path.join(os.path.dirname(arcconfig.conf_f), 'grid-security')
+                self.x509_cert_dir = os.path.join(secdir, 'certificates')
+            else:
                 self.x509_cert_dir = x509_cert_dir
+                (hd, tl) = os.path.split(os.path.abspath(x509_cert_dir))
+                if tl != 'certificates':
+                    self.logger.error('Explicit x509_cert_dir should have the form .../certificates for test-ca.')
+                    sys.exit(1)
+                secdir = hd
+
             self.hostname = arcconfig.get_value('hostname', 'common')
             self.logger.debug('Using hostname from arc.conf: %s', self.hostname)
+
+        ensure_path_writable(self.x509_cert_dir)
+
+        self.secdir = secdir
+        self.test_hostkey = os.path.join(secdir, 'testCA-hostkey.pem')
+        self.test_hostcert = os.path.join(secdir, 'testCA-hostcert.pem')
+        self.test_authfile = os.path.join(secdir, 'testCA.allowed-subjects')
 
         # if hostname is not defined via arc.conf
         if self.hostname is None:
@@ -119,14 +151,15 @@ class TestCAControl(ComponentControl):
         cg = CertificateGenerator(self.x509_cert_dir)
         cg.generateCA(self.caName, validityperiod=args.validity, messagedigest=args.digest, force=args.force)
         # create empty allowed-subjects file
-        if arcctl_server_mode():
-            try:
-                open(self.__test_authfile, 'a').close()
-            except IOError as err:
-                self.logger.error('Failed to create %s file. Error %s', self.__test_authfile, str(err))
-                sys.exit(1)
-            # add arc.conf to authorize testCA users
-            write_conf_d(self.__conf_d_access, self.__arc_conf_access())
+        try:
+            open(self.test_authfile, 'a').close()
+        except IOError as err:
+            reason = "" if arcctl_server_mode() else "Run as root or put arc.conf in a writeable dir. "
+            self.logger.error('Failed to create %s file. %sError %s', self.test_authfile, reason, str(err))
+            sys.exit(1)
+        # add arc.conf.d to authorize testCA users
+        write_conf_d(self.arcconfig, self.__conf_d_access, self.__arc_conf_access())
+        print_info(self.logger, 'CA materials are installed to %s', self.secdir)
 
     def ca_info(self, args):
         if not os.path.exists(self.caCert):
@@ -154,11 +187,11 @@ class TestCAControl(ComponentControl):
         cg = CertificateGenerator(self.x509_cert_dir)
         cg.cleanupCAfiles(self.caName)
         # hostcert/key, auth and conf.d files cleanup
-        for f in (self.__test_hostcert,
-                  self.__test_hostkey,
-                  self.__test_authfile,
-                  conf_d(self.__conf_d_access),
-                  conf_d(self.__conf_d_hostcert)):
+        for f in (self.test_hostcert,
+                  self.test_hostkey,
+                  self.test_authfile,
+                  conf_d(self.arcconfig, self.__conf_d_access),
+                  conf_d(self.arcconfig, self.__conf_d_hostcert)):
             if os.path.exists(f):
                 self.logger.info('Removing the file: %s', f)
                 os.unlink(f)
@@ -212,15 +245,15 @@ class TestCAControl(ComponentControl):
             print_info(self.logger, 'Host key written to %s', keyfname)
         else:
             if not args.force:
-                if os.path.exists(self.__test_hostcert) or os.path.exists(self.__test_hostkey):
+                if os.path.exists(self.test_hostcert) or os.path.exists(self.test_hostkey):
                     logger.error('Host certificate already exists.')
                     shutil.rmtree(tmpdir)
                     sys.exit(1)
-            print_info(self.logger, 'Installing generated host certificate to %s', self.__test_hostcert)
-            shutil.move(hostcertfiles.certLocation, self.__test_hostcert)
-            print_info(self.logger, 'Installing generated host key to %s', self.__test_hostkey)
-            shutil.move(hostcertfiles.keyLocation, self.__test_hostkey)
-            conf_d = write_conf_d(self.__conf_d_hostcert, self.__arc_conf_hostcert())
+            print_info(self.logger, 'Installing generated host certificate to %s', self.test_hostcert)
+            shutil.move(hostcertfiles.certLocation, self.test_hostcert)
+            print_info(self.logger, 'Installing generated host key to %s', self.test_hostkey)
+            shutil.move(hostcertfiles.keyLocation, self.test_hostkey)
+            conf_d = write_conf_d(self.arcconfig, self.__conf_d_hostcert, self.__arc_conf_hostcert())
             print_info(self.logger, 'TestCA hostcert ARC CE configuration written to %s', conf_d)
         shutil.rmtree(tmpdir)
 
@@ -315,16 +348,16 @@ class TestCAControl(ComponentControl):
             print('export X509_USER_CERT="{0}"\n'
                   'export X509_USER_KEY="{1}"'.format(usercertpath, userkeypath))
         # add subject to allowed list
-        if arcctl_server_mode():
-            if not args.no_auth:
-                try:
-                    self.logger.info('Adding certificate subject name (%s) to allowed list at %s',
-                                     usercertfiles.dn, self.__test_authfile)
-                    with open(self.__test_authfile, 'a') as a_file:
-                        a_file.write('"{0}"\n'.format(usercertfiles.dn))
-                except IOError as err:
-                    self.logger.error('Failed to modify %s. Error: %s', self.__test_authfile, str(err))
-                    sys.exit(1)
+        if not args.no_auth:
+            try:
+                self.logger.info('Adding certificate subject name (%s) to allowed list at %s',
+                                 usercertfiles.dn, self.test_authfile)
+                with open(self.test_authfile, 'a') as a_file:
+                    a_file.write('"{0}"\n'.format(usercertfiles.dn))
+            except IOError as err:
+                reason = "" if arcctl_server_mode() else "Run as root or put arc.conf in a writeable dir. "
+                self.logger.error('Failed to modify %s. %sError: %s', self.test_authfile, reason, str(err))
+                sys.exit(1)
 
     def control(self, args):
         # define CA dir if provided
@@ -335,7 +368,6 @@ class TestCAControl(ComponentControl):
             self.__define_CA_ID(args.ca_id)
         # parse actions
         if args.action == 'init':
-            ensure_path_writable(self.x509_cert_dir)
             self.createca(args)
         elif args.action == 'info':
             self.ca_info(args)
@@ -390,5 +422,4 @@ class TestCAControl(ComponentControl):
         testca_user.add_argument('-t', '--export-tar', action='store_true',
                                  help='Export tar archive to use from another host')
         testca_user.add_argument('-f', '--force', action='store_true', help='Overwrite files if exist')
-        if arcctl_server_mode():
-            testca_user.add_argument('--no-auth', action='store_true', help='Do not add user subject to allowed list')
+        testca_user.add_argument('--no-auth', action='store_true', help='Do not add user subject to allowed list')

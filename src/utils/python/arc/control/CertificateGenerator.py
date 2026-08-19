@@ -184,7 +184,7 @@ class CertificateGenerator(object):
             with open(ca.keyLocation, 'r') as ca_key:
                 pass
         except IOError as e:
-            self.logger.error("Failed to access Test CA key. Error(%s): %s", e.errno, e.strerror)
+            self.logger.error("Failed to access Test CA key %s. Error(%s): %s", ca.keyLocation, e.errno, e.strerror)
             sys.exit(1)
         
         self.checkMessageDigest(messagedigest)
