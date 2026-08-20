@@ -19,9 +19,54 @@ namespace Arc {
 
   static const int READ_TIMEOUT_MS = 60 * 1000;
   static const int WRITE_TIMEOUT_MS = 60 * 1000;
+  static const int CACHE_TTL_S = 5 * 60;
+
+  class HostnameResolverCache {
+  private:
+    struct CacheEntry {
+      CacheEntry(const std::string& node, const std::string& service, bool local)
+        : node(node)
+        , service(service)
+        , local(local)
+        , expires(0)
+      {}
+      std::string node;
+      std::string service;
+      bool local;
+      std::list<HostnameResolver::SockAddr> addrs;
+      time_t expires;
+    };
+
+  public:
+    HostnameResolverCache(int ttl_s);
+    ~HostnameResolverCache();
+
+    // Lookup (node,service,local) in the cache and if found, copy addresses into addrs and return true.
+    bool Resolve(std::string const& node, std::string const& service, bool local,
+                 std::list<HostnameResolver::SockAddr>& addrs);
+
+    // Register the (node,service,local) as resolved with given addresses
+    void Resolved(std::string const& node, std::string const& service, bool local,
+                  std::list<HostnameResolver::SockAddr> const& addrs);
+
+  private:
+    CacheEntry* FindLocked(std::string const& node, std::string const& service, bool local);
+    void CollectLocked(time_t now);
+
+  private:
+    // Immutable after construction
+    int ttl_s_;
+    int gc_interval_s_;
+
+    // Lock protects contents_, next_gc_, and every object pointed to from contents_.
+    std::mutex lock_;
+    std::vector<CacheEntry*> contents_;
+    time_t next_gc_;
+  };
 
   static bool do_tests = false;
   static HostnameResolverContainer hrs_(0,100);
+  static HostnameResolverCache rcache_(CACHE_TTL_S);
 
   static bool sread(Run& r, char* buf, size_t size) {
     while(size > 0) {
@@ -123,9 +168,13 @@ namespace Arc {
   /*static*/
   bool HostnameResolver::Resolve(std::string const& node, std::string const& service, bool local,
                                  std::list<SockAddr>& addrs) {
+    if (rcache_.Resolve(node, service, local, addrs)) {
+      return true;
+    }
     HostnameResolver* hr = hrs_.Acquire();
     int r = hr->DoResolve(node, service, local, addrs);
     hrs_.Release(hr);
+    rcache_.Resolved(node, service, local, addrs);
     return r == 0;
   }
 
@@ -334,5 +383,91 @@ namespace Arc {
     }
   }
 
+  // Very simple list-based cache implementation.  A hash table would be better for large
+  // populations, but do we expect large populations?  The ttl is normally smallish, maybe on the
+  // order of a few minutes; this will help keep the list short.
+
+  HostnameResolverCache::HostnameResolverCache(int ttl_s)
+    : ttl_s_(ttl_s)
+    , gc_interval_s_(ttl_s_)
+    , next_gc_(::time(nullptr) + gc_interval_s_)
+  { }
+
+  HostnameResolverCache::~HostnameResolverCache() {
+    std::unique_lock<std::mutex> l(lock_);
+    for (auto* it : contents_) {
+      delete it;
+    }
+  }
+
+  bool HostnameResolverCache::Resolve(std::string const& node, std::string const& service, bool local,
+                                      std::list<HostnameResolver::SockAddr>& addrs) {
+    std::unique_lock<std::mutex> l(lock_);
+    CacheEntry* probe = FindLocked(node, service, local);
+    if (probe != nullptr) {
+      for (auto const& a : probe->addrs) {
+        addrs.emplace_back(a);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  void HostnameResolverCache::Resolved(std::string const& node, std::string const& service, bool local,
+                                       std::list<HostnameResolver::SockAddr> const& addrs) {
+    std::unique_lock<std::mutex> l(lock_);
+    CacheEntry* probe = FindLocked(node, service, local);
+    if (probe != nullptr) {
+      // Some racing name resolution added it after this lookup started and before it ended.  We
+      // could just discard the new result, though note that our caller may still return it.  Or we
+      // could signal a failure, forcing our caller to repeat the lookup and return the old result
+      // that's now available (unless expired in the mean time; progress may be hard to guarantee
+      // absolutely).  Or we could mark the old result as expired and insert the new result.  Here,
+      // choose the last of these.
+      probe->expires = 0;
+    }
+    time_t now = ::time(nullptr);
+    CacheEntry* it = new CacheEntry(node, service, local);
+    for (auto const& a : addrs) {
+      it->addrs.emplace_back(a);
+    }
+    it->expires = now + ttl_s_;
+    contents_.push_back(it);
+  }
+
+  HostnameResolverCache::CacheEntry*
+  HostnameResolverCache::FindLocked(std::string const& node, std::string const& service, bool local) {
+    time_t now = ::time(nullptr);
+
+    // If it's been a while since we removed expired items, compact the list first.
+    if (now > next_gc_) {
+      CollectLocked(now);
+    }
+
+    // Scan the list looking for the item.  There are no dead items since we just ran GC.
+    for (auto const& it : contents_) {
+      if (it->node == node && it->service == service && it->local == local) {
+        return it;
+      }
+    }
+
+    return nullptr;
+  }
+
+  void HostnameResolverCache::CollectLocked(time_t now) {
+    size_t next_free = 0;
+    size_t nelem = contents_.size();
+    for (auto const& it : contents_) {
+      bool dead = it->expires < now;
+      if (!dead) {
+        contents_[next_free] = it;
+        next_free++;
+      } else {
+        delete it;
+      }
+    }
+    contents_.resize(next_free);
+    next_gc_ = now + gc_interval_s_;
+  }
 }
 
