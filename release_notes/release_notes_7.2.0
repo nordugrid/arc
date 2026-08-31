@@ -3,7 +3,7 @@ Advanced Resource Connector (ARC)
 =================================
 
 
-Release Notes for NorduGrid ARC  7.2.0 24.08.2026  
+Release Notes for NorduGrid ARC  7.2.0 31.08.2026  
 =======================================================
 
 Highlights in this release
@@ -11,7 +11,7 @@ Highlights in this release
 In this long due release we include several bug fixes and minor new features that have been included since ARC 7.1.1.
 It also includes the changes in the designated bugfix release 7.1.2 which adressed the permission settings on the controldirectory when migrating from ARC 6 to ARC 7.
 
-Control directory restructuring indoe exhaustion 
+Control directory restructuring inode exhaustion 
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 
 The ARC 7 restructuring of the controldirectory has caused some systems to suffer from inode exhaustion. 
@@ -42,7 +42,7 @@ The root cause has not yet been found, although the partial fix in BUGZ-4284 is 
 
 As soon as the root cause has been found, we will have a new release. 
 
-Suggested mititations include: 
+Suggested mitigations include: 
 
 - regularly (once every 24 hours) restart the ARC: arcctl service restart -a, this will flush the memory and keep it under control. If you are suffering from this problem, a sequential repeated restarts even improves the situation further. 
 - reduce the configured numbers of maxprocessor and maxdelivery, try half, then half of that if no improvement is seen.
@@ -52,10 +52,10 @@ Suggested mititations include:
 Additional Highlights
 ++++++++++++++++++++++
 
-- Support of OpenSSL 4
-- Enable altpython on EPEL 9
-- Enable SWIG 4.5.0 and drop python 2 support
-
+- Support of OpenSSL 4.
+- Enable altpython on EPEL 9.
+- Enable SWIG 4.5.0 and drop python 2 support.
+- BOINC back-end now provides accurate walltime, cputime, detailed failure messages and retrieves job standard output.
 
 
 The following Bugzilla tickets have been adressed or solved
@@ -116,15 +116,12 @@ If you need help with the configuration file or have any other questions related
 Future support of ARC 6-series
 ===============================
 
-Now that ARC 7.0.0 is released, we expect one final ARC 6 release, but after that we will only provide security updates of ARC 6.
-In particular:
-1) No new feature development is planned or going on for ARC6 and no bug-fixing development 
-   will happen on ARC6 code base in the future except for security issues.
-2) Security fixes for ARC6 will be provided till end of March 2026.
-3) Production Sites already running ARC 6 will be able to get deployment and configuration 
-   troubleshooting help via GGUS Helpdesk till end March 2027. This we call "operational site support".
-4) In EPEL ARC packages have their major release number as part of the package name, arc6 and arc7 packages can not be confused. 
-5) In the Nordugrid repository, you have to specifically enable the ARC 7 repo to get the ARC 7 update. See: https://www.nordugrid.org/arc/arc7/common/repos/repository.html 
+ARC 6 series is no longer supported.
+
+Note about the ARC 7 packages in EPEL and Nordugrid repository:
+
+1) In EPEL ARC packages have their major release number as part of the package name, arc6 and arc7 packages can not be confused. 
+2) In the Nordugrid repository, you have to specifically enable the ARC 7 repo to get the ARC 7 update. See: https://www.nordugrid.org/arc/arc7/common/repos/repository.html 
 
 
 Known issues
