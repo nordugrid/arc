@@ -8,14 +8,13 @@ Release Notes for NorduGrid ARC  7.2.0 31.08.2026
 
 Highlights in this release
 ---------------------------
-In this long due release we include several bug fixes and minor new features that have been included since ARC 7.1.1.
-It also includes the changes in the designated bugfix release 7.1.2 which adressed the permission settings on the controldirectory when migrating from ARC 6 to ARC 7.
+In this long due release we include several bug fixes and minor new features that have been included since ARC 7.1.2.
 
 Control directory restructuring inode exhaustion 
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 
 The ARC 7 restructuring of the controldirectory has caused some systems to suffer from inode exhaustion. 
-We have therefore added an automatic job directory cleanup procedure that should improve this (BUGZ-4311). 
+We have therefore added an automatic job directory cleanup procedure that should improve this (Bugzilla ticket 4311). 
 Although this does improve the situation it is advised after upgrade to run: 
 
 find <control dir>/jobs/??? -depth -type d -empty -delete
@@ -25,20 +24,20 @@ Datastaging related bugfixes
 +++++++++++++++++++++++++++++
 
 There is ongoing work on the datastaging of ARC. 
-Several smaller improvements and bugfixes are included in this release as a result of this (BUGZ-4301, )
+Several smaller improvements and bugfixes are included in this release as a result of this. (Bugzilla tickets 4315, 4312, 4301)
 
 
 Token scopes
 +++++++++++++++
 
 Token scopes were not extracted correctly from arc.conf, causing rejection of jobs with the requested token scope. 
-The bug is now corrected and solution verified. (BUGZ 4291)
+The bug is now corrected and solution verified. (Bugzilla ticket 4291)
 
 The arc-arex service gets OOM-killed
 +++++++++++++++++++++++++++++++++++++
 
 Sites running ARC with datadelivery are experiencing out-of-memory problems on the ARC-CE.
-The root cause has not yet been found, although the partial fix in BUGZ-4284 is expected to improve the situation. 
+The root cause has not yet been found, although the partial fix in Bugzilla ticket 4284 is expected to improve the situation. 
 
 As soon as the root cause has been found, we will have a new release. 
 
@@ -61,27 +60,34 @@ Additional Highlights
 The following Bugzilla tickets have been adressed or solved
 ------------------------------------------------------------
 
+* 4315  Log output from DataStagingDelivery is chopped by arex
+* 4313  VOMSUtil.cpp does not compile with g++ 16
+* 4312  the number of arc-hostname-resolvers can grow almost without bound
 * 4311  jobstatus hashed directories accumulate over time, exhausting inodes
+* 4309  Regression: Missing ifdef in Makefile causes link error
+* 4304  arcctl test-ca prohibits updating allowed-subjects if not running as root
 * 4301  current_processes in DataDeliveryService is racy or misdocumented
 * 4297  Wrong permission of controldir/jobs after upgrade from ARC 6 to ARC 7
+* 4295  Crash in "arcctl job accounting"
 * 4294  arched crash
 * 4291  tokenscopes limitations appear to be too strict
 * 4287  ARC-exporter doubling counting number of cores
 * 4286  Missing substitution for DEFAULT_VOMS_LOCATION
+* 4285  arcctl service verify fails when using `authtokensgen`
 * 4284  The arc-arex service us getting OOM-killed
 * 4280  Should fixdirectories in arc.conf actually repair broken permissions?
 * 4274  arcsub dumps core in Endpoint constructor if no execution service is provided (no -C)
 * 4268  Probably 'token' or similar needs to be a valid credential attribute in several places
 * 4267  arex cache cleaner 'cachesize' default is invalid, or range checking is broken
 * 4265  arc clients report 'ERROR: Missing Host in Connect Element', database appears corrupted/confused
-
+* 4263  crash in arcctl datastaging summary files
+* 4247  CEInfo REST Endpoint produces malformed JSON output if ARC CE doesn't have any RTEs enabled
 
 Documentation
 ==============
 The ARC 7 documentation can be found at https://www.nordugrid.org/arc/arc7
 
 If you miss something or have questions, please contact us!
-
 
 
 Installing ARC 7 
