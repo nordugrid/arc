@@ -20,6 +20,19 @@ namespace Arc {
   static const int READ_TIMEOUT_MS = 60 * 1000;
   static const int WRITE_TIMEOUT_MS = 60 * 1000;
   static const int CACHE_TTL_S = 5 * 60;
+  static const int PENDING_RESOLVER_WAIT_US = 200000;
+
+  enum class ResolveStatus {
+    // The caller has received the result and it is good
+    Resolved,
+    // The caller has received the result and it is a failure
+    Failed,
+    // Another thread is resolving; please wait and try again
+    Pending,
+    // This thread should perform resolution and register the result, whether
+    // success or failure.
+    YoureIt,
+  };
 
   class HostnameResolverCache {
   private:
@@ -29,24 +42,31 @@ namespace Arc {
         , service(service)
         , local(local)
         , expires(0)
+        , status(ResolveStatus::Pending)
       {}
       std::string node;
       std::string service;
       bool local;
       std::list<HostnameResolver::SockAddr> addrs;
       time_t expires;
+      ResolveStatus status;
     };
 
   public:
     HostnameResolverCache(int ttl_s);
     ~HostnameResolverCache();
 
-    // Lookup (node,service,local) in the cache and if found, copy addresses into addrs and return true.
-    bool Resolve(std::string const& node, std::string const& service, bool local,
-                 std::list<HostnameResolver::SockAddr>& addrs);
+    // Lookup (node,service,local) in the cache.  If found, copy addresses into addrs and return
+    // Resolved.  If known not to be found (or if resolver crashed or timed out, or whatever),
+    // returns Failed.  If a lookup is pending on another thread, returns Pending, in which case the
+    // caller should retry after a while.  Otherwise, returns YoureIt and the thread must perform
+    // resolution and must register the result with Resolved(), whether good or bad.
+    ResolveStatus Resolve(std::string const& node, std::string const& service, bool local,
+                          std::list<HostnameResolver::SockAddr>& addrs);
 
-    // Register the (node,service,local) as resolved with given addresses
-    void Resolved(std::string const& node, std::string const& service, bool local,
+    // Register the (node,service,local) as resolved with given addresses; res is the result from
+    // the DoResolve call (0 => success, !0 => failure).
+    void Resolved(int res, std::string const& node, std::string const& service, bool local,
                   std::list<HostnameResolver::SockAddr> const& addrs);
 
   private:
@@ -168,13 +188,22 @@ namespace Arc {
   /*static*/
   bool HostnameResolver::Resolve(std::string const& node, std::string const& service, bool local,
                                  std::list<SockAddr>& addrs) {
-    if (rcache_.Resolve(node, service, local, addrs)) {
+    ResolveStatus s;
+    while ((s = rcache_.Resolve(node, service, local, addrs)) == ResolveStatus::Pending) {
+      usleep(PENDING_RESOLVER_WAIT_US);
+    }
+    if (s == ResolveStatus::Resolved) {
       return true;
     }
+    if (s == ResolveStatus::Failed) {
+      return false;
+    }
+    // assert(s == ResolveStatus::YoureIt)
+    // We have to perform the lookup here.
     HostnameResolver* hr = hrs_.Acquire();
     int r = hr->DoResolve(node, service, local, addrs);
     hrs_.Release(hr);
-    rcache_.Resolved(node, service, local, addrs);
+    rcache_.Resolved(r, node, service, local, addrs);
     return r == 0;
   }
 
@@ -400,39 +429,49 @@ namespace Arc {
     }
   }
 
-  bool HostnameResolverCache::Resolve(std::string const& node, std::string const& service, bool local,
-                                      std::list<HostnameResolver::SockAddr>& addrs) {
+  ResolveStatus
+  HostnameResolverCache::Resolve(std::string const& node, std::string const& service, bool local,
+                                 std::list<HostnameResolver::SockAddr>& addrs) {
     std::unique_lock<std::mutex> l(lock_);
+    bool newNode = false;
     CacheEntry* probe = FindLocked(node, service, local);
-    if (probe != nullptr) {
+    if (probe == nullptr) {
+      probe = new CacheEntry(node, service, local);
+      contents_.push_back(probe);
+      newNode = true;
+    }
+    if (probe->status == ResolveStatus::Pending) {
+      if (newNode) {
+        return ResolveStatus::YoureIt;
+      }
+      return ResolveStatus::Pending;
+    }
+    if (probe->status == ResolveStatus::Resolved) {
       for (auto const& a : probe->addrs) {
         addrs.emplace_back(a);
       }
-      return true;
     }
-    return false;
+    return probe->status;
   }
 
-  void HostnameResolverCache::Resolved(std::string const& node, std::string const& service, bool local,
-                                       std::list<HostnameResolver::SockAddr> const& addrs) {
-    std::unique_lock<std::mutex> l(lock_);
-    CacheEntry* probe = FindLocked(node, service, local);
-    if (probe != nullptr) {
-      // Some racing name resolution added it after this lookup started and before it ended.  We
-      // could just discard the new result, though note that our caller may still return it.  Or we
-      // could signal a failure, forcing our caller to repeat the lookup and return the old result
-      // that's now available (unless expired in the mean time; progress may be hard to guarantee
-      // absolutely).  Or we could mark the old result as expired and insert the new result.  Here,
-      // choose the last of these.
-      probe->expires = 0;
-    }
+  void HostnameResolverCache::Resolved(int res, std::string const& node, std::string const& service,
+                                       bool local, std::list<HostnameResolver::SockAddr> const& addrs) {
     time_t now = ::time(nullptr);
-    CacheEntry* it = new CacheEntry(node, service, local);
-    for (auto const& a : addrs) {
-      it->addrs.emplace_back(a);
+    std::unique_lock<std::mutex> l(lock_);
+    CacheEntry* it = FindLocked(node, service, local);
+    // It should never be null because we only come here after Resolve() has found a pending node,
+    // and pending nodes are not garbage collected.
+    // assert(it != nullptr)
+    // assert(it->status == ResolveStatus::Pending)
+    if (res == 0) {
+      for (auto const& a : addrs) {
+        it->addrs.emplace_back(a);
+      }
+      it->status = ResolveStatus::Resolved;
+    } else {
+      it->status = ResolveStatus::Failed;
     }
     it->expires = now + ttl_s_;
-    contents_.push_back(it);
   }
 
   HostnameResolverCache::CacheEntry*
@@ -458,7 +497,7 @@ namespace Arc {
     size_t next_free = 0;
     size_t nelem = contents_.size();
     for (auto const& it : contents_) {
-      bool dead = it->expires < now;
+      bool dead = it->expires < now && it->status != ResolveStatus::Pending;
       if (!dead) {
         contents_[next_free] = it;
         next_free++;
