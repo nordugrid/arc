@@ -69,14 +69,28 @@ namespace Arc {
     void Resolved(int res, std::string const& node, std::string const& service, bool local,
                   std::list<HostnameResolver::SockAddr> const& addrs);
 
+    // Change settings.
+    //
+    // If not null, the callback will be called for some resolver operations, with these arguments:
+    //   "lookup", const char* node, const char* service, const char* localOrRemote, time_t expires
+    //      For a lookup operation that missed the cache and was not yet pending
+    //
+    //   "reap", const char* node, const char* service, const char* localOrRemote, time_t expires
+    //      When a node is taken by GC
+    //
+    //   "gc", unsigned long elements_collected, unsigned long elements_remaining
+    //      After a GC is run, even if no elements were reaped
+    void testtune(int ttl_s, int gc_interval_s, void (*callback)(const char* action...));
+
   private:
     CacheEntry* FindLocked(std::string const& node, std::string const& service, bool local);
     void CollectLocked(time_t now);
 
   private:
-    // Immutable after construction
+    // Immutable after construction (but may be updated by testtune)
     int ttl_s_;
     int gc_interval_s_;
+    void (*test_callback_)(const char* action, ...);
 
     // Lock protects contents_, next_gc_, and every object pointed to from contents_.
     std::mutex lock_;
@@ -84,7 +98,7 @@ namespace Arc {
     time_t next_gc_;
   };
 
-  static bool do_tests = false;
+  static bool relativeResolverPath = false;
   static HostnameResolverContainer hrs_(0,100);
   static HostnameResolverCache rcache_(CACHE_TTL_S);
 
@@ -137,7 +151,7 @@ namespace Arc {
   // Note this can return nullptr.
   static Run* start_resolver_subprocess() {
     std::list<std::string> argv;
-    if(!do_tests) {
+    if(!relativeResolverPath) {
       argv.push_back(Arc::ArcLocation::Get()+G_DIR_SEPARATOR_S+PKGLIBSUBDIR+G_DIR_SEPARATOR_S+"arc-hostname-resolver");
     } else {
       argv.push_back(std::string("..")+G_DIR_SEPARATOR_S+"arc-hostname-resolver");
@@ -184,6 +198,16 @@ namespace Arc {
     delete hostname_resolver_;
     hostname_resolver_ = nullptr;
   }
+
+  void HostnameResolverCache::testtune(int ttl_s, int gc_interval_s, void (*callback)(const char* ...)) {
+    std::unique_lock<std::mutex> l(lock_);
+    ttl_s_ = ttl_s;
+    gc_interval_s_ = gc_interval_s;
+    test_callback_ = callback;
+    next_gc_ = 0;
+    CollectLocked(::time(nullptr));
+  }
+
 
   /*static*/
   bool HostnameResolver::Resolve(std::string const& node, std::string const& service, bool local,
@@ -326,8 +350,9 @@ namespace Arc {
     return -1;
   }
 
-  void HostnameResolver::testtune() {
-    do_tests = true;
+  void HostnameResolver::testtune(void (*callback)(const char* action, ...)) {
+    relativeResolverPath = true;
+    rcache_.testtune(10, 5, callback);
   }
 
   HostnameResolverContainer::HostnameResolverContainer(unsigned int minval, unsigned int maxval)
@@ -419,6 +444,7 @@ namespace Arc {
   HostnameResolverCache::HostnameResolverCache(int ttl_s)
     : ttl_s_(ttl_s)
     , gc_interval_s_(ttl_s_)
+    , test_callback_(nullptr)
     , next_gc_(::time(nullptr) + gc_interval_s_)
   { }
 
@@ -472,6 +498,9 @@ namespace Arc {
       it->status = ResolveStatus::Failed;
     }
     it->expires = now + ttl_s_;
+    if (test_callback_ != nullptr) {
+      test_callback_("lookup", node.c_str(), service.c_str(), (local ? "local" : "remote"), it->expires);
+    }
   }
 
   HostnameResolverCache::CacheEntry*
@@ -502,10 +531,17 @@ namespace Arc {
         contents_[next_free] = it;
         next_free++;
       } else {
+        if (test_callback_ != nullptr) {
+          test_callback_("reap", it->node.c_str(), it->service.c_str(), (it->local ? "local" : "remote"),
+                       it->expires);
+        }
         delete it;
       }
     }
     contents_.resize(next_free);
+    if (test_callback_ != nullptr) {
+      test_callback_("gc", (unsigned long)(nelem - next_free), (unsigned long)next_free);
+    }
     next_gc_ = now + gc_interval_s_;
   }
 }

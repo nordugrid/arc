@@ -40,9 +40,13 @@ namespace Arc {
    };
 
     /// Resolve provides host name using resolver proxy (if valid), returning true for success.
-    static bool Resolve(std::string const& node, std::string const& service, bool local, std::list<SockAddr>& addrs);
-    /// Special method for using in unit tests.
-    static void testtune();
+    static bool Resolve(std::string const& node, std::string const& service, bool local,
+                        std::list<SockAddr>& addrs);
+    /// Special method for using in unit tests.  This must be called from test prologue code only,
+    /// and will freely scribble on global variables and data structures without locking.  It will
+    /// set the hostname caching time-to-live to 10s, the cache GC interval to 5s, and install the
+    /// callback so that it will be called for some lookup and GC operations.
+    static void testtune(void (*callback)(const char* action, ...));
 
   private:
     /// New HostnameResolver object.
