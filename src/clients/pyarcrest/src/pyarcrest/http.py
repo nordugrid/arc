@@ -73,8 +73,11 @@ class HTTPClient:
 
         self.isHTTPS = useHTTPS
 
-    def request(self, method, endpoint, headers={}, token=None, jsonData=None, data=None, params={}):
+    def request(self, method, endpoint, headers=None, token=None, jsonData=None, data=None, params=None):
         """Send request and retry on ConnectionErrors."""
+        headers = {} if headers is None else headers.copy()
+        params = {} if params is None else params.copy()
+
         if token:
             headers['Authorization'] = f'Bearer {token}'
 

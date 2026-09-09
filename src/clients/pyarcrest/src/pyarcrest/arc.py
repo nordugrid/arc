@@ -399,7 +399,10 @@ class ARCRest:
 
         return [resultDict[jobid] for jobid in jobids]
 
-    def downloadJobFiles(self, downloadDir, jobids, outputFilters={}, diagnoseFiles={}, diagnoseDirs={}, workers=None, recvsize=None, timeout=None):
+    def downloadJobFiles(self, downloadDir, jobids, outputFilters=None, diagnoseFiles=None, diagnoseDirs=None, workers=None, recvsize=None, timeout=None):
+        outputFilters = {} if outputFilters is None else outputFilters
+        diagnoseFiles = {} if diagnoseFiles is None else diagnoseFiles
+        diagnoseDirs = {} if diagnoseDirs is None else diagnoseDirs
         if not workers:
             workers = 1
         resultDict = {jobid: [] for jobid in jobids}
@@ -486,7 +489,8 @@ class ARCRest:
     def submitJobs(self, descs, queue=None, delegationID=None, processDescs=True, matchDescs=True, uploadData=True, workers=None, sendsize=None, timeout=None):
         raise NotImplementedError
 
-    def matchJob(self, ceInfo, queue=None, runtimes=[], walltime=None):
+    def matchJob(self, ceInfo, queue=None, runtimes=None, walltime=None):
+        runtimes = [] if runtimes is None else runtimes
         if queue:
             self._matchQueue(ceInfo, queue)
 
@@ -746,7 +750,8 @@ class ARCRest:
             if not refilter or refilter.match(newname):
                 transferQueue.put(Transfer(jobid, newname, newpath, type="listing", cancelEvent=cancelEvent))
 
-    def _requestJSON(self, method, endpoint, headers={}, token=None, jsonData=None, data=None, params={}):
+    def _requestJSON(self, method, endpoint, headers=None, token=None, jsonData=None, data=None, params=None):
+        headers = {} if headers is None else headers.copy()
         headers["Accept"] = "application/json"
         resp = self._request(method, endpoint, headers, token, jsonData, data, params)
         text = resp.read().decode()
@@ -884,7 +889,7 @@ class ARCRest:
 
         return [resultDict[i] for i in range(len(descs))]
 
-    def _request(self, method, endpoint, headers={}, token=None, jsonData=None, data=None, params={}):
+    def _request(self, method, endpoint, headers=None, token=None, jsonData=None, data=None, params=None):
         if not token:
             token = self.token
         endpoint = f"{self.apiPath}{endpoint}"
@@ -893,7 +898,8 @@ class ARCRest:
     ### Static support methods ###
 
     @classmethod
-    def _requestJSONStatic(cls, httpClient, method, endpoint, headers={}, token=None, jsonData=None, data=None, params={}):
+    def _requestJSONStatic(cls, httpClient, method, endpoint, headers=None, token=None, jsonData=None, data=None, params=None):
+        headers = {} if headers is None else headers.copy()
         headers["Accept"] = "application/json"
         resp = httpClient.request(method, endpoint, headers, token, jsonData, data, params)
         text = resp.read().decode()
@@ -925,7 +931,8 @@ class ARCRest:
 
     # TODO: add bail out parameter for cancelEvent?
     @classmethod
-    def _downloadTransferWorker(cls, restClient, transferQueue, errorQueue, downloadDir, outputFilters={}):
+    def _downloadTransferWorker(cls, restClient, transferQueue, errorQueue, downloadDir, outputFilters=None):
+        outputFilters = {} if outputFilters is None else outputFilters
         while True:
             try:
                 transfer = transferQueue.get()

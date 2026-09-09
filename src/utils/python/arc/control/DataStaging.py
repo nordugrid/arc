@@ -651,10 +651,10 @@ class DataStagingControl(ComponentControl):
             else:
                 if datastaging_time['done']:
                     fmt = "\t{:<21} \t{:<21} \t{:<12}"
-                    print(fmt.format('Start' 'End' 'Duration'))
+                    print(fmt.format('Start', 'End', 'Duration'))
                     print(fmt.format(datastaging_time['start'], datastaging_time['end'], datastaging_time['dt']))
                 else:
-                    fmt = "\t{:<21} \t{:<21} \t{:<12}"
+                    fmt = "\t{:<21} \t{:<12}"
                     print("\tDatastaging still ongoing")
                     print(fmt.format('Start', 'Duration'))
                     print(fmt.format(datastaging_time['start'],datastaging_time['dt']))
@@ -704,7 +704,7 @@ class DataStagingControl(ComponentControl):
             if 'remote_dds' not in val:
                 val['remote_dds'] = '-'
             if ('start_deliver' in val.keys() and 'start_sched' in val.keys() and 'return_gen' in val.keys() and 'speed' in val.keys()):
-                fmt = "\t{:<5.5} {:<15.15} {:<15.3f} {:<20.20} {:<20.20} {:<20.20} {:<20.20} {:<20.20} {:<20.20} {:<6} {:<10.1f} {}"
+                fmt = "\t{:<5} {:<15.15} {:<15.3f} {:<20.20} {:<20.20} {:<20.20} {:<20.20} {:<20.20} {:<20.20} {:<6} {:<10.1f} {}"
                 print(fmt.format(idx, key, val['size'], val['start'], val['end'], val['start_sched'], val['start_deliver'], val['transf_done'], val['return_gen'], val['seconds'], val['speed'], val['remote_dds']))
                 idx += 1
                 downloads = True

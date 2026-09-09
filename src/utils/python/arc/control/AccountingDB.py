@@ -789,7 +789,10 @@ class AccountingDB(object):
         # return URL for gridftp and emies for backward compatibility
         if etype == 'org.ogf.glue.emies.activitycreation' or etype == 'org.nordugrid.gridftpjob':
             return eurl
-        return '{0}:{1}'.format(etype.lstrip('org.nordugrid.'), eurl)
+        prefix = 'org.nordugrid.'
+        if etype.startswith(prefix):
+            etype = etype[len(prefix):]
+        return '{0}:{1}'.format(etype, eurl)
 
     def __get_apel_summaries_v1(self, keep_db_con=False):
         """Query data for APEL aggregated summary records from v1 database"""
