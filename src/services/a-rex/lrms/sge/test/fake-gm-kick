@@ -1,0 +1,2 @@
+printf '%s\n' "$*" >> "$TEST_ROOT/kicks"
+exit 0

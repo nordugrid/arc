@@ -1,0 +1,67 @@
+#!/bin/sh
+
+command_name=${0##*/}
+printf '%s %s\n' "$command_name" "$*" >> "$TEST_ROOT/calls"
+
+read_status () {
+    status=0
+    if [ -r "$1" ]; then
+        read -r status < "$1"
+    fi
+    case $status in
+        ''|*[!0-9]*) status=1 ;;
+    esac
+}
+
+emit_file () {
+    [ ! -r "$1" ] || /bin/cat "$1"
+}
+
+case $command_name in
+    qsub)
+        /bin/pwd > "$TEST_ROOT/qsub.cwd"
+        for argument do submitted_script=$argument; done
+        /bin/cp "$submitted_script" "$TEST_ROOT/submitted.job"
+        if [ -e "$TEST_ROOT/qsub.break_grami" ]; then
+            rm -f "$GRAMI_FILE"
+            ln -s /dev/full "$GRAMI_FILE"
+        fi
+        emit_file "$TEST_ROOT/qsub.output"
+        read_status "$TEST_ROOT/qsub.rc"
+        exit "$status"
+        ;;
+    qconf)
+        case $1 in
+            -spl) emit_file "$TEST_ROOT/qconf.spl" ;;
+            -sp)  emit_file "$TEST_ROOT/qconf.sp" ;;
+            -sc)  emit_file "$TEST_ROOT/qconf.sc" ;;
+        esac
+        read_status "$TEST_ROOT/qconf.rc"
+        exit "$status"
+        ;;
+    qstat)
+        if [ "$1" = -xml ]; then
+            emit_file "$TEST_ROOT/qstat.xml"
+            read_status "$TEST_ROOT/qstat.rc"
+        else
+            emit_file "$TEST_ROOT/qstat.job.output"
+            read_status "$TEST_ROOT/qstat.job.rc"
+        fi
+        exit "$status"
+        ;;
+    qacct)
+        emit_file "$TEST_ROOT/qacct.output"
+        read_status "$TEST_ROOT/qacct.rc"
+        exit "$status"
+        ;;
+    qdel)
+        emit_file "$TEST_ROOT/qdel.output"
+        read_status "$TEST_ROOT/qdel.rc"
+        exit "$status"
+        ;;
+    qhost)
+        exit 0
+        ;;
+esac
+
+exit 1

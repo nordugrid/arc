@@ -68,6 +68,7 @@
     <xsd:element name="sge_bin_path" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
+                Directory containing the Grid Engine client commands.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
@@ -75,6 +76,7 @@
     <xsd:element name="sge_root" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
+                Grid Engine installation root (SGE_ROOT).
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
@@ -82,6 +84,7 @@
     <xsd:element name="sge_cell" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
+                Grid Engine cell name (SGE_CELL).
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
@@ -89,6 +92,7 @@
     <xsd:element name="sge_qmaster_port" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
+                Optional Grid Engine qmaster TCP port.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
@@ -96,6 +100,7 @@
     <xsd:element name="sge_execd_port" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
+                Optional Grid Engine execution-daemon TCP port.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
@@ -103,6 +108,85 @@
     <xsd:element name="sge_jobopts" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
+                Additional native qsub options which do not change the ARC
+                job shape. The -clear, -t, -tc, -sync, -now, -b, -shell, -pe, -N and -@ options are not
+                supported; use sge_pe for parallel jobs.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="sge_queues" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Space-separated exact native Grid Engine cluster-queue names
+                represented by an ARC queue/share.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="sge_pe" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Parallel environment used for jobs requesting multiple slots.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="sge_exclusive_resource" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Requestable per-slot consumable BOOL complex with EXCL relation
+                used for exclusive jobs.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="sge_memory_resource" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Requestable per-slot consumable MEMORY complex with less-than-or-equal
+                relation used for physical-memory requests. The standard
+                non-consumable h_vmem limit is accepted as a compatibility fallback.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="sge_debug">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Trace SGE submission, queries and accounting decisions to existing
+                helper/job logs. Disabled by default. Does not dump job scripts
+                or the environment.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="yes"/>
+                <xsd:enumeration value="no"/>
+            </xsd:restriction>
+        </xsd:simpleType>
+    </xsd:element>
+
+    <xsd:element name="sge_wakeupperiod" type="xsd:nonNegativeInteger">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Delay in seconds at the end of an SGE scanner pass.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="sge_query_retries" type="xsd:nonNegativeInteger">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Additional attempts for transient qstat and qacct failures.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="sge_accounting_retries" type="xsd:nonNegativeInteger">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Scanner passes to wait for a buffered final qacct record.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>

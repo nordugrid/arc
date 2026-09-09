@@ -7,8 +7,7 @@
 echo "----- starting cancel_sge_job -----" 1>&2
 
 joboption_lrms="sge"
-lrms_options="sge_root sge_cell sge_qmaster_port sge_execd_port sge_bin_path sge_jobopts"
-queue_options="sge_jobopts"
+lrms_options="sge_root sge_cell sge_qmaster_port sge_execd_port sge_bin_path sge_debug"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
@@ -28,17 +27,24 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 #  * load LRMS-specific env
 common_init
 
-# qdel
-echo executing $SGE_BIN_PATH/qdel with job id $joboption_jobid 1>&2
-$SGE_BIN_PATH/qdel "${joboption_jobid}"
+# qdel only initiates deletion.  The scanner keeps tracking the job while Grid
+# Engine reports one of the deletion states and completes it from qacct later.
+verify_jobid "$joboption_jobid" || exit 1
+
+sge_log "event=cancel command=$sge_qdel"
+"$sge_qdel" "$joboption_jobid"
+sge_cancel_status=$?
+sge_log "event=cancel_result exit_status=$sge_cancel_status"
+if [ "$sge_cancel_status" -ne 0 ]; then
+    echo "qdel failed for SGE job $joboption_jobid" 1>&2
+    echo "----- exiting cancel_sge_job -----" 1>&2
+    exit 1
+fi
+sge_debug 'event=cancel_accepted completion=awaiting_scanner_accounting'
 
 echo "----- exiting cancel_sge_job -----" 1>&2
 echo "" 1>&2
 exit 0
-
-
-
-
 
 
 

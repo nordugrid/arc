@@ -11,12 +11,17 @@
 echo "----- starting submit_sge_job -----" 1>&2
 
 joboption_lrms="sge"
-lrms_options="sge_root sge_cell sge_qmaster_port sge_execd_port sge_bin_path sge_jobopts"
-queue_options="sge_jobopts"
+lrms_options="sge_root sge_cell sge_qmaster_port sge_execd_port sge_bin_path sge_jobopts sge_pe sge_exclusive_resource sge_memory_resource sge_debug"
+queue_options="sge_queues sge_jobopts sge_pe sge_exclusive_resource sge_memory_resource"
 
 # ARC1 passes first the config file.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
 GRAMI_FILE=$1
+case $GRAMI_FILE in
+  -h|--help|/*) ;;
+  *) GRAMI_FILE=$PWD/$GRAMI_FILE ;;
+esac
+export GRAMI_FILE
 
 # define paths and config parser
 basedir=`dirname $0`
@@ -33,6 +38,23 @@ basedir=`cd $basedir > /dev/null && pwd` || exit $?
 #  * set common variables
 common_init
 
+if ! validate_sge_qsub_defaults; then
+  echo "Unsafe Grid Engine qsub defaults; refusing submission" 1>&2
+  echo "Submission: Configuration error."
+  exit 1
+fi
+
+# qsub spools the job script, but ARC has no SGE transport for staging the
+# session directory to a worker which cannot see the frontend filesystem.
+# Failing here avoids jobs later dying in Grid Engine with failed=26.
+if [ -z "$RUNTIME_NODE_SEES_FRONTEND" ]; then
+  echo "SGE requires worker nodes to see the ARC session filesystem; shared_filesystem=no is not supported" 1>&2
+  echo "Submission: Configuration error."
+  exit 1
+fi
+
+check_any_scratch
+
 #Log performance
 perflogfilesub="${perflogdir}/submission.perflog"
 
@@ -47,29 +69,25 @@ fi
 
 RTE_stage0
 
-# Force shell /bin/sh, other qsub options have been moved to the job script
-SGE_QSUB='qsub -S @posix_shell@'
-SGE_QCONF=qconf
-if [ "$SGE_BIN_PATH" ] ; then
-  SGE_QSUB=${SGE_BIN_PATH}/${SGE_QSUB}
-  SGE_QCONF=${SGE_BIN_PATH}/${SGE_QCONF}
-fi
-
 mktempscript
 
 ##############################################################
 # Start job script
 ##############################################################
-echo '#!@posix_shell@' > $LRMS_JOB_SCRIPT
-echo "# SGE batch job script built by arex" >> $LRMS_JOB_SCRIPT
+echo '#!@posix_shell@' > "$LRMS_JOB_SCRIPT"
+echo "# SGE batch job script built by arex" >> "$LRMS_JOB_SCRIPT"
+# Reset request settings which Grid Engine handles in its ordered option pass.
+# Defaults consumed earlier are guarded by validate_sge_qsub_defaults, and
+# qsub runs outside the session so an uploaded .sge_request is never read.
+echo '#$ -clear' >> "$LRMS_JOB_SCRIPT"
 # Job not rerunable:
-echo "#$ -r n" >> $LRMS_JOB_SCRIPT
+echo "#$ -r n" >> "$LRMS_JOB_SCRIPT"
 # Don't send mail when job finishes:
-echo "#$ -m n" >> $LRMS_JOB_SCRIPT
+echo "#$ -m n" >> "$LRMS_JOB_SCRIPT"
 # Mix standard output and standard error:
-echo "#$ -j y" >> $LRMS_JOB_SCRIPT
+echo "#$ -j y" >> "$LRMS_JOB_SCRIPT"
 # Write output to comment file:
-echo "#$ -o ${joboption_directory}/.comment" >> $LRMS_JOB_SCRIPT
+echo "#$ -o ${joboption_directory}/.comment" >> "$LRMS_JOB_SCRIPT"
 
 ##############################################################
 # priority
@@ -80,20 +98,49 @@ if [ ! -z "$joboption_priority" ]; then
   #Same problem as SLURM. We can only prioritize grid jobs. Locally submitted jobs will get highest priority.
   priority=$((joboption_priority * 1023 / 100))
   priority=$((priority-1023))
-  echo "#$ -p ${priority}" >> $LRMS_JOB_SCRIPT
+  echo "#$ -p ${priority}" >> "$LRMS_JOB_SCRIPT"
 fi
 
 # Choose queue.
-echo "#$ -q $joboption_queue" >> $LRMS_JOB_SCRIPT
-
-# job name for convenience
-if [ ! -z "${joboption_jobname}" ] ; then
-  jobname=`echo "$joboption_jobname" | \
-           sed 's/^\([^[:alpha:]]\)/N\1/' | \
-           sed 's/[^[:alnum:]]/_/g' | \
-           sed 's/\(...............\).*/\1/'`
-  echo "#$ -N \"$jobname\"" >> $LRMS_JOB_SCRIPT
+if [ -n "$joboption_queue" ]; then
+  sge_queue_selection=${CONFIG_sge_queues:-$joboption_queue}
+  sge_queue_selection=`printf '%s\n' "$sge_queue_selection" | awk '{$1=$1; gsub(/[[:space:]]+/, ","); print}'`
+  case $sge_queue_selection in
+    ''|*[!A-Za-z0-9_.,-]*)
+      echo "Invalid SGE queue selection: $sge_queue_selection" 1>&2
+      rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+      echo "Submission: Configuration error."
+      exit 1
+      ;;
+  esac
+  echo "#$ -q $sge_queue_selection" >> "$LRMS_JOB_SCRIPT"
 fi
+
+# Project name for Grid Engine accounting and access control.
+if [ -n "$joboption_rsl_project" ]; then
+  case $joboption_rsl_project in
+    *[!A-Za-z0-9_.-]*)
+      echo "Invalid SGE project name: $joboption_rsl_project" 1>&2
+      rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+      echo "Submission: Job description error."
+      exit 1
+      ;;
+  esac
+  echo "#$ -P $joboption_rsl_project" >> "$LRMS_JOB_SCRIPT"
+fi
+
+# Include ARC's local identifier in the scheduler name so queues remain easy to
+# inspect. The persisted submission timestamp remains authoritative when a JSV
+# rewrites this name or Grid Engine later reuses the numeric ID.
+if [ -n "${joboption_jobname}" ] ; then
+  jobname_label=`printf '%s\n' "$joboption_jobname" | sed 's/[^[:alnum:]]/_/g' | cut -c 1-62`
+else
+  jobname_label=gridjob
+fi
+jobname_identity=`printf '%s\n' "$joboption_gridid" | sed 's/[^[:alnum:]]/_/g' | cut -c 1-62`
+[ -n "$jobname_identity" ] || jobname_identity=unknown
+jobname=`printf 'arc_%s_%s\n' "$jobname_label" "$jobname_identity" | cut -c 1-128`
+echo "#$ -N $jobname" >> "$LRMS_JOB_SCRIPT"
 echo "SGE jobname: $jobname" 1>&2
 
 ##############################################################
@@ -102,49 +149,134 @@ echo "SGE jobname: $jobname" 1>&2
 
 set_count
 
+submission_error () {
+  echo "$1" 1>&2
+  echo "Submission: Configuration error."
+  rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+  exit 1
+}
+
 ##############################################################
 # parallel jobs
 ##############################################################
-# In addition to the number of parallel tasks, also a valid
-# parallel environment (PE) must be set for SGE.
-#
-# The selection of PE is done by Runtime Environment setup script in the zero
-# stage. The user has to request a proper RE in addition to setting the
-# "count" -property in the xrsl. The RE script must set the name of the desired 
-# PE to joboption_nodeproperty_# -variable (# is a number starting from zero,
-# RE should use the lowest previously undefined number). This script then
-# searches through the joboption_nodeproperty_# variables and compares them to
-# the PE list obtained from SGE. The first matching PE name is used.
-# 
-if [ -n "$joboption_nodeproperty_0" ]; then 
+# Grid Engine cannot reserve more than one slot without a parallel environment.
+# Prefer the site/queue configuration, retaining the historical RTE convention
+# where a nodeproperty equal to an installed PE selects it.
+if [ "$joboption_count" -gt 1 ]; then
+  sge_debug "event=query command=$sge_qconf options=-spl"
+  if ! sge_parallel_environment_list=$("$sge_qconf" -spl 2>"$LRMS_JOB_ERR"); then
+    cat "$LRMS_JOB_ERR" 1>&2
+    submission_error "Unable to query the configured SGE parallel environments"
+  fi
+
+  selected_pe=$CONFIG_sge_pe
+  if [ -z "$selected_pe" ]; then
     i=0
-    sge_parallel_environment_list=`$SGE_QCONF -spl`
-    while eval jope=\${joboption_nodeproperty_$i} && test "$jope" ; do
-        for ipe in $sge_parallel_environment_list ; do
-            if [ "$jope" = "$ipe" ] ; then
-                break 2 # now $jope contains the requested parallel env
-            fi
-        done
-        i=$(($i + 1))
+    eval "var_is_set=\${joboption_nodeproperty_$i+yes}"
+    while [ -n "$var_is_set" ]; do
+      eval "nodeproperty=\${joboption_nodeproperty_$i}"
+      if printf '%s\n' "$sge_parallel_environment_list" | grep -F -x -- "$nodeproperty" >/dev/null; then
+        selected_pe=$nodeproperty
+        break
+      fi
+      i=$((i + 1))
+      eval "var_is_set=\${joboption_nodeproperty_$i+yes}"
     done
-    if [ -n "$jope" ] ; then
-        echo "#\$ -pe $jope $joboption_count" >> $LRMS_JOB_SCRIPT
-    else
-        echo 'ERROR: Setting parallel environment failed.' 1>&2
-    fi
+  fi
+
+  if [ -z "$selected_pe" ]; then
+    submission_error "A multi-slot SGE job requires sge_pe or an RTE-selected parallel environment"
+  fi
+  if ! printf '%s\n' "$sge_parallel_environment_list" | grep -F -x -- "$selected_pe" >/dev/null; then
+    submission_error "Configured SGE parallel environment '$selected_pe' does not exist"
+  fi
+
+  sge_debug "event=query command=$sge_qconf options=-sp pe=$selected_pe"
+  pe_configuration=$("$sge_qconf" -sp "$selected_pe" 2>"$LRMS_JOB_ERR") || {
+    cat "$LRMS_JOB_ERR" 1>&2
+    submission_error "Unable to inspect SGE parallel environment '$selected_pe'"
+  }
+  allocation_rule=$(printf '%s\n' "$pe_configuration" | awk '$1 == "allocation_rule" { print $2; exit }')
+  pe_control_slaves=$(printf '%s\n' "$pe_configuration" | awk '$1 == "control_slaves" { print toupper($2); exit }')
+  pe_accounting_summary=$(printf '%s\n' "$pe_configuration" | awk '$1 == "accounting_summary" { print toupper($2); exit }')
+  sge_debug "event=parallel_environment pe=$selected_pe slots=$joboption_count allocation_rule=$allocation_rule control_slaves=$pe_control_slaves accounting_summary=$pe_accounting_summary"
+  case $pe_control_slaves in
+    TRUE|FALSE) ;;
+    *) submission_error "SGE PE '$selected_pe' has an invalid control_slaves setting" ;;
+  esac
+  case $pe_accounting_summary in
+    TRUE|FALSE) ;;
+    *) submission_error "SGE PE '$selected_pe' has an invalid accounting_summary setting" ;;
+  esac
+  if [ "$pe_control_slaves" = TRUE ] && [ "$pe_accounting_summary" != TRUE ]; then
+    submission_error "Tightly integrated SGE PE '$selected_pe' must set accounting_summary TRUE"
+  fi
+  if [ "$allocation_rule" != '$pe_slots' ] && { [ "$pe_control_slaves" != TRUE ] || [ "$pe_accounting_summary" != TRUE ]; }; then
+    submission_error "Distributed SGE PE '$selected_pe' must set control_slaves TRUE and accounting_summary TRUE"
+  fi
+
+  # countpernode can only be honoured when it agrees with the PE allocation
+  # rule.  Reject an impossible request rather than silently changing it.
+  if [ -n "$joboption_countpernode" ] && [ "$joboption_countpernode" -gt 0 ]; then
+    case $allocation_rule in
+      "$joboption_countpernode") ;;
+      '$round_robin')
+        [ "$joboption_countpernode" -eq 1 ] || submission_error "SGE PE '$selected_pe' allocates one slot per host and cannot honour countpernode=$joboption_countpernode"
+        ;;
+      '$pe_slots')
+        [ "$joboption_countpernode" -eq "$joboption_count" ] || submission_error "SGE PE '$selected_pe' allocates all slots on one host and cannot honour countpernode=$joboption_countpernode"
+        ;;
+      *)
+        submission_error "SGE PE '$selected_pe' allocation_rule '$allocation_rule' cannot guarantee countpernode=$joboption_countpernode"
+        ;;
+    esac
+  fi
+
+  echo "#\$ -pe $selected_pe $joboption_count" >> "$LRMS_JOB_SCRIPT"
 fi
 
-if [ "$joboption_exclusivenode" = "true" ]; then
-  sge_excl_complex=`$SGE_QCONF -sc | grep EXCL | head -n 1`
-  if [ -n "$sge_excl_complex" ]; then
-     sge_excl_complex_name=`echo $sge_excl_complex | awk '{print $1}'`
-     echo "#\$ -l ${sge_excl_complex_name}=true"  >> $LRMS_JOB_SCRIPT
-  else
-     echo "WARNING: Exclusive execution support is not configured by this Grid Engine" 1>&2
-     echo "WARNING: Example configuration: https://wiki.nordugrid.org/index.php/LRMS_Backends/Testbeds" 1>&2
+# Query the complex configuration once.  Requests can only be submitted for
+# resources explicitly marked requestable by the Grid Engine administrator.
+sge_complexes=
+if [ "$joboption_exclusivenode" = "true" ] || [ -n "$joboption_cputime" ] || [ -n "$joboption_walltime" ] || [ -n "$joboption_memory" ] || [ -n "$CONFIG_defaultmemory" ]; then
+  if ! sge_complexes=$("$sge_qconf" -sc 2>"$LRMS_JOB_ERR"); then
+    cat "$LRMS_JOB_ERR" 1>&2
+    submission_error "Unable to query the SGE complex configuration"
   fi
 fi
 
+complex_requestable () {
+  printf '%s\n' "$sge_complexes" | awk -v resource="$1" '$1 == resource && ($5 == "YES" || $5 == "FORCED") { found=1 } END { exit !found }'
+}
+
+complex_time_limit () {
+  printf '%s\n' "$sge_complexes" | awk -v resource="$1" '$1 == resource && $3 == "TIME" && $4 == "<=" && ($5 == "YES" || $5 == "FORCED") { found=1 } END { exit !found }'
+}
+
+complex_memory_limit () {
+  printf '%s\n' "$sge_complexes" | awk -v resource="$1" '$1 == resource && $3 == "MEMORY" && $4 == "<=" && ($5 == "YES" || $5 == "FORCED") { found=1 } END { exit !found }'
+}
+
+complex_slot_memory () {
+  complex_memory_limit "$1" && printf '%s\n' "$sge_complexes" | awk -v resource="$1" '$1 == resource && $6 == "YES" { found=1 } END { exit !found }'
+}
+
+complex_exclusive () {
+  printf '%s\n' "$sge_complexes" | awk -v resource="$1" '$1 == resource && $3 == "BOOL" && $4 == "EXCL" && ($5 == "YES" || $5 == "FORCED") && $6 == "YES" { found=1 } END { exit !found }'
+}
+
+if [ "$joboption_exclusivenode" = "true" ]; then
+  if [ -z "$CONFIG_sge_exclusive_resource" ]; then
+    submission_error "Exclusive execution was requested but sge_exclusive_resource is not configured"
+  fi
+  case $CONFIG_sge_exclusive_resource in
+    *[!A-Za-z0-9_.-]*) submission_error "Invalid sge_exclusive_resource '$CONFIG_sge_exclusive_resource'" ;;
+  esac
+  if ! complex_exclusive "$CONFIG_sge_exclusive_resource"; then
+    submission_error "SGE exclusive resource '$CONFIG_sge_exclusive_resource' must be a requestable, per-slot consumable BOOL complex with EXCL relation"
+  fi
+  echo "#\$ -l ${CONFIG_sge_exclusive_resource}=true" >> "$LRMS_JOB_SCRIPT"
+fi
 
 ##############################################################
 # Execution times (obtained in seconds)
@@ -153,33 +285,37 @@ fi
 # let's allow time_hardlimit_ratio extra before the hard limit.
 # cputime/walltime is obtained in seconds via $joboption_cputime and $joboption_walltime
 # parallel jobs, add initialization time, soft/hard limit configurable...
-if ( [ -n "$joboption_cputime" ] && [ $joboption_cputime -gt 0 ] ) ; then
+if [ -n "$joboption_cputime" ] && [ "$joboption_cputime" -gt 0 ] ; then
   # SGE enforces job-total cpu time limit, but it expects in h_cpu and s_cpu
   # per-slot limits. It then scales these with the number of requested slots
   # before enforcing them.
-  cputime_perslot=$(( $joboption_cputime / $joboption_count ))
-  cputime_hard_perslot=$(( $cputime_perslot * $time_hardlimit_ratio ))
-  s_cpu_requestable=$($SGE_QCONF -sc|awk '($1=="s_cpu" && ( $5=="YES" || $5=="FORCED" )){print $5}')
-  h_cpu_requestable=$($SGE_QCONF -sc|awk '($1=="h_cpu" && ( $5=="YES" || $5=="FORCED" )){print $5}')
+  cputime_perslot=$(( (joboption_cputime + joboption_count - 1) / joboption_count ))
+  cputime_hard_perslot=$(( cputime_perslot * time_hardlimit_ratio ))
   opt="#$"
-  if [ $s_cpu_requestable ]; then opt="$opt -l s_cpu=::${cputime_perslot}"; fi
-  if [ $h_cpu_requestable ]; then opt="$opt -l h_cpu=::${cputime_hard_perslot}"; fi
-  echo $opt >> $LRMS_JOB_SCRIPT
+  if complex_time_limit s_cpu; then opt="$opt -l s_cpu=${cputime_perslot}"; fi
+  if complex_time_limit h_cpu; then
+    opt="$opt -l h_cpu=${cputime_hard_perslot}"
+  else
+    submission_error "SGE h_cpu is not a requestable TIME complex with <= relation, so the requested CPU limit cannot be enforced"
+  fi
+  echo "$opt" >> "$LRMS_JOB_SCRIPT"
 fi
 
 if [ -n "$joboption_walltime" ] ; then  
-  if [ $joboption_walltime -lt 0 ] ; then
-    echo 'WARNING: Less than 0 wall time requested: $joboption_walltime' 1>&2
+  if [ "$joboption_walltime" -lt 0 ] ; then
+    echo "WARNING: Less than 0 wall time requested: $joboption_walltime" 1>&2
     joboption_walltime=0
     echo 'WARNING: wall time set to 0' 1>&2
   fi
-  joboption_walltime_hard=$(( $joboption_walltime * $time_hardlimit_ratio ))
-  s_rt_requestable=$($SGE_QCONF -sc|awk '($1=="s_rt" && ( $5=="YES" || $5=="FORCED" )){print $5}')
-  h_rt_requestable=$($SGE_QCONF -sc|awk '($1=="h_rt" && ( $5=="YES" || $5=="FORCED" )){print $5}')
+  joboption_walltime_hard=$(( joboption_walltime * time_hardlimit_ratio ))
   opt="#$"
-  if [ $s_rt_requestable ]; then opt="$opt -l s_rt=::${joboption_walltime}"; fi
-  if [ $h_rt_requestable ]; then opt="$opt -l h_rt=::${joboption_walltime_hard}"; fi
-  echo $opt >> $LRMS_JOB_SCRIPT
+  if complex_time_limit s_rt; then opt="$opt -l s_rt=${joboption_walltime}"; fi
+  if complex_time_limit h_rt; then
+    opt="$opt -l h_rt=${joboption_walltime_hard}"
+  else
+    submission_error "SGE h_rt is not a requestable TIME complex with <= relation, so the requested wall-time limit cannot be enforced"
+  fi
+  echo "$opt" >> "$LRMS_JOB_SCRIPT"
 fi
 
 
@@ -190,42 +326,92 @@ fi
 
 set_req_mem
 
-# There are soft and hard limits for virtual memory consumption in SGE
-
 if [ -n "$joboption_memory" ] ; then
-  joboption_memory_hard=$(( $joboption_memory * $memory_hardlimit_ratio ))
-  h_vmem_requestable=$($SGE_QCONF -sc|awk '($1=="h_vmem" && ( $5=="YES" || $5=="FORCED" )){print $5}')
-  s_vmem_requestable=$($SGE_QCONF -sc|awk '($1=="s_vmem" && ( $5=="YES" || $5=="FORCED" )){print $5}')
-  opt="#$"
-  if [ $s_vmem_requestable ]; then opt="$opt -l s_vmem=${joboption_memory}M"; fi
-  if [ $h_vmem_requestable ]; then opt="$opt -l h_vmem=${joboption_memory_hard}M"; fi
-  echo $opt >> $LRMS_JOB_SCRIPT
+  memory_resource=$CONFIG_sge_memory_resource
+  if [ -z "$memory_resource" ] && complex_slot_memory m_mem_free; then
+    memory_resource=m_mem_free
+  fi
+  if [ -z "$memory_resource" ] && complex_memory_limit h_vmem; then
+    memory_resource=h_vmem
+    echo "WARNING: Using h_vmem for the ARC memory request; configure sge_memory_resource for physical-memory semantics" 1>&2
+  fi
+  if [ -z "$memory_resource" ]; then
+    submission_error "No requestable SGE memory complex is available"
+  fi
+  case $memory_resource in
+    *[!A-Za-z0-9_.-]*) submission_error "Invalid sge_memory_resource '$memory_resource'" ;;
+  esac
+  if [ "$memory_resource" = h_vmem ]; then
+    if ! complex_memory_limit h_vmem; then
+      submission_error "SGE h_vmem must be a requestable MEMORY complex with <= relation"
+    fi
+  elif ! complex_slot_memory "$memory_resource"; then
+    submission_error "SGE memory resource '$memory_resource' must be a requestable, per-slot consumable MEMORY complex with <= relation"
+  fi
+
+  if [ "$memory_resource" = h_vmem ]; then
+    joboption_memory_hard=$(( joboption_memory * memory_hardlimit_ratio ))
+    opt="#$"
+    if complex_memory_limit s_vmem; then opt="$opt -l s_vmem=${joboption_memory}M"; fi
+    opt="$opt -l h_vmem=${joboption_memory_hard}M"
+    echo "$opt" >> "$LRMS_JOB_SCRIPT"
+  else
+    echo "#\$ -l ${memory_resource}=${joboption_memory}M" >> "$LRMS_JOB_SCRIPT"
+  fi
 fi
 
 ##############################################################
 # Extra job options. This is the last, so that
 # it can overwrite previously set options.
 ##############################################################
-if [ ! -z "$CONFIG_sge_jobopts" ]; then
-  echo "#$ $CONFIG_sge_jobopts" >> $LRMS_JOB_SCRIPT
+validate_sge_jobopts () {
+  # ARC tracks one asynchronous, non-array job per GRAMi.  Native options
+  # which change that job shape or bypass the validated PE contract would
+  # make the returned ID or the accounting record ambiguous.
+  /usr/bin/perl -MText::ParseWords=shellwords -e '
+    my $line = $ARGV[0];
+    $line =~ s/#.*//;
+    my @words = eval { shellwords($line) };
+    exit 1 if $@ || !@words;
+    for my $word (@words) {
+      $word =~ s/[\x22\x27]//g;
+      exit 1 if $word =~ /^-(?:clear|t|tc|sync|now|b|shell|pe|N|@)(?:=|$)/;
+    }
+  ' -- "$1"
+}
+
+if [ "$CONFIG_sge_jobopts" = "__array__" ]; then
+  i=0
+  eval "var_is_set=\${CONFIG_sge_jobopts_$i+yes}"
+  while [ -n "$var_is_set" ]; do
+    eval "var_value=\${CONFIG_sge_jobopts_$i}"
+    validate_sge_jobopts "$var_value" || submission_error "sge_jobopts cannot set -clear, -t, -tc, -sync, -now, -b, -shell, -pe, -N or -@"
+    echo "#\$ $var_value" >> "$LRMS_JOB_SCRIPT"
+    i=$((i + 1))
+    eval "var_is_set=\${CONFIG_sge_jobopts_$i+yes}"
+  done
+elif [ -n "$CONFIG_sge_jobopts" ]; then
+  validate_sge_jobopts "$CONFIG_sge_jobopts" || submission_error "sge_jobopts cannot set -clear, -t, -tc, -sync, -now, -b, -shell, -pe, -N or -@"
+  echo "#$ $CONFIG_sge_jobopts" >> "$LRMS_JOB_SCRIPT"
 fi
+
+# qsub itself runs from an empty directory to avoid a session-local request
+# file. Preserve the conventional submit-directory value for RTEs and jobs.
+echo "SGE_O_WORKDIR=$joboption_directory" >> "$LRMS_JOB_SCRIPT"
+echo "export SGE_O_WORKDIR" >> "$LRMS_JOB_SCRIPT"
 
 ##############################################################
 # Override umask
 ##############################################################
-echo "" >> $LRMS_JOB_SCRIPT
-echo "# Overide umask of execution node (sometime values are really strange)" >> $LRMS_JOB_SCRIPT
-echo "umask 077" >> $LRMS_JOB_SCRIPT
+echo "" >> "$LRMS_JOB_SCRIPT"
+echo "# Override umask of execution node" >> "$LRMS_JOB_SCRIPT"
+echo "umask 077" >> "$LRMS_JOB_SCRIPT"
 
 ##############################################################
 # By default, use $TMPDIR from SGE to alleviate its cleanup facilities.
 # It can be overridden with scratchdir though.
 # Don't do this if "shared_scratch" is defined in arc.conf.
 ##############################################################
-
-if [ "$RUNTIME_LOCAL_SCRATCH_DIR" ] && [ ! "$RUNTIME_FRONTEND_SEES_NODE" ]; then
-    echo "if [ -d \"${CONFIG_scratchdir:-\$TMPDIR}\" ]; then RUNTIME_LOCAL_SCRATCH_DIR=${CONFIG_scratchdir:-\$TMPDIR}; fi" >> $LRMS_JOB_SCRIPT
-fi
 
 sourcewithargs_jobscript
 
@@ -240,33 +426,43 @@ accounting_init
 add_user_env
 
 ##############################################################
-# Check for existance of executable,
+# Check that an executable was supplied.  Its existence is checked on the
+# worker node because detached workers need not see the frontend session path.
 ##############################################################
 if [ -z "${joboption_arg_0}" ] ; then
   echo 'Executable is not specified' 1>&2
+  rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+  echo "Submission: Job description error."
   exit 1
 fi
 
-program_start=`echo ${joboption_arg_0} | cut -c 1 2>&1`
-if [ "$program_start" != '$' ] && [ "$program_start" != '/' ] ; then
-  if [ ! -f $joboption_directory/${joboption_arg_0} ] ; then 
-    echo 'Executable does not exist, or permission denied.' 1>&2
-    echo "   Executable $joboption_directory/${joboption_arg_0}" 1>&2
-    echo "   whoami: "`whoami` 1>&2
-    echo "   ls -l $joboption_directory/${joboption_arg_0}: "`ls -l $joboption_directory/${joboption_arg_0}`
-    exit 1
+######################################################################
+# Set paths for shared and detached worker nodes.
+######################################################################
+if [ -n "${RUNTIME_NODE_SEES_FRONTEND}" ] ; then
+  setup_runtime_env
+else
+  echo "RUNTIME_JOB_DIR=$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid" >> "$LRMS_JOB_SCRIPT"
+  echo "RUNTIME_JOB_DIAG=$RUNTIME_LOCAL_SCRATCH_DIR/${joboption_gridid}.diag" >> "$LRMS_JOB_SCRIPT"
+  RUNTIME_STDIN_REL=`echo "${joboption_stdin}" | sed "s#^${joboption_directory}/*##"`
+  RUNTIME_STDOUT_REL=`echo "${joboption_stdout}" | sed "s#^${joboption_directory}/*##"`
+  RUNTIME_STDERR_REL=`echo "${joboption_stderr}" | sed "s#^${joboption_directory}/*##"`
+  if [ "$RUNTIME_STDIN_REL" = "${joboption_stdin}" ] ; then
+    echo "RUNTIME_JOB_STDIN=\"${joboption_stdin}\"" >> "$LRMS_JOB_SCRIPT"
+  else
+    echo "RUNTIME_JOB_STDIN=\"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$RUNTIME_STDIN_REL\"" >> "$LRMS_JOB_SCRIPT"
   fi
-  if [ ! -x $joboption_directory/${joboption_arg_0} ] ; then 
-    echo 'Executable is not executable' 1>&2
-    exit 1
+  if [ "$RUNTIME_STDOUT_REL" = "${joboption_stdout}" ] ; then
+    echo "RUNTIME_JOB_STDOUT=\"${joboption_stdout}\"" >> "$LRMS_JOB_SCRIPT"
+  else
+    echo "RUNTIME_JOB_STDOUT=\"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$RUNTIME_STDOUT_REL\"" >> "$LRMS_JOB_SCRIPT"
+  fi
+  if [ "$RUNTIME_STDERR_REL" = "${joboption_stderr}" ] ; then
+    echo "RUNTIME_JOB_STDERR=\"${joboption_stderr}\"" >> "$LRMS_JOB_SCRIPT"
+  else
+    echo "RUNTIME_JOB_STDERR=\"$RUNTIME_LOCAL_SCRATCH_DIR/$joboption_gridid/$RUNTIME_STDERR_REL\"" >> "$LRMS_JOB_SCRIPT"
   fi
 fi
-
-
-setup_runtime_env
-
-# Override location of .diag file: put it under the working directory
-echo 'RUNTIME_JOB_DIAG=$RUNTIME_JOB_DIR/.diag' >> $LRMS_JOB_SCRIPT
 
 ##############################################################
 # Add std... to job arguments
@@ -283,7 +479,21 @@ echo "" >> $LRMS_JOB_SCRIPT
 echo "RESULT=0" >> $LRMS_JOB_SCRIPT
 echo "" >> $LRMS_JOB_SCRIPT
 
-
+# Stage-one runtime hooks must see the effective runtime directory.  In local
+# scratch mode move_files_to_node rewrites RUNTIME_JOB_DIR before this point.
+cat >> "$LRMS_JOB_SCRIPT" <<'EOSCR'
+RUNTIME_DIRECTORY_READY=
+if [ "$RESULT" = '0' ]; then
+  if cd "$RUNTIME_JOB_DIR"; then
+    HOME=$RUNTIME_JOB_DIR
+    export HOME
+    RUNTIME_DIRECTORY_READY=yes
+  else
+    echo "Failed to switch to '$RUNTIME_JOB_DIR'" 1>&2
+    RESULT=1
+  fi
+fi
+EOSCR
 
 ##############################################################
 #  Skip execution if something already failed
@@ -299,34 +509,49 @@ RTE_stage1
 
 echo "echo \"runtimeenvironments=\$runtimeenvironments\" >> \"\$RUNTIME_JOB_DIAG\"" >> $LRMS_JOB_SCRIPT
 
-if [ -z "$RUNTIME_NODE_SEES_FRONTEND" ] ; then
-  echo "Nodes detached from gridarea are not supported when SGE is used. Aborting job submit" 1>&2
-  rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
-  exit 1
+# Tight and loose PEs publish one line per host in PE_HOSTFILE.  Preserve each
+# allocated slot in ARC diagnostics, matching the established LRMS convention.
+cat >> "$LRMS_JOB_SCRIPT" <<'EOSCR'
+if [ -n "$PE_HOSTFILE" ] && [ -r "$PE_HOSTFILE" ]; then
+  awk '{ for (slot = 0; slot < $2; ++slot) print "nodename=" $1 }' "$PE_HOSTFILE" >> "$RUNTIME_JOB_DIAG"
+  NODENAME_WRITTEN=1
 fi
+EOSCR
 
 ##############################################################
 # Accounting (WN OS Detection)
 ##############################################################
 detect_wn_systemsoftware
 
+##############################################################
+# Check intermediate result again
+##############################################################
+echo "if [ \"\$RESULT\" = '0' ] ; then" >> "$LRMS_JOB_SCRIPT"
 
 ##############################################################
 #  Execution
 ##############################################################
 cd_and_run
-echo "fi" >> $LRMS_JOB_SCRIPT
+echo "fi" >> "$LRMS_JOB_SCRIPT"
+echo "fi" >> "$LRMS_JOB_SCRIPT"
 
 ##############################################################
 #  Runtime (post)configuration at computing node
 ##############################################################
+echo 'if [ "$RUNTIME_DIRECTORY_READY" = yes ]; then' >> "$LRMS_JOB_SCRIPT"
 RTE_stage2
+
+##############################################################
+# Remove non-output files from local scratch before staging back.
+##############################################################
+clean_local_scratch_dir_output
 
 ##############################################################
 #  Move files back to session directory (job is done on node only)
 #  RUNTIME_JOB_DIR -> RUNTIME_LOCAL_SCRATCH_DIR/job_id
 ##############################################################
 move_files_to_frontend
+echo 'fi' >> "$LRMS_JOB_SCRIPT"
 
 ##############################################################
 # Finish accounting and exit job
@@ -348,45 +573,163 @@ fi
 #######################################
 #  Submit the job
 #######################################
+echo "SGE job script built" 1>&2
+if [ ! -d "$joboption_directory" ]; then
+  echo "No SGE submission directory: $joboption_directory" 1>&2
+  rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+  echo "Submission: Configuration error."
+  exit 1
+fi
+sge_log "event=submit command=$sge_qsub queue=${sge_queue_selection:--} pe=${selected_pe:--} slots=$joboption_count memory_resource=${memory_resource:--}"
+sge_debug "event=submit_paths grami=$GRAMI_FILE session=$joboption_directory script=$LRMS_JOB_SCRIPT"
+
+# Request the stable terse interface and keep submission asynchronous.  A JSV
+# is allowed to disable terse output, so also accept qsub's documented ordinary
+# success sentence.  In both cases require status zero and one ordinary ID.
+sge_submit_time=`date +%s`
+case $sge_submit_time in
+  ''|*[!0-9]*)
+    echo "Unable to record the SGE submission time" 1>&2
+    rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+    echo "Submission: Local submission client failed."
+    exit 1
+    ;;
+esac
+if ! echo "joboption_sge_submit_time=$sge_submit_time" >> "$GRAMI_FILE"; then
+  echo "Unable to persist the SGE submission time in $GRAMI_FILE" 1>&2
+  rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+  echo "Submission: Local state update failed."
+  exit 1
+fi
+if ! echo "joboption_sge_job_name=$jobname" >> "$GRAMI_FILE"; then
+  echo "Unable to persist the SGE job name in $GRAMI_FILE" 1>&2
+  rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+  echo "Submission: Local state update failed."
+  exit 1
+fi
+qsub_workdir=`mktemp -d "${TMPDIR}/sge-qsub.XXXXXX"` || {
+  echo "Unable to create a clean SGE submission directory" 1>&2
+  rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+  echo "Submission: Local submission client failed."
+  exit 1
+}
 (
-  echo "SGE job script built"
-  cd "$joboption_directory"
-  echo "SGE script follows:"
-  cat "$LRMS_JOB_SCRIPT"
-  echo
+  cd "$qsub_workdir" || exit 125
+  # Grid Engine initially records getcwd() under this spool key and later
+  # publishes it as SGE_O_WORKDIR. Override the same key after initialization
+  # so PE start/stop procedures also see the ARC session, not this directory.
+  "$sge_qsub" -terse -b n -shell y -C '#$' -wd "$joboption_directory" \
+    -v "__SGE_PREFIX__O_WORKDIR=$joboption_directory" \
+    -S '@posix_shell@' "$LRMS_JOB_SCRIPT"
+) >"$LRMS_JOB_OUT" 2>"$LRMS_JOB_ERR"
+qsub_result=$?
+if [ "${CONFIG_sge_debug:-no}" = yes ]; then
+  sge_debug "event=command_result command=$sge_qsub exit_status=$qsub_result elapsed_seconds=$(( $(date +%s) - sge_submit_time ))"
+fi
+rmdir "$qsub_workdir" 2>/dev/null || \
+  echo "WARNING: Unable to remove temporary SGE submission directory $qsub_workdir" 1>&2
+job_id=$(awk '
+  /^[[:space:]]*[0-9][0-9]*[[:space:]]*$/ {
+    if (++matches > 1) invalid = 1
+    gsub(/[[:space:]]/, "")
+    id = $0
+    next
+  }
+  /^Your job [0-9][0-9]* \("[^"]*"\) has been submitted[.]?$/ {
+    value = $0
+    sub(/^Your job /, "", value)
+    sub(/ .*/, "", value)
+    if (++matches > 1) invalid = 1
+    id = value
+    next
+  }
+  { invalid = 1 }
+  END {
+    if (matches == 1 && !invalid) print id
+    else exit 1
+  }
+' "$LRMS_JOB_OUT")
+job_id_result=$?
 
-  # Execute qsub command
-  ${SGE_QSUB} < $LRMS_JOB_SCRIPT 1>$LRMS_JOB_OUT 2>$LRMS_JOB_ERR
+# When a successful client returns anything except the ordinary-ID protocol,
+# do not persist it.  Still recognize one documented terse or ordinary array
+# response solely so an accidentally submitted array can be deleted instead
+# of orphaned.
+cleanup_job_id=$(awk '
+  /^[[:space:]]*[0-9][0-9]*(\.[0-9][0-9]*(-[0-9][0-9]*(:[0-9][0-9]*)?)?)?[[:space:]]*$/ {
+    value = $0
+    gsub(/[[:space:]]/, "", value)
+    split(value, part, ".")
+    if (++matches == 1) id = part[1]
+    else invalid = 1
+  }
+  /^Your job [0-9][0-9]* \("[^"]*"\) has been submitted[.]?$/ {
+    value = $0
+    sub(/^Your job /, "", value)
+    sub(/ .*/, "", value)
+    if (++matches == 1) id = value
+    else invalid = 1
+  }
+  /^Your job-array [0-9][0-9]*\.[0-9][0-9]*(-[0-9][0-9]*(:[0-9][0-9]*)?)? \("[^"]*"\) has been submitted[.]?$/ {
+    value = $0
+    sub(/^Your job-array /, "", value)
+    sub(/\..*/, "", value)
+    if (++matches == 1) id = value
+    else invalid = 1
+  }
+  END {
+    if (matches == 1 && !invalid) print id
+    else exit 1
+  }
+' "$LRMS_JOB_OUT")
 
-  # expected SGE output is like: 'Your job 77 ("perftest") has been
-  # submitted', the line below uses only the job number as job id.
-  job_id=$(cat $LRMS_JOB_OUT $LRMS_JOB_ERR \
-           | awk '/^.our job .* has been submitted/ {split($0,field," ");print field[3]}')
-  # anything else is a sign of problems, which should be logged
-  warnings=$(cat $LRMS_JOB_OUT $LRMS_JOB_ERR \
-             | grep -v '^.our job .* has been submitted' | grep -v '^Exit')
-  if [ ! -z "$warnings" ]; then echo "WARNING: $warnings"; echo; fi
-
-  exitcode=0
-  if [ -z $job_id ] ; then
-    echo "job *NOT* submitted successfully!"
-    exitcode=1
-  else
-    echo "joboption_jobid=$job_id" >> $GRAMI_FILE
-    echo "local job id: $job_id"
-    echo "job submitted successfully!"
-    exitcode=0
-  fi
-
-  # Remove temporary job script file
-  rm -f $LRMS_JOB_SCRIPT $LRMS_JOB_OUT $LRMS_JOB_ERR
-  echo "----- exiting submit_sge_job -----";
-) 1>&2
-
-if [ ! -z "$perflogdir" ]; then
+if [ -n "$perflogdir" ]; then
    stop_ts=`date +%s.%N`
    t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
    echo "[`date +%Y-%m-%d\ %T`] submit-sge-job, JobSubmission: $t" >> $perflogfilesub
 fi
 
-exit $exitcode
+if [ -s "$LRMS_JOB_ERR" ]; then
+  echo "qsub diagnostic output:" 1>&2
+  cat "$LRMS_JOB_ERR" 1>&2
+fi
+
+if [ "$qsub_result" -eq 0 ] && [ "$job_id_result" -eq 0 ] && verify_jobid "$job_id"; then
+  if echo "joboption_jobid=$job_id" >> "$GRAMI_FILE"; then
+    sge_log "event=submitted assigned_sge_job=$job_id submission_epoch=$sge_submit_time"
+    echo "local job id: $job_id" 1>&2
+    echo "job submitted successfully!" 1>&2
+    exitcode=0
+  else
+    echo "Unable to persist SGE job id $job_id in $GRAMI_FILE; cancelling the submitted job" 1>&2
+    if ! "$sge_qdel" "$job_id"; then
+      echo "WARNING: Failed to cancel orphaned SGE job $job_id" 1>&2
+    fi
+    echo "Submission: Local state update failed."
+    exitcode=1
+  fi
+else
+  echo "job *NOT* submitted successfully!" 1>&2
+  if [ "$qsub_result" -ne 0 ]; then
+    echo "qsub exited with status $qsub_result" 1>&2
+    echo "Submission: Local submission client failed."
+  else
+    echo "qsub returned an invalid job ID response: ${job_id:-<empty>}" 1>&2
+    if [ -n "$cleanup_job_id" ] && verify_jobid "$cleanup_job_id"; then
+      echo "Cancelling untrackable SGE job $cleanup_job_id" 1>&2
+      if ! "$sge_qdel" "$cleanup_job_id"; then
+        echo "WARNING: Failed to cancel orphaned SGE job $cleanup_job_id" 1>&2
+      fi
+    fi
+    echo "Submission: Local submission client behaved unexpectedly."
+  fi
+  if [ -s "$LRMS_JOB_OUT" ]; then
+    echo "qsub output was:" 1>&2
+    cat "$LRMS_JOB_OUT" 1>&2
+  fi
+  exitcode=1
+fi
+
+rm -f "$LRMS_JOB_SCRIPT" "$LRMS_JOB_OUT" "$LRMS_JOB_ERR"
+echo "----- exiting submit_sge_job -----" 1>&2
+exit "$exitcode"

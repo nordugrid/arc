@@ -1,114 +1,446 @@
 #!@posix_shell@
-# set -xv
 #
-# scan-sge-job does not use log-files, it only uses qacct.
-#
-# usage: scan_sge_job control_dir ...
+# Track ARC jobs in Grid Engine and complete disappeared jobs from qacct.
+# qstat XML is used because its text columns and localized output are not a
+# stable interface across SGE and Altair Grid Engine releases.
 
-# ARC1 passes first the config file.
+# ARC1 passes the configuration file first.
 if [ "$1" = "--config" ]; then shift; ARC_CONFIG=$1; shift; fi
-if [ -z "$1" ] ; then exit 1 ; fi
-# first control_dir is used for storing own files
-control_dir=$1
-control_dirs=
-while [ $# -gt 0 ] ; do
-  control_dirs="${control_dirs} $1"
-  shift
+
+if [ -z "$1" ]; then
+  echo "no control_dir specified" 1>&2
+  exit 1
+fi
+for ctr_dir in "$@"; do
+  if [ ! -d "$ctr_dir" ] || [ ! -d "$ctr_dir/processing" ]; then
+    echo "called with erroneous control dir: $ctr_dir" 1>&2
+    exit 1
+  fi
 done
 
 joboption_lrms="sge"
-lrms_options="sge_root sge_cell sge_qmaster_port sge_execd_port sge_bin_path sge_jobopts"
-queue_options="sge_jobopts"
+lrms_options="sge_root sge_cell sge_qmaster_port sge_execd_port sge_bin_path sge_wakeupperiod sge_query_retries sge_accounting_retries sge_debug"
 
-# define paths and config parser
-basedir=`dirname $0`
-basedir=`cd $basedir > /dev/null && pwd` || exit $?
+basedir=`dirname "$0"`
+basedir=`cd "$basedir" > /dev/null && pwd` || exit $?
 . "${basedir}/lrms_common.sh"
-
-# include common scan functions
 . "${pkgdatadir}/scan_common.sh" || exit $?
 
-# run common init 
-#  * parse config
-#  * load LRMS-specific env
-#  * set common variables
 common_init
 
-# Assume that gm-kick and scan_common are installed in the same directory
 GMKICK=${pkglibexecdir}/gm-kick
+olog () { sge_log "$*"; }
 
-olog () { echo "[`date +%Y-%m-%d\ %T`] scan-sge-job: $*" 1>&2; }
-
-control_path () {
-  # job_id=`echo "$2" | sed 's/\(.\{9\}\)/\1\//g' | sed 's/\/$//'`
-  job_id=`echo "$2" | sed -e 's#\(.\{3\}\)#\1/#3' -e 's#\(.\{3\}\)#\1/#2' -e 's#\(.\{3\}\)#\1/#1' -e 's#$#/#'`
-  path="$1/jobs/${job_id}/$3"
-  echo "$path"
-}
-
-umask 022
-
-my_id=`id -u`
-
-# Log system performance
-if [ ! -z "$perflogdir" ]; then
-   perflog_common "$perflogdir" "$CONFIG_controldir"
+if ! validate_sge_qstat_defaults; then
+  olog "unsafe Grid Engine qstat defaults; no jobs will be treated as completed"
+  exit 1
 fi
 
-# Takes diagfile_acct, SGE qacct command, id and extraargs
-# writes output to diagfile_acct (temporary file for accounting info)
-write_diagfile_acct () {
-  diagfile_acct=$1
-  qacct_command=$2
-  id=$3
-  extraargs=$4
-  
-  #Check that qacct is available.
-  if ! `which $qacct_command >dev/null` ; then
-    olog "WARNING: qacct was not found. Accounting data will not be recorded."
+umask 022
+my_id=`id -u`
+
+case $CONFIG_sge_wakeupperiod in
+  ''|*[!0-9]*) sge_wakeupperiod=30 ;;
+  *) sge_wakeupperiod=$CONFIG_sge_wakeupperiod ;;
+esac
+case $CONFIG_sge_query_retries in
+  ''|*[!0-9]*) sge_query_retries=2 ;;
+  *) sge_query_retries=$CONFIG_sge_query_retries ;;
+esac
+case $CONFIG_sge_accounting_retries in
+  ''|*[!0-9]*) sge_accounting_retries=10 ;;
+  *) sge_accounting_retries=$CONFIG_sge_accounting_retries ;;
+esac
+sge_debug "event=scan_start uid=$my_id query_retries=$sge_query_retries accounting_retries=$sge_accounting_retries wakeupperiod=$sge_wakeupperiod"
+
+# Prevent two scanners for the same local account from racing over counters and
+# completion files.  Recover a lock left by an abnormally terminated scanner.
+lockdir="${TMPDIR}/scan-sge-job.${my_id}.lock"
+if ! mkdir "$lockdir" 2>/dev/null; then
+  lockpid=
+  [ -r "$lockdir/pid" ] && read lockpid < "$lockdir/pid"
+  case $lockpid in
+    ''|*[!0-9]*) lockpid= ;;
+  esac
+  if [ -n "$lockpid" ] && kill -0 "$lockpid" 2>/dev/null; then
+    olog "another scanner is already running with pid $lockpid"
+    exit 0
   fi
+  rm -f "$lockdir/pid"
+  rmdir "$lockdir" 2>/dev/null
+  if ! mkdir "$lockdir" 2>/dev/null; then
+    olog "unable to acquire scanner lock $lockdir"
+    exit 1
+  fi
+fi
+echo "$$" > "$lockdir/pid"
 
-  $qacct_command -j $id $extraargs 2> /dev/null \
-        | /usr/bin/perl -e 'while(<>) {
-                     $nodename=$1         if /^hostname\s+(\S+)/;
-                     $id=$1               if /^jobnumber\s+(\S+)/;
-                     $exitcode=$1         if /^exit_status\s+(\S+)/;
-                     $failed=$1           if /^failed\s+(.*\S)/;
-                     $CPUTime=$1          if /^cpu\s+(\d+)/;
-                     $Processors=$1       if /^slots\s+(\d+)/;
-                     $KernelTime=$1       if /^ru_stime\s+(\d+)/;
-                     $WallTime=$1         if /^ru_wallclock\s+(\d+)/;
-                     $UsedMemory=$1       if /^maxvmem\s+(\S+)M/;
-                     $UsedMemory=$1*1024  if /^maxvmem\s+(\S+)G/;
-                     $start_time=`date -d "$1" +%s` if /^start_time\s+(.+)/;
-                     $end_time  =`date -d "$1" +%s` if /^end_time\s+(.+)/;
-                   }
-                   # converts seconds since epoch in local time into Mds time format (UTC)
-                   sub mds_date {
-                       my ($seconds) = @_;
-                       my @t = gmtime $seconds;
-                       my ($Y,$M,$D,$h,$m,$s) = (1900+$t[5],1+$t[4],$t[3],$t[2],$t[1],$t[0]);
-                       return sprintf "%04i%02i%02i%02i%02i%02iZ",$Y,$M,$D,$h,$m,$s;
-                   }
-                   END {
-                     exit unless $id;
-                     print "LRMSStartTime=".mds_date($1)."\n" if $start_time =~ m/^(\d+)$/;
-                     print "LRMSEndTime="  .mds_date($1)."\n" if $end_time   =~ m/^(\d+)$/;
-                     print "nodename=${nodename}\n";
-                     print "CPUTime=${CPUTime}.0s\n";
-                     print "Processors=${Processors}\n";
-                     print "WallTime=${WallTime}.0s\n";
-                     print "KernelTime=${KernelTime}.0s\n";
-                     print "UserTime=".int($CPUTime-$KernelTime).".0s\n";
-                     print "AverageTotalMemory=".int($UsedMemory*1024)."kB\n";
-                     print "failed=$failed\n";
-                     print "\nsgeexitcode=$exitcode\n";
-                   }' \
-  > "$diagfile_acct"
-
+qstat_xml=`mktemp "${TMPDIR}/sge-qstat.XXXXXX"` || {
+  rm -f "$lockdir/pid"; rmdir "$lockdir"; exit 1;
+}
+qstat_jobs=`mktemp "${TMPDIR}/sge-jobs.XXXXXX"` || {
+  rm -f "$qstat_xml" "$lockdir/pid"; rmdir "$lockdir"; exit 1;
 }
 
-# Parse GRAMI-file and see what was requested
+cleanup () {
+  rm -f "$qstat_xml" "$qstat_xml.err" "$qstat_jobs" "$lockdir/pid"
+  rmdir "$lockdir" 2>/dev/null
+}
+trap cleanup 0
+trap 'exit 1' 1 2 15
+
+if [ -n "$perflogdir" ]; then
+  perflog_common "$perflogdir" "$CONFIG_controldir"
+fi
+
+# Run a read-only scheduler query again when the qmaster or accounting service
+# is briefly unavailable.  The number is additional tries after the first one.
+run_query () {
+  query_output=$1
+  shift
+  query_try=0
+  while :; do
+    if [ "${CONFIG_sge_debug:-no}" = yes ]; then
+      query_started=$(date +%s)
+      sge_debug "event=query_start attempt=$((query_try + 1)) command=$*"
+    fi
+    "$@" > "$query_output" 2> "${query_output}.err"
+    query_status=$?
+    if [ "${CONFIG_sge_debug:-no}" = yes ]; then
+      sge_debug "event=query_result attempt=$((query_try + 1)) exit_status=$query_status elapsed_seconds=$(( $(date +%s) - query_started )) command=$*"
+    fi
+    if [ "$query_status" -eq 0 ]; then
+      return 0
+    fi
+    if [ "$query_try" -ge "$sge_query_retries" ]; then
+      sge_debug "event=query_failed attempts=$((query_try + 1)) exit_status=$query_status command=$*"
+      return 1
+    fi
+    sge_debug "event=query_retry delay_seconds=2 exit_status=$query_status"
+    query_try=$((query_try + 1))
+    sleep 2
+  done
+}
+
+start_ts=
+[ -n "$perflogdir" ] && start_ts=`date +%s.%N`
+
+if ! run_query "$qstat_xml" /usr/bin/env TZ=UTC "$sge_qstat" -xml -u '*' -s a -q '*'; then
+  olog "qstat failed: command=$sge_qstat exit_status=$query_status attempts=$((query_try + 1)); no jobs will be treated as completed"
+  [ -s "$qstat_xml.err" ] && cat "$qstat_xml.err" 1>&2
+  sleep "$sge_wakeupperiod"
+  exit 1
+fi
+
+# Emit one "id state name submission-epoch" record for each job_list. Parallel
+# jobs can occur below several Queue-List elements, so the result is
+# de-duplicated. Use a real XML parser: accepting a truncated snapshot could
+# complete every job omitted from that snapshot.
+if ! /usr/bin/perl -MXML::Simple -e '
+  use strict;
+  use warnings;
+  use Time::Local qw(timegm);
+
+  sub submission_epoch {
+    my ($value) = @_;
+    return "-" if !defined($value) || ref($value);
+    $value =~ s/^\s+|\s+$//g;
+    if ($value =~ /^([0-9]+)(?:\.[0-9]+)?$/) {
+      my $epoch = 0 + $1;
+      $epoch = int($epoch / 1000) if length($1) >= 13;
+      return $epoch if $epoch >= 0 && $epoch <= 9999999999;
+      return "-";
+    }
+    return "-" unless $value =~
+      /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(Z|[+-]\d{2}:?\d{2})?$/;
+    my ($year, $month, $day, $hour, $minute, $second, $zone) =
+      ($1, $2, $3, $4, $5, $6, $7);
+    return "-" if $month < 1 || $month > 12 || $day < 1 || $day > 31
+      || $hour > 23 || $minute > 59 || $second > 60;
+    my $epoch = eval {
+      timegm($second, $minute, $hour, $day, $month - 1, $year - 1900)
+    };
+    return "-" if $@ || !defined($epoch);
+    if (defined($zone) && $zone ne "Z") {
+      my ($sign, $zhour, $zminute) = $zone =~ /^([+-])(\d{2}):?(\d{2})$/;
+      return "-" if $zhour > 23 || $zminute > 59;
+      my $offset = ($zhour * 60 + $zminute) * 60;
+      $epoch += $sign eq "+" ? -$offset : $offset;
+    }
+    return $epoch;
+  }
+
+  my $document = eval { XMLin($ARGV[0], KeyAttr => [], NoAttr => 1,
+                             KeepRoot => 1, ForceArray => ["job_list"]) };
+  die "invalid qstat XML: $@\n" unless ref($document) eq "HASH";
+  my $xml = $document->{job_info};
+  die "invalid qstat XML root\n" unless ref($xml) eq "HASH";
+  die "invalid qstat XML section\n"
+    if grep { $_ ne "queue_info" && $_ ne "job_info" } keys %$xml;
+  for my $section ("queue_info", "job_info") {
+    die "missing or invalid qstat $section section\n"
+      unless ref($xml->{$section}) eq "HASH";
+    die "invalid entry in qstat $section section\n"
+      if grep { $_ ne "job_list" && !($section eq "queue_info" && $_ eq "Queue-List") }
+        keys %{$xml->{$section}};
+  }
+  my %seen;
+  sub walk {
+    my ($node, $is_job) = @_;
+    die "invalid qstat job_list\n" if $is_job && ref($node) ne "HASH";
+    if (ref($node) eq "HASH") {
+      if ($is_job || exists $node->{JB_job_number}) {
+        my $id = $node->{JB_job_number};
+        die "missing or invalid qstat job id\n" if !defined($id) || ref($id);
+        $id =~ s/^\s+|\s+$//g;
+        die "invalid qstat job id\n" unless $id =~ /^[1-9][0-9]*$/;
+        my $state = $node->{state};
+        die "missing or invalid qstat state for job $id\n" if !defined($state) || ref($state);
+        $state =~ s/^\s+|\s+$//g;
+        die "invalid qstat state for job $id\n" unless $state =~ /^[A-Za-z]+$/;
+        my $name = $node->{JB_name};
+        $name = "-" if !defined($name) || ref($name);
+        # ARC-generated names use this restricted alphabet. A different
+        # scalar name (including ordinary names such as job.sh) is a definite
+        # different name, represented without putting delimiters in output.
+        $name = "!" if $name ne "-" && $name !~ /^[A-Za-z0-9_]+$/;
+        my $submitted = submission_epoch($node->{JB_submission_time});
+        $seen{"$id\t$state\t$name\t$submitted"} = 1;
+      }
+      for my $key (keys %$node) {
+        if ($key eq "job_list") {
+          walk($_, 1) for @{$node->{$key}};
+        } else {
+          walk($node->{$key}, 0);
+        }
+      }
+    } elsif (ref($node) eq "ARRAY") {
+      walk($_) for @$node;
+    }
+  }
+  walk($xml);
+  print "$_\n" for sort keys %seen;
+' "$qstat_xml" > "$qstat_jobs"; then
+  olog "failed to parse qstat XML; no jobs will be treated as completed"
+  sleep "$sge_wakeupperiod"
+  exit 1
+fi
+
+if [ -n "$perflogdir" ]; then
+  stop_ts=`date +%s.%N`
+  t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
+  echo "[`date +%Y-%m-%d\ %T`] scan-sge-job, qstat XML: $t" >> "$perflogfile"
+fi
+
+# Parse qacct records and select the last master/summary record for this job.
+# A qacct response may contain records from rescheduling and tightly integrated
+# PE tasks; allowing the last arbitrary record to win corrupts accounting.
+write_diagfile_acct () {
+  diagfile_acct=$1
+  id=$2
+  qacct_raw="${diagfile_acct}.raw"
+
+  if ! run_query "$qacct_raw" /usr/bin/env TZ=UTC "$sge_qacct" -j "$id"; then
+    [ -s "$qacct_raw.err" ] && olog "qacct has no usable record for job $id: `tr '\n' ' ' < "$qacct_raw.err"`"
+    rm -f "$qacct_raw" "$qacct_raw.err"
+    : > "$diagfile_acct"
+    return 1
+  fi
+
+  arc_submit_time=$3
+  /usr/bin/perl - "$id" "$qacct_raw" "$arc_submit_time" "${CONFIG_sge_debug:-no}" "$gridid" > "$diagfile_acct" <<'PERL'
+use strict;
+use warnings;
+use POSIX qw(strftime);
+use Time::Local qw(timegm);
+
+my ($wanted, $path, $arc_submit, $debug, $arc_job) = @ARGV;
+sub accounting_debug {
+    return unless $debug eq 'yes';
+    print STDERR strftime('[%Y-%m-%dT%H:%M:%SZ]', gmtime()) .
+        " scan-sge-job[$$]: arc_job=$arc_job sge_job=$wanted DEBUG event=accounting $_[0]\n";
+}
+$arc_submit = undef
+    unless defined $arc_submit && $arc_submit =~ /^\d+$/;
+open(my $fh, '<', $path) or exit 1;
+my (@records, %record);
+
+sub save_record {
+    return unless %record;
+    $record{_order} = scalar @records;
+    push @records, { %record } if defined $record{jobnumber};
+    %record = ();
+}
+
+while (my $line = <$fh>) {
+    chomp $line;
+    if ($line =~ /^={5,}\s*$/) {
+        save_record();
+        next;
+    }
+    next unless $line =~ /^(\S+)\s+(.*?)\s*$/;
+    my ($key, $value) = ($1, $2);
+    save_record() if $key eq 'qname' && exists $record{jobnumber};
+    die "duplicate $key in qacct record for job $wanted\n"
+        if exists $record{$key}
+            && $key =~ /^(jobnumber|taskid|pe_taskid|failed|exit_status|qsub_time|start_time|end_time|slots)$/;
+    $record{$key} = $value;
+}
+save_record();
+
+my @matches = grep { defined $_->{jobnumber} && $_->{jobnumber} eq $wanted } @records;
+if (!@matches) {
+    accounting_debug('reason=no_matching_job records=' . scalar @records);
+    exit 0;
+}
+
+my @masters = grep {
+    (!defined $_->{pe_taskid} || $_->{pe_taskid} =~ /^(?:NONE|undefined)$/i) &&
+    (!defined $_->{taskid} || $_->{taskid} =~ /^(?:0|NONE|undefined)$/i)
+} @matches;
+if (!@masters) {
+    accounting_debug('reason=no_master_record matching_records=' . scalar @matches);
+    exit 0;
+}
+
+my @eligible;
+for my $record (@masters) {
+    my $qsub_epoch = date_epoch($record->{qsub_time});
+    # qmaster and frontend clocks can differ slightly.  Match in both
+    # directions so an ID reused after this ARC submission is not mistaken for
+    # the original job after a long scanner outage.
+    next if defined($arc_submit)
+            && (!defined($qsub_epoch) || abs($qsub_epoch - $arc_submit) > 300);
+    $record->{_qsub_epoch} = defined($qsub_epoch) ? $qsub_epoch : -1;
+    $record->{_submit_delta} = defined($arc_submit)
+        ? abs($qsub_epoch - $arc_submit) : 0;
+    my $end_epoch = date_epoch($record->{end_time});
+    $record->{_end_epoch} = defined($end_epoch) ? $end_epoch : -1;
+    push @eligible, $record;
+}
+if (!@eligible) {
+    accounting_debug("reason=submission_time_mismatch arc_submission_epoch=$arc_submit tolerance_seconds=300");
+    exit 0;
+}
+if (defined $arc_submit) {
+    my $closest = $eligible[0]->{_submit_delta};
+    for my $record (@eligible) {
+        $closest = $record->{_submit_delta}
+            if $record->{_submit_delta} < $closest;
+    }
+    @eligible = grep { $_->{_submit_delta} == $closest } @eligible;
+}
+@eligible = sort {
+    $a->{_qsub_epoch} <=> $b->{_qsub_epoch}
+        || $a->{_end_epoch} <=> $b->{_end_epoch}
+        || $a->{_order} <=> $b->{_order}
+} @eligible;
+my $r = $eligible[-1];
+
+sub number {
+    my ($value) = @_;
+    return unless defined $value && $value =~ /^([0-9]+(?:\.[0-9]+)?)$/;
+    return 0 + $1;
+}
+
+sub memory_kb {
+    my ($value) = @_;
+    return unless defined $value;
+    return unless $value =~ /^([0-9]+(?:\.[0-9]+)?)([kKmMgGtT]?)(?:[bB])?$/;
+    my ($amount, $unit) = ($1, $2);
+    my %factor = (
+        '' => 1,
+        k => 1000, m => 1000 ** 2, g => 1000 ** 3, t => 1000 ** 4,
+        K => 1024, M => 1024 ** 2, G => 1024 ** 3, T => 1024 ** 4,
+    );
+    return int(($amount * $factor{$unit} + 1023) / 1024);
+}
+
+sub date_epoch {
+    my ($value) = @_;
+    return unless defined $value;
+    my %month = (Jan=>0, Feb=>1, Mar=>2, Apr=>3, May=>4, Jun=>5,
+                 Jul=>6, Aug=>7, Sep=>8, Oct=>9, Nov=>10, Dec=>11);
+    my ($year, $month_number, $day, $hour, $minute, $second);
+    if ($value =~ /^(?:\w{3}\s+)?(\w{3})\s+(\d{1,2})\s+(\d{2}):(\d{2}):(\d{2})\s+(\d{4})$/) {
+        return unless exists $month{$1};
+        ($year, $month_number, $day, $hour, $minute, $second) =
+            ($6, $month{$1}, $2, $3, $4, $5);
+    } elsif ($value =~ m{^(\d{1,2})/(\d{1,2})/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?$}) {
+        ($year, $month_number, $day, $hour, $minute, $second) =
+            ($3, $1 - 1, $2, $4, $5, $6);
+    } else {
+        return;
+    }
+    my $epoch = eval { timegm($second, $minute, $hour, $day, $month_number, $year) };
+    return if $@;
+    return $epoch;
+}
+
+sub mds_date {
+    my ($value) = @_;
+    my $epoch = date_epoch($value);
+    return unless defined $epoch;
+    return strftime('%Y%m%d%H%M%SZ', gmtime($epoch));
+}
+
+my $user = number($r->{ru_utime});
+my $kernel = number($r->{ru_stime});
+my $cpu = number($r->{cpu});
+$kernel = 0 unless defined $kernel;
+$user = $cpu - $kernel if !defined($user) && defined($cpu) && $cpu >= $kernel;
+$cpu = $user + $kernel if !defined($cpu) && defined($user);
+
+my $wall = number($r->{ru_wallclock});
+my $slots = number($r->{slots});
+my $total_memory = memory_kb($r->{maxvmem});
+my $resident_memory;
+for my $field (qw(maxrss max_cgroups_memory max_usage_in_bytes)) {
+    my $candidate = memory_kb($r->{$field});
+    $resident_memory = $candidate
+        if defined $candidate
+            && (!defined($resident_memory) || $candidate > $resident_memory);
+}
+my $ru_maxrss = number($r->{ru_maxrss});
+if (defined $ru_maxrss) {
+    # ru_maxrss is the portable qacct/getrusage field and is already in kB.
+    $ru_maxrss = int($ru_maxrss);
+    $resident_memory = $ru_maxrss
+        if !defined($resident_memory) || $ru_maxrss > $resident_memory;
+}
+my $start = mds_date($r->{start_time});
+my $end = mds_date($r->{end_time});
+
+# A master record without a terminal timestamp and numeric Grid Engine failure
+# status may still be in flight.  Let the existing accounting-lag retry path
+# handle it instead of writing an irreversible unknown completion.
+unless (defined $end
+    && defined $r->{failed} && $r->{failed} =~ /^\d+(?:\s|$)/
+    && defined $r->{exit_status} && $r->{exit_status} =~ /^\d+$/) {
+    accounting_debug('reason=incomplete_terminal_record');
+    exit 0;
+}
+accounting_debug('reason=selected_master submission_epoch=' . $r->{_qsub_epoch} .
+    ' end_epoch=' . $r->{_end_epoch} . ' eligible_records=' . scalar @eligible);
+
+print "LRMSStartTime=$start\n" if defined $start;
+print "LRMSEndTime=$end\n" if defined $end;
+print "nodename=$r->{hostname}\n" if defined $r->{hostname} && $r->{hostname} ne 'NONE';
+print "CPUTime=${cpu}s\n" if defined $cpu;
+print "Processors=" . int($slots) . "\n" if defined $slots;
+print "WallTime=${wall}s\n" if defined $wall;
+print "KernelTime=${kernel}s\n" if defined $kernel;
+print "UserTime=${user}s\n" if defined $user;
+print "AverageTotalMemory=${total_memory}kB\n" if defined $total_memory;
+print "AverageResidentMemory=${resident_memory}kB\n" if defined $resident_memory;
+print "failed=$r->{failed}\n" if defined $r->{failed};
+print "sgeexitcode=$r->{exit_status}\n" if defined $r->{exit_status};
+PERL
+  parser_status=$?
+  rm -f "$qacct_raw" "$qacct_raw.err"
+  [ "$parser_status" -eq 0 ] && [ -s "$diagfile_acct" ]
+}
+
 check_exceeded_resources_grami () {
   gramifile=$1
   errorsfile=$2
@@ -116,406 +448,374 @@ check_exceeded_resources_grami () {
   used_walltime=$4
   used_memory=$5
 
-  req_walltime=`sed -n "s/^joboption_walltime=//p" "$gramifile" | tail -n 1`
-  req_cputime=`sed -n "s/^joboption_cputime=//p" "$gramifile" | tail -n 1`
-  req_memory=`sed -n "s/^joboption_memory=//p" "$gramifile" | tail -n 1`
-    
-  if [ ! -z "$used_memory" ] && [ ! -z "$req_memory" ] \
-    && [ "$req_memory" != "" ] && [ "$req_memory" -gt 0 ] \
-    && [ $(( 100*$used_memory/1024/$req_memory )) -gt 95 ]; then
-    overlimit="memory"
+  req_walltime=`sed -n 's/^joboption_walltime=//p' "$gramifile" | tail -n 1`
+  req_cputime=`sed -n 's/^joboption_cputime=//p' "$gramifile" | tail -n 1`
+  req_memory=`sed -n 's/^joboption_memory=//p' "$gramifile" | tail -n 1`
+  req_slots=`sed -n 's/^joboption_count=//p' "$gramifile" | tail -n 1`
+  case $req_slots in
+    ''|*[!0-9]*|0) req_slots=1 ;;
+  esac
+  overlimit=
+
+  if awk -v used="$used_memory" -v requested="$req_memory" -v slots="$req_slots" 'BEGIN { exit !(used ~ /^[0-9.]+$/ && requested ~ /^[0-9.]+$/ && requested > 0 && used / 1024 / (requested * slots) > .95) }'; then
+    overlimit=memory
   fi
-  if [ ! -z "$used_cputime" ] && [ ! -z "$req_cputime" ] \
-    && [ "$req_cputime" != "" ] && [ "$req_cputime" -gt 0 ] \
-    && [ $(( 100*$used_cputime/$req_cputime )) -gt 95 ]; then
-    overlimit="cputime"
+  if awk -v used="$used_cputime" -v requested="$req_cputime" 'BEGIN { exit !(used ~ /^[0-9.]+$/ && requested ~ /^[0-9.]+$/ && requested > 0 && used / requested > .95) }'; then
+    overlimit=cputime
   fi
-  if [ ! -z "$used_walltime" ] && [ ! -z "$req_walltime" ] \
-    && [ "$req_walltime" != "" ] && [ "$req_walltime" -gt 0 ] \
-    && [ $(( 100*$used_walltime/$req_walltime )) -gt 95 ]; then
-    overlimit="walltime"
+  if awk -v used="$used_walltime" -v requested="$req_walltime" 'BEGIN { exit !(used ~ /^[0-9.]+$/ && requested ~ /^[0-9.]+$/ && requested > 0 && used / requested > .95) }'; then
+    overlimit=walltime
   fi
-    
-  echo ++++++++++++++++++++++++++   >> "$errorsfile"
-  echo Resources:                   >> "$errorsfile"
-  echo ++++++++++++++++++++++++++   >> "$errorsfile"
-  echo req_memory=$req_memory MB    >> "$errorsfile"
-  echo req_cputime=$req_cputime     >> "$errorsfile"
-  echo req_walltime=$req_walltime   >> "$errorsfile"
-  echo used_memory=$used_memory kB  >> "$errorsfile"
-  echo used_cputime=$used_cputime   >> "$errorsfile"
-  echo used_walltime=$used_walltime >> "$errorsfile"
-  if [ ! -z "$overlimit" ]; then
-    echo overlimit=$overlimit       >> "$errorsfile"
-  fi
-  echo ++++++++++++++++++++++++++   >> "$errorsfile"
+
+  {
+    echo ++++++++++++++++++++++++++
+    echo Resources:
+    echo ++++++++++++++++++++++++++
+    echo "req_memory=$req_memory MB per slot ($req_slots slots)"
+    echo "req_cputime=$req_cputime"
+    echo "req_walltime=$req_walltime"
+    echo "used_memory=$used_memory kB"
+    echo "used_cputime=$used_cputime"
+    echo "used_walltime=$used_walltime"
+    [ -n "$overlimit" ] && echo "overlimit=$overlimit"
+    echo ++++++++++++++++++++++++++
+  } >> "$errorsfile"
 }
 
-#Handle failedcode
+sge_failure_description () {
+  case $1 in
+    1|3|4|5|6|7|8|9|10|11) echo "job could not be started by Grid Engine" ;;
+    12|13|14|15|16) echo "Grid Engine failed while finishing the job" ;;
+    24) echo "job is being migrated" ;;
+    25|30) echo "job is being rescheduled" ;;
+    26) echo "Grid Engine could not open the job output" ;;
+    27) echo "Grid Engine could not find the job shell" ;;
+    28) echo "Grid Engine could not enter the job working directory" ;;
+    37) echo "job exceeded a qmaster-enforced hard resource limit" ;;
+    44) echo "job exceeded its hard wall-time limit" ;;
+    45) echo "job exceeded its hard CPU-time limit" ;;
+    46) echo "job exceeded its hard virtual-memory limit" ;;
+    47) echo "job exceeded its hard resident-memory limit" ;;
+    48) echo "job was forcibly deleted by qdel" ;;
+    52) echo "job was killed by the Grid Engine cgroup out-of-memory controller" ;;
+    100) echo "job was terminated by a signal" ;;
+    *) echo "Grid Engine execution failure $1" ;;
+  esac
+}
+
 handle_failedcode () {
   failedcode=$1
-  donefile=$2
-  exitcode=$3
-  sgeexitcode=$4
-  overlimit=$5
+  failedtext=$2
+  donefile=$3
+  wrapper_exitcode=$4
+  sgeexitcode=$5
+  overlimit=$6
+  eqwmessage=$7
 
   if [ -z "$failedcode" ]; then
-    # Should never happen
-    olog "SGE job $id failed: SGE accouting record is incomplete"
-    echo "-1 SGE accouting record is incomplete" > "$donefile"
-	
-  elif [ "$failedcode" = "0" ]; then
-	
-    if [ -z "$exitcode" ]; then
-      olog "SGE job $id failed with unknown exit code"
-      if [ -z "$sgeexitcode" ] || [ "$sgeexitcode" = 0 ]; then sgeexitcode="-1"; fi
-      echo "$sgeexitcode Job failed with unknown exit code" > "$donefile"
-      
-    elif [ "$exitcode" = "0" ]; then
-      #olog "SGE job $id finished successfully"
-      echo "0" > "$donefile"
-	    
+    olog "SGE job $id has an incomplete accounting record"
+    echo "-1 SGE accounting record is incomplete" > "$donefile"
+    return
+  fi
+
+  if [ "$failedcode" = 0 ]; then
+    effective_exitcode=$sgeexitcode
+    case $effective_exitcode in ''|*[!0-9]*) effective_exitcode=$wrapper_exitcode ;; esac
+    case $effective_exitcode in ''|*[!0-9]*) effective_exitcode=-1 ;; esac
+    if [ "$effective_exitcode" -gt 255 ] 2>/dev/null; then effective_exitcode=-1; fi
+    wrapper_exitcode_valid=
+    case $wrapper_exitcode in
+      ''|*[!0-9]*) ;;
+      *) [ "$wrapper_exitcode" -le 255 ] 2>/dev/null && wrapper_exitcode_valid=yes ;;
+    esac
+    if [ -n "$wrapper_exitcode_valid" ] && [ "$wrapper_exitcode" != 0 ]; then
+      effective_exitcode=$wrapper_exitcode
+    fi
+
+    if [ "$effective_exitcode" = 0 ]; then
+      echo 0 > "$donefile"
     else
-      #olog "SGE job $id failed with exit code $exitcode"
-      if [ -z "$sgeexitcode" ] || [ "$sgeexitcode" = 0 ]; then sgeexitcode="-1"; fi
-      echo "$sgeexitcode Job failed with exit code $exitcode" > "$donefile"
+      echo "$effective_exitcode Job failed with exit code $effective_exitcode" > "$donefile"
     fi
+    return
+  fi
 
-  else  # SGE reports a problem
-	
-    if [ "$failedcode" = "25" ]; then
-      failedreason="SGE error $failedcode: Job will be rescheduled"
-    elif [ "$failedcode" = "24" ]; then
-      failedreason="SGE error $failedcode: Job will be migrated"
-    elif [ "$failedcode" = "100" ]; then
-      # This happens when SGE signals the job, as in the case when a
-      # resource limit is exceeded.  We don't know for sure whether
-      # they were enforced or not but if a job is killed by SGE, this
-      # might be the likely cause.
-      if [ -z "$overlimit" ]; then
-        failedreason="SGE error $failedreason"
-      elif [ $overlimit = "memory" ]; then
-        failedreason="job killed: vmem"
-      elif [ $overlimit = "cputime" ]; then
-        failedreason="job killed: cput"
-      elif [ $overlimit = "walltime" ]; then
-        failedreason="job killed: wall"
-      fi
-    else
-      failedreason="SGE error $failedreason"
-    fi
+  failedreason=`sge_failure_description "$failedcode"`
+  [ -n "$failedtext" ] && failedreason="SGE error $failedtext ($failedreason)"
+  [ -n "$eqwmessage" ] && failedreason=$eqwmessage
+  case $failedcode:$overlimit in
+    37:walltime|44:*|100:walltime) failedreason="job killed: wall" ;;
+    37:cputime|45:*|100:cputime) failedreason="job killed: cput" ;;
+    37:memory|46:*|47:*|52:*|100:memory) failedreason="job killed: memory" ;;
+  esac
 
-    if [ ! -z "$eqwmessage" ]; then
-       failedreason="$eqwmessage"
-    fi
-	
-    olog "SGE job $id failed: $failedreason"
-    if [ -z "$sgeexitcode" ] || [ "$sgeexitcode" = 0 ]; then sgeexitcode="-1"; fi
-    echo "271 $failedreason" > "$donefile"
-
-  fi # failedcode
+  olog "SGE job $id failed: $failedreason"
+  echo "271 $failedreason" > "$donefile"
 }
 
-# Add accounting info to $diagfile
 add_accounting_to_diag () {
-  diagfile=$1 
+  diagfile=$1
   diagfile_acct=$2
   diagfile_tmp=$3
-  errorsfile=$4
-  uid=$5
-  commentfile=$6
-  ctr_dir=$7
-  
-  gramifile=$(control_path "${ctr_dir}" "${gridid}" "grami")
-  donefile=$(control_path "${ctr_dir}" "${gridid}" "lrms_done")
-  countfile=$(control_path "${ctr_dir}" "${gridid}" "lrms_job")
-  errorsfile=$(control_path "${ctr_dir}" "${gridid}" "errors")
-  localfile=$(control_path "${ctr_dir}" "${gridid}" "local")
-  
-  used_walltime=`sed -n 's/^WallTime=\(.*\).0s/\1/p' "$diagfile_acct" | tail -n 1`
-  used_cputime=`sed -n 's/^CPUTime=\(.*\).0s/\1/p' "$diagfile_acct" | tail -n 1`
-  used_memory=`sed -n 's/^AverageTotalMemory=\(.*\)kB/\1/p' "$diagfile_acct" | tail -n 1`
+  uid=$4
+  commentfile=$5
+  ctr_dir=$6
+
+  gramifile=$(control_path "$ctr_dir" "$gridid" "grami")
+  donefile=$(control_path "$ctr_dir" "$gridid" "lrms_done")
+  countfile=$(control_path "$ctr_dir" "$gridid" "lrms_job")
+  errorsfile=$(control_path "$ctr_dir" "$gridid" "errors")
+  eqwfile=$(control_path "$ctr_dir" "$gridid" "lrms_eqw")
+
+  [ -s "$diagfile_acct" ] || return 1
+
+  used_walltime=`sed -n 's/^WallTime=\([0-9.]*\)s$/\1/p' "$diagfile_acct" | tail -n 1`
+  used_cputime=`sed -n 's/^CPUTime=\([0-9.]*\)s$/\1/p' "$diagfile_acct" | tail -n 1`
+  used_memory=`sed -n 's/^AverageResidentMemory=\([0-9.]*\)kB$/\1/p' "$diagfile_acct" | tail -n 1`
+  if [ -z "$used_memory" ]; then
+    used_memory=`sed -n 's/^AverageTotalMemory=\([0-9.]*\)kB$/\1/p' "$diagfile_acct" | tail -n 1`
+  fi
   sgeexitcode=`sed -n 's/^sgeexitcode=//p' "$diagfile_acct" | tail -n 1`
-  failedreason=`sed -n 's/^failed=//p' "$diagfile_acct" | tail -n 1`
-  failedcode=`echo $failedreason | awk '{print $1}'`
-    
-  if [ -s "$diagfile_acct" ]; then
+  failedtext=`sed -n 's/^failed=//p' "$diagfile_acct" | tail -n 1`
+  failedcode=`printf '%s\n' "$failedtext" | awk '{print $1}'`
 
-    # Remove attributes from existing diagfile that we should have
-    # gotten from qacct this time, otherwise we will get duplicates
+  if [ -f "$diagfile" ]; then
     do_as_uid "$uid" "cat '$diagfile'" \
-      | grep -v "^nodename=" \
-      | grep -v "^WallTime=" \
-      | grep -v "^KernelTime=" \
-      | grep -v "^UserTime=" \
-      | grep -v "^CPUTime=" \
-      | grep -v "^Processors=" \
-      | grep -v "^LRMSStartTime=" \
-      | grep -v "^LRMSEndTime=" \
-      | grep -v "^MaxResidentMemory=" \
-      | grep -v "^AverageTotalMemory=" \
+      | grep -v '^WallTime=' \
+      | grep -v '^KernelTime=' \
+      | grep -v '^UserTime=' \
+      | grep -v '^CPUTime=' \
+      | grep -v '^Processors=' \
+      | grep -v '^LRMSStartTime=' \
+      | grep -v '^LRMSEndTime=' \
+      | grep -v '^MaxResidentMemory=' \
+      | grep -v '^AverageResidentMemory=' \
+      | grep -v '^AverageTotalMemory=' \
       > "$diagfile_tmp"
+  else
+    : > "$diagfile_tmp"
+  fi
 
-    cat "$diagfile_tmp" "$diagfile_acct" \
-      | grep -v '^sgeexitcode=' \
-      | do_as_uid "$uid" "cat > '$diagfile'"
-	
-    # Check for exceeded resources limits
-    overlimit=
-    if [ -s "$gramifile" ]; then
-      check_exceeded_resources_grami "$gramifile" "$errorsfile" "$used_cputime" "$used_walltime" "$used_memory"
-    fi # grami file
-	
-    save_commentfile "$uid" "$commentfile" "$errorsfile"
-	
-    handle_failedcode "$failedcode" "$donefile" "$exitcode" "$sgeexitcode" "$overlimit"
-	
-    # wake up GM
-    $GMKICK -j "${gridid}" "${ctr_dir}" >> "$errorsfile"
+  {
+    cat "$diagfile_tmp"
+    if grep -q '^nodename=' "$diagfile_tmp"; then
+      grep -v '^nodename=' "$diagfile_acct"
+    else
+      cat "$diagfile_acct"
+    fi
+  } | grep -v '^sgeexitcode=' \
+      | grep -v '^failed=' \
+      | do_as_uid "$uid" "cat > '$diagfile'" || {
+      olog "cannot update diagnostic file for ARC job $gridid"
+      return 1
+    }
 
-    rm -f "$countfile"
-    rm -f "$diagfile_tmp" "$diagfile_acct"
+  overlimit=
+  if [ -s "$gramifile" ]; then
+    check_exceeded_resources_grami "$gramifile" "$errorsfile" "$used_cputime" "$used_walltime" "$used_memory"
+  fi
 
-    # we're done, go to next job id
-    return 0
+  save_commentfile "$uid" "$commentfile" "$errorsfile"
+  wrapper_exitcode=`do_as_uid "$uid" "sed -n 's/^exitcode=//p' '$diagfile'" | tail -n 1`
+  eqwmessage=
+  [ -s "$eqwfile" ] && eqwmessage=`cat "$eqwfile"`
+  handle_failedcode "$failedcode" "$failedtext" "$donefile" "$wrapper_exitcode" "$sgeexitcode" "$overlimit" "$eqwmessage"
 
-  fi # accounting info ok
-
-  rm -f "$diagfile_tmp" "$diagfile_acct"
-  return 1
+  "$GMKICK" -j "$gridid" "$ctr_dir" >> "$errorsfile"
+  sge_log "event=completed source=qacct failed=$failedcode scheduler_exit=$sgeexitcode wrapper_exit=${wrapper_exitcode:--} resource_limit=${overlimit:--}"
+  rm -f "$countfile" "$eqwfile" "$diagfile_tmp" "$diagfile_acct"
+  return 0
 }
 
-# Handle missing accounting info
 handle_missing_accounting () {
   countfile=$1
   uid=$2
   commentfile=$3
   errorsfile=$4
   donefile=$5
-  exitcode=$6
+  wrapper_exitcode=$6
   ctr_dir=$7
-  GMKICK=$8
-  SGE_BIN_PATH=$9
-  id=$10
+  id=$8
+  eqwfile=$9
+  skip_live_check=${10}
 
-  if [ -n "$noaccounting" ]; then
+  # A damaged/stale diagnostic must not become a nonnumeric ARC exit status.
+  case $wrapper_exitcode in
+    ''|*[!0-9]*) wrapper_exitcode= ;;
+    *) [ "$wrapper_exitcode" -le 255 ] 2>/dev/null || wrapper_exitcode= ;;
+  esac
 
-    # Accounting file is not accessible on this host.
-    echo "scan-sge-job: WARNING: SGE's accounting file is not accessible on the Grid frontend node" >> "$errorsfile"
-    echo "scan-sge-job: WARNING: Resource usage reported for this job may be inaccurate or incomplete" >> "$errorsfile"
+  counter=0
+  if [ -f "$countfile" ]; then
+    read counter < "$countfile"
+    case $counter in ''|*[!0-9]*) counter=0 ;; esac
+  fi
+  counter=$((counter + 1))
 
-    if [ -z "$exitcode" ]; then
-      echo "-1 Job failed with unknown exit code" > "$donefile"
-    elif [ "$exitcode" = "0" ]; then
-      echo "0" > "$donefile" 
-    else
-      echo "$exitcode Job failed with exit code $exitcode" > "$donefile"
-    fi
-
-    $GMKICK -j "${gridid}" "${ctr_dir}" >> "$errorsfile"
-
+  # Close the qstat/qacct race before applying the retry limit.  In
+  # particular, a rescheduled job can reappear between the cluster snapshot
+  # and its accounting lookup on what would otherwise be the final retry.
+  if [ -z "$skip_live_check" ] \
+      && "$sge_qstat" -u '*' -s a -q '*' -j "$id" >/dev/null 2>&1; then
+    olog "SGE job $id reappeared while waiting for accounting"
+    rm -f "$countfile"
     return
   fi
 
-  # There is a certain lag between the end of the job
-  # and the time when accouting information becomes available.
-  # We do 5 retries, keeping the count in $countfile
-
-  counter=0
-  if [ -f "$countfile" ] ; then
-    counter=`cat "$countfile"`
-    counter=$(( $counter + 1 ))
-  fi
-
-  if [ "$counter" -gt 5 ]; then
-    # Cannot wait more for accounting info.
-    echo "scan-sge-job: WARNING: No SGE accounting record found for this job" >> "$errorsfile"
-    echo "scan-sge-job: WARNING: Resource usage reported for this job may be inaccurate or incomplete" >> "$errorsfile"
-
+  if [ "$counter" -gt "$sge_accounting_retries" ]; then
+    sge_log "event=accounting_exhausted attempt=$counter limit=$sge_accounting_retries source=wrapper wrapper_exit=${wrapper_exitcode:--}"
+    echo "scan-sge-job: WARNING: No SGE accounting record found for job $id" >> "$errorsfile"
+    echo "scan-sge-job: WARNING: Resource usage may be incomplete" >> "$errorsfile"
     save_commentfile "$uid" "$commentfile" "$errorsfile"
 
-    if [ -z "$exitcode" ]; then
-      olog "No SGE accounting record found for job $id. No exitcode in diag file"
+    if [ -s "$eqwfile" ]; then
+      eqwmessage=`cat "$eqwfile"`
+      echo "271 $eqwmessage" > "$donefile"
+    elif [ -z "$wrapper_exitcode" ]; then
       echo "-1 Job failed with unknown exit code" > "$donefile"
-    elif [ "$exitcode" = "0" ]; then
-      olog "No SGE accounting record found for job $id. exitcode=$exitcode in diag file"
-      echo "0" > "$donefile"
+    elif [ "$wrapper_exitcode" = 0 ]; then
+      echo 0 > "$donefile"
     else
-      olog "No SGE accounting record found for job $id. exitcode=$exitcode in diag file"
-      echo "$exitcode Job failed with exit code $exitcode" > "$donefile"
+      echo "$wrapper_exitcode Job failed with exit code $wrapper_exitcode" > "$donefile"
     fi
-    rm -f "$countfile"
 
-    # wake up GM
-    $GMKICK -j "${gridid}" "${ctr_dir}" >> "$errorsfile"
-
-  else
-    # test again for job existence, only count if not known
-    ${SGE_BIN_PATH}/qstat -j $id > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-      echo "$counter" > "$countfile"
-    else
-      olog "SGE job $id disappeared and then reappeared!"
-      rm -f "$countfile"
-    fi
+    rm -f "$countfile" "$eqwfile"
+    "$GMKICK" -j "$gridid" "$ctr_dir" >> "$errorsfile"
+    return
   fi
+
+  echo "$counter" > "$countfile"
+  sge_debug "event=accounting_wait attempt=$counter limit=$sge_accounting_retries wrapper_exit=${wrapper_exitcode:--}"
 }
 
-# GD: no attempt to look for SGE Manager logfiles, restrict to job logs.
+# Process every ARC job once.  This avoids the old nested local-ID search and
+# remains safe for IDs such as 12 and 123 that share a prefix.
+for ctr_dir in "$@"; do
+  for statusfile in "$ctr_dir"/processing/*.status; do
+    [ -f "$statusfile" ] || continue
+    gridid=${statusfile##*/}
+    gridid=${gridid%.status}
 
-if [ ! -z "$perflogdir" ]; then
-   start_ts=`date +%s.%N`
-fi
-
-# Get all jobs
-pids=`${SGE_BIN_PATH}/qstat -u '*' 2>/dev/null | sed -n 's/^ *\([0-9][0-9]*\) .*/\1/p'`
-if [ $? != 0 ]; then
-  olog "Failed running ${SGE_BIN_PATH}/qstat"
-  sleep 60
-  exit 1
-fi
-
-if [ ! -z "$perflogdir" ]; then
-   stop_ts=`date +%s.%N`
-   t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-   echo "[`date +%Y-%m-%d\ %T`] scan-sge-job, qstat -u '*': $t" >> $perflogfile
-fi
-
-# Go through directories
-for ctr_dir in $control_dirs ; do
-  # Obtain ids of pending/running jobs stored in job.*.local
-  if [ ! -z "$perflogdir" ]; then
-     start_ts=`date +%s.%N`
-  fi
-
-  rjobs=''
-  for gid in `find "$ctr_dir/processing" -name '*.status' 2>/dev/null | sed 's/.*\/\([^\.\/]*\)\.status$/\1/'` ; do
-    localfile=$(control_path "$ctr_dir" "$gid" "local")
-    rjobs="$rjobs $localfile"
-  done
-  if [ ! -z "$perflogdir" ]; then
-     stop_ts=`date +%s.%N`
-     t=`awk "BEGIN { printf \"%.3f\", ${stop_ts}-${start_ts} }"`
-     echo "[`date +%Y-%m-%d\ %T`] scan-sge-job, control dir traversal: $t" >> $perflogfile
-  fi
-
-  if [ -z "$rjobs" ] ; then continue ; fi
-  ids=`echo $rjobs | xargs grep -h '^localid=' 2>/dev/null | sed 's/^localid=\([^ ]*\)/\1/'`
-  if [ -z "$ids" ] ; then continue ; fi
-  # compare them to running jobs and find missing
-  bids=
-  for id in $ids ; do
-    found=`echo "$pids" | grep "^$id"`
-    if [ -z "$found" ] ; then
-      bids="$bids $id"
-    fi
-  done
-  # go through missing ids
-  for id in $bids ; do
-    # find grid job corresponding to current local id
-    jobfile=''
-    gridid=''
-    for gid in `find "$ctr_dir/processing" -name '*.status' 2>/dev/null | sed 's/.*\/\([^\.\/]*\)\.status$/\1/'` ; do
-      localfile=$(control_path "$ctr_dir" "$gid" "local")
-      grep -h "localid=$id\$" 2>/dev/null 1>/dev/null
-      if [ $? -eq 0 ] ; then
-        gridid="$gid"
-        jobfile="$localfile"
-      fi
-    done
-    if [ -z "$jobfile" ] ; then continue ; fi
-    # unless running as superuser, skip jobs not belonging to the current user
-    if [ "$my_id" != '0' ] ; then
-      if [ ! -O "$jobfile" ] ; then continue ; fi
-    fi
-    # find who runs this job
-    uid=$(get_owner_uid "$jobfile")
-    [ -z "$uid" ] && { log "Failed to stat $jobfile"; continue; }
-    # extract grid id
-    donefile=$(control_path "${ctr_dir}" "${gridid}" "lrms_done")
-    countfile=$(control_path "${ctr_dir}" "${gridid}" "lrms_job")
-    failedfile=$(control_path "${ctr_dir}" "${gridid}" "failed")
-    errorsfile=$(control_path "${ctr_dir}" "${gridid}" "errors")
-    localfile=$(control_path "${ctr_dir}" "${gridid}" "local")
-    xmlfile=$(control_path "${ctr_dir}" "${gridid}" "xml")
-    if [ -f "$donefile" ] ; then continue ; fi
-    statusfile="${ctr_dir}/processing/${gridid}.status"
-    if [ ! -f "$statusfile" ] ; then continue ; fi
     status=`cat "$statusfile"`
-    if [ "$status" != "INLRMS" ] && [ "$status" != "CANCELING" ] ; then continue ; fi
-    # get session directory of this job
-    session=`grep -h '^sessiondir=' "$jobfile" | sed 's/^sessiondir=\(.*\)/\1/'`
-    commentfile="${session}.comment"
-    commentfile2="${session}/.comment"
-    do_as_uid "$uid" "cat '$commentfile2' >> '$commentfile' 2> /dev/null; rm -f '$commentfile2'";
-    if [  -d "$session" ] ; then
-      diagfile="${session}.diag"
-      diagfile2="${session}/.diag"
-      do_as_uid "$uid" "cat '$diagfile2' >> '$diagfile' 2> /dev/null; rm -f '$diagfile2'";
-      # try to obtain the exit code
-      # $diagfile is owned by the user running the job. Switch user to access it.
-      exitcode=`do_as_uid "$uid" "sed -n 's/^exitcode=//p' '$diagfile'" | tail -n 1`
+    [ "$status" = INLRMS ] || [ "$status" = CANCELING ] || continue
 
-      diagfile_tmp=`mktemp "$TMPDIR/diag_tmp.XXXXXX"` || { sleep 60; exit 1; }
-      diagfile_acct=`mktemp "$TMPDIR/diag_acct.XXXXXX"` || { sleep 60; exit 1; }
-      noaccounting=
+    localfile=$(control_path "$ctr_dir" "$gridid" "local")
+    [ -f "$localfile" ] || continue
+    if [ "$my_id" != 0 ] && [ ! -O "$localfile" ]; then continue; fi
 
-      # qacct can take quite long. Here is a workaround.
-      # Find the accounting file, and copy the last 50000
-      # records to a temp file.
-      acctfile=$SGE_ROOT/$SGE_CELL/common/accounting
-      if [ -f  "$acctfile" ]; then
-        briefacct=`mktemp "$TMPDIR/accounting.XXXXXX"` || { sleep 60; exit 1; }
-        tail -n 50000 "$acctfile" > "$briefacct"
-        if [ $? = 0 ]; then extraargs="-f $briefacct"; fi
+    uid=$(get_owner_uid "$localfile")
+    [ -n "$uid" ] || { olog "failed to stat $localfile"; continue; }
+    id=`sed -n 's/^localid=\([0-9][0-9]*\)$/\1/p' "$localfile" | tail -n 1`
+    verify_jobid "$id" || { olog "ignoring invalid local ID in $localfile"; continue; }
+
+    donefile=$(control_path "$ctr_dir" "$gridid" "lrms_done")
+    [ -f "$donefile" ] && continue
+    countfile=$(control_path "$ctr_dir" "$gridid" "lrms_job")
+    errorsfile=$(control_path "$ctr_dir" "$gridid" "errors")
+    eqwfile=$(control_path "$ctr_dir" "$gridid" "lrms_eqw")
+    gramifile=$(control_path "$ctr_dir" "$gridid" "grami")
+    sge_submit_time=`sed -n 's/^joboption_sge_submit_time=\([0-9][0-9]*\)$/\1/p' "$gramifile" 2>/dev/null | tail -n 1`
+    sge_job_name=`sed -n 's/^joboption_sge_job_name=\([A-Za-z0-9_][A-Za-z0-9_]*\)$/\1/p' "$gramifile" 2>/dev/null | tail -n 1`
+
+    skip_live_check=
+    active_record=`awk -v wanted="$id" '$1 == wanted { print $2, $3, $4; exit }' "$qstat_jobs"`
+    active_state=${active_record%% *}
+    active_identity=${active_record#* }
+    active_name=${active_identity%% *}
+    active_submit_time=${active_identity#* }
+    sge_debug "event=job_snapshot arc_state=$status scheduler_state=${active_state:-absent} arc_submission_epoch=${sge_submit_time:--} scheduler_submission_epoch=${active_submit_time:--}"
+    if [ -n "$active_state" ] && [ -n "$sge_submit_time" ] \
+        && [ -n "$active_submit_time" ] && [ "$active_submit_time" != - ]; then
+      if [ "$active_submit_time" -ge "$sge_submit_time" ]; then
+        submit_delta=$((active_submit_time - sge_submit_time))
       else
-        # Accounting file is not accessible on this host.
-        noaccounting=1
+        submit_delta=$((sge_submit_time - active_submit_time))
       fi
-
-      eqwmessage=`grep "SGE job state was Eqw" $xmlfile | sed -r 's/<[/]?OtherMessages>//g'`
-
-      # get accounting info. write diag file
-      write_diagfile_acct "$diagfile_acct" "${SGE_BIN_PATH}/qacct" "$id" "$extraargs"
-
-      if [ "x$briefacct" != "x" ]; then rm -f "$briefacct"; fi
-
-      # If the last qacct record is about migration,
-      # we should wait for the next qacct record to appear
-      # Delete file, like there was no accounting present at all!
-      if grep -q "^failed=24 *: migrating"    "$diagfile_acct" \
-      || grep -q "^failed=25 *: rescheduling" "$diagfile_acct"; then
-          rm -f "$diagfile_acct"
-          olog "SGE job $id: the last record in qacct is about migration. Waiting for next record to appear"
+      if [ "$submit_delta" -gt 300 ]; then
+        olog "SGE job ID $id has been reused (submission times differ by ${submit_delta}s)"
+        active_state=
+        skip_live_check=yes
       fi
-
-      # Add accounting info to $diagfile
-      add_accounting_to_diag "$diagfile" "$diagfile_acct" "$diagfile_tmp" "$errorsfile" "$uid" "$commentfile" "$ctr_dir"
-      if [ $? = 0 ]; then
-	  continue
-      fi
-    fi # session directory exists
-
-    # This section is only reached when accounting info is not present
-
-    handle_missing_accounting "$countfile" "$uid" "$commentfile" "$errorsfile" "$donefile" "$exitcode" "$ctr_dir" "$GMKICK" "$SGE_BIN_PATH" "$id"
-
-  done # loop over bids
-
-  # Detect the unlikely situation when a job reappears in the qstat listing
-  # after being absent in the previous run of the scan-*-job (which updated
-  # the counter file)
-  for countfile in `find $ctr_dir -name 'lrms_job'`; do
-    localfile=${countfile%lrms_job}local
-    pid=`sed -n 's/^localid=\([^ ]*\)/\1/p' "$localfile" 2>/dev/null`
-    if [ -z "$pid" ]; then continue; fi
-    if echo "$pids" | grep "^$pid\$" >/dev/null; then
-      olog "SGE job $id disappeared and then reappeared!"
-      rm -f "$countfile"
     fi
+    # A JSV may legitimately rewrite JB_name. The timestamp above is the
+    # authoritative identity check; a name difference alone must not complete
+    # a live job. New ARC submissions always persist the timestamp.
+    if [ -n "$active_state" ] && [ -n "$sge_job_name" ] \
+        && [ "$active_name" != - ] && [ "$active_name" != "$sge_job_name" ]; then
+      sge_debug "SGE job $id is live with JSV-adjusted name '$active_name'"
+    fi
+    # Open Cluster Scheduler can include retained finished jobs in `-s a`.
+    # They are terminal, but qstat -j can still see them until retention ends.
+    if [ "$active_state" = f ]; then
+      active_state=
+      skip_live_check=yes
+    fi
+    if [ -n "$active_state" ]; then
+      rm -f "$countfile"
+      case $active_state in
+        *E*)
+          if [ ! -s "$eqwfile" ]; then
+            job_detail=`"$sge_qstat" -u '*' -s a -q '*' -j "$id" 2>&1`
+            eqwmessage=`printf '%s\n' "$job_detail" | sed -n 's/^error reason[^:]*:[[:space:]]*//p' | head -n 1`
+            [ -n "$eqwmessage" ] || eqwmessage="SGE job $id entered error state $active_state"
+            echo "$eqwmessage" > "$eqwfile"
+            echo "scan-sge-job: $eqwmessage" >> "$errorsfile"
+            if ! "$sge_qdel" "$id" >> "$errorsfile" 2>&1; then
+              olog "unable to delete SGE job $id in state $active_state"
+              rm -f "$eqwfile"
+            fi
+          fi
+          ;;
+      esac
+      continue
+    fi
+
+    session=`sed -n 's/^sessiondir=//p' "$localfile" | tail -n 1`
+    if [ -z "$session" ]; then
+      echo "scan-sge-job: missing sessiondir in $localfile" >> "$errorsfile"
+      echo "-1 ARC could not determine the job session directory" > "$donefile"
+      "$GMKICK" -j "$gridid" "$ctr_dir" >> "$errorsfile"
+      continue
+    fi
+    commentfile="${session}.comment"
+    diagfile="${session}.diag"
+
+    # Accept files produced by older SGE job scripts inside the session dir.
+    if [ -n "$session" ] && [ -d "$session" ]; then
+      do_as_uid "$uid" "cat '$session/.comment' >> '$commentfile' 2>/dev/null; rm -f '$session/.comment'"
+      do_as_uid "$uid" "cat '$session/.diag' >> '$diagfile' 2>/dev/null; rm -f '$session/.diag'"
+    fi
+    wrapper_exitcode=`do_as_uid "$uid" "sed -n 's/^exitcode=//p' '$diagfile' 2>/dev/null" | tail -n 1`
+
+    diagfile_tmp=`mktemp "${TMPDIR}/sge-diag.XXXXXX"` || exit 1
+    diagfile_acct=`mktemp "${TMPDIR}/sge-acct.XXXXXX"` || {
+      rm -f "$diagfile_tmp"; exit 1;
+    }
+
+    write_diagfile_acct "$diagfile_acct" "$id" "$sge_submit_time"
+    accounting_status=$?
+
+    failedtext=`sed -n 's/^failed=//p' "$diagfile_acct" | tail -n 1`
+    failedcode=`printf '%s\n' "$failedtext" | awk '{print $1}'`
+    case $failedcode in
+      24|25|30)
+        olog "SGE job $id has a nonterminal migration/rescheduling record; waiting for its final record"
+        : > "$diagfile_acct"
+        accounting_status=1
+        ;;
+    esac
+
+    if [ "$accounting_status" -eq 0 ]; then
+      if add_accounting_to_diag "$diagfile" "$diagfile_acct" "$diagfile_tmp" "$uid" "$commentfile" "$ctr_dir"; then
+        continue
+      fi
+    fi
+
+    rm -f "$diagfile_tmp" "$diagfile_acct" "${diagfile_acct}.raw" "${diagfile_acct}.raw.err"
+    handle_missing_accounting "$countfile" "$uid" "$commentfile" "$errorsfile" "$donefile" "$wrapper_exitcode" "$ctr_dir" "$id" "$eqwfile" "$skip_live_check"
   done
+done
 
-done # loop over control_dirs
-sleep 60
+sge_debug "event=scan_end sleep_seconds=$sge_wakeupperiod"
+sleep "$sge_wakeupperiod"
 exit 0
-

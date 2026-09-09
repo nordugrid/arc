@@ -1971,6 +1971,7 @@ AC_CONFIG_FILES([Makefile
                  src/services/a-rex/lrms/sge/submit-sge-job
                  src/services/a-rex/lrms/sge/scan-sge-job
                  src/services/a-rex/lrms/sge/cancel-sge-job
+                 src/services/a-rex/lrms/sge/test/Makefile
                  src/services/a-rex/lrms/slurm/Makefile
                  src/services/a-rex/lrms/slurm/submit-SLURM-job
                  src/services/a-rex/lrms/slurm/scan-SLURM-job
@@ -2118,4 +2119,3 @@ Documentation:      ${enables_doc}
 Monitoring:
 LDAP Monitor        ${enables_monitor}
 ])
-

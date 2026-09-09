@@ -515,6 +515,7 @@
 ## For lrmstype, the following values can be chosen:
 ##   - fork    - simple forking of jobs to the same node as the server
 ##   - condor  - Condor
+##   - sge     - Altair Grid Engine (including compatible Sun/Oracle/Univa derivatives)
 ##   - pbs     - PBS (covers Torque and other old PBS flavours e.g. OpenPBS, older PBSPro, etc)
 ##   - pbspro  - Altair PBS Professional
 ##   - slurm   - SLURM
@@ -635,6 +636,88 @@
 ## space, for example.
 ## default: undefined
 #condor_requirements=(OpSys == "linux" && NORDUGRID_RESOURCE && Memory >= 1000 && Memory < 2000)
+
+### SGE options: set these only in case of lrms=sge
+## sge_root = path - Grid Engine installation root. This is normally the value used
+## when sourcing $SGE_ROOT/$SGE_CELL/common/settings.sh and is required unless SGE_ROOT
+## is already present in the A-REX environment.
+## default: undefined
+#sge_root=/opt/uge
+
+## sge_cell = string - Grid Engine cell name.
+## default: default
+#sge_cell=default
+
+## sge_bin_path = path - Directory containing qsub, qstat, qacct, qdel, qconf and
+## qhost. If omitted, the directory containing qsub in PATH is used.
+## default: undefined
+#sge_bin_path=/opt/uge/bin/lx-amd64
+
+## sge_qmaster_port = number - Optional qmaster TCP port. Leave undefined when the
+## Grid Engine installation uses its service/default configuration.
+## default: undefined
+#sge_qmaster_port=6444
+
+## sge_execd_port = number - Optional execution-daemon TCP port.
+## default: undefined
+#sge_execd_port=6445
+
+## sge_pe = string - Parallel environment used for ARC jobs requesting more than one
+## slot. It must exist in `qconf -spl`. An RTE can instead select a PE by supplying its
+## name as a nodeproperty. ARC rejects a multi-slot job when no PE can be selected.
+## default: undefined
+#sge_pe=mpi
+
+## sge_exclusive_resource = string - Name of the requestable, per-slot consumable
+## BOOL complex with EXCL relation which implements exclusive-node scheduling.
+## Required when ARC jobs can request exclusive execution; there is no portable
+## built-in Grid Engine equivalent.
+## default: undefined
+#sge_exclusive_resource=exclusive
+
+## sge_memory_resource = string - Name of the requestable, per-slot consumable MEMORY
+## complex with <= relation used for ARC physical-memory requests. ARC automatically prefers m_mem_free
+## when available and otherwise falls back to h_vmem with a warning. Altair Grid Engine
+## sites using cgroups should normally set this to their physical-memory complex. The standard
+## non-consumable h_vmem complex is accepted as an enforcement-only fallback.
+## default: undefined
+#sge_memory_resource=m_mem_free
+
+## sge_jobopts = string - Additional native qsub directives. Values are appended after
+## ARC-generated directives, so later Grid Engine options can override earlier ones.
+## Options which change ARC's one-job accounting contract (-clear, -t, -tc, -sync, -now,
+## -b, -shell, -pe, -N and -@) are rejected; use sge_pe for parallel jobs. ARC adds its
+## local identifier to the native job name and records the submission time so reused
+## numeric IDs remain distinguishable even when a JSV rewrites the name.
+## multivalued
+## default: undefined
+#sge_jobopts=-w e
+
+## sge_wakeupperiod = numsec - Delay at the end of each SGE scanner pass.
+## default: 30
+#sge_wakeupperiod=30
+
+## sge_query_retries = number - Additional attempts for failed qstat and qacct queries
+## during one scanner pass. A qstat failure never means that all jobs have completed.
+## ARC overrides -u, -s and -q selectors from global/private sge_qstat defaults;
+## other qstat defaults are rejected because they can make the snapshot incomplete.
+## default: 2
+#sge_query_retries=2
+
+## sge_accounting_retries = number - Number of scanner passes to wait after a job
+## disappears from qstat while its final qacct record is being flushed. Increase this
+## above the site's accounting_flush_time divided by sge_wakeupperiod.
+## default: 10
+#sge_accounting_retries=10
+
+## sge_debug = yes/no - Trace SGE commands, timings, job identity and accounting
+## decisions to the existing helperlog (scanner) and job errors (submit/cancel).
+## Debug messages include arc_job and sge_job for correlation. Job scripts and
+## the environment are not dumped. Enable temporarily when diagnosing a problem;
+## per-job, per-scan tracing increases log volume on busy sites.
+## allowedvalues: yes no
+## default: no
+#sge_debug=no
 
 ### SLURM options: set these only in case of lrms=slurm
 ## slurm_bin_path = path - Path to SLURM binaries, must be set if installed
@@ -2110,10 +2193,31 @@ maxcachedconnections=0
 #pbs_queue_node=gridlong_nodes
 #pbs_queue_node=ppn=4:ib
 
+## sge_queues = string - Space-separated exact native Grid Engine cluster-queue names represented by
+## this ARC queue. Submission converts the list to a Grid Engine -q queue list;
+## the information provider aggregates the same queues. If unset, the ARC queue
+## name is used as the native Grid Engine queue name.
+## default: undefined
+#sge_queues=all.q gpu.q
+
 ## sge_jobopts = string - Per-queue override of additional SGE options to be used when
 ## submitting jobs to SGE to this queue
+## multivalued
 ## default: undefined
 #sge_jobopts=-P atlas -r yes
+
+## sge_pe = string - Per-queue override of the SGE parallel environment.
+## default: $VAR{[lrms]sge_pe}
+#sge_pe=mpi
+
+## sge_exclusive_resource = string - Per-queue override of the consumable Boolean
+## complex used for exclusive execution.
+## default: $VAR{[lrms]sge_exclusive_resource}
+#sge_exclusive_resource=exclusive
+
+## sge_memory_resource = string - Per-queue override of the per-slot memory complex.
+## default: $VAR{[lrms]sge_memory_resource}
+#sge_memory_resource=m_mem_free
 
 ## condor_requirements = string - It may be defined for each Condor queue.
 ## Use this option to determine which nodes belong to the current queue.

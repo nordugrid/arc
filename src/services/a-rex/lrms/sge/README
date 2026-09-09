@@ -1,1 +1,235 @@
-Sun Grid Engine control scripts.
+Grid Engine backend
+===================
+
+This backend targets Altair Grid Engine 2024.1 (engine 8.9.0) and retains
+compatibility with Sun, Oracle and Univa-derived Grid Engine installations that
+provide qsub/qstat/qacct/qdel/qconf/qhost and the established XML interfaces.
+
+Required site setup
+-------------------
+
+Set `lrms=sge`, make `SGE_ROOT` available through `sge_root` or the service
+environment and, when the commands are outside PATH, set `sge_bin_path`. The
+command directory must contain the complete Grid Engine client suite. ARC
+forces the C locale, requests `qsub -terse` for submission (while accepting
+the documented ordinary success response a JSV can restore),
+`qstat -xml` for live state and `qacct` for terminal accounting.  Direct access
+to `$SGE_ROOT/$SGE_CELL/common/accounting` is neither needed nor assumed.
+Worker nodes must be able to see the ARC session filesystem; the backend
+rejects `shared_filesystem=no` because no SGE-specific file transport exists.
+Per-share `sge_queues` mappings contain exact cluster-queue names, not queue
+instances or wildcard expressions; ARC uses the same mapping for submission
+and information-provider aggregation.
+
+Jobs requesting more than one slot require `sge_pe` (globally or per queue), or
+an RTE which adds the name of an installed PE as a nodeproperty.  A distributed
+PE must set `control_slaves TRUE` and `accounting_summary TRUE`; otherwise ARC
+rejects the job because Grid Engine cannot provide a reliable whole-job resource
+summary.  A single-host `$pe_slots` PE can remain loose for threaded workloads.
+A tightly integrated PE must also enable summary accounting. A requested
+`countpernode` is accepted only when the PE's `allocation_rule` guarantees it.
+
+For physical-memory semantics configure `sge_memory_resource` to a requestable,
+per-slot consumable `MEMORY` complex with `<=` relation (commonly `m_mem_free`
+on cgroup-enabled Altair Grid Engine sites). ARC auto-selects that complex when available, then
+falls back to `h_vmem` for compatibility while warning that it limits virtual
+rather than physical memory; the standard non-consumable `h_vmem` definition is
+valid for this enforcement-only fallback. Exclusive jobs similarly require the
+site-specific requestable, per-slot consumable `BOOL` complex with `EXCL` relation named by
+`sge_exclusive_resource`.
+
+Grid Engine buffers accounting writes.  Tune `sge_accounting_retries` and
+`sge_wakeupperiod` so their product exceeds the site's `accounting_flush_time`.
+The scanner treats migration/rescheduling records (failed codes 24, 25 and 30)
+as nonterminal and waits for a later master/summary record.
+
+ARC submits from a private empty directory, starts its ordered request options
+with `-clear`, and explicitly restores script interpretation. Global and
+passwd-home request defaults which Grid Engine consumes before `-clear` are
+rejected when they can create arrays, block synchronously or import another
+option file (`-t`, `-tc`, `-binding`, `-sync y` and `-@`).
+`sge_jobopts` cannot set options which change the tracked job shape (`-clear`,
+`-t`, `-tc`, `-sync`, `-now`, `-b`, `-shell`, `-pe`, `-N` or `-@`); use the dedicated ARC settings
+for parallel jobs and the ordinary ARC job-description field for the job name.
+ARC also overrides `-u`, `-s` and `-q` from Grid Engine `sge_qstat` default
+files. Other qstat defaults are rejected because qstat has no `-clear` option
+and a filtered or regrouped snapshot is unsafe for job completion accounting.
+
+Troubleshooting
+---------------
+
+Set `sge_debug=yes` in `[lrms]` to trace backend decisions. The scanner writes
+to the configured `[arex] helperlog`; submission and cancellation stderr go to
+the job's `errors` control file. Apply configuration changes through the normal
+A-REX restart procedure: helpers read the runtime configuration generated at
+service startup. Messages have UTC timestamps, the helper PID,
+`arc_job` and `sge_job`. The initial submission result reports
+`assigned_sge_job` before ARC has stored the native ID. Turn tracing off after
+collecting a failing pass: it adds per-job messages and command timing calls.
+No additional trace files are created, and normal log rotation still applies.
+Scripts, GRAMi contents and environment values are not dumped; native command
+error text is still reported, so review logs before sharing them.
+
+Start with one ARC job ID and follow these events:
+
+* `environment`: verify the Grid Engine root, cell, binary directory and ports.
+  Run manual checks as the same local account as the failing helper. An admin
+  shell may use a different cell or different `.sge_request`/`.sge_qstat` files.
+* `submit` / `command_result` / `submitted`: correlate the ARC job and assigned
+  native ID; a nonzero status is a client failure. Native stderr supplies the
+  reason. `parallel_environment` reports the selected PE's allocation and
+  accounting settings when a parallel job is being validated.
+* `query_start` / `query_result` / `query_retry`: show the read-only command,
+  attempt, exit status and elapsed seconds. A missing result after a start
+  identifies a command which has not returned. Query failures and malformed
+  XML stop the scan without completing jobs.
+* `job_snapshot`: compares ARC and scheduler states and submission epochs.
+  A live record with a different submission epoch may belong to a reused ID;
+  a JSV name rewrite alone does not complete the original job.
+* `accounting`: explains `no_matching_job`, `no_master_record`,
+  `submission_time_mismatch`, `incomplete_terminal_record` or `selected_master`.
+  `accounting_wait` reports the pass counter; `accounting_exhausted` records
+  the fallback to wrapper diagnostics. `completed` records the selected
+  accounting source and scheduler/wrapper exit values.
+* `cancel_result`: a zero exit status means Grid Engine accepted deletion;
+  completion still waits for the scanner and accounting.
+
+Useful read-only checks with the same SGE environment (substitute the numeric
+native job ID and configured PE/complex names):
+
+    LC_ALL=C TZ=UTC "$SGE_BIN_PATH/qstat" -xml -u '*' -s a -q '*'
+    LC_ALL=C "$SGE_BIN_PATH/qstat" -u '*' -s a -q '*' -j JOB_ID
+    LC_ALL=C TZ=UTC "$SGE_BIN_PATH/qacct" -j JOB_ID
+    LC_ALL=C "$SGE_BIN_PATH/qconf" -sp PE_NAME
+    LC_ALL=C "$SGE_BIN_PATH/qconf" -sc
+
+For an error state, inspect `qstat -j`'s error reason and the job errors file
+before retrying. ARC records that reason before requesting deletion. For an
+accounting delay, compare `sge_accounting_retries * sge_wakeupperiod` with the
+site's accounting flush interval and check for master/summary records. Preserve
+the helper log excerpt, job errors/diag, ARC and native IDs, client version and
+relevant configuration when reporting a problem. Do not rerun submit or cancel
+helpers to collect diagnostics: they change scheduler state.
+
+Information-provider reporting and failure contracts
+---------------------------------------------------
+
+The active ARC provider is `infoproviders/SGEmod.pm`. `SGE.pm` is the deprecated
+ARC0 fallback, not the normal implementation. This reporting review changes the
+active provider and the scanner; it does not certify the legacy fallback.
+
+Set `[infosys] loglevel=5` to trace provider queries in the configured information
+provider logfile (normally `/var/log/arc/infoprovider.log`). This is separate from
+`[lrms] sge_debug=yes`, which traces the submission/scanner/cancellation helpers.
+Provider `query_start` and `query_result` messages identify the executable and
+arguments, exit status, terminating signal, output byte count and elapsed seconds.
+Native stderr remains in the provider log; parser failures identify the command
+or document, job, queue and field where applicable. No complete scheduler output
+or environment dump is added. Restore the normal log level after diagnosis.
+
+All process launches use explicit argv execution, including commands with no
+arguments and executable paths containing spaces. Each child gets the C locale;
+loading the module does not change the caller's locale. Collection-specific SGE
+cell/port/environment changes are restored on both success and exceptions.
+
+The command runner now waits for successful process exit before invoking parsers.
+Nonzero exits and signals discard stdout, even when it resembles valid data.
+Missing executables return failure to the caller, rather than exiting inside the
+logger. Required inventory/configuration queries abort collection on failure;
+optional `qstat -j` failures omit details while retaining the successful live
+snapshot. An unrecognizable version banner is explicitly reported as unknown.
+No failed collection is returned as a successful empty cluster.
+
+Well-formed XML is not sufficient. The provider and scanner validate the qstat
+root, required sections and job identities before accepting the snapshot.
+The provider additionally checks owners, slots, queue counters and array ranges
+before updating node/job counters. A genuine empty snapshot still succeeds.
+Bad qhost capacity values and missing/malformed qconf limits are not silently
+converted to zero capacity or unlimited limits. qhost's unavailable `-` remains
+unknown. Per-job details cannot create unrequested or empty job IDs.
+
+Running and pending job details share one parser. CPU/memory values and requested
+time limits must match complete values, not numeric prefixes of corrupt output.
+Duplicate job headers, duplicate resource fields, conflicting qconf limits and
+successful detail responses missing requested job headers are errors. An absent
+optional usage field remains unknown; it is not silently replaced by zero.
+Job details are attached to the result only after all detail queries have been
+processed successfully or have returned an explicitly handled command failure.
+Repeated requested IDs are queried once; pending/absent lookups do not create
+empty running-job records as a side effect of Perl hash dereferencing.
+
+Cluster summaries recompute pending counters, rather than adding them on each
+call. Hostname matching retains unique short-name matching but never merges two
+different fully qualified domains just because their first labels match.
+
+Important return-value units are:
+
+* `queue_info`: CPU and wall limits are seconds.
+* `jobs_info`: CPU/resource times are seconds; memory is kB.
+* `users_info`: `freecpus` duration values are whole minutes, not seconds;
+  duration zero means unlimited. A finite subminute limit advertises no available
+  whole-minute slot, rather than becoming unlimited.
+* `queue_info` / `nodes_info`: reserved slots are not free slots. These remain
+  estimates, not promises that a job satisfies every scheduler resource/ACL rule.
+
+The seconds/minutes assignment and newline-dependent line callback can both be
+traced to repository commit `4d388c5f8f` (2008-09-09). For example, passing a
+2,700-second queue limit directly into `freecpus` made ARC's GLUE publisher
+advertise 2,700 minutes instead of 45. The callback also lost the final output
+line whenever it lacked a newline. Both have explicit regression tests now.
+
+Scanner snapshots with missing sections or job identities fail before accounting
+lookups, deletion or completion. A qacct record needs a terminal timestamp,
+failure status and numeric exit status; duplicate identity/status fields are
+invalid. Failed/corrupt accounting uses the existing bounded accounting-lag retry
+and wrapper-fallback policy, not a newly introduced indefinite wait. Malformed
+wrapper exit codes produce unknown status, never an arbitrary status string.
+
+Offline regression tests
+------------------------
+
+From the repository root, without configuring/building ARC or installing SGE:
+
+    sh src/services/a-rex/lrms/sge/test/run-tests.sh
+
+This runs the provider return-value fixtures, the table-driven `sge-failures.t`
+suite and the real backend scripts against fake scheduler commands. It uses a
+temporary directory and never contacts a live scheduler. Required Perl modules
+are XML::Simple, Test::More and Test::Harness. A nonzero exit means failure.
+For a configured build, `make check` in `infoproviders/test` and `lrms/sge/test`
+also runs the registered tests. Set `SGE_TEST_KEEP=yes` to retain the outer test
+workspace. The helper-script suite has its own temporary fixtures and cleanup.
+
+Add parser regressions as named cases in `sge-failures.t`; add command/exit-status
+fixtures in `sge.t` or `test/sge-lrms-regression.sh`. Existing cases cover signals,
+nonzero exits with plausible stdout, executable paths containing spaces, literal
+arguments, unterminated lines, wrong/missing XML sections, invalid numeric fields,
+array ranges, reservations, duration units, partial qconf responses, malformed job
+details, qacct corruption and bounded fallback. Tests use synthetic fixtures;
+they are not captures from a production 2024 installation.
+
+For a fast Perl-only reproduction of the reporting/process edge cases:
+
+    prove -v -I src/services/a-rex/infoproviders src/services/a-rex/infoproviders/test/sge-reporting.t
+
+Add a named corrupt-output case to that file's table to check both the error and
+the invariant that the previous jobs result remains untouched. No generated
+files, command simulator, live scheduler or build tree are needed for this test.
+
+Reference and compatibility boundary
+------------------------------------
+
+Altair's official announcement confirms that Grid Engine 2024.1.0 is 8.9.0 and
+explicitly discusses Alma 9/cgroups v2 support:
+https://community.altair.com/discussion/33588/announcing-altair-grid-engine-2024-1-0-8-9-0
+This establishes the release identity, not every command-output detail.
+
+Altair's public User Guide documents separate reserved/used/total queue slots,
+global pending jobs and qstat/qhost/qconf reporting:
+https://help.altair.com/AltairGridEngine/UsersGuideGE.pdf (sections 3.1–3.3).
+That URL currently serves the 2025.1.0 (8.10.0) edition, not the 2024 edition.
+Public 2024 archive URLs could not be retrieved during this review. The existing
+2024.1 / AGE 8.9.0 fixtures are retained as the target contract, but testing against
+your exact Univa/Altair 2024 build still requires its manuals or anonymized command
+captures (stdout, stderr, exit status and `qstat -help` banner). Do not interpret
+offline tests or the newer manual as live 2024 compatibility certification.
