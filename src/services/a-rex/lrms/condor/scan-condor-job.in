@@ -441,7 +441,7 @@ scan_init () {
 
     # Retrieve all jobs from Condor
     # Call function lrms_list_jobs which runs condor_q against the local schedd of the CE
-    lrmsids=$(lrms_list_jobs) || { log "lrms_list_jobs failed"; continue; }
+    lrmsids=$(lrms_list_jobs) || { log "lrms_list_jobs failed"; return 1; }
 
 }
 
@@ -479,8 +479,8 @@ lrms_list_jobs() {
     script='my $cmd="$ENV{CONDOR_BIN_PATH}/condor_q";
             open Q, "$cmd|" or die "Failed running $cmd : $!\n";
             my $out; { local $/; $out = <Q>; }; close Q;
-            exit 0 if $out =~ m/All queues are empty/;
             die "Non-zero exit status returned by $cmd\n" if $?;
+            exit 0 if $out =~ m/All queues are empty/;
             my @ids = ($out =~ m/^\s*(\d+)\.\d+\s+/mg);
             print "$_\n" for @ids;
     '
@@ -700,10 +700,10 @@ lrms_last_call() {
 
 # Setup Condor environment
 # Don't include as part of for loop to reduce pressure on Condor schedd
-scan_init
+scan_init || exit 1
 
 # Loop through all jobs in "$ctr_dir/processing" with name '*.status'
-for localid in ${localids[@]}; do
+for localid in "${localids[@]}"; do
 
     gridid=${gridids[$localid]}
     ctrdir=${ctrdirs[$localid]}

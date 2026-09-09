@@ -149,7 +149,7 @@
                 * loadShareType - sharing mechanism for data transfer - 
                   the scheme used to assign jobs to transfer shares. Possible
                   values are "dn", "voms:vo", "voms:role", "voms:group"
-                  and "token:<claim>".
+                  and "token:&lt;claim&gt;".
                 * shareLimit - specifies a transfer share that has a limit
                   different from the default value in maxLoadShare
                     * name - the name of the share. Examples for different sharing
@@ -185,9 +185,13 @@
                          type="xsd:nonNegativeInteger" minOccurs="0"/>
             <xsd:element name="loadShareType"
                          type="xsd:string" minOccurs="0"/>
-            <xsd:element name="shareLimit" minOccurs="0">
-                         <xsd:element name="name" type="xsd:string" minOccurs="0" />
-                         <xsd:element name="limit" type="xsd:nonNegativeInteger" minOccurs="0" />
+            <xsd:element name="shareLimit" minOccurs="0" maxOccurs="unbounded">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="limit" type="xsd:nonNegativeInteger" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
             </xsd:element>
             <xsd:element name="wakeupPeriod" type="xsd:nonNegativeInteger"
                          minOccurs="0"/>
@@ -314,8 +318,12 @@
           <xsd:element name="shareType"
                        type="xsd:string" minOccurs="0"/>
           <xsd:element name="definedShare" minOccurs="0" maxOccurs="unbounded">
-             <xsd:element name="name" type="xsd:string" minOccurs="0" />
-             <xsd:element name="priority" type="xsd:nonNegativeInteger" minOccurs="0" />
+             <xsd:complexType>
+                <xsd:sequence>
+                   <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+                   <xsd:element name="priority" type="xsd:nonNegativeInteger" minOccurs="0"/>
+                </xsd:sequence>
+             </xsd:complexType>
           </xsd:element>
           <xsd:element name="deliveryService" type="xsd:anyURI"
                        minOccurs="0" maxOccurs="unbounded"/>
@@ -678,4 +686,3 @@
     -->     
 
 </xsd:schema>
-
