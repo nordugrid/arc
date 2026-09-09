@@ -42,3 +42,15 @@ test_write_grami_file_SOURCES = test_write_grami_file.cpp
 test_write_grami_file_CXXFLAGS = -I$(top_srcdir)/include \
 	$(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
 test_write_grami_file_LDADD = libgridmanager.la ../delegation/libdelegation.la
+
+TESTS = ControlFileHandlingTest DTRUploadTest
+check_PROGRAMS = $(TESTS)
+ControlFileHandlingTest_SOURCES = $(top_srcdir)/src/Test.cpp ControlFileHandlingTest.cpp
+ControlFileHandlingTest_CXXFLAGS = -I$(top_srcdir)/include \
+	$(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(LIBXML2_CFLAGS) $(AM_CXXFLAGS)
+ControlFileHandlingTest_LDADD = libgridmanager.la ../delegation/libdelegation.la \
+	$(CPPUNIT_LIBS)
+
+DTRUploadTest_SOURCES = $(top_srcdir)/src/Test.cpp DTRUploadTest.cpp
+DTRUploadTest_CXXFLAGS = $(ControlFileHandlingTest_CXXFLAGS)
+DTRUploadTest_LDADD = $(ControlFileHandlingTest_LDADD)

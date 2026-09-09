@@ -35,13 +35,15 @@ class KeyValueFile {
   operator bool(void) { return handle_ != -1; };
   bool operator!(void) { return handle_ == -1; };
   bool Write(std::string const& name, std::string const& value);
+  bool Flush(void);
   bool Read(std::string& name, std::string& value);
  private:
   int handle_;
+  std::string write_buf_;
   char* read_buf_;
   int read_buf_pos_;
   int read_buf_avail_;
-  static int const read_buf_size_ = 256; // normally should fit full line
+  static int const read_buf_size_ = 16384;
   static int const data_max_ = 1024*1024; // sanity protection
 };
 
@@ -91,6 +93,9 @@ static inline bool write_str(int f,const char* buf, std::string::size_type len) 
     ssize_t l = write(f,buf,len);
     if(l < 0) {
       if(errno != EINTR) return false;
+    } else if(l == 0) {
+      errno = EIO;
+      return false;
     } else {
       len -= l; buf += l;
     };
@@ -104,10 +109,18 @@ bool KeyValueFile::Write(std::string const& name, std::string const& value) {
   if(name.empty()) return false;
   if(name.length() > data_max_) return false;
   if(value.length() > data_max_) return false;
-  if(!write_str(handle_, name.c_str(), name.length())) return false;
-  if(!write_str(handle_, "=", 1)) return false;
-  if(!write_str(handle_, value.c_str(), value.length())) return false;
-  if(!write_str(handle_, "\n", 1)) return false;
+  write_buf_ += name;
+  write_buf_ += '=';
+  write_buf_ += value;
+  write_buf_ += '\n';
+  // Batch fields, but bound buffering even for jobs with many repeated keys.
+  return write_buf_.size() < read_buf_size_ || Flush();
+}
+
+bool KeyValueFile::Flush(void) {
+  if(handle_ == -1 || read_buf_) return false;
+  if(!write_str(handle_, write_buf_.data(), write_buf_.size())) return false;
+  write_buf_.clear();
   return true;
 }
 
@@ -613,7 +626,8 @@ bool JobLocalDescription::write(const std::string& fname) const {
   if(!write_pair(f,"transfershare",transfershare)) return false;
   if(!write_pair(f,"priority",Arc::tostring(priority))) return false;
   if(!write_pair(f,"dryrun",dryrun)) return false;
-  return true;
+  // Flush while the file lock is still held and propagate write failures.
+  return f.Flush();
 }
 
 bool JobLocalDescription::read(const std::string& fname) {
@@ -749,6 +763,27 @@ bool JobLocalDescription::read(const std::string& fname) {
     }
   }
   return true;
+}
+
+bool JobLocalDescription::read_vars(const std::string& fname, std::map<std::string, std::string>& values) {
+  for (auto& value : values) value.second.clear();
+  if (values.empty()) return true;
+  std::unique_lock<std::mutex> lock_(local_lock);
+  KeyValueFile f(fname, KeyValueFile::Fetch);
+  if (!f) return false;
+  std::size_t remaining = values.size();
+  while (remaining) {
+    std::string name, value;
+    if (!f.Read(name, value)) return false;
+    if (name.empty() && value.empty()) break;
+    if (value.empty()) continue;
+    auto requested = values.find(name);
+    if (requested != values.end() && requested->second.empty()) {
+      requested->second = value;
+      --remaining;
+    }
+  }
+  return remaining == 0;
 }
 
 bool JobLocalDescription::read_var(const std::string &fname,const std::string &vnam,std::string &value) {

@@ -463,6 +463,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
         logger.msg(Arc::WARNING, "%s: Failed to read list of output files", jobid);
       } else {
         FileData uploaded_file;
+        const std::list<FileData>::size_type files_before = files.size();
         // go through list and take out this file
         for (std::list<FileData>::iterator i = files.begin(); i != files.end();) {
           // compare 'standard' URLs
@@ -498,8 +499,8 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
           }
         } // files
 
-        // write back .output file
-        if (!job_output_write_file(*job, config, files)) {
+        // Dynamic-list updates need not rewrite the unchanged main list.
+        if (files.size() != files_before && !job_output_write_file(*job, config, files)) {
           logger.msg(Arc::WARNING, "%s: Failed to write list of output files", jobid);
         }
         if(!uploaded_file.pfn.empty()) {
@@ -519,6 +520,7 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
         logger.msg(Arc::WARNING,"%s: Failed to read list of input files", jobid);
       } else {
         // go through list and take out this file
+        const std::list<FileData>::size_type files_before = files.size();
         for (std::list<FileData>::iterator i = files.begin(); i != files.end();) {
           // compare 'standard' URLs
           Arc::URL file_lfn(i->lfn);
@@ -533,8 +535,8 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
             ++i;
           }
         }
-        // write back .input file
-        if (!job_input_write_file(*job, config, files)) {
+        // A repeated completion may no longer have an entry to remove.
+        if (files.size() != files_before && !job_input_write_file(*job, config, files)) {
           logger.msg(Arc::WARNING, "%s: Failed to write list of input files", jobid);
         }
       }
@@ -641,13 +643,13 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
     if (!job_input_read_file(jobid, config, files))
       logger.msg(Arc::WARNING, "%s: Failed to read list of input files, can't clean up session dir", jobid);
     else {
-      std::list<std::string> todelete(files.size());
+      std::list<std::string> todelete;
       for (std::list<FileData>::const_iterator f = files.begin(); f != files.end(); ++f) {
         if (f->lfn.find(':') != std::string::npos) {
           todelete.push_back(f->pfn);
         }
       }
-      if (!Arc::DirDeleteExcl(job->SessionDir(), todelete, false, job_uid, job_gid)) {
+      if (!todelete.empty() && !Arc::DirDeleteExcl(job->SessionDir(), todelete, false, job_uid, job_gid)) {
         logger.msg(Arc::WARNING, "%s: Failed to clean up session dir", jobid);
       }
     }
@@ -768,13 +770,13 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
       }
     }
     // pre-clean session dir before downloading
-    std::list<std::string> todelete(files.size());
+    std::list<std::string> todelete;
     for (std::list<FileData>::const_iterator f = files.begin(); f != files.end(); ++f) {
       if (f->lfn.find(':') != std::string::npos) {
         todelete.push_back(f->pfn);
       }
     }
-    if (!Arc::DirDeleteExcl(job->SessionDir(), todelete, false, job_uid, job_gid)) {
+    if (!todelete.empty() && !Arc::DirDeleteExcl(job->SessionDir(), todelete, false, job_uid, job_gid)) {
       logger.msg(Arc::ERROR, "%s: Failed to clean up session dir", jobid);
       Arc::AutoLock<Arc::SimpleCondition> dlock(dtrs_lock);
       finished_jobs[jobid] = std::string("Failed to clean up session dir before downloading inputs");
@@ -1067,9 +1069,11 @@ bool DTRGenerator::processReceivedJob(GMJobRef& job) {
       delete job_desc;
       continue;
     }
-    job_desc->transfershare = dtr->get_transfer_share();
-    if (!job_local_write_file(*job, config, *job_desc)) {
-      logger.msg(Arc::ERROR, "%s: Failed writing local information", jobid);
+    if (job_desc->transfershare != dtr->get_transfer_share()) {
+      job_desc->transfershare = dtr->get_transfer_share();
+      if (!job_local_write_file(*job, config, *job_desc)) {
+        logger.msg(Arc::ERROR, "%s: Failed writing local information", jobid);
+      }
     }
     delete job_desc;
   } // files
@@ -1111,16 +1115,21 @@ DTRGenerator::checkUploadedFilesResult DTRGenerator::checkUploadedFiles(GMJobRef
   std::list<std::string> uploaded_files;
   std::list<std::string>* uploaded_files_ = NULL;
   std::list<FileData> input_files;
-  std::list<FileData> input_files_ = input_files;
   if (!job_input_read_file(jobid, config, input_files)) {
     job->AddFailure("Error reading list of input files");
     logger.msg(Arc::ERROR, "%s: Can't read list of input files", jobid);
     return uploadedFilesError;
   }
+  // No client-uploadable entries means no need to create a lock and read the
+  // client upload status file. Remote entries are ignored by this check.
+  if (std::none_of(input_files.begin(), input_files.end(), [](const FileData& file) {
+        return file.lfn.find(':') == std::string::npos;
+      })) return uploadedFilesSuccess;
   if (job_input_status_read_file(jobid, config, uploaded_files)) {
     uploaded_files_ = &uploaded_files;
   }
   checkUploadedFilesResult res = uploadedFilesSuccess;
+  const std::list<FileData>::size_type files_before = input_files.size();
 
   // loop through each file and check
   for (FileData::iterator i = input_files.begin(); i != input_files.end();) {
@@ -1137,12 +1146,6 @@ DTRGenerator::checkUploadedFilesResult DTRGenerator::checkUploadedFiles(GMJobRef
       logger.msg(Arc::VERBOSE, "%s: User has uploaded file %s", jobid, i->pfn);
       // remove from input list
       i = input_files.erase(i);
-      input_files_.clear();
-      for (FileData::iterator it = input_files.begin(); it != input_files.end(); ++it)
-        input_files_.push_back(*it);
-      if (!job_input_write_file(*job, config, input_files_)) {
-        logger.msg(Arc::WARNING, "%s: Failed writing changed input file.", jobid);
-      }
     }
     else if (err == 1) { // critical failure
       logger.msg(Arc::ERROR, "%s: Critical error for uploadable file %s", jobid, i->pfn);
@@ -1155,6 +1158,11 @@ DTRGenerator::checkUploadedFilesResult DTRGenerator::checkUploadedFiles(GMJobRef
       res = uploadedFilesMissing;
       ++i;
     }
+  }
+  // Persist all removals once per check, including progress before an error.
+  // If interrupted before this write, recovery simply rechecks those files.
+  if (input_files.size() != files_before && !job_input_write_file(*job, config, input_files)) {
+    logger.msg(Arc::WARNING, "%s: Failed writing changed input file.", jobid);
   }
   // check for timeout
   if ((res == uploadedFilesMissing) && ((time(NULL) - job->GetStartTime()) > 600)) { // hard-coded timeout

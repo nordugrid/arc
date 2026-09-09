@@ -485,6 +485,10 @@ static job_state_t job_state_read_file(const std::string &fname,bool &pending) {
 
   std::string data;
   if(!Arc::FileRead(fname, data)) {
+    // A missing status is normal while searching the other state directories.
+    // Do not repeat the failed lookup with lstat; retain the file-type check
+    // for other errors, including an existing but unreadable status file.
+    if(errno == ENOENT || errno == ENOTDIR) return JOB_STATE_DELETED;
     if(!job_mark_check(fname)) return JOB_STATE_DELETED; /* job does not exist */
     return JOB_STATE_UNDEFINED; /* can't open file */
   };
@@ -582,11 +586,11 @@ bool job_local_read_cleanuptime(const JobId &id,const GMConfig &config,time_t &c
 }
 
 bool job_local_read_failed(const JobId &id,const GMConfig &config,std::string &state,std::string &cause) {
-  state = "";
-  cause = "";
   std::string fname = job_control_path(config.ControlDir(), id, sfx_local);
-  job_local_read_var(fname,"failedstate",state);
-  job_local_read_var(fname,"failedcause",cause);
+  std::map<std::string, std::string> values = {{"failedstate", ""}, {"failedcause", ""}};
+  JobLocalDescription::read_vars(fname, values);
+  state = values["failedstate"];
+  cause = values["failedcause"];
   return true;
 }
 
@@ -626,9 +630,10 @@ bool job_input_status_add_file(const GMJob &job,const GMConfig &config,const std
   std::ostringstream line;
   line<<file<<"\n";
   data += line.str();
-  bool r = Arc::FileCreate(fname, data);
+  // Set the final mode on the temporary file, avoiding chmod after rename.
+  bool r = Arc::FileCreate(fname, data, 0, 0, S_IRUSR | S_IWUSR);
   lock.release();
-  return r && fix_file_owner(fname,job) && fix_file_permissions(fname);
+  return r && fix_file_owner(fname,job);
 }
 
 bool job_input_status_read_file(const JobId &id,const GMConfig &config,std::list<std::string>& files) {
@@ -662,7 +667,7 @@ bool job_output_status_add_file(const GMJob &job,const GMConfig &config,const Fi
   std::ostringstream line;
   line<<file<<"\n";
   data += line.str();
-  return Arc::FileCreate(fname, data) && fix_file_owner(fname,job) && fix_file_permissions(fname);
+  return Arc::FileCreate(fname, data, 0, 0, S_IRUSR | S_IWUSR) && fix_file_owner(fname,job);
 }
 
 bool job_output_status_write_file(const GMJob &job,const GMConfig &config,std::list<FileData> &files) {
@@ -778,7 +783,7 @@ bool job_clean_deleted(const GMJob &job,const GMConfig &config,std::list<std::st
 
 bool job_clean_final(const GMJob &job,const GMConfig &config) {
   std::string id = job.get_id();
-  job_clean_finished(id,config);
+  // job_clean_deleted already performs job_clean_finished.
   job_clean_deleted(job,config);
   std::string fname;
   fname = job_control_path(config.ControlDir(),id,sfx_local);  remove(fname.c_str());

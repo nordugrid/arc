@@ -3,6 +3,7 @@
 
 #include <string>
 #include <list>
+#include <map>
 #include <iostream>
 
 #include <arc/DateTime.h>
@@ -82,6 +83,9 @@ class JobLocalDescription {
   bool read(const std::string& fname);
   bool write(const std::string& fname) const;
   static bool read_var(const std::string &fname,const std::string &vnam,std::string &value);
+  // Fetch requested keys under one lock. Missing values are empty; like
+  // read_var, use the first nonempty occurrence. Return true if all were found.
+  static bool read_vars(const std::string& fname, std::map<std::string, std::string>& values);
   
   // All non-static members are safe to copy
 

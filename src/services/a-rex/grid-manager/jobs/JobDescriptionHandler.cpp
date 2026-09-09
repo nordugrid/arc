@@ -182,14 +182,14 @@ std::string JobDescriptionHandler::get_local_id(const JobId &job_id) const {
   std::string id;
   std::string joboption("joboption_jobid=");
   std::string fgrami(job_control_path(config.ControlDir(),job_id,sfx_grami));
-  std::list<std::string> grami_data;
-  if (Arc::FileRead(fgrami, grami_data)) {
-    for (std::list<std::string>::iterator line = grami_data.begin(); line != grami_data.end(); ++line) {
-      if (line->find(joboption) == 0) {
-        id = line->substr(joboption.length());
-        id = Arc::trim(id, "'");
-        break;
-      }
+  std::ifstream grami(fgrami.c_str());
+  std::string line;
+  // The first match is sufficient; do not read and allocate the remaining lines.
+  while (std::getline(grami, line)) {
+    if (line.find(joboption) == 0) {
+      id = line.substr(joboption.length());
+      id = Arc::trim(id, "'");
+      break;
     }
   }
   return id;
@@ -198,14 +198,14 @@ std::string JobDescriptionHandler::get_local_id(const JobId &job_id) const {
 bool JobDescriptionHandler::write_grami_executable(std::ofstream& f, const std::string& name, const Arc::ExecutableType& exec) const {
   std::string executable = Arc::trim(exec.Path);
   if (executable[0] != '/' && executable[0] != '$' && !(executable[0] == '.' && executable[1] == '/')) executable = "./"+executable;
-  f<<"joboption_"<<name<<"_0"<<"="<<value_for_shell(executable.c_str(),true)<<std::endl;
+  f<<"joboption_"<<name<<"_0"<<"="<<value_for_shell(executable.c_str(),true)<<'\n';
   int i = 1;
   for (std::list<std::string>::const_iterator it = exec.Argument.begin();
        it != exec.Argument.end(); it++, i++) {
-    f<<"joboption_"<<name<<"_"<<i<<"="<<value_for_shell(it->c_str(),true)<<std::endl;
+    f<<"joboption_"<<name<<"_"<<i<<"="<<value_for_shell(it->c_str(),true)<<'\n';
   }
   if(exec.SuccessExitCode.first) {
-    f<<"joboption_"<<name<<"_code"<<"="<<Arc::tostring(exec.SuccessExitCode.second)<<std::endl;
+    f<<"joboption_"<<name<<"_code"<<"="<<Arc::tostring(exec.SuccessExitCode.second)<<'\n';
   }
   return true;
 }
@@ -230,8 +230,8 @@ bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc,
   if(!fix_file_permissions(fgrami,job,config)) return false;
   if(!fix_file_owner(fgrami,job)) return false;
 
-  f<<"joboption_directory='"<<session_dir<<"'"<<std::endl;
-  f<<"joboption_controldir='"<<control_dir<<"'"<<std::endl;
+  f<<"joboption_directory='"<<session_dir<<"'"<<'\n';
+  f<<"joboption_controldir='"<<control_dir<<"'"<<'\n';
 
   if(!write_grami_executable(f,"arg",arc_job_desc.Application.Executable)) return false;
   int n = 0;
@@ -247,7 +247,7 @@ bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc,
     if(!write_grami_executable(f,"post_"+Arc::tostring(n),*e)) return false;
   }
 
-  f<<"joboption_stdin="<<value_for_shell(arc_job_desc.Application.Input.empty()?NG_RSL_DEFAULT_STDIN:arc_job_desc.Application.Input,true)<<std::endl;
+  f<<"joboption_stdin="<<value_for_shell(arc_job_desc.Application.Input.empty()?NG_RSL_DEFAULT_STDIN:arc_job_desc.Application.Input,true)<<'\n';
 
   if (!arc_job_desc.Application.Output.empty()) {
     std::string output = arc_job_desc.Application.Output;
@@ -256,7 +256,7 @@ bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc,
       return false;
     }
   }
-  f<<"joboption_stdout="<<value_for_shell(arc_job_desc.Application.Output.empty()?NG_RSL_DEFAULT_STDOUT:session_dir+"/"+arc_job_desc.Application.Output,true)<<std::endl;
+  f<<"joboption_stdout="<<value_for_shell(arc_job_desc.Application.Output.empty()?NG_RSL_DEFAULT_STDOUT:session_dir+"/"+arc_job_desc.Application.Output,true)<<'\n';
   if (!arc_job_desc.Application.Error.empty()) {
     std::string error = arc_job_desc.Application.Error;
     if (!Arc::CanonicalDir(error)) {
@@ -264,54 +264,54 @@ bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc,
       return false;
     }
   }
-  f<<"joboption_stderr="<<value_for_shell(arc_job_desc.Application.Error.empty()?NG_RSL_DEFAULT_STDERR:session_dir+"/"+arc_job_desc.Application.Error,true)<<std::endl;
+  f<<"joboption_stderr="<<value_for_shell(arc_job_desc.Application.Error.empty()?NG_RSL_DEFAULT_STDERR:session_dir+"/"+arc_job_desc.Application.Error,true)<<'\n';
 
   {
     int i = 0;
     for (std::list< std::pair<std::string, std::string> >::const_iterator it = arc_job_desc.Application.Environment.begin();
          it != arc_job_desc.Application.Environment.end(); it++, i++) {
-        f<<"joboption_env_"<<i<<"="<<value_for_shell(it->first+"="+it->second,true)<<std::endl;
+        f<<"joboption_env_"<<i<<"="<<value_for_shell(it->first+"="+it->second,true)<<'\n';
     }
-    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBID="<<value_for_shell(job_local_desc.globalid,true)<<std::endl;
+    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBID="<<value_for_shell(job_local_desc.globalid,true)<<'\n';
     ++i;
-    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBURL="<<value_for_shell(job_local_desc.globalurl,true)<<std::endl;
+    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBURL="<<value_for_shell(job_local_desc.globalurl,true)<<'\n';
     ++i;
-    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBINTERFACE="<<value_for_shell(job_local_desc.interface,true)<<std::endl;
+    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBINTERFACE="<<value_for_shell(job_local_desc.interface,true)<<'\n';
     ++i;
-    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBHOST="<<value_for_shell(job_local_desc.headhost,true)<<std::endl;
+    f<<"joboption_env_"<<i<<"=GRID_GLOBAL_JOBHOST="<<value_for_shell(job_local_desc.headhost,true)<<'\n';
   }
 
 
-  f<<"joboption_cputime="<<(arc_job_desc.Resources.TotalCPUTime.range.max != -1 ? Arc::tostring(arc_job_desc.Resources.TotalCPUTime.range.max):"")<<std::endl;
-  f<<"joboption_walltime="<<(arc_job_desc.Resources.TotalWallTime.range.max != -1 ? Arc::tostring(arc_job_desc.Resources.TotalWallTime.range.max):"")<<std::endl;
-  f<<"joboption_memory="<<(arc_job_desc.Resources.IndividualPhysicalMemory.max != -1 ? Arc::tostring(arc_job_desc.Resources.IndividualPhysicalMemory.max):"")<<std::endl;
-  f<<"joboption_virtualmemory="<<(arc_job_desc.Resources.IndividualVirtualMemory.max != -1 ? Arc::tostring(arc_job_desc.Resources.IndividualVirtualMemory.max):"")<<std::endl;
-  f<<"joboption_disk="<<(arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace.max != -1 ? Arc::tostring(arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace.max):"")<<std::endl;
+  f<<"joboption_cputime="<<(arc_job_desc.Resources.TotalCPUTime.range.max != -1 ? Arc::tostring(arc_job_desc.Resources.TotalCPUTime.range.max):"")<<'\n';
+  f<<"joboption_walltime="<<(arc_job_desc.Resources.TotalWallTime.range.max != -1 ? Arc::tostring(arc_job_desc.Resources.TotalWallTime.range.max):"")<<'\n';
+  f<<"joboption_memory="<<(arc_job_desc.Resources.IndividualPhysicalMemory.max != -1 ? Arc::tostring(arc_job_desc.Resources.IndividualPhysicalMemory.max):"")<<'\n';
+  f<<"joboption_virtualmemory="<<(arc_job_desc.Resources.IndividualVirtualMemory.max != -1 ? Arc::tostring(arc_job_desc.Resources.IndividualVirtualMemory.max):"")<<'\n';
+  f<<"joboption_disk="<<(arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace.max != -1 ? Arc::tostring(arc_job_desc.Resources.DiskSpaceRequirement.DiskSpace.max):"")<<'\n';
 
   //calculate the number of nodes/hosts needed
   {
     int count= arc_job_desc.Resources.SlotRequirement.NumberOfSlots;
     if (count != -1) {
       int count_per_node = arc_job_desc.Resources.SlotRequirement.SlotsPerHost;
-      f<<"joboption_count="<<Arc::tostring(count)<<std::endl;
-      f<<"joboption_countpernode="<<Arc::tostring(count_per_node)<<std::endl;
+      f<<"joboption_count="<<Arc::tostring(count)<<'\n';
+      f<<"joboption_countpernode="<<Arc::tostring(count_per_node)<<'\n';
       if (count_per_node > 0) {
         int num_nodes = count / count_per_node;
         if ((count % count_per_node) > 0) num_nodes++;
-        f<<"joboption_numnodes="<<Arc::tostring(num_nodes)<<std::endl;
+        f<<"joboption_numnodes="<<Arc::tostring(num_nodes)<<'\n';
       }
-      f<<"joboption_penv_type="<<Arc::tostring(arc_job_desc.Resources.ParallelEnvironment.Type)<<std::endl;
-      f<<"joboption_penv_version="<<Arc::tostring(arc_job_desc.Resources.ParallelEnvironment.Version)<<std::endl;
-      f<<"joboption_penv_processesperhost="<<(arc_job_desc.Resources.ParallelEnvironment.ProcessesPerSlot != -1 ? Arc::tostring(arc_job_desc.Resources.ParallelEnvironment.ProcessesPerSlot):"")<<std::endl;
-      f<<"joboption_penv_threadsperprocess="<<(arc_job_desc.Resources.ParallelEnvironment.ThreadsPerProcess != -1 ? Arc::tostring(arc_job_desc.Resources.ParallelEnvironment.ThreadsPerProcess):"")<<std::endl;
+      f<<"joboption_penv_type="<<Arc::tostring(arc_job_desc.Resources.ParallelEnvironment.Type)<<'\n';
+      f<<"joboption_penv_version="<<Arc::tostring(arc_job_desc.Resources.ParallelEnvironment.Version)<<'\n';
+      f<<"joboption_penv_processesperhost="<<(arc_job_desc.Resources.ParallelEnvironment.ProcessesPerSlot != -1 ? Arc::tostring(arc_job_desc.Resources.ParallelEnvironment.ProcessesPerSlot):"")<<'\n';
+      f<<"joboption_penv_threadsperprocess="<<(arc_job_desc.Resources.ParallelEnvironment.ThreadsPerProcess != -1 ? Arc::tostring(arc_job_desc.Resources.ParallelEnvironment.ThreadsPerProcess):"")<<'\n';
 
     }else{
-      f<<"joboption_count=1"<<std::endl;
+      f<<"joboption_count=1"<<'\n';
     }
   }
 
   if (arc_job_desc.Resources.SlotRequirement.ExclusiveExecution == Arc::SlotRequirementType::EE_TRUE){
-    f<<"joboption_exclusivenode=true"<<std::endl;
+    f<<"joboption_exclusivenode=true"<<'\n';
   }
 
 
@@ -326,22 +326,22 @@ bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc,
         logger.msg(Arc::ERROR, "Bad name for runtime environment: %s", (std::string)*itSW);
         return false;
       }
-      f<<"joboption_runtime_"<<i<<"="<<value_for_shell((std::string)*itSW,true)<<std::endl;
+      f<<"joboption_runtime_"<<i<<"="<<value_for_shell((std::string)*itSW,true)<<'\n';
       const std::list<std::string>& opts = itSW->getOptions();
       int n = 1;
       for(std::list<std::string>::const_iterator opt = opts.begin();
                             opt != opts.end();++opt) {
-        f<<"joboption_runtime_"<<i<<"_"<<n<<"="<<value_for_shell(*opt,true)<<std::endl;
+        f<<"joboption_runtime_"<<i<<"_"<<n<<"="<<value_for_shell(*opt,true)<<'\n';
         ++n;
       }
       ++i;
     }
   }
-  f<<"joboption_jobname="<<value_for_shell(job_local_desc.jobname,true)<<std::endl;
-  f<<"joboption_queue="<<value_for_shell(job_local_desc.queue,true)<<std::endl;
-  f<<"joboption_starttime="<<(job_local_desc.exectime != -1?job_local_desc.exectime.str(Arc::MDSTime):"")<<std::endl;
-  f<<"joboption_gridid="<<value_for_shell(job.get_id(),true)<<std::endl;
-  f<<"joboption_priority="<<Arc::tostring(job_local_desc.priority)<<std::endl;
+  f<<"joboption_jobname="<<value_for_shell(job_local_desc.jobname,true)<<'\n';
+  f<<"joboption_queue="<<value_for_shell(job_local_desc.queue,true)<<'\n';
+  f<<"joboption_starttime="<<(job_local_desc.exectime != -1?job_local_desc.exectime.str(Arc::MDSTime):"")<<'\n';
+  f<<"joboption_gridid="<<value_for_shell(job.get_id(),true)<<'\n';
+  f<<"joboption_priority="<<Arc::tostring(job_local_desc.priority)<<'\n';
 
   // Here we need another 'local' description because some info is not
   // stored in job.#.local and still we do not want to mix both.
@@ -352,17 +352,19 @@ bool JobDescriptionHandler::write_grami(const Arc::JobDescription& arc_job_desc,
     int i = 0;
     for(FileData::iterator s=stageinfo.inputdata.begin();
                            s!=stageinfo.inputdata.end(); ++s) {
-      f<<"joboption_inputfile_"<<(i++)<<"="<<value_for_shell(s->pfn,true)<<std::endl;
+      f<<"joboption_inputfile_"<<(i++)<<"="<<value_for_shell(s->pfn,true)<<'\n';
     }
     i = 0;
     for(FileData::iterator s=stageinfo.outputdata.begin();
                            s!=stageinfo.outputdata.end(); ++s) {
-      f<<"joboption_outputfile_"<<(i++)<<"="<<value_for_shell(s->pfn,true)<<std::endl;
+      f<<"joboption_outputfile_"<<(i++)<<"="<<value_for_shell(s->pfn,true)<<'\n';
     }
   }
-  if(opt_add) f<<opt_add<<std::endl;
+  if(opt_add) f<<opt_add<<'\n';
 
-  return true;
+  // Close before handing the file to LRMS helpers, including buffered errors.
+  f.close();
+  return !f.fail();
 }
 
 Arc::JobDescriptionResult JobDescriptionHandler::get_arc_job_description(const std::string& fname, Arc::JobDescription& desc) const {
