@@ -65,7 +65,7 @@ ConfigFile::file_type ConfigFile::detect() {
       putback(inchar);
       return file_XML;
     };
-    if((inchar == '#') || (inchar = '[')) {
+    if((inchar == '#') || (inchar == '[')) {
       // INI file starts from comment or section
       putback(inchar);
       return file_INI;
@@ -134,4 +134,3 @@ bool elementtoenum(Arc::XMLNode pnode,const char* ename,int& val,const char* con
 */
 
 } // namespace Arc
-

@@ -3,6 +3,7 @@
 #endif
 
 #include <cppunit/extensions/HelperMacros.h>
+#include <limits>
 
 #include <arc/StringConv.h>
 
@@ -97,10 +98,47 @@ void StringConvTest::TestIntegers() {
 
   CPPUNIT_ASSERT(Arc::strtoint("12345",n));
   CPPUNIT_ASSERT_EQUAL(12345,n);
+  CPPUNIT_ASSERT(Arc::strtoint("+12345",n));
+  CPPUNIT_ASSERT_EQUAL(12345,n);
+  CPPUNIT_ASSERT(Arc::strtoint("-12345",n));
+  CPPUNIT_ASSERT_EQUAL(-12345,n);
   CPPUNIT_ASSERT(Arc::strtoint("343340",n,5));
   CPPUNIT_ASSERT_EQUAL(12345,n);
   CPPUNIT_ASSERT(Arc::strtoint("1ah5",n,20));
   CPPUNIT_ASSERT_EQUAL(12345,n);
+  CPPUNIT_ASSERT(Arc::strtoint("1AH5",n,20));
+  CPPUNIT_ASSERT_EQUAL(12345,n);
+
+  n = 7;
+  CPPUNIT_ASSERT(!Arc::strtoint("+",n));
+  CPPUNIT_ASSERT_EQUAL(7,n);
+  CPPUNIT_ASSERT(!Arc::strtoint("12x",n));
+  CPPUNIT_ASSERT(!Arc::strtoint("2",n,2));
+
+  const int int_min = std::numeric_limits<int>::min();
+  const int int_max = std::numeric_limits<int>::max();
+  CPPUNIT_ASSERT(Arc::strtoint(Arc::tostring(int_min),n));
+  CPPUNIT_ASSERT_EQUAL(int_min,n);
+  CPPUNIT_ASSERT(Arc::strtoint(Arc::tostring(int_max),n));
+  CPPUNIT_ASSERT_EQUAL(int_max,n);
+  CPPUNIT_ASSERT(!Arc::strtoint(Arc::tostring(static_cast<long long>(int_max) + 1),n));
+  CPPUNIT_ASSERT(!Arc::strtoint(Arc::tostring(static_cast<long long>(int_min) - 1),n));
+
+  unsigned int un = 7;
+  CPPUNIT_ASSERT(!Arc::strtoint("-1",un));
+  CPPUNIT_ASSERT_EQUAL(7U,un);
+
+  unsigned long long ull = 0;
+  const std::string ull_max = Arc::tostring(std::numeric_limits<unsigned long long>::max());
+  CPPUNIT_ASSERT(Arc::strtoint(ull_max,ull));
+  CPPUNIT_ASSERT_EQUAL(std::numeric_limits<unsigned long long>::max(),ull);
+  CPPUNIT_ASSERT(!Arc::strtoint(ull_max + "0",ull));
+
+  const long long ll_min = std::numeric_limits<long long>::min();
+  long long ll = 0;
+  CPPUNIT_ASSERT(Arc::strtoint(Arc::tostring(ll_min),ll));
+  CPPUNIT_ASSERT_EQUAL(ll_min,ll);
+  CPPUNIT_ASSERT_EQUAL(Arc::tostring(ll_min),Arc::inttostr(ll_min));
 }
 
 void StringConvTest::TestJoin() {

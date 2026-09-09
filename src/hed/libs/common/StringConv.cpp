@@ -7,6 +7,7 @@
 #include <vector>
 #include <ctype.h>
 #include <algorithm>
+#include <limits>
 #include <glib.h>
 #include <arc/Logger.h>
 #include "StringConv.h"
@@ -360,24 +361,28 @@ namespace Arc {
     return result;
   }
 
-  static bool strtoint(const std::string& s, unsigned long long&t, bool& sign, int base) {
+  static bool parse_integer(const std::string& s, unsigned long long& t,
+                            bool& positive, int base) {
     if(base < 2) return false;
     if(base > 36) return false;
 
     std::string::size_type p = 0;
     for(;;++p) {
       if(p >= s.length()) return false;
-      if(!isspace(s[p])) break;
+      if(!isspace(static_cast<unsigned char>(s[p]))) break;
     }
 
     if(s[p] == '+') {
-      sign = true;
+      positive = true;
+      ++p;
     } else if(s[p] == '-') {
-      sign = false;
+      positive = false;
+      ++p;
     } else {
-      sign = true;
+      positive = true;
     }
 
+    if(p >= s.length()) return false;
     unsigned long long n = 0;
     for(;p < s.length();++p) {
       unsigned int v = 0;
@@ -386,12 +391,14 @@ namespace Arc {
         v = (unsigned int)((unsigned char)(c-'0'));
       } else if((c >= 'a') && (c <= 'z')) {
         v = (unsigned int)((unsigned char)(c-'a'))+10U;
-      } else if((c >= 'A') && (c <= 'A')) {
+      } else if((c >= 'A') && (c <= 'Z')) {
         v = (unsigned int)((unsigned char)(c-'A'))+10U;
       } else {
-        break; // false?
+        return false;
       }
-      if(v >= (unsigned int)base) break; // false?
+      if(v >= (unsigned int)base) return false;
+      if(n > (std::numeric_limits<unsigned long long>::max() - v) /
+             static_cast<unsigned int>(base)) return false;
       n = n*base + (unsigned long long)v;
     }
     t = n;
@@ -399,64 +406,66 @@ namespace Arc {
     return true;
   }
 
-  bool strtoint(const std::string& s, int& t, int base) {
+  template<typename T>
+  static bool strto_signed(const std::string& s, T& t, int base) {
     unsigned long long n;
-    bool sign;
-    if(!strtoint(s,n,sign,base)) return false;
-    t = (int)n;
-    if(!sign) t=-t;
+    bool positive;
+    if(!parse_integer(s,n,positive,base)) return false;
+    const unsigned long long positive_limit =
+      static_cast<unsigned long long>(std::numeric_limits<T>::max());
+    const unsigned long long negative_limit = positive_limit + 1ULL;
+    if(n > (positive ? positive_limit : negative_limit)) return false;
+    T result;
+    if(positive) {
+      result = static_cast<T>(n);
+    } else if(n == negative_limit) {
+      result = std::numeric_limits<T>::min();
+    } else {
+      result = static_cast<T>(-static_cast<T>(n));
+    }
+    t = result;
     return true;
+  }
+
+  template<typename T>
+  static bool strto_unsigned(const std::string& s, T& t, int base) {
+    unsigned long long n;
+    bool positive;
+    if(!parse_integer(s,n,positive,base) || !positive) return false;
+    if(n > static_cast<unsigned long long>(std::numeric_limits<T>::max()))
+      return false;
+    t = static_cast<T>(n);
+    return true;
+  }
+
+  bool strtoint(const std::string& s, int& t, int base) {
+    return strto_signed(s,t,base);
   }
 
   bool strtoint(const std::string& s, unsigned int& t, int base) {
-    unsigned long long n;
-    bool sign;
-    if(!strtoint(s,n,sign,base)) return false;
-    if(!sign) return false;
-    t = (unsigned int)n;
-    return true;
+    return strto_unsigned(s,t,base);
   }
 
   bool strtoint(const std::string& s, long& t, int base) {
-    unsigned long long n;
-    bool sign;
-    if(!strtoint(s,n,sign,base)) return false;
-    t = (long)n;
-    if(!sign) t=-t;
-    return true;
+    return strto_signed(s,t,base);
   }
 
   bool strtoint(const std::string& s, unsigned long& t, int base) {
-    unsigned long long n;
-    bool sign;
-    if(!strtoint(s,n,sign,base)) return false;
-    if(!sign) return false;
-    t = (unsigned long)n;
-    return true;
+    return strto_unsigned(s,t,base);
   }
 
   bool strtoint(const std::string& s, long long& t, int base) {
-    unsigned long long n;
-    bool sign;
-    if(!strtoint(s,n,sign,base)) return false;
-    t = (long long)n;
-    if(!sign) t=-t;
-    return true;
+    return strto_signed(s,t,base);
   }
 
   bool strtoint(const std::string& s, unsigned long long& t, int base) {
-    unsigned long long n;
-    bool sign;
-    if(!strtoint(s,n,sign,base)) return false;
-    if(!sign) return false;
-    t = n;
-    return true;
+    return strto_unsigned(s,t,base);
   }
 
   std::string inttostr(signed long long t, int base, int width) {
     unsigned long long n;
     if(t < 0) {
-      n = (unsigned long long)(-t);
+      n = 0ULL - static_cast<unsigned long long>(t);
     } else {
       n = (unsigned long long)t;
     }
