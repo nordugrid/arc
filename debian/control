@@ -249,6 +249,7 @@ Replaces:
  nordugrid-arc-candypond (<< 6.0.0~),
  nordugrid-arc-aris (<< 6.0.0~),
  nordugrid-arc-infosys-ldap (<< 6.3.0~),
+ nordugrid-arc-arex-lrms-contrib (<< ${binary:Version}),
  libarccommon3 (<< 6.5.0~),
  libarccommon3v5 (<< 6.5.0~)
 Conflicts:
@@ -257,6 +258,7 @@ Conflicts:
 Breaks:
  nordugrid-arc-aris (<< 6.0.0~),
  nordugrid-arc-infosys-ldap (<< 6.3.0~),
+ nordugrid-arc-arex-lrms-contrib (<< ${binary:Version}),
  libarccommon3 (<< 6.5.0~),
  libarccommon3v5 (<< 6.5.0~)
 Architecture: any

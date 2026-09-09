@@ -9,12 +9,15 @@
 
 /usr/share/arc/cancel-condor-job
 /usr/share/arc/cancel-fork-job
+/usr/share/arc/cancel-sge-job
 /usr/share/arc/cancel-SLURM-job
 /usr/share/arc/scan-condor-job
 /usr/share/arc/scan-fork-job
+/usr/share/arc/scan-sge-job
 /usr/share/arc/scan-SLURM-job
 /usr/share/arc/submit-condor-job
 /usr/share/arc/submit-fork-job
+/usr/share/arc/submit-sge-job
 /usr/share/arc/submit-SLURM-job
 
 /usr/share/arc/perferator
@@ -34,6 +37,8 @@
 /usr/share/arc/Condor.pm
 /usr/share/arc/Fork.pm
 /usr/share/arc/FORKmod.pm
+/usr/share/arc/SGE.pm
+/usr/share/arc/SGEmod.pm
 /usr/share/arc/SLURM.pm
 /usr/share/arc/SLURMmod.pm
 

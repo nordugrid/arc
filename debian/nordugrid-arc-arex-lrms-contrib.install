@@ -3,24 +3,19 @@
 /usr/share/arc/cancel-lsf-job
 /usr/share/arc/cancel-pbs-job
 /usr/share/arc/cancel-pbspro-job
-/usr/share/arc/cancel-sge-job
 /usr/share/arc/scan-boinc-job
 /usr/share/arc/scan-ll-job
 /usr/share/arc/scan-lsf-job
 /usr/share/arc/scan-pbs-job
 /usr/share/arc/scan-pbspro-job
-/usr/share/arc/scan-sge-job
 /usr/share/arc/submit-boinc-job
 /usr/share/arc/submit-ll-job
 /usr/share/arc/submit-lsf-job
 /usr/share/arc/submit-pbs-job
 /usr/share/arc/submit-pbspro-job
-/usr/share/arc/submit-sge-job
 
 /usr/share/arc/Boinc.pm
 /usr/share/arc/LL.pm
 /usr/share/arc/LSF.pm
 /usr/share/arc/PBS.pm
 /usr/share/arc/PBSPRO.pm
-/usr/share/arc/SGE.pm
-/usr/share/arc/SGEmod.pm

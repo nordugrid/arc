@@ -302,7 +302,7 @@ class Validator(object):
             lrms_submit = os.path.join(ARC_DATA_DIR, 'submit-%s-job' % lrms)
             if not os.path.exists(lrms_submit):
                 # LRMS-contrib
-                lrms_contrib = ['ll', 'lsf', 'sge']
+                lrms_contrib = ['ll', 'lsf']
                 if lrms in lrms_contrib:
                     self.error("%s lrms requires installing nordugrid-arc-arex-lrms-contrib package" % lrms)
                     # Special exception for slurm/SLURM

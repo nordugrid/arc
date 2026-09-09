@@ -504,8 +504,9 @@
 ## Configuration values in this block are available for A-REX, the backends, accounting and infosys
 ## ARC subsystems.
 ##
-## ARC primarily supports SLURM, Condor and its own fork LRMS flavours, as listed below. 
-## Please note that the various PBS flavours have best effort community support only.
+## ARC primarily supports SLURM, Altair/Sun Grid Engine, Condor and its own fork LRMS
+## flavours, as listed below. Please note that the various PBS flavours have best effort
+## community support only.
 #[lrms]
 
 ## *lrms = lrmstype [defaultqueue] - Sets the type of the LRMS (queue system) and optionally the
