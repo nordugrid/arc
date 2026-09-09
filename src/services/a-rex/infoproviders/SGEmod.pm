@@ -5,9 +5,8 @@ our @ISA = qw(Exporter);
 our @EXPORT_OK = qw(get_lrms_info get_lrms_options_schema);
 
 use POSIX qw(floor ceil);
-# force locale LANG to POSIX see bug #3314
-$ENV{LANG}="POSIX";
 use LogUtils;
+use Text::ParseWords qw(shellwords);
 use XML::Simple qw(:strict);
 
 use strict;
@@ -35,9 +34,12 @@ our $queuedjobs = 0;
 our $queuedcpus = 0;
 
 our $max_jobs;
-our $max_u_jobs;
+our $max_user_running;
 our %user_total_jobs;
 our %user_waiting_jobs;
+our %queue_free_slots;
+our %queue_waiting_jobs;
+our %queue_user_waiting_jobs;
 
 our $log = LogUtils->getLogger(__PACKAGE__);
 
@@ -47,16 +49,25 @@ our $log = LogUtils->getLogger(__PACKAGE__);
 
 sub get_lrms_options_schema {
     return {
-            'sge_root'         => '',
-            'sge_bin_path'     => '',
+            'sge_root'         => '*',
+            'sge_bin_path'     => '*',
             'sge_cell'         => '*',
             'sge_qmaster_port' => '*',
             'sge_execd_port'   => '*',
+            'sge_pe'           => '*',
+            'sge_exclusive_resource' => '*',
+            'sge_memory_resource' => '*',
+            'sge_wakeupperiod' => '*',
+            'sge_query_retries' => '*',
+            'sge_accounting_retries' => '*',
             'queues' => {
                 '*' => {
                     'users'       => [ '' ],
                     'sge_queues' => '*',
-                    'sge_jobopts' => '*'
+                    'sge_jobopts' => '*',
+                    'sge_pe' => '*',
+                    'sge_exclusive_resource' => '*',
+                    'sge_memory_resource' => '*'
                 }
             },
             'jobs' => [ '' ]
@@ -65,17 +76,17 @@ sub get_lrms_options_schema {
 
 sub get_lrms_info($) {
 
+    # Client configuration belongs to this collection, including on exceptions.
+    # Do not leak a cell or port override into the next collection's defaults.
+    local %ENV = %ENV;
     $options = shift;
+
+    reset_state();
 
     lrms_init();
     type_and_version();
     run_qconf();
     run_qstat();
-
-require Data::Dumper; import Data::Dumper qw(Dumper);
-#print STDERR Dumper(\%node_stats);
-#print STDERR Dumper(\%running_jobs);
-#print STDERR Dumper(\%waiting_jobs);
 
     cluster_info();
 
@@ -92,10 +103,6 @@ require Data::Dumper; import Data::Dumper qw(Dumper);
         users_info($qname,$users);
     }
 
-    # recycle memory
-    %running_jobs = ();
-    %waiting_jobs = ();
-
     nodes_info();
 
     return $lrms_info
@@ -105,32 +112,84 @@ require Data::Dumper; import Data::Dumper qw(Dumper);
 # Private subs
 ##########################################
 
+sub reset_state {
+    $lrms_info = {};
+
+    %node_stats = ();
+    %running_jobs = ();
+    %waiting_jobs = ();
+    %user_total_jobs = ();
+    %user_waiting_jobs = ();
+    %queue_free_slots = ();
+    %queue_waiting_jobs = ();
+    %queue_user_waiting_jobs = ();
+    @queue_names = ();
+
+    $compat_mode = 0;
+    $sge_type = undef;
+    $sge_version = undef;
+    $cpudistribution = '';
+    $queuedjobs = 0;
+    $queuedcpus = 0;
+    $max_jobs = undef;
+    $max_user_running = undef;
+}
+
 #
-# Generic function to process the ouptut of an external program. The callback
+# Generic function to process the output of an external program. The callback
 # function will be invoked with a file descriptor receiving the standard output
-# of the external program as it's first argument.
+# of the external program as its first argument.
 #   
 
 sub run_callback {
     my ($command, $callback, @extraargs) = @_;
-    my ($executable) = split ' ', $command;
-    $log->error("Not an executable: $executable")
-        unless (-x "$executable");
-    local *QQ;
-    $log->error("Failed creating pipe from: $command: $!")
-        unless open QQ, "$command |";
-
-    &$callback(*QQ, @extraargs);
-
-    close QQ;
-    my $exitcode = $? >> 8;
-    $log->info("Failed running command (exit code $exitcode): $command")
-        if $?;
-    return ! $?;
+    # Keep command labels, numbers and dates stable; see bug #3314. Localize
+    # these settings here, not at module load or in the caller's environment.
+    local $ENV{LC_ALL} = 'C';
+    local $ENV{LANG} = 'C';
+    my @argv = ref($command) eq 'ARRAY' ? @$command : shellwords($command);
+    my $label = join ' ', map { shell_quote($_) } @argv;
+    unless (@argv && -x $argv[0]) {
+        $log->warning("Not an executable: $label");
+        return 0;
+    }
+    $log->debug("SGE query_start command=$label");
+    my $started = time;
+    my $pid = open(my $pipe, '-|');
+    unless (defined $pid) {
+        $log->warning("Failed creating pipe from: $label: $!");
+        return 0;
+    }
+    unless ($pid) {
+        # Explicit exec PROGRAM LIST also avoids the single-argument pipe
+        # open's shell interpretation when an executable has spaces in its name.
+        exec { $argv[0] } @argv or do {
+            $log->warning("Failed executing command: $label: $!");
+            POSIX::_exit(127);
+        };
+    }
+    my $output = do { local $/; <$pipe> };
+    my $closed = close($pipe);
+    my $status = $?;
+    $log->debug("SGE query_result command=$label exit_status=" . ($status >> 8)
+                . " signal=" . ($status & 127) . " bytes=" . length(defined($output) ? $output : '')
+                . " elapsed_seconds=" . (time - $started));
+    unless ($closed) {
+        $log->warning("Failed running command: $label (exit_status=" . ($status >> 8)
+                      . " signal=" . ($status & 127) . "); discarding output");
+        return 0;
+    }
+    # A failed command may still emit plausible, but incomplete, records.
+    # Invoke parsers only after successful exit, including the line callbacks.
+    $output = '' unless defined $output;
+    open(my $fh, '<', \$output) or die "Cannot read output of $label: $!\n";
+    eval { &$callback($fh, @extraargs); 1 }
+        or die "Invalid output from $label: $@";
+    return 1;
 }
 
 #
-# Generic function to process the ouptut of an external program. The callback
+# Generic function to process the output of an external program. The callback
 # function will be invoked for each line of output from the external program.
 #
 
@@ -139,9 +198,67 @@ sub loop_callback {
     return run_callback($command, sub {
             my $fh = shift;
             my $line;
-            chomp $line and &$callback($line) while defined ($line = <$fh>);
+            while (defined ($line = <$fh>)) {
+                chomp $line;
+                &$callback($line);
+            }
     });
     
+}
+
+sub command_output {
+    my $command = shift;
+    my $output = '';
+    my $label = ref($command) eq 'ARRAY' ? join(' ', @$command) : $command;
+    die "Failed running command: $label\n" unless run_callback($command, sub {
+        my $fh = shift;
+        local $/;
+        $output = <$fh>;
+    });
+    return defined $output ? $output : '';
+}
+
+sub shell_quote {
+    my $value = shift;
+    $value =~ s/'/'"'"'/g;
+    return "'$value'";
+}
+
+sub validate_qstat_defaults {
+    my @files = @_;
+    unless (@files) {
+        push @files, "$ENV{SGE_ROOT}/$ENV{SGE_CELL}/common/sge_qstat";
+        my @passwd = getpwuid($<);
+        push @files, "$passwd[7]/.sge_qstat"
+            if @passwd and defined $passwd[7];
+    }
+
+    for my $file (@files) {
+        next unless defined $file and -r $file;
+        open(my $fh, '<', $file)
+            or die "Cannot read qstat defaults $file: $!\n";
+        my $number = 0;
+        while (my $line = <$fh>) {
+            ++$number;
+            $line =~ s/#.*//;
+            next if $line =~ /^\s*$/;
+            my @words = eval { shellwords($line) };
+            die "Malformed qstat defaults in $file line $number\n"
+                if $@ or !@words;
+            tr/'"//d for @words;
+            while (@words) {
+                my $option = shift @words;
+                die "Unsafe qstat default '$option' in $file line $number\n"
+                    unless $option eq '-u' or $option eq '-s' or $option eq '-q';
+                die "Missing value for qstat default '$option' in $file line $number\n"
+                    unless @words;
+                my $value = shift @words;
+                die "Invalid value for qstat default '$option' in $file line $number\n"
+                    if !length($value) or $value =~ /^-/;
+            }
+        }
+        close($fh) or die "Cannot close qstat defaults $file: $!\n";
+    }
 }
 
 #
@@ -150,17 +267,36 @@ sub loop_callback {
 #
 
 sub type_and_version {
-    run_callback("$path/qstat -help", sub {
+    my @output;
+    run_callback(["$path/qstat", '-help'], sub {
         my $fh = shift;
-        my ($firstline) = <$fh>;
-        ($sge_type, $sge_version) = split " ", $firstline;
+        @output = <$fh>;
     });
-   
-    $compat_mode = 0; # version 6.x assumed
-   
-    if ($sge_type !~ /GE/ or not $sge_version) {
-        $log->error("Cannot indentify SGE version from output of '$path/qstat -help': $sge_type $sge_version");
-    } elsif ($sge_version =~ /^5\./ or $sge_version =~ /^pre6.0/) {
+
+    for my $line (@output) {
+        if ($line =~ /^\s*((?:A|U|S)?GE)\s+(?:version\s+)?((?:pre)?[0-9][A-Za-z0-9_.+-]*)/i) {
+            ($sge_type, $sge_version) = (uc($1), $2);
+            last;
+        }
+        if ($line =~ /^\s*(Altair|Univa|Sun|Son of Sun|Son of)\s+Grid\s+Engine\D+([0-9][A-Za-z0-9_.+-]*)(?:\s+\(([0-9][A-Za-z0-9_.+-]*)\))?/i) {
+            my %types = (
+                altair       => 'AGE',
+                univa        => 'UGE',
+                sun          => 'SGE',
+                'son of sun' => 'SGE',
+                'son of'     => 'SGE',
+            );
+            ($sge_type, $sge_version) = ($types{lc($1)}, $3 || $2);
+            last;
+        }
+    }
+
+    if (not defined $sge_type or not defined $sge_version) {
+        my $banner = @output ? $output[0] : '';
+        chomp $banner;
+        $log->warning("Cannot identify SGE version from output of '$path/qstat -help': $banner");
+        ($sge_type, $sge_version) = ('SGE', 'unknown');
+    } elsif ($sge_version =~ /^(?:5(?:\.|$)|pre6\.0)/) {
         $compat_mode = 1;
         $log->info("Using SGE 5.x compatibility mode");
     }
@@ -173,15 +309,250 @@ sub type_and_version {
 
 sub count_array_spec($) {
     my $count = 0;
-    for my $spec (split ',', shift) {
+    my $value = shift;
+    return 0 unless defined $value and !ref($value) and length $value;
+    for my $spec (split /,/, $value, -1) {
         # handles expressions like '6-10:2' and '6-10' and '6'
         return 0 unless $spec =~ '^(\d+)(?:-(\d+)(?::(\d+))?)?$';
         my ($lower,$upper,$step) = ($1,$2,$3);
         $upper = $lower unless defined $upper;
-        $step = 1 unless $step;
-        $count += 1 + floor(abs($upper-$lower)/$step);
+        $step = 1 unless defined $step;
+        return 0 if $lower < 1 or $upper < $lower or $step < 1;
+        $count += 1 + floor(($upper-$lower)/$step);
     }
     return $count;
+}
+
+sub as_array {
+    my $value = shift;
+    return [] unless ref $value;
+    return $value if ref $value eq 'ARRAY';
+    return [ $value ];
+}
+
+sub canonical_node_name {
+    my $name = shift;
+    return $name if exists $node_stats{$name};
+
+    my ($shortname) = split /\./, $name;
+    my @matches = grep {
+        my ($short) = split /\./;
+        lc($_) eq lc($name) ||
+            (lc($short) eq lc($shortname) && ($name !~ /\./ || $_ !~ /\./))
+    } keys %node_stats;
+    return $matches[0] if @matches == 1;
+    return $name;
+}
+
+sub is_retained_finished {
+    my $state = shift;
+    return defined($state) && !ref($state) && $state =~ /^\s*f\s*$/;
+}
+
+# Validate the complete snapshot before updating any counters. Well-formed XML
+# alone is insufficient: an error document must not mean an empty cluster.
+sub xml_document {
+    my ($output, $root, @arrays) = @_;
+    my $xml = eval {
+        XMLin($output, KeyAttr => [], KeepRoot => 1,
+              ForceArray => \@arrays, NoAttr => ($root eq 'job_info' ? 1 : 0));
+    };
+    die "Failed parsing $root XML: $@\n" unless ref($xml) eq 'HASH';
+    die "Invalid $root XML root\n" unless ref($xml->{$root}) eq 'HASH';
+    return $xml->{$root};
+}
+
+sub require_scalar {
+    my ($record, $field, $context, $pattern) = @_;
+    my $value = $record->{$field};
+    die "Invalid $field in $context\n"
+        unless defined $value && !ref($value) && $value =~ $pattern;
+    return $value;
+}
+
+sub validate_job {
+    my $job = shift;
+    die "Invalid job_list in qstat XML\n" unless ref($job) eq 'HASH';
+    my $id = require_scalar($job, 'JB_job_number', 'qstat XML', qr/^[1-9][0-9]*$/);
+    require_scalar($job, 'state', "qstat job $id", qr/^[A-Za-z]+$/);
+    return if is_retained_finished($job->{state});
+    require_scalar($job, 'JB_owner', "qstat job $id", qr/^\S+$/);
+    require_scalar($job, 'slots', "qstat job $id", qr/^[1-9][0-9]*$/);
+    die "Invalid tasks in qstat job $id\n"
+        if exists $job->{tasks} && !count_array_spec($job->{tasks});
+}
+
+sub qstat_document {
+    my $output = shift;
+    my $xml = xml_document($output, 'job_info', 'Queue-List', 'job_list');
+    die "Unexpected section in qstat XML\n" if grep { $_ ne 'queue_info' && $_ ne 'job_info' } keys %$xml;
+    for my $section ('queue_info', 'job_info') {
+        die "Missing or invalid $section section in qstat XML\n"
+            unless ref($xml->{$section}) eq 'HASH';
+        die "Unexpected entry in qstat $section section\n"
+            if grep { $_ ne 'job_list' && !($section eq 'queue_info' && $_ eq 'Queue-List') }
+                keys %{$xml->{$section}};
+    }
+    my %instances;
+    for my $queue (@{as_array($xml->{queue_info}{'Queue-List'})}) {
+        die "Invalid Queue-List in qstat XML\n" unless ref($queue) eq 'HASH';
+        my $name = require_scalar($queue, 'name', 'qstat queue', qr/^[^\s\@]+\@[^\s\@]+$/);
+        die "Duplicate qstat queue $name\n" if $instances{$name}++;
+        require_scalar($queue, $_, "qstat queue $name", qr/^[0-9]+$/)
+            for ('slots_used', 'slots_total');
+        require_scalar($queue, 'slots_resv', "qstat queue $name", qr/^[0-9]+$/)
+            if exists $queue->{slots_resv};
+        # XML::Simple represents <state/> as an empty hash.
+        die "Invalid state in qstat queue $name\n" if exists $queue->{state}
+            && !(ref($queue->{state}) eq 'HASH' && !keys %{$queue->{state}})
+            && (ref($queue->{state}) || $queue->{state} !~ /^[A-Za-z]*$/);
+        validate_job($_) for @{as_array($queue->{job_list})};
+    }
+    for my $job (@{as_array($xml->{queue_info}{job_list})}) {
+        validate_job($job);
+        require_scalar($job, 'queue_name', 'qstat job', qr/^[^\s\@]+\@[^\s\@]+$/);
+    }
+    validate_job($_) for @{as_array($xml->{job_info}{job_list})};
+    return $xml;
+}
+
+sub record_running_job {
+    my ($job, $queue, $node) = @_;
+    return if is_retained_finished($job->{state});
+    my $jobid = $job->{JB_job_number};
+    return unless defined $jobid;
+
+    my $taskid = defined $job->{tasks} ? $job->{tasks} : 0;
+    my $ntasks = $taskid ? count_array_spec($taskid) : 1;
+    $ntasks = 1 unless $ntasks;
+    my $is_new = not exists $running_jobs{$jobid}{$taskid};
+    my $task = $running_jobs{$jobid}{$taskid} ||= {};
+
+    my $user = $job->{JB_owner};
+    $user_total_jobs{$user} += $ntasks if $is_new and defined $user;
+
+    $task->{user} = $user;
+    $task->{state} = $job->{state} || '';
+    $task->{date} = $job->{JAT_start_time};
+    $task->{queue} ||= $queue;
+    $task->{queues}{$queue} = 1;
+    $task->{tasks} = $ntasks;
+
+    my $slots = $job->{slots} || 1;
+    $task->{nodes}{$node} += $slots;
+    $task->{slots} += $slots;
+    if ($task->{state} =~ /[sST]/) {
+        $node_stats{$node}{queues}{$queue}{suspslots} += $slots;
+    } else {
+        $node_stats{$node}{runningslots} += $slots;
+    }
+}
+
+sub record_waiting_job {
+    my ($job, $rank_ref) = @_;
+    return if is_retained_finished($job->{state});
+    my $jobid = $job->{JB_job_number};
+    return unless defined $jobid;
+
+    my $taskdef = $job->{tasks};
+    my $ntasks = $taskdef ? count_array_spec($taskdef) : 1;
+    if (not $ntasks) {
+        $log->error("Failed parsing task definition: $taskdef");
+        $ntasks = 1;
+    }
+
+    my $user = $job->{JB_owner};
+    my $waiting = $waiting_jobs{$jobid} ||= {};
+    $waiting->{user} = $user;
+    $waiting->{state} = $job->{state} || '';
+    $waiting->{date} = $job->{JB_submission_time};
+    $waiting->{slots} = $job->{slots} || 1;
+    $waiting->{tasks} += $ntasks;
+    $waiting->{rank} = $$rank_ref unless defined $waiting->{rank};
+    $user_total_jobs{$user} += $ntasks if defined $user;
+    $user_waiting_jobs{$user} += $ntasks if defined $user;
+    $$rank_ref += $ntasks;
+}
+
+sub qstat_xml_parser_callback {
+    my $output = shift;
+    my $xml = qstat_document($output);
+
+    for my $queue_info (@{as_array($xml->{queue_info})}) {
+        for my $queue (@{as_array($queue_info->{'Queue-List'})}) {
+            my ($qname, $nodename) = split /\@/, ($queue->{name} || ''), 2;
+            unless ($qname and $nodename) {
+                $log->error("Queue name of the form 'queue\@host' expected. Got: "
+                            .($queue->{name} || ''));
+                next;
+            }
+            $nodename = canonical_node_name($nodename);
+
+            my $used = $queue->{slots_used} || 0;
+            my $total = $queue->{slots_total} || 0;
+            my $flags = ref($queue->{state}) ? '' : ($queue->{state} || '');
+            $node_stats{$nodename}{load} = $queue->{load_avg}
+                if defined $queue->{load_avg};
+            $node_stats{$nodename}{arch} ||= $queue->{arch}
+                if defined $queue->{arch};
+            $node_stats{$nodename}{runningslots} ||= 0;
+            $node_stats{$nodename}{queues}{$qname} = {
+                usedslots => $used,
+                reservedslots => $queue->{slots_resv} || 0,
+                totalslots => $total,
+                suspslots => 0,
+                flags => $flags,
+            };
+
+            record_running_job($_, $qname, $nodename)
+                for @{as_array($queue->{job_list})};
+        }
+
+        # Some Grid Engine derivatives put assigned jobs directly below
+        # queue_info and provide queue_name in each job record.
+        for my $job (@{as_array($queue_info->{job_list})}) {
+            my ($qname, $nodename) = split /\@/, ($job->{queue_name} || ''), 2;
+            next unless $qname and $nodename;
+            $nodename = canonical_node_name($nodename);
+            record_running_job($job, $qname, $nodename);
+        }
+    }
+
+    my $rank = 1;
+    for my $job_info (@{as_array($xml->{job_info})}) {
+        record_waiting_job($_, \$rank) for @{as_array($job_info->{job_list})};
+    }
+}
+
+sub queue_waiting_counts {
+    my @qnames = @_;
+    die "Invalid empty SGE queue mapping\n" unless @qnames;
+    die "Invalid SGE queue mapping\n"
+        if grep { not defined $_ or $_ !~ /^[A-Za-z0-9_.-]+$/ } @qnames;
+
+    my $selection = join(',', @qnames);
+    my $command = ["$path/qstat", '-xml', '-u', '*', '-s', 'a', '-f', '-q', $selection];
+    my $output = command_output($command);
+    my $xml = qstat_document($output);
+
+    my $queued = 0;
+    my %users;
+    for my $job_info (@{as_array($xml->{job_info})}) {
+        for my $job (@{as_array($job_info->{job_list})}) {
+            next if is_retained_finished($job->{state});
+            my $jobid = $job->{JB_job_number};
+            die "Invalid job ID in queue-filtered qstat XML\n"
+                unless defined $jobid and not ref $jobid and $jobid =~ /^\d+$/;
+            my $taskdef = $job->{tasks};
+            die "Invalid task list in queue-filtered qstat XML\n" if ref $taskdef;
+            my $ntasks = $taskdef ? count_array_spec($taskdef) : 1;
+            die "Invalid task list in queue-filtered qstat XML\n" unless $ntasks;
+            $queued += $ntasks;
+            my $user = $job->{JB_owner};
+            $users{$user} += $ntasks if defined $user and not ref $user;
+        }
+    }
+    return ($queued, \%users);
 }
 
 #
@@ -243,8 +614,14 @@ sub count_array_spec($) {
 
 
     sub run_qstat {
-        my $command = "$path/qstat -u '*'";
-        $command .= $compat_mode ? " -F" : " -f";
+        unless ($compat_mode) {
+            my $command = ["$path/qstat", '-xml', '-u', '*', '-s', 'a', '-q', '*', '-f'];
+            # Do not mutate provider state until qstat has exited successfully.
+            qstat_xml_parser_callback(command_output($command));
+            return;
+        }
+
+        my $command = ["$path/qstat", '-u', '*', '-s', 'a', '-q', '*', '-F'];
         die unless run_callback($command, \&qstat_parser_callback);
     }
 
@@ -459,57 +836,170 @@ sub count_array_spec($) {
 
 
 
+sub parse_memory_kb {
+    my $value = shift;
+    return undef unless defined $value;
+    return undef unless $value =~ /^\s*(\d+(?:\.\d+)?)\s*([kKmMgGtT]?)\s*$/;
+
+    my ($number, $unit) = ($1, $2);
+    my %multiplier = (
+        '' => 1 / 1024,
+        k => 1000 / 1024,
+        K => 1,
+        m => 1000 * 1000 / 1024,
+        M => 1024,
+        g => 1000 * 1000 * 1000 / 1024,
+        G => 1024 * 1024,
+        t => 1000 * 1000 * 1000 * 1000 / 1024,
+        T => 1024 * 1024 * 1024,
+    );
+    return int($number * $multiplier{$unit});
+}
+
+sub run_qhost {
+    # -F includes host complexes in resourcevalue elements.  Some Grid Engine
+    # variants do not expose topology fields in the fixed hostvalue set.
+    my $output = command_output(["$path/qhost", '-F', '-xml']);
+    my $xml = xml_document($output, 'qhost', 'host', 'hostvalue', 'resourcevalue');
+    die "Missing host list in qhost XML\n" unless exists $xml->{host};
+    my %hosts;
+    for my $host (@{as_array($xml->{host})}) {
+        die "Invalid host in qhost XML\n" unless ref($host) eq 'HASH';
+        my $hostname = require_scalar($host, 'name', 'qhost XML', qr/^\S+$/);
+        die "Duplicate qhost host $hostname\n" if $hosts{$hostname}++;
+        for my $entry (@{as_array($host->{hostvalue})}, @{as_array($host->{resourcevalue})}) {
+            die "Invalid host value in qhost host $hostname\n" unless ref($entry) eq 'HASH';
+            my $name = require_scalar($entry, 'name', "qhost host $hostname", qr/^\S+$/);
+            next unless $name =~ /^(num_proc|m_socket|mem_total|swap_total|virtual_total|arch_string|arch)$/;
+            my $value = require_scalar($entry, 'content', "qhost $hostname/$name", qr/^[\s\S]*$/);
+            # A complex may also occur as a hostvalue. Check each occurrence;
+            # '-' is the documented unavailable value, not zero capacity.
+            next if $value eq '-';
+            die "Invalid $name in qhost host $hostname\n"
+                if ($name eq 'num_proc' || $name eq 'm_socket') && $value !~ /^[0-9]+$/;
+            die "Invalid $name in qhost host $hostname\n"
+                if $name =~ /^(mem_total|swap_total|virtual_total)$/ && !defined parse_memory_kb($value);
+        }
+    }
+
+    for my $host (@{as_array($xml->{host})}) {
+        my $hostname = $host->{name};
+        next unless defined $hostname and $hostname ne 'global';
+
+        my %values;
+        for my $entry (@{as_array($host->{hostvalue})},
+                       @{as_array($host->{resourcevalue})}) {
+            next unless defined $entry->{name};
+            $values{$entry->{name}} = $entry->{content};
+        }
+
+        my $node = $node_stats{$hostname} ||= {};
+        $node->{arch} = $values{arch_string} || $values{arch}
+            if defined($values{arch_string}) or defined($values{arch});
+        $node->{totalcpus} = int($values{num_proc})
+            if defined $values{num_proc} and $values{num_proc} =~ /^\d+$/;
+        $node->{pcpus} = int($values{m_socket})
+            if defined $values{m_socket} and $values{m_socket} =~ /^\d+$/;
+
+        $node->{pmem} = parse_memory_kb($values{mem_total});
+        my $virtual = parse_memory_kb($values{virtual_total});
+        if (not defined $virtual) {
+            my $swap = parse_memory_kb($values{swap_total});
+            $virtual = $node->{pmem} + $swap
+                if defined $node->{pmem} and defined $swap;
+        }
+        $node->{vmem} = $virtual if defined $virtual;
+    }
+}
+
 sub run_qconf {
 
-    # cpu distribution
-    $cpudistribution = '';
-
-    # qconf -sep deprecated therefore we are using qhost -xml
-    my $qhost_xml_output = `$path/qhost -xml` or $log->error("Failed listing licensed processors");
-    use XML::Simple qw(:strict);
-    my $xml = XMLin($qhost_xml_output, KeyAttr => { host => 'name' }, ForceArray => [ 'host' ]);
-    for my $h ( keys %{$xml->{host}} ) {
-            next if $h eq "global";
-            $node_stats{$h}{arch} =$xml->{host}{$h}{"hostvalue"}[0]{content};
-            $node_stats{$h}{totalcpus} = $xml->{host}{$h}{"hostvalue"}[1]{content};
-    } 
+    # qconf -sep is deprecated; qhost XML supplies all hosts in one query.
+    run_qhost();
 
     my %cpuhash;
-    $cpuhash{$_->{totalcpus}}++ for values %node_stats;
-    while ( my ($cpus,$count)  = each %cpuhash ) {
-        $cpudistribution .= "${cpus}cpu:$count " if $cpus > 0;
-    }
-    chop $cpudistribution;
+    $cpuhash{$_->{totalcpus}}++
+        for grep { defined $_->{totalcpus} } values %node_stats;
+    $cpudistribution = join ' ', map {
+        "${_}cpu:$cpuhash{$_}"
+    } sort { $a <=> $b } grep { $_ > 0 } keys %cpuhash;
 
     # global limits
-    loop_callback("$path/qconf -sconf global", sub {
-        my $l = shift;
-        $max_jobs = $1 if $l =~ /^max_jobs\s+(\d+)/;
-        $max_u_jobs = $1 if $l =~ /^max_u_jobs\s+(\d+)/;
-    }) or $log->error("Failed listing global configurations");
+    my $global = command_output(["$path/qconf", '-sconf', 'global']);
+    $max_jobs = qconf_integer($global, 'max_jobs', '-sconf global');
+
+    # maxujobs is a scheduler limit on running jobs per user.  The similarly
+    # named global max_u_jobs limits all active jobs and is not maxuserrun.
+    my $scheduler = command_output(["$path/qconf", '-ssconf']);
+    $max_user_running = qconf_integer($scheduler, 'maxujobs', '-ssconf') || undef;
 
     # list all queues
-    loop_callback("$path/qconf -sql", sub {
-        push @queue_names, shift
-    }) or $log->error("Failed listing all queues");
-    chomp @queue_names;
+    my $queues = command_output(["$path/qconf", '-sql']);
+    @queue_names = grep { length } split /\n/, $queues;
+    die "Invalid queue name in qconf -sql\n"
+        if grep { !/^[A-Za-z0-9_.-]+$/ } @queue_names;
+    my %seen;
+    die "Duplicate queue name in qconf -sql\n" if grep { $seen{$_}++ } @queue_names;
+}
+
+sub qconf_integer {
+    my ($output, $field, $command) = @_;
+    my @lines = grep { /^\Q$field\E\b/ } split /\n/, $output;
+    die "Invalid, missing or duplicate $field in qconf $command\n"
+        unless @lines == 1 && $lines[0] =~ /^\Q$field\E[ \t]+([0-9]+)[ \t]*$/;
+    return $1;
+}
+
+sub parse_duration {
+    my $value = shift;
+    return undef unless defined $value and $value ne 'INFINITY';
+    return int($value) if $value =~ /^\d+$/;
+
+    my @parts = split /:/, $value, -1;
+    return undef unless (@parts == 3 or @parts == 4)
+                        and not grep { $_ !~ /^\d+$/ } @parts;
+    my $seconds = pop @parts;
+    my $minutes = pop @parts;
+    my $hours = pop @parts;
+    my $days = @parts ? pop @parts : 0;
+    return $seconds + 60 * ($minutes + 60 * ($hours + 24 * $days));
 }
 
 sub req_limits ($) {
     my $line = shift;
     my ($reqcputime, $reqwalltime);
-    while ($line =~ /[sh]_cpu=(\d+)/g) {
-        $reqcputime = $1 if not $reqcputime or $reqcputime > $1;
-    }
-    while ($line =~ /[sh]_rt=(\d+)/g) {
-        $reqwalltime = $1 if not $reqwalltime or $reqwalltime > $1;
+    my %seen;
+    $line =~ s/^hard resource_list:\s*//;
+    for my $entry (split /,/, $line) {
+        next unless $entry =~ /^\s*([sh]_(?:cpu|rt))\b(.*)$/;
+        my ($resource, $raw) = ($1, $2);
+        die "Invalid $resource in qstat -j resource list: $entry\n"
+            unless $raw =~ s/^=//;
+        $raw =~ s/^\s+|\s+$//g;
+        die "Duplicate $resource in qstat -j resource list\n" if $seen{$resource}++;
+        my $limit = parse_duration($raw);
+        die "Invalid $resource in qstat -j resource list: $raw\n"
+            unless defined $limit || $raw eq 'INFINITY';
+        next unless defined $limit;
+        if ($resource =~ /_cpu$/) {
+            $reqcputime = $limit if !defined $reqcputime || $reqcputime > $limit;
+        } else {
+            $reqwalltime = $limit if !defined $reqwalltime || $reqwalltime > $limit;
+        }
     }
     return ($reqcputime, $reqwalltime);
 }
 
+sub queue_is_available {
+    my $flags = shift || '';
+    # Lower-case 'a' is a load alarm: the host is alive, although it is not
+    # currently accepting work. All other queue state flags are unavailable.
+    return $flags !~ /[cdosuACDEPS]/;
+}
+
 sub lrms_init() {
     $ENV{SGE_ROOT} = $options->{sge_root} || $ENV{SGE_ROOT};
-    $log->error("could not determine SGE_ROOT") unless $ENV{SGE_ROOT};
+    die "could not determine SGE_ROOT\n" unless $ENV{SGE_ROOT};
 
     $ENV{SGE_CELL} = $options->{sge_cell} || $ENV{SGE_CELL} || 'default';
     $ENV{SGE_QMASTER_PORT} = $options->{sge_qmaster_port} if $options->{sge_qmaster_port};
@@ -520,7 +1010,10 @@ sub lrms_init() {
     }
     $ENV{SGE_BIN_PATH} = $options->{sge_bin_path} || $ENV{SGE_BIN_PATH};
 
-    $log->error("SGE executables not found") unless -x "$ENV{SGE_BIN_PATH}/qsub";
+    validate_qstat_defaults();
+
+    die "SGE executables not found\n"
+        unless $ENV{SGE_BIN_PATH} and -x "$ENV{SGE_BIN_PATH}/qsub";
 
     $path = $ENV{SGE_BIN_PATH};
 }
@@ -536,10 +1029,13 @@ sub cluster_info () {
     # Figure out SGE type and version
 
     $lrms_cluster->{lrms_glue_type} = "sungridengine";
-    $lrms_cluster->{lrms_type} = $sge_type;
+    # ARC's public LRMS identifier is vendor-neutral.  $sge_type is retained
+    # internally so vendor-specific banners can still be recognized.
+    $lrms_cluster->{lrms_type} = "SGE";
     $lrms_cluster->{lrms_version} = $sge_version;
 
     $lrms_cluster->{cpudistribution} = $cpudistribution;
+    $lrms_cluster->{totalcpus} = 0;
     $lrms_cluster->{totalcpus} += $_->{totalcpus} || 0 for values %node_stats;
 
     # Count used/free CPUs and queued jobs in the cluster
@@ -551,13 +1047,15 @@ sub cluster_info () {
     my $runningjobs = 0;
     for my $tasks (values %running_jobs) {
         for my $task (values %$tasks) {
-            $runningjobs++;
+            $runningjobs += $task->{tasks} || 1;
             # Skip suspended jobs
             $usedcpus += $task->{slots}
                 unless $task->{state} =~ /[sST]/;
          }
     }
 
+    $queuedjobs = 0;
+    $queuedcpus = 0;
     for my $job (values %waiting_jobs) {
         $queuedjobs += $job->{tasks};
         $queuedcpus += $job->{tasks} * $job->{slots};
@@ -593,6 +1091,8 @@ sub queue_info ($) {
     if ($options->{queues}{$qname}{sge_queues}) {
         @qnames = split ' ', $options->{queues}{$qname}{sge_queues};
     }
+    die "Invalid SGE queue mapping for $qname\n"
+        if grep { not defined $_ or $_ !~ /^[A-Za-z0-9_.-]+$/ } @qnames;
 
     # NOTE:
     # In SGE the relation between CPUs and slots is quite elastic. Slots is
@@ -612,25 +1112,26 @@ sub queue_info ($) {
     my $queuetotal = 0;
     my $queuefree = 0;
     my $queueused = 0;
+    my %queue_nodes;
     for my $nodename (keys %node_stats) {
         my $node = $node_stats{$nodename};
         my $queues = $node->{queues};
         next unless defined $queues;
         my $nodetotal = 0; # number of slots on this node in the selected queues
-        my $nodemax = 0; # largest number of slots in any of the selected queues
         my $nodefree = 0;
         my $nodeused = 0;
         for my $name (keys %$queues) {
             next unless grep {$name eq $_} @qnames;
             my $q = $queues->{$name};
+            $queue_nodes{$nodename} = 1;
             $nodetotal += $q->{totalslots};
-            $nodemax = $q->{totalslots} if $nodemax < $q->{totalslots};
             $nodeused += $q->{usedslots} - $q->{suspslots};
             # Any flag on the queue implies that the queue is not taking more jobs.
-            $nodefree += $q->{totalslots} - $q->{usedslots} unless $q->{flags};
+            my $free = $q->{totalslots} - $q->{usedslots} - ($q->{reservedslots} || 0);
+            $nodefree += $free if !$q->{flags} && $free > 0;
             # The queue is healty if there is an instance in any other states
             # than normal or (a)larm. See man qstat for the meaning of the flags.
-            $queuestatus = 1 unless $q->{flags} =~ /[dosuACDE]/;
+            $queuestatus = 1 if queue_is_available($q->{flags});
         }
         # Cheating a bit here. SGE's scheduler would consider load averages
         # among other things to decide if there are free slots.
@@ -654,65 +1155,84 @@ sub queue_info ($) {
     }
 
     $lrms_queue->{totalcpus} = $queuetotal;
-    #$lrms_queue->{freecpus} = $queuefree;
     $lrms_queue->{running} = $queueused;
     $lrms_queue->{status} = $queuestatus;
-    $lrms_queue->{MaxSlotsPerJob} = $queuetotal;
+    $lrms_queue->{nodes} = [ sort keys %queue_nodes ];
+    $lrms_queue->{minwalltime} = 0;
+    $lrms_queue->{mincputime} = 0;
 
     # settings in the config file override
     my $qopts = $options->{queues}{$qname};
     $lrms_queue->{totalcpus} = $qopts->{totalcpus} if $qopts->{totalcpus};
+    $queuefree = $lrms_queue->{totalcpus}
+        if $queuefree > $lrms_queue->{totalcpus};
+    $queuefree = 0 if $queuefree < 0 or $queuestatus < 0;
+    $queue_free_slots{$qname} = $queuefree;
 
     # reserve negative numbers for error states
     $log->warning("Negative status for queue $qname: $lrms_queue->{status}")
         if $lrms_queue->{status} < 0;
 
-    # Grid Engine has hard and soft limits for both CPU time and
-    # wall clock time. Nordugrid schema only has CPU time.
-    # The lowest of the 2 limits is returned by this code.
+    # Grid Engine can override each limit per host or host group.  Advertise
+    # the lowest value so jobs accepted through this share fit every queue
+    # instance represented by it.
 
-    # This code breaks if there are some nodes with separate limits:
-    # h_rt                  48:00:00,[cpt.uio.no=24:00:00]
-
-    my $command = "$path/qconf -sq @qnames";
-    loop_callback($command, sub {
-        my $l = shift;
-        if ($l =~ /^[sh]_rt\s+(\S+)/) {
-            return if $1 eq 'INFINITY';
-            my $timelimit;
-            if ($1 =~ /^(\d+):(\d+):(\d+)$/) {
-                my ($h,$m,$s) = ($1,$2,$3);
-                $timelimit = $s + 60 * ($m + 60 * $h);
-            } else {
-                $log->warning("Error extracting time limit from line: $l");
-                return;
+    my $command = ["$path/qconf", '-sq', join(',', @qnames)];
+    my $queue_configuration = command_output($command);
+    $queue_configuration =~ s/\\[ \t]*\r?\n[ \t]*/ /g;
+    my (%limits, %seen);
+    my $current;
+    for my $l (split /\n/, $queue_configuration) {
+        if ($l =~ /^qname\b/) {
+            die "Invalid queue name in qconf -sq: $l\n"
+                unless $l =~ /^qname[ \t]+([A-Za-z0-9_.-]+)[ \t]*$/;
+            $current = $1;
+            die "Unexpected or duplicate queue in qconf -sq: $current\n"
+                if !grep({ $_ eq $current } @qnames) || $seen{$current}++;
+            next;
+        }
+        next unless $l =~ /^([sh]_(?:rt|cpu))\s+(.+)/;
+        my ($resource, $values) = ($1, $2);
+        die "Missing qname before time limit in qconf -sq\n" unless defined $current;
+        die "Duplicate $resource for $current in qconf -sq\n" if $limits{$current}{$resource}++;
+        my $field = $resource =~ /_rt$/ ? 'maxwalltime' : 'maxcputime';
+        my @values = split /,/, $values, -1;
+        for my $index (0 .. $#values) {
+            my $raw = $values[$index];
+            $raw =~ s/^\s+|\s+$//g;
+            if ($index) {
+                die "Invalid host override in qconf -sq: $l\n"
+                    unless $raw =~ /^\[[^\s=\[\]]+=([^\[\]]+)\]$/;
+                $raw = $1;
             }
-            if (not defined $lrms_queue->{maxwalltime}
-                         or $lrms_queue->{maxwalltime} > $timelimit) {
-                $lrms_queue->{maxwalltime} = $timelimit;
+            my $timelimit = parse_duration($raw);
+            if (not defined $timelimit) {
+                die "Invalid time limit in qconf -sq: $l\n" unless $raw eq 'INFINITY';
+                next;
+            }
+            if (not defined $lrms_queue->{$field}
+                    or $lrms_queue->{$field} > $timelimit) {
+                $lrms_queue->{$field} = $timelimit;
             }
         }
-        elsif ($l =~ /^[sh]_cpu\s+(\S+)/) {
-            return if $1 eq 'INFINITY';
-            my $timelimit;
-            if ($1 =~ /^(\d+):(\d+):(\d+)$/) {
-                my ($h,$m,$s) = ($1,$2,$3);
-                $timelimit = $s + 60 * ($m + 60 * $h);
-            } else {
-                $log->warning("Error extracting time limit from line: $l");
-                return;
-            }
-            if (not defined $lrms_queue->{maxcputime}
-                         or $lrms_queue->{maxcputime} > $timelimit) {
-                $lrms_queue->{maxcputime} = $timelimit;
-            }
-        }
-    }) or $log->error("Failed listing named queues");
+    }
+    for my $name (@qnames) {
+        die "Missing time limits for $name in qconf -sq\n"
+            if grep { !$limits{$name}{$_} } qw(s_rt h_rt s_cpu h_cpu);
+    }
 
-    # Grid Engine puts queueing jobs in single "PENDING" state pool,
-    # so here we report the total number queueing jobs in the cluster.
-
-    $lrms_queue->{queued} = $queuedjobs;
+    # Pending jobs live in a cluster-wide pool.  qstat's queue filter selects
+    # jobs which can run in this share's native queues, preventing the global
+    # pending count from being copied into every advertised share.
+    if ($compat_mode) {
+        $queue_waiting_jobs{$qname} = $queuedjobs;
+        $queue_user_waiting_jobs{$qname} = { %user_waiting_jobs };
+    } else {
+        my ($count, $users) = queue_waiting_counts(@qnames);
+        $queue_waiting_jobs{$qname} = $count;
+        $queue_user_waiting_jobs{$qname} = $users;
+    }
+    $lrms_queue->{queued} = $queue_waiting_jobs{$qname};
 
     # nordugrid-queue-maxrunning
     # nordugrid-queue-maxqueuable
@@ -724,15 +1244,74 @@ sub queue_info ($) {
     # SGE has a global limit on total number of jobs, but not per-queue limit.
     # This global limit gives an upper bound for maxqueuable and maxrunning
     if ($max_jobs) {
-        $lrms_queue->{maxqueuable} = $max_jobs if $max_jobs;
+        $lrms_queue->{maxqueuable} = $max_jobs;
         $lrms_queue->{maxrunning} = $max_jobs if $lrms_queue->{maxrunning} > $max_jobs;
     }
 
-    if (defined $max_u_jobs and defined $lrms_queue->{maxuserrun} and $lrms_queue->{maxuserrun} > $max_u_jobs) {
-        $lrms_queue->{maxuserrun} = $max_u_jobs;
+    if ($max_user_running) {
+        $lrms_queue->{maxuserrun} = $max_user_running;
     }
 }
 
+
+# Parse optional details into a separate result. Never attach a partly parsed
+# response to the published jobs tree. Command failures may be races with job
+# completion; malformed successful output is an error, not missing usage.
+sub job_details {
+    my ($jids, $waiting) = @_;
+    my %requested = map { $_ => 1 } @$jids;
+    my (%details, %seen);
+    my $jid;
+    my $ok = loop_callback(["$path/qstat", '-u', '*', '-s', 'a', '-q', '*', '-j', join(',', @$jids)], sub {
+        my $l = shift;
+        if ($l =~ /^job_number:/) {
+            die "Invalid or unexpected job_number in qstat -j\n"
+                unless $l =~ /^job_number:[ \t]+([1-9][0-9]*)[ \t]*$/ && $requested{$1};
+            $jid = $1;
+            die "Duplicate job_number $jid in qstat -j\n" if $seen{$jid}++;
+        }
+        elsif ($l =~ /^usage\b/ && !$waiting) {
+            die "Missing job_number before usage in qstat -j\n" unless defined $jid;
+            die "Invalid usage line for job $jid in qstat -j\n"
+                unless $l =~ s/^usage\s*(?:[0-9]+\s*)?:\s*//;
+            my %fields;
+            # Match complete comma-separated values, not a numeric prefix of
+            # corrupt data or a suffix of a different resource's name.
+            for my $entry (split /,/, $l) {
+                next unless $entry =~ /^\s*(cpu|maxvmem)\b(.*)$/;
+                my ($field, $raw) = ($1, $2);
+                die "Invalid $field for job $jid in qstat -j usage: $entry\n"
+                    unless $raw =~ s/^=//;
+                $raw =~ s/^\s+|\s+$//g;
+                die "Duplicate $field for job $jid in qstat -j usage\n" if $fields{$field}++;
+                my $value = $field eq 'cpu' ? parse_duration($raw) : parse_memory_kb($raw);
+                die "Invalid $field for job $jid in qstat -j usage: $raw\n" unless defined $value;
+                $details{$jid}{$field eq 'cpu' ? 'cputime' : 'mem'} = $value;
+            }
+        }
+        elsif ($l =~ /^hard resource_list\b/) {
+            die "Missing job_number before resource list in qstat -j\n" unless defined $jid;
+            my ($cpu, $wall) = req_limits($l);
+            $details{$jid}{reqcputime} = $cpu if defined $cpu;
+            $details{$jid}{reqwalltime} = $wall if defined $wall;
+        }
+        elsif ($waiting && $l =~ /^\s*(cannot run because.*)/) {
+            die "Missing job_number before reason in qstat -j\n" unless defined $jid;
+            push @{$details{$jid}{comment}}, "LRMS: $1";
+        }
+        elsif ($waiting && ($l =~ /^\s*error reason\s*\d*:\s*(.*)/ || $l =~ /(job is in error state)/)) {
+            die "Missing job_number before error reason in qstat -j\n" unless defined $jid;
+            push @{$details{$jid}{comment}}, "SGE job state was Eqw. LRMS error message was: $1";
+        }
+    });
+    unless ($ok) {
+        $log->warning('Failed listing named jobs: ' . join(',', @$jids));
+        return {};
+    }
+    die "Missing job_number in successful qstat -j response: " . join(',', grep { !$seen{$_} } @$jids) . "\n"
+        if grep { !$seen{$_} } @$jids;
+    return \%details;
+}
 
 sub jobs_info ($) {
 
@@ -741,22 +1320,19 @@ sub jobs_info ($) {
 
     my $lrms_jobs = {};
 
-    # add jobs to the info tree
-    $lrms_info->{jobs} = $lrms_jobs;
-
     my ($job, @running, @queueing);
+    my %seen;
 
     # loop through all requested jobs
     for my $jid (@$jids) {
+        die "Invalid requested SGE job ID\n" unless defined $jid && !ref($jid) && $jid =~ /^[1-9][0-9]*$/;
+        next if $seen{$jid}++;
 
         if (defined $running_jobs{$jid} and not defined $running_jobs{$jid}{0}) {
             $log->warning("SGE job $jid is an array job. Unable to handle it");
 
-        } elsif (defined ($job = $running_jobs{$jid}{0})) {
+        } elsif (exists $running_jobs{$jid} && defined ($job = $running_jobs{$jid}{0})) {
             push @running, $jid;
-
-            my $user = $job->{user};
-            $user_total_jobs{$user}++;
 
             # OBS: it's assumed that jobs in this loop are not part of array
             # jobs, which is true for grid jobs (non-array jobs have taskid 0)
@@ -773,9 +1349,7 @@ sub jobs_info ($) {
                 push @{$lrms_jobs->{$jid}{comment}}, "Unexpected SGE state: $job->{state}";
                 $log->warning("SGE job $jid is in an unexpected state: $job->{state}");
             }
-            # master node for parallel runs
-            my ($cluster_queue, $exec_host) = split '@', $job->{queue};
-            $lrms_jobs->{$jid}{nodes} = [ $exec_host ] if $exec_host;
+            $lrms_jobs->{$jid}{nodes} = [ sort keys %{$job->{nodes} || {}} ];
             $lrms_jobs->{$jid}{cpus} = $job->{slots};
 
         } elsif (defined ($job = $waiting_jobs{$jid})) {
@@ -814,82 +1388,17 @@ sub jobs_info ($) {
         }
     }
 
-    my $jid;
-    
-    # Running jobs
-
-    $jid = undef;
-    my ($jidstr) = join ',', @running;
-    loop_callback("$path/qstat -j $jidstr", sub {
-        my $l = shift;
-        if ($l =~ /^job_number:\s+(\d+)/) {
-            $jid=$1;
+    for my $group ([\@running, 0], [\@queueing, 1]) {
+        next unless @{$group->[0]};
+        my $details = job_details(@$group);
+        for my $id (keys %$details) {
+            # Preserve status comments if optional details add their own.
+            my $comments = delete $details->{$id}{comment};
+            push @{$lrms_jobs->{$id}{comment}}, @$comments if $comments;
+            @{$lrms_jobs->{$id}}{keys %{$details->{$id}}} = values %{$details->{$id}};
         }
-        elsif ($l =~ /^usage/) {
-            # OBS: array jobs have multiple 'usage' lines, one per runnig task
-
-            # Memory usage in kB
-            # SGE reports vmem and maxvmem.
-            # maxvmem chosen here
-            if ($l =~ /maxvmem=(\d+(?:\.\d+)?)\s*(\w)/) {
-                my $mult = 1024; 
-                if ($2 eq "M") {$mult = 1024} 
-                if ($2 eq "G") {$mult = 1024*1024} 
-                $lrms_jobs->{$jid}{mem} = int($mult*$1);
-            }
-            # used cpu time in minutes
-            if ($l =~ /cpu=(?:(\d+):)?(\d+):(\d\d):(\d\d)/) {
-                my ($d,$h,$m,$s) = ($1||0,$2,$3,$4);
-                my $cputime = $s + 60*($m + 60*($h + 24*$d));
-                $lrms_jobs->{$jid}{cputime} = $cputime;
-            }
-        }
-        elsif ($l =~ /^hard resource_list/) {
-            my ($reqcputime, $reqwalltime) = req_limits($l);
-            $lrms_jobs->{$jid}{reqcputime} = $reqcputime if $reqcputime;
-            $lrms_jobs->{$jid}{reqwalltime} = $reqwalltime if $reqwalltime;
-        }
-    }) or $log->warning("Failed listing named jobs");
-
-    # Waiting jobs
-
-    $jidstr = join ',', @queueing;
-    $jid = undef;
-    loop_callback("$path/qstat -j $jidstr", sub {
-        my $l = shift;
-        if ($l =~ /^job_number:\s+(\d+)/) {
-            $jid=$1;
-        }
-        elsif ($l =~ /^hard resource_list/) {
-            my ($reqcputime, $reqwalltime) = req_limits($l);
-            $lrms_jobs->{$jid}{reqcputime} = $reqcputime if $reqcputime;
-            $lrms_jobs->{$jid}{reqwalltime} = $reqwalltime if $reqwalltime;
-        }
-        elsif ($l =~ /^\s*(cannot run because.*)/) {
-            # Reason for being held in queue
-            push @{$lrms_jobs->{$jid}{comment}}, "LRMS: $1";
-        }
-        # Look for error messages, often jobs pending in error state 'Eqw'
-        elsif ($l =~ /^error reason\s*\d*:\s*(.*)/) {
-            # for SGE version 6.x. Examples:
-            # error reason  1:  can't get password entry for user "grid". Either the user does not exist or NIS error!
-            # error reason  1:  08/20/2008 13:40:27 [113794:25468]: error: can't chdir to /some/dir: No such file or directory
-            # error reason  1:          fork failed: Cannot allocate memory
-            #               1:          fork failed: Cannot allocate memory
-            push @{$lrms_jobs->{$jid}{comment}}, "SGE job state was Eqw. LRMS error message was: $1";
-            loop_callback("$path/qdel -fj $jidstr", sub {})
-        }
-        elsif ($l =~ /(job is in error state)/) {
-            # for SGE version 5.x.
-            push @{$lrms_jobs->{$jid}{comment}}, "SGE job state was Eqw. LRMS error message was: $1";
-            loop_callback("$path/qdel -fj $jidstr", sub {})
-
-            # qstat is not informative. qacct would be a bit more helpful with
-            # messages like:
-            # failed   1  : assumedly before job
-            # failed   28 : changing into working directory
-        }
-    }) or $log->warning("Failed listing named jobs");
+    }
+    $lrms_info->{jobs} = $lrms_jobs;
 }
 
 
@@ -908,138 +1417,72 @@ sub users_info($$) {
     # This is hard to implement correctly for a complex system such as SGE.
     # Using simple estimate.
 
-    my $freecpus = 0;
     foreach my $u ( @{$accts} ) {
-        if ($max_u_jobs) {
-            $user_total_jobs{$u} = 0 unless $user_total_jobs{$u};
-            $freecpus = $max_u_jobs - $user_total_jobs{$u};
-            $freecpus = $lrms_queue->{status}
-                if $lrms_queue->{status} < $freecpus;
-        } else {
-            $freecpus = $lrms_queue->{status};
-        }
-   $lrms_queue->{minwalltime} = 0;
-   $lrms_queue->{mincputime} = 0;
+        my $freecpus = $queue_free_slots{$qname} || 0;
 
-        $lrms_users->{$u}{queuelength} = $user_waiting_jobs{$u} || 0;
+        $lrms_users->{$u}{queuelength} =
+            $queue_user_waiting_jobs{$qname}{$u} || 0;
         $freecpus = 0 if $freecpus < 0;
-        if ($lrms_queue->{maxwalltime}) {
-            $lrms_users->{$u}{freecpus} = { $freecpus => $lrms_queue->{maxwalltime} };
+        if (defined $lrms_queue->{maxwalltime}) {
+            # Queue limits use seconds; the LRMSInfo freecpus contract uses
+            # whole minutes (zero means unlimited), including for GLUE2.
+            my $minutes = int($lrms_queue->{maxwalltime} / 60);
+            $freecpus = 0 unless $minutes;
+            $lrms_users->{$u}{freecpus} = { $freecpus => $minutes };
         } else {
             $lrms_users->{$u}{freecpus} = { $freecpus => 0 }; # unlimited
         }
     }
 }
 
-sub run_qhost {
-   my ($host) = @_;
-   my $result = {};
-
-   #require Data::Dumper; import Data::Dumper qw(Dumper);
-   #print STDERR Dumper($host);
-
-   loop_callback("$path/qhost -F -h `echo $host | cut -d . -f 1` | grep '='", sub {
-        my $l = shift;
-        my ($prefix, $value ) = split ":", $l;
-        if ( $value =~ /^mem_total=(\d+(?:\.\d+)?)\s*(\w)/) {
-           my $mult = 1;
-           if ($2 eq "M") {$mult = 1024}
-           if ($2 eq "G") {$mult = 1024*1024}
-           $result->{$host}{pmem} = int($mult*$1);
-        }
-        elsif ( $value =~ /^virtual_total=(\d+(?:\.\d+)?)\s*(\w)/) {
-           my ($mult) = 1;
-           if ($2 eq "M") {$mult = 1024}
-           if ($2 eq "G") {$mult = 1024*1024}
-           $result->{$host}{vmem} = int($mult*$1);
-        }
-        elsif ( $value =~ /^m_socket=(\d+(?:\.\d+)?)/) {
-           $result->{$host}{nsock} = int($1);
-        }
-   }) or $log->error("Failed listing host attributes");
-
-   return $result;
-}
-
-sub check_host_state_na {
-   my ($host) = @_;
-   my $result;
-
-   loop_callback("$path/qstat -f | grep `echo $host | cut -d . -f 1`", sub {
-        my $l = shift;
-        if ( $l =~ /-NA-/) {
-           $result=1;
-	}
- 	else {
-	   $result=0;
-	}
-   }) or $log->error("Failed check host");
-   return $result;
-}
-
-
 sub nodes_info {
+    my $lrms_nodes = {};
+    $lrms_info->{nodes} = $lrms_nodes;
 
-   #require Data::Dumper; import Data::Dumper qw(Dumper);
+    my %configured_queues;
+    for my $arc_queue (keys %{$options->{queues}}) {
+        my $names = $options->{queues}{$arc_queue}{sge_queues};
+        $configured_queues{$_} = 1
+            for ($names ? split(' ', $names) : ($arc_queue));
+    }
 
-   my $lrms_nodes = {};
+    for my $host (keys %node_stats) {
+        my $node = $node_stats{$host};
+        my $queues = $node->{queues} || {};
+        my @relevant = grep { $configured_queues{$_} } keys %$queues;
+        next unless @relevant;
 
-   # add nodes to the info tree
-   $lrms_info->{nodes} = $lrms_nodes;
+        my $isavailable = 0;
+        my $isfree = 0;
+        for my $qname (@relevant) {
+            my $queue = $queues->{$qname};
+            $isavailable = 1 if queue_is_available($queue->{flags});
+            $isfree = 1 if not $queue->{flags}
+                           and $queue->{usedslots} + ($queue->{reservedslots} || 0) < $queue->{totalslots};
+        }
 
-   for my $host (keys %node_stats) {
-      my $node = $node_stats{$host};
-      my $queues = $node->{queues};
-      next unless defined $queues;
-      my $arc_queue = 0;
-      for my $qname1 (keys %$queues) {
-          for my $qname2 ( keys %{$options->{queues}}) {
-             if ($qname1 =~ $qname2 ) {$arc_queue = 1;}
-          }
-      }
+        my $lrms_node = $lrms_nodes->{$host} = {
+            isavailable => $isavailable,
+            isfree => $isfree,
+        };
+        $lrms_node->{lcpus} = $node->{totalcpus}
+            if defined $node->{totalcpus};
+        $lrms_node->{slots} = $node->{totalcpus}
+            if defined $node->{totalcpus};
+        $lrms_node->{pmem} = $node->{pmem} if defined $node->{pmem};
+        $lrms_node->{vmem} = $node->{vmem} if defined $node->{vmem};
+        $lrms_node->{pcpus} = $node->{pcpus} if defined $node->{pcpus};
 
-      if ($arc_queue == 0) {next;}
-
-      $lrms_nodes->{$host}{lcpus} = $node_stats{$host}{totalcpus};
-      $lrms_nodes->{$host}{slots} = $node_stats{$host}{totalcpus};
-
-      my $pmem;
-      my $vmem;
-      my $nsock;
-
-      if (check_host_state_na($host) != 1) {
-         $pmem = run_qhost($host);
-         $vmem = run_qhost($host);
-         $nsock = run_qhost($host);
-         $lrms_nodes->{$host}{pmem} = $pmem->{$host}{pmem};
-         $lrms_nodes->{$host}{vmem} = $vmem->{$host}{vmem};
-         $lrms_nodes->{$host}{nsock} = $nsock->{$host}{nsock};
-         $lrms_nodes->{$host}{isfree} = 1;
-         $lrms_nodes->{$host}{isavailable} = 1;
-      }
-      else {
-         $lrms_nodes->{$host}{pmem} = 0;
-         $lrms_nodes->{$host}{vmem} = 0;
-         $lrms_nodes->{$host}{nsock} = 0;
-         $lrms_nodes->{$host}{lcpus} = 0;
-         $lrms_nodes->{$host}{slots} = 0;
-         $lrms_nodes->{$host}{isfree} = 0;
-         $lrms_nodes->{$host}{isavailable} = 0;
-      }
-
-      # TODO
-      # $lrms_nodes->{$host}{tags} =
-      # $lrms_nodes->{$host}{release} =
-      #my %system = qw(lx Linux sol SunOS darwin Darwin);
-      #my %machine = qw(amd64 x86_64 x86 i686 ia64 ia64 ppc ppc sparc sparc sparc64 sparc64);
-      #if ($node_stats{$host}{arch} =~ /^(lx|sol|darwin)-(amd64|x86|ia64|ppc|sparc|sparc64)$/) {
-      #   $lrms_nodes->{$host}{sysname} = $system{$1};
-      #   $lrms_nodes->{$host}{machine} = $machine{$2};
-      #}
-   }
-
-   #print STDERR Dumper($lrms_nodes);
-   #print STDERR Dumper(%{$options->{queues}});
+        if (defined $node->{arch} and
+            $node->{arch} =~ /^(lx\d*|linux|sol|darwin)-(.+)$/i) {
+            my ($system, $machine) = (lc($1), lc($2));
+            $lrms_node->{sysname} = $system =~ /^(?:lx|linux)/ ? 'Linux'
+                                   : $system eq 'sol' ? 'SunOS'
+                                   : 'Darwin';
+            my %machines = (amd64 => 'x86_64', x86 => 'i686');
+            $lrms_node->{machine} = $machines{$machine} || $machine;
+        }
+    }
 }
 
 sub test {
