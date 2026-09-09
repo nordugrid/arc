@@ -5,10 +5,13 @@
 
 
 #include <sstream>
+#include <thread>
+#include <vector>
 
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <arc/Logger.h>
+#include <arc/FileUtils.h>
 
 class LoggerTest
   : public CppUnit::TestFixture {
@@ -18,6 +21,7 @@ class LoggerTest
   CPPUNIT_TEST(TestLoggerVERBOSE);
   CPPUNIT_TEST(TestLoggerTHREAD);
   CPPUNIT_TEST(TestLoggerDEFAULT);
+  CPPUNIT_TEST(TestLogFile);
   CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -28,6 +32,7 @@ public:
   void TestLoggerVERBOSE();
   void TestLoggerTHREAD();
   void TestLoggerDEFAULT();
+  void TestLogFile();
 
 private:
   std::stringstream stream;
@@ -119,6 +124,48 @@ void LoggerTest::TestLoggerDEFAULT() {
   Arc::LogLevel default_level = Arc::Logger::getRootLogger().getThreshold();
   Arc::LogLevel bad_level = Arc::istring_to_level("COW");
   CPPUNIT_ASSERT_EQUAL(bad_level, default_level);
+}
+
+void LoggerTest::TestLogFile() {
+  std::string filename;
+  CPPUNIT_ASSERT(Arc::TmpFileCreate(filename, ""));
+  {
+    Arc::LogFile file(filename);
+    file.setFormat(Arc::EmptyFormat);
+    file.log(Arc::LogMessage(Arc::INFO, Arc::IString("record")));
+    std::string content;
+    // Messages must be visible before destruction, including reopen mode.
+    CPPUNIT_ASSERT(Arc::FileRead(filename, content));
+    CPPUNIT_ASSERT_EQUAL(std::string("record\n"), content);
+    file.setReopen(true);
+    file.log(Arc::LogMessage(Arc::INFO, Arc::IString("record")));
+    CPPUNIT_ASSERT(Arc::FileRead(filename, content));
+    CPPUNIT_ASSERT_EQUAL(std::string("record\nrecord\n"), content);
+    file.setReopen(false);
+
+    std::vector<std::thread> writers;
+    for (int i = 0; i < 4; ++i) {
+      writers.push_back(std::thread([&file]() {
+        for (int n = 0; n < 500; ++n)
+          file.log(Arc::LogMessage(Arc::INFO, Arc::IString("record")));
+      }));
+    }
+    for (std::vector<std::thread>::iterator i = writers.begin(); i != writers.end(); ++i)
+      i->join();
+    std::list<std::string> lines;
+    CPPUNIT_ASSERT(Arc::FileRead(filename, lines));
+    CPPUNIT_ASSERT_EQUAL(2002, (int)lines.size());
+    for (std::list<std::string>::const_iterator i = lines.begin(); i != lines.end(); ++i)
+      CPPUNIT_ASSERT_EQUAL(std::string("record"), *i);
+
+    file.setMaxSize(1);
+    file.setBackups(1);
+    file.log(Arc::LogMessage(Arc::INFO, Arc::IString("rotated")));
+    CPPUNIT_ASSERT(Arc::FileRead(filename+".1", content));
+    CPPUNIT_ASSERT_EQUAL(std::string("rotated\n"), content.substr(content.size()-8));
+  }
+  CPPUNIT_ASSERT(Arc::FileDelete(filename));
+  CPPUNIT_ASSERT(Arc::FileDelete(filename+".1"));
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(LoggerTest);

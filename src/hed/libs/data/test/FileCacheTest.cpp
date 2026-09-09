@@ -34,6 +34,7 @@ class FileCacheTest
   CPPUNIT_TEST(testFile);
   CPPUNIT_TEST(testRelease);
   CPPUNIT_TEST(testCheckDN);
+  CPPUNIT_TEST(testMetadataAccess);
   CPPUNIT_TEST(testTwoCaches);
   CPPUNIT_TEST(testCreationDate);
   CPPUNIT_TEST(testConstructor);
@@ -54,6 +55,7 @@ public:
   void testFile();
   void testRelease();
   void testCheckDN();
+  void testMetadataAccess();
   void testTwoCaches();
   void testReadOnlyCache();
   void testCreationDate();
@@ -681,6 +683,42 @@ void FileCacheTest::testCheckDN() {
   CPPUNIT_ASSERT(_createFile(meta_file + ".lock", std::string("1@" + _hostname)));
   CPPUNIT_ASSERT(!_fc1->AddDN(_url, dn1, futuretime));
   CPPUNIT_ASSERT(_fc1->CheckDN(_url, dn1));
+}
+
+void FileCacheTest::testMetadataAccess() {
+  const std::string dn = "/O=Grid/CN=Metadata Test";
+  const Arc::Time expiry(time(NULL) + 3600);
+  const std::string meta = _fc1->File(_url) + ".meta";
+  const std::string content = _url + '\n' + dn + ' ' + expiry.str(Arc::MDSTime) + '\n';
+  CPPUNIT_ASSERT(_createFile(meta, content));
+  CPPUNIT_ASSERT(_fc1->CheckDN(_url, dn));
+  // No result is cached across replacement or removal of the metadata.
+  CPPUNIT_ASSERT(Arc::FileCreate(meta, _url + '\n'));
+  CPPUNIT_ASSERT(!_fc1->CheckDN(_url, dn));
+  CPPUNIT_ASSERT(_fc1->AddDN(_url, dn, expiry));
+  CPPUNIT_ASSERT(_fc1->CheckDN(_url, dn));
+  CPPUNIT_ASSERT(Arc::FileDelete(meta));
+  CPPUNIT_ASSERT(!_fc1->CheckDN(_url, dn));
+  CPPUNIT_ASSERT(!_fc1->AddDN(_url, dn, expiry));
+  CPPUNIT_ASSERT_EQUAL(0, symlink("missing-meta", meta.c_str()));
+  CPPUNIT_ASSERT(!_fc1->CheckDN(_url, dn));
+  CPPUNIT_ASSERT(!_fc1->AddDN(_url, dn, expiry));
+  CPPUNIT_ASSERT(Arc::FileDelete(meta));
+  const std::string target = _testroot + "/metadata-target";
+  CPPUNIT_ASSERT(Arc::FileCreate(target, content));
+  CPPUNIT_ASSERT_EQUAL(0, symlink(target.c_str(), meta.c_str()));
+  CPPUNIT_ASSERT(_fc1->CheckDN(_url, dn));
+  CPPUNIT_ASSERT(_fc1->AddDN(_url, dn, expiry));
+  struct stat st;
+  CPPUNIT_ASSERT(Arc::FileStat(meta, &st, false) && S_ISREG(st.st_mode));
+  CPPUNIT_ASSERT_EQUAL(content, _readFile(target));
+  if (getuid() != 0) {
+    CPPUNIT_ASSERT_EQUAL(0, chmod(meta.c_str(), 0000));
+    CPPUNIT_ASSERT(!_fc1->CheckDN(_url, dn));
+    CPPUNIT_ASSERT(!_fc1->AddDN(_url, dn, expiry));
+    CPPUNIT_ASSERT_EQUAL(0, chmod(meta.c_str(), 0600));
+    CPPUNIT_ASSERT_EQUAL(content, _readFile(meta));
+  }
 }
 
 void FileCacheTest::testTwoCaches() {

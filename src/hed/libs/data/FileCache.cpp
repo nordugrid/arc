@@ -566,11 +566,7 @@ namespace Arc {
 
     // add DN to the meta file. If already there, renew the expiry time
     std::string meta_file = _getMetaFileName(url);
-    struct stat fileStat;
-    if (!FileStat(meta_file, &fileStat, true)) {
-      logger.msg(ERROR, "Error reading meta file %s: %s", meta_file, StrError(errno));
-      return false;
-    }
+    // Opening the metadata already checks existence; no attributes are needed.
     std::list<std::string> lines;
     if (!FileRead(meta_file, lines)) {
       logger.msg(ERROR, "Error opening meta file %s", meta_file);
@@ -633,15 +629,10 @@ namespace Arc {
       return false;
 
     std::string meta_file = _getMetaFileName(url);
-    struct stat fileStat;
-    if (!FileStat(meta_file, &fileStat, true)) {
-      if (errno != ENOENT)
-        logger.msg(ERROR, "Error reading meta file %s: %s", meta_file, StrError(errno));
-      return false;
-    }
     std::list<std::string> lines;
     if (!FileRead(meta_file, lines)) {
-      logger.msg(ERROR, "Error opening meta file %s", meta_file);
+      if (errno != ENOENT)
+        logger.msg(ERROR, "Error opening meta file %s: %s", meta_file, StrError(errno));
       return false;
     }
     if (lines.empty()) {

@@ -386,10 +386,12 @@ namespace Arc {
       cache.pop_front();
       cache_lock.unlock();
       if(str) {
-        destination << *str << std::endl;
+        destination << *str << '\n';
         delete str;
       }
     }
+    // Flush the whole pending batch before releasing the file lock or rotating.
+    destination.flush();
     // Check if unrecoverable error occurred. Close if error
     // and reopen on next write.
     if(destination.bad()) destination.close();

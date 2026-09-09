@@ -16,6 +16,7 @@
 #include <errno.h>
 #include <poll.h>
 #include <sys/mman.h>
+#include <memory>
 
 #include <glibmm/fileutils.h>
 #include <glibmm/miscutils.h>
@@ -110,7 +111,7 @@ bool FileCopy(int source_handle,const std::string& destination_path) {
 }
 
 #define FileCopyBigThreshold (50*1024*1024)
-#define FileCopyBufSize (4*1024)
+#define FileCopyBufSize (64*1024)
 
 bool FileCopy(int source_handle,int destination_handle) {
   off_t source_size = lseek(source_handle,0,SEEK_END);
@@ -125,12 +126,13 @@ bool FileCopy(int source_handle,int destination_handle) {
     }
   }
   if(lseek(source_handle,0,SEEK_SET) != 0) return false;
-  char* buf = new char[FileCopyBufSize];
+  // Bound memory per copy and release it on both success and I/O errors.
+  std::unique_ptr<char[]> buf(new char[FileCopyBufSize]);
   if(!buf) return false;
   bool r = true;
   for(;;) {
     ssize_t l = FileCopyBufSize;
-    l=::read(source_handle,buf,l);
+    l=::read(source_handle,buf.get(),l);
     if(l == 0) break; // less than expected
     if(l == -1) {
       if(errno == EINTR) continue;
@@ -138,7 +140,7 @@ bool FileCopy(int source_handle,int destination_handle) {
       r = false;
       break;
     }
-    if(!write_all(destination_handle,buf,l)) {
+    if(!write_all(destination_handle,buf.get(),l)) {
       r = false;
       break;
     }
@@ -151,11 +153,12 @@ bool FileRead(const std::string& filename, std::list<std::string>& data, uid_t u
   if((uid && (uid != getuid())) || (gid && (gid != getgid()))) {
     std::string content;
     if (!FileRead(filename, content, uid, gid)) return false;
+    std::string::size_type start = 0;
     for(;;) {
-      std::string::size_type p = content.find('\n');
-      data.push_back(content.substr(0,p));
+      std::string::size_type p = content.find('\n',start);
+      data.push_back(content.substr(start,p == std::string::npos ? p : p-start));
       if (p == std::string::npos) break;
-      content.erase(0,p+1);
+      start = p+1;
     }
     return true;
   }
@@ -180,22 +183,22 @@ bool FileRead(const std::string& filename, std::string& data, uid_t uid, gid_t g
       errno = fa.geterrno();
       return false;
     };
-    char buf[1024];
+    char buf[16384];
     for(;;) {
       ssize_t l = fa.fa_read(buf,sizeof(buf));
       if(l <= 0) break;
-      data += std::string(buf,l);
+      data.append(buf,l);
     }
     fa.fa_close();
     return true;
   }
   int h = ::open(filename.c_str(),O_RDONLY);
   if(h == -1) return false;
-  char buf[1024];
+  char buf[16384];
   for(;;) {
     ssize_t l = ::read(h,buf,sizeof(buf));
     if(l <= 0) break;
-    data += std::string(buf,l);
+    data.append(buf,l);
   }
   ::close(h);
   return true;
@@ -219,7 +222,13 @@ bool FileCreate(const std::string& filename, const std::string& data, uid_t uid,
   std::string tempfile = filename+".XXXXXX";
   int h = ::mkstemp(const_cast<char*>(tempfile.c_str()));
   if(h == -1) return false;
-  if(!write_all(h,data.c_str(),data.length())) { ::close(h); return false; }
+  if(!write_all(h,data.c_str(),data.length())) {
+    int err = errno;
+    ::close(h);
+    ::unlink(tempfile.c_str());
+    errno = err;
+    return false;
+  }
   ::close(h);
   if(chmod(tempfile.c_str(), mode) != 0) { unlink(tempfile.c_str()); return false; }
   if(rename(tempfile.c_str(), filename.c_str()) != 0) { unlink(tempfile.c_str()); return false; }
@@ -437,16 +446,11 @@ bool DirDelete(const std::string& path, bool recursive) {
     while ((file_name = dir.read_name()) != "") {
       std::string fullpath(path);
       fullpath += G_DIR_SEPARATOR_S + file_name;
-      if (::lstat(fullpath.c_str(), &st) != 0) return false;
-      if (S_ISDIR(st.st_mode)) {
-        if (!DirDelete(fullpath.c_str())) {
-          return false;
-        }
-      } else {
-        if (::remove(fullpath.c_str()) != 0) {
-          return false;
-        }
-      }
+      // remove handles files, symlinks and empty directories without a stat.
+      // Only a non-empty directory needs to be opened and traversed.
+      if (::remove(fullpath.c_str()) == 0) continue;
+      if (errno != ENOTEMPTY && errno != EEXIST) return false;
+      if (!DirDelete(fullpath)) return false;
     }
   }
   catch (Glib::FileError& e) {
@@ -473,32 +477,28 @@ bool DirDeleteExcl(const std::string& path, const std::list<std::string>& files,
   std::list<std::string> dirlisting;
   if (!DirList(path, dirlisting, false, uid, gid)) return false;
   for (std::list<std::string>::const_iterator d = dirlisting.begin(); d != dirlisting.end(); ++d) {
+    bool del = excl;
+    std::list<std::string> newfiles;
+    for (std::list<std::string>::const_iterator f = files.begin(); f != files.end(); ++f) {
+      std::string fullpath(path + *f);
+      if (fullpath == *d) del = !excl;
+      else if (fullpath.size() > d->size() && fullpath.compare(0, d->size(), *d) == 0 && fullpath[d->size()] == '/') {
+        newfiles.push_back(f->substr(f->find('/', 1)));
+      }
+    }
+    // Names alone identify entries outside the requested cleanup. Do not stat
+    // retained files or unrelated subtrees (particularly expensive on NFS).
+    if (!del && newfiles.empty()) continue;
     // Check for file or dir
     struct stat st;
     if (!FileStat(*d, &st, uid, gid, false)) return false;
     if (S_ISDIR(st.st_mode)) {
-      // Check for any files in this dir
-      std::list<std::string> newfiles;
-      for (std::list<std::string>::const_iterator f = files.begin(); f != files.end(); ++f) {
-        std::string fullpath(path + *f);
-        if (fullpath.substr(0, d->size()) == *d && fullpath.size() > d->size() && fullpath[d->size()] == '/') {
-          newfiles.push_back(f->substr(f->find('/', 1)));
-        }
-      }
       if (!newfiles.empty()) {
         if (!DirDeleteExcl(*d, newfiles, excl, uid, gid)) return false;
         if (excl) continue;
       }
     }
 
-    bool del = excl;
-    for (std::list<std::string>::const_iterator f = files.begin(); f != files.end(); ++f) {
-      std::string fullpath(path + *f);
-      if (fullpath == *d) {
-        del = !del;
-        break;
-      }
-    }
     if (del) {
       if (S_ISDIR(st.st_mode)) DirDelete(*d, true);
       else FileDelete(*d);
@@ -516,7 +516,7 @@ static bool list_recursive(FileAccess* fa,const std::string& path,std::list<std:
     if (entry == "." || entry == "..") continue;
     std::string fullentry(curpath + '/' + entry);
     struct stat st;
-    if (!fa->fa_lstat(fullentry, st)) return false;
+    if (recursive && !fa->fa_lstat(fullentry, st)) return false;
     entries.push_back(fullentry);
     if (recursive && S_ISDIR(st.st_mode)) {
       FileAccess fa_;
@@ -547,7 +547,7 @@ static bool list_recursive(const std::string& path,std::list<std::string>& entri
     while ((file_name = dir.read_name()) != "") {
       std::string fullpath(curpath);
       fullpath += G_DIR_SEPARATOR_S + file_name;
-      if (::lstat(fullpath.c_str(), &st) != 0) return false;
+      if (recursive && ::lstat(fullpath.c_str(), &st) != 0) return false;
       entries.push_back(fullpath);
       if (recursive && S_ISDIR(st.st_mode)) {
         if (!list_recursive(fullpath, entries, recursive)) {
@@ -674,4 +674,3 @@ bool CanonicalDir(std::string& name, bool leading_slash, bool trailing_slash) {
 }
 
 } // namespace Arc
-

@@ -5,9 +5,12 @@
 #endif
 
 #include <algorithm>
+#include <cerrno>
+#include <csignal>
 
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/resource.h>
 #include <unistd.h>
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -22,9 +25,13 @@ class FileUtilsTest
   CPPUNIT_TEST_SUITE(FileUtilsTest);
   CPPUNIT_TEST(TestFileStat);
   CPPUNIT_TEST(TestFileCopy);
+  CPPUNIT_TEST(TestLargeFileCopy);
   CPPUNIT_TEST(TestFileLink);
   CPPUNIT_TEST(TestFileCreateAndRead);
+  CPPUNIT_TEST(TestFileCreateFailure);
   CPPUNIT_TEST(TestMakeAndDeleteDir);
+  CPPUNIT_TEST(TestRecursiveCleanup);
+  CPPUNIT_TEST(TestSelectiveCleanup);
   CPPUNIT_TEST(TestTmpDirCreate);
   CPPUNIT_TEST(TestTmpFileCreate);
   CPPUNIT_TEST(TestDirList);
@@ -37,9 +44,13 @@ public:
 
   void TestFileStat();
   void TestFileCopy();
+  void TestLargeFileCopy();
   void TestFileLink();
   void TestFileCreateAndRead();
+  void TestFileCreateFailure();
   void TestMakeAndDeleteDir();
+  void TestRecursiveCleanup();
+  void TestSelectiveCleanup();
   void TestTmpDirCreate();
   void TestTmpFileCreate();
   void TestDirList();
@@ -90,6 +101,33 @@ void FileUtilsTest::TestFileCopy() {
   CPPUNIT_ASSERT_EQUAL(0, close(h2));
 }
 
+void FileUtilsTest::TestLargeFileCopy() {
+  // Exceed the mmap threshold and end with a short buffer, including NULs.
+  std::string content(51*1024*1024 + 17, '\0');
+  for (std::size_t i = 0; i < content.size(); ++i)
+    content[i] = static_cast<char>(i % 251);
+  const std::string source = testroot + "/large-source";
+  const std::string target = testroot + "/large-target";
+  CPPUNIT_ASSERT(Arc::FileCreate(source, content));
+  CPPUNIT_ASSERT(Arc::FileCopy(source, target));
+  std::string result;
+  CPPUNIT_ASSERT(Arc::FileRead(target, result));
+  CPPUNIT_ASSERT(content == result);
+
+  // A write failure after reading the first buffer must still be reported,
+  // without closing descriptors owned by the caller or modifying the target.
+  int in = open(source.c_str(), O_RDONLY);
+  int out = open(target.c_str(), O_RDONLY);
+  CPPUNIT_ASSERT(in >= 0 && out >= 0);
+  const bool copied = Arc::FileCopy(in, out);
+  const int close_in = close(in), close_out = close(out);
+  CPPUNIT_ASSERT(!copied);
+  CPPUNIT_ASSERT_EQUAL(0, close_in);
+  CPPUNIT_ASSERT_EQUAL(0, close_out);
+  CPPUNIT_ASSERT(Arc::FileRead(target, result));
+  CPPUNIT_ASSERT(content == result);
+}
+
 void FileUtilsTest::TestFileLink() {
   CPPUNIT_ASSERT(_createFile(testroot + "/file1"));
   CPPUNIT_ASSERT(Arc::FileLink(testroot+"/file1", testroot+"/file1s", true));
@@ -127,9 +165,48 @@ void FileUtilsTest::TestFileCreateAndRead() {
   CPPUNIT_ASSERT(Arc::FileRead(filename, cdata));
   CPPUNIT_ASSERT_EQUAL(std::string("12\nabc\n\nxyz\n"), cdata);
 
+  // Multiple read buffers, a short last chunk and embedded NUL bytes.
+  std::string binary(1024*1024 + 17, '\0');
+  for (std::string::size_type i = 0; i < binary.size(); ++i)
+    binary[i] = static_cast<char>(i % 256);
+  CPPUNIT_ASSERT(Arc::FileCreate(filename, binary));
+  CPPUNIT_ASSERT(Arc::FileRead(filename, cdata));
+  CPPUNIT_ASSERT_EQUAL(binary, cdata);
+
   // remove file and check failure
   CPPUNIT_ASSERT_EQUAL(true, Arc::FileDelete(filename.c_str()));
   CPPUNIT_ASSERT(!Arc::FileRead(filename, data));
+}
+
+void FileUtilsTest::TestFileCreateFailure() {
+  const std::string target = testroot + "/control";
+  CPPUNIT_ASSERT(Arc::FileCreate(target, "previous contents"));
+  {
+    // Force a partial write followed by EFBIG, restoring process state even
+    // if an assertion fails. The old control file must not be replaced.
+    struct LimitGuard {
+      struct rlimit saved;
+      typedef void (*Handler)(int);
+      Handler handler;
+      LimitGuard() {
+        CPPUNIT_ASSERT_EQUAL(0, getrlimit(RLIMIT_FSIZE, &saved));
+        handler = std::signal(SIGXFSZ, SIG_IGN);
+      }
+      ~LimitGuard() { setrlimit(RLIMIT_FSIZE, &saved); std::signal(SIGXFSZ, handler); }
+    } guard;
+    struct rlimit limit = guard.saved;
+    limit.rlim_cur = 128;
+    CPPUNIT_ASSERT_EQUAL(0, setrlimit(RLIMIT_FSIZE, &limit));
+    CPPUNIT_ASSERT(!Arc::FileCreate(target, std::string(1024, 'x')));
+    CPPUNIT_ASSERT_EQUAL(EFBIG, errno);
+  }
+  std::string content;
+  CPPUNIT_ASSERT(Arc::FileRead(target, content));
+  CPPUNIT_ASSERT_EQUAL(std::string("previous contents"), content);
+  std::list<std::string> files;
+  CPPUNIT_ASSERT(Arc::DirList(testroot, files, false));
+  CPPUNIT_ASSERT_EQUAL(std::size_t(1), files.size());
+  CPPUNIT_ASSERT_EQUAL(target, files.front());
 }
 
 void FileUtilsTest::TestMakeAndDeleteDir() {
@@ -188,6 +265,64 @@ void FileUtilsTest::TestMakeAndDeleteDir() {
   CPPUNIT_ASSERT(Arc::DirDelete(testroot, true));
   CPPUNIT_ASSERT(stat(testroot.c_str(), &st) != 0);
 
+}
+
+void FileUtilsTest::TestRecursiveCleanup() {
+  const std::string tree = testroot + "/tree";
+  const std::string retained = testroot + "/retained";
+  CPPUNIT_ASSERT(Arc::DirCreate(tree + "/nested/deep", 0700, true));
+  CPPUNIT_ASSERT(Arc::DirCreate(tree + "/empty", 0700));
+  CPPUNIT_ASSERT(Arc::DirCreate(retained, 0700));
+  CPPUNIT_ASSERT(_createFile(retained + "/keep"));
+  CPPUNIT_ASSERT(_createFile(tree + "/nested/deep/file"));
+  CPPUNIT_ASSERT_EQUAL(0, chmod((tree + "/nested/deep/file").c_str(), 0400));
+  CPPUNIT_ASSERT_EQUAL(0, symlink(retained.c_str(), (tree + "/link").c_str()));
+  CPPUNIT_ASSERT_EQUAL(0, symlink("missing", (tree + "/dangling").c_str()));
+  CPPUNIT_ASSERT_EQUAL(0, mkfifo((tree + "/fifo").c_str(), 0600));
+  CPPUNIT_ASSERT(Arc::DirDelete(tree));
+  struct stat st;
+  CPPUNIT_ASSERT(!Arc::FileStat(tree, &st, false));
+  CPPUNIT_ASSERT(Arc::FileStat(retained + "/keep", &st, false));
+  CPPUNIT_ASSERT(!Arc::DirDelete(tree)); // missing root still reports failure
+  CPPUNIT_ASSERT(!Arc::DirDelete(retained + "/keep")); // regular root is not a directory
+  if (getuid() != 0) {
+    CPPUNIT_ASSERT(Arc::DirCreate(tree, 0700));
+    CPPUNIT_ASSERT(_createFile(tree + "/keep"));
+    CPPUNIT_ASSERT_EQUAL(0, chmod(tree.c_str(), 0500));
+    const bool deleted = Arc::DirDelete(tree);
+    CPPUNIT_ASSERT_EQUAL(0, chmod(tree.c_str(), 0700));
+    CPPUNIT_ASSERT(!deleted);
+    CPPUNIT_ASSERT(Arc::FileStat(tree + "/keep", &st, false));
+  }
+}
+
+void FileUtilsTest::TestSelectiveCleanup() {
+  CPPUNIT_ASSERT(Arc::DirCreate(testroot + "/selected/nested", 0700, true));
+  CPPUNIT_ASSERT(Arc::DirCreate(testroot + "/selected-other", 0700));
+  CPPUNIT_ASSERT(_createFile(testroot + "/selected/nested/delete"));
+  CPPUNIT_ASSERT(_createFile(testroot + "/selected/nested/keep"));
+  CPPUNIT_ASSERT(_createFile(testroot + "/selected-other/keep"));
+  CPPUNIT_ASSERT(_createFile(testroot + "/keep"));
+  CPPUNIT_ASSERT_EQUAL(0, symlink("selected", (testroot + "/link").c_str()));
+  CPPUNIT_ASSERT_EQUAL(0, symlink("missing", (testroot + "/dangling").c_str()));
+  std::list<std::string> files;
+  files.push_back("/selected/nested/delete");
+  files.push_back("/selected/nested/delete"); // duplicates do not invert selection
+  files.push_back("/missing");
+  CPPUNIT_ASSERT(Arc::DirDeleteExcl(testroot, files, false));
+  struct stat st;
+  CPPUNIT_ASSERT(!Arc::FileStat(testroot + "/selected/nested/delete", &st, false));
+  CPPUNIT_ASSERT(Arc::FileStat(testroot + "/selected/nested/keep", &st, false));
+  CPPUNIT_ASSERT(Arc::FileStat(testroot + "/selected-other/keep", &st, false));
+  CPPUNIT_ASSERT(Arc::FileStat(testroot + "/keep", &st, false));
+  CPPUNIT_ASSERT(Arc::FileStat(testroot + "/link", &st, false) && S_ISLNK(st.st_mode));
+  CPPUNIT_ASSERT(Arc::FileStat(testroot + "/dangling", &st, false) && S_ISLNK(st.st_mode));
+  // Selecting a symlink must remove the link, not traverse its target.
+  files.clear();
+  files.push_back("/link");
+  CPPUNIT_ASSERT(Arc::DirDeleteExcl(testroot, files, false));
+  CPPUNIT_ASSERT(!Arc::FileStat(testroot + "/link", &st, false));
+  CPPUNIT_ASSERT(Arc::FileStat(testroot + "/selected/nested/keep", &st, false));
 }
 
 void FileUtilsTest::TestTmpDirCreate() {
@@ -263,6 +398,14 @@ void FileUtilsTest::TestDirList() {
   CPPUNIT_ASSERT(std::find(entries.begin(), entries.end(), std::string(testroot+sep+"dir1")) != entries.end());
   CPPUNIT_ASSERT(std::find(entries.begin(), entries.end(), std::string(testroot+sep+"file1")) != entries.end());
   CPPUNIT_ASSERT(std::find(entries.begin(), entries.end(), std::string(testroot+sep+"dir1"+sep+"file1")) != entries.end());
+
+  // Listing names must include dangling links and never recurse into symlinks.
+  CPPUNIT_ASSERT_EQUAL(0, symlink("missing", (testroot+sep+"dangling").c_str()));
+  CPPUNIT_ASSERT_EQUAL(0, symlink("dir1", (testroot+sep+"dirlink").c_str()));
+  CPPUNIT_ASSERT(Arc::DirList(testroot, entries, false));
+  CPPUNIT_ASSERT_EQUAL(4, (int)entries.size());
+  CPPUNIT_ASSERT(Arc::DirList(testroot, entries, true));
+  CPPUNIT_ASSERT_EQUAL(5, (int)entries.size());
 }
 
 void FileUtilsTest::TestCanonicalDir() {

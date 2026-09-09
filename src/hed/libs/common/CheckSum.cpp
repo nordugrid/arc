@@ -5,6 +5,7 @@
 #endif
 
 #include <cctype>
+#include <cerrno>
 #include <fstream>
 
 #include <fcntl.h>
@@ -552,11 +553,15 @@ namespace Arc {
 
     CheckSumAny csa(tp);
 
-    char buffer[1024];
+    char buffer[16384];
     ssize_t l;
     for(;;) {
-      l = read(h, buffer, 1024);
-      if (l == -1) return "";
+      l = read(h, buffer, sizeof(buffer));
+      if (l == -1) {
+        if (errno == EINTR) continue;
+        close(h);
+        return "";
+      }
       if (l == 0) break;
       csa.add(buffer, l);
     }
