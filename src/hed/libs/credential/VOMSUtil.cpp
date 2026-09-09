@@ -1827,16 +1827,19 @@ err:
     }
     else if (ac->acinfo->holder->name) {
       names = ac->acinfo->holder->name;
-      if ((sk_GENERAL_NAME_num(names) == 1) ||      //???
-          ((name = sk_GENERAL_NAME_value(names,0))) ||
+      if ((sk_GENERAL_NAME_num(names) != 1) ||
+          !(name = sk_GENERAL_NAME_value(names,0)) ||
           (name->type != GEN_DIRNAME)) {
-        if (X509_NAME_cmp(name->d.dirn, X509_get_issuer_name(cert))) {
-          // CHECK ALT_NAMES
-          // in VOMS ACs, checking into alt names is assumed to always fail.
-          CredentialLogger.msg(ERROR,"VOMS: the holder issuer name is not the same as that in AC");
-          status |= VOMSACInfo::ACParsingFailed;
-          return false;
-        }
+        CredentialLogger.msg(ERROR,"VOMS: the holder information in AC is wrong");
+        status |= VOMSACInfo::ACParsingFailed;
+        return false;
+      }
+      if (X509_NAME_cmp(name->d.dirn, X509_get_subject_name(cert))) {
+        // CHECK ALT_NAMES
+        // in VOMS ACs, checking into alt names is assumed to always fail.
+        CredentialLogger.msg(ERROR,"VOMS: the holder subject name is not the same as that in AC");
+        status |= VOMSACInfo::ACParsingFailed;
+        return false;
       }
     }
 
@@ -2002,14 +2005,19 @@ err:
     else if (X509_ACERT_get0_holder_entityName(ac)) {
       GENERAL_NAME const * name = NULL;
       GENERAL_NAMES const * names = X509_ACERT_get0_holder_entityName(ac);
-      if ((sk_GENERAL_NAME_num(names) == 1) && (name = sk_GENERAL_NAME_value(names,0)) && (name->type != GEN_DIRNAME)) {
-        if (X509_NAME_cmp(name->d.dirn, X509_get_issuer_name(cert))) {
-          // CHECK ALT_NAMES
-          // in VOMS ACs, checking into alt names is assumed to always fail.
-          CredentialLogger.msg(ERROR,"VOMS: the holder issuer name is not the same as that in AC");
-          status |= VOMSACInfo::ACParsingFailed;
-          return false;
-        }
+      if ((sk_GENERAL_NAME_num(names) != 1) ||
+          !(name = sk_GENERAL_NAME_value(names,0)) ||
+          (name->type != GEN_DIRNAME)) {
+        CredentialLogger.msg(ERROR,"VOMS: the holder information in AC is wrong");
+        status |= VOMSACInfo::ACParsingFailed;
+        return false;
+      }
+      if (X509_NAME_cmp(name->d.dirn, X509_get_subject_name(cert))) {
+        // CHECK ALT_NAMES
+        // in VOMS ACs, checking into alt names is assumed to always fail.
+        CredentialLogger.msg(ERROR,"VOMS: the holder subject name is not the same as that in AC");
+        status |= VOMSACInfo::ACParsingFailed;
+        return false;
       }
     }
 

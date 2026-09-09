@@ -169,6 +169,7 @@ PDPStatus ArcPDP::isPermitted(Message *msg) const {
   if(mauth) {
     if(!mauth->Export(SecAttr::ARCAuth,requestxml)) {
       delete mauth;
+      delete cauth;
       logger.msg(ERROR,"Failed to convert security information to ARC request");
       return false;
     };
@@ -176,7 +177,7 @@ PDPStatus ArcPDP::isPermitted(Message *msg) const {
   };
   if(cauth) {
     if(!cauth->Export(SecAttr::ARCAuth,requestxml)) {
-      delete mauth;
+      delete cauth;
       logger.msg(ERROR,"Failed to convert security information to ARC request");
       return false;
     };
@@ -216,6 +217,11 @@ PDPStatus ArcPDP::isPermitted(Message *msg) const {
 
   for(int i = 0; i < size; i++) {
     ResponseItem* item = rlist[i];
+    if(!item || !item->reqtp) {
+      logger.msg(ERROR, "Not authorized by arc.pdp - Evaluator returned an invalid response item");
+      delete resp;
+      return false;
+    }
     RequestTuple* tp = item->reqtp;
 
     if(item->res == DECISION_DENY)
@@ -256,4 +262,3 @@ ArcPDP::~ArcPDP(){
 }
 
 } // namespace ArcSec
-

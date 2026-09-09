@@ -132,6 +132,7 @@ PDPStatus GACLPDP::isPermitted(Message *msg) const{
   if(mauth) {
     if(!mauth->Export(GACL,requestxml)) {
       delete mauth;
+      delete cauth;
       logger.msg(ERROR,"Failed to convert security information to ARC request");
       return false;
     };
@@ -139,7 +140,7 @@ PDPStatus GACLPDP::isPermitted(Message *msg) const{
   };
   if(cauth) {
     if(!cauth->Export(GACL,requestxml)) {
-      delete mauth;
+      delete cauth;
       logger.msg(ERROR,"Failed to convert security information to ARC request");
       return false;
     };
@@ -164,6 +165,7 @@ PDPStatus GACLPDP::isPermitted(Message *msg) const{
   // and only PERMIT/DENY results.
   if(rlist.size() <= 0) { delete resp; return false; };
   ResponseItem* item = rlist[0];
+  if(!item) { delete resp; return false; };
   if(item->res != DECISION_PERMIT) { delete resp; return false; };
   delete resp;
   return true;
@@ -173,4 +175,3 @@ GACLPDP::~GACLPDP(){
 }
 
 } // namespace ArcSec
-

@@ -2,7 +2,6 @@
 #include <config.h>
 #endif
 
-#include <iostream>
 #include <fstream>
 
 #include <arc/XMLNode.h>
@@ -147,6 +146,7 @@ PDPStatus XACMLPDP::isPermitted(Message *msg) const {
   if(mauth) {
     if(!mauth->Export(SecAttr::XACML,requestxml)) {
       delete mauth;
+      delete cauth;
       logger.msg(ERROR,"Failed to convert security information to XACML request");
       return false;
     };
@@ -154,7 +154,7 @@ PDPStatus XACMLPDP::isPermitted(Message *msg) const {
   };
   if(cauth) {
     if(!cauth->Export(SecAttr::XACML,requestxml)) {
-      delete mauth;
+      delete cauth;
       logger.msg(ERROR,"Failed to convert security information to XACML request");
       return false;
     };
@@ -172,13 +172,21 @@ PDPStatus XACMLPDP::isPermitted(Message *msg) const {
 
   //Call the evaluation functionality inside Evaluator
   Response *resp = eval->evaluate(requestxml);
+  if(!resp) {
+    logger.msg(ERROR, "Not authorized by xacml.pdp - failed to get response from Evaluator");
+    return false;
+  };
   ArcSec::ResponseList rlist = resp->getResponseItems();
-  std::cout<<rlist[0]->res<<std::endl;
+  if(rlist.empty() || !rlist[0]) {
+    logger.msg(ERROR, "Not authorized by xacml.pdp - Evaluator returned no response items");
+    delete resp;
+    return false;
+  };
   bool result = false;
   if(rlist[0]->res == DECISION_PERMIT) { logger.msg(INFO, "Authorized from xacml.pdp"); result = true; }
   else logger.msg(ERROR, "UnAuthorized from xacml.pdp");
 
-  if(resp) delete resp;
+  delete resp;
 
   return result;
 }
@@ -187,4 +195,3 @@ XACMLPDP::~XACMLPDP(){
 }
 
 } // namespace ArcSec
-
