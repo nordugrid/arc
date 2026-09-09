@@ -175,10 +175,8 @@ job_read_diag() {
     LRMSEndTime=$(echo "$diagstring" | sed -n 's/^LRMSEndTime=\([0-9][0-9]*Z\)/\1/p' | tail -n 1)
     exitcode=$(echo "$diagstring" | sed -n 's/^exitcode=\([0-9]*\)/\1/p' | tail -n 1)
 
-    for key in nodename WallTime UserTime KernelTime AverageTotalMemory AverageResidentMemory \
-               exitcode LRMSStartTime LRMSEndTime LRMSExitcode LRMSMessage; do
-        diagstring=$(echo "$diagstring" | grep -v "^$key=")
-    done
+    diagstring=$(printf '%s\n' "$diagstring" | grep -Ev \
+        '^(nodename|WallTime|UserTime|KernelTime|AverageTotalMemory|AverageResidentMemory|exitcode|LRMSStartTime|LRMSEndTime|LRMSExitcode|LRMSMessage)=')
 }
 
 #

@@ -2,6 +2,7 @@ package GMJobsInfo;
 
 use POSIX qw(ceil);
 use English;
+use Errno qw(ENOENT);
 
 use LogUtils;
 
@@ -116,6 +117,9 @@ sub get_gmjobs {
     my ($controldir, $nojobs) = @_;
 
     my %gmjobs;
+    # Resolve each owner once per collection, including failed NSS lookups.
+    # Keep this local so account changes are visible on the next collection.
+    my %owners;
 
     my $jobstoscan = 0;
     my $jobsskipped = 0;
@@ -128,10 +132,10 @@ sub get_gmjobs {
     unless (opendir JOBDIR,  $controlsubdir ) {
         $log->warning("Can't access the job control directory: $controlsubdir") and return {};
     }
-    my @allfiles = grep /\.status/, readdir JOBDIR;
+    my @allfiles = grep /\.status$/, readdir JOBDIR;
     closedir JOBDIR;
 
-    my @gridmanager_jobs = map {$_=~m/(.+)\.status/; $_=$1;} @allfiles;
+    my @gridmanager_jobs = map {$_=~m/(.+)\.status$/; $_=$1;} @allfiles;
 
     # count job IDs to scan
     $jobstoscan = $jobstoscan + @gridmanager_jobs;
@@ -234,7 +238,8 @@ sub get_gmjobs {
 
                 # localowner
                 my $uid = $file_stat[4];
-                my $user = (getpwuid($uid))[0];
+                $owners{$uid} = (getpwuid($uid))[0] unless exists $owners{$uid};
+                my $user = $owners{$uid};
                 if ($user) {
                     $job->{localowner} = $user;
                 } else {
@@ -259,9 +264,13 @@ sub get_gmjobs {
         # Comes the splitting of the terminal job state
         # check for job failure, (job.ID.failed )   "errors"
 
-        if (-e $gmjob_failed) {
+        # Summary-only collection needs failure details only to classify
+        # terminal jobs. Avoid an extra lookup for every active job per pass.
+        if (!$nojobs || $job->{status} eq 'FINISHED') {
+            # Opening already tests existence. Avoid a separate metadata RPC
+            # for every readable failure marker, without caching its absence.
             unless (open (GMJOB_FAILED, "<$gmjob_failed")) {
-                $log->debug("Job $ID: Can't open $gmjob_failed");
+                $log->debug("Job $ID: Can't open $gmjob_failed") unless $! == ENOENT;
             } else {
                 my $chars;
                 read GMJOB_FAILED, $chars, 1024;

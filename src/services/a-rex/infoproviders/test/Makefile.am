@@ -13,3 +13,6 @@ EXTRA_DIST = InfoproviderTestSuite.pm command-simulator.sh pbs.t slurm.t sge.t
 command-simulator.sh: $(top_srcdir)/src/tests/lrms/command-simulator.sh
 	cp $< $@
 	chmod +x $@
+
+TESTS += gmjobs.t
+EXTRA_DIST += gmjobs.t

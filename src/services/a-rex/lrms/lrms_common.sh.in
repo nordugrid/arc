@@ -96,8 +96,8 @@ EOHELP
    eval "var_is_set=\${joboption_arg_$arg_i+yes}"
    while [ ! -z "${var_is_set}" ] ; do
       eval "var_value=\${joboption_arg_$arg_i}"
-      # Use -- to avoid echo eating arguments it understands
-      var_value=`echo -- "$var_value" |cut -f2- -d' '| sed 's/\\\\/\\\\\\\\/g' | sed 's/"/\\\"/g'`
+      # Quote each argument with one filter, preserving literal backslashes.
+      var_value=$(printf '%s\n' "$var_value" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')
       joboption_args="$joboption_args \"${var_value}\""
       arg_i=$(( $arg_i + 1 ))
       eval "var_is_set=\${joboption_arg_$arg_i+yes}"
@@ -151,8 +151,24 @@ init_perflog () {
 
 # returns the control path for the fragmented controldir
 control_path () {
-    # job_id=`echo "$2" | sed 's/\(.\{9\}\)/\1\//g' | sed 's/\/$//'`
-    job_id=`echo "$2" | sed -e 's#\(.\{3\}\)#\1/#3' -e 's#\(.\{3\}\)#\1/#2' -e 's#\(.\{3\}\)#\1/#1' -e 's#$#/#'`
+    # Split the first nine characters into three directories without starting
+    # a sed process for every control-file lookup in a scanner pass.
+    job_id=
+    _control_rest=$2
+    _control_parts=0
+    while [ "$_control_parts" -lt 3 ]; do
+        case $_control_rest in
+            ???*)
+                _control_tail=${_control_rest#???}
+                job_id="$job_id${_control_rest%"$_control_tail"}/"
+                _control_rest=$_control_tail
+                ;;
+            *) break ;;
+        esac
+        _control_parts=$((_control_parts + 1))
+    done
+    job_id="$job_id$_control_rest/"
+    unset _control_rest _control_tail _control_parts
     path="$1/jobs/${job_id}/$3"
-    echo "$path"
+    printf '%s\n' "$path"
 }
