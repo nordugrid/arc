@@ -4,6 +4,7 @@
 
 #include <arc/FileUtils.h>
 #include <arc/StringConv.h>
+#include <set>
 
 #include "DTRList.h"
 
@@ -241,16 +242,12 @@ namespace DataStaging {
 
   std::list<std::string> DTRList::all_jobs() {
     std::list<std::string> alljobs;
+    std::set<std::string> seen;
     std::list<DTR_ptr>::iterator it;
 
     Lock.lock();
     for(it = DTRs.begin();it != DTRs.end(); ++it) {
-      std::list<std::string>::iterator i = alljobs.begin();
-      for (; i != alljobs.end(); ++i) {
-        if (*i == (*it)->get_parent_job_id())
-          break;
-      }
-      if (i == alljobs.end())
+      if (seen.insert((*it)->get_parent_job_id()).second)
         alljobs.push_back((*it)->get_parent_job_id());
     }
     Lock.unlock();

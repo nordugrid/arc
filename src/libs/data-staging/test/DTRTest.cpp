@@ -5,6 +5,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 #include "../DTR.h"
+#include "../DTRList.h"
 
 using namespace DataStaging;
 
@@ -14,11 +15,13 @@ class DTRTest
   CPPUNIT_TEST_SUITE(DTRTest);
   CPPUNIT_TEST(TestDTRConstructor);
   CPPUNIT_TEST(TestDTREndpoints);
+  CPPUNIT_TEST(TestAllJobs);
   CPPUNIT_TEST_SUITE_END();
 
 public:
   void TestDTRConstructor();
   void TestDTREndpoints();
+  void TestAllJobs();
 
   void setUp();
   void tearDown();
@@ -91,6 +94,23 @@ void DTRTest::TestDTREndpoints() {
   CPPUNIT_ASSERT(!dtrbad->get_source()->GetURL());
 
   // TODO DTR validity
+}
+
+void DTRTest::TestAllJobs() {
+  DTRList dtrs;
+  const char* ids[] = { "job-b", "job-a", "job-b", "job-c", "job-a" };
+  for (unsigned int i = 0; i < sizeof(ids)/sizeof(ids[0]); ++i) {
+    DTR_ptr dtr(new DTR("mock://mocksrc/1", "mock://mockdest/1", cfg,
+                        ids[i], Arc::User().get_uid(), logs, log_name));
+    CPPUNIT_ASSERT(*dtr);
+    dtrs.add_dtr(dtr);
+  }
+  std::list<std::string> jobs = dtrs.all_jobs();
+  CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(3), jobs.size());
+  // Preserve first-seen order while removing duplicates.
+  CPPUNIT_ASSERT_EQUAL(std::string("job-b"), jobs.front()); jobs.pop_front();
+  CPPUNIT_ASSERT_EQUAL(std::string("job-a"), jobs.front()); jobs.pop_front();
+  CPPUNIT_ASSERT_EQUAL(std::string("job-c"), jobs.front());
 }
 
 CPPUNIT_TEST_SUITE_REGISTRATION(DTRTest);
