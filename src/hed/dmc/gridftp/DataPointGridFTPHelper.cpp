@@ -470,18 +470,19 @@ namespace ArcDMCGridFTP {
             it->data_error = true;
             logger.msg(ERROR, "ftp_read_callback: too many unexpected out of order chunks");
             delete[] buffer;
+            buffer = NULL;
             it->data_counter.dec();
             it->data_counter_change.signal();
           }
         }
       }
       if (eof) it->ftp_eof_flag = true;
-      if (it->ftp_eof_flag) {
+      if (buffer && it->ftp_eof_flag) {
         // Transmission is over - do not register buffer again
         delete[] buffer;
         it->data_counter.dec();
         it->data_counter_change.signal();
-      } else {
+      } else if (buffer) {
         // Re-register buffer
         // TODO: Check if callback can be called inside globus_ftp_client_register_read
         GlobusResult res(globus_ftp_client_register_read(&it->ftp_handle, buffer, it->ftp_bufsize, &ftp_read_callback, arg));
@@ -1370,5 +1371,3 @@ int main(int argc, char* argv[]) {
   std::cout.flush();
   _exit(-1);
 }
-
-

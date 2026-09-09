@@ -898,7 +898,7 @@ namespace ArcDMCGridFTP {
         f.SetModified(modify_time);
       }
     }
-    if ((verb & INFO_TYPE_CONTENT) == INFO_TYPE_CONTENT && !f.CheckCheckSum() && f.GetType() != FileInfo::file_type_dir) {
+    if ((verb & INFO_TYPE_CKSUM) == INFO_TYPE_CKSUM && !f.CheckCheckSum() && f.GetType() != FileInfo::file_type_dir) {
       // not all implementations support checksum so failure is not an error
       logger.msg(DEBUG, "list_files_ftp: "
                         "looking for checksum of %s", f_url);
@@ -1370,4 +1370,3 @@ extern "C" {
     };
   }
 }
-

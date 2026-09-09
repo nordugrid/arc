@@ -277,11 +277,9 @@ namespace Arc {
       }
     }
     if (CheckCheckSum() && p.CheckCheckSum()) {
-      if (GetCheckSum().substr(GetCheckSum().find(":")) != p.GetCheckSum().substr(p.GetCheckSum().find(":"))) {
+      if (GetCheckSum().substr(0, GetCheckSum().find(":")) != p.GetCheckSum().substr(0, p.GetCheckSum().find(":"))) {
         logger.msg(INFO, "Checksum types of index and replica are different, skipping comparison");
-        return true;
-      }
-      if (GetCheckSum() != p.GetCheckSum()) {
+      } else if (GetCheckSum() != p.GetCheckSum()) {
         return false;
       }
     }

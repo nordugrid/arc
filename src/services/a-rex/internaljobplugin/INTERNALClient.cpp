@@ -779,7 +779,7 @@ namespace ARexINTERNAL {
     else arcjob.StageInDir = sessiondir;
     if (!stageout.empty()) arcjob.StageOutDir = stageout.front();
     else  arcjob.StageOutDir = sessiondir;
-    if (!session.empty()) arcjob.StageInDir = session.front();
+    if (!session.empty()) arcjob.SessionDir = session.front();
     else arcjob.SessionDir = sessiondir;
 
     //extract info from arexjob
@@ -807,9 +807,10 @@ namespace ARexINTERNAL {
   }
 
   INTERNALClients::~INTERNALClients(void) {
-    std::multimap<Arc::URL, INTERNALClient*>::iterator it;
-    for (it = clients_.begin(); it != clients_.end(); it = clients_.begin()) {
+    while (!clients_.empty()) {
+      std::multimap<Arc::URL, INTERNALClient*>::iterator it = clients_.begin();
       delete it->second;
+      clients_.erase(it);
     }
   }
 

@@ -305,6 +305,9 @@ namespace ARex {
                 if (key.empty()) continue;
                 // new dtr record
                 struct aar_data_transfer_t dtrinfo;
+                dtrinfo.size = 0;
+                dtrinfo.transferstart = Arc::Time(-1);
+                dtrinfo.transferend = Arc::Time(-1);
                 bool is_input = true;
                 // key define type of transfer
                 if (key == "inputfile") {
@@ -312,7 +315,7 @@ namespace ARex {
                 } else if (key == "outputfile") {
                     dtrinfo.type = dtr_output;
                     is_input = false;
-                }
+                } else continue;
                 // parse comma separated values
                 std::list<std::string> dtr_values;
                 Arc::tokenize(value, dtr_values, ",");
@@ -326,7 +329,7 @@ namespace ARex {
                         dtrinfo.url = dval;
                     } else if (dkey == "size") {
                         long long int n;
-                        if (string_to_number(dval,n)) dtrinfo.size = n;
+                        if (string_to_number(dval,n) && n >= 0) dtrinfo.size = n;
                     } else if (dkey == "starttime") {
                         Arc::Time stime(dval);
                         dtrinfo.transferstart = stime;

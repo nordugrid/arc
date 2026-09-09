@@ -50,7 +50,7 @@ bool compare_job_description(GMJob const * first, GMJob const * second) {
   if(!first) return false;
   if(!second) return false;
   int priority_first = first->GetLocalDescription() ? first->GetLocalDescription()->priority : JobLocalDescription::prioritydefault;
-  int priority_second = first->GetLocalDescription() ? second->GetLocalDescription()->priority : JobLocalDescription::prioritydefault;
+  int priority_second = second->GetLocalDescription() ? second->GetLocalDescription()->priority : JobLocalDescription::prioritydefault;
   return priority_first > priority_second;
 }
 
@@ -525,8 +525,11 @@ bool DTRGenerator::processReceivedDTR(DataStaging::DTR_ptr dtr) {
           Arc::URL dtr_lfn(dtr->get_source()->str());
           if (file_lfn.str() == dtr_lfn.str()) {
             struct stat st;
-            Arc::FileStat(job->SessionDir() + i->pfn, &st, job_uid, job_gid, true);
-            dtr_transfer_statistics += "size=" + Arc::tostring(st.st_size) + ',';
+            if (Arc::FileStat(job->SessionDir() + i->pfn, &st, job_uid, job_gid, true)) {
+              dtr_transfer_statistics += "size=" + Arc::tostring(st.st_size) + ',';
+            } else {
+              logger.msg(Arc::WARNING, "%s: Failed to stat input file %s", jobid, i->pfn);
+            }
             i = files.erase(i);
             break;
           } else {

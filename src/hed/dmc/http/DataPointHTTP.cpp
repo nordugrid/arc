@@ -991,7 +991,7 @@ using namespace Arc;
             logger.msg(INFO, "Could not find checksum: %s", std::string(r));
           } else if (!CheckCheckSum()) {
             logger.msg(INFO, "Checksum of %s is not available", url.plainstr());
-          } else if (csum.substr(csum.find(':')) != checksum.substr(checksum.find(':'))) {
+          } else if (csum.substr(0, csum.find(':')) != checksum.substr(0, checksum.find(':'))) {
             logger.msg(INFO, "Checksum type returned by server is different to requested type, cannot compare");
           } else if (csum == checksum) {
             logger.msg(INFO, "Calculated checksum %s matches checksum reported by server", csum);
