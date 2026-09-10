@@ -10,7 +10,9 @@
 * [ ] Create tag for release on master commit-hash: xxx (@maikenp)
 * [ ] Start build for nordugrid repo (@waananen)
 * [ ] Start build on Fedora and Debian (@ellert)
-* [ ] Check that the supported platforms are up to date here: https://download.nordugrid.org/repos-6.html and here: http://www.nordugrid.org/documents/arc6/common/repos/repository.html (@waananen)
+* Check that the supported platforms are up to date:
+  * [ ] https://download.nordugrid.org/repos-7.html (@waananen)
+  * [ ] http://www.nordugrid.org/documents/arc7/common/repos/repository.html (@waananen)
 * [ ] Add version to NorduGrid Bugzilla products (@waananen)
 * [ ] Packages are ready to be pushed (@waananen)
 * [ ] Announce release on nordugrid-discuss, wlcg-arc-ce-discuss and urt-discuss@mailman.egi.eu email lists (@maikenp)
