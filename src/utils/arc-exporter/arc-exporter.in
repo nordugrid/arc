@@ -219,7 +219,7 @@ def dtrStats():
     # delivery log
     for line in deliveryLog:
         j = line.split()
-        if len(j) < 11:
+        if len(j) < 12:
             continue
         if j[11] == 'TRANSFERRED':
             dstats.inc()
@@ -427,15 +427,18 @@ except KeyError:
     pass
 
 # Are we using slurm?
-if config_dict['lrms']['lrms'].startswith('slurm'):
-    corecount = Gauge('arc_slurm_corecount', 'Corecount per slurm user and job state', ['account', 'user', 'partition', 'state'])
-    if not hasattr(corecount, 'clear'):
-        # https://stackoverflow.com/questions/1015307/how-to-bind-an-unbound-method-without-calling-it
-        # XXX - (almost) copy of Gauge.clear from version 0.10
-        def _tf(self):
-            with self._lock: self._metrics = {}
-        setattr(corecount, 'clear', _tf.__get__(corecount))
-        del _tf
+try:
+    if config_dict['lrms']['lrms'].startswith('slurm'):
+        corecount = Gauge('arc_slurm_corecount', 'Corecount per slurm user and job state', ['account', 'user', 'partition', 'state'])
+        if not hasattr(corecount, 'clear'):
+            # https://stackoverflow.com/questions/1015307/how-to-bind-an-unbound-method-without-calling-it
+            # XXX - (almost) copy of Gauge.clear from version 0.10
+            def _tf(self):
+                with self._lock: self._metrics = {}
+            setattr(corecount, 'clear', _tf.__get__(corecount))
+            del _tf
+except:
+    pass
 
 
 
