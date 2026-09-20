@@ -167,7 +167,8 @@ namespace Arc {
           cadir.NewAttribute("PolicyGlobus") = "true";
         };
         comp.NewChild("GridCA") = "true";
-      };
+      } else
+        comp.NewChild("GridCA") = "false";
       if(cfg.systemcadir)
         comp.NewChild("SystemCADir") = "true";
       else

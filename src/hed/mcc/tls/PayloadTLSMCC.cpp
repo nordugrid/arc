@@ -123,6 +123,16 @@ static int verify_callback(int ok,X509_STORE_CTX *sctx) {
   return ok;
 }
 
+static int get_crl_callback(X509_STORE_CTX* sctx, X509_CRL** crl, X509* cert) {
+  PayloadTLSMCC* it = PayloadTLSMCC::RetrieveInstance(sctx);
+  if (crl) *crl = nullptr;
+  if (!it) return 0;
+  auto cert_crl = it->Config().GetCRL(cert);
+  if (!cert_crl) return 0;
+  if(crl) *crl = cert_crl.release();
+  return 1;
+}
+
 // This callback is just a placeholder. We do not expect
 // encrypted private keys here.
 static int no_passphrase_callback(char*, int, int, void*) {
@@ -245,6 +255,7 @@ PayloadTLSMCC::PayloadTLSMCC(MCCInterface* mcc, const ConfigTLSMCC& cfg, Logger&
       goto error;
    };
    SSL_CTX_set_verify(sslctx_, SSL_VERIFY_PEER |  SSL_VERIFY_FAIL_IF_NO_PEER_CERT, &verify_callback);
+   X509_STORE_set_get_crl(SSL_CTX_get_cert_store(sslctx_), &get_crl_callback);
 
    // Allow proxies, request CRL check
    if(SSL_CTX_get0_param(sslctx_) == NULL) {
@@ -352,6 +363,7 @@ PayloadTLSMCC::PayloadTLSMCC(PayloadStreamInterface* stream, const ConfigTLSMCC&
       SetFailure(config_.Failure());
       goto error;
    }
+   X509_STORE_set_get_crl(SSL_CTX_get_cert_store(sslctx_), &get_crl_callback);
 
    // Allow proxies, request CRL check
    if(SSL_CTX_get0_param(sslctx_) == NULL) {
