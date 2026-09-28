@@ -135,12 +135,12 @@ build_deb11:
         BUILD_IMAGE: nordugrid/arc-build-debian13
     
 ##################
-#    UBUNTU 26.04
+#    UBUNTU 24.04
 ##################
-build_ubuntu2604:
+build_ubuntu2404:
     extends: .template_build_deb
     variables:
-        BUILD_IMAGE: nordugrid/arc-build-ubuntu2604
+        BUILD_IMAGE: nordugrid/arc-build-ubuntu2404
 
 
 #############################################################
@@ -247,19 +247,19 @@ deploy_deb13:
 
 
 ##################
-#    UBUNTU 26.04
+#    UBUNTU 24.04
 ##################
-deploy_ubuntu2604:
+deploy_ubuntu2404:
   extends: .deploy
   variables:
-    OS_V: ubuntu2604
-    ARC_IMAGE: nordugrid/arc-deploy-ubuntu2604
+    OS_V: ubuntu2404
+    ARC_IMAGE: nordugrid/arc-deploy-ubuntu2404
     BUILD_VOL: /build
     BUILD_DIR: $CI_PROJECT_DIR/*.deb
   tags:
     - deploy
   needs:
-    - job: build_ubuntu2604
+    - job: build_ubuntu2404
       artifacts: true
 
 
@@ -350,19 +350,21 @@ arcconf_deb13_deploytest:
 ##### UBUNTU DEPLOY CHECK
 ############################
 
-arcrest_ubuntu2604_deploytest:
+arcrest_ubuntu2404_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcrest'
   needs:
-    - job: deploy_ubuntu2604
+    - job: deploy_ubuntu2404
       artifacts: true
 
-arcconf_ubuntu2604_deploytest:
+arcconf_ubuntu2404_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcconf'
   needs:
+    - job: deploy_ubuntu2404
+      artifacts: true
     - job: deploy_ubuntu2604
       artifacts: true
 
