@@ -129,7 +129,7 @@ build_deb12:
 ###############
 #    DEBIAN 13
 ###############
-build_deb11:
+build_deb13:
     extends: .template_build_deb
     variables:
         BUILD_IMAGE: nordugrid/arc-build-debian13
