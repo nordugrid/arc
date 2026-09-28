@@ -365,6 +365,6 @@ arcconf_ubuntu2404_deploytest:
   needs:
     - job: deploy_ubuntu2404
       artifacts: true
-    - job: deploy_ubuntu2604
+    - job: deploy_ubuntu2404
       artifacts: true
 
