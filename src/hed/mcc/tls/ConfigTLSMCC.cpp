@@ -472,7 +472,9 @@ static ConfigTLSMCC::X509_CRLRef GetCRL(std::string const& path, struct stat& st
     if (it != CRLCacheByPath.end()) {
         if ((it->second.mtime.tv_sec == st.st_mtim.tv_sec) && (it->second.mtime.tv_nsec == st.st_mtim.tv_nsec)) {
         it->second.atime = time(nullptr);
-        return ConfigTLSMCC::X509_CRLRef(X509_CRL_dup(it->second.crl.get()));
+        X509_CRL* crl = it->second.crl.get();
+        X509_CRL_up_ref(crl);
+        return ConfigTLSMCC::X509_CRLRef(crl);
       }
       CRLCacheByPath.erase(it);
     }
@@ -503,7 +505,8 @@ static ConfigTLSMCC::X509_CRLRef GetCRL(std::string const& path, struct stat& st
       }
     }
   }
-  return ConfigTLSMCC::X509_CRLRef(X509_CRL_dup(crl));
+  X509_CRL_up_ref(crl);
+  return ConfigTLSMCC::X509_CRLRef(crl);
 }
 
 static ConfigTLSMCC::X509_CRLRef GetCRL(X509_NAME const* issuer, std::string const& hash, std::string const& dir) {
