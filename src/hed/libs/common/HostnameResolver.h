@@ -3,6 +3,7 @@
 
 #include <string>
 #include <list>
+#include <mutex>
 
 #include <unistd.h>
 #include <sys/stat.h>
@@ -19,18 +20,18 @@ namespace Arc {
     \headerfile HostnameResolver.h arc/HostnameResolver.h
   */
   class HostnameResolver {
+    friend class HostnameResolverContainer;
   public:
-
 
    class SockAddr {
    friend class HostnameResolver;
    public:
      SockAddr();
      SockAddr(SockAddr const& other);
-     SockAddr& operator=(SockAddr const& other);
+     SockAddr& operator=(SockAddr const& other) = delete;
      ~SockAddr();
      int Family() const { return family; }
-     sockaddr const* Addr() const { return addr; }
+     const sockaddr* Addr() const { return addr; }
      socklen_t Length() const { return length; }
    private:
      int family;
@@ -38,30 +39,36 @@ namespace Arc {
      sockaddr *addr;
    };
 
-    /// New HostnameResolver object.
-    HostnameResolver(void);
-    /// Shuts down any spawned executable.
-    ~HostnameResolver(void);
-    /// Constructor which takes already existing object from global cache
-    static HostnameResolver* Acquire(void);
-    /// Destructor which returns object into global cache
-    static void Release(HostnameResolver* fa);
-    /// Check if communication with proxy works
-    bool ping(void);
-    /// Performs resolution of provided host name.
-    int hr_resolve(std::string const& node, std::string const& service, bool local, std::list<SockAddr>& addrs);
-    /// Get errno of last operation. Every operation resets errno.
-    int geterrno() { return errno_; };
-    /// Returns true if this instance is in useful condition
-    operator bool(void) { return (hostname_resolver_ != NULL); };
-    /// Returns true if this instance is not in useful condition
-    bool operator!(void) { return (hostname_resolver_ == NULL); };
-    /// Special method for using in unit tests.
-    static void testtune(void);
+    /// Resolve provides host name using resolver proxy (if valid), returning true for success.
+    static bool Resolve(std::string const& node, std::string const& service, bool local,
+                        std::list<SockAddr>& addrs);
+    /// Special method for using in unit tests.  This must be called from test prologue code only,
+    /// and will freely scribble on global variables and data structures without locking.  It will
+    /// set the hostname caching time-to-live to 10s, the cache GC interval to 5s, and install the
+    /// callback so that it will be called for some lookup and GC operations.
+    static void testtune(void (*callback)(const char* action, ...));
+
   private:
+    /// New HostnameResolver object.
+    HostnameResolver();
+    /// Shuts down any spawned executable.
+    ~HostnameResolver();
+    /// Check that the resolver is still valid and that communication with resolver proxy works.
+    bool Ping();
+    /// Make sure it's running or delete it and make it null.
+    void CheckRunningLocked();
+    /// Workhorse for name resolution.
+    int DoResolve(std::string const& node, std::string const& service, bool local, std::list<SockAddr>& addrs);
+    /// Get error code of last operation on resolver proxy.  Every proxy operation resets errno.
+    int Errno() { return errno_; };
+
+  private:
+    // The lock protects hostname_resolver_ and errno_.  hostname_resolver_ is initialized
+    // by the constructor but may be set to null (and its value recycled) at any failure.
     std::mutex lock_;
     Run* hostname_resolver_;
     int errno_;
+
   public:
     /// Internal struct used for communication between processes.
     typedef struct {
@@ -77,26 +84,25 @@ namespace Arc {
       \ingroup common
       \headerfile HostnameResolver.h arc/HostnameResolver.h */
   class HostnameResolverContainer {
+    friend class HostnameResolver;
+
   public:
     /// Creates container with number of stored objects between minval and maxval.
     HostnameResolverContainer(unsigned int minval, unsigned int maxval);
-    /// Creates container with number of stored objects between 1 and 10.
-    HostnameResolverContainer(void);
     /// Destroys container and all stored objects.
-    ~HostnameResolverContainer(void);
+    ~HostnameResolverContainer();
     /// Get object from container.
     /** Object either is taken from stored ones or new one created.
         Acquired object looses its connection to container and
         can be safely destroyed or returned into other container. */
-    HostnameResolver* Acquire(void);
+
+  private:
+    HostnameResolver* Acquire();
     /// Returns object into container.
     /** It can be any object - taken from another container or created using
         new. */
     void Release(HostnameResolver* hr);
-    /// Adjust minimal number of stored objects.
-    void SetMin(unsigned int val);
-    /// Adjust maximal number of stored objects.
-    void SetMax(unsigned int val);
+
   private:
     HostnameResolver* MaybePopFront();
 
@@ -105,7 +111,7 @@ namespace Arc {
     unsigned int min_;
     unsigned int max_;
     std::list<HostnameResolver*> hrs_;
-    void KeepRangeLocked(void);
+    void KeepRangeLocked();
   };
 
 } // namespace Arc

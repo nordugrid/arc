@@ -72,11 +72,9 @@ int PayloadTCPSocket::connect_socket(const char* hostname,int port)
     socklen_t slen = info_->ai_addrlen;
     struct sockaddr* saddr = info_->ai_addr;
 #else
-  HostnameResolver* hr = HostnameResolver::Acquire();
   std::list<HostnameResolver::SockAddr> info;
-  int ret = hr->hr_resolve(hostname, port_str, false, info);
-  HostnameResolver::Release(hr);
-  if ((ret != 0) || (info.empty())) {
+  bool ret = HostnameResolver::Resolve(hostname, port_str, false, info);
+  if (!ret || info.empty()) {
     std::string err_str = gai_strerror(ret);
     error_ = IString("Failed to resolve %s (%s)", hostname, err_str).str();
     logger.msg(VERBOSE, "%s", error_);

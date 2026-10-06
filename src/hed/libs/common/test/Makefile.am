@@ -1,7 +1,7 @@
 TESTS = URLTest LoggerTest RunTest XMLNodeTest FileAccessTest FileUtilsTest \
         ProfileTest ArcRegexTest FileLockTest EnvTest UserConfigTest \
         StringConvTest CheckSumTest WatchdogTest UserTest \
-        Base64Test DateTimeTest
+        Base64Test DateTimeTest HostnameResolverTest
 
 check_PROGRAMS = $(TESTS) ThreadTest
 
@@ -130,6 +130,13 @@ DateTimeTest_SOURCES = $(top_srcdir)/src/Test.cpp DateTimeTest.cpp
 DateTimeTest_CXXFLAGS = -I$(top_srcdir)/include \
         $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
 DateTimeTest_LDADD = \
+        $(top_builddir)/src/hed/libs/common/libarccommon.la \
+        $(CPPUNIT_LIBS) $(GLIBMM_LIBS)
+
+HostnameResolverTest_SOURCES = $(top_srcdir)/src/Test.cpp HostnameResolverTest.cpp
+HostnameResolverTest_CXXFLAGS = -I$(top_srcdir)/include \
+        $(CPPUNIT_CFLAGS) $(GLIBMM_CFLAGS) $(AM_CXXFLAGS)
+HostnameResolverTest_LDADD = \
         $(top_builddir)/src/hed/libs/common/libarccommon.la \
         $(CPPUNIT_LIBS) $(GLIBMM_LIBS)
 
