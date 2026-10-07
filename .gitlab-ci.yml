@@ -118,16 +118,6 @@ build_el9:
     variables:
         BUILD_IMAGE: nordugrid/arc-build-almalinux9
    
-
-
-###############
-#    DEBIAN 11
-###############
-build_deb11:
-    extends: .template_build_deb
-    variables:
-        BUILD_IMAGE: nordugrid/arc-build-debian11
-
 ###############
 #    DEBIAN 12
 ###############
@@ -136,15 +126,21 @@ build_deb12:
     variables:
         BUILD_IMAGE: nordugrid/arc-build-debian12
 
-
-    
-##################
-#    UBUNTU 22.04
-##################
-build_ubuntu2204:
+###############
+#    DEBIAN 13
+###############
+build_deb13:
     extends: .template_build_deb
     variables:
-        BUILD_IMAGE: nordugrid/arc-build-ubuntu2204
+        BUILD_IMAGE: nordugrid/arc-build-debian13
+    
+##################
+#    UBUNTU 24.04
+##################
+build_ubuntu2404:
+    extends: .template_build_deb
+    variables:
+        BUILD_IMAGE: nordugrid/arc-build-ubuntu2404
 
 
 #############################################################
@@ -215,23 +211,6 @@ deploy_el9:
       artifacts: true
 
 
-##################
-#    DEBIAN 11
-##################
-deploy_deb11:
-  extends: .deploy
-  variables:
-    OS_V: deb11
-    ARC_IMAGE: nordugrid/arc-deploy-debian11
-    BUILD_VOL: /build
-    BUILD_DIR: $CI_PROJECT_DIR/*.deb    
-  tags:
-    - deploy
-  needs:
-    - job: build_deb11
-      artifacts: true
-  
-
 
 ##################
 #    DEBIAN 12
@@ -249,21 +228,38 @@ deploy_deb12:
     - job: build_deb12
       artifacts: true
   
-
 ##################
-#    UBUNTU 22.04
+#    DEBIAN 13
 ##################
-deploy_ubuntu2204:
+deploy_deb13:
   extends: .deploy
   variables:
-    OS_V: ubuntu2204
-    ARC_IMAGE: nordugrid/arc-deploy-ubuntu2204
+    OS_V: deb13
+    ARC_IMAGE: nordugrid/arc-deploy-debian13
+    BUILD_VOL: /build
+    BUILD_DIR: $CI_PROJECT_DIR/*.deb    
+  tags:
+    - deploy
+  needs:
+    - job: build_deb13
+      artifacts: true
+
+
+
+##################
+#    UBUNTU 24.04
+##################
+deploy_ubuntu2404:
+  extends: .deploy
+  variables:
+    OS_V: ubuntu2404
+    ARC_IMAGE: nordugrid/arc-deploy-ubuntu2404
     BUILD_VOL: /build
     BUILD_DIR: $CI_PROJECT_DIR/*.deb
   tags:
     - deploy
   needs:
-    - job: build_ubuntu2204
+    - job: build_ubuntu2404
       artifacts: true
 
 
@@ -308,27 +304,6 @@ arcconf_el9_deploytest:
     
 
 ############################
-##### DEB11 DEPLOY CHECK
-############################
-
-arcrest_deb11_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcrest'
-  needs:
-    - job: deploy_deb11
-      artifacts: true
-
-arcconf_deb11_deploytest:
-  extends: .job_template_assert
-  variables:
-    TESTTYPE: 'arcconf'
-  needs:
-    - job: deploy_deb11
-      artifacts: true
-
-
-############################
 ##### DEB12 DEPLOY CHECK
 ############################
 
@@ -349,25 +324,44 @@ arcconf_deb12_deploytest:
       artifacts: true
 
 
+############################
+##### DEB13 DEPLOY CHECK
+############################
+
+arcrest_deb13_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'arcrest'
+  needs:
+    - job: deploy_deb13
+      artifacts: true
+
+arcconf_deb13_deploytest:
+  extends: .job_template_assert
+  variables:
+    TESTTYPE: 'arcconf'
+  needs:
+    - job: deploy_deb13
+      artifacts: true
+
 
 
 ############################
 ##### UBUNTU DEPLOY CHECK
 ############################
 
-arcrest_ubuntu2204_deploytest:
+arcrest_ubuntu2404_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcrest'
   needs:
-    - job: deploy_ubuntu2204
+    - job: deploy_ubuntu2404
       artifacts: true
 
-arcconf_ubuntu2204_deploytest:
+arcconf_ubuntu2404_deploytest:
   extends: .job_template_assert
   variables:
     TESTTYPE: 'arcconf'
   needs:
-    - job: deploy_ubuntu2204
+    - job: deploy_ubuntu2404
       artifacts: true
-
