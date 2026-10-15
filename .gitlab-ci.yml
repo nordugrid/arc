@@ -20,34 +20,6 @@ variables:
 #############################################################
 ##    BUILDS (BOTH FORKS AND MAIN REPO)                    ## 
 #############################################################
-
-.template_build_rhel: &template_build_rhel
-  stage: build
-  image: $BUILD_IMAGE
-  script:
-    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
-    - yum update -y
-    - ./autogen.sh
-    - ./configure
-    - yum-builddep nordugrid-arc.spec -y
-    - echo "Preparing and running rpmbuild"
-    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
-    - make dist
-    - VERSION=`cat VERSION`
-    - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
-    - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
-  artifacts:
-    when: on_success
-    expire_in: 3 days
-    paths:
-    - $CI_PROJECT_DIR/rpmbuild/SRPMS/
-    - $CI_PROJECT_DIR/rpmbuild/RPMS/noarch/
-    - $CI_PROJECT_DIR/rpmbuild/RPMS/x86_64/
-  allow_failure: false
-  tags:
-      - build
-  allow_failure: false
-
 .template_build_rhel9: &template_build_rhel9
   stage: build
   image: $BUILD_IMAGE
@@ -58,11 +30,12 @@ variables:
     - dnf builddep nordugrid-arc -y
     - ./autogen.sh
     - ./configure
+    - make check
+    - make dist
     - dnf builddep nordugrid-arc.spec -y
     - echo "Preparing and running rpmbuild"
-    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
-    - make dist
     - VERSION=`cat VERSION`
+    - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
     - mv nordugrid-arc-${VERSION}.tar.gz rpmbuild/SOURCES
     - rpmbuild -D "_topdir $CI_PROJECT_DIR/rpmbuild" -ba nordugrid-arc.spec
   artifacts:
@@ -84,15 +57,16 @@ variables:
   script:
     - apt-get update -y
     - echo "6.99.9" > VERSION
+    - VERSION=`cat VERSION`
     - ./autogen.sh
     - ./configure
+    - apt-get build-dep ../nordugrid-arc_${VERSION}-1.dsc -y
+    - make check
     - make dist
-    - VERSION=`cat VERSION`
     - mv nordugrid-arc-${VERSION}.tar.gz nordugrid-arc_${VERSION}.orig.tar.gz
     - tar -z -x -f nordugrid-arc_${VERSION}.orig.tar.gz
     - cd nordugrid-arc-${VERSION}
     - dpkg-buildpackage -S -us -uc -d
-    - apt-get build-dep ../nordugrid-arc_${VERSION}-1.dsc -y
     - dpkg-buildpackage -b -us -uc
     - echo "Delete dbgsym debs to save space"
     - rm -f ../*-dbgsym_*.deb
@@ -171,9 +145,6 @@ build_ubuntu2404:
       -v "/arc-testlogs:/arc-testlogs:rw" 
       -v "/arc-logs:/arc-logs:rw"
       --publish  443  
-      --publish 2811 
-      --publish 9000-9002 
-      --publish 9000-9002/udp 
       --rm  $ARC_IMAGE
     - echo "*************>>  Done - back from inner container - starting cleanup and artifcats copying"
     - ls -lhrt /arc-logs
