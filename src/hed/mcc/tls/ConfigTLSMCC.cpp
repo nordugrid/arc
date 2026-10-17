@@ -453,60 +453,83 @@ static char to_hex(uint8_t v) {
   return 'a' + (v - 10);
 }
 
-
 static ConfigTLSMCC::X509_CRLRef GetCRL(std::string const& path, struct stat& st) {
   constexpr std::size_t CRLCacheByPathThresholdHigh = 1100;
   constexpr std::size_t CRLCacheByPathThresholdLow = 1000;
   struct X509_CRL_CACHE_ITEM {
+    std::mutex lock;
     timespec mtime;
     ConfigTLSMCC::X509_CRLRef crl;
     time_t atime;
+
+    bool Matches(struct stat& st) const {
+      return (mtime.tv_sec == st.st_mtim.tv_sec) && (mtime.tv_nsec == st.st_mtim.tv_nsec);
+    }
+
+    ConfigTLSMCC::X509_CRLRef ShareCRL() {
+      auto crl_p = crl.get();
+      if (!crl_p) return ConfigTLSMCC::X509_CRLRef();
+      if (X509_CRL_up_ref(crl_p) != 1) return ConfigTLSMCC::X509_CRLRef();
+      return ConfigTLSMCC::X509_CRLRef(crl_p);
+    }
   };
-  typedef std::unordered_map<std::string, X509_CRL_CACHE_ITEM> X509_CRL_CACHE;
+  typedef std::shared_ptr<X509_CRL_CACHE_ITEM> X509_CRL_CACHE_ENTRY;
+  typedef std::unordered_map<std::string, X509_CRL_CACHE_ENTRY> X509_CRL_CACHE;
   static X509_CRL_CACHE CRLCacheByPath;
   static std::mutex CRLCacheByPathLock;
 
+  X509_CRL_CACHE_ENTRY entry;
   {
     std::lock_guard<std::mutex> lock(CRLCacheByPathLock);
-    auto it = CRLCacheByPath.find(path);
-    if (it != CRLCacheByPath.end()) {
-        if ((it->second.mtime.tv_sec == st.st_mtim.tv_sec) && (it->second.mtime.tv_nsec == st.st_mtim.tv_nsec)) {
-        it->second.atime = time(nullptr);
-        X509_CRL* crl = it->second.crl.get();
-        X509_CRL_up_ref(crl);
-        return ConfigTLSMCC::X509_CRLRef(crl);
-      }
-      CRLCacheByPath.erase(it);
-    }
-  }
 
-  auto f = fopen(path.c_str(), "r");
-  if (!f) return ConfigTLSMCC::X509_CRLRef();
-  X509_CRL* crl = PEM_read_X509_CRL(f, nullptr, nullptr, nullptr);
-  fclose(f);
-
-  {
-    std::lock_guard<std::mutex> lock(CRLCacheByPathLock);
-    auto& entry = CRLCacheByPath[path];
-    entry.mtime = st.st_mtim;
-    entry.crl = crl;
-    entry.atime = time(nullptr);
     // while we have lock acquired trim cache size
     if (CRLCacheByPath.size() > CRLCacheByPathThresholdHigh) {
-      // Sort collected CRLS by access time
+      // Sort collected CRLs by access time
       std::map<time_t, std::list<X509_CRL_CACHE::iterator> > atimes; // map is ordered by key
       for(auto it = CRLCacheByPath.begin(); it != CRLCacheByPath.end(); ++it) {
-        atimes[it->second.atime].push_back(it);
+        atimes[it->second->atime].push_back(it);
       }
-      // Delete them till threshold is met
+      // Delete them till threshold is met.
+      // The entry for 'path' can be deleted here, but probability is rather low.
       for(auto& atime: atimes) {
         for(auto it: atime.second) CRLCacheByPath.erase(it);
         if (CRLCacheByPath.size() <= CRLCacheByPathThresholdLow) break;
       }
     }
+
+    // Get or create cache entry
+    auto& entryRef = CRLCacheByPath[path];
+    if (!entryRef) entryRef = std::make_shared<X509_CRL_CACHE_ITEM>();
+    entry = entryRef;
+  } // slight race condition here, but shared_ptr handles it
+
+  {
+    std::lock_guard<std::mutex> lock(entry->lock);
+    if (entry->crl) { // this will cause previously failed to load CRL to be retried immeditely because we are expecting intermediate error causing previous faiure
+      if (entry->Matches(st)) {
+        entry->atime = time(nullptr);
+        return entry->ShareCRL();
+      }
+      entry->crl.reset();
+    }
+
+    // by here entry is either new one or expired
+    entry->mtime = st.st_mtim; // file may have changed since st was obtained, but in worst case it will be reloaded on next call
+    entry->atime = time(nullptr);
+
+    auto f = fopen(path.c_str(), "r");
+    if (f) {
+      X509_CRL* crl = PEM_read_X509_CRL(f, nullptr, nullptr, nullptr);
+      fclose(f);
+      if (crl) {
+        entry->crl = crl;
+        return entry->ShareCRL();
+      }
+    }
   }
-  X509_CRL_up_ref(crl);
-  return ConfigTLSMCC::X509_CRLRef(crl);
+
+  // we failed to load CRL, but we keep it in cache because there is file for it
+  return ConfigTLSMCC::X509_CRLRef();
 }
 
 static ConfigTLSMCC::X509_CRLRef GetCRL(X509_NAME const* issuer, std::string const& hash, std::string const& dir) {
