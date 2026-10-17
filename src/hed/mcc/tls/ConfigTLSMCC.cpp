@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <unordered_map>
+#include <sys/stat.h>
 #include <glibmm/miscutils.h>
 #include <openssl/err.h>
 #include <openssl/dh.h> // For DH_* in newer OpenSSL
@@ -197,41 +199,77 @@ ConfigTLSMCC::ConfigTLSMCC(XMLNode cfg,bool client) {
   if(!proxy_file_.empty()) { key_file_=proxy_file_; cert_file_=proxy_file_; };
 }
 
-bool ConfigTLSMCC::Set(SSL_CTX* sslctx) {
+namespace {
+  class X509_STORE_KEY: public std::string {
+  public:
+    X509_STORE_KEY(bool system_ca_dir, bool system_ca_file, bool grid_ca, std::string const& ca_file, std::string const& ca_dir) {
+       append(system_ca_dir?"1":"0", 2);
+       append(system_ca_file?"1":"0", 2);
+       append(grid_ca?"1":"0", 2);
+       append(ca_file.c_str(), ca_file.length()+1);
+       append(ca_dir.c_str(), ca_dir.length()+1);
+    }
+  };
+
+  typedef std::unordered_map<std::string, Credential::X509_STORERef> X509_STORE_CACHE;
+  X509_STORE_CACHE x509_stores_;
+}
+
+Credential::X509_STORERef ConfigTLSMCC::BuildStore() const {
+  Credential::X509_STORERef store(X509_STORE_new());
+  if (!store) return store;
+
   if(system_ca_dir_) {
     logger.msg(VERBOSE, "Using CA default folder location");
-    X509_STORE* store = SSL_CTX_get_cert_store(sslctx);
-    if (!store) return false;
     X509_LOOKUP* lookup = X509_STORE_add_lookup(store, X509_LOOKUP_hash_dir());
-    if (!lookup) return false;
+    if (!lookup) return {};
     X509_LOOKUP_add_dir(lookup, NULL, X509_FILETYPE_DEFAULT);
   }
   if (system_ca_file_) {
       logger.msg(VERBOSE, "Using CA default file location");
-      X509_STORE* store = SSL_CTX_get_cert_store(sslctx);
-      if (!store) return false;
       X509_LOOKUP* lookup = X509_STORE_add_lookup(store, X509_LOOKUP_file());
-      if (!lookup) return false;
+      if (!lookup) return {};
       X509_LOOKUP_load_file(lookup, ca_file_.c_str(), X509_FILETYPE_DEFAULT);
   }
   if(grid_ca_ && (!ca_file_.empty() || !ca_dir_.empty())) {
     if(!ca_file_.empty()) {
       logger.msg(VERBOSE, "Using CA file: %s",ca_file_);
-      X509_STORE* store = SSL_CTX_get_cert_store(sslctx);
-      if (!store) return false;
       X509_LOOKUP* lookup = X509_STORE_add_lookup(store, X509_LOOKUP_file());
-      if (!lookup) return false;
-      if (X509_LOOKUP_load_file(lookup, ca_file_.c_str(), X509_FILETYPE_PEM) <= 0) return false;
+      if (!lookup) return {};
+      if (X509_LOOKUP_load_file(lookup, ca_file_.c_str(), X509_FILETYPE_PEM) <= 0) return {};
     }
     if(!ca_dir_.empty()) {
       logger.msg(VERBOSE, "Using CA dir: %s",ca_dir_);
-      X509_STORE* store = SSL_CTX_get_cert_store(sslctx);
-      if (!store) return false;
       X509_LOOKUP *lookup = X509_STORE_add_lookup(store, X509_LOOKUP_hash_dir());
-      if (!lookup) return false;
+      if (!lookup) return {};
       X509_LOOKUP_add_dir(lookup, ca_dir_.c_str(), X509_FILETYPE_PEM);
     }
   }
+  return store;
+}
+
+// Currently reuse_store is not used (=false) in favor of direct caching loaded CRLs
+bool ConfigTLSMCC::Set(SSL_CTX * sslctx, bool reuse_store) {
+  if (reuse_store) {
+    // Re-use cached store or create new one  
+    X509_STORE_KEY key(system_ca_dir_, system_ca_file_, grid_ca_, ca_file_, ca_dir_);
+    auto store_it = x509_stores_.find(key);
+    if (store_it == x509_stores_.end()) {
+      auto store = BuildStore();
+      if (!store) return false;
+      store_it = x509_stores_.emplace(key, std::move(store)).first;
+      if (store_it == x509_stores_.end()) return false; // paranoia check
+    }
+    // The sslctx is supposed to be called with unconfigured store, so we can safely replace it with new one.
+    // The operations on store itself are protected from multithreaded access by lock member of X509_STORE object
+    // so sharing same store among multiple X509_STORE_CTX and SSL_CTX is possible.
+    SSL_CTX_set1_cert_store(sslctx, store_it->second);
+  } else {
+    auto store = BuildStore();
+    if (!store) return false;
+    SSL_CTX_set1_cert_store(sslctx, store);
+  }
+
   if(!credential_.empty()) {
     // First try to use in-memory credential
     Credential cred(credential_, credential_, ca_dir_, ca_file_, system_ca_dir_, system_ca_file_, grid_ca_, Credential::NoPassword(), false);
@@ -407,6 +445,137 @@ void ConfigTLSMCC::ClearError(void) {
   while(e != 0) {
     e = ERR_get_error();
   }
+}
+
+static char to_hex(uint8_t v) {
+  if (v < 10)
+    return '0' + v;
+  return 'a' + (v - 10);
+}
+
+static ConfigTLSMCC::X509_CRLRef GetCRL(std::string const& path, struct stat& st) {
+  constexpr std::size_t CRLCacheByPathThresholdHigh = 1100;
+  constexpr std::size_t CRLCacheByPathThresholdLow = 1000;
+  struct X509_CRL_CACHE_ITEM {
+    std::mutex lock;
+    timespec mtime;
+    ConfigTLSMCC::X509_CRLRef crl;
+    time_t atime;
+
+    bool Matches(struct stat& st) const {
+      return (mtime.tv_sec == st.st_mtim.tv_sec) && (mtime.tv_nsec == st.st_mtim.tv_nsec);
+    }
+
+    ConfigTLSMCC::X509_CRLRef ShareCRL() {
+      auto crl_p = crl.get();
+      if (!crl_p) return ConfigTLSMCC::X509_CRLRef();
+      if (X509_CRL_up_ref(crl_p) != 1) return ConfigTLSMCC::X509_CRLRef();
+      return ConfigTLSMCC::X509_CRLRef(crl_p);
+    }
+  };
+  typedef std::shared_ptr<X509_CRL_CACHE_ITEM> X509_CRL_CACHE_ENTRY;
+  typedef std::unordered_map<std::string, X509_CRL_CACHE_ENTRY> X509_CRL_CACHE;
+  static X509_CRL_CACHE CRLCacheByPath;
+  static std::mutex CRLCacheByPathLock;
+
+  X509_CRL_CACHE_ENTRY entry;
+  {
+    std::lock_guard<std::mutex> lock(CRLCacheByPathLock);
+
+    // while we have lock acquired trim cache size
+    if (CRLCacheByPath.size() > CRLCacheByPathThresholdHigh) {
+      // Sort collected CRLs by access time
+      std::map<time_t, std::list<X509_CRL_CACHE::iterator> > atimes; // map is ordered by key
+      for(auto it = CRLCacheByPath.begin(); it != CRLCacheByPath.end(); ++it) {
+        atimes[it->second->atime].push_back(it);
+      }
+      // Delete them till threshold is met.
+      // The entry for 'path' can be deleted here, but probability is rather low.
+      for(auto& atime: atimes) {
+        for(auto it: atime.second) CRLCacheByPath.erase(it);
+        if (CRLCacheByPath.size() <= CRLCacheByPathThresholdLow) break;
+      }
+    }
+
+    // Get or create cache entry
+    auto& entryRef = CRLCacheByPath[path];
+    if (!entryRef) entryRef = std::make_shared<X509_CRL_CACHE_ITEM>();
+    entry = entryRef;
+  } // slight race condition here, but shared_ptr handles it
+
+  {
+    std::lock_guard<std::mutex> lock(entry->lock);
+    if (entry->crl) { // this will cause previously failed to load CRL to be retried immeditely because we are expecting intermediate error causing previous faiure
+      if (entry->Matches(st)) {
+        entry->atime = time(nullptr);
+        return entry->ShareCRL();
+      }
+      entry->crl.reset();
+    }
+
+    // by here entry is either new one or expired
+    entry->mtime = st.st_mtim; // file may have changed since st was obtained, but in worst case it will be reloaded on next call
+    entry->atime = time(nullptr);
+
+    auto f = fopen(path.c_str(), "r");
+    if (f) {
+      X509_CRL* crl = PEM_read_X509_CRL(f, nullptr, nullptr, nullptr);
+      fclose(f);
+      if (crl) {
+        entry->crl = crl;
+        return entry->ShareCRL();
+      }
+    }
+  }
+
+  // we failed to load CRL, but we keep it in cache because there is file for it
+  return ConfigTLSMCC::X509_CRLRef();
+}
+
+static ConfigTLSMCC::X509_CRLRef GetCRL(X509_NAME const* issuer, std::string const& hash, std::string const& dir) {
+  for(int suffix = 0; ; ++suffix) {
+    std::string path = dir + "/" + hash + ".r" + std::to_string(suffix);
+
+    struct stat st;
+    if (0 != stat(path.c_str(), &st))
+        break; // no more files with such suffix
+
+    auto crl = GetCRL(path, st);
+    if(!crl) continue;
+
+    X509_NAME* name = X509_CRL_get_issuer(crl.get());
+    if (!name) continue;
+    if(X509_NAME_cmp(name, issuer) != 0) continue;
+
+    return crl;
+  }
+  return ConfigTLSMCC::X509_CRLRef();
+}
+
+ConfigTLSMCC::X509_CRLRef ConfigTLSMCC::GetCRL(X509* cert) const {
+  if (!cert) return X509_CRLRef();
+  auto hash = X509_issuer_name_hash(cert);
+  std::string hash_str;
+  for (int n = 28; n >= 0; n-=4) hash_str += to_hex((hash >> n) & 0xf);
+  
+  if (system_ca_dir_) {
+    std::string dir;
+    auto dir_env = X509_get_default_cert_dir_env();
+    if (dir_env) dir = Arc::GetEnv(dir_env);
+    if (dir.empty()) {
+      auto def_dir = X509_get_default_cert_dir();
+      if (def_dir) dir = def_dir;
+    }
+    if (!dir.empty()) {
+      auto crl = ArcMCCTLS::GetCRL(X509_get_issuer_name(cert), hash_str, dir);
+      if (crl) return crl;
+    }
+  }
+  if (!ca_dir_.empty()) {
+    auto crl = ArcMCCTLS::GetCRL(X509_get_issuer_name(cert), hash_str, ca_dir_);
+    if (crl) return crl;
+  }
+  return X509_CRLRef();
 }
 
 } // namespace Arc

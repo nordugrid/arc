@@ -188,7 +188,7 @@ bool VOMSConfig::AddPath(const std::string& path, int depth, const filter& lfilt
       };
       char buf[max_line_length];
       iv.getline(buf,sizeof(buf));
-      if(iv.gcount() >= (sizeof(buf)-1)) {
+      if(iv.gcount() >= static_cast<std::streamsize>(sizeof(buf)-1)) {
         // too long line
         CredentialLogger.msg(ERROR,"ERROR: VOMS configuration file %s contains too long line(s). Max supported length is %i characters.",path,max_line_length-1);
         return false;

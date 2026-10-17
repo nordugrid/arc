@@ -85,8 +85,8 @@ class Credential {
             FREE(ptr);
           ptr = nullptr;
         }
-        OBJRef(OBJ* obj): ptr(obj) {}
-        OBJRef(OBJRef& obj): ptr(obj.release()) {}
+        explicit OBJRef(OBJ* obj): ptr(obj) {}
+        OBJRef(OBJRef&& obj): ptr(obj.release()) {}
         OBJRef& operator=(OBJ* obj) {
           if(ptr != obj)
             if(ptr)
@@ -94,7 +94,7 @@ class Credential {
           ptr = obj;
           return *this;
         }
-        OBJRef& operator=(OBJRef& obj) {
+        OBJRef& operator=(OBJRef&& obj) {
           if(ptr != obj.ptr)
             if (ptr) 
               FREE(ptr);
