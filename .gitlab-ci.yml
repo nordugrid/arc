@@ -23,16 +23,18 @@ variables:
 .template_build_rhel9: &template_build_rhel9
   stage: build
   image: $BUILD_IMAGE
+  variables:
+    VERSION: "$(date +%Y%m%d%H%M%S)"
   script:
-    - echo "$(date +%Y%m%d%H%M%S)" > VERSION
-    - dnf remove -y dyninst
-    - dnf install -y dyninst
+    - set -euo pipefail
+    - echo "$(VERSION)" > VERSION
+    - dnf reinstall -y dyninst
     - dnf builddep nordugrid-arc -y
     - ./autogen.sh
     - ./configure
+    - dnf builddep nordugrid-arc.spec -y
     - make check
     - make dist
-    - dnf builddep nordugrid-arc.spec -y
     - echo "Preparing and running rpmbuild"
     - VERSION=`cat VERSION`
     - mkdir -p rpmbuild/{SOURCES,BUILD,RPMS,SRPMS}
@@ -54,17 +56,18 @@ variables:
 .template_build_deb: &template_build_deb
   stage: build
   image: $BUILD_IMAGE
+  variables:
+     VERSION: "$(date +%Y%m%d%H%M%S)"
   script:
-    - apt-get update -y
-    - echo "6.99.9" > VERSION
-    - VERSION=`cat VERSION`
+    - set -euo pipefail
+    - echo "$(VERSION)" > VERSION
     - ./autogen.sh
     - ./configure
-    - apt-get build-dep ../nordugrid-arc_${VERSION}-1.dsc -y
     - make check
     - make dist
-    - mv nordugrid-arc-${VERSION}.tar.gz nordugrid-arc_${VERSION}.orig.tar.gz
-    - tar -z -x -f nordugrid-arc_${VERSION}.orig.tar.gz
+    - apt-get build-dep ../nordugrid-arc_${VERSION}-1.dsc -y
+    - mv "nordugrid-arc-${VERSION}.tar.gz" "nordugrid-arc_${VERSION}.orig.tar.gz"
+    - tar -xzf nordugrid-arc_${VERSION}.orig.tar.gz
     - cd nordugrid-arc-${VERSION}
     - dpkg-buildpackage -S -us -uc -d
     - dpkg-buildpackage -b -us -uc
