@@ -17,7 +17,7 @@ inline static std::string sql_escape(const std::string& str) {
     return Arc::escape_chars(str, sql_special_chars, sql_escape_char, false, sql_escape_type);
 }
 
-inline static std::string sql_escape(int num) {
+inline static std::string sql_escape(long long int num) {
     return Arc::tostring(num);
 }
 
