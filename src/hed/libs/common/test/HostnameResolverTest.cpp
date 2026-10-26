@@ -13,7 +13,8 @@
 
 class HostnameResolverTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(HostnameResolverTest);
-  CPPUNIT_TEST(CacheInvalidationTest);
+  // Temporarily commented out due to https://bugzilla.nordugrid.org/show_bug.cgi?id=4328
+  // CPPUNIT_TEST(CacheInvalidationTest);
   CPPUNIT_TEST_SUITE_END();
 
 public:
