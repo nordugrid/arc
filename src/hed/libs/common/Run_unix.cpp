@@ -563,8 +563,16 @@ namespace Arc {
             exit_child(-1, "Failed to change working directory\n");
           }
 
-          // close all handles inherited from parent
-          for(unsigned int i=3;i<max_files;i++) { close(i); }; // skiping std* handles
+          // close all handles inherited from parent, skipping std* handles
+#ifdef HAVE_CLOSE_RANGE
+          // one syscall rather than one per number up to RLIMIT_NOFILE; the
+          // kernel skips closed ones, so the range is left unbounded to catch
+          // descriptors above a lowered rlim_cur.
+          if (close_range(3, ~0U, 0) != 0)
+#endif
+          {
+            for(unsigned int i=3;i<max_files;i++) { close(i); };
+          }
 
           (void)::execve(argv[0], argv, envp);
           exit_child(-1, "Failed to execute command\n");
