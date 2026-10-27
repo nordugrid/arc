@@ -5,8 +5,6 @@
 
 namespace DataStaging {
 
-  class DataDeliveryCommHandler;
-
   /// This class provides an abstract interface for the Delivery layer.
   /**
    * Different implementations provide different ways of providing Delivery
@@ -17,16 +15,19 @@ namespace DataStaging {
    *
    * CreateInstance() should be used to get a pointer to the instantiated
    * object. This also starts the transfer. Deleting this object stops the
-   * transfer and cleans up any used resources. A singleton instance of
-   * DataDeliveryCommHandler regularly polls all active transfers using
-   * PullStatus() and fills the Status object with current information,
-   * which can be obtained through GetStatus().
+   * transfer and cleans up any used resources. Current information about a
+   * running transfer is obtained through GetStatus().
+   *
+   * How that information is kept up to date is left entirely to the
+   * implementation. A local transfer reads it from a pipe to its child
+   * process; a remote one asks the delivery service for every transfer at an
+   * endpoint in a single query, over a connection shared by all of them. The
+   * two have nothing in common beyond the Status they produce, so neither the
+   * polling nor the machinery around it appears here.
    * \ingroup datastaging
    * \headerfile DataDeliveryComm.h arc/data-staging/DataDeliveryComm.h
    */
   class DataDeliveryComm {
-
-    friend class DataDeliveryCommHandler;
 
    public:
     /// Communication status with transfer
@@ -76,30 +77,12 @@ namespace DataStaging {
     /// Logger object. Pointer to DTR's Logger.
     DTRLogger logger_;
 
-    /// Check for new state and fill state accordingly.
-    /**
-     * This method is periodically called by the comm handler to obtain status
-     * info. It detects communication and delivery failures and delivery
-     * termination.
-     */
-    virtual void PullStatus() = 0;
-
-    /// Returns identifier of the handler/delivery service this object uses to perform transfers.
-    virtual std::string DeliveryId() const = 0;
-
     /// Start transfer with parameters taken from DTR and supplied transfer limits.
     /**
      * Constructor should not be used directly, CreateInstance() should be used
      * instead.
      */
     DataDeliveryComm(DTR_ptr dtr, const TransferParameters& params);
-
-    /// Access handler used for this DataDeliveryComm object
-    DataDeliveryCommHandler& GetHandler();
-
-   private:
-    /// Pointer to handler used for this DataDeliveryComm object
-    DataDeliveryCommHandler* handler_;
 
    public:
     /// Factory method to get DataDeliveryComm instance.
@@ -128,35 +111,6 @@ namespace DataStaging {
     virtual operator bool() const = 0;
     /// Returns true if transfer is currently not active
     virtual bool operator!() const = 0;
-  };
-
-  /// Singleton class handling all active DataDeliveryComm objects
-  /**
-   * \ingroup datastaging
-   * \headerfile DataDeliveryComm.h arc/data-staging/DataDeliveryComm.h
-   */
-  class DataDeliveryCommHandler {
-
-   private:
-    std::mutex lock_;
-    static void func(void* arg);
-    std::list<DataDeliveryComm*> items_;
-    static std::mutex comm_lock;
-    static std::map<std::string, DataDeliveryCommHandler*> comm_handler;
-
-    /// Constructor is private - getInstance() should be used instead
-    DataDeliveryCommHandler();
-    DataDeliveryCommHandler(const DataDeliveryCommHandler&);
-    DataDeliveryCommHandler& operator=(const DataDeliveryCommHandler&);
-
-   public:
-    ~DataDeliveryCommHandler() {};
-    /// Add a new DataDeliveryComm instance to the handler
-    void Add(DataDeliveryComm* item);
-    /// Remove a DataDeliveryComm instance from the handler
-    void Remove(DataDeliveryComm* item);
-    /// Get the instance of the handler for specified delivery id
-    static DataDeliveryCommHandler* getInstance(std::string const & id);
   };
 
 } // namespace DataStaging

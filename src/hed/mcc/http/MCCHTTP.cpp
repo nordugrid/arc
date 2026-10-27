@@ -551,6 +551,12 @@ MCC_Status MCC_HTTP_Client::process(Message& inmsg,Message& outmsg) {
       // TODO: check for special attributes: method, code, reason, endpoint, etc.
       if(strcasecmp(key,"METHOD") == 0) continue;
       if(strcasecmp(key,"ENDPOINT") == 0) continue;
+      if(strcasecmp(key,"KEEPALIVE") == 0) {
+        // Not a header: Flush() writes the Connection header itself, so asking
+        // for it here would send a second one contradicting the first.
+        if(Arc::lower(*i) == "false") nextpayload->KeepAlive(false);
+        continue;
+      }
       if(strcasecmp(key,"EXPECT") == 0) {
         if(Arc::lower(*i) == "100-continue") expect100 = true;
       }

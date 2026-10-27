@@ -545,6 +545,15 @@ namespace DataStaging {
     void reset_error_status();
     /// Get the error status.
     DTRErrorStatus get_error_status();
+    /// Get the status and the error status together. Protected by lock.
+    /**
+     * Whatever is running the transfer records the error before it moves the
+     * DTR to its final status, so a reader which takes the two separately can
+     * see the state from before the error and the status from after it, and
+     * conclude that a transfer which failed has succeeded. Anything deciding
+     * on both should read them here.
+     */
+    void get_status_and_error(DTRStatus& stat, DTRErrorStatus& err);
 
     /// Set bytes transferred (should be set by whatever is controlling the transfer)
     void set_bytes_transferred(unsigned long long int bytes);
@@ -646,8 +655,8 @@ namespace DataStaging {
     /// Suspend the DTR which is in doing transfer in the delivery process
     bool suspend();
      
-    /// Did an error happen?
-    bool error() const { return (error_status != DTRErrorStatus::NONE_ERROR); }
+    /// Did an error happen? Protected by lock.
+    bool error();
      
     /// Returns true if this DTR is about to go into the pre-processor
     bool is_destined_for_pre_processor() const;

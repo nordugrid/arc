@@ -248,6 +248,17 @@ namespace DataStaging {
     return s;
   }
 
+  void DTR::get_status_and_error(DTRStatus& stat, DTRErrorStatus& err) {
+    Arc::AutoLock<Arc::SimpleCondition> l(lock);
+    stat = status;
+    err = error_status;
+  }
+
+  bool DTR::error() {
+    Arc::AutoLock<Arc::SimpleCondition> l(lock);
+    return (error_status != DTRErrorStatus::NONE_ERROR);
+  }
+
   void DTR::set_bytes_transferred(unsigned long long int bytes) {
     bytes_transferred = bytes;
   }
