@@ -426,28 +426,48 @@ namespace DataStaging {
       }
 
       DTR_ptr dtr = *dtr_it;
-      std::list<Arc::LogDestination*> logdest = dtr->get_log_destinations();
-      for(auto log: logdest) {
-        auto logstream = dynamic_cast<DTRLogStream*>(log);
-        if (logstream) {
-          resultelement.NewChild("Log") = logstream->str();
-          break;
+
+      // Read the terminal condition once, and read both halves of it under
+      // the DTR's lock. It decides whether the log is worth sending and which
+      // result is reported, and taking the two separately lets a poll which
+      // lands between them see the state from before an error was recorded
+      // and the status from after it, which reports a failed transfer as a
+      // successful one.
+      DTRStatus dtr_status;
+      DTRErrorStatus dtr_error;
+      dtr->get_status_and_error(dtr_status, dtr_error);
+      bool has_error = (dtr_error != DTRErrorStatus::NONE_ERROR);
+      bool transferred = (dtr_status == DTRStatus::TRANSFERRED);
+
+      // The client only reads the log once the transfer has reached a terminal
+      // state, and the log accumulates for the whole life of the transfer, so
+      // attaching it to every answer means shipping a buffer that grows with
+      // the transfer, once per poll, for it to be discarded at the far end.
+      // Send it when it is going to be used.
+      if (has_error || transferred) {
+        std::list<Arc::LogDestination*> logdest = dtr->get_log_destinations();
+        for(auto log: logdest) {
+          auto logstream = dynamic_cast<DTRLogStream*>(log);
+          if (logstream) {
+            resultelement.NewChild("Log") = logstream->str();
+            break;
+          }
         }
       }
       resultelement.NewChild("BytesTransferred") = Arc::tostring(dtr->get_bytes_transferred());
 
-      if (dtr->error()) {
-        logger.msg(Arc::INFO, "DTR %s failed: %s", dtrid, dtr->get_error_status().GetDesc());
+      if (has_error) {
+        logger.msg(Arc::INFO, "DTR %s failed: %s", dtrid, dtr_error.GetDesc());
         resultelement.NewChild("ResultCode") = "TRANSFER_ERROR";
-        resultelement.NewChild("ErrorDescription") = dtr->get_error_status().GetDesc();
-        resultelement.NewChild("ErrorStatus") = Arc::tostring(dtr->get_error_status().GetErrorStatus());
-        resultelement.NewChild("ErrorLocation") = Arc::tostring(dtr->get_error_status().GetErrorLocation());
+        resultelement.NewChild("ErrorDescription") = dtr_error.GetDesc();
+        resultelement.NewChild("ErrorStatus") = Arc::tostring(dtr_error.GetErrorStatus());
+        resultelement.NewChild("ErrorLocation") = Arc::tostring(dtr_error.GetErrorLocation());
         resultelement.NewChild("TransferTime") = Arc::tostring(dtr->get_transfer_time());
         archived_dtrs_lock.lock();
-        archived_dtrs[dtrid] = std::pair<std::string, std::string>("TRANSFER_ERROR", dtr->get_error_status().GetDesc());
+        archived_dtrs[dtrid] = std::pair<std::string, std::string>("TRANSFER_ERROR", dtr_error.GetDesc());
         archived_dtrs_lock.unlock();
       }
-      else if (dtr->get_status() == DTRStatus::TRANSFERRED) {
+      else if (transferred) {
         logger.msg(Arc::INFO, "DTR %s finished successfully", dtrid);
         resultelement.NewChild("ResultCode") = "TRANSFERRED";
         resultelement.NewChild("TransferTime") = Arc::tostring(dtr->get_transfer_time());
@@ -462,7 +482,10 @@ namespace DataStaging {
                    dtrid, dtr->get_bytes_transferred());
         resultelement.NewChild("ResultCode") = "TRANSFERRING";
         active_dtrs_lock.unlock();
-        return Arc::MCC_Status(Arc::STATUS_OK);
+        // Carry on with the rest of the request. Returning here would silently
+        // drop the results for every DTR after the first one still running,
+        // which makes querying several DTRs in one request useless.
+        continue;
       }
       // Terminal state
       //delete dtr_it->second;
@@ -563,6 +586,7 @@ namespace DataStaging {
          <ErrorDescription>...</ErrorDescription>
          <AllowedDir>/var/arc/cache</AllowedDir>
          <LoadAvg>6.5</LoadAvg>
+         <BulkQuery>true</BulkQuery>
          ...
        </Result>
        ...
@@ -577,6 +601,9 @@ namespace DataStaging {
     for (std::list<std::string>::iterator dir = allowed_dirs.begin(); dir != allowed_dirs.end(); ++dir) {
       resultelement.NewChild("AllowedDir") = *dir;
     }
+
+    // Advertise that several DTRs may be queried in a single DataDeliveryQuery
+    resultelement.NewChild("BulkQuery") = "true";
 
     // Send the 5 min load average
     double avg[3];

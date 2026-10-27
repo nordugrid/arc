@@ -2,6 +2,8 @@
 #include <config.h>
 #endif
 
+#include <unistd.h>
+
 #include <arc/ArcLocation.h>
 #include <arc/FileAccess.h>
 #include <arc/FileUtils.h>
@@ -9,6 +11,50 @@
 #include "DataDeliveryLocalComm.h"
 
 namespace DataStaging {
+
+  DataDeliveryLocalComm::Poller& DataDeliveryLocalComm::Poller::Instance() {
+    // Function-local, so it is constructed the first time something asks for
+    // it rather than during static initialisation. Its constructor starts a
+    // thread, and by the time the first transfer gets here the thread system
+    // is long since up; were this a namespace-scope static it would run
+    // before main() in an order the standard does not define, and could
+    // reach CreateThreadFunction() first.
+    static Poller instance;
+    return instance;
+  }
+
+  DataDeliveryLocalComm::Poller::Poller() {
+    Arc::CreateThreadFunction(&func, this);
+  }
+
+  void DataDeliveryLocalComm::Poller::Add(DataDeliveryLocalComm* item) {
+    std::unique_lock<std::mutex> lock(lock_);
+    items_.push_back(item);
+  }
+
+  void DataDeliveryLocalComm::Poller::Remove(DataDeliveryLocalComm* item) {
+    std::unique_lock<std::mutex> lock(lock_);
+    items_.remove(item);
+  }
+
+  void DataDeliveryLocalComm::Poller::func(void* arg) {
+    // Each transfer logs through its own Logger, which is a child of the root
+    // logger and so also reaches the service log. Detach this thread from the
+    // root logger's destinations so data staging messages stay in their own log.
+    Arc::Logger::getRootLogger().setThreadContext();
+    Arc::Logger::getRootLogger().removeDestinations();
+
+    Poller& it = *(Poller*)arg;
+    for(;;) {
+      {
+        std::unique_lock<std::mutex> lock(it.lock_);
+        for (auto item : it.items_) {
+          item->PullStatus();
+        }
+      }
+      usleep(500000);
+    }
+  }
 
   // Check if needed and create copy of proxy with suitable ownership
   static std::string prepare_proxy(const std::string& proxy_path, int child_uid, int child_gid) {
@@ -201,7 +247,7 @@ namespace DataStaging {
         return;
       }
     }
-    GetHandler().Add(this);
+    Poller::Instance().Add(this);
   }
 
   DataDeliveryLocalComm::~DataDeliveryLocalComm(void) {
@@ -213,11 +259,7 @@ namespace DataStaging {
       }
     }
     if(!tmp_proxy_.empty()) Arc::FileDelete(tmp_proxy_);
-    GetHandler().Remove(this);
-  }
-
-  std::string DataDeliveryLocalComm::DeliveryId() const {
-    return "localhost";
+    Poller::Instance().Remove(this);
   }
 
   void DataDeliveryLocalComm::PullStatus(void) {

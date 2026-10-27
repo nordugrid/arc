@@ -17,12 +17,7 @@ namespace DataStaging {
   }
 
   DataDeliveryComm::DataDeliveryComm(DTR_ptr dtr, const TransferParameters& params)
-    : status_pos_(0),transfer_params(params),logger_(dtr->get_logger()),handler_(NULL) {
-  }
-
-  DataDeliveryCommHandler& DataDeliveryComm::GetHandler() {
-    if(handler_) return *handler_;
-    return *(handler_ = DataDeliveryCommHandler::getInstance(DeliveryId()));
+    : status_pos_(0),transfer_params(params),logger_(dtr->get_logger()) {
   }
 
   DataDeliveryComm::Status DataDeliveryComm::GetStatus(void) const {
@@ -35,64 +30,6 @@ namespace DataStaging {
     if (!dtr->get_delivery_endpoint() || dtr->get_delivery_endpoint() == DTR::LOCAL_DELIVERY)
       return DataDeliveryLocalComm::CheckComm(dtr, allowed_dirs, load_avg);
     return DataDeliveryRemoteComm::CheckComm(dtr, allowed_dirs, load_avg);
-  }
-
-  DataDeliveryCommHandler::DataDeliveryCommHandler(void) {
-    std::unique_lock<std::mutex> lock(lock_);
-    Arc::CreateThreadFunction(&func,this);
-  }
-
-  void DataDeliveryCommHandler::Add(DataDeliveryComm* item) {
-    std::unique_lock<std::mutex> lock(lock_);
-    items_.push_back(item);
-  }
-
-  void DataDeliveryCommHandler::Remove(DataDeliveryComm* item) {
-    std::unique_lock<std::mutex> lock(lock_);
-    for(std::list<DataDeliveryComm*>::iterator i = items_.begin();
-                        i!=items_.end();) {
-      if(*i == item) {
-        i=items_.erase(i);
-      } else {
-        ++i;
-      }
-    }
-  }
-
-  std::mutex DataDeliveryCommHandler::comm_lock;
-  std::map<std::string, DataDeliveryCommHandler*> DataDeliveryCommHandler::comm_handler;
-
-  DataDeliveryCommHandler* DataDeliveryCommHandler::getInstance(std::string const & id) {
-    std::unique_lock<std::mutex> lock(comm_lock);
-    std::map<std::string, DataDeliveryCommHandler*>::iterator it = comm_handler.find(id);
-    if(it != comm_handler.end()) return it->second;
-    return (comm_handler[id] = new DataDeliveryCommHandler);
-  }
-
-  // This is a dedicated thread which periodically checks for
-  // new state reported by comm instances and modifies states accordingly
-  void DataDeliveryCommHandler::func(void* arg) {
-    if(!arg) return;
-
-    // disconnect from root logger since messages are logged to per-DTR Logger
-    Arc::Logger::getRootLogger().setThreadContext();
-    Arc::Logger::getRootLogger().removeDestinations();
-
-    // We do not need extremely low latency, so this
-    // thread simply polls for data 2 times per second.
-    DataDeliveryCommHandler& it = *(DataDeliveryCommHandler*)arg;
-    for(;;) {
-      {
-        std::unique_lock<std::mutex> lock(it.lock_);
-        for(std::list<DataDeliveryComm*>::iterator i = it.items_.begin();
-                  i != it.items_.end();++i) {
-          DataDeliveryComm* comm = *i;
-          if(comm)
-            comm->PullStatus();
-        }
-      }
-      usleep(500000);
-    }
   }
 
 } // namespace DataStaging
