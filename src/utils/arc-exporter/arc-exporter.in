@@ -34,33 +34,37 @@ class LogReader:
            overwritten it will reopen the file and start from the
            beginning."""
 
-        # Maybe "if self.needs_reopen():"? That way one could make it
-        # handle complex corner cases.
-        # Do flush() on filehandle so we can to tell()
-        # XXX - What does flush do on a readonly filehandle? What are
-        #       the side effects?
-        if self.f and self.f.flush() and self.f.tell() > os.path.getsize(self.file):
-            self.f.close()
-            self.f = None
+        if self.f:
+            try:
+                st = os.stat(self.file)
+            except OSError:
+                # Rotated away and not yet recreated, keep reading old file
+                st = None
+            if st is not None:
+                if st.st_ino != os.fstat(self.f.fileno()).st_ino:
+                    # File was rotated (renamed and recreated). Pick up
+                    # the last lines written to the old file, then switch.
+                    yield from self._read()
+                    self.f.close()
+                    self.f = None
+                elif st.st_size < self.f.tell():
+                    # File was truncated in place (copytruncate)
+                    self.f.seek(0)
 
         if not self.f:
             try:
-                self.f = open(self.file, 'r')
+                self.f = open(self.file, 'r', errors='replace')
             except OSError:	# Limit to FileNotFoundError, PermissionError?
                 # Leave the iterator and assume that things will improve
                 # next time.
                 return
 
-        try:
-            # Alt. yield from self.f
-            for line in self.f:
-                yield line
-        except UnicodeError:
-            # XXX - Cheating a bit here, should probably try to seek
-            #       to next newline and continue from there. As it
-            #       is now one bad byte will lead to the rest of the
-            #       file being skipped!
-            pass
+        yield from self._read()
+
+    def _read(self):
+        # Undecodable bytes are replaced (errors='replace' on open), so
+        # a bad byte no longer makes us skip the rest of the file
+        yield from self.f
 
 
 class DTRCollector(object):
