@@ -501,13 +501,14 @@ static ConfigTLSMCC::X509_CRLRef GetCRL(std::string const& path, struct stat& st
     auto& entryRef = CRLCacheByPath[path];
     if (!entryRef) entryRef = std::make_shared<X509_CRL_CACHE_ITEM>();
     entry = entryRef;
+    // Set under the same lock the trimming above reads it under
+    entry->atime = time(nullptr);
   } // slight race condition here, but shared_ptr handles it
 
   {
     std::lock_guard<std::mutex> lock(entry->lock);
     if (entry->crl) { // this will cause previously failed to load CRL to be retried immeditely because we are expecting intermediate error causing previous faiure
       if (entry->Matches(st)) {
-        entry->atime = time(nullptr);
         return entry->ShareCRL();
       }
       entry->crl.reset();
@@ -515,7 +516,6 @@ static ConfigTLSMCC::X509_CRLRef GetCRL(std::string const& path, struct stat& st
 
     // by here entry is either new one or expired
     entry->mtime = st.st_mtim; // file may have changed since st was obtained, but in worst case it will be reloaded on next call
-    entry->atime = time(nullptr);
 
     auto f = fopen(path.c_str(), "r");
     if (f) {
