@@ -7,6 +7,7 @@
 
 #include <arc/XMLNode.h>
 #include <arc/Logger.h>
+#include <arc/credential/Credential.h>
 
 namespace ArcMCCTLS {
 
@@ -57,7 +58,9 @@ class ConfigTLSMCC {
   int curve_nid_;
   std::string failure_;
   ConfigTLSMCC(void);
+  Arc::Credential::X509_STORERef BuildStore() const;
  public:
+  typedef Arc::Credential::OBJRef<X509_CRL, X509_CRL_free, X509_CRL_new> X509_CRLRef;
   ConfigTLSMCC(XMLNode cfg,bool client = false);
   const std::string& CADir(void) const { return ca_dir_; };
   const std::string& CAFile(void) const { return ca_file_; };
@@ -73,7 +76,7 @@ class ConfigTLSMCC {
   bool GridCA(void) const { return grid_ca_; };
   bool AllowInsecureConnection(void) const { return allow_insecure_; };
   const std::vector<std::string>& VOMSCertTrustDN(void) { return vomscert_trust_dn_; };
-  bool Set(SSL_CTX* sslctx);
+  bool Set(SSL_CTX* sslctx, bool reuse_store = false);
   bool IfClientAuthn(void) const { return client_authn_; };
   bool IfTLSHandshake(void) const { return handshake_ == tls_handshake; };
   bool IfSSLv3Handshake(void) const { return handshake_ == ssl3_handshake; };
@@ -86,6 +89,7 @@ class ConfigTLSMCC {
   bool IfCheckVOMSCritical(void) const { return (voms_processing_ != relaxed_voms); };
   bool IfFailOnVOMSParsing(void) const { return (voms_processing_ == noerrors_voms) || (voms_processing_ == strict_voms); };
   bool IfFailOnVOMSInvalid(void) const { return (voms_processing_ == noerrors_voms); };
+  X509_CRLRef GetCRL(X509* cert) const;
   const std::string& Hostname() const { return hostname_; };
   const std::string& Failure(void) { return failure_; };
   static std::string HandleError(int code = SSL_ERROR_NONE);

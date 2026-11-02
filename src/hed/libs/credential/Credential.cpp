@@ -103,25 +103,25 @@ namespace Arc {
     return NULL;
   }
 
-  static int X509Stack_insert(STACK_OF(X509)* certchain, Credential::X509Ref& cert, int where) {
+  int X509Stack_insert(STACK_OF(X509)* certchain, Credential::X509Ref& cert, int where) {
     int res = sk_X509_insert(certchain, cert.get(), where);
     if(res != 0) cert.release();
     return res;
   }
 
-  static int X509Stack_push(STACK_OF(X509)* certchain, Credential::X509Ref& cert) {
+  int X509Stack_push(STACK_OF(X509)* certchain, Credential::X509Ref& cert) {
     int res = sk_X509_push(certchain, cert.get());
     if(res != 0) cert.release();
     return res;
   }
 
-  static int X509_EXTENSIONStack_push(STACK_OF(X509_EXTENSION)* st, Credential::X509_EXTENSIONRef& obj) {
+  int X509_EXTENSIONStack_push(STACK_OF(X509_EXTENSION)* st, Credential::X509_EXTENSIONRef& obj) {
     int res = sk_X509_EXTENSION_push(st, obj.get());
     if(res != 0) obj.release();
     return res;
   }
 
-  static int GENERAL_NAMEStack_push(STACK_OF(GENERAL_NAME)* st, Credential::GENERAL_NAMERef& obj) {
+  int GENERAL_NAMEStack_push(STACK_OF(GENERAL_NAME)* st, Credential::GENERAL_NAMERef& obj) {
     int res = sk_GENERAL_NAME_push(st, obj.get());
     if(res != 0) obj.release();
     return res;
@@ -1235,9 +1235,9 @@ namespace Arc {
                     CredentialLogger.msg(ERROR, "PEM_write_bio_X509_REQ failed");
                     LogError();
                   } else {
-                    rsa_key_ = rsa_key;
-                    pkey_ = pkey;
-                    req_ = req;
+                    rsa_key_ = std::move(rsa_key);
+                    pkey_ = std::move(pkey);
+                    req_ = std::move(req);
                     res = true;
                   }
                 }
@@ -1407,14 +1407,14 @@ namespace Arc {
                       CredentialLogger.msg(ERROR, "PEM_write_bio_X509_REQ failed");
                       LogError(); res = false;
                     }
-                    else { rsa_key_ = rsa_key; pkey_ = pkey; res = true; }
+                    else { rsa_key_ = std::move(rsa_key); pkey_ = std::move(pkey); res = true; }
                   }
                   else {
                     if(!(i2d_X509_REQ_bio(reqbio,req))){
                       CredentialLogger.msg(ERROR, "Can't convert X509 request from internal to DER encoded format");
                       LogError(); res = false;
                     }
-                    else { rsa_key_ = rsa_key; pkey_ = pkey; res = true; }
+                    else { rsa_key_ = std::move(rsa_key); pkey_ = std::move(pkey); res = true; }
                   }
                 }
               }
