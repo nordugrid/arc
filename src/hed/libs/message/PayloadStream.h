@@ -19,7 +19,8 @@ class PayloadStreamInterface: virtual public MessagePayload {
   virtual ~PayloadStreamInterface(void) { };
   /** Extracts information from stream up to 'size' bytes. 
     'size' contains number of read bytes on exit.
-    Returns true in case of success. */
+    Returns true in case of success. End of stream is treated as error.
+    Passing zero size may or may not detect errors, just like with read(). */
   virtual bool Get(char* buf,int& size) = 0;
   /** Read as many as possible (sane amount) of bytes into buf.
      Implemented through call to Get(char*,int). */

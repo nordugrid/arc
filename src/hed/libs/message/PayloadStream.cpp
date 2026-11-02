@@ -30,6 +30,7 @@ bool PayloadStream::Get(char* buf,int& size) {
   if(handle_ == -1) return false;
   ssize_t l = size;
   size=0;
+  if(l < 0) return false;
   if(seekable_) { // check for EOF
     struct stat st;
     if(::fstat(handle_,&st) != 0) {
@@ -60,15 +61,21 @@ bool PayloadStream::Get(char* buf,int& size) {
     failure_ = MCC_Status(GENERIC_ERROR,"STREAM","Error in stream's handle");
     return false;
   }
-  l=::read(handle_,buf,l);
-  if(l == -1) {
-    FAILSYSERR("Failed reading stream's handle: ");
-  }
-  size=l;
-  if((l == 0) && (fd.revents & POLLERR)) {
-    // TODO: remove because it never happens
-    failure_ = MCC_Status(GENERIC_ERROR,"STREAM","Error in stream's handle");
-    return false;
+  if (l > 0) {
+    l=::read(handle_,buf,l);
+    // In theory there should be no 0 or less returned, because poll() should have
+    // caught taht case. But there was bug reported where somehow EOF popped out 
+    // here. This is why we have special treatment coded below.
+    if(l < 0) { // should be -1, so just out of paranoia
+      FAILSYSERR("Failed reading stream's handle: ");
+      return false;
+    }
+    size=l;
+    if(l == 0) {
+      // zero indicates end of file according to POSIX
+      failure_ = MCC_Status(GENERIC_ERROR, "STREAM", "End-of-file in stream's handle");
+      return false;
+    }
   }
   return true;
 }
