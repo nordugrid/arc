@@ -543,7 +543,7 @@ static ConfigTLSMCC::X509_CRLRef GetCRL(X509_NAME const* issuer, std::string con
     auto crl = GetCRL(path, st);
     if(!crl) continue;
 
-    X509_NAME* name = X509_CRL_get_issuer(crl.get());
+    const X509_NAME* name = X509_CRL_get_issuer(crl.get());
     if (!name) continue;
     if(X509_NAME_cmp(name, issuer) != 0) continue;
 
