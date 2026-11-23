@@ -11,6 +11,12 @@
 #include <arc/ws-security/X509Token.h>
 #include <arc/xmlsec/XmlSecUtils.h>
 
+class init {
+public:
+  init() { Arc::init_xmlsec(); };
+  ~init() { Arc::final_xmlsec(); };
+} xmlsecinitializer;
+
 class X509TokenTest
   : public CppUnit::TestFixture {
 
@@ -47,16 +53,11 @@ void X509TokenTest::setUp() {
 </S:Envelope>\
 ");
 
-  Arc::init_xmlsec();
-
   certfile = "../../credential/test/host_cert.pem";
   keyfile = "../../credential/test/host_key.pem";
-
 }
 
-void X509TokenTest::tearDown() {
-  Arc::final_xmlsec();
-}
+void X509TokenTest::tearDown() {}
 
 void X509TokenTest::TestSignatureToken() {
   Arc::SOAPEnvelope soap1(xml);
