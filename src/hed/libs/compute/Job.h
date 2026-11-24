@@ -161,7 +161,7 @@ namespace Arc {
 
     Job& operator=(const Job& job);
 
-    int operator==(const Job& other);
+    bool operator==(const Job& other) const;
 
     /// Set Job attributes from a XMLNode representing GLUE2 ComputingActivity
     /**

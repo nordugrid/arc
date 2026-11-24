@@ -368,7 +368,7 @@ namespace Arc {
     };
 
     /// Returns true if all attributes are equal
-    bool operator==(const FileCache& a);
+    bool operator==(const FileCache& a) const;
 
   };
 

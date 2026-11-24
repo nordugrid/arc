@@ -696,7 +696,7 @@ namespace Arc {
     return Time(mtime);
   }
 
-  bool FileCache::operator==(const FileCache& a) {
+  bool FileCache::operator==(const FileCache& a) const{
     if (a._caches.size() != _caches.size()) return false;
     for (int i = 0; i < (int)a._caches.size(); i++) {
       if (a._caches.at(i).cache_path != _caches.at(i).cache_path) return false;

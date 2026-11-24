@@ -21,23 +21,6 @@
 // Definitions for OpenSSL < 3.4.0
 // --------------------------------
 
-
-#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
-
-#define DEFINE_STACK_OF(S) \
-inline STACK_OF(S)* sk_##S##_new(int (*cmp) (const S* const *, const S* const *)) { return SKM_sk_new(S, (cmp)); } \
-inline STACK_OF(S)* sk_##S##_new_null() { return SKM_sk_new_null(S); } \
-inline int sk_##S##_is_sorted(STACK_OF(S) const *st) { return SKM_sk_is_sorted(S, st); } \
-inline void sk_##S##_free(STACK_OF(S)* st) { SKM_sk_free(S, st); } \
-inline int sk_##S##_num(STACK_OF(S) const* st) { return SKM_sk_num(S, st); } \
-inline int sk_##S##_push(STACK_OF(S)* st, S* val) { return SKM_sk_push(S, st, val); } \
-inline S* sk_##S##_value(STACK_OF(S) const* st, int i) { return SKM_sk_value(S, st, i); } \
-inline void sk_##S##_pop_free(STACK_OF(S)* st, void (*free_func)(S*)) { SKM_sk_pop_free(S, st, free_func); } \
-DECLARE_STACK_OF(S)
-
-#endif // (OPENSSL_VERSION_NUMBER < 0x10100000L)
-
-
 namespace ArcCredential {
 
 #define ASN1_F_D2I_AC_ATTR          5000
