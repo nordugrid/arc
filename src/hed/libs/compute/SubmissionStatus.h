@@ -49,7 +49,7 @@ namespace Arc {
     SubmissionStatus& operator=(SubmissionStatusType s) { status = s; return *this; }
     SubmissionStatus& operator=(unsigned int s) { status = (s & maxValue); return *this; }
 
-    operator bool() const { return status == NONE; }
+    operator bool() const { return status == (unsigned int)NONE; }
     
     bool operator==(const SubmissionStatus& s) const { return status == s.status; }
     bool operator==(SubmissionStatusType s) const { return status == (unsigned int)s; }

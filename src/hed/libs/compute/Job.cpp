@@ -242,7 +242,7 @@ namespace Arc {
     return *this;
   }
 
-  int Job::operator==(const Job& other) { return JobID == other.JobID; }
+  bool Job::operator==(const Job& other) const { return JobID == other.JobID; }
 
   Job& Job::operator=(XMLNode job) {
     jc = NULL;
