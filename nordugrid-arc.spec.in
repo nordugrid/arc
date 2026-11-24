@@ -4,7 +4,7 @@
 
 %global with_s3 1
 
-%if %{?fedora}%{!?fedora:0} >= 43
+%if %{?fedora}%{!?fedora:0} >= 43 || %{?rhel}%{!?rhel:0} >= 11
 %global with_gfal 0
 %else
 %global with_gfal 1
@@ -492,7 +492,7 @@ Header files and libraries needed to develop applications using ARC.
 
 %package -n python%{python3_pkgversion}-%{name}
 Summary:	ARC Python 3 wrapper
-%{?python_provide:%python_provide python%{python3_pkgversion}-%{name}}
+%py_provides	python%{python3_pkgversion}-%{name}
 Requires:	%{name} = %{version}-%{release}
 
 %description -n python%{python3_pkgversion}-%{name}
@@ -505,6 +505,7 @@ Python 3 bindings for ARC.
 %if %{with_altpython}
 %package -n python%{altpython3_pkgversion}-%{name}
 Summary:	ARC Python 3 wrapper
+%py_provides	python%{altpython3_pkgversion}-%{name}
 Requires:	%{name} = %{version}-%{release}
 
 %description -n python%{altpython3_pkgversion}-%{name}
@@ -557,7 +558,7 @@ management features on the worker nodes (WN).
 
 %package -n python%{python3_pkgversion}-arcrest
 Summary:	ARC REST client
-%{?python_provide:%python_provide python%{python3_pkgversion}-arcrest}
+%py_provides	python%{python3_pkgversion}-arcrest
 BuildArch:	noarch
 
 %description -n python%{python3_pkgversion}-arcrest
@@ -570,6 +571,7 @@ This package contains the ARC REST client.
 %if %{with_altpython}
 %package -n python%{altpython3_pkgversion}-arcrest
 Summary:	ARC REST client
+%py_provides	python%{altpython3_pkgversion}-arcrest
 BuildArch:	noarch
 
 %description -n python%{altpython3_pkgversion}-arcrest
